@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repertuvar — Ana Sayfa</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b0c;
+    --surface: #131315;
+    --surface2: #1a1a1d;
+    --border: #252528;
+    --accent: #c9963a;
+    --accent2: #e8b055;
+    --accent-dim: rgba(201,150,58,0.12);
+    --text: #f0ede6;
+    --text2: #9b9890;
+    --text3: #4a4845;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(201,150,58,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 90%, rgba(100,80,160,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── LAYOUT ── */
+  .page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ── HEADER ── */
+  header {
+    padding: 48px 48px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(201,150,58,0.25);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .logo-text span {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--text3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .header-date {
+    font-size: 12px;
+    color: var(--text3);
+    text-align: right;
+    line-height: 1.6;
+    padding-top: 4px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 48px 40px;
+    text-align: center;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.1s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(38px, 6vw, 72px);
+    font-weight: 400;
+    line-height: 1.1;
+    color: var(--text);
+    max-width: 700px;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.2s forwards;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--text2);
+    max-width: 420px;
+    line-height: 1.7;
+    margin-bottom: 56px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.3s forwards;
+  }
+
+  /* ── MODULE CARDS ── */
+  .modules {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    width: 100%;
+    max-width: 860px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.45s forwards;
+  }
+
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 24px;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    display: block;
+  }
+
+  .module-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(201,150,58,0.06) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .module-card:hover {
+    border-color: rgba(201,150,58,0.35);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  }
+
+  .module-card:hover::before { opacity: 1; }
+
+  .card-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+    font-weight: 300;
+    margin-bottom: 16px;
+  }
+
+  .card-stat {
+    font-size: 11px;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .card-stat strong {
+    color: var(--accent);
+    font-size: 18px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+  }
+
+  .card-arrow {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    font-size: 16px;
+    color: var(--text3);
+    transition: color 0.2s, transform 0.2s;
+  }
+
+  .module-card:hover .card-arrow {
+    color: var(--accent);
+    transform: translate(2px, -2px);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 100%;
+    max-width: 860px;
+    margin: 40px 0 0;
+    border: none;
+    border-top: 1px solid var(--border);
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.65s forwards;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 20px 48px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    opacity: 0;
+    animation: fadeIn 0.6s ease 0.8s forwards;
+  }
+
+  .footer-link {
+    font-size: 12px;
+    color: var(--text3);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    transition: color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .footer-link:hover { color: var(--text2); }
+
+  .footer-dot {
+    width: 3px; height: 3px;
+    background: var(--text3);
+    border-radius: 50%;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    header { padding: 28px 24px 0; }
+    .hero { padding: 40px 24px 32px; }
+    .modules { grid-template-columns: 1fr; max-width: 360px; }
+    footer { padding: 20px 24px 28px; flex-wrap: wrap; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="logo-mark">
+      <div class="logo-icon">🎵</div>
+      <div class="logo-text">
+        Repertuvar
+        <span>Müzik Yönetim Sistemi</span>
+      </div>
+    </div>
+    <div class="header-date" id="headerDate"></div>
+  </header>
+
+  <main class="hero">
+    <p class="hero-eyebrow">Müzik Arşiviniz</p>
+    <h1 class="hero-title">Sahnede her nota,<br><em>elinizin altında</em></h1>
+    <p class="hero-sub">Eserlerinizi, repertuvarlarınızı ve solistlerinizi tek bir yerde yönetin.</p>
+
+    <div class="modules">
+
+      <a href="eserler.html" class="module-card">
+        <span class="card-icon">🎼</span>
+        <div class="card-title">Eserler</div>
+        <div class="card-desc">Tüm kompozisyonlarınız — makam, akort, güfte ve besteci bilgileriyle.</div>
+        <div class="card-stat"><strong id="worksCount">411</strong> eser kayıtlı</div>
+        <span class="card-arrow">↗</span>
+      </a>
+
+      <a href="repertoires.html" class="module-card">
+        <span class="card-icon">📋</span>
+        <div class="card-title">Repertuvar</div>
+        <div class="card-desc">Konser programları oluşturun, sıralayın ve sahneye hazırlayın.</div>
+        <div class="card-stat"><strong id="repsCount">0</strong> repertuvar</div>
+        <span class="card-arrow">↗</span>
+      </a>
+
+      <a href="artiesten.html" class="module-card">
+        <span class="card-icon">🎤</span>
+        <div class="card-title">Solistler</div>
+        <div class="card-desc">Solistlerinizin iletişim bilgileri, notlar ve eser tercihleri.</div>
+        <div class="card-stat"><strong id="soloCount">0</strong> solist</div>
+        <span class="card-arrow">↗</span>
+      </a>
+
+    <!-- STAGE MODE BANNER -->
+    <a href="stage.html" style="
+      display:flex; align-items:center; justify-content:space-between;
+      width:100%; max-width:860px; margin-top:16px;
+      background:linear-gradient(135deg, rgba(201,150,58,0.12) 0%, rgba(201,150,58,0.05) 100%);
+      border:1px solid rgba(201,150,58,0.3); border-radius:14px;
+      padding:20px 28px; text-decoration:none; color:inherit;
+      transition:border-color .2s, transform .2s, box-shadow .2s;
+      opacity:0; animation:fadeUp 0.9s ease 0.55s forwards;"
+      onmouseover="this.style.borderColor='rgba(201,150,58,0.6)';this.style.transform='translateY(-2px)'"
+      onmouseout="this.style.borderColor='rgba(201,150,58,0.3)';this.style.transform='translateY(0)'">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <span style="font-size:32px;">🎭</span>
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--text);margin-bottom:3px;">Sahne Modu</div>
+          <div style="font-size:12px;color:var(--text2);font-weight:300;">Repertuvar seç ve sahneye çık — büyük ekran, kolay geçiş</div>
+        </div>
+      </div>
+      <span style="font-size:20px;color:var(--accent);">→</span>
+    </a>
+
+    
+
+    </div>
+
+    <hr class="divider">
+  </main>
+
+  <footer>
+    <a href="eserler.html" class="footer-link">🎼 Eserler</a>
+    <div class="footer-dot"></div>
+    <a href="repertoires.html" class="footer-link">📋 Repertuvar</a>
+    <div class="footer-dot"></div>
+    <a href="artiesten.html" class="footer-link">🎤 Solistler</a>
+  </footer>
+
+</div>
+
+<script>
+  // Date
+  const now = new Date();
+  document.getElementById('headerDate').innerHTML =
+    now.toLocaleDateString('tr-TR', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) +
+    '<br><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);">Repertuvar Sistemi</span>';
+
+  // Live counts from localStorage
+  try {
+    const reps = JSON.parse(localStorage.getItem('repertoires') || '[]');
+    document.getElementById('repsCount').textContent = reps.length;
+  } catch {}
+
+  try {
+    const solos = JSON.parse(localStorage.getItem('solistler') || '[]');
+    document.getElementById('soloCount').textContent = solos.length;
+  } catch {}
+</script>
+</body>
+</html>
