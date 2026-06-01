@@ -7,19 +7,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0e0e0f;
-    --surface: #161618;
-    --surface2: #1e1e21;
-    --border: #2a2a2f;
-    --border2: #38383f;
-    --accent: #c9963a;
-    --accent2: #e8b055;
-    --text: #f0ede6;
-    --text2: #9b9890;
-    --text3: #5c5a56;
+    --bg: #080810;
+    --surface: #0f0f1a;
+    --surface2: #161625;
+    --border: #2a2a3e;
+    --border2: #38384f;
+    --accent: #a855f7;
+    --accent2: #c084fc;
+    --text: #f1f0ff;
+    --text2: #8b8aa8;
+    --text3: #3d3d58;
     --red: #c05444;
     --green: #4a9462;
-    --tag-bg: #252528;
+    --tag-bg: #2a2a3e;
     --tag-text: #b8b4ac;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -48,9 +48,9 @@
   .filter-label { font-size:10px; font-weight:500; letter-spacing:0.1em; color:var(--text3); text-transform:uppercase; margin-bottom:8px; padding-top:16px; display:block; }
   .filter-btn { display:block; width:100%; text-align:left; background:none; border:none; padding:5px 8px; border-radius:6px; color:var(--text2); font-size:13px; font-family:'DM Sans', sans-serif; cursor:pointer; transition:all .15s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .filter-btn:hover { background:var(--surface2); color:var(--text); }
-  .filter-btn.active { background:rgba(201,150,58,0.15); color:var(--accent); }
+  .filter-btn.active { background:rgba(168,85,247,0.15); color:var(--accent); }
   .filter-btn .badge { float:right; background:var(--surface2); border-radius:10px; padding:0 6px; font-size:10px; color:var(--text3); }
-  .filter-btn.active .badge { background:rgba(201,150,58,0.2); color:var(--accent); }
+  .filter-btn.active .badge { background:rgba(168,85,247,0.2); color:var(--accent); }
 
   /* WORK LIST */
   .list-panel { flex:1; overflow-y:auto; }
@@ -93,14 +93,14 @@
   .lyrics-box { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px; font-size:13px; color:var(--text2); line-height:1.8; max-height:300px; overflow-y:auto; white-space:pre-wrap; word-break:break-word; }
   .lyrics-box::-webkit-scrollbar { width:3px; }
   .lyrics-box::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
-  .video-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; background:rgba(201,150,58,.1); border:1px solid rgba(201,150,58,.3); border-radius:6px; color:var(--accent); font-size:13px; text-decoration:none; transition:all .15s; }
-  .video-btn:hover { background:rgba(201,150,58,.2); }
+  .video-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; background:rgba(168,85,247,.1); border:1px solid rgba(168,85,247,.3); border-radius:6px; color:var(--accent); font-size:13px; text-decoration:none; transition:all .15s; }
+  .video-btn:hover { background:rgba(168,85,247,.2); }
 
   /* TOOLBAR */
   .toolbar { padding:10px 20px; display:flex; gap:8px; align-items:center; border-bottom:1px solid var(--border); background:var(--bg); }
   .sort-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:'DM Sans', sans-serif; cursor:pointer; transition:all .15s; }
   .sort-btn:hover { border-color:var(--border2); color:var(--text); }
-  .sort-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(201,150,58,.08); }
+  .sort-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(168,85,247,.08); }
   .clear-btn { margin-left:auto; background:none; border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text3); font-size:12px; font-family:'DM Sans', sans-serif; cursor:pointer; transition:all .15s; }
   .clear-btn:hover { color:var(--text2); border-color:var(--border2); }
 
@@ -116,153 +116,6 @@
   @media (min-width: 769px) {
     .back-btn { display:none; }
   }
-
-  /* ── YENİ ESER MODAL ── */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0; z-index: 1000;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(4px);
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: #131315;
-    border: 1px solid #2a2a2e;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 32px;
-    position: relative;
-  }
-  .modal h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px;
-    color: #f0ede6;
-    margin-bottom: 24px;
-  }
-  .modal-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
-  .modal-grid .full { grid-column: 1 / -1; }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-group label { font-size: 11px; color: #9b9890; letter-spacing: .08em; text-transform: uppercase; }
-  .form-group input, .form-group textarea, .form-group select {
-    background: #1a1a1d;
-    border: 1px solid #252528;
-    border-radius: 8px;
-    padding: 9px 12px;
-    color: #f0ede6;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    outline: none;
-    transition: border-color .15s;
-  }
-  .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-    border-color: rgba(201,150,58,.5);
-  }
-  .form-group textarea { resize: vertical; min-height: 80px; }
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 1px solid #252528;
-  }
-  .btn-cancel {
-    padding: 9px 20px; border-radius: 8px;
-    background: none; border: 1px solid #252528;
-    color: #9b9890; font-family: 'DM Sans', sans-serif;
-    font-size: 13px; cursor: pointer;
-    transition: border-color .15s;
-  }
-  .btn-cancel:hover { border-color: #4a4845; color: #f0ede6; }
-  .btn-save {
-    padding: 9px 24px; border-radius: 8px;
-    background: #c9963a; border: none;
-    color: #1a1000; font-family: 'DM Sans', sans-serif;
-    font-size: 13px; font-weight: 500; cursor: pointer;
-    transition: filter .15s;
-  }
-  .btn-save:hover { filter: brightness(1.1); }
-  .btn-new-eser {
-    margin-left: auto;
-    padding: 5px 14px;
-    background: rgba(201,150,58,.15);
-    border: 1px solid rgba(201,150,58,.4);
-    border-radius: 7px;
-    color: #c9963a;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all .15s;
-    white-space: nowrap;
-  }
-  .btn-new-eser:hover { background: rgba(201,150,58,.25); border-color: rgba(201,150,58,.7); }
-
-  /* ── SAHNE MODU BUTONU ── */
-  .detail-stage-row {
-    margin-top: 12px;
-  }
-  .stage-open-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 18px;
-    background: linear-gradient(135deg, rgba(201,150,58,0.18), rgba(201,150,58,0.08));
-    border: 1px solid rgba(201,150,58,0.45);
-    border-radius: 8px;
-    color: #c9963a;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all .15s;
-  }
-  .stage-open-btn:hover {
-    background: linear-gradient(135deg, rgba(201,150,58,0.28), rgba(201,150,58,0.15));
-    border-color: rgba(201,150,58,0.7);
-    transform: translateY(-1px);
-  }
-
-  /* ── SİL BUTONU & ONAY ── */
-  .delete-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 16px; border-radius: 8px;
-    background: rgba(192,84,68,0.1); border: 1px solid rgba(192,84,68,0.35);
-    color: #c05444; font-family: 'DM Sans',sans-serif; font-size: 13px;
-    font-weight: 500; cursor: pointer; transition: all .15s;
-  }
-  .delete-btn:hover { background: rgba(192,84,68,0.2); border-color: rgba(192,84,68,0.6); }
-  .confirm-bar {
-    display: none; align-items: center; gap: 10px; flex-wrap: wrap;
-    margin-top: 8px; padding: 10px 14px;
-    background: rgba(192,84,68,0.08); border: 1px solid rgba(192,84,68,0.3);
-    border-radius: 8px;
-  }
-  .confirm-bar.open { display: flex; }
-  .confirm-bar span { font-size: 13px; color: #f0ede6; flex: 1; }
-  .confirm-yes {
-    padding: 6px 14px; border-radius: 7px; border: none;
-    background: #c05444; color: #fff; font-family: 'DM Sans',sans-serif;
-    font-size: 13px; font-weight: 500; cursor: pointer;
-  }
-  .confirm-yes:hover { filter: brightness(1.15); }
-  .confirm-no {
-    padding: 6px 14px; border-radius: 7px;
-    background: none; border: 1px solid #252528;
-    color: #9b9890; font-family: 'DM Sans',sans-serif;
-    font-size: 13px; cursor: pointer;
-  }
-  .confirm-no:hover { border-color: #4a4845; color: #f0ede6; }
 </style>
 </head>
 <body>
@@ -270,7 +123,7 @@
 <header>
   <div class="logo">🎵 <span style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text2);margin-right:8px;font-weight:300;">Eserler</span></div>
   <a href="index.html" style="padding:4px 12px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;text-decoration:none;margin-right:2px;">🏠 Ana Sayfa</a>
-  <a href="eserler.html" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(201,150,58,.3);background:rgba(201,150,58,.12);color:var(--accent);font-size:13px;text-decoration:none;margin-right:2px;">Eserler</a>
+  <a href="eserler.html" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.12);color:var(--accent);font-size:13px;text-decoration:none;margin-right:2px;">Eserler</a>
   <a href="repertoires.html" style="padding:4px 12px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;text-decoration:none;margin-right:2px;">Repertuvar</a>
   <a href="artiesten.html" style="padding:4px 12px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;text-decoration:none;"></a>
   <div class="search-wrap">
@@ -307,7 +160,6 @@
       <button class="sort-btn" id="sortId" onclick="setSort('id')">Numaraya Göre</button>
       <button class="sort-btn" id="sortComposer" onclick="setSort('composer')">Besteciye Göre</button>
       <button class="clear-btn" onclick="clearFilters()">Filtreleri Temizle</button>
-      <button class="btn-new-eser" onclick="openNewEserModal()">+ Yeni Eser</button>
     </div>
     <div class="list-panel" id="listPanel"></div>
   </div>
@@ -319,76 +171,6 @@
     </div>
     <div id="detailContent" style="display:none;"></div>
   </aside>
-</div>
-
-
-<!-- YENİ ESER MODAL -->
-<div class="modal-overlay" id="newEserModal">
-  <div class="modal">
-    <h2>🎼 Yeni Eser Ekle</h2>
-    <div class="modal-grid">
-      <div class="form-group full">
-        <label>Eser Adı *</label>
-        <input type="text" id="ne_name" placeholder="Eser adını girin...">
-      </div>
-      <div class="form-group">
-        <label>Besteci</label>
-        <input type="text" id="ne_composer" placeholder="Besteci adı">
-      </div>
-      <div class="form-group">
-        <label>Güfte Yazarı</label>
-        <input type="text" id="ne_lyricWriter" placeholder="Güfte yazarı">
-      </div>
-      <div class="form-group">
-        <label>Makam</label>
-        <input type="text" id="ne_makam" placeholder="örn. Hicaz, Rast...">
-      </div>
-      <div class="form-group">
-        <label>Usul / Ölçü</label>
-        <input type="text" id="ne_measurement" placeholder="örn. 4/4, 2/4...">
-      </div>
-      <div class="form-group">
-        <label>Form</label>
-        <input type="text" id="ne_form" placeholder="örn. Türkü, Şarkı...">
-      </div>
-      <div class="form-group">
-        <label>Tür</label>
-        <input type="text" id="ne_genre" placeholder="örn. Kırık Hava">
-      </div>
-      <div class="form-group">
-        <label>Akort</label>
-        <input type="text" id="ne_tuning" placeholder="örn. Si, La, Re...">
-      </div>
-      <div class="form-group">
-        <label>Karar Notası</label>
-        <input type="text" id="ne_closingNote" placeholder="örn. Si">
-      </div>
-      <div class="form-group">
-        <label>Saz / Enstrüman</label>
-        <input type="text" id="ne_instrument" placeholder="örn. Kısa Sap">
-      </div>
-      <div class="form-group">
-        <label>Yöre / Bölge</label>
-        <input type="text" id="ne_region" placeholder="örn. Sivas">
-      </div>
-      <div class="form-group">
-        <label>Kaynak Kişi</label>
-        <input type="text" id="ne_sourcePerson" placeholder="Derleme kaynağı">
-      </div>
-      <div class="form-group">
-        <label>Video Link</label>
-        <input type="url" id="ne_videoLink" placeholder="https://...">
-      </div>
-      <div class="form-group full">
-        <label>Güfte</label>
-        <textarea id="ne_lyrics" placeholder="Eserin sözlerini buraya girin..."></textarea>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeNewEserModal()">İptal</button>
-      <button class="btn-save" onclick="saveNewEser()">💾 Kaydet</button>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -524,23 +306,12 @@ function selectWork(id) {
   }
 
   const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video İzle</a>` : '';
-  const workIdStr = String(w.id).replace('.0','').replace(/\.0$/,'');
-  const stageBtn = `<a href="stage.html?work=${w.id}" class="stage-open-btn">🎭 Sahne Modunda Aç</a>`;
 
   dc.innerHTML = `
     <div class="detail-header">
       <div class="detail-id">#${w.id||'—'}</div>
       <div class="detail-title">${w.name||'(isimsiz)'}</div>
       <div class="detail-chips">${chips}</div>
-      <div class="detail-stage-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      ${stageBtn}
-      <button class="delete-btn" onclick="showDeleteConfirm(${w.id})">🗑 Sil</button>
-    </div>
-    <div class="confirm-bar" id="confirm-${w.id}">
-      <span>Bu eseri silmek istediğinize emin misiniz?</span>
-      <button class="confirm-yes" onclick="deleteWork(${w.id})">Evet, Sil</button>
-      <button class="confirm-no" onclick="hideDeleteConfirm(${w.id})">İptal</button>
-    </div>
     </div>
     <div class="detail-body">
       ${row('Besteci', w.composer)}
@@ -562,164 +333,8 @@ function selectWork(id) {
 
 document.getElementById('searchInput').addEventListener('input', applyFilters);
 
-// ── YENİ ESER FONKSİYONLARI ──
-const LOCAL_KEY = 'customWorks';
-
-function getCustomWorks() {
-  try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); } catch { return []; }
-}
-
-function saveCustomWorks(arr) {
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(arr));
-}
-
-
-function showDeleteConfirm(id) {
-  document.querySelectorAll('.confirm-bar').forEach(el => el.classList.remove('open'));
-  const bar = document.getElementById('confirm-' + id);
-  if (bar) bar.classList.add('open');
-}
-
-function hideDeleteConfirm(id) {
-  const bar = document.getElementById('confirm-' + id);
-  if (bar) bar.classList.remove('open');
-}
-
-function deleteWork(id) {
-  // localStorage'dan sil (custom ise)
-  const customs = getCustomWorks().filter(w => w.id !== id);
-  saveCustomWorks(customs);
-
-  // Silinen built-in ID'leri de sakla
-  const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
-  if (!deleted.includes(id)) { deleted.push(id); localStorage.setItem('deletedWorks', JSON.stringify(deleted)); }
-
-  // DATA dizisinden sil
-  const idx = DATA.findIndex(w => w.id === id);
-  if (idx > -1) DATA.splice(idx, 1);
-
-  // Listeyi yenile, detay panelini temizle
-  buildFilters();
-  applyFilters();
-  document.getElementById('detailEmpty').style.display = '';
-  document.getElementById('detailContent').style.display = 'none';
-  selectedId = null;
-
-  // worksListCache güncelle
-  try {
-    const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
-    localStorage.setItem('worksListCache', JSON.stringify(list));
-  } catch(e) {}
-}
-
-function openNewEserModal() {
-  // Clear form
-  ['name','composer','lyricWriter','makam','measurement','form','genre','tuning',
-   'closingNote','instrument','region','sourcePerson','videoLink','lyrics'].forEach(f => {
-    document.getElementById('ne_' + f).value = '';
-  });
-  document.getElementById('newEserModal').classList.add('open');
-  document.getElementById('ne_name').focus();
-}
-
-function closeNewEserModal() {
-  document.getElementById('newEserModal').classList.remove('open');
-}
-
-function saveNewEser() {
-  const name = document.getElementById('ne_name').value.trim();
-  if (!name) {
-    document.getElementById('ne_name').focus();
-    document.getElementById('ne_name').style.borderColor = '#c05444';
-    setTimeout(() => document.getElementById('ne_name').style.borderColor = '', 1500);
-    return;
-  }
-
-  // Generate a unique negative ID (custom works use negative IDs)
-  const customs = getCustomWorks();
-  const newId = customs.length > 0 ? Math.min(...customs.map(w => w.id), 0) - 1 : -1;
-
-  const eser = {
-    id: newId,
-    name,
-    composer: document.getElementById('ne_composer').value.trim(),
-    lyricWriter: document.getElementById('ne_lyricWriter').value.trim(),
-    makam: document.getElementById('ne_makam').value.trim(),
-    measurement: document.getElementById('ne_measurement').value.trim(),
-    form: document.getElementById('ne_form').value.trim(),
-    genre: document.getElementById('ne_genre').value.trim(),
-    tuning: document.getElementById('ne_tuning').value.trim(),
-    closingNote: document.getElementById('ne_closingNote').value.trim(),
-    instrument: document.getElementById('ne_instrument').value.trim(),
-    region: document.getElementById('ne_region').value.trim(),
-    sourcePerson: document.getElementById('ne_sourcePerson').value.trim(),
-    videoLink: document.getElementById('ne_videoLink').value.trim(),
-    lyrics: document.getElementById('ne_lyrics').value.trim(),
-    area: '',
-    metronom: '',
-    _custom: true
-  };
-
-  // Save to localStorage
-  customs.push(eser);
-  saveCustomWorks(customs);
-
-  // Add to live DATA array
-  DATA.push(eser);
-
-  // Rebuild filters and re-render
-  buildFilters();
-  applyFilters();
-
-  // Update works cache
-  try {
-    const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
-    localStorage.setItem('worksListCache', JSON.stringify(list));
-  } catch(e) {}
-
-  closeNewEserModal();
-
-  // Select the new work in the list
-  setTimeout(() => {
-    const item = document.querySelector('[data-id="' + newId + '"]');
-    if (item) { item.click(); item.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
-  }, 100);
-}
-
-// Load custom works on startup — DATA'ya ekle, sonra filtrele
-(function loadCustomWorks() {
-  // Silinmiş built-in eserleri DATA'dan çıkar
-  const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
-  if (deleted.length > 0) {
-    deleted.forEach(id => {
-      const idx = DATA.findIndex(w => w.id === id);
-      if (idx > -1) DATA.splice(idx, 1);
-    });
-  }
-  // Kullanıcı eklentilerini ekle
-  const customs = getCustomWorks();
-  if (customs.length > 0) {
-    customs.forEach(w => DATA.push(w));
-  }
-})();
-
 buildFilters();
 applyFilters();
-
-// Modal event listeners - DOM hazır olunca bağla
-document.addEventListener('DOMContentLoaded', function() {
-  const overlay = document.getElementById('newEserModal');
-  if (overlay) {
-    overlay.addEventListener('click', function(e) {
-      if (e.target === this) closeNewEserModal();
-    });
-  }
-});
-
-// Keyboard shortcut: Escape to close
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeNewEserModal();
-});
 
 // Cache works list for Solistler page
 try {
@@ -727,6 +342,5 @@ try {
   localStorage.setItem('worksListCache', JSON.stringify(list));
 } catch(e) {}
 </script>
-
 </body>
 </html>
