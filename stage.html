@@ -227,6 +227,28 @@ document.getElementById('stageScreen').addEventListener('touchend',e=>{const dx=
 
 // Init
 (async()=>{
+  // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda göster
+  const urlParams = new URLSearchParams(window.location.search);
+  const singleWorkId = urlParams.get('work');
+  if (singleWorkId) {
+    // ID normalizasyonu: "6.0" -> "6"
+    const normalizedId = String(parseInt(singleWorkId));
+    const w = WL[normalizedId] || WL[singleWorkId];
+    if (w) {
+      // Tek eserlik sahte bir repertuvar oluştur
+      curRep = {
+        id: 'single',
+        name: w.name || 'Eser',
+        items: [{ workId: normalizedId, closingNote: w.closingNote || '' }]
+      };
+      curIdx = 0;
+      showScreen('stageScreen');
+      document.getElementById('strn').textContent = w.name || '';
+      renderStage();
+      return;
+    }
+  }
+
   reps=await loadReps();
   renderPicker();
   const autoId=localStorage.getItem('stageRepId');
