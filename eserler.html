@@ -504,7 +504,7 @@ function saveNewEser() {
 
   // Select the new work in the list
   setTimeout(() => {
-    const item = document.querySelector(\`[data-id="\${newId}"]\`);
+    const item = document.querySelector('[data-id="' + newId + '"]');
     if (item) { item.click(); item.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
   }, 100);
 }
