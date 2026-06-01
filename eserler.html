@@ -424,10 +424,6 @@ function selectWork(id) {
 
 document.getElementById('searchInput').addEventListener('input', applyFilters);
 
-buildFilters();
-applyFilters();
-
-
 // ── YENİ ESER FONKSİYONLARI ──
 const LOCAL_KEY = 'customWorks';
 
@@ -513,13 +509,16 @@ function saveNewEser() {
   }, 100);
 }
 
-// Load custom works on startup
+// Load custom works on startup — DATA'ya ekle, sonra filtrele
 (function loadCustomWorks() {
   const customs = getCustomWorks();
   if (customs.length > 0) {
     customs.forEach(w => DATA.push(w));
   }
 })();
+
+buildFilters();
+applyFilters();
 
 // Close modal on overlay click
 document.getElementById('newEserModal').addEventListener('click', function(e) {
