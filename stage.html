@@ -235,6 +235,26 @@ document.getElementById('stageScreen').addEventListener('touchend',e=>{const dx=
 
 // Init
 (async()=>{
+  // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda aç
+  const urlParams = new URLSearchParams(window.location.search);
+  const workParam = urlParams.get('work');
+  if (workParam) {
+    const normalizedId = String(parseInt(workParam));
+    const w = WL[normalizedId] || WL[workParam];
+    if (w) {
+      curRep = {
+        id: 'single',
+        name: w.name || 'Eser',
+        items: [{ workId: normalizedId, closingNote: w.closingNote || '' }]
+      };
+      curIdx = 0;
+      showScreen('stageScreen');
+      document.getElementById('strn').textContent = w.name || '';
+      renderStage();
+      return;
+    }
+  }
+
   reps=await loadReps();
   renderPicker();
   const autoId=localStorage.getItem('stageRepId');
