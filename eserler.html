@@ -533,13 +533,13 @@ function selectWork(id) {
       <div class="detail-chips">${chips}</div>
       <div class="detail-stage-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       ${stageBtn}
-      ${w._custom ? `<button class="delete-btn" onclick="showDeleteConfirm(${w.id})">🗑 Sil</button>` : ''}
+      <button class="delete-btn" onclick="showDeleteConfirm(${w.id})">🗑 Sil</button>
     </div>
-    ${w._custom ? `<div class="confirm-bar" id="confirm-${w.id}">
+    <div class="confirm-bar" id="confirm-${w.id}">
       <span>Bu eseri silmek istediğinize emin misiniz?</span>
       <button class="confirm-yes" onclick="deleteWork(${w.id})">Evet, Sil</button>
       <button class="confirm-no" onclick="hideDeleteConfirm(${w.id})">İptal</button>
-    </div>` : ''}
+    </div>
     </div>
     <div class="detail-body">
       ${row('Besteci', w.composer)}
@@ -585,9 +585,13 @@ function hideDeleteConfirm(id) {
 }
 
 function deleteWork(id) {
-  // localStorage'dan sil
+  // localStorage'dan sil (custom ise)
   const customs = getCustomWorks().filter(w => w.id !== id);
   saveCustomWorks(customs);
+
+  // Silinen built-in ID'leri de sakla
+  const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
+  if (!deleted.includes(id)) { deleted.push(id); localStorage.setItem('deletedWorks', JSON.stringify(deleted)); }
 
   // DATA dizisinden sil
   const idx = DATA.findIndex(w => w.id === id);
@@ -683,6 +687,15 @@ function saveNewEser() {
 
 // Load custom works on startup — DATA'ya ekle, sonra filtrele
 (function loadCustomWorks() {
+  // Silinmiş built-in eserleri DATA'dan çıkar
+  const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
+  if (deleted.length > 0) {
+    deleted.forEach(id => {
+      const idx = DATA.findIndex(w => w.id === id);
+      if (idx > -1) DATA.splice(idx, 1);
+    });
+  }
+  // Kullanıcı eklentilerini ekle
   const customs = getCustomWorks();
   if (customs.length > 0) {
     customs.forEach(w => DATA.push(w));
