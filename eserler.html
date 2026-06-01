@@ -207,6 +207,31 @@
     white-space: nowrap;
   }
   .btn-new-eser:hover { background: rgba(201,150,58,.25); border-color: rgba(201,150,58,.7); }
+
+  /* ── SAHNE MODU BUTONU ── */
+  .detail-stage-row {
+    margin-top: 12px;
+  }
+  .stage-open-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    background: linear-gradient(135deg, rgba(201,150,58,0.18), rgba(201,150,58,0.08));
+    border: 1px solid rgba(201,150,58,0.45);
+    border-radius: 8px;
+    color: #c9963a;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all .15s;
+  }
+  .stage-open-btn:hover {
+    background: linear-gradient(135deg, rgba(201,150,58,0.28), rgba(201,150,58,0.15));
+    border-color: rgba(201,150,58,0.7);
+    transform: translateY(-1px);
+  }
 </style>
 </head>
 <body>
@@ -262,6 +287,76 @@
     </div>
     <div id="detailContent" style="display:none;"></div>
   </aside>
+</div>
+
+
+<!-- YENİ ESER MODAL -->
+<div class="modal-overlay" id="newEserModal">
+  <div class="modal">
+    <h2>🎼 Yeni Eser Ekle</h2>
+    <div class="modal-grid">
+      <div class="form-group full">
+        <label>Eser Adı *</label>
+        <input type="text" id="ne_name" placeholder="Eser adını girin...">
+      </div>
+      <div class="form-group">
+        <label>Besteci</label>
+        <input type="text" id="ne_composer" placeholder="Besteci adı">
+      </div>
+      <div class="form-group">
+        <label>Güfte Yazarı</label>
+        <input type="text" id="ne_lyricWriter" placeholder="Güfte yazarı">
+      </div>
+      <div class="form-group">
+        <label>Makam</label>
+        <input type="text" id="ne_makam" placeholder="örn. Hicaz, Rast...">
+      </div>
+      <div class="form-group">
+        <label>Usul / Ölçü</label>
+        <input type="text" id="ne_measurement" placeholder="örn. 4/4, 2/4...">
+      </div>
+      <div class="form-group">
+        <label>Form</label>
+        <input type="text" id="ne_form" placeholder="örn. Türkü, Şarkı...">
+      </div>
+      <div class="form-group">
+        <label>Tür</label>
+        <input type="text" id="ne_genre" placeholder="örn. Kırık Hava">
+      </div>
+      <div class="form-group">
+        <label>Akort</label>
+        <input type="text" id="ne_tuning" placeholder="örn. Si, La, Re...">
+      </div>
+      <div class="form-group">
+        <label>Karar Notası</label>
+        <input type="text" id="ne_closingNote" placeholder="örn. Si">
+      </div>
+      <div class="form-group">
+        <label>Saz / Enstrüman</label>
+        <input type="text" id="ne_instrument" placeholder="örn. Kısa Sap">
+      </div>
+      <div class="form-group">
+        <label>Yöre / Bölge</label>
+        <input type="text" id="ne_region" placeholder="örn. Sivas">
+      </div>
+      <div class="form-group">
+        <label>Kaynak Kişi</label>
+        <input type="text" id="ne_sourcePerson" placeholder="Derleme kaynağı">
+      </div>
+      <div class="form-group">
+        <label>Video Link</label>
+        <input type="url" id="ne_videoLink" placeholder="https://...">
+      </div>
+      <div class="form-group full">
+        <label>Güfte</label>
+        <textarea id="ne_lyrics" placeholder="Eserin sözlerini buraya girin..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeNewEserModal()">İptal</button>
+      <button class="btn-save" onclick="saveNewEser()">💾 Kaydet</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -397,12 +492,15 @@ function selectWork(id) {
   }
 
   const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video İzle</a>` : '';
+  const workIdStr = String(w.id).replace('.0','').replace(/\.0$/,'');
+  const stageBtn = `<a href="stage.html?work=${w.id}" class="stage-open-btn">🎭 Sahne Modunda Aç</a>`;
 
   dc.innerHTML = `
     <div class="detail-header">
       <div class="detail-id">#${w.id||'—'}</div>
       <div class="detail-title">${w.name||'(isimsiz)'}</div>
       <div class="detail-chips">${chips}</div>
+      <div class="detail-stage-row">${stageBtn}</div>
     </div>
     <div class="detail-body">
       ${row('Besteci', w.composer)}
@@ -520,9 +618,14 @@ function saveNewEser() {
 buildFilters();
 applyFilters();
 
-// Close modal on overlay click
-document.getElementById('newEserModal').addEventListener('click', function(e) {
-  if (e.target === this) closeNewEserModal();
+// Modal event listeners - DOM hazır olunca bağla
+document.addEventListener('DOMContentLoaded', function() {
+  const overlay = document.getElementById('newEserModal');
+  if (overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) closeNewEserModal();
+    });
+  }
 });
 
 // Keyboard shortcut: Escape to close
@@ -537,73 +640,5 @@ try {
 } catch(e) {}
 </script>
 
-<!-- YENİ ESER MODAL -->
-<div class="modal-overlay" id="newEserModal">
-  <div class="modal">
-    <h2>🎼 Yeni Eser Ekle</h2>
-    <div class="modal-grid">
-      <div class="form-group full">
-        <label>Eser Adı *</label>
-        <input type="text" id="ne_name" placeholder="Eser adını girin...">
-      </div>
-      <div class="form-group">
-        <label>Besteci</label>
-        <input type="text" id="ne_composer" placeholder="Besteci adı">
-      </div>
-      <div class="form-group">
-        <label>Güfte Yazarı</label>
-        <input type="text" id="ne_lyricWriter" placeholder="Güfte yazarı">
-      </div>
-      <div class="form-group">
-        <label>Makam</label>
-        <input type="text" id="ne_makam" placeholder="örn. Hicaz, Rast...">
-      </div>
-      <div class="form-group">
-        <label>Usul / Ölçü</label>
-        <input type="text" id="ne_measurement" placeholder="örn. 4/4, 2/4...">
-      </div>
-      <div class="form-group">
-        <label>Form</label>
-        <input type="text" id="ne_form" placeholder="örn. Türkü, Şarkı...">
-      </div>
-      <div class="form-group">
-        <label>Tür</label>
-        <input type="text" id="ne_genre" placeholder="örn. Kırık Hava">
-      </div>
-      <div class="form-group">
-        <label>Akort</label>
-        <input type="text" id="ne_tuning" placeholder="örn. Si, La, Re...">
-      </div>
-      <div class="form-group">
-        <label>Karar Notası</label>
-        <input type="text" id="ne_closingNote" placeholder="örn. Si">
-      </div>
-      <div class="form-group">
-        <label>Saz / Enstrüman</label>
-        <input type="text" id="ne_instrument" placeholder="örn. Kısa Sap">
-      </div>
-      <div class="form-group">
-        <label>Yöre / Bölge</label>
-        <input type="text" id="ne_region" placeholder="örn. Sivas">
-      </div>
-      <div class="form-group">
-        <label>Kaynak Kişi</label>
-        <input type="text" id="ne_sourcePerson" placeholder="Derleme kaynağı">
-      </div>
-      <div class="form-group">
-        <label>Video Link</label>
-        <input type="url" id="ne_videoLink" placeholder="https://...">
-      </div>
-      <div class="form-group full">
-        <label>Güfte</label>
-        <textarea id="ne_lyrics" placeholder="Eserin sözlerini buraya girin..."></textarea>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeNewEserModal()">İptal</button>
-      <button class="btn-save" onclick="saveNewEser()">💾 Kaydet</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
