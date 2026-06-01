@@ -349,7 +349,8 @@ function selectWork(id) {
 
   const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video İzle</a>` : '';
   const stageId = String(parseInt(w.id));
-  const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn">🎭 Sahne Modunda Aç</a>`;
+  const stageList = filteredData.map(x => String(parseInt(x.id))).join(',');
+  const stageBtn = `<a href="stage.html?work=${stageId}&list=${stageList}" class="stage-open-btn">🎭 Sahne Modunda Aç</a>`;
 
   dc.innerHTML = `
     <div class="detail-header">
