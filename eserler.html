@@ -156,6 +156,15 @@
   }
   .confirm-no:hover { border-color: var(--border2); color: var(--text); }
 
+
+  .edit-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px;
+    background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.35);
+    color: #60a5fa; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .15s; font-family: inherit;
+  }
+  .edit-btn:hover { background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.6); }
 </style>
 </head>
 <body>
@@ -364,6 +373,7 @@ function selectWork(id) {
       <div class="detail-chips">${chips}</div>
       <div class="detail-stage-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
         ${stageBtn}
+        <button class="edit-btn" onclick="openEditEserModal(${w.id})">✏️ Düzenle</button>
         <button class="delete-btn" onclick="showDeleteConfirm(${w.id})">🗑 Sil</button>
       </div>
       <div class="confirm-bar" id="confirm-${w.id}">
@@ -403,12 +413,33 @@ function saveCustomWorks(arr) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(arr));
 }
 
+let editingWorkId = null;
+
 function openNewEserModal() {
+  editingWorkId = null;
+  document.getElementById('modalTitle').textContent = '+ Yeni Eser Ekle';
   ['ne_name','ne_composer','ne_lyricWriter','ne_makam','ne_measurement','ne_form',
    'ne_tuning','ne_instrument','ne_region','ne_sourcePerson','ne_videoLink','ne_lyrics']
     .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-  const m = document.getElementById('newEserModal');
-  m.style.display = 'flex';
+  document.getElementById('newEserModal').style.display = 'flex';
+}
+
+function openEditEserModal(id) {
+  const w = DATA.find(x => x.id === id);
+  if (!w) return;
+  editingWorkId = id;
+  document.getElementById('modalTitle').textContent = '✏️ Eseri Düzenle';
+  const fields = {
+    ne_name: w.name, ne_composer: w.composer, ne_lyricWriter: w.lyricWriter,
+    ne_makam: w.makam, ne_measurement: w.measurement, ne_form: w.form,
+    ne_tuning: w.tuning, ne_instrument: w.instrument, ne_region: w.region,
+    ne_sourcePerson: w.sourcePerson, ne_videoLink: w.videoLink, ne_lyrics: w.lyrics
+  };
+  Object.entries(fields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val || '';
+  });
+  document.getElementById('newEserModal').style.display = 'flex';
 }
 function closeNewEserModal() {
   document.getElementById('newEserModal').style.display = 'none';
@@ -416,33 +447,56 @@ function closeNewEserModal() {
 function saveNewEser() {
   const name = document.getElementById('ne_name').value.trim();
   if (!name) { alert('Eser adı zorunludur.'); return; }
-  const newId = Date.now();
-  const newWork = {
-    id: newId, name,
-    composer: document.getElementById('ne_composer').value.trim(),
-    lyricWriter: document.getElementById('ne_lyricWriter').value.trim(),
-    makam: document.getElementById('ne_makam').value.trim(),
-    measurement: document.getElementById('ne_measurement').value.trim(),
-    form: document.getElementById('ne_form').value.trim(),
-    tuning: document.getElementById('ne_tuning').value.trim(),
-    instrument: document.getElementById('ne_instrument').value.trim(),
-    region: document.getElementById('ne_region').value.trim(),
+
+  const fields = {
+    name,
+    composer:     document.getElementById('ne_composer').value.trim(),
+    lyricWriter:  document.getElementById('ne_lyricWriter').value.trim(),
+    makam:        document.getElementById('ne_makam').value.trim(),
+    measurement:  document.getElementById('ne_measurement').value.trim(),
+    form:         document.getElementById('ne_form').value.trim(),
+    tuning:       document.getElementById('ne_tuning').value.trim(),
+    instrument:   document.getElementById('ne_instrument').value.trim(),
+    region:       document.getElementById('ne_region').value.trim(),
     sourcePerson: document.getElementById('ne_sourcePerson').value.trim(),
-    videoLink: document.getElementById('ne_videoLink').value.trim(),
-    lyrics: document.getElementById('ne_lyrics').value.trim(),
+    videoLink:    document.getElementById('ne_videoLink').value.trim(),
+    lyrics:       document.getElementById('ne_lyrics').value.trim(),
     metronom: '', area: '', closingNote: '', genre: '', _custom: true
   };
-  DATA.push(newWork);
-  const customs = getCustomWorks();
-  customs.push(newWork);
-  saveCustomWorks(customs);
-  closeNewEserModal();
-  buildFilters();
-  applyFilters();
-  setTimeout(() => {
-    const item = document.querySelector('[data-id="' + newId + '"]');
-    if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
-  }, 100);
+
+  if (editingWorkId !== null) {
+    // Düzenleme modu
+    const idx = DATA.findIndex(x => x.id === editingWorkId);
+    if (idx > -1) Object.assign(DATA[idx], fields);
+    // localStorage güncelle
+    const customs = getCustomWorks().map(w => w.id === editingWorkId ? {...w, ...fields} : w);
+    // Orijinal eser ise custom listesine ekle (varsa güncelle)
+    const inCustom = customs.find(w => w.id === editingWorkId);
+    if (!inCustom) customs.push({...fields, id: editingWorkId});
+    saveCustomWorks(customs);
+    closeNewEserModal();
+    buildFilters();
+    applyFilters();
+    setTimeout(() => {
+      const item = document.querySelector('[data-id="' + editingWorkId + '"]');
+      if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
+    }, 100);
+  } else {
+    // Yeni eser modu
+    const newId = Date.now();
+    const newWork = { id: newId, ...fields };
+    DATA.push(newWork);
+    const customs = getCustomWorks();
+    customs.push(newWork);
+    saveCustomWorks(customs);
+    closeNewEserModal();
+    buildFilters();
+    applyFilters();
+    setTimeout(() => {
+      const item = document.querySelector('[data-id="' + newId + '"]');
+      if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
+    }, 100);
+  }
 }
 
 // ── SİL FONKSİYONLARI ──
@@ -484,6 +538,7 @@ document.addEventListener('keydown', function(e) {
 
 
 (function loadCustomWorks() {
+  // Silinmiş eserleri çıkar
   const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
   if (deleted.length > 0) {
     deleted.forEach(id => {
@@ -491,8 +546,13 @@ document.addEventListener('keydown', function(e) {
       if (idx > -1) DATA.splice(idx, 1);
     });
   }
+  // Düzenlenmiş/yeni eserleri uygula
   const customs = getCustomWorks();
-  if (customs.length > 0) { customs.forEach(w => DATA.push(w)); }
+  customs.forEach(w => {
+    const idx = DATA.findIndex(x => x.id === w.id);
+    if (idx > -1) Object.assign(DATA[idx], w); // var olanı güncelle
+    else DATA.push(w);                           // yeni ise ekle
+  });
 })();
 
 buildFilters();
@@ -509,7 +569,7 @@ try {
 <div id="newEserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;width:min(560px,92vw);max-height:85vh;overflow-y:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <h2 style="font-size:16px;font-weight:600;color:var(--text);">+ Yeni Eser Ekle</h2>
+      <h2 id="modalTitle" style="font-size:16px;font-weight:600;color:var(--text);">+ Yeni Eser Ekle</h2>
       <button onclick="closeNewEserModal()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;">✕</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
