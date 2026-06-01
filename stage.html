@@ -94,23 +94,26 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
-  width: 52px; height: 52px;
   background: rgba(168,85,247,0.12);
   border: 1px solid rgba(168,85,247,0.3);
-  border-radius: 50%;
+  border-radius: 12px;
   color: var(--accent);
-  font-size: 22px;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px;
+  padding: 14px 10px;
   transition: all .2s;
   z-index: 50;
   user-select: none;
+  font-family: 'DM Sans', sans-serif;
 }
-.side-nav-btn:hover { background: rgba(168,85,247,0.25); border-color: rgba(168,85,247,0.6); transform: translateY(-50%) scale(1.08); }
-.side-nav-btn:active { transform: translateY(-50%) scale(0.95); }
-.side-nav-btn.disabled { opacity: 0.2; pointer-events: none; }
-.side-nav-left  { left: 16px; }
-.side-nav-right { right: 16px; }
+.snb-arrow { font-size: 28px; line-height: 1; }
+.snb-label { font-size: 11px; font-weight: 600; letter-spacing: .04em; opacity: .8; }
+.side-nav-btn:hover { background: rgba(168,85,247,0.25); border-color: rgba(168,85,247,0.6); transform: translateY(-50%) scale(1.06); }
+.side-nav-btn:active { transform: translateY(-50%) scale(0.96); }
+.side-nav-btn.disabled { opacity: 0.15; pointer-events: none; }
+.side-nav-left  { left: 12px; }
+.side-nav-right { right: 12px; }
 </style>
 </head>
 <body>
@@ -139,9 +142,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
       <button class="bex" onclick="exitStage(event)">✕ Çık</button>
     </div>
   </div>
-  <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="sideNavPrev()">‹</button>
+  <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="sideNavPrev()"><span class="snb-arrow">‹</span><span class="snb-label">Önceki</span></button>
   <div class="sm" id="sm"></div>
-  <button class="side-nav-btn side-nav-right" id="sideRight" onclick="sideNavNext()">›</button>
+  <button class="side-nav-btn side-nav-right" id="sideRight" onclick="sideNavNext()"><span class="snb-label">Sonraki</span><span class="snb-arrow">›</span></button>
   <div class="sb">
     <div class="np" id="np" style="display:none;">
       <div class="nl">Sıradaki</div>
@@ -262,11 +265,10 @@ let sideList = [];   // ID listesi
 let sideIdx  = -1;   // şu anki index
 
 function sideNavInit(workId) {
-  const params = new URLSearchParams(window.location.search);
-  const listParam = params.get('list');
-  if (listParam) {
-    sideList = listParam.split(',').filter(Boolean);
-    sideIdx  = sideList.indexOf(String(workId));
+  const stored = localStorage.getItem('stageWorkList');
+  if (stored) {
+    try { sideList = JSON.parse(stored); } catch(e) { sideList = []; }
+    sideIdx = sideList.indexOf(String(workId));
   }
   updateSideButtons();
 }
