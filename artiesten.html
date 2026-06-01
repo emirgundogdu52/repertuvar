@@ -16,7 +16,7 @@
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;}
-  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:48px;display:flex;align-items:center;gap:4px;position:sticky;top:0;z-index:200;}
+  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:80px;display:flex;align-items:center;gap:4px;position:sticky;top:0;z-index:200;}
   .nav-btn{padding:5px 14px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;background:none;transition:all .15s;text-decoration:none;display:inline-block;}
   .nav-btn:hover{background:var(--surface2);color:var(--text);}
   .nav-btn.active{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.3);color:var(--accent);}
@@ -26,7 +26,7 @@
   .sync-dot.err{background:var(--red);}
   .sync-dot.loading{background:var(--accent);animation:pulse .8s ease infinite;}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-  .layout{display:flex;height:calc(100vh - 48px);}
+  .layout{display:flex;height:calc(100vh - 80px);}
   .artist-list-panel{width:280px;min-width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
   .panel-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
   .panel-header h2{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}
@@ -91,7 +91,7 @@
 </head>
 <body>
 <nav>
-  <a href="index.html" class="nav-btn" style="padding:4px 6px;"><img src="Repertuvar_logo.png" alt="Home" style="height:96px;width:auto;vertical-align:middle;"></a>
+  <a href="index.html" class="nav-btn" style="padding:4px 6px;"><img src="Repertuvar_logo.png" alt="Home" style="height:64px;width:auto;vertical-align:middle;"></a>
   <a href="eserler.html" class="nav-btn">Eserler</a>
   <a href="repertoires.html" class="nav-btn">Repertuvar</a>
   <a href="artiesten.html" class="nav-btn active">Solistler</a>
