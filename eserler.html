@@ -116,6 +116,46 @@
   @media (min-width: 769px) {
     .back-btn { display:none; }
   }
+
+  /* ── SİL BUTONU & ONAY ── */
+  .delete-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px;
+    background: rgba(192,84,68,0.1); border: 1px solid rgba(192,84,68,0.35);
+    color: #e07060; font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all .15s; font-family: inherit;
+  }
+  .delete-btn:hover { background: rgba(192,84,68,0.22); border-color: rgba(192,84,68,0.6); }
+
+  .stage-open-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px;
+    background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.35);
+    color: var(--accent); font-size: 13px; font-weight: 500;
+    text-decoration: none; transition: all .15s;
+  }
+  .stage-open-btn:hover { background: rgba(168,85,247,0.2); border-color: rgba(168,85,247,0.6); }
+
+  .confirm-bar {
+    display: none; margin-top: 10px; padding: 12px 14px;
+    background: rgba(192,84,68,0.08); border: 1px solid rgba(192,84,68,0.3);
+    border-radius: 8px; gap: 10px; align-items: center; flex-wrap: wrap;
+  }
+  .confirm-bar.open { display: flex; }
+  .confirm-bar span { font-size: 13px; color: var(--text); flex: 1; min-width: 160px; }
+  .confirm-yes {
+    padding: 6px 14px; border-radius: 7px; border: none;
+    background: #c05444; color: #fff; font-size: 13px;
+    font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .confirm-yes:hover { filter: brightness(1.2); }
+  .confirm-no {
+    padding: 6px 14px; border-radius: 7px;
+    background: none; border: 1px solid var(--border);
+    color: var(--text2); font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  .confirm-no:hover { border-color: var(--border2); color: var(--text); }
+
 </style>
 </head>
 <body>
