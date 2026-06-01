@@ -47,7 +47,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
 .bex:hover{color:var(--red);border-color:var(--red);}
 
-.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 40px 16px;position:relative;overflow-y:auto;cursor:pointer;}
+.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 40px 80px;position:relative;overflow-y:auto;cursor:pointer;}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(201,150,58,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;opacity:0;animation:si .4s ease forwards;}
 .wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:24px;opacity:0;animation:si .4s ease .07s forwards;}
@@ -57,7 +57,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .wch.n{border-color:#3d2a1a;color:var(--accent);background:#1e1208;}
 .wch.i{border-color:#1a2d1a;color:#7ab87a;background:#0f1a0f;}
 .wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:600px;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
-.wlyrics{font-size:clamp(18px,2.8vw,28px);color:var(--text);text-align:center;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;max-height:50vh;overflow-y:auto;padding:0 8px;}
+.wlyrics{font-size:clamp(18px,2.8vw,28px);color:var(--text);text-align:center;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
 .sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;}
