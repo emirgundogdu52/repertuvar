@@ -89,6 +89,28 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .stage-nav{display:flex;gap:8px;align-items:center;}
 .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
 .stage-nav a:hover{border-color:var(--accent);color:var(--accent);}
+
+.side-nav-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px; height: 52px;
+  background: rgba(168,85,247,0.12);
+  border: 1px solid rgba(168,85,247,0.3);
+  border-radius: 50%;
+  color: var(--accent);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+  z-index: 50;
+  user-select: none;
+}
+.side-nav-btn:hover { background: rgba(168,85,247,0.25); border-color: rgba(168,85,247,0.6); transform: translateY(-50%) scale(1.08); }
+.side-nav-btn:active { transform: translateY(-50%) scale(0.95); }
+.side-nav-btn.disabled { opacity: 0.2; pointer-events: none; }
+.side-nav-left  { left: 16px; }
+.side-nav-right { right: 16px; }
 </style>
 </head>
 <body>
@@ -117,7 +139,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
       <button class="bex" onclick="exitStage(event)">✕ Çık</button>
     </div>
   </div>
+  <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="sideNavPrev()">‹</button>
   <div class="sm" id="sm"></div>
+  <button class="side-nav-btn side-nav-right" id="sideRight" onclick="sideNavNext()">›</button>
   <div class="sb">
     <div class="np" id="np" style="display:none;">
       <div class="nl">Sıradaki</div>
@@ -233,6 +257,59 @@ document.addEventListener('keydown',e=>{
 document.getElementById('stageScreen').addEventListener('touchstart',e=>{txStart=e.touches[0].clientX;},{passive:true});
 document.getElementById('stageScreen').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-txStart;if(Math.abs(dx)>60){dx<0?nextWork():prevWork();}},{passive:true});
 
+// ── YAN NAVİGASYON (Eserler listesi) ──
+let sideList = [];   // ID listesi
+let sideIdx  = -1;   // şu anki index
+
+function sideNavInit(workId) {
+  const params = new URLSearchParams(window.location.search);
+  const listParam = params.get('list');
+  if (listParam) {
+    sideList = listParam.split(',').filter(Boolean);
+    sideIdx  = sideList.indexOf(String(workId));
+  }
+  updateSideButtons();
+}
+
+function updateSideButtons() {
+  const l = document.getElementById('sideLeft');
+  const r = document.getElementById('sideRight');
+  if (!l || !r) return;
+  const inList = sideList.length > 1;
+  l.style.display = r.style.display = inList ? 'flex' : 'none';
+  l.classList.toggle('disabled', sideIdx <= 0);
+  r.classList.toggle('disabled', sideIdx >= sideList.length - 1);
+}
+
+function sideNavPrev() {
+  if (sideIdx <= 0) return;
+  sideIdx--;
+  loadSideWork(sideList[sideIdx]);
+}
+
+function sideNavNext() {
+  if (sideIdx >= sideList.length - 1) return;
+  sideIdx++;
+  loadSideWork(sideList[sideIdx]);
+}
+
+function loadSideWork(id) {
+  const w = WL[id];
+  if (!w) return;
+  curRep = {
+    id: 'single', name: w.name || '',
+    items: [{ workId: id, closingNote: w.closingNote || '' }]
+  };
+  curIdx = 0;
+  document.getElementById('strn').textContent = w.name || '';
+  renderStage();
+  updateSideButtons();
+  // URL'i güncelle (history)
+  const params = new URLSearchParams(window.location.search);
+  params.set('work', id);
+  window.history.replaceState({}, '', '?' + params.toString());
+}
+
 // Init
 (async()=>{
   // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda aç
@@ -251,6 +328,7 @@ document.getElementById('stageScreen').addEventListener('touchend',e=>{const dx=
       showScreen('stageScreen');
       document.getElementById('strn').textContent = w.name || '';
       renderStage();
+      sideNavInit(normalizedId);
       return;
     }
   }
