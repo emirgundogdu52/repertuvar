@@ -89,6 +89,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .stage-nav{display:flex;gap:8px;}
 .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
 .stage-nav a:hover{border-color:var(--acc);color:var(--acc);}
+
+.align-toggle{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:13px;cursor:pointer;transition:all .15s;line-height:1;}
+.align-toggle:hover{border-color:var(--acc);color:var(--acc);}
 </style>
 </head>
 <body>
@@ -124,7 +127,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
       <div class="nn" id="nn">—</div>
       <div class="nm" id="nm">—</div>
     </div>
-    <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="align-toggle" id="alignBtn" onclick="toggleAlign()" title="Hizalamayı değiştir">⇐ Sola</button>
+      <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
+    </div>
   </div>
 </div>
 
@@ -233,8 +239,21 @@ document.addEventListener('keydown',e=>{
 document.getElementById('stageScreen').addEventListener('touchstart',e=>{txStart=e.touches[0].clientX;},{passive:true});
 document.getElementById('stageScreen').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-txStart;if(Math.abs(dx)>60){dx<0?nextWork():prevWork();}},{passive:true});
 
+// Metin hizalama
+let alignLeft = false;
+function toggleAlign() {
+  alignLeft = !alignLeft;
+  const align = alignLeft ? 'left' : 'center';
+  document.querySelectorAll('.wtitle, .wlyrics, .wnote').forEach(el => el.style.textAlign = align);
+  document.getElementById('alignBtn').textContent = alignLeft ? '⇒ Ortala' : '⇐ Sola';
+  localStorage.setItem('stageAlign', alignLeft ? 'left' : 'center');
+}
+
 // Init
 (async()=>{
+  // Kaydedilmiş hizalamayı yükle
+  const savedAlign = localStorage.getItem('stageAlign');
+  if (savedAlign === 'left') { alignLeft = false; toggleAlign(); }
   // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda göster
   const urlParams = new URLSearchParams(window.location.search);
   const singleWorkId = urlParams.get('work');
