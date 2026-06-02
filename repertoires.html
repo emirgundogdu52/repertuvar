@@ -146,7 +146,21 @@ tr:hover .ra{opacity:1;}
     <h2>Eser Ekle</h2>
     <div class="fr"><input class="fi" id="ws" placeholder="Eser adı veya besteci ara..." oninput="filterW()" autocomplete="off"></div>
     <div class="wpl" id="wpl"></div>
-    <div class="fr" style="margin-top:14px;"><label class="fl">Kapanış Notası</label><input class="fi" id="fCN" placeholder="La, Do, Si..."></div>
+    <!-- Eser bilgileri (seçince otomatik dolar) -->
+    <div id="wInfoBox" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:13px;">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <span id="wInfoMakam" style="color:var(--text2);"></span>
+        <span id="wInfoInstr" style="color:var(--text2);"></span>
+        <span id="wInfoComp" style="color:var(--text3);"></span>
+      </div>
+    </div>
+    <div class="fr" style="margin-top:14px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
+        <div><label class="fl">İcracı Sanatçı</label><input class="fi" id="fPF" placeholder="Sanatçı adı..."></div>
+        <div><label class="fl">Karar Sesi</label><input class="fi" id="fCN" placeholder="La, Do, Si..."></div>
+      </div>
+    </div>
+    <div class="fr"><label class="fl">Makam <span style="color:var(--text3);font-size:11px;">(değişmez, bilgi amaçlı)</span></label><input class="fi" id="fMK" placeholder="—" readonly style="opacity:.5;cursor:not-allowed;"></div>
     <div class="fr"><label class="fl">Eser Notu</label><input class="fi" id="fIN" placeholder="Sahne notu, tempo..."></div>
     <div class="fa"><button class="bc" onclick="closeWM()">İptal</button><button class="bs" onclick="addWork()">Ekle</button></div>
   </div>
@@ -258,9 +272,14 @@ function renderDetail(){
   const rows=items.length?items.map((it,idx)=>{
     const w=WL[it.workId]||{};
     const cn=it.closingNote||w.closingNote||'';
+    const pf = it.performer || '';
     return `<tr>
       <td class="sq"><input class="si" type="number" min="1" max="${items.length}" value="${it.seq}" onchange="chSeq('${rep.id}',${idx},this.value)" onclick="event.stopPropagation()"></td>
-      <td><div class="wn">${w.name||'#'+it.workId}</div><div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div></td>
+      <td>
+        <div class="wn">${w.name||'#'+it.workId}</div>
+        <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
+        ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
+      </td>
       <td>${cn?'<span class="cn">'+cn+'</span>':''}</td>
       <td style="color:var(--text3);font-size:12px;">${it.note||''}</td>
       <td><div class="ra">
@@ -317,13 +336,34 @@ async function delRep(id){
 }
 
 function openWM(repId){addRepId=repId;selWId=null;document.getElementById('ws').value='';document.getElementById('fCN').value='';document.getElementById('fIN').value='';filterW();document.getElementById('wm').style.display='flex';setTimeout(()=>document.getElementById('ws').focus(),50);}
-function closeWM(){document.getElementById('wm').style.display='none';}
+function closeWM(){
+  document.getElementById('wm').style.display='none';
+  selWId=null; addRepId=null;
+  ['fCN','fIN','fPF','fMK','ws'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var box=document.getElementById('wInfoBox');if(box)box.style.display='none';
+}
 function filterW(){
   const q=document.getElementById('ws').value.toLowerCase().trim();
   const list=q?WLIST.filter(w=>(w.name+w.composer+w.makam).toLowerCase().includes(q)):WLIST;
   document.getElementById('wpl').innerHTML=list.slice(0,80).map(w=>`<div class="wpi${selWId===w.id?' sel':''}" onclick="pickW('${w.id}')"><div class="wpn">${w.name}</div><div class="wps">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--text3);">Bulunamadı</div>';
 }
-function pickW(id){selWId=id;const w=WL[id];if(w&&w.closingNote&&!document.getElementById('fCN').value)document.getElementById('fCN').value=w.closingNote;filterW();}
+function pickW(id){
+  selWId=id;
+  const w=WL[id];
+  if(!w) return filterW();
+  // Kapanış notasını doldur (boşsa)
+  if(w.closingNote && !document.getElementById('fCN').value)
+    document.getElementById('fCN').value = w.closingNote;
+  // Makamı doldur (readonly)
+  document.getElementById('fMK').value = w.makam || '—';
+  // Eser bilgi kutusunu göster
+  const box = document.getElementById('wInfoBox');
+  document.getElementById('wInfoMakam').textContent = w.makam ? '🎵 ' + w.makam : '';
+  document.getElementById('wInfoInstr').textContent = w.instrument ? '🎸 ' + w.instrument : '';
+  document.getElementById('wInfoComp').textContent = w.composer ? '✍️ ' + w.composer : '';
+  box.style.display = (w.makam||w.instrument||w.composer) ? 'block' : 'none';
+  filterW();
+}
 
 async function addWork(){
   if(!selWId){alert('Lütfen bir eser seçin.');return;}
@@ -332,7 +372,7 @@ async function addWork(){
   const nextSeq=items.length?Math.max(...items.map(i=>i.seq))+1:1;
   sync('spin','Ekleniyor...');
   try{
-    await dbPost('repertoire_items',{repertoire_id:addRepId,work_id:selWId,seq:nextSeq,closing_note:document.getElementById('fCN').value.trim()||null,note:document.getElementById('fIN').value.trim()||null});
+    await dbPost('repertoire_items',{repertoire_id:addRepId,work_id:selWId,seq:nextSeq,closing_note:document.getElementById('fCN').value.trim()||null,note:document.getElementById('fIN').value.trim()||null,performer:document.getElementById('fPF').value.trim()||null});
     closeWM();toast('Eser eklendi ✓');await load();
   }catch(e){toast(e.message,'er');}
 }
