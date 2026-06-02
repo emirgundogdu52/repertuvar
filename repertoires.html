@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- v2 -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -6,14 +7,14 @@
 <title>Repertuvar</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--surface3:#252528;--border:#2a2a3e;--border2:#38383f;--accent:#c9963a;--accent2:#e8b055;--text:#f0ede6;--text2:#9b9890;--text3:#3d3d58;--red:#c05444;--green:#4a9462;}
+:root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--surface3:#252528;--border:#2a2a3e;--border2:#38383f;--accent:#a855f7;--accent2:#c084fc;--text:#f0ede6;--text2:#9b9890;--text3:#3d3d58;--red:#c05444;--green:#4a9462;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;}
 nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:80px;display:flex;align-items:center;gap:4px;position:sticky;top:0;z-index:200;}
 .nb{padding:5px 14px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;cursor:pointer;background:none;transition:all .15s;text-decoration:none;display:inline-block;font-family:'DM Sans',sans-serif;}
 .nb:hover{background:var(--surface2);color:var(--text);}
-.nb.active{background:rgba(201,150,58,.12);border-color:rgba(201,150,58,.3);color:var(--accent);}
-.nb.stage{background:rgba(201,150,58,.18);border-color:rgba(201,150,58,.5);color:var(--accent);font-weight:500;}
+.nb.active{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.3);color:var(--accent);}
+.nb.stage{background:rgba(168,85,247,.18);border-color:rgba(168,85,247,.5);color:var(--accent);font-weight:500;}
 .sync{margin-left:auto;font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px;}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--text3);transition:background .3s;}
 .dot.ok{background:var(--green);}.dot.err{background:var(--red);}.dot.spin{background:var(--accent);animation:pu .8s ease infinite;}
@@ -45,8 +46,8 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20
 .bi:hover{border-color:var(--border2);color:var(--text);}
 .bd{border-color:rgba(192,84,68,.3);color:var(--red);}
 .bd:hover{background:rgba(192,84,68,.1);border-color:var(--red);}
-.bstage{background:rgba(201,150,58,.15);border-color:rgba(201,150,58,.4);color:var(--accent);font-weight:500;}
-.bstage:hover{background:rgba(201,150,58,.25);}
+.bstage{background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.4);color:var(--accent);font-weight:500;}
+.bstage:hover{background:rgba(168,85,247,.25);}
 .dmr{display:flex;gap:20px;padding-bottom:14px;flex-wrap:wrap;}
 .mc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
 .mc strong{color:var(--text);}
@@ -89,7 +90,7 @@ tr:hover .ra{opacity:1;}
 .wpi{padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;}
 .wpi:last-child{border-bottom:none;}
 .wpi:hover{background:var(--surface2);}
-.wpi.sel{background:rgba(201,150,58,.12);}
+.wpi.sel{background:rgba(168,85,247,.12);}
 .wpn{font-size:13px;color:var(--text);}
 .wps{font-size:11px;color:var(--text3);margin-top:1px;}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:13px;color:var(--text2);z-index:999;animation:ti .2s ease;}
