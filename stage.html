@@ -314,6 +314,28 @@ function loadSideWork(id) {
 
 // Init
 (async()=>{
+  // localStorage'daki düzenlenmiş eserleri WL'ye uygula
+  try {
+    const customs = JSON.parse(localStorage.getItem('customWorks') || '[]');
+    customs.forEach(w => {
+      const id = String(parseInt(w.id));
+      if (WL[id]) {
+        Object.assign(WL[id], {
+          name:         w.name        || WL[id].name,
+          lyrics:       w.lyrics      !== undefined ? w.lyrics      : WL[id].lyrics,
+          composer:     w.composer    || WL[id].composer,
+          makam:        w.makam       || WL[id].makam,
+          instrument:   w.instrument  || WL[id].instrument,
+          closingNote:  w.closingNote || WL[id].closingNote,
+        });
+      } else {
+        // Yeni eklenen eser
+        WL[id] = { name: w.name, lyrics: w.lyrics || '', composer: w.composer || '',
+                   makam: w.makam || '', instrument: w.instrument || '', closingNote: w.closingNote || '' };
+      }
+    });
+  } catch(e) { console.warn('customWorks yüklenemedi', e); }
+
   // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda aç
   const urlParams = new URLSearchParams(window.location.search);
   const workParam = urlParams.get('work');
