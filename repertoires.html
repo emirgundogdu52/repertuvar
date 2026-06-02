@@ -9,7 +9,7 @@
 :root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--surface3:#252528;--border:#2a2a3e;--border2:#38383f;--accent:#a855f7;--accent2:#c084fc;--text:#f0ede6;--text2:#9b9890;--text3:#5c5a56;--red:#c05444;--green:#4a9462;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;}
-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:48px;display:flex;align-items:center;gap:4px;position:sticky;top:0;z-index:200;}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;gap:4px;position:sticky;top:0;z-index:200;}
 .nb{padding:5px 14px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;cursor:pointer;background:none;transition:all .15s;text-decoration:none;display:inline-block;font-family:'DM Sans',sans-serif;}
 .nb:hover{background:var(--surface2);color:var(--text);}
 .nb.active{background:rgba(201,150,58,.12);border-color:rgba(201,150,58,.3);color:var(--accent);}
@@ -18,7 +18,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20
 .dot{width:7px;height:7px;border-radius:50%;background:var(--text3);transition:background .3s;}
 .dot.ok{background:var(--green);}.dot.err{background:var(--red);}.dot.spin{background:var(--accent);animation:pu .8s ease infinite;}
 @keyframes pu{0%,100%{opacity:1}50%{opacity:.4}}
-.layout{display:flex;height:calc(100vh - 48px);}
+.layout{display:flex;height:calc(100vh - 56px);}
 .lp{width:300px;min-width:300px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
 .lph{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .lph h2{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}
@@ -115,6 +115,64 @@ tr:hover .ra{opacity:1;}
 
   .be { color: #60a5fa !important; }
   .be:hover { border-color: #60a5fa !important; color: #93c5fd !important; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding:0 8px; gap:3px; height:64px; overflow-x:auto; }
+    .nb { font-size:11px; padding:4px 8px; white-space:nowrap; }
+    .layout { flex-direction:column; height:auto; min-height:calc(100vh - 64px); }
+    .lp { width:100%; min-width:unset; max-height:220px; border-right:none; border-bottom:1px solid var(--border); }
+    .dc { padding:16px; }
+    .dh { padding:14px 16px; }
+    .dn { font-size:18px; }
+    .da { flex-wrap:wrap; gap:6px; }
+    .bi { font-size:11px; padding:5px 10px; }
+    table { font-size:12px; }
+    .ra { gap:3px; }
+    .br { padding:3px 7px; font-size:11px; }
+    .wm > div { padding:16px; }
+    .wpl { max-height:160px; }
+  }
+  @media (max-width: 480px) {
+    .nb[href="artiesten.html"], .nb[href="eserler.html"] { display:none; }
+    .nb[href="index.html"] img { height:28px !important; }
+    nav { height:52px; }
+    .layout { min-height:calc(100vh - 52px); }
+    .lp { max-height:180px; }
+    .dmr { flex-direction:column; gap:6px; }
+    .dt { font-size:11px; }
+    .da { flex-wrap:wrap; gap:4px; }
+    .bi { font-size:11px; padding:5px 8px; }
+    /* Modals on small screen */
+    #wm > div { width:92vw !important; max-height:85vh !important; overflow-y:auto; }
+    #rm > div { width:92vw !important; }
+  }
+
+  /* ── MOBILE GLOBAL ── */
+  @media (max-width: 768px) {
+    body { overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    button, a { min-height: 36px; }
+    input, select, textarea { font-size: 16px !important; } /* prevent iOS zoom */
+  }
+  @supports (padding: env(safe-area-inset-bottom)) {
+    .sb { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  }
+
+
+  @media (max-width: 600px) {
+    #wm > div, #iem > div, #rm > div {
+      width: 96vw !important;
+      max-height: 88vh !important;
+      overflow-y: auto;
+      padding: 16px !important;
+    }
+    .wpl { max-height: 140px !important; }
+    #iemCN, #iemMK { font-size: 16px; }
+    div[style*="grid-template-columns:1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
 </style>
 </head>
 <body>
