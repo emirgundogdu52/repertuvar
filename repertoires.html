@@ -112,6 +112,9 @@ tr:hover .ra{opacity:1;}
     padding: 8px 12px; cursor: pointer; font-size: 13px; color: var(--text);
   }
   .pf-dd-item:hover { background: var(--surface2); }
+
+  .be { color: #60a5fa !important; }
+  .be:hover { border-color: #60a5fa !important; color: #93c5fd !important; }
 </style>
 </head>
 <body>
@@ -314,6 +317,7 @@ function renderDetail(){
       <td><div class="ra">
         <button class="br" onclick="mv('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
         <button class="br" onclick="mv('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
+        <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')">✏️</button>
         <button class="br dl" onclick="rmItem('${rep.id}','${it.id}')">Sil</button>
       </div></td>
     </tr>`;
@@ -514,7 +518,41 @@ function printR(repId){
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   const rows=items.map(it=>{const w=WL[String(it.workId)]||{};const cn=it.closingNote||w.closingNote||'';return`<tr><td style="width:40px;color:#888;text-align:center;">${it.seq}</td><td style="padding:9px 12px;"><div style="font-weight:500;color:#111;">${w.name||it.workId}</div><div style="font-size:11px;color:#666;">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></td><td style="width:80px;text-align:center;color:#444;">${cn}</td><td style="width:120px;font-size:12px;color:#666;">${it.note||''}</td></tr>`;}).join('');
   const win=window.open('','_blank','width=800,height=900');
-  win.document.write(`<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>${rep.name}</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;font-size:14px;color:#111;padding:32px 40px;}h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:400;margin-bottom:8px;}hr{border:none;border-top:2px solid #111;margin:16px 0;}table{width:100%;border-collapse:collapse;}th{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#888;text-align:left;padding:6px 12px;border-bottom:1px solid #ddd;}td{padding:9px 12px;border-bottom:1px solid #eee;vertical-align:middle;}</style></head><body><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:24px;">Repertuvar — ${new Date().toLocaleDateString('tr-TR')}</div><h1>${rep.name}</h1><div style="display:flex;gap:16px;font-size:12px;color:#666;margin-bottom:16px;">${rep.date?'📅 '+rep.date:''}${rep.venue?' 📍 '+rep.venue:''}${rep.status?' ● '+sl[rep.status]:''} 🎼 ${items.length} eser</div><hr><table><thead><tr><th>#</th><th>Eser Adı</th><th>Kapanış</th><th>Not</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=function(){setTimeout(function(){window.print();},400);}<\/script></body></html>`);
+  win.document.write(`<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>${rep.name}</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;font-size:14px;color:#111;padding:32px 40px;}h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:400;margin-bottom:8px;}hr{border:none;border-top:2px solid #111;margin:16px 0;}table{width:100%;border-collapse:collapse;}th{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#888;text-align:left;padding:6px 12px;border-bottom:1px solid #ddd;}td{padding:9px 12px;border-bottom:1px solid #eee;vertical-align:middle;}</style></head><body><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:24px;">Repertuvar — ${new Date().toLocaleDateString('tr-TR')}</div><h1>${rep.name}</h1><div style="display:flex;gap:16px;font-size:12px;color:#666;margin-bottom:16px;">${rep.date?'📅 '+rep.date:''}${rep.venue?' 📍 '+rep.venue:''}${rep.status?' ● '+sl[rep.status]:''} 🎼 ${items.length} eser</div><hr><table><thead><tr><th>#</th><th>Eser Adı</th><th>Kapanış</th><th>Not</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=function(){setTimeout(function(){window.print();},400);}<\/script>
+<!-- ESER DÜZENLE MODAL -->
+<div id="iem" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:center;justify-content:center;" onclick="if(event.target===this)closeIEM()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;width:min(480px,92vw);max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h2 style="font-size:15px;font-weight:600;color:var(--text);">✏️ Eseri Düzenle</h2>
+      <button onclick="closeIEM()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <!-- Eser adı (readonly bilgi) -->
+    <div id="iemWorkName" style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;"></div>
+    <div id="iemWorkInfo" style="font-size:12px;color:var(--text3);margin-bottom:16px;"></div>
+    <!-- İcracılar -->
+    <div style="margin-bottom:14px;">
+      <label class="fl">İcracı Sanatçılar</label>
+      <div id="iemPfTags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;align-items:center;cursor:text;margin-top:4px;" onclick="document.getElementById('iemPfInput').focus()">
+        <input id="iemPfInput" placeholder="Sanatçı ekle..." autocomplete="off"
+          style="border:none;background:none;color:var(--text);font-size:13px;outline:none;min-width:140px;flex:1;"
+          oninput="iemPfSuggest(this.value)" onkeydown="iemPfKeydown(event)">
+      </div>
+      <div id="iemPfDropdown" style="display:none;position:absolute;z-index:400;background:var(--surface);border:1px solid var(--border);border-radius:7px;max-height:160px;overflow-y:auto;width:280px;margin-top:2px;"></div>
+    </div>
+    <!-- Karar Sesi -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div><label class="fl">Karar Sesi</label><input class="fi" id="iemCN" placeholder="La, Do, Si..." style="margin-top:4px;"></div>
+      <div><label class="fl">Makam <span style="color:var(--text3);font-size:11px;">(bilgi)</span></label><input class="fi" id="iemMK" placeholder="—" readonly style="margin-top:4px;opacity:.5;cursor:not-allowed;"></div>
+    </div>
+    <!-- Not -->
+    <div style="margin-bottom:20px;"><label class="fl">Sahne Notu</label><input class="fi" id="iemNote" placeholder="Tempo, not..." style="margin-top:4px;"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeIEM()" style="padding:8px 18px;border-radius:8px;background:none;border:1px solid var(--border);color:var(--text2);font-size:13px;cursor:pointer;">İptal</button>
+      <button onclick="saveIEM()" style="padding:8px 18px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Kaydet</button>
+    </div>
+  </div>
+</div>
+</body></html>`);
   win.document.close();
 }
 
@@ -557,7 +595,82 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeRM();closeWM()
   } catch(e){ console.warn('patch err',e); }
 })();
 
-(async function() {
+async function dbPatch(table, id, data) {
+  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {
+    method: 'PATCH',
+    headers: {...H, 'Prefer': 'return=minimal'},
+    body: JSON.stringify(data)
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+let iemRepId=null,iemItemId=null,iemPfSelected=[];
+function openItemEdit(repId,itemId){
+  iemRepId=repId;iemItemId=itemId;
+  const rep=getRep(repId);if(!rep)return;
+  const it=(rep.items||[]).find(x=>x.id===itemId);if(!it)return;
+  const w=WL[it.workId]||{};
+  document.getElementById('iemWorkName').textContent=w.name||'#'+it.workId;
+  document.getElementById('iemWorkInfo').textContent=[w.makam,w.composer].filter(Boolean).join(' · ');
+  document.getElementById('iemMK').value=w.makam||'—';
+  document.getElementById('iemCN').value=it.closingNote||w.closingNote||'';
+  document.getElementById('iemNote').value=it.note||'';
+  iemPfSelected=it.performer?it.performer.split(', ').filter(Boolean):[];
+  iemPfRender();
+  document.getElementById('iem').style.display='flex';
+}
+function closeIEM(){
+  document.getElementById('iem').style.display='none';
+  iemRepId=null;iemItemId=null;iemPfSelected=[];iemPfRender();
+  const inp=document.getElementById('iemPfInput');if(inp)inp.value='';
+}
+async function saveIEM(){
+  try{
+    const data={
+      closing_note:document.getElementById('iemCN').value.trim()||null,
+      note:document.getElementById('iemNote').value.trim()||null,
+      performer:iemPfSelected.length?iemPfSelected.join(', '):null
+    };
+    await dbPatch('repertoire_items',iemItemId,data);
+    closeIEM();toast('Kaydedildi ✓');await load();
+  }catch(e){toast(e.message,'er');}
+}
+function iemPfRender(){
+  const c=document.getElementById('iemPfTags');if(!c)return;
+  const inp=document.getElementById('iemPfInput');
+  c.querySelectorAll('.pf-tag').forEach(el=>el.remove());
+  iemPfSelected.forEach(name=>{
+    const t=document.createElement('span');t.className='pf-tag';
+    t.innerHTML=name+'<button type="button" onclick="iemPfRemove(\''+name+'\')">×</button>';
+    c.insertBefore(t,inp);
+  });
+}
+function iemPfAdd(name){
+  name=name.trim();if(!name||iemPfSelected.includes(name))return;
+  iemPfSelected.push(name);iemPfRender();
+  document.getElementById('iemPfInput').value='';
+  document.getElementById('iemPfDropdown').style.display='none';
+}
+function iemPfRemove(name){iemPfSelected=iemPfSelected.filter(n=>n!==name);iemPfRender();}
+function iemPfKeydown(e){
+  const val=e.target.value.trim();
+  if((e.key==='Enter'||e.key===',')&&val){e.preventDefault();iemPfAdd(val);}
+  else if(e.key==='Backspace'&&!val&&iemPfSelected.length)iemPfRemove(iemPfSelected[iemPfSelected.length-1]);
+}
+function iemPfSuggest(q){
+  const dd=document.getElementById('iemPfDropdown');
+  if(!q){dd.style.display='none';return;}
+  const m=SOLISTLER.filter(n=>n.toLowerCase().includes(q.toLowerCase())&&!iemPfSelected.includes(n));
+  if(!m.length){dd.style.display='none';return;}
+  dd.innerHTML=m.slice(0,8).map(n=>'<div class="pf-dd-item" onmousedown="event.preventDefault();iemPfAdd(\''+n+'\')">'+n+'</div>').join('');
+  dd.style.display='block';
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#iemPfTags')&&!e.target.closest('#iemPfDropdown')){
+    const dd=document.getElementById('iemPfDropdown');if(dd)dd.style.display='none';
+  }
+});
+
+{
   await loadWorksData();
   load();
 })();
