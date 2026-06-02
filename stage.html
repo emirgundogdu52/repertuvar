@@ -114,6 +114,63 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .side-nav-btn.disabled { opacity: 0.15; pointer-events: none; }
 .side-nav-left  { left: 12px; }
 .side-nav-right { right: 12px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .stb { padding:8px 10px; height:auto; min-height:48px; }
+    .strn { font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .bex, .stage-nav a { font-size:10px; padding:4px 8px; }
+    .stage-nav { gap:4px; }
+    .sm { padding:20px 60px 100px; }
+    .sb { padding:0 12px 16px; flex-wrap:wrap; gap:8px; }
+    .side-nav-left { left:6px; }
+    .side-nav-right { right:6px; }
+    .side-nav-btn { width:44px; height:44px; }
+    /* Picker */
+    .pi { max-width:100%; padding:20px 16px; }
+    .rb { padding:14px 16px; }
+    .rbn { font-size:14px; }
+    .side-nav-btn { width:40px; padding:10px 6px; }
+    .snb-label { font-size:9px; }
+    .snb-arrow { font-size:22px; }
+    .np { max-width:160px; }
+  }
+  @media (max-width: 480px) {
+    .wtitle { font-size:clamp(18px,5vw,26px); }
+    .wlyrics { font-size:clamp(14px,4.2vw,20px); line-height:1.8; padding:0 4px 80px; }
+    .side-nav-btn { width:40px !important; height:40px !important; border-radius:8px !important; }
+    .side-nav-left { left:4px !important; }
+    .side-nav-right { right:4px !important; }
+    .snb-label { display:none; }
+    .sb { padding:0 8px 12px; gap:8px; flex-wrap:wrap; }
+    .th { font-size:10px; }
+    .stb { padding:6px 8px; }
+    .stage-nav a, .bex { font-size:10px !important; padding:3px 6px !important; }
+    .sm { padding:16px 52px 80px; }
+    /* Picker screen on mobile */
+    .pi { padding:16px; }
+    .ptitle { font-size:20px; }
+    .rb { padding:12px 14px; }
+  }
+  /* Picker screen mobile */
+  @media (max-width: 600px) {
+    .pi { padding:0 8px; }
+    .ptitle { font-size:20px; }
+    .psub { font-size:13px; }
+    .rl { padding:10px 12px; }
+    .rn { font-size:14px; }
+  }
+
+  /* ── MOBILE GLOBAL ── */
+  @media (max-width: 768px) {
+    body { overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    button, a { min-height: 36px; }
+    input, select, textarea { font-size: 16px !important; } /* prevent iOS zoom */
+  }
+  @supports (padding: env(safe-area-inset-bottom)) {
+    .sb { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  }
+
 </style>
 </head>
 <body>
@@ -370,6 +427,32 @@ function loadSideWork(id) {
   const autoId=localStorage.getItem('stageRepId');
   if(autoId){localStorage.removeItem('stageRepId');const f=reps.find(r=>r.id===autoId);if(f){pickRep(autoId);setTimeout(()=>startStage(),100);}}
 })();
+
+// ── MOBİL SWIPE DESTEĞİ ──
+(function() {
+  let touchStartX = 0, touchStartY = 0;
+  const sm = document.getElementById('sm') || document.body;
+  
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, {passive: true});
+
+  document.addEventListener('touchend', function(e) {
+    if (!document.getElementById('stageScreen') || 
+        document.getElementById('stageScreen').classList.contains('hidden')) return;
+    
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    
+    // Yalnızca yatay swipe (dikey scroll değil)
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) sideNavNext(); // sola swipe → sonraki
+      else sideNavPrev();         // sağa swipe → önceki
+    }
+  }, {passive: true});
+})();
+
 </script>
 </body>
 </html>
