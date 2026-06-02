@@ -96,6 +96,22 @@ tr:hover .ra{opacity:1;}
 .toast.ok{border-color:var(--green);color:var(--green);}
 .toast.er{border-color:var(--red);color:var(--red);}
 @keyframes ti{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  .pf-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px 3px 10px; border-radius: 20px;
+    background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.35);
+    color: var(--accent); font-size: 12px; font-weight: 500; white-space: nowrap;
+  }
+  .pf-tag button {
+    background: none; border: none; color: var(--accent); cursor: pointer;
+    font-size: 14px; padding: 0; line-height: 1; opacity: .7;
+  }
+  .pf-tag button:hover { opacity: 1; }
+  .pf-dd-item {
+    padding: 8px 12px; cursor: pointer; font-size: 13px; color: var(--text);
+  }
+  .pf-dd-item:hover { background: var(--surface2); }
 </style>
 </head>
 <body>
@@ -156,7 +172,16 @@ tr:hover .ra{opacity:1;}
     </div>
     <div class="fr" style="margin-top:14px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
-        <div><label class="fl">İcracı Sanatçı</label><input class="fi" id="fPF" placeholder="Sanatçı adı..."></div>
+        <div style="grid-column:1/-1;">
+          <label class="fl">İcracı Sanatçılar</label>
+          <div id="pfTags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;align-items:center;cursor:text;" onclick="document.getElementById('pfInput').focus()">
+            <!-- sanatçı tag'leri buraya gelecek -->
+            <input id="pfInput" placeholder="Sanatçı ekle..." autocomplete="off"
+              style="border:none;background:none;color:var(--text);font-size:13px;outline:none;min-width:140px;flex:1;"
+              oninput="pfSuggest(this.value)" onkeydown="pfKeydown(event)">
+          </div>
+          <div id="pfDropdown" style="display:none;position:absolute;z-index:100;background:var(--surface);border:1px solid var(--border);border-radius:7px;max-height:160px;overflow-y:auto;width:280px;margin-top:2px;"></div>
+        </div>
         <div><label class="fl">Karar Sesi</label><input class="fi" id="fCN" placeholder="La, Do, Si..."></div>
       </div>
     </div>
@@ -231,14 +256,18 @@ let reps=[], selId=null, editId=null, selWId=null, addRepId=null;
 function sync(s,t){document.getElementById('dot').className='dot '+s;document.getElementById('sl').textContent=t;}
 function toast(m,t='ok'){const e=document.createElement('div');e.className='toast '+t;e.textContent=m;document.body.appendChild(e);setTimeout(()=>e.remove(),2500);}
 
+let SOLISTLER = []; // sanatçı listesi
+
 async function load(){
   sync('spin','Yükleniyor...');
   try{
-    const [r,i] = await Promise.all([
+    const [r,i,s] = await Promise.all([
       dbGet('repertoires','order=created_at'),
-      dbGet('repertoire_items','order=seq')
+      dbGet('repertoire_items','order=seq'),
+      dbGet('solistler','order=name')
     ]);
-    reps = r.map(x=>({...x, items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
+    SOLISTLER = (s||[]).map(x=>x.name).filter(Boolean);
+    reps = r.map(x=>({...x, items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||''}))}));
     sync('ok','Senkronize');
     renderList();
     if(selId) renderDetail();
@@ -336,10 +365,79 @@ async function delRep(id){
 }
 
 function openWM(repId){addRepId=repId;selWId=null;document.getElementById('ws').value='';document.getElementById('fCN').value='';document.getElementById('fIN').value='';filterW();document.getElementById('wm').style.display='flex';setTimeout(()=>document.getElementById('ws').focus(),50);}
+
+// ── İCRACILAR TAG UI ──
+let pfSelected = []; // seçili sanatçılar
+
+function pfRender() {
+  const container = document.getElementById('pfTags');
+  const input = document.getElementById('pfInput');
+  // Remove old tags
+  container.querySelectorAll('.pf-tag').forEach(el => el.remove());
+  // Insert tags before input
+  pfSelected.forEach(name => {
+    const tag = document.createElement('span');
+    tag.className = 'pf-tag';
+    tag.innerHTML = name + '<button type="button" onclick="pfRemove(\''+name+'\')">×</button>';
+    container.insertBefore(tag, input);
+  });
+}
+
+function pfAdd(name) {
+  name = name.trim();
+  if (!name || pfSelected.includes(name)) return;
+  pfSelected.push(name);
+  pfRender();
+  document.getElementById('pfInput').value = '';
+  pfHideDropdown();
+}
+
+function pfRemove(name) {
+  pfSelected = pfSelected.filter(n => n !== name);
+  pfRender();
+}
+
+function pfKeydown(e) {
+  const val = e.target.value.trim();
+  if ((e.key === 'Enter' || e.key === ',') && val) {
+    e.preventDefault();
+    pfAdd(val);
+  } else if (e.key === 'Backspace' && !val && pfSelected.length) {
+    pfRemove(pfSelected[pfSelected.length - 1]);
+  }
+}
+
+function pfSuggest(q) {
+  const dd = document.getElementById('pfDropdown');
+  if (!q) { pfHideDropdown(); return; }
+  const matches = SOLISTLER.filter(n => n.toLowerCase().includes(q.toLowerCase()) && !pfSelected.includes(n));
+  if (!matches.length) { pfHideDropdown(); return; }
+  dd.innerHTML = matches.slice(0,8).map(n =>
+    '<div class="pf-dd-item" onmousedown="event.preventDefault();pfAdd(\''+n+'\')">' + n + '</div>'
+  ).join('');
+  dd.style.display = 'block';
+}
+
+function pfHideDropdown() {
+  document.getElementById('pfDropdown').style.display = 'none';
+}
+
+function pfReset() {
+  pfSelected = [];
+  pfRender();
+  const inp = document.getElementById('pfInput');
+  if (inp) inp.value = '';
+  pfHideDropdown();
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#pfTags') && !e.target.closest('#pfDropdown')) pfHideDropdown();
+});
 function closeWM(){
   document.getElementById('wm').style.display='none';
   selWId=null; addRepId=null;
-  ['fCN','fIN','fPF','fMK','ws'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['fCN','fIN','fMK','ws'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  pfReset();
   var box=document.getElementById('wInfoBox');if(box)box.style.display='none';
 }
 function filterW(){
@@ -372,7 +470,7 @@ async function addWork(){
   const nextSeq=items.length?Math.max(...items.map(i=>i.seq))+1:1;
   sync('spin','Ekleniyor...');
   try{
-    await dbPost('repertoire_items',{repertoire_id:addRepId,work_id:selWId,seq:nextSeq,closing_note:document.getElementById('fCN').value.trim()||null,note:document.getElementById('fIN').value.trim()||null,performer:document.getElementById('fPF').value.trim()||null});
+    await dbPost('repertoire_items',{repertoire_id:addRepId,work_id:selWId,seq:nextSeq,closing_note:document.getElementById('fCN').value.trim()||null,note:document.getElementById('fIN').value.trim()||null,performer:pfSelected.length?pfSelected.join(', '):null});
     closeWM();toast('Eser eklendi ✓');await load();
   }catch(e){toast(e.message,'er');}
 }
