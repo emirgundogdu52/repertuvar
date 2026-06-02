@@ -281,7 +281,9 @@ async function loadWorksFromSupabase() {
     const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=1000', {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
     });
+    if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
     const rows = await r.json();
+    if (!Array.isArray(rows)) { console.error('Supabase unexpected response:', rows); return false; }
     DATA = rows.map(w => ({
       id: w.id,
       name: w.name || '',
@@ -689,7 +691,7 @@ document.addEventListener('keydown', function(e) {
 // Supabase'den yükle, sonra başlat
 (async function init() {
   // Yükleniyor göstergesi
-  document.getElementById('workList').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">Eserler yükleniyor...</div>';
+  const _lp = document.getElementById('listPanel'); if(_lp) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">Eserler yükleniyor...</div>';
   
   await loadWorksFromSupabase();
   
