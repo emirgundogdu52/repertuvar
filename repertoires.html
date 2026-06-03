@@ -176,6 +176,7 @@ tr:hover .ra{opacity:1;}
   }
 
 </style>
+<script src="auth.js"></script>
 </head>
 <body>
 <nav>
@@ -185,6 +186,7 @@ tr:hover .ra{opacity:1;}
   <a href="artiesten.html" class="nb">Solistler</a>
   <a href="stage.html" class="nb stage">🎭 Sahne Modu</a>
   <div class="sync"><div class="dot spin" id="dot"></div><span id="sl">Bağlanıyor...</span></div>
+<div id="userBadge"></div>
 </nav>
 <div class="layout">
   <aside class="lp">
@@ -259,8 +261,8 @@ tr:hover .ra{opacity:1;}
 const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
 const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 const H = {
-  'apikey': SUPA_KEY,
-  'Authorization': 'Bearer ' + SUPA_KEY,
+  get apikey() { return SUPA_KEY; },
+  get Authorization() { return 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY); },
   'Content-Type': 'application/json',
   'Prefer': 'return=representation'
 };
@@ -414,7 +416,7 @@ function closeRM(){document.getElementById('rm').style.display='none';}
 async function saveRep(){
   const name=document.getElementById('fN').value.trim();
   if(!name){document.getElementById('fN').focus();return;}
-  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null};
+  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,user_id:getUserId()||undefined};
   sync('spin','Kaydediliyor...');
   try{
     if(editId){await dbPatch('repertoires',editId,data);}
@@ -702,6 +704,9 @@ document.addEventListener('click',function(e){
 });
 
 (async function() {
+  const ok = await requireAuth();
+  if(!ok) return;
+  renderUserBadge('userBadge');
   await loadWorksData();
   load();
 })();
