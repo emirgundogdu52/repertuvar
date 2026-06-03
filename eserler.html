@@ -190,6 +190,12 @@
     pointer-events: none;
   }
   #ne_lyrics_editor:focus { outline: none; }
+  #ne_lyrics_editor * {
+    color: var(--text) !important;
+    background: transparent !important;
+    font-family: 'Sora', sans-serif !important;
+    font-size: 14px !important;
+  }
 
   /* ── MOBILE GLOBAL ── */
   @media (max-width: 768px) {
@@ -665,6 +671,26 @@ document.addEventListener('DOMContentLoaded', function() {
   if (overlay) {
     overlay.addEventListener('click', function(e) {
       if (e.target === this) closeNewEserModal();
+    });
+  }
+
+  // Paste yapıldığında harici font/renk/format temizle
+  const lyricsEd = document.getElementById('ne_lyrics_editor');
+  if (lyricsEd) {
+    lyricsEd.addEventListener('paste', function(e) {
+      e.preventDefault();
+      // Sadece düz metni al
+      const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      // Seçili alana ekle
+      const sel = window.getSelection();
+      if (sel.rangeCount) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(document.createTextNode(text));
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
     });
   }
 });
