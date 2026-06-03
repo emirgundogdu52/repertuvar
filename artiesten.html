@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solistler</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -87,6 +88,33 @@
   .toast.ok{border-color:var(--green);color:var(--green);}
   .toast.err{border-color:var(--red);color:var(--red);}
   @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding:0 10px; gap:4px; overflow-x:auto; }
+    .nav-btn { font-size:11px; padding:4px 8px; white-space:nowrap; }
+    .layout { flex-direction:column; height:auto; min-height:calc(100vh - 56px); }
+    .artist-list-panel { width:100%; min-width:unset; max-height:200px; border-right:none; border-bottom:1px solid var(--border); }
+    .artist-detail-panel { padding:16px; }
+  }
+  @media (max-width: 480px) {
+    .nav-btn[href="repertoires.html"], .nav-btn[href="eserler.html"] { display:none; }
+    .nav-btn[href="index.html"] img { height:28px !important; }
+    nav { height:52px; }
+    .layout { min-height:calc(100vh - 52px); }
+    .artist-list-panel { max-height:160px; }
+  }
+
+  /* ── MOBILE GLOBAL ── */
+  @media (max-width: 768px) {
+    body { overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    button, a { min-height: 36px; }
+    input, select, textarea { font-size: 16px !important; } /* prevent iOS zoom */
+  }
+  @supports (padding: env(safe-area-inset-bottom)) {
+    .sb { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  }
+
 </style>
 </head>
 <body>
