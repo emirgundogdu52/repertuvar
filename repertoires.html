@@ -175,6 +175,28 @@ tr:hover .ra{opacity:1;}
     }
   }
 
+
+  .bshare { color: #34d399 !important; border-color: rgba(52,211,153,.3) !important; }
+  .bshare:hover { background: rgba(52,211,153,.1) !important; border-color: rgba(52,211,153,.6) !important; }
+  
+  /* Share modal */
+  .share-modal { display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;
+    align-items:center;justify-content:center; }
+  .share-modal.open { display:flex; }
+  .share-box { background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:28px;width:min(440px,92vw); }
+  .share-title { font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px; }
+  .share-desc { font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6; }
+  .share-link-box { display:flex;gap:8px;align-items:center;
+    background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px; }
+  .share-link-box span { font-size:12px;color:var(--text2);flex:1;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;font-family:monospace; }
+  .copy-btn { padding:5px 12px;border-radius:6px;border:none;background:var(--accent);
+    color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit; }
+  .share-note { font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5; }
+  .share-close { float:right;background:none;border:none;color:var(--text2);
+    font-size:20px;cursor:pointer;line-height:1; }
+
 </style>
 <script src="auth.js"></script>
 </head>
@@ -390,6 +412,7 @@ function renderDetail(){
         <div class="da">
           <a href="stage.html" class="bi bstage" onclick="localStorage.setItem('stageRepId','${rep.id}')">🎭 Sahneye Çık</a>
           <button class="bi" onclick="openEdit('${rep.id}')">✏️ Düzenle</button>
+          <button class="bi bshare" onclick="shareRep('${rep.id}')">🔗 Paylaş</button>
           <button class="bi" onclick="printR('${rep.id}')">🖨️ Yazdır</button>
           <button class="bi bd" onclick="delRep('${rep.id}')">Sil</button>
         </div>
@@ -581,6 +604,42 @@ function printR(repId){
   win.document.write(`<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>${rep.name}</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;font-size:14px;color:#111;padding:32px 40px;}h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:400;margin-bottom:8px;}hr{border:none;border-top:2px solid #111;margin:16px 0;}table{width:100%;border-collapse:collapse;}th{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#888;text-align:left;padding:6px 12px;border-bottom:1px solid #ddd;}td{padding:9px 12px;border-bottom:1px solid #eee;vertical-align:middle;}</style></head><body><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:24px;">Repertuvar — ${new Date().toLocaleDateString('tr-TR')}</div><h1>${rep.name}</h1><div style="display:flex;gap:16px;font-size:12px;color:#666;margin-bottom:16px;">${rep.date?'📅 '+rep.date:''}${rep.venue?' 📍 '+rep.venue:''}${rep.status?' ● '+sl[rep.status]:''} 🎼 ${items.length} eser</div><hr><table><thead><tr><th>#</th><th>Eser Adı</th><th>Kapanış</th><th>Not</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=function(){setTimeout(function(){window.print();},400);}<\/script>
 
 
+
+<!-- PAYLAŞ MODAL -->
+<div id="shareModal" class="share-modal" onclick="if(event.target===this)closeShare()">
+  <div class="share-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+      <div>
+        <div class="share-title">🔗 Repertuvarı Paylaş</div>
+        <div id="shareRepName" style="font-size:12px;color:var(--text3);margin-top:2px;"></div>
+      </div>
+      <button class="share-close" onclick="closeShare()">✕</button>
+    </div>
+    <div class="share-desc">
+      Bu linki paylaştığınız kişiler repertuvarı <strong>sahne modunda görüntüleyebilir</strong>. 
+      Hesap açmaları gerekmez, link alan herkes erişebilir.
+    </div>
+    <div class="share-link-box">
+      <span id="shareLink">—</span>
+      <button class="copy-btn" id="copyBtn" onclick="copyShareLink()">Kopyala</button>
+    </div>
+    <div class="share-note">
+      ⚠️ Bu link herkese açıktır — sadece güvendiğiniz kişilerle paylaşın.<br>
+      Link ile açılan kişiler sadece okuyabilir, düzenleme yapamaz.
+    </div>
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeShare()" 
+        style="padding:8px 18px;border-radius:8px;background:none;border:1px solid var(--border);
+        color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;">Kapat</button>
+      <button onclick="shareViaWhatsApp()"
+        style="padding:8px 18px;border-radius:8px;background:#25d366;border:none;
+        color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">
+        📱 WhatsApp'ta Paylaş
+      </button>
+    </div>
+  </div>
+</div>
+
 </body></html>`);
   win.document.close();
 }
@@ -700,6 +759,58 @@ document.addEventListener('click',function(e){
     const dd=document.getElementById('iemPfDropdown');if(dd)dd.style.display='none';
   }
 });
+
+
+// ── PAYLAŞIM ──
+let shareRepId = null;
+
+function shareRep(repId) {
+  shareRepId = repId;
+  const rep = getRep(repId);
+  if (!rep) return;
+  
+  // Basit token: rep ID'sini base64'e çevir (yeterince güvenli)
+  const token = btoa(repId).replace(/=/g,'');
+  const baseUrl = window.location.origin + window.location.pathname.replace('repertoires.html','');
+  const link = baseUrl + 'stage.html?share=' + token;
+  
+  document.getElementById('shareRepName').textContent = rep.name;
+  document.getElementById('shareLink').textContent = link;
+  document.getElementById('shareLink').dataset.url = link;
+  document.getElementById('copyBtn').textContent = 'Kopyala';
+  document.getElementById('shareModal').classList.add('open');
+}
+
+function closeShare() {
+  document.getElementById('shareModal').classList.remove('open');
+  shareRepId = null;
+}
+
+function copyShareLink() {
+  const link = document.getElementById('shareLink').dataset.url;
+  navigator.clipboard.writeText(link).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Kopyalandı';
+    btn.style.background = '#4ade80';
+    setTimeout(() => { btn.textContent = 'Kopyala'; btn.style.background = ''; }, 2000);
+  }).catch(() => {
+    // Fallback for older browsers
+    const el = document.createElement('textarea');
+    el.value = link;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    document.getElementById('copyBtn').textContent = '✓ Kopyalandı';
+  });
+}
+
+function shareViaWhatsApp() {
+  const link = document.getElementById('shareLink').dataset.url;
+  const rep = getRep(shareRepId);
+  const text = '🎵 ' + (rep ? rep.name : 'Repertuvar') + ' — Sahne modunda görüntüle:\n' + link;
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+}
 
 (async function() {
   const ok = await requireAuth();
