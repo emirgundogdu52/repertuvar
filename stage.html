@@ -323,7 +323,12 @@ function renderStage(){
 
 function nextWork(){
   // sideList modunda ise sideNavNext kullan
-  if(sideList.length > 1) { sideNavNext(); return; }
+  if(sideList.length > 1) {
+    if(curRep && curRep.items && curRep.items.length > 1) {
+      sideIdx = curIdx;
+    }
+    sideNavNext(); return;
+  }
   const items=curRep.items||[];
   if(curIdx>=items.length-1){showEndScreen();return;}
   const f=document.createElement('div');f.className='sf';document.body.appendChild(f);setTimeout(()=>f.remove(),300);
@@ -331,7 +336,13 @@ function nextWork(){
 }
 
 function prevWork(){
-  if(sideList.length > 1) { sideNavPrev(); return; }
+  if(sideList.length > 1) {
+    // sideIdx'i curIdx ile senkronize et
+    if(curRep && curRep.items && curRep.items.length > 1) {
+      sideIdx = curIdx;
+    }
+    sideNavPrev(); return;
+  }
   if(curIdx<=0)return;curIdx--;renderStage();
 }
 function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?'))backToPicker();}
@@ -392,6 +403,7 @@ function loadSideWork(id) {
     const idx = curRep.items.findIndex(it => it.workId === id);
     if (idx > -1) {
       curIdx = idx;
+      sideIdx = idx;
       document.getElementById('strn').textContent = curRep.name || '';
       renderStage();
       updateSideButtons();
