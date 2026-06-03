@@ -1,6 +1,6 @@
 // auth.js — tüm sayfalarda kullanılan auth yardımcı fonksiyonları
-const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
-const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+var SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+var SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 
 function getToken() { return localStorage.getItem('sb_token'); }
 function getUser() {
