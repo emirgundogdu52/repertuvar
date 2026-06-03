@@ -392,10 +392,10 @@ function renderDetail(){
       <td class="sq"><input class="si" type="number" min="1" max="${items.length}" value="${it.seq}" onchange="chSeq('${rep.id}',${idx},this.value)" onclick="event.stopPropagation()"></td>
       <td>
         <div class="wn">${w.name||'#'+it.workId}</div>
-        <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
-        ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
+        <div class="ws">${w.composer ? '<span style="color:var(--text3);font-size:10px;">Besteci:</span> '+w.composer : ''}${w.makam ? ' · '+w.makam : ''}</div>
+        ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;"><span style="color:var(--text3);">İcracı:</span> '+pf+'</div>' : ''}
       </td>
-      <td>${cn?'<span class="cn">'+cn+'</span>':''}</td>
+      <td>${cn?'<div style="font-size:10px;color:var(--text3);">Kapanış/Karar:</div><span class="cn">'+cn+'</span>':''}</td>
       <td style="color:var(--text3);font-size:12px;">${it.note||''}</td>
       <td><div class="ra">
         <button class="br" onclick="mv('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
@@ -427,7 +427,7 @@ function renderDetail(){
     </div>
     <div class="is">
       <div class="ih"><h3>${items.length} Eser</h3><button class="baw" onclick="openWM('${rep.id}')">+ Eser Ekle</button></div>
-      <table><thead><tr><th>#</th><th>Eser Adı</th><th>Kapanış</th><th>Not</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>#</th><th>Eser Adı / Besteci</th><th>Kapanış / Karar Sesi</th><th>Sahne Notu</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
 }
 
