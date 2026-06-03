@@ -322,6 +322,7 @@ function renderStage(){
 }
 
 function nextWork(){
+  console.log('nextWork called');
   sideNavNext();
 }
 
@@ -421,6 +422,7 @@ function sideNavPrev() {
 }
 
 function sideNavNext() {
+  console.log('sideNavNext called, curIdx='+curIdx+', items='+(curRep&&curRep.items?curRep.items.length:0));
   if (curRep && curRep.items && curRep.items.length > 1) {
     if (curIdx >= curRep.items.length - 1) { showEndScreen(); return; }
     curIdx++;
@@ -479,8 +481,9 @@ function loadSideWork(id) {
         document.getElementById('strn').textContent = curRep.name || '';
         renderStage();
         // Tüm eserleri sideList'e yükle - önceki/sonraki geçiş için
-        sideList = curRep.items.map(it => it.workId);
-        sideIdx = 0;
+        // Paylaşım modunda sideList boş bırak - sadece curRep/curIdx kullan
+        sideList = [];
+        sideIdx = -1;
         updateSideButtons();
         return;
       }
