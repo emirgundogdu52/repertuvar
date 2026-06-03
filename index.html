@@ -48,7 +48,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 @media(max-width:700px){.cards{grid-template-columns:1fr;}}
-.card{background:rgba(22,27,34,0.7);backdrop-filter:blur(8px);border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
+.card{background:rgba(22,27,34,0.88);backdrop-filter:blur(8px);border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
 .card:hover{border-color:#30363D;transform:translateY(-2px);}
 .card-header{display:flex;align-items:flex-start;justify-content:space-between;}
 .card-icon-wrap{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;}
@@ -80,7 +80,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 <body>
 
 <!-- WebGL Shader Background -->
-<canvas id="shaderBg" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+<canvas id="shaderBg" style="position:fixed;bottom:0;left:0;width:100%;height:50%;z-index:0;pointer-events:none;opacity:0.8;mask-image:linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%);-webkit-mask-image:linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%);filter:blur(2px);"></canvas>
 
 <header>
   <img src="Repertuvar_logo.png" alt="">
@@ -225,7 +225,7 @@ document.querySelector('.h-btn')?.addEventListener('click', logout);
     const float majorLineFrequency=5.0;
     const float minorLineFrequency=1.0;
     const float scale=5.0;
-    const vec4 lineColor=vec4(0.4,0.2,0.8,1.0);
+    const vec4 lineColor=vec4(0.3,0.15,0.6,1.0);
     const float minLineWidth=0.01;
     const float maxLineWidth=0.2;
     const float lineSpeed=1.0*overallSpeed;
@@ -251,8 +251,8 @@ document.querySelector('.h-btn')?.addEventListener('click', logout);
       space.y+=random(space.x*warpFrequency+iTime*warpSpeed)*warpAmplitude*(0.5+hf);
       space.x+=random(space.y*warpFrequency+iTime*warpSpeed+2.0)*warpAmplitude*hf;
       vec4 lines=vec4(0.0);
-      vec4 bgColor1=vec4(0.05,0.05,0.1,1.0);
-      vec4 bgColor2=vec4(0.08,0.04,0.14,1.0);
+      vec4 bgColor1=vec4(0.05,0.05,0.08,1.0);
+      vec4 bgColor2=vec4(0.06,0.03,0.1,1.0);
       for(int l=0;l<16;l++){
         float nl=float(l)/16.0;
         float op=iTime*offsetSpeed;
