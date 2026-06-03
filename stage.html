@@ -403,6 +403,40 @@ function loadSideWork(id) {
 
   // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda aç
   const urlParams = new URLSearchParams(window.location.search);
+
+  // Paylaşım linki: ?share=token → token'dan rep ID çöz, Supabase'den yükle
+  const shareToken = urlParams.get('share');
+  if (shareToken) {
+    try {
+      const repId = atob(shareToken + '=='.slice(0, (4 - shareToken.length % 4) % 4));
+      // Supabase'den bu repertuvarı çek (public erişim)
+      const [rRes, iRes] = await Promise.all([
+        fetch(SUPA_URL+'/rest/v1/repertoires?id=eq.'+repId, {
+          headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
+        }),
+        fetch(SUPA_URL+'/rest/v1/repertoire_items?repertoire_id=eq.'+repId+'&order=seq', {
+          headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
+        })
+      ]);
+      const reps = await rRes.json();
+      const items = await iRes.json();
+      if (reps && reps[0]) {
+        curRep = {
+          ...reps[0],
+          items: (items||[]).map(t => ({
+            ...t, workId: String(t.work_id), closingNote: t.closing_note||'', performer: t.performer||''
+          }))
+        };
+        curIdx = 0;
+        showScreen('stageScreen');
+        document.getElementById('strn').textContent = curRep.name || '';
+        renderStage();
+        sideNavInit(curRep.items[0]?.workId);
+        return;
+      }
+    } catch(e) { console.error('Share token error:', e); }
+  }
+
   const workParam = urlParams.get('work');
   if (workParam) {
     const normalizedId = String(parseInt(workParam));
