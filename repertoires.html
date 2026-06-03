@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- build: v3 -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -636,14 +637,16 @@ function openItemEdit(repId,itemId){
   const rep=getRep(repId);if(!rep)return;
   const it=(rep.items||[]).find(x=>x.id===itemId);if(!it)return;
   const w=WL[it.workId]||{};
-  document.getElementById('iemWorkName').textContent=w.name||'#'+it.workId;
-  document.getElementById('iemWorkInfo').textContent=[w.makam,w.composer].filter(Boolean).join(' · ');
-  document.getElementById('iemMK').value=w.makam||'—';
-  document.getElementById('iemCN').value=it.closingNote||w.closingNote||'';
-  document.getElementById('iemNote').value=it.note||'';
+  const el=function(id){return document.getElementById(id);};
+  if(el('iemWorkName')) el('iemWorkName').textContent=w.name||'#'+it.workId;
+  if(el('iemWorkInfo')) el('iemWorkInfo').textContent=[w.makam,w.composer].filter(Boolean).join(' · ');
+  if(el('iemMK')) el('iemMK').value=w.makam||'—';
+  if(el('iemCN')) el('iemCN').value=it.closingNote||w.closingNote||'';
+  if(el('iemNote')) el('iemNote').value=it.note||'';
   iemPfSelected=it.performer?it.performer.split(', ').filter(Boolean):[];
   iemPfRender();
-  document.getElementById('iem').style.display='flex';
+  if(el('iem')) el('iem').style.display='flex';
+  else console.error('Modal #iem not found in DOM');
 }
 function closeIEM(){
   document.getElementById('iem').style.display='none';
@@ -1188,14 +1191,16 @@ function openItemEdit(repId,itemId){
   const rep=getRep(repId);if(!rep)return;
   const it=(rep.items||[]).find(x=>x.id===itemId);if(!it)return;
   const w=WL[it.workId]||{};
-  document.getElementById('iemWorkName').textContent=w.name||'#'+it.workId;
-  document.getElementById('iemWorkInfo').textContent=[w.makam,w.composer].filter(Boolean).join(' · ');
-  document.getElementById('iemMK').value=w.makam||'—';
-  document.getElementById('iemCN').value=it.closingNote||w.closingNote||'';
-  document.getElementById('iemNote').value=it.note||'';
+  const el=function(id){return document.getElementById(id);};
+  if(el('iemWorkName')) el('iemWorkName').textContent=w.name||'#'+it.workId;
+  if(el('iemWorkInfo')) el('iemWorkInfo').textContent=[w.makam,w.composer].filter(Boolean).join(' · ');
+  if(el('iemMK')) el('iemMK').value=w.makam||'—';
+  if(el('iemCN')) el('iemCN').value=it.closingNote||w.closingNote||'';
+  if(el('iemNote')) el('iemNote').value=it.note||'';
   iemPfSelected=it.performer?it.performer.split(', ').filter(Boolean):[];
   iemPfRender();
-  document.getElementById('iem').style.display='flex';
+  if(el('iem')) el('iem').style.display='flex';
+  else console.error('Modal #iem not found in DOM');
 }
 function closeIEM(){
   document.getElementById('iem').style.display='none';
