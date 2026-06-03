@@ -322,13 +322,18 @@ function renderStage(){
 }
 
 function nextWork(){
+  // sideList modunda ise sideNavNext kullan
+  if(sideList.length > 1) { sideNavNext(); return; }
   const items=curRep.items||[];
   if(curIdx>=items.length-1){showEndScreen();return;}
   const f=document.createElement('div');f.className='sf';document.body.appendChild(f);setTimeout(()=>f.remove(),300);
   curIdx++;renderStage();
 }
 
-function prevWork(){if(curIdx<=0)return;curIdx--;renderStage();}
+function prevWork(){
+  if(sideList.length > 1) { sideNavPrev(); return; }
+  if(curIdx<=0)return;curIdx--;renderStage();
+}
 function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?'))backToPicker();}
 function showEndScreen(){showScreen('endScreen');document.getElementById('ern').textContent=curRep.name;document.getElementById('erc').textContent=(curRep.items||[]).length+' eser seslendirdiniz';}
 function restartStage(){curIdx=0;showScreen('stageScreen');renderStage();}
@@ -382,6 +387,18 @@ function sideNavNext() {
 function loadSideWork(id) {
   const w = WL[id];
   if (!w) return;
+  // If we have a full curRep (shared repertoire), find item index
+  if (curRep && curRep.items && curRep.items.length > 1) {
+    const idx = curRep.items.findIndex(it => it.workId === id);
+    if (idx > -1) {
+      curIdx = idx;
+      document.getElementById('strn').textContent = curRep.name || '';
+      renderStage();
+      updateSideButtons();
+      return;
+    }
+  }
+  // Single work mode
   curRep = {
     id: 'single', name: w.name || '',
     items: [{ workId: id, closingNote: w.closingNote || '' }]
