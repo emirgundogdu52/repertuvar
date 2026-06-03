@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repertuvar</title>
-<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<!-- DESIGN-TEST-ALT-F-FINAL -->
+<link rel="icon" href="Repertuvar_logo.png">
 <script src="auth.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -34,7 +35,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 .btn-s:hover{border-color:#8B949E;}
 
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.stat-card{background:rgba(22,27,34,0.75);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:20px;transition:border-color .15s;}
+.stat-card{background:rgba(22,27,34,0.8);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:20px;transition:border-color .15s;}
 .stat-card:hover{border-color:#30363D;}
 .stat-icon{font-size:20px;margin-bottom:10px;}
 .stat-n{font-size:28px;font-weight:700;color:#E6EDF3;letter-spacing:-.02em;}
@@ -48,7 +49,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 @media(max-width:700px){.cards{grid-template-columns:1fr;}}
-.card{background:rgba(22,27,34,0.75);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
+.card{background:rgba(22,27,34,0.8);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
 .card:hover{border-color:#30363D;transform:translateY(-2px);}
 .card-header{display:flex;align-items:flex-start;justify-content:space-between;}
 .card-icon-wrap{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;}
@@ -65,7 +66,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 
 .stage-wrap{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
 @media(max-width:768px){.stage-wrap{padding:0 24px 56px;}}
-.stage-card{background:linear-gradient(135deg,rgba(22,27,34,0.8) 0%,rgba(26,16,64,0.8) 100%);border:1px solid #21262D;border-radius:16px;padding:36px 44px;display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;}
+.stage-card{background:linear-gradient(135deg,rgba(22,27,34,0.85) 0%,rgba(26,16,64,0.85) 100%);border:1px solid #21262D;border-radius:16px;padding:36px 44px;display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;}
 .stage-left h2{font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
 .stage-left h2 span{background:linear-gradient(90deg,#BC8CFF,#58A6FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .stage-left p{font-size:14px;color:#8B949E;line-height:1.7;max-width:360px;}
@@ -79,6 +80,8 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 </head>
 <body>
 <canvas id="shaderBg" style="position:fixed;bottom:0;left:0;width:100%;height:60%;z-index:0;pointer-events:none;mask-image:linear-gradient(to bottom,transparent 0%,black 50%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 50%);"></canvas>
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#0D1117;z-index:-1;"></div>
+
 <header>
   <img src="Repertuvar_logo.png" alt="">
   <span class="h-name">Repertuvar</span>
@@ -174,74 +177,69 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 </div>
 <script>
 (async function(){
-  const ok = await requireAuth();
-  if(!ok) return;
+  const ok = await requireAuth(); if(!ok) return;
   const u = getUser();
-  const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || 'Kullanıcı';
-  const el = document.getElementById('navUserName');
-  if(el) el.textContent = name;
-
-  const H = {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY), 'Prefer':'count=exact'};
-  const statEls = document.querySelectorAll('.stat-n');
-  try { const r = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1',{headers:H}); const c=r.headers.get('content-range')?.split('/')[1]; if(c&&statEls[0]) statEls[0].textContent=c; } catch(e){}
-  try { const r = await fetch(SUPA_URL+'/rest/v1/repertoires?select=id&limit=1',{headers:H}); const c=r.headers.get('content-range')?.split('/')[1]; if(c&&statEls[1]) statEls[1].textContent=c; } catch(e){}
-  try { const r = await fetch(SUPA_URL+'/rest/v1/solistler?select=id&limit=1',{headers:H}); const c=r.headers.get('content-range')?.split('/')[1]; if(c&&statEls[2]) statEls[2].textContent=c; } catch(e){}
+  const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
+  const el = document.getElementById('navUserName'); if(el) el.textContent = name;
+  const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),'Prefer':'count=exact'};
+  const ns = document.querySelectorAll('.stat-n');
+  const urls = ['works','repertoires','solistler'];
+  for(let i=0;i<3;i++){
+    try{ const r=await fetch(SUPA_URL+'/rest/v1/'+urls[i]+'?select=id&limit=1',{headers:H});
+    const cnt=r.headers.get('content-range')?.split('/')[1]; if(cnt&&ns[i]) ns[i].textContent=cnt; }catch(e){}
+  }
 })();
-
-// Theme toggle
 document.querySelectorAll('.tp').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));
   b.classList.add('a');
-  localStorage.setItem('stageTheme', b.textContent.includes('Gündüz')?'day':'night');
+  localStorage.setItem('stageTheme',b.textContent.includes('Gündüz')?'day':'night');
 }));
 </script>
-
 <script>
 (function(){
-  const canvas=document.getElementById('shaderBg');
-  if(!canvas)return;
-  const gl=canvas.getContext('webgl');if(!gl)return;
-  const vs=`attribute vec4 aPos;void main(){gl_Position=aPos;}`;
+  const cv=document.getElementById('shaderBg');if(!cv)return;
+  const gl=cv.getContext('webgl');if(!gl)return;
+  const vs=`attribute vec4 p;void main(){gl_Position=p;}`;
   const fs=`precision highp float;
-    uniform vec2 iResolution;uniform float iTime;
-    const float os=0.2;const float sc=5.0;
-    const vec4 lc=vec4(0.3,0.15,0.6,1.0);
-    const float mlw=0.01;const float mxlw=0.2;const float ls=1.0*os;
-    const float la=1.0;const float lf=0.2;const float ws=0.2*os;
-    const float wf=0.5;const float wa=1.0;const float of2=0.5;
-    const float ofs=1.33*os;const float mnos=0.6;const float mxos=2.0;
-    float rnd(float t){return(cos(t)+cos(t*1.3+1.3)+cos(t*1.4+1.4))/3.0;}
-    float getPY(float x,float hf,float off){return rnd(x*lf+iTime*ls)*hf*la+off;}
-    void main(){
-      vec2 uv=gl_FragCoord.xy/iResolution.xy;
-      vec2 sp=(gl_FragCoord.xy-iResolution.xy/2.0)/iResolution.x*2.0*sc;
-      float hf=1.0-(cos(uv.x*6.28)*0.5+0.5);float vf=1.0-(cos(uv.y*6.28)*0.5+0.5);
-      sp.y+=rnd(sp.x*wf+iTime*ws)*wa*(0.5+hf);sp.x+=rnd(sp.y*wf+iTime*ws+2.0)*wa*hf;
-      vec4 lines=vec4(0.0);vec4 bg1=vec4(0.05,0.05,0.08,1.0);vec4 bg2=vec4(0.06,0.03,0.1,1.0);
-      for(int l=0;l<16;l++){
-        float nl=float(l)/16.0;float op=iTime*ofs;float op2=float(l)+sp.x*of2;
-        float rand=rnd(op2+op)*0.5+0.5;float hw=mix(mlw,mxlw,rand*hf)/2.0;
-        float off=rnd(op2+op*(1.0+nl))*mix(mnos,mxos,hf);
-        float lp=getPY(sp.x,hf,off);
-        float line=smoothstep(hw,0.0,abs(lp-sp.y))/2.0+smoothstep(hw*0.15+0.015,hw*0.15,abs(lp-sp.y));
-        float cx=mod(float(l)+iTime*ls,25.0)-12.0;
-        vec2 cp=vec2(cx,getPY(cx,hf,off));
-        line+=smoothstep(0.025,0.01,length(cp-sp))*4.0;
-        lines+=line*lc*rand;
-      }
-      vec4 col=mix(bg1,bg2,uv.x);col*=vf;col.a=1.0;col+=lines;gl_FragColor=col;
-    }`;
+  uniform vec2 R;uniform float T;
+  float rnd(float t){return(cos(t)+cos(t*1.3+1.3)+cos(t*1.4+1.4))/3.0;}
+  float py(float x,float h,float o){return rnd(x*.2+T*.2)*h*1.0+o;}
+  void main(){
+    vec2 uv=gl_FragCoord.xy/R.xy;
+    vec2 sp=(gl_FragCoord.xy-R/2.0)/R.x*10.0;
+    float hf=1.0-(cos(uv.x*6.28)*.5+.5);
+    float vf=1.0-(cos(uv.y*6.28)*.5+.5);
+    sp.y+=rnd(sp.x*.5+T*.04)*1.0*(.5+hf);
+    sp.x+=rnd(sp.y*.5+T*.04+2.0)*1.0*hf;
+    vec4 lines=vec4(0.);
+    for(int l=0;l<16;l++){
+      float nl=float(l)/16.;float op=T*.266;float o2=float(l)+sp.x*.5;
+      float r=rnd(o2+op)*.5+.5;float hw=mix(.01,.2,r*hf)/2.;
+      float off=rnd(o2+op*(1.+nl))*mix(.6,2.,hf);
+      float lp=py(sp.x,hf,off);
+      float line=smoothstep(hw,0.,abs(lp-sp.y))/2.+smoothstep(hw*.15+.015,hw*.15,abs(lp-sp.y));
+      float cx=mod(float(l)+T*.2,25.)-12.;
+      vec2 cp=vec2(cx,py(cx,hf,off));
+      line+=smoothstep(.025,.01,length(cp-sp))*4.;
+      lines+=line*vec4(.3,.15,.6,1.)*r;
+    }
+    vec4 col=mix(vec4(.05,.05,.08,1.),vec4(.06,.03,.1,1.),uv.x);
+    col*=vf;col.a=1.;col+=lines;gl_FragColor=col;
+  }`;
   function mk(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;}
-  const prog=gl.createProgram();gl.attachShader(prog,mk(gl.VERTEX_SHADER,vs));gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fs));gl.linkProgram(prog);
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,vs));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(prog);
   const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-  const aPos=gl.getAttribLocation(prog,'aPos');
-  const uRes=gl.getUniformLocation(prog,'iResolution');
-  const uTime=gl.getUniformLocation(prog,'iTime');
-  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight*0.6;gl.viewport(0,0,canvas.width,canvas.height);}
+  const ap=gl.getAttribLocation(prog,'p');
+  const uR=gl.getUniformLocation(prog,'R');
+  const uT=gl.getUniformLocation(prog,'T');
+  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight*.6;gl.viewport(0,0,cv.width,cv.height);}
   window.addEventListener('resize',resize);resize();
   const t0=Date.now();
-  function draw(){const t=(Date.now()-t0)/1000;gl.useProgram(prog);gl.uniform2f(uRes,canvas.width,canvas.height);gl.uniform1f(uTime,t);gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(aPos);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(draw);}
+  function draw(){const t=(Date.now()-t0)/1e3;gl.useProgram(prog);gl.uniform2f(uR,cv.width,cv.height);gl.uniform1f(uT,t);gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.vertexAttribPointer(ap,2,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(ap);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(draw);}
   requestAnimationFrame(draw);
 })();
 </script>
