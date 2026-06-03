@@ -431,7 +431,10 @@ function loadSideWork(id) {
         showScreen('stageScreen');
         document.getElementById('strn').textContent = curRep.name || '';
         renderStage();
-        sideNavInit(curRep.items[0]?.workId);
+        // Tüm eserleri sideList'e yükle - önceki/sonraki geçiş için
+        sideList = curRep.items.map(it => it.workId);
+        sideIdx = 0;
+        updateSideButtons();
         return;
       }
     } catch(e) { console.error('Share token error:', e); }
