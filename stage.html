@@ -322,11 +322,11 @@ function renderStage(){
 }
 
 function nextWork(){
-  // sideList modunda ise sideNavNext kullan
-  if(sideList.length > 1) {
-    if(curRep && curRep.items && curRep.items.length > 1) {
-      sideIdx = curIdx;
-    }
+  // Repertuvar veya sideList varsa sideNavNext kullan
+  if((curRep && curRep.items && curRep.items.length > 1) || sideList.length > 1) {
+    const isRepMode = curRep && curRep.items && curRep.items.length > 1;
+    const atEnd = isRepMode ? curIdx >= curRep.items.length-1 : sideIdx >= sideList.length-1;
+    if(atEnd) { showEndScreen(); return; }
     sideNavNext(); return;
   }
   const items=curRep.items||[];
@@ -336,14 +336,7 @@ function nextWork(){
 }
 
 function prevWork(){
-  if(sideList.length > 1) {
-    // sideIdx'i curIdx ile senkronize et
-    if(curRep && curRep.items && curRep.items.length > 1) {
-      sideIdx = curIdx;
-    }
-    sideNavPrev(); return;
-  }
-  if(curIdx<=0)return;curIdx--;renderStage();
+  sideNavPrev();
 }
 function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?'))backToPicker();}
 function showEndScreen(){showScreen('endScreen');document.getElementById('ern').textContent=curRep.name;document.getElementById('erc').textContent=(curRep.items||[]).length+' eser seslendirdiniz';}
@@ -389,9 +382,9 @@ document.addEventListener('keydown',e=>{
 document.getElementById('stageScreen').addEventListener('touchstart',e=>{txStart=e.touches[0].clientX;},{passive:true});
 document.getElementById('stageScreen').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-txStart;if(Math.abs(dx)>60){dx<0?nextWork():prevWork();}},{passive:true});
 
-// ── YAN NAVİGASYON (Eserler listesi) ──
-let sideList = [];   // ID listesi
-let sideIdx  = -1;   // şu anki index
+// ── NAVİGASYON ──
+let sideList = [];
+let sideIdx  = -1;
 
 function sideNavInit(workId) {
   const stored = localStorage.getItem('stageWorkList');
@@ -406,16 +399,21 @@ function updateSideButtons() {
   const l = document.getElementById('sideLeft');
   const r = document.getElementById('sideRight');
   if (!l || !r) return;
-  const inList = sideList.length > 1;
-  l.style.display = r.style.display = inList ? 'flex' : 'none';
-  l.classList.toggle('disabled', sideIdx <= 0);
-  r.classList.toggle('disabled', sideIdx >= sideList.length - 1);
+  const isRepMode = curRep && curRep.items && curRep.items.length > 1;
+  const total = isRepMode ? curRep.items.length : sideList.length;
+  const cur   = isRepMode ? curIdx : sideIdx;
+  l.style.display = r.style.display = total > 1 ? 'flex' : 'none';
+  l.classList.toggle('disabled', cur <= 0);
+  r.classList.toggle('disabled', cur >= total - 1);
 }
 
 function sideNavPrev() {
-  // curIdx ile senkronize et (shared repertoire için)
-  if (curRep && curRep.items && curRep.items.length > 1 && sideList.length > 1) {
-    sideIdx = curIdx;
+  if (curRep && curRep.items && curRep.items.length > 1) {
+    if (curIdx <= 0) return;
+    curIdx--;
+    renderStage();
+    updateSideButtons();
+    return;
   }
   if (sideIdx <= 0) return;
   sideIdx--;
@@ -423,9 +421,12 @@ function sideNavPrev() {
 }
 
 function sideNavNext() {
-  // curIdx ile senkronize et (shared repertoire için)
-  if (curRep && curRep.items && curRep.items.length > 1 && sideList.length > 1) {
-    sideIdx = curIdx;
+  if (curRep && curRep.items && curRep.items.length > 1) {
+    if (curIdx >= curRep.items.length - 1) return;
+    curIdx++;
+    renderStage();
+    updateSideButtons();
+    return;
   }
   if (sideIdx >= sideList.length - 1) return;
   sideIdx++;
@@ -435,33 +436,13 @@ function sideNavNext() {
 function loadSideWork(id) {
   const w = WL[id];
   if (!w) return;
-  // If we have a full curRep (shared repertoire), find item index
-  if (curRep && curRep.items && curRep.items.length > 1) {
-    const idx = curRep.items.findIndex(it => it.workId === id);
-    if (idx > -1) {
-      curIdx = idx;
-      sideIdx = idx;
-      document.getElementById('strn').textContent = curRep.name || '';
-      renderStage();
-      updateSideButtons();
-      return;
-    }
-  }
-  // Single work mode
-  curRep = {
-    id: 'single', name: w.name || '',
-    items: [{ workId: id, closingNote: w.closingNote || '' }]
-  };
+  curRep = { id: 'single', name: w.name||'', items: [{ workId: id, closingNote: w.closingNote||'' }] };
   curIdx = 0;
+  sideIdx = sideList.indexOf(String(id));
   document.getElementById('strn').textContent = w.name || '';
   renderStage();
   updateSideButtons();
-  // URL'i güncelle (history)
-  const params = new URLSearchParams(window.location.search);
-  params.set('work', id);
-  window.history.replaceState({}, '', '?' + params.toString());
 }
-
 // Init
 (async()=>{
   // Önce Supabase'den WL'yi yükle
