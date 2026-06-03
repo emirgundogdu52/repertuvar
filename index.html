@@ -320,6 +320,7 @@
   }
 
 </style>
+<script src="auth.js"></script>
 </head>
 <body>
 <div class="page">
@@ -329,7 +330,8 @@
       <img src="Repertuvar_logo.png" alt="Repertuvar" style="height:72px;width:auto;">
     </div>
     <div class="header-date" id="headerDate"></div>
-  </header>
+  <div id="userBadge" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);"></div>
+</header>
 
   <main class="hero">
     <p class="hero-eyebrow">Müzik Arşiviniz</p>
@@ -417,6 +419,13 @@
     const solos = JSON.parse(localStorage.getItem('solistler') || '[]');
     document.getElementById('soloCount').textContent = solos.length;
   } catch {}
+</script>
+<script>
+(async function(){
+  const ok = await requireAuth();
+  if(!ok) return;
+  renderUserBadge('userBadge');
+})();
 </script>
 </body>
 </html>
