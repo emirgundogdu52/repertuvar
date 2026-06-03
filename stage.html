@@ -221,8 +221,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
   <p class="ec" id="erc">0 eser</p>
   <div class="ea">
     <button class="be bep" onclick="restartStage()">↺ Baştan Başla</button>
-    <button class="be beg" onclick="backToPicker()">Repertuvar Seç</button>
-    <a href="index.html" class="be beg">Ana Sayfa</a>
+    <button class="be beg" id="btnRepertuvarSec" onclick="backToPicker()">Repertuvar Seç</button>
+    <a href="index.html" class="be beg" id="btnAnaSayfa">Ana Sayfa</a>
   </div>
 </div>
 
@@ -322,26 +322,24 @@ function renderStage(){
 }
 
 function nextWork(){
-  const items = curRep.items||[];
-  if(curIdx >= items.length-1){
-    // sideList modunda sonraki esere geç
-    if(sideList.length > 1 && sideIdx < sideList.length-1){
-      sideIdx++; loadSideWork(sideList[sideIdx]); return;
-    }
-    showEndScreen(); return;
-  }
-  const f=document.createElement('div');f.className='sf';document.body.appendChild(f);setTimeout(()=>f.remove(),300);
-  curIdx++;
-  renderStage();
-  updateSideButtons();
+  sideNavNext();
 }
 
 function prevWork(){
-  if(curIdx > 0){ curIdx--; renderStage(); updateSideButtons(); return; }
-  if(sideList.length > 1 && sideIdx > 0){ sideIdx--; loadSideWork(sideList[sideIdx]); }
+  sideNavPrev();
 }
 function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?'))backToPicker();}
-function showEndScreen(){showScreen('endScreen');document.getElementById('ern').textContent=curRep.name;document.getElementById('erc').textContent=(curRep.items||[]).length+' eser seslendirdiniz';}
+function showEndScreen(){
+  showScreen('endScreen');
+  document.getElementById('ern').textContent = curRep.name || '';
+  document.getElementById('erc').textContent = (curRep.items||[]).length + ' eser seslendirdiniz';
+  // Paylaşım modunda Ana Sayfa ve Repertuvar Seç butonlarını gizle
+  const isShared = !!new URLSearchParams(window.location.search).get('share');
+  const btnRep = document.getElementById('btnRepertuvarSec');
+  const btnAna = document.getElementById('btnAnaSayfa');
+  if(btnRep) btnRep.style.display = isShared ? 'none' : '';
+  if(btnAna) btnAna.style.display = isShared ? 'none' : '';
+}
 function restartStage(){curIdx=0;showScreen('stageScreen');renderStage();}
 function backToPicker(){
   // Paylaşım modunda: sadece paylaşılan repertuvarı göster
@@ -424,7 +422,7 @@ function sideNavPrev() {
 
 function sideNavNext() {
   if (curRep && curRep.items && curRep.items.length > 1) {
-    if (curIdx >= curRep.items.length - 1) return;
+    if (curIdx >= curRep.items.length - 1) { showEndScreen(); return; }
     curIdx++;
     renderStage();
     updateSideButtons();
