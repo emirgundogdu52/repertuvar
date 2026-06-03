@@ -2,429 +2,385 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-  <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Repertuvar — Ana Sayfa</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #080810;
-    --surface: #0f0f1a;
-    --surface2: #161625;
-    --border: #2a2a3e;
-    --accent: #a855f7;
-    --accent2: #c084fc;
-    --accent-dim: rgba(168,85,247,0.12);
-    --text: #f1f0ff;
-    --text2: #8b8aa8;
-    --text3: #3d3d58;
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* ── BACKGROUND TEXTURE ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(168,85,247,0.06) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 80% at 80% 90%, rgba(59,130,246,0.05) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* ── NOISE OVERLAY ── */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.4;
-  }
-
-  /* ── LAYOUT ── */
-  .page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
-
-  /* ── HEADER ── */
-  header {
-    padding: 48px 48px 0;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-
-  .logo-mark {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .logo-icon {
-    width: 44px; height: 44px;
-    display:none;
-  }
-
-  .logo-text {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    color: var(--text);
-    letter-spacing: 0.02em;
-  }
-
-  .logo-text span {
-    display: block;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 300;
-    color: var(--text3);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-top: 1px;
-  }
-
-  .header-date {
-    font-size: 12px;
-    color: var(--text3);
-    text-align: right;
-    line-height: 1.6;
-    padding-top: 4px;
-  }
-
-  /* ── HERO ── */
-  .hero {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 48px 40px;
-    text-align: center;
-  }
-
-  .hero-eyebrow {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 20px;
-    opacity: 0;
-    animation: fadeUp 0.6s ease 0.1s forwards;
-  }
-
-  .hero-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(38px, 6vw, 72px);
-    font-weight: 400;
-    line-height: 1.1;
-    color: var(--text);
-    max-width: 700px;
-    margin-bottom: 20px;
-    opacity: 0;
-    animation: fadeUp 0.7s ease 0.2s forwards;
-  }
-
-  .hero-title em {
-    font-style: italic;
-    color: var(--accent);
-  }
-
-  .hero-sub {
-    font-size: 15px;
-    font-weight: 300;
-    color: var(--text2);
-    max-width: 420px;
-    line-height: 1.7;
-    margin-bottom: 56px;
-    opacity: 0;
-    animation: fadeUp 0.7s ease 0.3s forwards;
-  }
-
-  /* ── MODULE CARDS ── */
-  .modules {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    width: 100%;
-    max-width: 860px;
-    opacity: 0;
-    animation: fadeUp 0.8s ease 0.45s forwards;
-  }
-
-  .module-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 28px 24px;
-    text-decoration: none;
-    color: inherit;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-    display: block;
-  }
-
-  .module-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(168,85,247,0.06) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .module-card:hover {
-    border-color: rgba(168,85,247,0.35);
-    transform: translateY(-3px);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
-  }
-
-  .module-card:hover::before { opacity: 1; }
-
-  .card-icon {
-    font-size: 28px;
-    margin-bottom: 16px;
-    display: block;
-  }
-
-  .card-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    color: var(--text);
-    margin-bottom: 6px;
-  }
-
-  .card-desc {
-    font-size: 12px;
-    color: var(--text2);
-    line-height: 1.6;
-    font-weight: 300;
-    margin-bottom: 16px;
-  }
-
-  .card-stat {
-    font-size: 11px;
-    color: var(--text3);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .card-stat strong {
-    color: var(--accent);
-    font-size: 18px;
-    font-family: 'Playfair Display', serif;
-    font-weight: 400;
-  }
-
-  .card-arrow {
-    position: absolute;
-    bottom: 24px;
-    right: 24px;
-    font-size: 16px;
-    color: var(--text3);
-    transition: color 0.2s, transform 0.2s;
-  }
-
-  .module-card:hover .card-arrow {
-    color: var(--accent);
-    transform: translate(2px, -2px);
-  }
-
-  /* ── DIVIDER ── */
-  .divider {
-    width: 100%;
-    max-width: 860px;
-    margin: 40px 0 0;
-    border: none;
-    border-top: 1px solid var(--border);
-    opacity: 0;
-    animation: fadeUp 0.6s ease 0.65s forwards;
-  }
-
-  /* ── FOOTER ── */
-  footer {
-    padding: 20px 48px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 32px;
-    opacity: 0;
-    animation: fadeIn 0.6s ease 0.8s forwards;
-  }
-
-  .footer-link {
-    font-size: 12px;
-    color: var(--text3);
-    text-decoration: none;
-    letter-spacing: 0.06em;
-    transition: color 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .footer-link:hover { color: var(--text2); }
-
-  .footer-dot {
-    width: 3px; height: 3px;
-    background: var(--text3);
-    border-radius: 50%;
-  }
-
-  /* ── ANIMATIONS ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 680px) {
-    header { padding: 20px 16px 0; }
-    .logo-mark img { height:36px; }
-    .hero { padding: 32px 16px 24px; }
-    .hero-title { font-size: clamp(32px, 9vw, 52px); }
-    .hero-sub { font-size: 15px; }
-    .modules { grid-template-columns: 1fr; max-width: 100%; padding: 0 16px 24px; }
-    .module { padding: 18px 16px; }
-    footer { padding: 16px; flex-wrap: wrap; gap: 12px; font-size:12px; }
-  }
-  @media (max-width: 400px) {
-    .hero-title { font-size: 28px; }
-    .module-title { font-size: 15px; }
-  }
-
-  @media (max-width: 768px) {
-    body { overflow-x: hidden; -webkit-text-size-adjust: 100%; }
-    .module-grid { grid-template-columns: 1fr !important; }
-  }
-  @media (max-width: 400px) {
-    .hero-title { font-size: 26px; }
-    .module-grid { gap: 10px; }
-  }
-
-</style>
+<title>Repertuvar</title>
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="auth.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #EEF2F7;
+  --surface:  #FFFFFF;
+  --surface2: #F5F7FA;
+  --border:   #DDE2EA;
+  --text:     #1A1F2E;
+  --text2:    #5A6478;
+  --text3:    #9BA5B5;
+  --accent:   #4F6CF0;
+  --accent2:  #7B93F5;
+  --green:    #2ECC8A;
+  --red:      #E85555;
+  --orange:   #F5824A;
+  --purple:   #9B6CF0;
+  --shadow:   rgba(26,31,46,.08);
+}
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.logo-area { display: flex; align-items: center; gap: 12px; }
+.logo-area img { height: 48px; width: auto; }
+.logo-text { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--text); }
+.logo-sub { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.user-name { font-size: 13px; color: var(--text2); }
+.logout-btn {
+  padding: 6px 14px; border-radius: 8px;
+  border: 1px solid var(--border); background: none;
+  color: var(--text2); font-size: 12px; cursor: pointer;
+  font-family: inherit; transition: all .15s;
+}
+.logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* ── HERO ── */
+.hero {
+  text-align: center;
+  padding: 64px 24px 48px;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 50% 60% at 20% 50%, rgba(79,108,240,.06), transparent),
+    radial-gradient(ellipse 40% 50% at 80% 30%, rgba(155,108,240,.05), transparent);
+  pointer-events: none;
+}
+.eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 16px;
+}
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 5vw, 56px);
+  color: var(--text);
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+.hero-title em {
+  font-style: italic;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 16px; color: var(--text2); max-width: 440px;
+  margin: 0 auto 48px; line-height: 1.6;
+}
+
+/* ── CARDS GRID ── */
+.cards {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 64px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+@media (max-width: 900px) { .cards { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  text-decoration: none;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform .18s, box-shadow .18s;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px var(--shadow);
+}
+.card-eserler::before  { background: var(--accent); }
+.card-repertuvar::before { background: var(--green); }
+.card-solistler::before  { background: var(--orange); }
+.card-sahne::before    { background: var(--purple); }
+
+.card-icon {
+  font-size: 28px;
+  margin-bottom: 4px;
+  display: block;
+}
+.card-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+}
+.card-desc {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.5;
+  flex: 1;
+}
+.card-stat {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-stat strong { color: var(--accent); font-size: 15px; }
+.card-arrow {
+  font-size: 16px;
+  color: var(--text3);
+  transition: color .15s;
+}
+.card:hover .card-arrow { color: var(--accent); }
+
+/* Sahne kartı — tam genişlik */
+.card-sahne-wrap {
+  grid-column: 1 / -1;
+}
+.card-sahne {
+  background: linear-gradient(135deg, #1A1F2E 0%, #2D2060 100%);
+  border-color: transparent;
+  flex-direction: row;
+  align-items: center;
+  gap: 32px;
+  padding: 32px 40px;
+  color: #f1f0ff;
+}
+.card-sahne::before { background: var(--purple); }
+.card-sahne .card-title { color: #f1f0ff; font-size: 20px; }
+.card-sahne .card-desc { color: rgba(241,240,255,.65); }
+.card-sahne .card-arrow { color: var(--purple); font-size: 20px; }
+.card-sahne:hover { transform: translateY(-3px); }
+.sahne-left { flex: 1; }
+.sahne-cta {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 10px 22px;
+  background: var(--purple);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.sahne-visual {
+  width: 140px; height: 90px;
+  position: relative;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.curtain-l, .curtain-r {
+  position: absolute;
+  top: 0; bottom: 0; width: 32px;
+  background: #8B1A1A;
+}
+.curtain-l { left: 0; border-radius: 4px 0 0 4px; }
+.curtain-r { right: 0; border-radius: 0 4px 4px 0; }
+.spotlight {
+  position: absolute;
+  width: 70px; height: 70px;
+  background: radial-gradient(circle, rgba(255,240,100,.3) 0%, transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+}
+.sahne-emoji { font-size: 36px; position: relative; z-index: 1; }
+
+/* ── THEME TOGGLE DEMO ── */
+.theme-demo {
+  max-width: 1080px;
+  margin: 0 auto 32px;
+  padding: 0 24px;
+}
+.theme-demo-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.theme-demo h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.theme-demo p  { font-size: 13px; color: var(--text2); }
+.theme-btns { display: flex; gap: 8px; }
+.theme-btn {
+  padding: 8px 16px; border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: none; color: var(--text2);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: inherit;
+  transition: all .15s;
+}
+.theme-btn.active { border-color: var(--accent); background: rgba(79,108,240,.08); color: var(--accent); }
+</style>
 </head>
 <body>
-<div class="page">
 
-  <header>
-    <div class="logo-mark">
-      <img src="Repertuvar_logo.png" alt="Repertuvar" style="height:72px;width:auto;">
+<header>
+  <div class="logo-area">
+    <img src="Repertuvar_logo.png" alt="Repertuvar">
+    <div>
+      <div class="logo-text">Repertuvar</div>
+      <div class="logo-sub">Sahne Sizin</div>
     </div>
-    <div class="header-date" id="headerDate"></div>
-  <div id="userBadge" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);"></div>
+  </div>
+  <div class="header-right" id="userBadge"></div>
 </header>
 
-  <main class="hero">
-    <p class="hero-eyebrow">Müzik Arşiviniz</p>
-    <h1 class="hero-title">Sahnede her nota,<br><em>elinizin altında</em></h1>
-    <p class="hero-sub">Eserlerinizi, repertuvarlarınızı ve solistlerinizi tek bir yerde yönetin.</p>
+<div class="hero">
+  <p class="eyebrow">Müzik Arşiviniz</p>
+  <h1 class="hero-title">Sahnede her nota,<br><em>elinizin altında</em></h1>
+  <p class="hero-sub">Eserlerinizi, repertuvarlarınızı ve solistlerinizi tek bir yerde yönetin.</p>
+</div>
 
-    <div class="modules">
+<div class="cards">
 
-      <a href="eserler.html" class="module-card">
-        <span class="card-icon">🎼</span>
-        <div class="card-title">Eserler</div>
-        <div class="card-desc">Tüm kompozisyonlarınız — makam, akort, güfte ve besteci bilgileriyle.</div>
-        <div class="card-stat"><strong id="worksCount">411</strong> eser kayıtlı</div>
-        <span class="card-arrow">↗</span>
-      </a>
-
-      <a href="repertoires.html" class="module-card">
-        <span class="card-icon">📋</span>
-        <div class="card-title">Repertuvar</div>
-        <div class="card-desc">Konser programları oluşturun, sıralayın ve sahneye hazırlayın.</div>
-        <div class="card-stat"><strong id="repsCount">0</strong> repertuvar</div>
-        <span class="card-arrow">↗</span>
-      </a>
-
-      <a href="artiesten.html" class="module-card">
-        <span class="card-icon">🎤</span>
-        <div class="card-title">Solistler</div>
-        <div class="card-desc">Solistlerinizin iletişim bilgileri, notlar ve eser tercihleri.</div>
-        <div class="card-stat"><strong id="soloCount">0</strong> solist</div>
-        <span class="card-arrow">↗</span>
-      </a>
-
-    <!-- STAGE MODE BANNER -->
-    <a href="stage.html" style="
-      display:flex; align-items:center; justify-content:space-between;
-      width:100%; max-width:860px; margin-top:16px;
-      background:linear-gradient(135deg, rgba(168,85,247,0.12) 0%, rgba(168,85,247,0.05) 100%);
-      border:1px solid rgba(168,85,247,0.3); border-radius:14px;
-      padding:20px 28px; text-decoration:none; color:inherit;
-      transition:border-color .2s, transform .2s, box-shadow .2s;
-      opacity:0; animation:fadeUp 0.9s ease 0.55s forwards;"
-      onmouseover="this.style.borderColor='rgba(168,85,247,0.6)';this.style.transform='translateY(-2px)'"
-      onmouseout="this.style.borderColor='rgba(168,85,247,0.3)';this.style.transform='translateY(0)'">
-      <div style="display:flex;align-items:center;gap:16px;">
-        <span style="font-size:32px;">🎭</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--text);margin-bottom:3px;">Sahne Modu</div>
-          <div style="font-size:12px;color:var(--text2);font-weight:300;">Repertuvar seç ve sahneye çık — büyük ekran, kolay geçiş</div>
-        </div>
-      </div>
-      <span style="font-size:20px;color:var(--accent);">→</span>
-    </a>
-
-    
-
+  <a href="eserler.html" class="card card-eserler">
+    <span class="card-icon">🎼</span>
+    <div class="card-title">Eserler</div>
+    <div class="card-desc">Tüm kompozisyonlarınız — makam, akort, güfte ve besteci bilgileriyle.</div>
+    <div class="card-stat">
+      <span><strong id="worksCount">—</strong> eser kayıtlı</span>
+      <span class="card-arrow">↗</span>
     </div>
+  </a>
 
-    <hr class="divider">
-  </main>
+  <a href="repertoires.html" class="card card-repertuvar">
+    <span class="card-icon">📋</span>
+    <div class="card-title">Repertuvar</div>
+    <div class="card-desc">Konser programları oluşturun, sıralayın ve sahneye hazırlayın.</div>
+    <div class="card-stat">
+      <span><strong id="repsCount">—</strong> repertuvar</span>
+      <span class="card-arrow">↗</span>
+    </div>
+  </a>
 
-  <footer>
-    <a href="eserler.html" class="footer-link">🎼 Eserler</a>
-    <div class="footer-dot"></div>
-    <a href="repertoires.html" class="footer-link">📋 Repertuvar</a>
-    <div class="footer-dot"></div>
-    <a href="artiesten.html" class="footer-link">🎤 Solistler</a>
-  </footer>
+  <a href="artiesten.html" class="card card-solistler">
+    <span class="card-icon">🎤</span>
+    <div class="card-title">Solistler</div>
+    <div class="card-desc">Solistlerinizin iletişim bilgileri, notlar ve eser tercihleri.</div>
+    <div class="card-stat">
+      <span><strong id="solCount">—</strong> solist</span>
+      <span class="card-arrow">↗</span>
+    </div>
+  </a>
+
+  <div class="card-sahne-wrap">
+    <a href="stage.html" class="card card-sahne">
+      <div class="sahne-left">
+        <span class="card-icon">🎭</span>
+        <div class="card-title">Sahne Modu</div>
+        <div class="card-desc">Repertuvar seç ve sahneye çık — büyük ekran, kolay geçiş.<br>Gece ve gündüz arka plan seçeneği.</div>
+        <span class="sahne-cta">Sahneye Çık →</span>
+      </div>
+      <div class="sahne-visual">
+        <div class="curtain-l"></div>
+        <div class="curtain-r"></div>
+        <div class="spotlight"></div>
+        <span class="sahne-emoji">🎭</span>
+      </div>
+    </a>
+  </div>
 
 </div>
 
-<script>
-  // Date
-  const now = new Date();
-  document.getElementById('headerDate').innerHTML =
-    now.toLocaleDateString('tr-TR', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) +
-    '<br><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);">Repertuvar Sistemi</span>';
+<div class="theme-demo">
+  <div class="theme-demo-card">
+    <div>
+      <h3>Sahne Modu — Tema Seçimi</h3>
+      <p>Sahne modunda gece/gündüz teması tek tıkla değişir.</p>
+    </div>
+    <div class="theme-btns">
+      <button class="theme-btn active" onclick="setTheme('day',this)">☀️ Gündüz</button>
+      <button class="theme-btn" onclick="setTheme('night',this)">🌙 Gece</button>
+    </div>
+  </div>
+</div>
 
-  // Live counts from localStorage
-  try {
-    const reps = JSON.parse(localStorage.getItem('repertoires') || '[]');
-    document.getElementById('repsCount').textContent = reps.length;
-  } catch {}
-
-  try {
-    const solos = JSON.parse(localStorage.getItem('solistler') || '[]');
-    document.getElementById('soloCount').textContent = solos.length;
-  } catch {}
-</script>
 <script>
+function setTheme(t, btn) {
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  localStorage.setItem('stageTheme', t);
+}
+
+// Auth + Stats
 (async function(){
   const ok = await requireAuth();
   if(!ok) return;
   renderUserBadge('userBadge');
+
+  // Eser sayısını Supabase'den çek
+  try {
+    const r = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1', {
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),
+                'Prefer': 'count=exact'}
+    });
+    const count = r.headers.get('content-range')?.split('/')[1];
+    if(count) document.getElementById('worksCount').textContent = count;
+  } catch(e){}
+
+  // Repertuvar sayısı
+  try {
+    const r = await fetch(SUPA_URL+'/rest/v1/repertoires?select=id&limit=1', {
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),
+                'Prefer': 'count=exact'}
+    });
+    const count = r.headers.get('content-range')?.split('/')[1];
+    if(count) document.getElementById('repsCount').textContent = count;
+  } catch(e){}
+
+  // Solist sayısı
+  try {
+    const r = await fetch(SUPA_URL+'/rest/v1/solistler?select=id&limit=1', {
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),
+                'Prefer': 'count=exact'}
+    });
+    const count = r.headers.get('content-range')?.split('/')[1];
+    if(count) document.getElementById('solCount').textContent = count;
+  } catch(e){}
 })();
 </script>
 </body>
