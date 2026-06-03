@@ -214,6 +214,7 @@
   }
 
 </style>
+<script src="auth.js"></script>
 </head>
 <body>
 
@@ -230,6 +231,7 @@
   </div>
   <button onclick="openNewEserModal()" style="padding:5px 14px;border-radius:7px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Yeni Eser</button>
   <div class="count-badge" id="countBadge">411 eser</div>
+<div id="userBadge"></div>
 </header>
 
 <div class="layout">
@@ -691,6 +693,8 @@ document.addEventListener('keydown', function(e) {
 
 // Supabase'den yükle, sonra başlat
 (async function init() {
+  const ok = await requireAuth(); if(!ok) return;
+  renderUserBadge('userBadge');
   // Yükleniyor göstergesi
   const _lp = document.getElementById('listPanel'); if(_lp) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">Eserler yükleniyor...</div>';
   
