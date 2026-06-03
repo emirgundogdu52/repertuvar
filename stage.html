@@ -348,7 +348,36 @@ function prevWork(){
 function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?'))backToPicker();}
 function showEndScreen(){showScreen('endScreen');document.getElementById('ern').textContent=curRep.name;document.getElementById('erc').textContent=(curRep.items||[]).length+' eser seslendirdiniz';}
 function restartStage(){curIdx=0;showScreen('stageScreen');renderStage();}
-function backToPicker(){selId=null;document.getElementById('bstart').disabled=true;showScreen('pickerScreen');renderPicker();}
+function backToPicker(){
+  // Paylaşım modunda: sadece paylaşılan repertuvarı göster
+  const shareToken = new URLSearchParams(window.location.search).get('share');
+  if (shareToken && curRep && curRep.id !== 'single') {
+    // Paylaşılan repertuvarı picker'da göster
+    showScreen('pickerScreen');
+    const pi = document.getElementById('pi');
+    if (pi) {
+      pi.innerHTML = `
+        <div class="plogo"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:180px;width:auto;"></div>
+        <h1 class="ptitle">Paylaşılan Repertuvar</h1>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;margin-top:16px;"
+          onclick="startSharedRep()">
+          <div style="font-size:15px;font-weight:600;color:var(--text);">${curRep.name||'Repertuvar'}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px;">${(curRep.items||[]).length} eser</div>
+        </div>`;
+    }
+    return;
+  }
+  selId=null;document.getElementById('bstart').disabled=true;showScreen('pickerScreen');renderPicker();
+}
+
+function startSharedRep() {
+  curIdx = 0;
+  sideIdx = 0;
+  showScreen('stageScreen');
+  document.getElementById('strn').textContent = curRep.name || '';
+  renderStage();
+  updateSideButtons();
+}
 function showScreen(id){['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));}
 
 document.addEventListener('keydown',e=>{
@@ -384,12 +413,20 @@ function updateSideButtons() {
 }
 
 function sideNavPrev() {
+  // curIdx ile senkronize et (shared repertoire için)
+  if (curRep && curRep.items && curRep.items.length > 1 && sideList.length > 1) {
+    sideIdx = curIdx;
+  }
   if (sideIdx <= 0) return;
   sideIdx--;
   loadSideWork(sideList[sideIdx]);
 }
 
 function sideNavNext() {
+  // curIdx ile senkronize et (shared repertoire için)
+  if (curRep && curRep.items && curRep.items.length > 1 && sideList.length > 1) {
+    sideIdx = curIdx;
+  }
   if (sideIdx >= sideList.length - 1) return;
   sideIdx++;
   loadSideWork(sideList[sideIdx]);
