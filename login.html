@@ -34,7 +34,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 .btn-s:hover{border-color:#8B949E;}
 
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.stat-card{background:#161B22;border:1px solid #21262D;border-radius:12px;padding:20px;transition:border-color .15s;}
+.stat-card{background:rgba(22,27,34,0.75);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:20px;transition:border-color .15s;}
 .stat-card:hover{border-color:#30363D;}
 .stat-icon{font-size:20px;margin-bottom:10px;}
 .stat-n{font-size:28px;font-weight:700;color:#E6EDF3;letter-spacing:-.02em;}
@@ -48,7 +48,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 @media(max-width:700px){.cards{grid-template-columns:1fr;}}
-.card{background:rgba(22,27,34,0.88);backdrop-filter:blur(8px);border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
+.card{background:rgba(22,27,34,0.75);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
 .card:hover{border-color:#30363D;transform:translateY(-2px);}
 .card-header{display:flex;align-items:flex-start;justify-content:space-between;}
 .card-icon-wrap{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;}
@@ -65,7 +65,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 
 .stage-wrap{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
 @media(max-width:768px){.stage-wrap{padding:0 24px 56px;}}
-.stage-card{background:linear-gradient(135deg,rgba(22,27,34,0.75) 0%,rgba(26,16,64,0.75) 100%);backdrop-filter:blur(8px);border:1px solid #21262D;border-radius:16px;padding:36px 44px;display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;}
+.stage-card{background:linear-gradient(135deg,rgba(22,27,34,0.8) 0%,rgba(26,16,64,0.8) 100%);border:1px solid #21262D;border-radius:16px;padding:36px 44px;display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;}
 .stage-left h2{font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
 .stage-left h2 span{background:linear-gradient(90deg,#BC8CFF,#58A6FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .stage-left p{font-size:14px;color:#8B949E;line-height:1.7;max-width:360px;}
@@ -78,16 +78,13 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 </style>
 </head>
 <body>
-
-<!-- WebGL Shader Background -->
-<canvas id="shaderBg" style="position:fixed;bottom:0;left:0;width:100%;height:50%;z-index:0;pointer-events:none;opacity:1;mask-image:linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%);-webkit-mask-image:linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%);filter:blur(2px);"></canvas>
-
+<canvas id="shaderBg" style="position:fixed;bottom:0;left:0;width:100%;height:60%;z-index:0;pointer-events:none;mask-image:linear-gradient(to bottom,transparent 0%,black 50%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 50%);"></canvas>
 <header>
   <img src="Repertuvar_logo.png" alt="">
   <span class="h-name">Repertuvar</span>
   <div class="h-right">
-    <div class="h-tag"><div class="h-dot"></div>Emir Gündoğdu</div>
-    <button class="h-btn">Çıkış</button>
+    <div class="h-tag"><div class="h-dot"></div><span id="navUserName">—</span></div>
+    <button class="h-btn" onclick="logout()">Çıkış</button>
   </div>
 </header>
 
@@ -129,7 +126,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 
 <div class="section" style="position:relative;z-index:1;">
   <div class="section-hdr"><span class="section-title">Bölümler</span></div>
-  <div class="cards" style="position:relative;z-index:1;">
+  <div class="cards">
     <a href="eserler.html" class="card">
       <div class="card-header">
         <div class="card-icon-wrap ci-blue">🎼</div>
@@ -181,138 +178,72 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
   if(!ok) return;
   const u = getUser();
   const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || 'Kullanıcı';
-  document.querySelectorAll('.h-name').forEach(el => el.textContent = name);
-  document.querySelectorAll('.h-tag').forEach(el => el.innerHTML = '<div class="h-dot"></div>' + name);
+  const el = document.getElementById('navUserName');
+  if(el) el.textContent = name;
 
-  // Stats
-  const headers = {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY), 'Prefer':'count=exact'};
-  try {
-    const rw = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1', {headers});
-    const c = rw.headers.get('content-range')?.split('/')[1];
-    if(c) document.querySelectorAll('.stat-n')[0].textContent = c;
-  } catch(e){}
-  try {
-    const rr = await fetch(SUPA_URL+'/rest/v1/repertoires?select=id&limit=1', {headers});
-    const c = rr.headers.get('content-range')?.split('/')[1];
-    if(c) document.querySelectorAll('.stat-n')[1].textContent = c;
-  } catch(e){}
-  try {
-    const rs = await fetch(SUPA_URL+'/rest/v1/solistler?select=id&limit=1', {headers});
-    const c = rs.headers.get('content-range')?.split('/')[1];
-    if(c) document.querySelectorAll('.stat-n')[2].textContent = c;
-  } catch(e){}
+  const H = {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY), 'Prefer':'count=exact'};
+  const statEls = document.querySelectorAll('.stat-n');
+  try { const r = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1',{headers:H}); const c=r.headers.get('content-range')?.split('/')[1]; if(c&&statEls[0]) statEls[0].textContent=c; } catch(e){}
+  try { const r = await fetch(SUPA_URL+'/rest/v1/repertoires?select=id&limit=1',{headers:H}); const c=r.headers.get('content-range')?.split('/')[1]; if(c&&statEls[1]) statEls[1].textContent=c; } catch(e){}
+  try { const r = await fetch(SUPA_URL+'/rest/v1/solistler?select=id&limit=1',{headers:H}); const c=r.headers.get('content-range')?.split('/')[1]; if(c&&statEls[2]) statEls[2].textContent=c; } catch(e){}
 })();
 
-document.querySelector('.h-btn')?.addEventListener('click', logout);
+// Theme toggle
+document.querySelectorAll('.tp').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));
+  b.classList.add('a');
+  localStorage.setItem('stageTheme', b.textContent.includes('Gündüz')?'day':'night');
+}));
 </script>
 
 <script>
 (function(){
-  const canvas = document.getElementById('shaderBg');
-  const gl = canvas.getContext('webgl');
-  if(!gl) return;
-
-  const vs = `attribute vec4 aPos;void main(){gl_Position=aPos;}`;
-  const fs = `
-    precision highp float;
-    uniform vec2 iResolution;
-    uniform float iTime;
-    const float overallSpeed=0.2;
-    const float gridSmoothWidth=0.015;
-    const float axisWidth=0.05;
-    const float majorLineWidth=0.025;
-    const float minorLineWidth=0.0125;
-    const float majorLineFrequency=5.0;
-    const float minorLineFrequency=1.0;
-    const float scale=5.0;
-    const vec4 lineColor=vec4(0.3,0.15,0.6,1.0);
-    const float minLineWidth=0.01;
-    const float maxLineWidth=0.2;
-    const float lineSpeed=1.0*overallSpeed;
-    const float lineAmplitude=1.0;
-    const float lineFrequency=0.2;
-    const float warpSpeed=0.2*overallSpeed;
-    const float warpFrequency=0.5;
-    const float warpAmplitude=1.0;
-    const float offsetFrequency=0.5;
-    const float offsetSpeed=1.33*overallSpeed;
-    const float minOffsetSpread=0.6;
-    const float maxOffsetSpread=2.0;
-    #define drawCircle(pos,radius,coord) smoothstep(radius+gridSmoothWidth,radius,length(coord-(pos)))
-    #define drawSmoothLine(pos,halfWidth,t) smoothstep(halfWidth,0.0,abs(pos-(t)))
-    #define drawCrispLine(pos,halfWidth,t) smoothstep(halfWidth+gridSmoothWidth,halfWidth,abs(pos-(t)))
-    float random(float t){return(cos(t)+cos(t*1.3+1.3)+cos(t*1.4+1.4))/3.0;}
-    float getPlasmaY(float x,float hf,float offset){return random(x*lineFrequency+iTime*lineSpeed)*hf*lineAmplitude+offset;}
+  const canvas=document.getElementById('shaderBg');
+  if(!canvas)return;
+  const gl=canvas.getContext('webgl');if(!gl)return;
+  const vs=`attribute vec4 aPos;void main(){gl_Position=aPos;}`;
+  const fs=`precision highp float;
+    uniform vec2 iResolution;uniform float iTime;
+    const float os=0.2;const float sc=5.0;
+    const vec4 lc=vec4(0.3,0.15,0.6,1.0);
+    const float mlw=0.01;const float mxlw=0.2;const float ls=1.0*os;
+    const float la=1.0;const float lf=0.2;const float ws=0.2*os;
+    const float wf=0.5;const float wa=1.0;const float of2=0.5;
+    const float ofs=1.33*os;const float mnos=0.6;const float mxos=2.0;
+    float rnd(float t){return(cos(t)+cos(t*1.3+1.3)+cos(t*1.4+1.4))/3.0;}
+    float getPY(float x,float hf,float off){return rnd(x*lf+iTime*ls)*hf*la+off;}
     void main(){
       vec2 uv=gl_FragCoord.xy/iResolution.xy;
-      vec2 space=(gl_FragCoord.xy-iResolution.xy/2.0)/iResolution.x*2.0*scale;
-      float hf=1.0-(cos(uv.x*6.28)*0.5+0.5);
-      float vf=1.0-(cos(uv.y*6.28)*0.5+0.5);
-      space.y+=random(space.x*warpFrequency+iTime*warpSpeed)*warpAmplitude*(0.5+hf);
-      space.x+=random(space.y*warpFrequency+iTime*warpSpeed+2.0)*warpAmplitude*hf;
-      vec4 lines=vec4(0.0);
-      vec4 bgColor1=vec4(0.05,0.05,0.08,1.0);
-      vec4 bgColor2=vec4(0.06,0.03,0.1,1.0);
+      vec2 sp=(gl_FragCoord.xy-iResolution.xy/2.0)/iResolution.x*2.0*sc;
+      float hf=1.0-(cos(uv.x*6.28)*0.5+0.5);float vf=1.0-(cos(uv.y*6.28)*0.5+0.5);
+      sp.y+=rnd(sp.x*wf+iTime*ws)*wa*(0.5+hf);sp.x+=rnd(sp.y*wf+iTime*ws+2.0)*wa*hf;
+      vec4 lines=vec4(0.0);vec4 bg1=vec4(0.05,0.05,0.08,1.0);vec4 bg2=vec4(0.06,0.03,0.1,1.0);
       for(int l=0;l<16;l++){
-        float nl=float(l)/16.0;
-        float op=iTime*offsetSpeed;
-        float opos=float(l)+space.x*offsetFrequency;
-        float rand=random(opos+op)*0.5+0.5;
-        float hw=mix(minLineWidth,maxLineWidth,rand*hf)/2.0;
-        float offset=random(opos+op*(1.0+nl))*mix(minOffsetSpread,maxOffsetSpread,hf);
-        float lp=getPlasmaY(space.x,hf,offset);
-        float line=drawSmoothLine(lp,hw,space.y)/2.0+drawCrispLine(lp,hw*0.15,space.y);
-        float cx=mod(float(l)+iTime*lineSpeed,25.0)-12.0;
-        vec2 cp=vec2(cx,getPlasmaY(cx,hf,offset));
-        line+=drawCircle(cp,0.01,space)*4.0;
-        lines+=line*lineColor*rand;
+        float nl=float(l)/16.0;float op=iTime*ofs;float op2=float(l)+sp.x*of2;
+        float rand=rnd(op2+op)*0.5+0.5;float hw=mix(mlw,mxlw,rand*hf)/2.0;
+        float off=rnd(op2+op*(1.0+nl))*mix(mnos,mxos,hf);
+        float lp=getPY(sp.x,hf,off);
+        float line=smoothstep(hw,0.0,abs(lp-sp.y))/2.0+smoothstep(hw*0.15+0.015,hw*0.15,abs(lp-sp.y));
+        float cx=mod(float(l)+iTime*ls,25.0)-12.0;
+        vec2 cp=vec2(cx,getPY(cx,hf,off));
+        line+=smoothstep(0.025,0.01,length(cp-sp))*4.0;
+        lines+=line*lc*rand;
       }
-      vec4 col=mix(bgColor1,bgColor2,uv.x);
-      col*=vf;col.a=1.0;col+=lines;
-      gl_FragColor=col;
-    }
-  `;
-
-  function makeShader(type, src){
-    const s=gl.createShader(type);
-    gl.shaderSource(s,src);gl.compileShader(s);
-    return s;
-  }
-  const prog=gl.createProgram();
-  gl.attachShader(prog,makeShader(gl.VERTEX_SHADER,vs));
-  gl.attachShader(prog,makeShader(gl.FRAGMENT_SHADER,fs));
-  gl.linkProgram(prog);
-
-  const buf=gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+      vec4 col=mix(bg1,bg2,uv.x);col*=vf;col.a=1.0;col+=lines;gl_FragColor=col;
+    }`;
+  function mk(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;}
+  const prog=gl.createProgram();gl.attachShader(prog,mk(gl.VERTEX_SHADER,vs));gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fs));gl.linkProgram(prog);
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-
   const aPos=gl.getAttribLocation(prog,'aPos');
   const uRes=gl.getUniformLocation(prog,'iResolution');
   const uTime=gl.getUniformLocation(prog,'iTime');
-
-  function resize(){
-    canvas.width=window.innerWidth;
-    canvas.height=window.innerHeight;
-    gl.viewport(0,0,canvas.width,canvas.height);
-  }
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight*0.6;gl.viewport(0,0,canvas.width,canvas.height);}
   window.addEventListener('resize',resize);resize();
-
   const t0=Date.now();
-  function draw(){
-    const t=(Date.now()-t0)/1000;
-    gl.useProgram(prog);
-    gl.uniform2f(uRes,canvas.width,canvas.height);
-    gl.uniform1f(uTime,t);
-    gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-    gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
-    gl.enableVertexAttribArray(aPos);
-    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-    requestAnimationFrame(draw);
-  }
+  function draw(){const t=(Date.now()-t0)/1000;gl.useProgram(prog);gl.uniform2f(uRes,canvas.width,canvas.height);gl.uniform1f(uTime,t);gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(aPos);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(draw);}
   requestAnimationFrame(draw);
 })();
 </script>
-
 </body>
 </html>
