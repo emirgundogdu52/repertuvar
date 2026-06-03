@@ -1,247 +1,178 @@
 <!DOCTYPE html>
+<!-- DESIGN-TEST-ALT-F-FINAL -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Repertuvar</title>
-<!-- DESIGN-TEST-ALT-F-FINAL -->
+<title>Repertuvar — Giriş</title>
 <link rel="icon" href="Repertuvar_logo.png">
-<script src="auth.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:transparent;font-family:"Sora",sans-serif;color:#E6EDF3;min-height:100vh;}
+:root{
+  --bg:#0D1117;--surface:#161B22;--surface2:#21262D;
+  --border:#30363D;--text:#E6EDF3;--text2:#8B949E;--text3:#6E7681;
+  --accent:#58A6FF;--accent2:#BC8CFF;--green:#3FB950;--red:#F85149;
+}
+body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
 
-header{padding:0 48px;height:68px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #21262D;background:#0D1117;position:sticky;top:0;z-index:100;}
-header img{height:40px;}
-.h-name{font-size:16px;font-weight:600;color:#E6EDF3;}
-.h-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
-.h-tag{background:#161B22;border:1px solid #30363D;border-radius:20px;padding:5px 12px;font-size:12px;color:#8B949E;display:flex;align-items:center;gap:6px;}
-.h-dot{width:6px;height:6px;border-radius:50%;background:#3FB950;}
-.h-btn{background:none;border:1px solid #30363D;border-radius:6px;padding:5px 12px;font-size:12px;color:#8B949E;cursor:pointer;font-family:inherit;transition:all .15s;}
-.h-btn:hover{border-color:#8B949E;color:#E6EDF3;}
+.logo-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:32px;}
+.logo-wrap img{height:72px;width:auto;}
+.logo-wrap h1{font-size:22px;font-weight:600;letter-spacing:-.01em;}
+.logo-wrap p{font-size:13px;color:var(--text2);}
 
-.hero{max-width:1100px;margin:0 auto;padding:72px 48px 56px;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
-@media(max-width:768px){.hero{grid-template-columns:1fr;padding:48px 24px 40px;gap:40px;}}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:#161B22;border:1px solid #30363D;border-radius:20px;padding:6px 14px;font-size:11px;color:#8B949E;margin-bottom:20px;}
-.hero-badge span{color:#58A6FF;}
-h1{font-size:clamp(32px,4.5vw,54px);font-weight:700;line-height:1.1;letter-spacing:-.02em;}
-h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.hero-sub{font-size:15px;color:#8B949E;margin-top:16px;line-height:1.75;}
-.hero-actions{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap;}
-.btn-p{background:#238636;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid #2EA043;transition:background .15s;}
-.btn-p:hover{background:#2EA043;}
-.btn-s{background:#21262D;color:#E6EDF3;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:500;text-decoration:none;border:1px solid #30363D;transition:all .15s;}
-.btn-s:hover{border-color:#8B949E;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:400px;}
 
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.stat-card{background:rgba(22,27,34,0.8);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:20px;transition:border-color .15s;}
-.stat-card:hover{border-color:#30363D;}
-.stat-icon{font-size:20px;margin-bottom:10px;}
-.stat-n{font-size:28px;font-weight:700;color:#E6EDF3;letter-spacing:-.02em;}
-.stat-l{font-size:12px;color:#8B949E;margin-top:3px;}
-.stat-trend{font-size:11px;color:#3FB950;margin-top:8px;}
+.tabs{display:flex;gap:4px;background:var(--surface2);border-radius:8px;padding:4px;margin-bottom:24px;}
+.tab{flex:1;padding:8px;border-radius:6px;border:none;background:none;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3);}
 
-.section{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
-@media(max-width:768px){.section{padding:0 24px 56px;}}
-.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.section-title{font-size:13px;font-weight:600;color:#8B949E;letter-spacing:.06em;text-transform:uppercase;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border-color .15s;}
+.field input:focus{border-color:var(--accent);}
+.field input::placeholder{color:var(--text3);}
 
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-@media(max-width:700px){.cards{grid-template-columns:1fr;}}
-.card{background:rgba(22,27,34,0.8);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
-.card:hover{border-color:#30363D;transform:translateY(-2px);}
-.card-header{display:flex;align-items:flex-start;justify-content:space-between;}
-.card-icon-wrap{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;}
-.ci-blue{background:rgba(88,166,255,.1);}
-.ci-green{background:rgba(63,185,80,.1);}
-.ci-orange{background:rgba(249,160,74,.1);}
-.card-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:#1F2937;color:#9CA3AF;}
-.card-title{font-size:15px;font-weight:600;color:#E6EDF3;}
-.card-desc{font-size:13px;color:#8B949E;line-height:1.6;flex:1;}
-.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #21262D;}
-.card-stat{font-size:12px;color:#8B949E;}
-.card-arrow{font-size:14px;color:#30363D;transition:color .15s;}
-.card:hover .card-arrow{color:#58A6FF;}
+.btn-primary{width:100%;padding:11px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;margin-top:4px;}
+.btn-primary:hover{opacity:.85;}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
 
-.stage-wrap{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
-@media(max-width:768px){.stage-wrap{padding:0 24px 56px;}}
-.stage-card{background:linear-gradient(135deg,rgba(22,27,34,0.85) 0%,rgba(26,16,64,0.85) 100%);border:1px solid #21262D;border-radius:16px;padding:36px 44px;display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;}
-.stage-left h2{font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
-.stage-left h2 span{background:linear-gradient(90deg,#BC8CFF,#58A6FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.stage-left p{font-size:14px;color:#8B949E;line-height:1.7;max-width:360px;}
-.stage-right{display:flex;flex-direction:column;align-items:flex-end;gap:12px;}
-.stage-btn{background:linear-gradient(135deg,#8957E5,#58A6FF);color:#fff;padding:13px 26px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap;transition:opacity .15s;}
-.stage-btn:hover{opacity:.9;}
-.theme-row{display:flex;gap:8px;}
-.tp{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid #30363D;color:#8B949E;cursor:pointer;transition:all .15s;}
-.tp.a{border-color:#BC8CFF;color:#BC8CFF;background:rgba(188,140,255,.08);}
+.btn-google{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:border-color .15s;margin-bottom:20px;}
+.btn-google:hover{border-color:var(--text2);}
+
+.divider{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.divider hr{flex:1;border:none;border-top:1px solid var(--border);}
+.divider span{font-size:11px;color:var(--text3);}
+
+.forgot{font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;margin-top:12px;display:block;text-align:center;width:100%;}
+.forgot:hover{text-decoration:underline;}
+
+.msg{font-size:13px;text-align:center;padding:10px;border-radius:8px;margin-top:12px;display:none;}
+.msg.err{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red);}
+.msg.ok{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--green);}
 </style>
 </head>
 <body>
-<canvas id="shaderBg" style="position:fixed;bottom:0;left:0;width:100%;height:60%;z-index:0;pointer-events:none;mask-image:linear-gradient(to bottom,transparent 0%,black 50%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 50%);"></canvas>
-<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#0D1117;z-index:-1;"></div>
 
-<header>
-  <img src="Repertuvar_logo.png" alt="">
-  <span class="h-name">Repertuvar</span>
-  <div class="h-right">
-    <div class="h-tag"><div class="h-dot"></div><span id="navUserName">—</span></div>
-    <button class="h-btn" onclick="logout()">Çıkış</button>
-  </div>
-</header>
-
-<div class="hero" style="position:relative;z-index:1;">
-  <div>
-    <div class="hero-badge">🎵 <span>Müzik Arşiviniz</span></div>
-    <h1>Sahnede her nota,<br><em>elinizin altında.</em></h1>
-    <p class="hero-sub">Eserlerinizi, repertuvarlarınızı ve solistlerinizi tek bir yerde yönetin.</p>
-    <div class="hero-actions">
-      <a href="stage.html" class="btn-p">🎭 Sahneye Çık</a>
-      <a href="eserler.html" class="btn-s">Eserlere Bak →</a>
-    </div>
-  </div>
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">🎼</div>
-      <div class="stat-n">399</div>
-      <div class="stat-l">Eser kayıtlı</div>
-      <div class="stat-trend">↑ 12 bu ay</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">📋</div>
-      <div class="stat-n">4</div>
-      <div class="stat-l">Repertuvar</div>
-      <div class="stat-trend">Aktif: Cem Çelebi</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🎤</div>
-      <div class="stat-n">12</div>
-      <div class="stat-l">Solist</div>
-      <div class="stat-trend">3 aktif program</div>
-    </div>
-    <div class="stat-card" style="border-style:dashed;opacity:.5;">
-      <div class="stat-icon">✨</div>
-      <div style="font-size:13px;color:#8B949E;margin-top:8px;">Yakında yeni özellikler</div>
-    </div>
-  </div>
+<div class="logo-wrap">
+  <img src="Repertuvar_logo.png" alt="Repertuvar">
+  <h1>Repertuvar</h1>
+  <p>Sahne Sizin</p>
 </div>
 
-<div class="section" style="position:relative;z-index:1;">
-  <div class="section-hdr"><span class="section-title">Bölümler</span></div>
-  <div class="cards">
-    <a href="eserler.html" class="card">
-      <div class="card-header">
-        <div class="card-icon-wrap ci-blue">🎼</div>
-        <span class="card-badge">399 eser</span>
-      </div>
-      <div class="card-title">Eserler</div>
-      <div class="card-desc">Makam, akort, güfte ve besteci bilgileriyle tüm arşiviniz.</div>
-      <div class="card-footer"><span class="card-stat">Son güncelleme: bugün</span><span class="card-arrow">↗</span></div>
-    </a>
-    <a href="repertoires.html" class="card">
-      <div class="card-header">
-        <div class="card-icon-wrap ci-green">📋</div>
-        <span class="card-badge">4 aktif</span>
-      </div>
-      <div class="card-title">Repertuvar</div>
-      <div class="card-desc">Konser programları oluşturun ve sahneye hazırlayın.</div>
-      <div class="card-footer"><span class="card-stat">Cem Çelebi aktif</span><span class="card-arrow">↗</span></div>
-    </a>
-    <a href="artiesten.html" class="card">
-      <div class="card-header">
-        <div class="card-icon-wrap ci-orange">🎤</div>
-        <span class="card-badge">12 solist</span>
-      </div>
-      <div class="card-title">Solistler</div>
-      <div class="card-desc">İletişim bilgileri, notlar ve eser tercihleri.</div>
-      <div class="card-footer"><span class="card-stat">Tüm solistler</span><span class="card-arrow">↗</span></div>
-    </a>
+<div class="card">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('login')">Giriş Yap</button>
+    <button class="tab" onclick="switchTab('register')">Kayıt Ol</button>
   </div>
+
+  <!-- Google -->
+  <button class="btn-google" onclick="loginGoogle()">
+    <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Google ile devam et
+  </button>
+
+  <div class="divider"><hr><span>veya</span><hr></div>
+
+  <!-- Login form -->
+  <div id="loginForm">
+    <div class="field">
+      <label>E-posta</label>
+      <input type="email" id="loginEmail" placeholder="ornek@mail.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Şifre</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="btn-primary" onclick="doLogin()" id="loginBtn">Giriş Yap</button>
+    <button class="forgot" onclick="doReset()">Şifremi unuttum</button>
+  </div>
+
+  <!-- Register form -->
+  <div id="registerForm" style="display:none;">
+    <div class="field">
+      <label>E-posta</label>
+      <input type="email" id="regEmail" placeholder="ornek@mail.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Şifre</label>
+      <input type="password" id="regPass" placeholder="En az 6 karakter" autocomplete="new-password"
+        onkeydown="if(event.key==='Enter') doRegister()">
+    </div>
+    <button class="btn-primary" onclick="doRegister()" id="regBtn">Kayıt Ol</button>
+  </div>
+
+  <div class="msg" id="msg"></div>
 </div>
 
-<div class="stage-wrap" style="position:relative;z-index:1;">
-  <div class="stage-card">
-    <div class="stage-left">
-      <h2>Sahne Modu<br><span>hazır mısınız?</span></h2>
-      <p>Büyük ekran, kolay eser geçişi. Gece ve gündüz tema seçeneğiyle sahneye hazır.</p>
-    </div>
-    <div class="stage-right">
-      <a href="stage.html" class="stage-btn">🎭 Sahneye Çık</a>
-      <div class="theme-row">
-        <div class="tp a" onclick="this.closest('.theme-row').querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));this.classList.add('a')">☀️ Gündüz</div>
-        <div class="tp" onclick="this.closest('.theme-row').querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));this.classList.add('a')">🌙 Gece</div>
-      </div>
-    </div>
-  </div>
-</div>
 <script>
-(async function(){
-  const ok = await requireAuth(); if(!ok) return;
-  const u = getUser();
-  const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
-  const el = document.getElementById('navUserName'); if(el) el.textContent = name;
-  const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),'Prefer':'count=exact'};
-  const ns = document.querySelectorAll('.stat-n');
-  const urls = ['works','repertoires','solistler'];
-  for(let i=0;i<3;i++){
-    try{ const r=await fetch(SUPA_URL+'/rest/v1/'+urls[i]+'?select=id&limit=1',{headers:H});
-    const cnt=r.headers.get('content-range')?.split('/')[1]; if(cnt&&ns[i]) ns[i].textContent=cnt; }catch(e){}
+const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// Zaten giriş yaptıysa yönlendir
+sb.auth.getSession().then(({data:{session}}) => {
+  if(session) window.location.href = 'index.html';
+});
+
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', (i===0&&t==='login')||(i===1&&t==='register')));
+  document.getElementById('loginForm').style.display = t==='login' ? '' : 'none';
+  document.getElementById('registerForm').style.display = t==='register' ? '' : 'none';
+  showMsg('','');
+}
+
+function showMsg(type, text) {
+  const el = document.getElementById('msg');
+  el.className = 'msg' + (type ? ' '+type : '');
+  el.textContent = text;
+  el.style.display = text ? 'block' : 'none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  if(!email || !pass) { showMsg('err','E-posta ve şifre gerekli.'); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Giriş yapılıyor...';
+  const {data, error} = await sb.auth.signInWithPassword({email, password: pass});
+  if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent='Giriş Yap'; return; }
+  if(data.session) {
+    localStorage.setItem('sb_token', data.session.access_token);
+    localStorage.setItem('sb_refresh', data.session.refresh_token);
+    window.location.href = 'index.html';
   }
-})();
-document.querySelectorAll('.tp').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));
-  b.classList.add('a');
-  localStorage.setItem('stageTheme',b.textContent.includes('Gündüz')?'day':'night');
-}));
-</script>
-<script>
-(function(){
-  const cv=document.getElementById('shaderBg');if(!cv)return;
-  const gl=cv.getContext('webgl');if(!gl)return;
-  const vs=`attribute vec4 p;void main(){gl_Position=p;}`;
-  const fs=`precision highp float;
-  uniform vec2 R;uniform float T;
-  float rnd(float t){return(cos(t)+cos(t*1.3+1.3)+cos(t*1.4+1.4))/3.0;}
-  float py(float x,float h,float o){return rnd(x*.2+T*.2)*h*1.0+o;}
-  void main(){
-    vec2 uv=gl_FragCoord.xy/R.xy;
-    vec2 sp=(gl_FragCoord.xy-R/2.0)/R.x*10.0;
-    float hf=1.0-(cos(uv.x*6.28)*.5+.5);
-    float vf=1.0-(cos(uv.y*6.28)*.5+.5);
-    sp.y+=rnd(sp.x*.5+T*.04)*1.0*(.5+hf);
-    sp.x+=rnd(sp.y*.5+T*.04+2.0)*1.0*hf;
-    vec4 lines=vec4(0.);
-    for(int l=0;l<16;l++){
-      float nl=float(l)/16.;float op=T*.266;float o2=float(l)+sp.x*.5;
-      float r=rnd(o2+op)*.5+.5;float hw=mix(.01,.2,r*hf)/2.;
-      float off=rnd(o2+op*(1.+nl))*mix(.6,2.,hf);
-      float lp=py(sp.x,hf,off);
-      float line=smoothstep(hw,0.,abs(lp-sp.y))/2.+smoothstep(hw*.15+.015,hw*.15,abs(lp-sp.y));
-      float cx=mod(float(l)+T*.2,25.)-12.;
-      vec2 cp=vec2(cx,py(cx,hf,off));
-      line+=smoothstep(.025,.01,length(cp-sp))*4.;
-      lines+=line*vec4(.3,.15,.6,1.)*r;
-    }
-    vec4 col=mix(vec4(.05,.05,.08,1.),vec4(.06,.03,.1,1.),uv.x);
-    col*=vf;col.a=1.;col+=lines;gl_FragColor=col;
-  }`;
-  function mk(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;}
-  const prog=gl.createProgram();
-  gl.attachShader(prog,mk(gl.VERTEX_SHADER,vs));
-  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fs));
-  gl.linkProgram(prog);
-  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-  const ap=gl.getAttribLocation(prog,'p');
-  const uR=gl.getUniformLocation(prog,'R');
-  const uT=gl.getUniformLocation(prog,'T');
-  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight*.6;gl.viewport(0,0,cv.width,cv.height);}
-  window.addEventListener('resize',resize);resize();
-  const t0=Date.now();
-  function draw(){const t=(Date.now()-t0)/1e3;gl.useProgram(prog);gl.uniform2f(uR,cv.width,cv.height);gl.uniform1f(uT,t);gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.vertexAttribPointer(ap,2,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(ap);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(draw);}
-  requestAnimationFrame(draw);
-})();
+}
+
+async function doRegister() {
+  const email = document.getElementById('regEmail').value.trim();
+  const pass  = document.getElementById('regPass').value;
+  if(!email || !pass) { showMsg('err','E-posta ve şifre gerekli.'); return; }
+  if(pass.length < 6) { showMsg('err','Şifre en az 6 karakter olmalı.'); return; }
+  const btn = document.getElementById('regBtn');
+  btn.disabled = true; btn.textContent = 'Kaydediliyor...';
+  const {error} = await sb.auth.signUp({email, password: pass});
+  if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent='Kayıt Ol'; return; }
+  showMsg('ok','Kayıt başarılı! E-postanızı doğrulayın.');
+  btn.disabled=false; btn.textContent='Kayıt Ol';
+}
+
+async function doReset() {
+  const email = document.getElementById('loginEmail').value.trim();
+  if(!email) { showMsg('err','Önce e-posta adresinizi girin.'); return; }
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: window.location.origin+'/index.html'});
+  if(error) showMsg('err', error.message);
+  else showMsg('ok','Şifre sıfırlama bağlantısı gönderildi.');
+}
+
+async function loginGoogle() {
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: {redirectTo: window.location.origin+'/index.html'}
+  });
+}
 </script>
 </body>
 </html>
