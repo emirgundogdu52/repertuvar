@@ -113,9 +113,12 @@ const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // Zaten giriş yaptıysa yönlendir
-sb.auth.getSession().then(({data:{session}}) => {
-  if(session) window.location.href = 'index.html';
-});
+// Logout sonrası döngüye girme
+if(!window.location.search.includes('logout=1')) {
+  sb.auth.getSession().then(({data:{session}}) => {
+    if(session) window.location.href = 'index.html';
+  });
+}
 
 function switchTab(t) {
   document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', (i===0&&t==='login')||(i===1&&t==='register')));
