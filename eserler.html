@@ -9,30 +9,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #080810;
-    --surface: #0f0f1a;
-    --surface2: #161625;
-    --border: #2a2a3e;
-    --border2: #38384f;
-    --accent: #a855f7;
-    --accent2: #c084fc;
-    --text: #f1f0ff;
-    --text2: #8b8aa8;
-    --text3: #3d3d58;
-    --red: #c05444;
-    --green: #4a9462;
-    --tag-bg: #2a2a3e;
-    --tag-text: #b8b4ac;
+    --bg: #0D1117;
+    --surface: #161B22;
+    --surface2: #21262D;
+    --border: #30363D;
+    --border2: #484F58;
+    --accent: #58A6FF;
+    --accent2: #BC8CFF;
+    --text: #E6EDF3;
+    --text2: #8B949E;
+    --text3: #6E7681;
+    --red: #F85149;
+    --green: #3FB950;
+    --tag-bg: #21262D;
+    --tag-text: #8B949E;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'DM Sans', sans-serif; font-size:14px; min-height:100vh; }
+  body { background:var(--bg); color:var(--text); font-family:'Sora', sans-serif; font-size:14px; min-height:100vh; }
 
   /* HEADER */
   header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 12px; display:flex; align-items:center; gap:8px; height:56px; position:sticky; top:0; z-index:100; flex-wrap:nowrap; overflow-x:auto; }
   .logo { font-family:'Playfair Display', serif; font-size:20px; color:var(--accent); letter-spacing:0.02em; white-space:nowrap; }
-  .logo span { color:var(--text2); font-size:13px; font-family:'DM Sans', sans-serif; margin-left:8px; font-weight:300; }
+  .logo span { color:var(--text2); font-size:13px; font-family:'Sora', sans-serif; margin-left:8px; font-weight:300; }
   .search-wrap { flex:1; max-width:480px; position:relative; }
-  .search-wrap input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 12px 8px 36px; color:var(--text); font-size:14px; font-family:'DM Sans', sans-serif; outline:none; transition:border-color .2s; }
+  .search-wrap input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 12px 8px 36px; color:var(--text); font-size:14px; font-family:'Sora', sans-serif; outline:none; transition:border-color .2s; }
   .search-wrap input:focus { border-color:var(--accent); }
   .search-wrap input::placeholder { color:var(--text3); }
   .search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--text3); font-size:15px; pointer-events:none; }
@@ -48,11 +48,11 @@
   .filter-section { padding:0 16px 16px; border-bottom:1px solid var(--border); margin-bottom:0; }
   .filter-section:last-child { border-bottom:none; }
   .filter-label { font-size:10px; font-weight:500; letter-spacing:0.1em; color:var(--text3); text-transform:uppercase; margin-bottom:8px; padding-top:16px; display:block; }
-  .filter-btn { display:block; width:100%; text-align:left; background:none; border:none; padding:5px 8px; border-radius:6px; color:var(--text2); font-size:13px; font-family:'DM Sans', sans-serif; cursor:pointer; transition:all .15s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .filter-btn { display:block; width:100%; text-align:left; background:none; border:none; padding:5px 8px; border-radius:6px; color:var(--text2); font-size:13px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .filter-btn:hover { background:var(--surface2); color:var(--text); }
-  .filter-btn.active { background:rgba(168,85,247,0.15); color:var(--accent); }
+  .filter-btn.active { background:rgba(88,166,255,0.15); color:var(--accent); }
   .filter-btn .badge { float:right; background:var(--surface2); border-radius:10px; padding:0 6px; font-size:10px; color:var(--text3); }
-  .filter-btn.active .badge { background:rgba(168,85,247,0.2); color:var(--accent); }
+  .filter-btn.active .badge { background:rgba(88,166,255,0.2); color:var(--accent); }
 
   /* WORK LIST */
   .list-panel { flex:1; overflow-y:auto; }
@@ -95,15 +95,15 @@
   .lyrics-box { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px; font-size:13px; color:var(--text2); line-height:1.8; max-height:none; white-space:pre-wrap; word-break:break-word; }
   .lyrics-box::-webkit-scrollbar { width:3px; }
   .lyrics-box::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
-  .video-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; background:rgba(168,85,247,.1); border:1px solid rgba(168,85,247,.3); border-radius:6px; color:var(--accent); font-size:13px; text-decoration:none; transition:all .15s; }
-  .video-btn:hover { background:rgba(168,85,247,.2); }
+  .video-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; background:rgba(88,166,255,.1); border:1px solid rgba(88,166,255,.3); border-radius:6px; color:var(--accent); font-size:13px; text-decoration:none; transition:all .15s; }
+  .video-btn:hover { background:rgba(88,166,255,.2); }
 
   /* TOOLBAR */
   .toolbar { padding:10px 20px; display:flex; gap:8px; align-items:center; border-bottom:1px solid var(--border); background:var(--bg); }
-  .sort-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:'DM Sans', sans-serif; cursor:pointer; transition:all .15s; }
+  .sort-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
   .sort-btn:hover { border-color:var(--border2); color:var(--text); }
-  .sort-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(168,85,247,.08); }
-  .clear-btn { margin-left:auto; background:none; border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text3); font-size:12px; font-family:'DM Sans', sans-serif; cursor:pointer; transition:all .15s; }
+  .sort-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,.08); }
+  .clear-btn { margin-left:auto; background:none; border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text3); font-size:12px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
   .clear-btn:hover { color:var(--text2); border-color:var(--border2); }
 
   /* EMPTY STATE */
@@ -147,11 +147,11 @@
   .stage-open-btn {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 7px 14px; border-radius: 8px;
-    background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.35);
+    background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.35);
     color: var(--accent); font-size: 13px; font-weight: 500;
     text-decoration: none; transition: all .15s;
   }
-  .stage-open-btn:hover { background: rgba(168,85,247,0.2); border-color: rgba(168,85,247,0.6); }
+  .stage-open-btn:hover { background: rgba(88,166,255,0.2); border-color: rgba(88,166,255,0.6); }
 
   .confirm-bar {
     display: none; margin-top: 10px; padding: 12px 14px;
@@ -219,20 +219,15 @@
 </head>
 <body>
 
-<header>
-  <a href="index.html" style="display:flex;align-items:center;text-decoration:none;margin-right:4px;"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:36px;width:auto;"></a>
-  <a href="index.html" style="padding:4px 12px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;text-decoration:none;margin-right:2px;">🏠 Ana Sayfa</a>
-  <a href="eserler.html" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.12);color:var(--accent);font-size:13px;text-decoration:none;margin-right:2px;">Eserler</a>
-  <a href="repertoires.html" style="padding:4px 12px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;text-decoration:none;margin-right:2px;">Repertuvar</a>
-  <a href="stage.html" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.12);color:var(--accent);font-size:13px;text-decoration:none;margin-right:2px;">🎭 Sahne Modu</a>
-  <a href="artiesten.html" style="padding:4px 12px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;text-decoration:none;"></a>
-  <div class="search-wrap">
-    <span class="search-icon">&#9906;</span>
-    <input type="text" id="searchInput" placeholder="Eser adı, besteci, güftekâr, makam..." autocomplete="off">
-  </div>
-  <button onclick="openNewEserModal()" style="padding:5px 14px;border-radius:7px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Yeni Eser</button>
-  <div class="count-badge" id="countBadge">411 eser</div>
-<div id="userBadge"></div>
+<header style="background:var(--bg);border-bottom:1px solid var(--border);padding:0 40px;height:60px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:200;">
+  <a href="index.html"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:36px;margin-right:8px;"></a>
+  <a href="index.html" style="padding:6px 12px;border-radius:6px;font-size:13px;color:var(--text2);">Ana Sayfa</a>
+  <a href="eserler.html" style="padding:6px 12px;border-radius:6px;font-size:13px;background:var(--surface);color:var(--text);font-weight:500;">Eserler</a>
+  <a href="repertoires.html" style="padding:6px 12px;border-radius:6px;font-size:13px;color:var(--text2);">Repertuvar</a>
+  <a href="stage.html" style="padding:6px 12px;border-radius:6px;font-size:13px;color:var(--text2);">🎭 Sahne</a>
+  <div id="userBadge" style="margin-left:auto;display:flex;align-items:center;gap:8px;"></div>
+  <button onclick="openNewEserModal()" style="padding:6px 14px;border-radius:6px;background:var(--green);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">+ Yeni Eser</button>
+  <div class="count-badge" id="countBadge" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:4px 10px;font-size:12px;color:var(--text2);white-space:nowrap;"></div>
 </header>
 
 <div class="layout">

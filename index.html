@@ -5,383 +5,201 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repertuvar</title>
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="auth.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0D1117;font-family:"Sora",sans-serif;color:#E6EDF3;min-height:100vh;}
 
-:root {
-  --bg:       #EEF2F7;
-  --surface:  #FFFFFF;
-  --surface2: #F5F7FA;
-  --border:   #DDE2EA;
-  --text:     #1A1F2E;
-  --text2:    #5A6478;
-  --text3:    #9BA5B5;
-  --accent:   #4F6CF0;
-  --accent2:  #7B93F5;
-  --green:    #2ECC8A;
-  --red:      #E85555;
-  --orange:   #F5824A;
-  --purple:   #9B6CF0;
-  --shadow:   rgba(26,31,46,.08);
-}
+header{padding:0 48px;height:68px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #21262D;background:#0D1117;position:sticky;top:0;z-index:100;}
+header img{height:40px;}
+.h-name{font-size:16px;font-weight:600;color:#E6EDF3;}
+.h-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.h-tag{background:#161B22;border:1px solid #30363D;border-radius:20px;padding:5px 12px;font-size:12px;color:#8B949E;display:flex;align-items:center;gap:6px;}
+.h-dot{width:6px;height:6px;border-radius:50%;background:#3FB950;}
+.h-btn{background:none;border:1px solid #30363D;border-radius:6px;padding:5px 12px;font-size:12px;color:#8B949E;cursor:pointer;font-family:inherit;transition:all .15s;}
+.h-btn:hover{border-color:#8B949E;color:#E6EDF3;}
 
-html, body {
-  min-height: 100vh;
-  background: var(--bg);
-  font-family: 'DM Sans', sans-serif;
-  color: var(--text);
-}
+.hero{max-width:1100px;margin:0 auto;padding:72px 48px 56px;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+@media(max-width:768px){.hero{grid-template-columns:1fr;padding:48px 24px 40px;gap:40px;}}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:#161B22;border:1px solid #30363D;border-radius:20px;padding:6px 14px;font-size:11px;color:#8B949E;margin-bottom:20px;}
+.hero-badge span{color:#58A6FF;}
+h1{font-size:clamp(32px,4.5vw,54px);font-weight:700;line-height:1.1;letter-spacing:-.02em;}
+h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:15px;color:#8B949E;margin-top:16px;line-height:1.75;}
+.hero-actions{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap;}
+.btn-p{background:#238636;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid #2EA043;transition:background .15s;}
+.btn-p:hover{background:#2EA043;}
+.btn-s{background:#21262D;color:#E6EDF3;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:500;text-decoration:none;border:1px solid #30363D;transition:all .15s;}
+.btn-s:hover{border-color:#8B949E;}
 
-/* ── HEADER ── */
-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 40px;
-  height: 72px;
-  display: flex;
-  align-items: center;
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 2px 12px var(--shadow);
-}
-.logo-area { display: flex; align-items: center; gap: 12px; }
-.logo-area img { height: 48px; width: auto; }
-.logo-text { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--text); }
-.logo-sub { font-size: 11px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; }
-.header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-.user-name { font-size: 13px; color: var(--text2); }
-.logout-btn {
-  padding: 6px 14px; border-radius: 8px;
-  border: 1px solid var(--border); background: none;
-  color: var(--text2); font-size: 12px; cursor: pointer;
-  font-family: inherit; transition: all .15s;
-}
-.logout-btn:hover { border-color: var(--red); color: var(--red); }
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.stat-card{background:#161B22;border:1px solid #21262D;border-radius:12px;padding:20px;transition:border-color .15s;}
+.stat-card:hover{border-color:#30363D;}
+.stat-icon{font-size:20px;margin-bottom:10px;}
+.stat-n{font-size:28px;font-weight:700;color:#E6EDF3;letter-spacing:-.02em;}
+.stat-l{font-size:12px;color:#8B949E;margin-top:3px;}
+.stat-trend{font-size:11px;color:#3FB950;margin-top:8px;}
 
-/* ── HERO ── */
-.hero {
-  text-align: center;
-  padding: 64px 24px 48px;
-  position: relative;
-}
-.hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(ellipse 50% 60% at 20% 50%, rgba(79,108,240,.06), transparent),
-    radial-gradient(ellipse 40% 50% at 80% 30%, rgba(155,108,240,.05), transparent);
-  pointer-events: none;
-}
-.eyebrow {
-  font-size: 11px; font-weight: 600; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--accent);
-  margin-bottom: 16px;
-}
-.hero-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(32px, 5vw, 56px);
-  color: var(--text);
-  line-height: 1.15;
-  margin-bottom: 16px;
-}
-.hero-title em {
-  font-style: italic;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.hero-sub {
-  font-size: 16px; color: var(--text2); max-width: 440px;
-  margin: 0 auto 48px; line-height: 1.6;
-}
+.section{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
+@media(max-width:768px){.section{padding:0 24px 56px;}}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.section-title{font-size:13px;font-weight:600;color:#8B949E;letter-spacing:.06em;text-transform:uppercase;}
 
-/* ── CARDS GRID ── */
-.cards {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 0 24px 64px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-@media (max-width: 900px) { .cards { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+@media(max-width:700px){.cards{grid-template-columns:1fr;}}
+.card{background:#161B22;border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
+.card:hover{border-color:#30363D;transform:translateY(-2px);}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;}
+.card-icon-wrap{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.ci-blue{background:rgba(88,166,255,.1);}
+.ci-green{background:rgba(63,185,80,.1);}
+.ci-orange{background:rgba(249,160,74,.1);}
+.card-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:#1F2937;color:#9CA3AF;}
+.card-title{font-size:15px;font-weight:600;color:#E6EDF3;}
+.card-desc{font-size:13px;color:#8B949E;line-height:1.6;flex:1;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #21262D;}
+.card-stat{font-size:12px;color:#8B949E;}
+.card-arrow{font-size:14px;color:#30363D;transition:color .15s;}
+.card:hover .card-arrow{color:#58A6FF;}
 
-.card {
-  background: var(--surface);
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  padding: 28px 24px;
-  text-decoration: none;
-  color: var(--text);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition: transform .18s, box-shadow .18s;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 2px 8px var(--shadow);
-}
-.card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 4px;
-  border-radius: 4px 0 0 4px;
-}
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px var(--shadow);
-}
-.card-eserler::before  { background: var(--accent); }
-.card-repertuvar::before { background: var(--green); }
-.card-solistler::before  { background: var(--orange); }
-.card-sahne::before    { background: var(--purple); }
-
-.card-icon {
-  font-size: 28px;
-  margin-bottom: 4px;
-  display: block;
-}
-.card-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--text);
-}
-.card-desc {
-  font-size: 13px;
-  color: var(--text2);
-  line-height: 1.5;
-  flex: 1;
-}
-.card-stat {
-  font-size: 12px;
-  color: var(--text3);
-  margin-top: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.card-stat strong { color: var(--accent); font-size: 15px; }
-.card-arrow {
-  font-size: 16px;
-  color: var(--text3);
-  transition: color .15s;
-}
-.card:hover .card-arrow { color: var(--accent); }
-
-/* Sahne kartı — tam genişlik */
-.card-sahne-wrap {
-  grid-column: 1 / -1;
-}
-.card-sahne {
-  background: linear-gradient(135deg, #1A1F2E 0%, #2D2060 100%);
-  border-color: transparent;
-  flex-direction: row;
-  align-items: center;
-  gap: 32px;
-  padding: 32px 40px;
-  color: #f1f0ff;
-}
-.card-sahne::before { background: var(--purple); }
-.card-sahne .card-title { color: #f1f0ff; font-size: 20px; }
-.card-sahne .card-desc { color: rgba(241,240,255,.65); }
-.card-sahne .card-arrow { color: var(--purple); font-size: 20px; }
-.card-sahne:hover { transform: translateY(-3px); }
-.sahne-left { flex: 1; }
-.sahne-cta {
-  display: inline-block;
-  margin-top: 16px;
-  padding: 10px 22px;
-  background: var(--purple);
-  color: #fff;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-}
-.sahne-visual {
-  width: 140px; height: 90px;
-  position: relative;
-  flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-}
-.curtain-l, .curtain-r {
-  position: absolute;
-  top: 0; bottom: 0; width: 32px;
-  background: #8B1A1A;
-}
-.curtain-l { left: 0; border-radius: 4px 0 0 4px; }
-.curtain-r { right: 0; border-radius: 0 4px 4px 0; }
-.spotlight {
-  position: absolute;
-  width: 70px; height: 70px;
-  background: radial-gradient(circle, rgba(255,240,100,.3) 0%, transparent 70%);
-  top: 50%; left: 50%; transform: translate(-50%,-50%);
-}
-.sahne-emoji { font-size: 36px; position: relative; z-index: 1; }
-
-/* ── THEME TOGGLE DEMO ── */
-.theme-demo {
-  max-width: 1080px;
-  margin: 0 auto 32px;
-  padding: 0 24px;
-}
-.theme-demo-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  box-shadow: 0 2px 8px var(--shadow);
-}
-.theme-demo h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.theme-demo p  { font-size: 13px; color: var(--text2); }
-.theme-btns { display: flex; gap: 8px; }
-.theme-btn {
-  padding: 8px 16px; border-radius: 8px;
-  border: 1.5px solid var(--border);
-  background: none; color: var(--text2);
-  font-size: 13px; font-weight: 500;
-  cursor: pointer; font-family: inherit;
-  transition: all .15s;
-}
-.theme-btn.active { border-color: var(--accent); background: rgba(79,108,240,.08); color: var(--accent); }
+.stage-wrap{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
+@media(max-width:768px){.stage-wrap{padding:0 24px 56px;}}
+.stage-card{background:linear-gradient(135deg,#161B22 0%,#1A1040 100%);border:1px solid #21262D;border-radius:16px;padding:36px 44px;display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;}
+.stage-left h2{font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
+.stage-left h2 span{background:linear-gradient(90deg,#BC8CFF,#58A6FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.stage-left p{font-size:14px;color:#8B949E;line-height:1.7;max-width:360px;}
+.stage-right{display:flex;flex-direction:column;align-items:flex-end;gap:12px;}
+.stage-btn{background:linear-gradient(135deg,#8957E5,#58A6FF);color:#fff;padding:13px 26px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap;transition:opacity .15s;}
+.stage-btn:hover{opacity:.9;}
+.theme-row{display:flex;gap:8px;}
+.tp{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid #30363D;color:#8B949E;cursor:pointer;transition:all .15s;}
+.tp.a{border-color:#BC8CFF;color:#BC8CFF;background:rgba(188,140,255,.08);}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="logo-area">
-    <img src="Repertuvar_logo.png" alt="Repertuvar">
-    <div>
-      <div class="logo-text">Repertuvar</div>
-      <div class="logo-sub">Sahne Sizin</div>
-    </div>
+  <img src="Repertuvar_logo.png" alt="">
+  <span class="h-name">Repertuvar</span>
+  <div class="h-right">
+    <div class="h-tag"><div class="h-dot"></div>Emir Gündoğdu</div>
+    <button class="h-btn">Çıkış</button>
   </div>
-  <div class="header-right" id="userBadge"></div>
 </header>
 
 <div class="hero">
-  <p class="eyebrow">Müzik Arşiviniz</p>
-  <h1 class="hero-title">Sahnede her nota,<br><em>elinizin altında</em></h1>
-  <p class="hero-sub">Eserlerinizi, repertuvarlarınızı ve solistlerinizi tek bir yerde yönetin.</p>
+  <div>
+    <div class="hero-badge">🎵 <span>Müzik Arşiviniz</span></div>
+    <h1>Sahnede her nota,<br><em>elinizin altında.</em></h1>
+    <p class="hero-sub">Eserlerinizi, repertuvarlarınızı ve solistlerinizi tek bir yerde yönetin.</p>
+    <div class="hero-actions">
+      <a href="stage.html" class="btn-p">🎭 Sahneye Çık</a>
+      <a href="eserler.html" class="btn-s">Eserlere Bak →</a>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">🎼</div>
+      <div class="stat-n">399</div>
+      <div class="stat-l">Eser kayıtlı</div>
+      <div class="stat-trend">↑ 12 bu ay</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📋</div>
+      <div class="stat-n">4</div>
+      <div class="stat-l">Repertuvar</div>
+      <div class="stat-trend">Aktif: Cem Çelebi</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🎤</div>
+      <div class="stat-n">12</div>
+      <div class="stat-l">Solist</div>
+      <div class="stat-trend">3 aktif program</div>
+    </div>
+    <div class="stat-card" style="border-style:dashed;opacity:.5;">
+      <div class="stat-icon">✨</div>
+      <div style="font-size:13px;color:#8B949E;margin-top:8px;">Yakında yeni özellikler</div>
+    </div>
+  </div>
 </div>
 
-<div class="cards">
-
-  <a href="eserler.html" class="card card-eserler">
-    <span class="card-icon">🎼</span>
-    <div class="card-title">Eserler</div>
-    <div class="card-desc">Tüm kompozisyonlarınız — makam, akort, güfte ve besteci bilgileriyle.</div>
-    <div class="card-stat">
-      <span><strong id="worksCount">—</strong> eser kayıtlı</span>
-      <span class="card-arrow">↗</span>
-    </div>
-  </a>
-
-  <a href="repertoires.html" class="card card-repertuvar">
-    <span class="card-icon">📋</span>
-    <div class="card-title">Repertuvar</div>
-    <div class="card-desc">Konser programları oluşturun, sıralayın ve sahneye hazırlayın.</div>
-    <div class="card-stat">
-      <span><strong id="repsCount">—</strong> repertuvar</span>
-      <span class="card-arrow">↗</span>
-    </div>
-  </a>
-
-  <a href="artiesten.html" class="card card-solistler">
-    <span class="card-icon">🎤</span>
-    <div class="card-title">Solistler</div>
-    <div class="card-desc">Solistlerinizin iletişim bilgileri, notlar ve eser tercihleri.</div>
-    <div class="card-stat">
-      <span><strong id="solCount">—</strong> solist</span>
-      <span class="card-arrow">↗</span>
-    </div>
-  </a>
-
-  <div class="card-sahne-wrap">
-    <a href="stage.html" class="card card-sahne">
-      <div class="sahne-left">
-        <span class="card-icon">🎭</span>
-        <div class="card-title">Sahne Modu</div>
-        <div class="card-desc">Repertuvar seç ve sahneye çık — büyük ekran, kolay geçiş.<br>Gece ve gündüz arka plan seçeneği.</div>
-        <span class="sahne-cta">Sahneye Çık →</span>
+<div class="section">
+  <div class="section-hdr"><span class="section-title">Bölümler</span></div>
+  <div class="cards">
+    <a href="#" class="card">
+      <div class="card-header">
+        <div class="card-icon-wrap ci-blue">🎼</div>
+        <span class="card-badge">399 eser</span>
       </div>
-      <div class="sahne-visual">
-        <div class="curtain-l"></div>
-        <div class="curtain-r"></div>
-        <div class="spotlight"></div>
-        <span class="sahne-emoji">🎭</span>
+      <div class="card-title">Eserler</div>
+      <div class="card-desc">Makam, akort, güfte ve besteci bilgileriyle tüm arşiviniz.</div>
+      <div class="card-footer"><span class="card-stat">Son güncelleme: bugün</span><span class="card-arrow">↗</span></div>
+    </a>
+    <a href="#" class="card">
+      <div class="card-header">
+        <div class="card-icon-wrap ci-green">📋</div>
+        <span class="card-badge">4 aktif</span>
       </div>
+      <div class="card-title">Repertuvar</div>
+      <div class="card-desc">Konser programları oluşturun ve sahneye hazırlayın.</div>
+      <div class="card-footer"><span class="card-stat">Cem Çelebi aktif</span><span class="card-arrow">↗</span></div>
+    </a>
+    <a href="#" class="card">
+      <div class="card-header">
+        <div class="card-icon-wrap ci-orange">🎤</div>
+        <span class="card-badge">12 solist</span>
+      </div>
+      <div class="card-title">Solistler</div>
+      <div class="card-desc">İletişim bilgileri, notlar ve eser tercihleri.</div>
+      <div class="card-footer"><span class="card-stat">Tüm solistler</span><span class="card-arrow">↗</span></div>
     </a>
   </div>
-
 </div>
 
-<div class="theme-demo">
-  <div class="theme-demo-card">
-    <div>
-      <h3>Sahne Modu — Tema Seçimi</h3>
-      <p>Sahne modunda gece/gündüz teması tek tıkla değişir.</p>
+<div class="stage-wrap">
+  <div class="stage-card">
+    <div class="stage-left">
+      <h2>Sahne Modu<br><span>hazır mısınız?</span></h2>
+      <p>Büyük ekran, kolay eser geçişi. Gece ve gündüz tema seçeneğiyle sahneye hazır.</p>
     </div>
-    <div class="theme-btns">
-      <button class="theme-btn active" onclick="setTheme('day',this)">☀️ Gündüz</button>
-      <button class="theme-btn" onclick="setTheme('night',this)">🌙 Gece</button>
+    <div class="stage-right">
+      <a href="stage.html" class="stage-btn">🎭 Sahneye Çık</a>
+      <div class="theme-row">
+        <div class="tp a" onclick="this.closest('.theme-row').querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));this.classList.add('a')">☀️ Gündüz</div>
+        <div class="tp" onclick="this.closest('.theme-row').querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));this.classList.add('a')">🌙 Gece</div>
+      </div>
     </div>
   </div>
 </div>
-
 <script>
-function setTheme(t, btn) {
-  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  localStorage.setItem('stageTheme', t);
-}
-
-// Auth + Stats
 (async function(){
   const ok = await requireAuth();
   if(!ok) return;
-  renderUserBadge('userBadge');
+  const u = getUser();
+  const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || 'Kullanıcı';
+  document.querySelectorAll('.h-name').forEach(el => el.textContent = name);
+  document.querySelectorAll('.h-tag').forEach(el => el.innerHTML = '<div class="h-dot"></div>' + name);
 
-  // Eser sayısını Supabase'den çek
+  // Stats
+  const headers = {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY), 'Prefer':'count=exact'};
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),
-                'Prefer': 'count=exact'}
-    });
-    const count = r.headers.get('content-range')?.split('/')[1];
-    if(count) document.getElementById('worksCount').textContent = count;
+    const rw = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1', {headers});
+    const c = rw.headers.get('content-range')?.split('/')[1];
+    if(c) document.querySelectorAll('.stat-n')[0].textContent = c;
   } catch(e){}
-
-  // Repertuvar sayısı
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/repertoires?select=id&limit=1', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),
-                'Prefer': 'count=exact'}
-    });
-    const count = r.headers.get('content-range')?.split('/')[1];
-    if(count) document.getElementById('repsCount').textContent = count;
+    const rr = await fetch(SUPA_URL+'/rest/v1/repertoires?select=id&limit=1', {headers});
+    const c = rr.headers.get('content-range')?.split('/')[1];
+    if(c) document.querySelectorAll('.stat-n')[1].textContent = c;
   } catch(e){}
-
-  // Solist sayısı
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/solistler?select=id&limit=1', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),
-                'Prefer': 'count=exact'}
-    });
-    const count = r.headers.get('content-range')?.split('/')[1];
-    if(count) document.getElementById('solCount').textContent = count;
+    const rs = await fetch(SUPA_URL+'/rest/v1/solistler?select=id&limit=1', {headers});
+    const c = rs.headers.get('content-range')?.split('/')[1];
+    if(c) document.querySelectorAll('.stat-n')[2].textContent = c;
   } catch(e){}
 })();
+
+document.querySelector('.h-btn')?.addEventListener('click', logout);
 </script>
 </body>
 </html>

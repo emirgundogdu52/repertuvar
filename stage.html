@@ -8,7 +8,7 @@
 <title>Sahne Modu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--border:#2a2a3e;--accent:#a855f7;--accent2:#c084fc;--text:#f1f0ff;--text2:#8b8aa8;--text3:#3d3d58;--green:#4a9462;--red:#c05444;}
+:root{--bg:#0D1117;--surface:#161B22;--surface2:#21262D;--border:#30363D;--accent:#58A6FF;--accent2:#BC8CFF;--text:#E6EDF3;--text2:#8B949E;--text3:#6E7681;--green:#3FB950;--red:#F85149;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100vh;overflow:hidden;user-select:none;}
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;}
@@ -24,8 +24,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .rsl{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;max-height:55vh;overflow-y:auto;}
 .rsl::-webkit-scrollbar{width:4px;}.rsl::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 .rsi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;align-items:center;justify-content:space-between;}
-.rsi:hover{border-color:rgba(168,85,247,.4);background:var(--surface2);}
-.rsi.sel{border-color:var(--accent);background:rgba(168,85,247,.08);}
+.rsi:hover{border-color:rgba(88,166,255,.4);background:var(--surface2);}
+.rsi.sel{border-color:var(--accent);background:rgba(88,166,255,.08);}
 .rsn{font-size:15px;font-weight:500;color:var(--text);margin-bottom:3px;}
 .rsm{font-size:12px;color:var(--text2);}
 .rsc{font-size:12px;color:var(--text3);}
@@ -49,7 +49,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .bex:hover{color:var(--red);border-color:var(--red);}
 
 .sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 40px 80px;position:relative;overflow-y:auto;cursor:pointer;}
-.sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
+.sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(88,166,255,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;opacity:0;animation:si .4s ease forwards;}
 .wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:24px;opacity:0;animation:si .4s ease .07s forwards;}
 .wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;opacity:0;animation:si .4s ease .14s forwards;}
@@ -80,7 +80,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .bep:hover{background:var(--accent2);}
 .beg{background:none;border:1px solid var(--border);color:var(--text2);}
 .beg:hover{border-color:#38383f;color:var(--text);}
-.sf{position:fixed;inset:0;background:rgba(168,85,247,0.06);pointer-events:none;animation:ff .25s ease forwards;z-index:99;}
+.sf{position:fixed;inset:0;background:rgba(88,166,255,0.06);pointer-events:none;animation:ff .25s ease forwards;z-index:99;}
 
 @keyframes si{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fi{from{opacity:0}to{opacity:1}}
@@ -95,8 +95,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(168,85,247,0.12);
-  border: 1px solid rgba(168,85,247,0.3);
+  background: rgba(88,166,255,0.12);
+  border: 1px solid rgba(88,166,255,0.3);
   border-radius: 12px;
   color: var(--accent);
   cursor: pointer;
@@ -106,11 +106,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
   transition: all .2s;
   z-index: 50;
   user-select: none;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Sora', sans-serif;
 }
 .snb-arrow { font-size: 28px; line-height: 1; }
 .snb-label { font-size: 11px; font-weight: 600; letter-spacing: .04em; opacity: .8; }
-.side-nav-btn:hover { background: rgba(168,85,247,0.25); border-color: rgba(168,85,247,0.6); transform: translateY(-50%) scale(1.06); }
+.side-nav-btn:hover { background: rgba(88,166,255,0.25); border-color: rgba(88,166,255,0.6); transform: translateY(-50%) scale(1.06); }
 .side-nav-btn:active { transform: translateY(-50%) scale(0.96); }
 .side-nav-btn.disabled { opacity: 0.15; pointer-events: none; }
 .side-nav-left  { left: 12px; }
@@ -172,8 +172,33 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
     .sb { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
   }
 
+
+/* Gündüz teması */
+body.day-mode {
+  --bg:#F7F8FC;--surface:#FFFFFF;--surface2:#F0F2F5;
+  --border:#E5E7EB;--text:#111827;--text2:#6B7280;--text3:#9CA3AF;
+}
+body.day-mode .wtitle { color: #111827; }
+body.day-mode .wlyrics { color: #374151; }
+body.day-mode .wch { background:#E5E7EB;color:#374151; }
+
 </style>
-<script src="auth.js"></script>
+<script src="auth.js">
+// Gece/Gündüz tema
+let dayMode = localStorage.getItem('stageTheme') === 'day';
+function applyTheme() {
+  document.body.classList.toggle('day-mode', dayMode);
+  const btn = document.getElementById('themeBtn');
+  if(btn) btn.textContent = dayMode ? '🌙' : '☀️';
+}
+function toggleTheme() {
+  dayMode = !dayMode;
+  localStorage.setItem('stageTheme', dayMode ? 'day' : 'night');
+  applyTheme();
+}
+applyTheme();
+
+</script>
 </head>
 <body>
 
@@ -210,7 +235,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
       <div class="nn" id="nn">—</div>
       <div class="nm" id="nm">—</div>
     </div>
-    <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button id="alignBtn" class="align-toggle" onclick="toggleAlign()" title="Hizalamayı değiştir">⇐ Sola</button>
+      <button id="themeBtn" onclick="toggleTheme()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;cursor:pointer;" title="Gece/Gündüz">🌙</button>
+      <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
+    </div>
   </div>
 </div>
 
