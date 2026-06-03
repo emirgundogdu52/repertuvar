@@ -605,40 +605,6 @@ function printR(repId){
 
 
 
-<!-- PAYLAŞ MODAL -->
-<div id="shareModal" class="share-modal" onclick="if(event.target===this)closeShare()">
-  <div class="share-box">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
-      <div>
-        <div class="share-title">🔗 Repertuvarı Paylaş</div>
-        <div id="shareRepName" style="font-size:12px;color:var(--text3);margin-top:2px;"></div>
-      </div>
-      <button class="share-close" onclick="closeShare()">✕</button>
-    </div>
-    <div class="share-desc">
-      Bu linki paylaştığınız kişiler repertuvarı <strong>sahne modunda görüntüleyebilir</strong>. 
-      Hesap açmaları gerekmez, link alan herkes erişebilir.
-    </div>
-    <div class="share-link-box">
-      <span id="shareLink">—</span>
-      <button class="copy-btn" id="copyBtn" onclick="copyShareLink()">Kopyala</button>
-    </div>
-    <div class="share-note">
-      ⚠️ Bu link herkese açıktır — sadece güvendiğiniz kişilerle paylaşın.<br>
-      Link ile açılan kişiler sadece okuyabilir, düzenleme yapamaz.
-    </div>
-    <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
-      <button onclick="closeShare()" 
-        style="padding:8px 18px;border-radius:8px;background:none;border:1px solid var(--border);
-        color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;">Kapat</button>
-      <button onclick="shareViaWhatsApp()"
-        style="padding:8px 18px;border-radius:8px;background:#25d366;border:none;
-        color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">
-        📱 WhatsApp'ta Paylaş
-      </button>
-    </div>
-  </div>
-</div>
 
 </body></html>`);
   win.document.close();
@@ -923,6 +889,42 @@ function shareViaWhatsApp() {
     <div style="display:flex;gap:10px;justify-content:flex-end;">
       <button onclick="closeIEM()" style="padding:8px 18px;border-radius:8px;background:none;border:1px solid var(--border);color:var(--text2);font-size:13px;cursor:pointer;">İptal</button>
       <button onclick="saveIEM()" style="padding:8px 18px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- PAYLAŞ MODAL -->
+<div id="shareModal" class="share-modal" onclick="if(event.target===this)closeShare()">
+  <div class="share-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+      <div>
+        <div class="share-title">🔗 Repertuvarı Paylaş</div>
+        <div id="shareRepName" style="font-size:12px;color:var(--text3);margin-top:2px;"></div>
+      </div>
+      <button class="share-close" onclick="closeShare()">✕</button>
+    </div>
+    <div class="share-desc">
+      Bu linki paylaştığınız kişiler repertuvarı <strong>sahne modunda görüntüleyebilir</strong>. 
+      Hesap açmaları gerekmez, link alan herkes erişebilir.
+    </div>
+    <div class="share-link-box">
+      <span id="shareLink">—</span>
+      <button class="copy-btn" id="copyBtn" onclick="copyShareLink()">Kopyala</button>
+    </div>
+    <div class="share-note">
+      ⚠️ Bu link herkese açıktır — sadece güvendiğiniz kişilerle paylaşın.<br>
+      Link ile açılan kişiler sadece okuyabilir, düzenleme yapamaz.
+    </div>
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeShare()" 
+        style="padding:8px 18px;border-radius:8px;background:none;border:1px solid var(--border);
+        color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;">Kapat</button>
+      <button onclick="shareViaWhatsApp()"
+        style="padding:8px 18px;border-radius:8px;background:#25d366;border:none;
+        color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">
+        📱 WhatsApp'ta Paylaş
+      </button>
     </div>
   </div>
 </div>
