@@ -116,6 +116,7 @@
   }
 
 </style>
+<script src="auth.js"></script>
 </head>
 <body>
 <nav>
@@ -128,6 +129,7 @@
     <div class="sync-dot loading" id="syncDot"></div>
     <span id="syncLabel">Bağlanıyor...</span>
   </div>
+<div id="userBadge"></div>
 </nav>
 
 <div class="layout">
@@ -390,6 +392,13 @@ document.getElementById('artistModal').addEventListener('click', e => { if(e.tar
 document.getElementById('workModal').addEventListener('click', e => { if(e.target.id==='workModal') closeWorkModal(); });
 
 loadAll();
+</script>
+<script>
+(async function(){
+  const ok = await requireAuth();
+  if(!ok) return;
+  renderUserBadge('userBadge');
+})();
 </script>
 </body>
 </html>
