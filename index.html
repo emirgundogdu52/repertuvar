@@ -1,318 +1,500 @@
 <!DOCTYPE html>
+<!-- design-test v1 -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Repertuvar</title>
-<link rel="icon" type="image/png" href="Repertuvar_logo.png">
-<script src="auth.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>Repertuvar — Ana Sayfa</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Sora:wght@300;400;500;600;700:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:transparent;font-family:"Sora",sans-serif;color:#E6EDF3;min-height:100vh;}
+  :root {
+    --bg: #0D1117;
+    --surface: #161B22;
+    --surface2: #21262D;
+    --border: #30363D;
+    --accent: #58A6FF;
+    --accent2: #BC8CFF;
+    --accent-dim: rgba(88,166,255,0.12);
+    --text: #E6EDF3;
+    --text2: #8B949E;
+    --text3: #6E7681;
+  }
 
-header{padding:0 48px;height:68px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #21262D;background:#0D1117;position:sticky;top:0;z-index:100;}
-header img{height:40px;}
-.h-name{font-size:16px;font-weight:600;color:#E6EDF3;}
-.h-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
-.h-tag{background:#161B22;border:1px solid #30363D;border-radius:20px;padding:5px 12px;font-size:12px;color:#8B949E;display:flex;align-items:center;gap:6px;}
-.h-dot{width:6px;height:6px;border-radius:50%;background:#3FB950;}
-.h-btn{background:none;border:1px solid #30363D;border-radius:6px;padding:5px 12px;font-size:12px;color:#8B949E;cursor:pointer;font-family:inherit;transition:all .15s;}
-.h-btn:hover{border-color:#8B949E;color:#E6EDF3;}
+  * { margin:0; padding:0; box-sizing:border-box; }
 
-.hero{max-width:1100px;margin:0 auto;padding:72px 48px 56px;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
-@media(max-width:768px){.hero{grid-template-columns:1fr;padding:48px 24px 40px;gap:40px;}}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:#161B22;border:1px solid #30363D;border-radius:20px;padding:6px 14px;font-size:11px;color:#8B949E;margin-bottom:20px;}
-.hero-badge span{color:#58A6FF;}
-h1{font-size:clamp(32px,4.5vw,54px);font-weight:700;line-height:1.1;letter-spacing:-.02em;}
-h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.hero-sub{font-size:15px;color:#8B949E;margin-top:16px;line-height:1.75;}
-.hero-actions{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap;}
-.btn-p{background:#238636;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid #2EA043;transition:background .15s;}
-.btn-p:hover{background:#2EA043;}
-.btn-s{background:#21262D;color:#E6EDF3;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:500;text-decoration:none;border:1px solid #30363D;transition:all .15s;}
-.btn-s:hover{border-color:#8B949E;}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.stat-card{background:#161B22;border:1px solid #21262D;border-radius:12px;padding:20px;transition:border-color .15s;}
-.stat-card:hover{border-color:#30363D;}
-.stat-icon{font-size:20px;margin-bottom:10px;}
-.stat-n{font-size:28px;font-weight:700;color:#E6EDF3;letter-spacing:-.02em;}
-.stat-l{font-size:12px;color:#8B949E;margin-top:3px;}
-.stat-trend{font-size:11px;color:#3FB950;margin-top:8px;}
+  /* ── BACKGROUND TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(88,166,255,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 90%, rgba(59,130,246,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-.section{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
-@media(max-width:768px){.section{padding:0 24px 56px;}}
-.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.section-title{font-size:13px;font-weight:600;color:#8B949E;letter-spacing:.06em;text-transform:uppercase;}
+  /* ── NOISE OVERLAY ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
 
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-@media(max-width:700px){.cards{grid-template-columns:1fr;}}
-.card{background:rgba(22,27,34,0.88);backdrop-filter:blur(8px);border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
-.card:hover{border-color:#30363D;transform:translateY(-2px);}
-.card-header{display:flex;align-items:flex-start;justify-content:space-between;}
-.card-icon-wrap{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;}
-.ci-blue{background:rgba(88,166,255,.1);}
-.ci-green{background:rgba(63,185,80,.1);}
-.ci-orange{background:rgba(249,160,74,.1);}
-.card-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:#1F2937;color:#9CA3AF;}
-.card-title{font-size:15px;font-weight:600;color:#E6EDF3;}
-.card-desc{font-size:13px;color:#8B949E;line-height:1.6;flex:1;}
-.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #21262D;}
-.card-stat{font-size:12px;color:#8B949E;}
-.card-arrow{font-size:14px;color:#30363D;transition:color .15s;}
-.card:hover .card-arrow{color:#58A6FF;}
+  /* ── LAYOUT ── */
+  .page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
 
-.stage-wrap{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
-@media(max-width:768px){.stage-wrap{padding:0 24px 56px;}}
-.stage-card{background:linear-gradient(135deg,rgba(22,27,34,0.75) 0%,rgba(26,16,64,0.75) 100%);backdrop-filter:blur(8px);border:1px solid #21262D;border-radius:16px;padding:36px 44px;display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;}
-.stage-left h2{font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
-.stage-left h2 span{background:linear-gradient(90deg,#BC8CFF,#58A6FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.stage-left p{font-size:14px;color:#8B949E;line-height:1.7;max-width:360px;}
-.stage-right{display:flex;flex-direction:column;align-items:flex-end;gap:12px;}
-.stage-btn{background:linear-gradient(135deg,#8957E5,#58A6FF);color:#fff;padding:13px 26px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap;transition:opacity .15s;}
-.stage-btn:hover{opacity:.9;}
-.theme-row{display:flex;gap:8px;}
-.tp{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid #30363D;color:#8B949E;cursor:pointer;transition:all .15s;}
-.tp.a{border-color:#BC8CFF;color:#BC8CFF;background:rgba(188,140,255,.08);}
+  /* ── HEADER ── */
+  header {
+    padding: 48px 48px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    display:none;
+  }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .logo-text span {
+    display: block;
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--text3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .header-date {
+    font-size: 12px;
+    color: var(--text3);
+    text-align: right;
+    line-height: 1.6;
+    padding-top: 4px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 48px 40px;
+    text-align: center;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.1s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(38px, 6vw, 72px);
+    font-weight: 400;
+    line-height: 1.1;
+    color: var(--text);
+    max-width: 700px;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.2s forwards;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--text2);
+    max-width: 420px;
+    line-height: 1.7;
+    margin-bottom: 56px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.3s forwards;
+  }
+
+  /* ── MODULE CARDS ── */
+  .modules {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    width: 100%;
+    max-width: 860px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.45s forwards;
+  }
+
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 24px;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    display: block;
+  }
+
+  .module-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(88,166,255,0.06) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .module-card:hover {
+    border-color: rgba(88,166,255,0.35);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  }
+
+  .module-card:hover::before { opacity: 1; }
+
+  .card-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+    font-weight: 300;
+    margin-bottom: 16px;
+  }
+
+  .card-stat {
+    font-size: 11px;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .card-stat strong {
+    color: var(--accent);
+    font-size: 18px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+  }
+
+  .card-arrow {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    font-size: 16px;
+    color: var(--text3);
+    transition: color 0.2s, transform 0.2s;
+  }
+
+  .module-card:hover .card-arrow {
+    color: var(--accent);
+    transform: translate(2px, -2px);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 100%;
+    max-width: 860px;
+    margin: 40px 0 0;
+    border: none;
+    border-top: 1px solid var(--border);
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.65s forwards;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 20px 48px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    opacity: 0;
+    animation: fadeIn 0.6s ease 0.8s forwards;
+  }
+
+  .footer-link {
+    font-size: 12px;
+    color: var(--text3);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    transition: color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .footer-link:hover { color: var(--text2); }
+
+  .footer-dot {
+    width: 3px; height: 3px;
+    background: var(--text3);
+    border-radius: 50%;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    header { padding: 20px 16px 0; }
+    .logo-mark img { height:36px; }
+    .hero { padding: 32px 16px 24px; }
+    .hero-title { font-size: clamp(32px, 9vw, 52px); }
+    .hero-sub { font-size: 15px; }
+    .modules { grid-template-columns: 1fr; max-width: 100%; padding: 0 16px 24px; }
+    .module { padding: 18px 16px; }
+    footer { padding: 16px; flex-wrap: wrap; gap: 12px; font-size:12px; }
+  }
+  @media (max-width: 400px) {
+    .hero-title { font-size: 28px; }
+    .module-title { font-size: 15px; }
+  }
+
+  @media (max-width: 768px) {
+    body { overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    .module-grid { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 400px) {
+    .hero-title { font-size: 26px; }
+    .module-grid { gap: 10px; }
+  }
+
 </style>
+<script src="auth.js"></script>
 </head>
 <body>
+<div class="page">
 
-<!-- WebGL Shader Background -->
-<canvas id="shaderBg" style="position:fixed;bottom:0;left:0;width:100%;height:50%;z-index:0;pointer-events:none;opacity:1;mask-image:linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%);-webkit-mask-image:linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%);filter:blur(2px);"></canvas>
-
+  <canvas id="shaderBg" style="position:fixed;bottom:0;left:0;width:100%;height:50%;z-index:0;pointer-events:none;opacity:1;mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,0.6) 40%,rgba(0,0,0,1) 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,0.6) 40%,rgba(0,0,0,1) 100%);filter:blur(2px);"></canvas>
 <header>
-  <img src="Repertuvar_logo.png" alt="">
-  <span class="h-name">Repertuvar</span>
-  <div class="h-right">
-    <div class="h-tag"><div class="h-dot"></div>Emir Gündoğdu</div>
-    <button class="h-btn">Çıkış</button>
-  </div>
+    <div class="logo-mark">
+      <img src="Repertuvar_logo.png" alt="Repertuvar" style="height:72px;width:auto;">
+    </div>
+    <div class="header-date" id="headerDate"></div>
+  <div id="userBadge" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);"></div>
 </header>
 
-<div class="hero" style="position:relative;z-index:1;">
-  <div>
-    <div class="hero-badge">🎵 <span>Müzik Arşiviniz</span></div>
-    <h1>Sahnede her nota,<br><em>elinizin altında.</em></h1>
+  <main class="hero">
+    <p class="hero-eyebrow">Müzik Arşiviniz</p>
+    <h1 class="hero-title">Sahnede her nota,<br><em>elinizin altında</em></h1>
     <p class="hero-sub">Eserlerinizi, repertuvarlarınızı ve solistlerinizi tek bir yerde yönetin.</p>
-    <div class="hero-actions">
-      <a href="stage.html" class="btn-p">🎭 Sahneye Çık</a>
-      <a href="eserler.html" class="btn-s">Eserlere Bak →</a>
+
+    <div class="modules">
+
+      <a href="eserler.html" class="module-card">
+        <span class="card-icon">🎼</span>
+        <div class="card-title">Eserler</div>
+        <div class="card-desc">Tüm kompozisyonlarınız — makam, akort, güfte ve besteci bilgileriyle.</div>
+        <div class="card-stat"><strong id="worksCount">411</strong> eser kayıtlı</div>
+        <span class="card-arrow">↗</span>
+      </a>
+
+      <a href="repertoires.html" class="module-card">
+        <span class="card-icon">📋</span>
+        <div class="card-title">Repertuvar</div>
+        <div class="card-desc">Konser programları oluşturun, sıralayın ve sahneye hazırlayın.</div>
+        <div class="card-stat"><strong id="repsCount">0</strong> repertuvar</div>
+        <span class="card-arrow">↗</span>
+      </a>
+
+      <a href="artiesten.html" class="module-card">
+        <span class="card-icon">🎤</span>
+        <div class="card-title">Solistler</div>
+        <div class="card-desc">Solistlerinizin iletişim bilgileri, notlar ve eser tercihleri.</div>
+        <div class="card-stat"><strong id="soloCount">0</strong> solist</div>
+        <span class="card-arrow">↗</span>
+      </a>
+
+    <!-- STAGE MODE BANNER -->
+    <a href="stage.html" style="
+      display:flex; align-items:center; justify-content:space-between;
+      width:100%; max-width:860px; margin-top:16px;
+      background:linear-gradient(135deg, rgba(88,166,255,0.12) 0%, rgba(88,166,255,0.05) 100%);
+      border:1px solid rgba(88,166,255,0.3); border-radius:14px;
+      padding:20px 28px; text-decoration:none; color:inherit;
+      transition:border-color .2s, transform .2s, box-shadow .2s;
+      opacity:0; animation:fadeUp 0.9s ease 0.55s forwards;"
+      onmouseover="this.style.borderColor='rgba(88,166,255,0.6)';this.style.transform='translateY(-2px)'"
+      onmouseout="this.style.borderColor='rgba(88,166,255,0.3)';this.style.transform='translateY(0)'">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <span style="font-size:32px;">🎭</span>
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--text);margin-bottom:3px;">Sahne Modu</div>
+          <div style="font-size:12px;color:var(--text2);font-weight:300;">Repertuvar seç ve sahneye çık — büyük ekran, kolay geçiş</div>
+        </div>
+      </div>
+      <span style="font-size:20px;color:var(--accent);">→</span>
+    </a>
+
+    
+
     </div>
-  </div>
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">🎼</div>
-      <div class="stat-n">399</div>
-      <div class="stat-l">Eser kayıtlı</div>
-      <div class="stat-trend">↑ 12 bu ay</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">📋</div>
-      <div class="stat-n">4</div>
-      <div class="stat-l">Repertuvar</div>
-      <div class="stat-trend">Aktif: Cem Çelebi</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🎤</div>
-      <div class="stat-n">12</div>
-      <div class="stat-l">Solist</div>
-      <div class="stat-trend">3 aktif program</div>
-    </div>
-    <div class="stat-card" style="border-style:dashed;opacity:.5;">
-      <div class="stat-icon">✨</div>
-      <div style="font-size:13px;color:#8B949E;margin-top:8px;">Yakında yeni özellikler</div>
-    </div>
-  </div>
+
+    <hr class="divider">
+  </main>
+
+  <footer>
+    <a href="eserler.html" class="footer-link">🎼 Eserler</a>
+    <div class="footer-dot"></div>
+    <a href="repertoires.html" class="footer-link">📋 Repertuvar</a>
+    <div class="footer-dot"></div>
+    <a href="artiesten.html" class="footer-link">🎤 Solistler</a>
+  </footer>
+
 </div>
 
-<div class="section" style="position:relative;z-index:1;">
-  <div class="section-hdr"><span class="section-title">Bölümler</span></div>
-  <div class="cards" style="position:relative;z-index:1;">
-    <a href="eserler.html" class="card">
-      <div class="card-header">
-        <div class="card-icon-wrap ci-blue">🎼</div>
-        <span class="card-badge">399 eser</span>
-      </div>
-      <div class="card-title">Eserler</div>
-      <div class="card-desc">Makam, akort, güfte ve besteci bilgileriyle tüm arşiviniz.</div>
-      <div class="card-footer"><span class="card-stat">Son güncelleme: bugün</span><span class="card-arrow">↗</span></div>
-    </a>
-    <a href="repertoires.html" class="card">
-      <div class="card-header">
-        <div class="card-icon-wrap ci-green">📋</div>
-        <span class="card-badge">4 aktif</span>
-      </div>
-      <div class="card-title">Repertuvar</div>
-      <div class="card-desc">Konser programları oluşturun ve sahneye hazırlayın.</div>
-      <div class="card-footer"><span class="card-stat">Cem Çelebi aktif</span><span class="card-arrow">↗</span></div>
-    </a>
-    <a href="artiesten.html" class="card">
-      <div class="card-header">
-        <div class="card-icon-wrap ci-orange">🎤</div>
-        <span class="card-badge">12 solist</span>
-      </div>
-      <div class="card-title">Solistler</div>
-      <div class="card-desc">İletişim bilgileri, notlar ve eser tercihleri.</div>
-      <div class="card-footer"><span class="card-stat">Tüm solistler</span><span class="card-arrow">↗</span></div>
-    </a>
-  </div>
-</div>
+<script>
+  // Date
+  const now = new Date();
+  document.getElementById('headerDate').innerHTML =
+    now.toLocaleDateString('tr-TR', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) +
+    '<br><span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);">Repertuvar Sistemi</span>';
 
-<div class="stage-wrap" style="position:relative;z-index:1;">
-  <div class="stage-card">
-    <div class="stage-left">
-      <h2>Sahne Modu<br><span>hazır mısınız?</span></h2>
-      <p>Büyük ekran, kolay eser geçişi. Gece ve gündüz tema seçeneğiyle sahneye hazır.</p>
-    </div>
-    <div class="stage-right">
-      <a href="stage.html" class="stage-btn">🎭 Sahneye Çık</a>
-      <div class="theme-row">
-        <div class="tp a" onclick="this.closest('.theme-row').querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));this.classList.add('a')">☀️ Gündüz</div>
-        <div class="tp" onclick="this.closest('.theme-row').querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));this.classList.add('a')">🌙 Gece</div>
-      </div>
-    </div>
-  </div>
-</div>
+  // Live counts from localStorage
+  try {
+    const reps = JSON.parse(localStorage.getItem('repertoires') || '[]');
+    document.getElementById('repsCount').textContent = reps.length;
+  } catch {}
+
+  try {
+    const solos = JSON.parse(localStorage.getItem('solistler') || '[]');
+    document.getElementById('soloCount').textContent = solos.length;
+  } catch {}
+</script>
 <script>
 (async function(){
   const ok = await requireAuth();
   if(!ok) return;
-  const u = getUser();
-  const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || 'Kullanıcı';
-  document.querySelectorAll('.h-name').forEach(el => el.textContent = name);
-  document.querySelectorAll('.h-tag').forEach(el => el.innerHTML = '<div class="h-dot"></div>' + name);
-
-  // Stats
-  const headers = {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY), 'Prefer':'count=exact'};
-  try {
-    const rw = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1', {headers});
-    const c = rw.headers.get('content-range')?.split('/')[1];
-    if(c) document.querySelectorAll('.stat-n')[0].textContent = c;
-  } catch(e){}
-  try {
-    const rr = await fetch(SUPA_URL+'/rest/v1/repertoires?select=id&limit=1', {headers});
-    const c = rr.headers.get('content-range')?.split('/')[1];
-    if(c) document.querySelectorAll('.stat-n')[1].textContent = c;
-  } catch(e){}
-  try {
-    const rs = await fetch(SUPA_URL+'/rest/v1/solistler?select=id&limit=1', {headers});
-    const c = rs.headers.get('content-range')?.split('/')[1];
-    if(c) document.querySelectorAll('.stat-n')[2].textContent = c;
-  } catch(e){}
+  renderUserBadge('userBadge');
 })();
-
-document.querySelector('.h-btn')?.addEventListener('click', logout);
 </script>
-
 <script>
 (function(){
-  const canvas = document.getElementById('shaderBg');
-  const gl = canvas.getContext('webgl');
-  if(!gl) return;
-
-  const vs = `attribute vec4 aPos;void main(){gl_Position=aPos;}`;
-  const fs = `
-    precision highp float;
-    uniform vec2 iResolution;
-    uniform float iTime;
-    const float overallSpeed=0.2;
-    const float gridSmoothWidth=0.015;
-    const float axisWidth=0.05;
-    const float majorLineWidth=0.025;
-    const float minorLineWidth=0.0125;
-    const float majorLineFrequency=5.0;
-    const float minorLineFrequency=1.0;
-    const float scale=5.0;
-    const vec4 lineColor=vec4(0.3,0.15,0.6,1.0);
-    const float minLineWidth=0.01;
-    const float maxLineWidth=0.2;
-    const float lineSpeed=1.0*overallSpeed;
-    const float lineAmplitude=1.0;
-    const float lineFrequency=0.2;
-    const float warpSpeed=0.2*overallSpeed;
-    const float warpFrequency=0.5;
-    const float warpAmplitude=1.0;
-    const float offsetFrequency=0.5;
-    const float offsetSpeed=1.33*overallSpeed;
-    const float minOffsetSpread=0.6;
-    const float maxOffsetSpread=2.0;
-    #define drawCircle(pos,radius,coord) smoothstep(radius+gridSmoothWidth,radius,length(coord-(pos)))
-    #define drawSmoothLine(pos,halfWidth,t) smoothstep(halfWidth,0.0,abs(pos-(t)))
-    #define drawCrispLine(pos,halfWidth,t) smoothstep(halfWidth+gridSmoothWidth,halfWidth,abs(pos-(t)))
+  const canvas=document.getElementById('shaderBg');
+  if(!canvas)return;
+  const gl=canvas.getContext('webgl');
+  if(!gl)return;
+  const vs=`attribute vec4 aPos;void main(){gl_Position=aPos;}`;
+  const fs=`precision highp float;
+    uniform vec2 iResolution;uniform float iTime;
+    const float os=0.2;const float scale=5.0;
+    const vec4 lc=vec4(0.3,0.15,0.6,1.0);
+    const float mlw=0.01;const float mxlw=0.2;
+    const float ls=1.0*os;const float la=1.0;const float lf=0.2;
+    const float ws=0.2*os;const float wf=0.5;const float wa=1.0;
+    const float of2=0.5;const float ofs=1.33*os;
+    const float mnos=0.6;const float mxos=2.0;
     float random(float t){return(cos(t)+cos(t*1.3+1.3)+cos(t*1.4+1.4))/3.0;}
-    float getPlasmaY(float x,float hf,float offset){return random(x*lineFrequency+iTime*lineSpeed)*hf*lineAmplitude+offset;}
+    float getPY(float x,float hf,float offset){return random(x*lf+iTime*ls)*hf*la+offset;}
     void main(){
       vec2 uv=gl_FragCoord.xy/iResolution.xy;
       vec2 space=(gl_FragCoord.xy-iResolution.xy/2.0)/iResolution.x*2.0*scale;
       float hf=1.0-(cos(uv.x*6.28)*0.5+0.5);
       float vf=1.0-(cos(uv.y*6.28)*0.5+0.5);
-      space.y+=random(space.x*warpFrequency+iTime*warpSpeed)*warpAmplitude*(0.5+hf);
-      space.x+=random(space.y*warpFrequency+iTime*warpSpeed+2.0)*warpAmplitude*hf;
+      space.y+=random(space.x*wf+iTime*ws)*wa*(0.5+hf);
+      space.x+=random(space.y*wf+iTime*ws+2.0)*wa*hf;
       vec4 lines=vec4(0.0);
-      vec4 bgColor1=vec4(0.05,0.05,0.08,1.0);
-      vec4 bgColor2=vec4(0.06,0.03,0.1,1.0);
+      vec4 bg1=vec4(0.05,0.05,0.08,1.0);
+      vec4 bg2=vec4(0.06,0.03,0.1,1.0);
       for(int l=0;l<16;l++){
         float nl=float(l)/16.0;
-        float op=iTime*offsetSpeed;
-        float opos=float(l)+space.x*offsetFrequency;
+        float op=iTime*ofs;float opos=float(l)+space.x*of2;
         float rand=random(opos+op)*0.5+0.5;
-        float hw=mix(minLineWidth,maxLineWidth,rand*hf)/2.0;
-        float offset=random(opos+op*(1.0+nl))*mix(minOffsetSpread,maxOffsetSpread,hf);
-        float lp=getPlasmaY(space.x,hf,offset);
-        float line=drawSmoothLine(lp,hw,space.y)/2.0+drawCrispLine(lp,hw*0.15,space.y);
-        float cx=mod(float(l)+iTime*lineSpeed,25.0)-12.0;
-        vec2 cp=vec2(cx,getPlasmaY(cx,hf,offset));
-        line+=drawCircle(cp,0.01,space)*4.0;
-        lines+=line*lineColor*rand;
+        float hw=mix(mlw,mxlw,rand*hf)/2.0;
+        float offset=random(opos+op*(1.0+nl))*mix(mnos,mxos,hf);
+        float lp=getPY(space.x,hf,offset);
+        float line=smoothstep(hw,0.0,abs(lp-space.y))/2.0+smoothstep(hw*0.15+0.015,hw*0.15,abs(lp-space.y));
+        float cx=mod(float(l)+iTime*ls,25.0)-12.0;
+        vec2 cp=vec2(cx,getPY(cx,hf,offset));
+        line+=smoothstep(0.01+0.015,0.01,length(cp-space))*4.0;
+        lines+=line*lc*rand;
       }
-      vec4 col=mix(bgColor1,bgColor2,uv.x);
-      col*=vf;col.a=1.0;col+=lines;
+      vec4 col=mix(bg1,bg2,uv.x);col*=vf;col.a=1.0;col+=lines;
       gl_FragColor=col;
-    }
-  `;
-
-  function makeShader(type, src){
-    const s=gl.createShader(type);
-    gl.shaderSource(s,src);gl.compileShader(s);
-    return s;
-  }
+    }`;
+  function mk(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;}
   const prog=gl.createProgram();
-  gl.attachShader(prog,makeShader(gl.VERTEX_SHADER,vs));
-  gl.attachShader(prog,makeShader(gl.FRAGMENT_SHADER,fs));
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,vs));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fs));
   gl.linkProgram(prog);
-
-  const buf=gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-
   const aPos=gl.getAttribLocation(prog,'aPos');
   const uRes=gl.getUniformLocation(prog,'iResolution');
   const uTime=gl.getUniformLocation(prog,'iTime');
-
-  function resize(){
-    canvas.width=window.innerWidth;
-    canvas.height=window.innerHeight;
-    gl.viewport(0,0,canvas.width,canvas.height);
-  }
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight/2;gl.viewport(0,0,canvas.width,canvas.height);}
   window.addEventListener('resize',resize);resize();
-
   const t0=Date.now();
   function draw(){
     const t=(Date.now()-t0)/1000;
-    gl.useProgram(prog);
-    gl.uniform2f(uRes,canvas.width,canvas.height);
-    gl.uniform1f(uTime,t);
+    gl.useProgram(prog);gl.uniform2f(uRes,canvas.width,canvas.height);gl.uniform1f(uTime,t);
     gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-    gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
-    gl.enableVertexAttribArray(aPos);
-    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-    requestAnimationFrame(draw);
+    gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(aPos);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(draw);
   }
   requestAnimationFrame(draw);
 })();
 </script>
-
 </body>
 </html>
