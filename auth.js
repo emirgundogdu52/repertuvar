@@ -67,7 +67,7 @@ function logout() {
   localStorage.removeItem('sb_token');
   localStorage.removeItem('sb_refresh');
   localStorage.removeItem('sb_user');
-  window.location.href = 'login.html';
+  window.location.href = 'login.html?logout=1';
 }
 
 function renderUserBadge(containerId) {
