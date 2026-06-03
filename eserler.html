@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repertuar — Eserler</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -278,7 +279,7 @@ let DATA = []; // Supabase'den yüklenecek
 
 async function loadWorksFromSupabase() {
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=1000', {
+    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000', {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
     });
     if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
