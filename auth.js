@@ -21,7 +21,7 @@ function authHeaders() {
   };
 }
 
-async function requireAuth() {
+async async function requireAuth() {
   const token = getToken();
   if (!token) { window.location.href = 'login.html'; return false; }
   try {
@@ -52,8 +52,17 @@ async function requireAuth() {
     localStorage.setItem('sb_user', JSON.stringify(user));
     return true;
   } catch(e) {
-    return true; // network error - allow offline use
+    // network error - check cached user
+    const cachedUser = getUser();
+    if (!cachedUser) { window.location.href = 'login.html'; return false; }
+    return true;
   }
+}
+
+
+const ADMIN_USER_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
+function isAdmin() {
+  return getUserId() === ADMIN_USER_ID;
 }
 
 function logout() {
