@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
+.admin-only{display:none;}
 body{background:transparent;font-family:"Sora",sans-serif;color:#E6EDF3;min-height:100vh;}
 
 header{padding:0 48px;height:68px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #21262D;background:#0D1117;position:sticky;top:0;z-index:100;}
@@ -139,7 +140,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
       <div class="card-desc">Makam, akort, güfte ve besteci bilgileriyle tüm arşiviniz.</div>
       <div class="card-footer"><span class="card-stat">Son güncelleme: bugün</span><span class="card-arrow">↗</span></div>
     </a>
-    <a href="repertoires.html" class="card">
+    <a href="repertoires.html" class="card admin-only" style="display:none;">
       <div class="card-header">
         <div class="card-icon-wrap ci-green">📋</div>
         <span class="card-badge">4 aktif</span>
@@ -148,7 +149,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
       <div class="card-desc">Konser programları oluşturun ve sahneye hazırlayın.</div>
       <div class="card-footer"><span class="card-stat">Cem Çelebi aktif</span><span class="card-arrow">↗</span></div>
     </a>
-    <a href="artiesten.html" class="card">
+    <a href="artiesten.html" class="card admin-only" style="display:none;">
       <div class="card-header">
         <div class="card-icon-wrap ci-orange">🎤</div>
         <span class="card-badge">12 solist</span>
