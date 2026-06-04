@@ -2,6 +2,8 @@
 var SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
 var SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 
+const ADMIN_USER_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
+
 function getToken() { return localStorage.getItem('sb_token'); }
 function getUser() {
   try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; }
@@ -10,6 +12,9 @@ function getUserId() { return getUser()?.id || null; }
 function getUserName() {
   const u = getUser();
   return u?.user_metadata?.full_name || u?.email?.split('@')[0] || 'Kullanıcı';
+}
+function isAdmin() {
+  return getUserId() === ADMIN_USER_ID;
 }
 
 function authHeaders() {
@@ -29,7 +34,6 @@ async function requireAuth() {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
     });
     if (!r.ok) {
-      // Token expired - try refresh
       const refresh = localStorage.getItem('sb_refresh');
       if (refresh) {
         const r2 = await fetch(SUPA_URL+'/auth/v1/token?grant_type=refresh_token', {
@@ -52,17 +56,10 @@ async function requireAuth() {
     localStorage.setItem('sb_user', JSON.stringify(user));
     return true;
   } catch(e) {
-    // network error - check cached user
     const cachedUser = getUser();
     if (!cachedUser) { window.location.href = 'login.html'; return false; }
     return true;
   }
-}
-
-
-const ADMIN_USER_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
-function isAdmin() {
-  return getUserId() === ADMIN_USER_ID;
 }
 
 function logout() {
