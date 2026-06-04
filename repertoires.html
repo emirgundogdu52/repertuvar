@@ -319,8 +319,8 @@ let WLIST = [];
 
 async function loadWorksData() {
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
+    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000&status=eq.approved', {
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY)}
     });
     const rows = await r.json();
     rows.forEach(w => {
