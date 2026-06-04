@@ -786,6 +786,12 @@ function shareViaWhatsApp() {
   renderUserBadge('userBadge');
   await loadWorksData();
   load();
+  // Stage'den gelindiyse o repertuvarı seç
+  const stageRepId = localStorage.getItem('stageRepId');
+  if (stageRepId) {
+    localStorage.removeItem('stageRepId');
+    setTimeout(() => { selId = stageRepId; renderList(); renderDetail(); }, 500);
+  }
 })();
 </script>
 </nav>

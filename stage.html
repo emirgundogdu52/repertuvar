@@ -184,6 +184,7 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
     <p class="psub">Hangi repertuvar ile sahneye çıkıyorsunuz?</p>
     <div class="rsl" id="rsl"><div class="loading">Yükleniyor...</div></div>
     <button class="bstart" id="bstart" disabled onclick="startStage()">Sahneye Çık →</button>
+    <button class="bstart" id="bedit" disabled onclick="editRep()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);margin-top:8px;">✏️ Repertuvara Eser Ekle</button>
     <a href="index.html" class="bback">← Ana Sayfaya Dön</a>
   </div>
 </div>
@@ -277,9 +278,8 @@ function renderPicker(){
   if(!reps.length){
     el.innerHTML=`<div style="padding:32px;text-align:center;line-height:1.8;">
       <div style="font-size:36px;margin-bottom:12px;">🎵</div>
-      <div style="color:var(--text2);font-size:14px;margin-bottom:20px;">Henüz bir repertuvarınız yok.<br>Bir tane oluşturun:</div>
-      <input id="newRepName" placeholder="Repertuvar adı" style="width:100%;max-width:280px;display:block;margin:0 auto 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;font-family:'Sora',sans-serif;outline:none;">
-      <button onclick="createRepAndGo()" style="background:var(--accent);border:none;border-radius:8px;padding:10px 24px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;">+ Repertuvar Oluştur</button>
+      <div style="color:var(--text2);font-size:14px;margin-bottom:20px;">Henüz bir repertuvarınız yok.<br>Oluşturmak için aşağıdaki butona tıklayın.</div>
+      <a href="repertoires.html" style="display:inline-block;background:var(--accent);border-radius:8px;padding:12px 28px;color:#fff;font-size:14px;font-weight:600;text-decoration:none;">+ Repertuvar Oluştur</a>
       <br><a href="index.html" style="color:var(--text3);font-size:12px;text-decoration:none;display:inline-block;margin-top:16px;">← Ana Sayfa</a>
     </div>`;
     return;
@@ -291,7 +291,7 @@ function renderPicker(){
   </div>`).join('');
 }
 
-function pickRep(id){selId=id;document.getElementById('bstart').disabled=false;renderPicker();}
+function pickRep(id){selId=id;document.getElementById('bstart').disabled=false;const be=document.getElementById('bedit');if(be)be.disabled=false;renderPicker();}
 
 function startStage(){
   curRep=reps.find(r=>r.id===selId);
@@ -553,6 +553,14 @@ function loadSideWork(id) {
   }, {passive: true});
 })();
 
+
+
+function editRep() {
+  if (!selId) return;
+  // Repertuvar sayfasını aynı tab'da aç, repertuvar seçili olarak
+  localStorage.setItem('stageRepId', selId);
+  window.location.href = 'repertoires.html';
+}
 
 async function createRepAndGo() {
   const nameEl = document.getElementById('newRepName');
