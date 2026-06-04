@@ -198,6 +198,7 @@ tr:hover .ra{opacity:1;}
   .share-close { float:right;background:none;border:none;color:var(--text2);
     font-size:20px;cursor:pointer;line-height:1; }
 
+  .admin-only{display:none;}
 </style>
 <script src="auth.js"></script>
 </head>
@@ -206,7 +207,7 @@ tr:hover .ra{opacity:1;}
   <a href="index.html" class="nb">🏠 Ana Sayfa</a>
   <a href="eserler.html" class="nb">Eserler</a>
   <a href="repertoires.html" class="nb active">Repertuvar</a>
-  <a href="artiesten.html" class="nb">Solistler</a>
+  <a href="artiesten.html" class="nb admin-only" style="display:none;">Solistler</a>
   <a href="stage.html" class="nb stage">🎭 Sahne Modu</a>
   <div class="sync"><div class="dot spin" id="dot"></div><span id="sl">Bağlanıyor...</span></div>
 <div id="userBadge"></div>
@@ -348,7 +349,7 @@ async function load(){
   sync('spin','Yükleniyor...');
   try{
     const [r,i,s] = await Promise.all([
-      dbGet('repertoires','order=created_at'),
+      dbGet('repertoires','order=created_at'+(isAdmin()?'':'&user_id=eq.'+getUserId())),
       dbGet('repertoire_items','order=seq'),
       dbGet('solistler','order=name')
     ]);
@@ -782,20 +783,9 @@ function shareViaWhatsApp() {
 (async function() {
   const ok = await requireAuth();
   if(!ok) return;
-  // requireAuth sonrası user'ı tekrar oku
-  const currentUser = getUser();
-  const currentUserId = currentUser?.id || null;
-  const adminCheck = currentUserId === '4f965624-e524-4cb0-a351-3368f1297d28';
-  if (!adminCheck) {
-    document.body.innerHTML = `
-      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0D1117;font-family:'Sora',sans-serif;color:#E6EDF3;text-align:center;padding:24px;">
-        <div style="font-size:48px;margin-bottom:16px;">🔒</div>
-        <h2 style="font-size:20px;margin-bottom:8px;">Bu sayfa yalnızca yöneticiye açık</h2>
-        <p style="color:#8B949E;font-size:14px;margin-bottom:24px;">Eserler ve Sahne Modunu kullanabilirsiniz.</p>
-        <a href="eserler.html" style="background:#58A6FF;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Eserlere Git</a><br>
-        <a href="index.html" style="margin-top:12px;color:#8B949E;font-size:13px;text-decoration:none;">Ana Sayfa</a>
-      </div>`;
-    return;
+  // Admin-only butonları göster
+  if (isAdmin()) {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
   }
   renderUserBadge('userBadge');
   await loadWorksData();
