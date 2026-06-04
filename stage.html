@@ -553,6 +553,31 @@ function loadSideWork(id) {
   }, {passive: true});
 })();
 
+
+async function createRepAndGo() {
+  const nameEl = document.getElementById('newRepName');
+  const name = nameEl ? nameEl.value.trim() : '';
+  if (!name) { alert('Repertuvar adı girin.'); return; }
+  try {
+    const r = await fetch(SUPA_URL+'/rest/v1/repertoires', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({name, status:'concept', user_id:getUserId(), date:new Date().toISOString().split('T')[0]})
+    });
+    const data = await r.json();
+    if (data && data[0]) {
+      reps = await loadReps();
+      renderPicker();
+    } else {
+      alert('Hata: ' + JSON.stringify(data));
+    }
+  } catch(e) { alert('Hata: '+e.message); }
+}
 </script>
 </body>
 </html>
