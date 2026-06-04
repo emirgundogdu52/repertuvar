@@ -21,7 +21,7 @@ function authHeaders() {
   };
 }
 
-async async function requireAuth() {
+async function requireAuth() {
   const token = getToken();
   if (!token) { window.location.href = 'login.html'; return false; }
   try {
