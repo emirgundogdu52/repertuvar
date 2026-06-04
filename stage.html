@@ -448,7 +448,14 @@ function loadSideWork(id) {
 }
 // Init
 (async()=>{
-  // Önce Supabase'den WL'yi yükle
+  // Önce auth kontrolü - user bilgisini localStorage'a yaz
+  const authOk = await requireAuth();
+  if (!authOk) return;
+  // Admin-only elementleri göster
+  if (isAdmin()) {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+  }
+  // Sonra WL yükle
   await loadWL();
 
   // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda aç
@@ -510,13 +517,6 @@ function loadSideWork(id) {
     }
   }
 
-  // Auth kontrolü
-  const authOk = await requireAuth();
-  if (!authOk) return;
-  // Admin-only elementleri göster
-  if (isAdmin()) {
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
-  }
   reps=await loadReps();
   renderPicker();
   const autoId=localStorage.getItem('stageRepId');
