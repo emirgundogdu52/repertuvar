@@ -524,6 +524,15 @@ function loadSideWork(id) {
 
   reps=await loadReps();
   renderPicker();
+  // Üyenin repertuvarı yoksa Sahneye Çık butonunu değiştir
+  if (!isAdmin() && reps.length === 0) {
+    const btn = document.getElementById('bstart');
+    if (btn) {
+      btn.textContent = '+ Repertuvar Oluştur';
+      btn.disabled = false;
+      btn.onclick = () => window.location.href = 'repertoires.html';
+    }
+  }
   const autoId=localStorage.getItem('stageRepId');
   if(autoId){localStorage.removeItem('stageRepId');const f=reps.find(r=>r.id===autoId);if(f){pickRep(autoId);setTimeout(()=>startStage(),100);}}
 })();
