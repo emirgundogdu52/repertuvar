@@ -268,7 +268,7 @@ async function loadReps(){
       fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H}).then(r=>r.json())
     ]);
     const userId = getUserId();
-    const filteredR = isAdmin() ? (r||[]) : (r||[]).filter(x => x.user_id === userId);
+    const filteredR = isAdmin() ? (r||[]) : (r||[]).filter(x => !x.user_id || String(x.user_id) === String(userId));
     return filteredR.map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
   }catch(e){console.error(e);return [];}
 }
