@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- design-test v1 -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +8,7 @@
 <title>Sahne Modu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Sora:wght@300;400;500;600;700:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0D1117;--surface:#161B22;--surface2:#21262D;--border:#30363D;--accent:#58A6FF;--accent2:#BC8CFF;--text:#E6EDF3;--text2:#8B949E;--text3:#6E7681;--green:#4a9462;--red:#c05444;}
+:root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--border:#2a2a3e;--accent:#58A6FF;--accent2:#BC8CFF;--text:#f1f0ff;--text2:#8b8aa8;--text3:#3d3d58;--green:#4a9462;--red:#c05444;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height:100vh;overflow:hidden;user-select:none;}
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;}
@@ -59,7 +58,7 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
 .wch.n{border-color:#3d2a1a;color:var(--accent);background:#1e1208;}
 .wch.i{border-color:#1a2d1a;color:#7ab87a;background:#0f1a0f;}
 .wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:600px;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
-.wlyrics{font-size:clamp(18px,2.8vw,28px);color:var(--text);text-align:left;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;}
+.wlyrics{font-size:clamp(18px,2.8vw,28px);color:var(--text);text-align:center;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
 .sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;}
@@ -263,29 +262,25 @@ let txStart=0;
 
 async function loadReps(){
   try{
-    const userId = getUserId();
-    const repFilter = isAdmin() ? '' : '&user_id=eq.'+userId;
     const [r,items] = await Promise.all([
-      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at'+repFilter,{headers:H}).then(r=>r.json()),
+      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at'+(isAdmin()?'':'&user_id=eq.'+getUserId()),{headers:H}).then(r=>r.json()),
       fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H}).then(r=>r.json())
     ]);
-    // JS tarafında da filtrele - RLS yoksa bile çalışsın
-    const filteredReps = isAdmin() ? (r||[]) : (r||[]).filter(x => x.user_id === userId);
-    return filteredReps.map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
+    const userId = getUserId();
+    const filteredR = isAdmin() ? (r||[]) : (r||[]).filter(x => x.user_id === userId);
+    return filteredR.map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
   }catch(e){console.error(e);return [];}
 }
 
 function renderPicker(){
   const el=document.getElementById('rsl');
   if(!reps.length){
-    el.innerHTML=`<div style="padding:32px;text-align:center;line-height:2;">
-      <div style="font-size:40px;margin-bottom:12px;">🎵</div>
-      <div style="color:var(--text2);font-size:14px;margin-bottom:20px;">Henüz bir repertuvarınız yok.<br>Sahne modunu kullanmak için önce<br>bir repertuvar oluşturun.</div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:left;max-width:320px;margin:0 auto 16px;">
-        <input id="newRepName" placeholder="Repertuvar adı" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;font-family:'Sora',sans-serif;outline:none;margin-bottom:10px;">
-        <button onclick="createRepAndGo()" style="width:100%;background:var(--accent);border:none;border-radius:8px;padding:10px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;">+ Repertuvar Oluştur</button>
-      </div>
-      <a href="index.html" style="color:var(--text3);font-size:12px;text-decoration:none;">← Ana Sayfa</a>
+    el.innerHTML=`<div style="padding:32px;text-align:center;line-height:1.8;">
+      <div style="font-size:36px;margin-bottom:12px;">🎵</div>
+      <div style="color:var(--text2);font-size:14px;margin-bottom:20px;">Henüz bir repertuvarınız yok.<br>Bir tane oluşturun:</div>
+      <input id="newRepName" placeholder="Repertuvar adı" style="width:100%;max-width:280px;display:block;margin:0 auto 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;font-family:'Sora',sans-serif;outline:none;">
+      <button onclick="createRepAndGo()" style="background:var(--accent);border:none;border-radius:8px;padding:10px 24px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;">+ Repertuvar Oluştur</button>
+      <br><a href="index.html" style="color:var(--text3);font-size:12px;text-decoration:none;display:inline-block;margin-top:16px;">← Ana Sayfa</a>
     </div>`;
     return;
   }
@@ -463,14 +458,9 @@ function loadSideWork(id) {
 }
 // Init
 (async()=>{
-  // Önce auth kontrolü - user bilgisini localStorage'a yaz
   const authOk = await requireAuth();
-  if (!authOk) return;
-  // Admin-only elementleri göster
-  if (isAdmin()) {
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
-  }
-  // Sonra WL yükle
+  if(!authOk) return;
+  if(isAdmin()){document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');}
   await loadWL();
 
   // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda aç
@@ -563,36 +553,6 @@ function loadSideWork(id) {
   }, {passive: true});
 })();
 
-
-async function createRepAndGo() {
-  const name = document.getElementById('newRepName')?.value.trim();
-  if (!name) { alert('Repertuvar adı girin.'); return; }
-  
-  const userId = getUserId();
-  const body = { name, status: 'concept', user_id: userId, date: new Date().toISOString().split('T')[0] };
-  
-  try {
-    const r = await fetch(SUPA_URL + '/rest/v1/repertoires', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(body)
-    });
-    const data = await r.json();
-    if (data && data[0]) {
-      // Yeni repertuvarı listeye ekle ve seç
-      reps = await loadReps();
-      renderPicker();
-    } else {
-      alert('Oluşturma hatası.');
-    }
-  } catch(e) {
-    alert('Hata: ' + e.message);
-  }
-}
-
 </script>
+</body>
+</html>
