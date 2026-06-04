@@ -174,39 +174,7 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
   }
 
 </style>
-<script src="auth.js">
-async function createRepAndGo() {
-  const name = document.getElementById('newRepName')?.value.trim();
-  if (!name) { alert('Repertuvar adı girin.'); return; }
-  
-  const userId = getUserId();
-  const body = { name, status: 'concept', user_id: userId, date: new Date().toISOString().split('T')[0] };
-  
-  try {
-    const r = await fetch(SUPA_URL + '/rest/v1/repertoires', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(body)
-    });
-    const data = await r.json();
-    if (data && data[0]) {
-      // Yeni repertuvarı listeye ekle ve seç
-      reps = await loadReps();
-      renderPicker();
-    } else {
-      alert('Oluşturma hatası.');
-    }
-  } catch(e) {
-    alert('Hata: ' + e.message);
-  }
-}
-
-</script>
+<script src="auth.js"></script>
 </head>
 <body>
 
@@ -595,6 +563,36 @@ function loadSideWork(id) {
   }, {passive: true});
 })();
 
+
+async function createRepAndGo() {
+  const name = document.getElementById('newRepName')?.value.trim();
+  if (!name) { alert('Repertuvar adı girin.'); return; }
+  
+  const userId = getUserId();
+  const body = { name, status: 'concept', user_id: userId, date: new Date().toISOString().split('T')[0] };
+  
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/repertoires', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(body)
+    });
+    const data = await r.json();
+    if (data && data[0]) {
+      // Yeni repertuvarı listeye ekle ve seç
+      reps = await loadReps();
+      renderPicker();
+    } else {
+      alert('Oluşturma hatası.');
+    }
+  } catch(e) {
+    alert('Hata: ' + e.message);
+  }
+}
+
 </script>
-</body>
-</html>
