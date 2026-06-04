@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<!-- design-test v1 -->
-
+<!-- build: v4 -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +8,7 @@
 <title>Repertuvar</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Sora:wght@300;400;500;600;700:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0D1117;--surface:#161B22;--surface2:#21262D;--surface3:#252528;--border:#30363D;--border2:#38383f;--accent:#58A6FF;--accent2:#BC8CFF;--text:#f0ede6;--text2:#9b9890;--text3:#5c5a56;--red:#c05444;--green:#4a9462;}
+:root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--surface3:#252528;--border:#2a2a3e;--border2:#38383f;--accent:#58A6FF;--accent2:#BC8CFF;--text:#f0ede6;--text2:#9b9890;--text3:#5c5a56;--red:#c05444;--green:#4a9462;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;font-size:14px;min-height:100vh;}
 nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;gap:4px;position:sticky;top:0;z-index:200;}
@@ -393,10 +392,10 @@ function renderDetail(){
       <td class="sq"><input class="si" type="number" min="1" max="${items.length}" value="${it.seq}" onchange="chSeq('${rep.id}',${idx},this.value)" onclick="event.stopPropagation()"></td>
       <td>
         <div class="wn">${w.name||'#'+it.workId}</div>
-        <div class="ws">${w.composer ? '<span style="color:var(--text3);font-size:10px;">Besteci:</span> '+w.composer : ''}${w.makam ? ' · '+w.makam : ''}</div>
-        ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;"><span style="color:var(--text3);">İcracı:</span> '+pf+'</div>' : ''}
+        <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
+        ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
       </td>
-      <td>${cn?'<div style="font-size:10px;color:var(--text3);">Kapanış/Karar:</div><span class="cn">'+cn+'</span>':''}</td>
+      <td>${cn?'<span class="cn">'+cn+'</span>':''}</td>
       <td style="color:var(--text3);font-size:12px;">${it.note||''}</td>
       <td><div class="ra">
         <button class="br" onclick="mv('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
@@ -428,7 +427,7 @@ function renderDetail(){
     </div>
     <div class="is">
       <div class="ih"><h3>${items.length} Eser</h3><button class="baw" onclick="openWM('${rep.id}')">+ Eser Ekle</button></div>
-      <table><thead><tr><th>#</th><th>Eser Adı / Besteci</th><th>Kapanış / Karar Sesi</th><th>Sahne Notu</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>#</th><th>Eser Adı</th><th>Kapanış</th><th>Not</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
 }
 
@@ -783,17 +782,12 @@ function shareViaWhatsApp() {
 (async function() {
   const ok = await requireAuth();
   if(!ok) return;
-  // Admin-only butonları göster
-  if (isAdmin()) {
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
-  }
+  if(isAdmin()){document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');}
   renderUserBadge('userBadge');
   await loadWorksData();
   load();
 })();
 </script>
-</body>
-</html
 </nav>
 <div class="layout">
   <aside class="lp">
