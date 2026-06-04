@@ -263,17 +263,28 @@ let txStart=0;
 
 async function loadReps(){
   try{
+    const userId = getUserId();
+    const repFilter = isAdmin() ? '' : '&user_id=eq.'+userId;
     const [r,items] = await Promise.all([
-      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at'+(isAdmin()?'':'&user_id=eq.'+getUserId()),{headers:H}).then(r=>r.json()),
+      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at'+repFilter,{headers:H}).then(r=>r.json()),
       fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H}).then(r=>r.json())
     ]);
-    return (r||[]).map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
+    // JS tarafında da filtrele - RLS yoksa bile çalışsın
+    const filteredReps = isAdmin() ? (r||[]) : (r||[]).filter(x => x.user_id === userId);
+    return filteredReps.map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
   }catch(e){console.error(e);return [];}
 }
 
 function renderPicker(){
   const el=document.getElementById('rsl');
-  if(!reps.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);line-height:1.8;">Henüz repertuvar yok.<br><a href=\"repertoires.html\" style=\"color:var(--accent)\">Repertuvar sayfasında</a> repertuvar oluşturun.</div>';return;}
+  if(!reps.length){
+    if(isAdmin()){
+      el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);line-height:1.8;">Henüz repertuvar yok.<br><a href="repertoires.html" style="color:var(--accent)">Repertuvar sayfasında</a> repertuvar oluşturun.</div>';
+    } else {
+      el.innerHTML='<div style="padding:32px;text-align:center;line-height:2;"><div style="font-size:40px;margin-bottom:12px;">🎵</div><div style="color:var(--text2);font-size:14px;margin-bottom:20px;">Henüz bir repertuvarınız yok.<br>Sahne modunu kullanmak için önce<br>bir repertuvar oluşturmanız gerekiyor.</div><a href="repertoires.html" style="display:inline-block;background:var(--accent);color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">+ Repertuvar Oluştur</a></div>';
+    }
+    return;
+  }
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   el.innerHTML=reps.map(r=>`<div class="rsi${selId===r.id?' sel':''}" onclick="pickRep('${r.id}')">
     <div><div class="rsn">${r.name}</div><div class="rsm">${[r.date,r.venue,sl[r.status]].filter(Boolean).join(' · ')}</div></div>
