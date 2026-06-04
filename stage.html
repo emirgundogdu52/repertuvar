@@ -268,7 +268,9 @@ async function loadReps(){
       fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H}).then(r=>r.json())
     ]);
     const userId = getUserId();
+    console.log('userId:', userId, 'reps:', (r||[]).map(x=>({name:x.name, uid:x.user_id})));
     const filteredR = (r||[]).filter(x => !x.user_id || String(x.user_id) === String(userId));
+    console.log('filteredR:', filteredR.map(x=>x.name));
     return filteredR.map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
   }catch(e){console.error(e);return [];}
 }
