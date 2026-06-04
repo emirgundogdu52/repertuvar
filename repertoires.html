@@ -348,7 +348,7 @@ async function load(){
   sync('spin','Yükleniyor...');
   try{
     const [r,i,s] = await Promise.all([
-      dbGet('repertoires','order=created_at'+(isAdmin()?'':'&user_id=eq.'+getUserId())),
+      dbGet('repertoires','order=created_at&user_id=eq.'+getUserId()),
       dbGet('repertoire_items','order=seq'),
       dbGet('solistler','order=name')
     ]);

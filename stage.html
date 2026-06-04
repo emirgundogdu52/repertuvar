@@ -264,11 +264,11 @@ let txStart=0;
 async function loadReps(){
   try{
     const [r,items] = await Promise.all([
-      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at'+(isAdmin()?'':'&user_id=eq.'+getUserId()),{headers:H}).then(r=>r.json()),
+      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at&user_id=eq.'+getUserId(),{headers:H}).then(r=>r.json()),
       fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H}).then(r=>r.json())
     ]);
     const userId = getUserId();
-    const filteredR = isAdmin() ? (r||[]) : (r||[]).filter(x => !x.user_id || String(x.user_id) === String(userId));
+    const filteredR = (r||[]).filter(x => !x.user_id || String(x.user_id) === String(userId));
     return filteredR.map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
   }catch(e){console.error(e);return [];}
 }
