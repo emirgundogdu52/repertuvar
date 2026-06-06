@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repertuvar</title>
-<!-- DESIGN-TEST-ALT-F-FINAL -->
+<!-- DESIGN-TEST-ALT-F-FINAL-v2 -->
 <link rel="icon" href="Repertuvar_logo.png">
 <script src="auth.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -84,8 +84,6 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#0D1117;z-index:-1;"></div>
 
 <header>
-  <img src="Repertuvar_logo.png" alt="">
-  <span class="h-name">Repertuvar</span>
   <div class="h-right">
     <div class="h-tag"><div class="h-dot"></div><span id="navUserName">—</span></div>
     <button class="h-btn" onclick="logout()">Çıkış</button>
@@ -143,24 +141,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
       <div class="card-desc">Makam, akort, karar sesi, güfte ve besteci bilgileriyle tüm arşiviniz her yerde elinizin altında.</div>
       <div class="card-footer"><span class="card-stat">Son güncelleme: bugün</span><span class="card-arrow">↗</span></div>
     </a>
-    <a href="repertoires.html" class="card admin-only" style="display:none;">
-      <div class="card-header">
-        <div class="card-icon-wrap ci-green">📋</div>
-        <span class="card-badge">Toplam Repertuvar 4 aktif</span>
-      </div>
-      <div class="card-title">Repertuvarlarım</div>
-      <div class="card-desc">Repertuvarınızı oluşturun ve Şova Başlayın.</div>
-      <div class="card-footer"><span class="card-stat">Cem Çelebi aktif</span><span class="card-arrow">↗</span></div>
-    </a>
-    <a href="artiesten.html" class="card admin-only" style="display:none;">
-      <div class="card-header">
-        <div class="card-icon-wrap ci-orange">🎤</div>
-        <span class="card-badge">12 solist</span>
-      </div>
-      <div class="card-title">Solistler</div>
-      <div class="card-desc">İletişim bilgileri, notlar ve eser tercihleri.</div>
-      <div class="card-footer"><span class="card-stat">Tüm solistler</span><span class="card-arrow">↗</span></div>
-    </a>
+
       </div><!-- end cards flex -->
     </div><!-- end left column -->
     
@@ -255,7 +236,11 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
   const urls = ['works','repertoires','solistler'];
   for(let i=0;i<3;i++){
     try{ const r=await fetch(SUPA_URL+'/rest/v1/'+urls[i]+'?select=id&limit=1',{headers:H});
-    const cnt=r.headers.get('content-range')?.split('/')[1]; if(cnt&&ns[i]) ns[i].textContent=cnt; }catch(e){}
+    const cnt=r.headers.get('content-range')?.split('/')[1];
+    if(cnt&&ns[i]) ns[i].textContent=cnt;
+    if(cnt&&i===1){const b=document.getElementById('badgeRep');if(b)b.textContent=cnt+' repertuvar';}
+    if(cnt&&i===2){const b=document.getElementById('badgeSol');if(b)b.textContent=cnt+' solist';}
+    }catch(e){}
   }
 })();
 document.querySelectorAll('.tp').forEach(b=>b.addEventListener('click',()=>{
