@@ -44,12 +44,12 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 .stat-trend{font-size:11px;color:#3FB950;margin-top:8px;}
 
 .section{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
-@media(max-width:768px){.section{padding:0 24px 56px;}}
+@media(max-width:768px){.section{padding:0 24px 56px;} .section>div[style*="grid"]{grid-template-columns:1fr !important;}}
 .section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .section-title{font-size:13px;font-weight:600;color:#8B949E;letter-spacing:.06em;text-transform:uppercase;}
 
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-@media(max-width:700px){.cards{grid-template-columns:1fr;}}
+.cards{display:flex;flex-direction:column;gap:12px;}
+@media(max-width:700px){.section>div{grid-template-columns:1fr !important;}}
 .card{background:rgba(22,27,34,0.8);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
 .card:hover{border-color:#30363D;transform:translateY(-2px);}
 .card-header{display:flex;align-items:flex-start;justify-content:space-between;}
@@ -129,14 +129,12 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 </div>
 
 <div class="section" style="position:relative;z-index:1;">
-  <div id="userRepSection" style="display:none;margin-bottom:28px;">
-    <div style="font-size:13px;font-weight:600;color:#8B949E;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;">Repertuvarlarım</div>
-    <div id="userRepCard"></div>
-    <a href="repertoires.html" style="display:inline-block;margin-top:8px;background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.3);border-radius:8px;padding:8px 16px;color:#58A6FF;font-size:13px;font-weight:600;text-decoration:none;">+ Yeni Repertuvar</a>
-  </div>
-  <div class="section-hdr"><span class="section-title">Bölümler</span></div>
-  <div class="cards">
-    <a href="eserler.html" class="card">
+  <!-- Yan yana grid: Bölümler + Repertuvarlarım -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+    <div>
+      <div class="section-hdr"><span class="section-title">Bölümler</span></div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <a href="eserler.html" class="card">
       <div class="card-header">
         <div class="card-icon-wrap ci-blue">🎼</div>
         <span class="card-badge">399 eser</span>
@@ -163,7 +161,36 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
       <div class="card-desc">İletişim bilgileri, notlar ve eser tercihleri.</div>
       <div class="card-footer"><span class="card-stat">Tüm solistler</span><span class="card-arrow">↗</span></div>
     </a>
-  </div>
+      </div><!-- end cards flex -->
+    </div><!-- end left column -->
+    
+    <!-- Sağ kolon: Repertuvarlarım -->
+    <div id="userRepSection" style="display:none;">
+      <div class="section-hdr">
+        <span class="section-title">Repertuvarlarım</span>
+        <a href="repertoires.html" style="font-size:12px;color:#58A6FF;text-decoration:none;font-weight:600;">+ Yeni</a>
+      </div>
+      <div id="userRepCard"></div>
+    </div>
+    
+    <!-- Admin için sağ kolon boş -->
+    <div id="adminRightCol" class="admin-only" style="display:none;">
+      <div class="section-hdr"><span class="section-title">Hızlı Erişim</span></div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="repertoires.html" style="display:flex;align-items:center;gap:12px;background:rgba(22,27,34,0.8);border:1px solid #21262D;border-radius:10px;padding:14px 16px;text-decoration:none;color:#E6EDF3;transition:border-color .15s;" onmouseover="this.style.borderColor='#58A6FF'" onmouseout="this.style.borderColor='#21262D'">
+          <span style="font-size:20px;">📋</span>
+          <div><div style="font-size:14px;font-weight:600;">Repertuvarlarım</div><div style="font-size:11px;color:#6E7681;margin-top:2px;">Kendi programlarım</div></div>
+          <span style="margin-left:auto;color:#6E7681;">↗</span>
+        </a>
+        <a href="artiesten.html" style="display:flex;align-items:center;gap:12px;background:rgba(22,27,34,0.8);border:1px solid #21262D;border-radius:10px;padding:14px 16px;text-decoration:none;color:#E6EDF3;transition:border-color .15s;" onmouseover="this.style.borderColor='#58A6FF'" onmouseout="this.style.borderColor='#21262D'">
+          <span style="font-size:20px;">🎤</span>
+          <div><div style="font-size:14px;font-weight:600;">Solistler</div><div style="font-size:11px;color:#6E7681;margin-top:2px;">Sanatçı yönetimi</div></div>
+          <span style="margin-left:auto;color:#6E7681;">↗</span>
+        </a>
+      </div>
+    </div>
+    
+  </div><!-- end grid -->
 </div>
 
 <div class="stage-wrap" style="position:relative;z-index:1;">
@@ -190,6 +217,9 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
   // Admin ise gizli elementleri göster
   if (isAdmin()) {
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+    // Admin için sağ kolon göster
+    const arc = document.getElementById('adminRightCol');
+    if(arc) arc.style.display = 'block';
   } else {
     try {
       const token = localStorage.getItem('sb_token') || SUPA_KEY;
