@@ -756,6 +756,16 @@ document.addEventListener('keydown', function(e) {
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
+    // Pending eserleri göster
+    setTimeout(() => {
+      const pendingWorks = DATA.filter(w => w.status === 'pending');
+      const pendingBtn = document.getElementById('btnPendingReview');
+      const pendingCnt = document.getElementById('pendingCount');
+      if (pendingBtn && pendingWorks.length > 0) {
+        pendingBtn.style.display = '';
+        if (pendingCnt) pendingCnt.textContent = pendingWorks.length;
+      }
+    }, 1000);
   } else {
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = '';
