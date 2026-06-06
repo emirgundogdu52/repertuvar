@@ -179,7 +179,7 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
 
 <div class="screen" id="pickerScreen">
   <div class="pi">
-    <div class="plogo"></div>
+    <div class="plogo"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:120px;width:auto;"></div>
     <h1 class="ptitle">Sahne Moduna Hoş Geldiniz</h1>
     <p class="psub">Hangi repertuvar ile sahneye çıkıyorsunuz?</p>
     <div class="rsl" id="rsl"><div class="loading">Yükleniyor...</div></div>
@@ -367,7 +367,7 @@ function backToPicker(){
     const pi = document.getElementById('pi');
     if (pi) {
       pi.innerHTML = `
-        <div class="plogo"></div>
+        <div class="plogo"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:120px;width:auto;"></div>
         <h1 class="ptitle">Paylaşılan Repertuvar</h1>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;margin-top:16px;"
           onclick="startSharedRep()">
