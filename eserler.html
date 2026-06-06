@@ -732,7 +732,7 @@ document.addEventListener('keydown', function(e) {
 
 (function loadCustomWorks() {
   // Silinmiş eserleri çıkar
-  const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
+  const deleted = isAdmin() ? [] : JSON.parse(localStorage.getItem('deletedWorks') || '[]');
   if (deleted.length > 0) {
     deleted.forEach(id => {
       const idx = DATA.findIndex(w => w.id === id);
@@ -766,7 +766,7 @@ document.addEventListener('keydown', function(e) {
   await loadWorksFromSupabase();
   
   // localStorage'dan silinen/düzenlenmiş eserleri uygula
-  const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
+  const deleted = isAdmin() ? [] : JSON.parse(localStorage.getItem('deletedWorks') || '[]');
   deleted.forEach(id => {
     const idx = DATA.findIndex(w => String(w.id) === String(id));
     if (idx > -1) DATA.splice(idx, 1);
