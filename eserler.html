@@ -638,16 +638,21 @@ function saveNewEser() {
     // Yeni eser - Supabase'e kaydet
     const status = isAdmin() ? 'approved' : 'pending';
     const saveFields = {
-      ...fields,
+      name: fields.name,
+      composer: fields.composer,
+      lyric_writer: fields.lyricWriter,
+      makam: fields.makam,
+      measurement: fields.measurement,
+      form: fields.form,
+      tuning: fields.tuning,
+      instrument: fields.instrument,
+      region: fields.region,
+      source_person: fields.sourcePerson,
+      video_link: fields.videoLink,
+      lyrics: fields.lyrics,
       status,
       submitted_by: getUserId()
     };
-    // localStorage'dan kaldır - Supabase'e gönder
-    delete saveFields._custom;
-    delete saveFields.metronom;
-    delete saveFields.area;
-    delete saveFields.closingNote;
-    delete saveFields.genre;
 
     fetch(SUPA_URL + '/rest/v1/works', {
       method: 'POST',
@@ -667,9 +672,9 @@ function saveNewEser() {
       buildFilters();
       applyFilters();
       if (status === 'pending') {
-        showToast('Eser öneriniz iletildi! Admin onayından sonra yayınlanacak.', 'ok');
+        alert('Eser öneriniz iletildi! Admin onayından sonra yayınlanacak.');
       } else {
-        showToast('Eser kaydedildi.', 'ok');
+        alert('Eser kaydedildi.');
         setTimeout(() => {
           const item = document.querySelector('[data-id="' + newWork.id + '"]');
           if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
@@ -677,7 +682,7 @@ function saveNewEser() {
       }
     })
     .catch(err => {
-      showToast('Kayıt hatası: ' + err.message, 'err');
+      alert('Kayıt hatası: ' + err.message);
     });
   }
 }
