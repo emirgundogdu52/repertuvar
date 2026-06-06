@@ -92,7 +92,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 
 <div class="hero" style="position:relative;z-index:1;">
   <div>
-    <div style="margin-bottom:20px;"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:80px;width:auto;"></div>
+    <div style="margin-bottom:20px;"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:160px;width:auto;"></div>
     <h1>Sevdiğiniz Tüm Eserler ve notalar,<br><em>Her an yanınızda.</em></h1>
     <p class="hero-sub">Eserlerinizi kaydedin, Repertuvarlarınızı oluşturun, Okuma Sırasını Oluşturun, Diğer grup üyeleriyle paylaşın. Sahnede ihtiyacınız olan her şeyi tek bir yerden yönetin.</p>
     <div class="hero-actions" id="heroActions">
@@ -135,7 +135,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
         <a href="eserler.html" class="card">
       <div class="card-header">
         <div class="card-icon-wrap ci-blue">🎼</div>
-        <span class="card-badge">399 eser</span>
+        <span class="card-badge" id="badgeWorks">— eser</span>
       </div>
       <div class="card-title">Eserler</div>
       <div class="card-desc">Makam, akort, karar sesi, güfte ve besteci bilgileriyle tüm arşiviniz her yerde elinizin altında.</div>
@@ -238,6 +238,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
     try{ const r=await fetch(SUPA_URL+'/rest/v1/'+urls[i]+'?select=id&limit=1',{headers:H});
     const cnt=r.headers.get('content-range')?.split('/')[1];
     if(cnt&&ns[i]) ns[i].textContent=cnt;
+    if(cnt&&i===0){const b=document.getElementById('badgeWorks');if(b)b.textContent=cnt+' eser';}
     if(cnt&&i===1){const b=document.getElementById('badgeRep');if(b)b.textContent=cnt+' repertuvar';}
     if(cnt&&i===2){const b=document.getElementById('badgeSol');if(b)b.textContent=cnt+' solist';}
     }catch(e){}
