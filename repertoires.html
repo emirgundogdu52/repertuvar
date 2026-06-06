@@ -234,7 +234,7 @@ tr:hover .ra{opacity:1;}
     <div class="fr"><label class="fl">Lokasyon</label><input class="fi" id="fV" placeholder="Sahne adı veya şehir"></div>
     <div class="fr"><label class="fl">Durum</label>
       <select class="fi" id="fS" style="appearance:none;cursor:pointer;">
-        <option value="concept">Taslak</option>
+        <option value="concept">Onay Bekliyor</option>
         <option value="confirmed">Onaylandı</option>
         <option value="archive">Arşiv</option>
       </select>
@@ -364,11 +364,11 @@ async function load(){
 function renderList(){
   const el=document.getElementById('list');
   if(!reps.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">Henüz repertuvar yok</div>';return;}
-  const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
+  const sl={concept:'Onay Bekliyor',confirmed:'Onaylandı',archive:'Arşiv'};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
   el.innerHTML=reps.map(r=>`<div class="ri${selId===r.id?' active':''}" onclick="sel('${r.id}')">
     <div class="rn">${r.name}</div>
-    <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${r.date?'<span>'+r.date+'</span>':''}<span>${(r.items||[]).length} eser</span></div>
+    <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Onay Bekliyor'}</span>${r.date?'<span>'+r.date+'</span>':''}<span>${(r.items||[]).length} eser</span></div>
   </div>`).join('');
 }
 
@@ -381,7 +381,7 @@ function renderDetail(){
   const dc=document.getElementById('dc');
   dc.style.display=rep?'block':'none';
   if(!rep)return;
-  const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
+  const sl={concept:'Onay Bekliyor',confirmed:'Onaylandı',archive:'Arşiv'};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
   const items=rep.items||[];
   const rows=items.length?items.map((it,idx)=>{
@@ -419,7 +419,7 @@ function renderDetail(){
         </div>
       </div>
       <div class="dmr">
-        <div class="mc"><span class="sp ${sc[rep.status]||'sc'}">${sl[rep.status]||'Taslak'}</span></div>
+        <div class="mc"><span class="sp ${sc[rep.status]||'sc'}">${sl[rep.status]||'Onay Bekliyor'}</span></div>
         ${rep.date?`<div class="mc">📅 <strong>${rep.date}</strong></div>`:''}
         ${rep.venue?`<div class="mc">📍 <strong>${rep.venue}</strong></div>`:''}
         ${rep.notes?`<div class="mc" style="color:var(--text3)">📝 ${rep.notes}</div>`:''}
@@ -599,7 +599,7 @@ async function chSeq(repId,idx,val){
 function printR(repId){
   const rep=getRep(repId);if(!rep)return;
   const items=rep.items||[];
-  const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
+  const sl={concept:'Onay Bekliyor',confirmed:'Onaylandı',archive:'Arşiv'};
   const rows=items.map(it=>{const w=WL[String(it.workId)]||{};const cn=it.closingNote||w.closingNote||'';return`<tr><td style="width:40px;color:#888;text-align:center;">${it.seq}</td><td style="padding:9px 12px;"><div style="font-weight:500;color:#111;">${w.name||it.workId}</div><div style="font-size:11px;color:#666;">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></td><td style="width:80px;text-align:center;color:#444;">${cn}</td><td style="width:120px;font-size:12px;color:#666;">${it.note||''}</td></tr>`;}).join('');
   const win=window.open('','_blank','width=800,height=900');
   win.document.write(`<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>${rep.name}</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Sora:wght@300;400;500;600;700:wght@300;400;500&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Sora',sans-serif;font-size:14px;color:#111;padding:32px 40px;}h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:400;margin-bottom:8px;}hr{border:none;border-top:2px solid #111;margin:16px 0;}table{width:100%;border-collapse:collapse;}th{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#888;text-align:left;padding:6px 12px;border-bottom:1px solid #ddd;}td{padding:9px 12px;border-bottom:1px solid #eee;vertical-align:middle;}</style></head><body><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:24px;">Repertuvar — ${new Date().toLocaleDateString('tr-TR')}</div><h1>${rep.name}</h1><div style="display:flex;gap:16px;font-size:12px;color:#666;margin-bottom:16px;">${rep.date?'📅 '+rep.date:''}${rep.venue?' 📍 '+rep.venue:''}${rep.status?' ● '+sl[rep.status]:''} 🎼 ${items.length} eser</div><hr><table><thead><tr><th>#</th><th>Eser Adı</th><th>Kapanış</th><th>Not</th></tr></thead><tbody>${rows}</tbody></table>\x3cscript\x3ewindow.onload=function(){setTimeout(function(){window.print();},400);}\x3c/script\x3e
@@ -818,7 +818,7 @@ function shareViaWhatsApp() {
     <div class="fr"><label class="fl">Lokasyon</label><input class="fi" id="fV" placeholder="Sahne adı veya şehir"></div>
     <div class="fr"><label class="fl">Durum</label>
       <select class="fi" id="fS" style="appearance:none;cursor:pointer;">
-        <option value="concept">Taslak</option>
+        <option value="concept">Onay Bekliyor</option>
         <option value="confirmed">Onaylandı</option>
         <option value="archive">Arşiv</option>
       </select>
