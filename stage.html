@@ -264,7 +264,12 @@ let txStart=0;
 async function loadReps(){
   try{
     const [r,items] = await Promise.all([
-      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at&user_id=eq.'+getUserId(),{headers:H}).then(r=>r.json()),
+      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at&user_id=eq.'+getUserId(), {
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY)
+      }
+    }).then(r=>r.json()),
       fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H}).then(r=>r.json())
     ]);
     const userId = getUserId();
@@ -462,6 +467,9 @@ function loadSideWork(id) {
 (async()=>{
   const authOk = await requireAuth();
   if(!authOk) return;
+  // User token ile H headers'ı güncelle
+  const userToken = localStorage.getItem('sb_token');
+  if(userToken) H['Authorization'] = 'Bearer ' + userToken;
   if(isAdmin()){document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');}
   await loadWL();
 
