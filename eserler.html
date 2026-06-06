@@ -298,7 +298,7 @@ let DATA = []; // Supabase'den yüklenecek
 
 async function loadWorksFromSupabase() {
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000&or=(status.eq.approved,submitted_by.eq.'+getUserId()+')', {
+    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000'+(isAdmin()?'':'&or=(status.eq.approved,submitted_by.eq.'+getUserId()+')'), {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
     });
     if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
