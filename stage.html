@@ -2,607 +2,322 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-  <link rel="icon" type="image/png" href="Repertuvar_logo.png">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Sahne Modu</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Sora:wght@300;400;500;600;700:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--border:#2a2a3e;--accent:#58A6FF;--accent2:#BC8CFF;--text:#f1f0ff;--text2:#8b8aa8;--text3:#3d3d58;--green:#4a9462;--red:#c05444;}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height:100vh;overflow:hidden;user-select:none;}
-.screen{position:absolute;inset:0;display:flex;flex-direction:column;}
-.screen.hidden{display:none;}
-
-#pickerScreen{background:var(--bg);align-items:center;justify-content:center;padding:32px 24px;}
-.pi{width:100%;max-width:520px;}
-.plogo{display:flex;align-items:center;gap:10px;margin-bottom:36px;justify-content:center;}
-.plogo span{font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);}
-.plogo small{color:var(--text2);font-size:12px;letter-spacing:.1em;text-transform:uppercase;}
-.ptitle{font-family:'Playfair Display',serif;font-size:28px;color:var(--text);margin-bottom:8px;text-align:center;}
-.psub{font-size:13px;color:var(--text2);margin-bottom:28px;text-align:center;}
-.rsl{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;max-height:55vh;overflow-y:auto;}
-.rsl::-webkit-scrollbar{width:4px;}.rsl::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-.rsi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;align-items:center;justify-content:space-between;}
-.rsi:hover{border-color:rgba(88,166,255,.4);background:var(--surface2);}
-.rsi.sel{border-color:var(--accent);background:rgba(88,166,255,.08);}
-.rsn{font-size:15px;font-weight:500;color:var(--text);margin-bottom:3px;}
-.rsm{font-size:12px;color:var(--text2);}
-.rsc{font-size:12px;color:var(--text3);}
-.bstart{width:100%;background:var(--accent);border:none;border-radius:10px;padding:16px;color:#0a0818;font-size:16px;font-weight:500;font-family:'Sora',sans-serif;cursor:pointer;transition:background .15s,transform .1s;}
-.bstart:hover{background:var(--accent2);}
-.bstart:active{transform:scale(.98);}
-.bstart:disabled{opacity:.35;cursor:not-allowed;}
-.bback{display:block;text-align:center;margin-top:14px;font-size:12px;color:var(--text3);text-decoration:none;}
-.bback:hover{color:var(--text2);}
-.loading{text-align:center;color:var(--text2);padding:24px;font-size:13px;}
-
-.stb{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);}
-.strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
-.stp{display:flex;align-items:center;gap:10px;}
-.pds{display:flex;gap:5px;align-items:center;}
-.pd{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;flex-shrink:0;}
-.pd.done{background:var(--text3);}
-.pd.cur{background:var(--accent);transform:scale(1.4);}
-.stc{font-size:12px;color:var(--text2);white-space:nowrap;font-variant-numeric:tabular-nums;}
-.bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'Sora',sans-serif;cursor:pointer;transition:all .15s;}
-.bex:hover{color:var(--red);border-color:var(--red);}
-
-.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 40px 80px;position:relative;overflow-y:auto;cursor:pointer;}
-.sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(88,166,255,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
-.wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;opacity:0;animation:si .4s ease forwards;}
-.wtitle{font-family:'Sora',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:24px;opacity:0;animation:si .4s ease .07s forwards;}
-.wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;opacity:0;animation:si .4s ease .14s forwards;}
-.wch{padding:5px 14px;border-radius:20px;font-size:13px;border:1px solid var(--border);color:var(--text2);background:var(--surface);}
-.wch.m{border-color:#3a3060;color:#9b8fd4;background:#1a1828;}
-.wch.n{border-color:#3d2a1a;color:var(--accent);background:#1e1208;}
-.wch.i{border-color:#1a2d1a;color:#7ab87a;background:#0f1a0f;}
-.wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:600px;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
-.wlyrics{font-size:clamp(18px,2.8vw,28px);color:var(--text);text-align:center;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;}
-.wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-
-.sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;}
-.np{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;flex:1;max-width:400px;opacity:0;animation:fi .5s ease .4s forwards;}
-.nl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
-.nn{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.nm{font-size:11px;color:var(--text3);margin-top:2px;}
-.th{font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;line-height:1.5;opacity:0;animation:fi .5s ease .5s forwards;}
-.th kbd{display:inline-block;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;font-family:'Sora',sans-serif;color:var(--text3);}
-
-#endScreen{background:var(--bg);align-items:center;justify-content:center;text-align:center;padding:40px 24px;}
-.ei{font-size:56px;margin-bottom:24px;animation:pls 2s ease infinite;}
-.et{font-family:'Playfair Display',serif;font-size:36px;color:var(--accent);margin-bottom:12px;}
-.es{font-size:15px;color:var(--text2);margin-bottom:8px;}
-.ec{font-size:13px;color:var(--text3);margin-bottom:36px;}
-.ea{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-.be{padding:12px 24px;border-radius:8px;font-size:14px;font-family:'Sora',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;}
-.bep{background:var(--accent);border:none;color:#0a0818;font-weight:500;}
-.bep:hover{background:var(--accent2);}
-.beg{background:none;border:1px solid var(--border);color:var(--text2);}
-.beg:hover{border-color:#38383f;color:var(--text);}
-.sf{position:fixed;inset:0;background:rgba(88,166,255,0.06);pointer-events:none;animation:ff .25s ease forwards;z-index:99;}
-
-@keyframes si{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fi{from{opacity:0}to{opacity:1}}
-@keyframes pls{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-@keyframes ff{to{opacity:0}}
-
-.stage-nav{display:flex;gap:8px;align-items:center;}
-.stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'Sora',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
-.stage-nav a:hover{border-color:var(--accent);color:var(--accent);}
-
-.side-nav-btn {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(88,166,255,0.12);
-  border: 1px solid rgba(88,166,255,0.3);
-  border-radius: 12px;
-  color: var(--accent);
-  cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 4px;
-  padding: 14px 10px;
-  transition: all .2s;
-  z-index: 50;
-  user-select: none;
-  font-family: 'Sora', sans-serif;
-}
-.snb-arrow { font-size: 28px; line-height: 1; }
-.snb-label { font-size: 11px; font-weight: 600; letter-spacing: .04em; opacity: .8; }
-.side-nav-btn:hover { background: rgba(88,166,255,0.25); border-color: rgba(88,166,255,0.6); transform: translateY(-50%) scale(1.06); }
-.side-nav-btn:active { transform: translateY(-50%) scale(0.96); }
-.side-nav-btn.disabled { opacity: 0.15; pointer-events: none; }
-.side-nav-left  { left: 12px; }
-.side-nav-right { right: 12px; }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 768px) {
-    .stb { padding:8px 10px; height:auto; min-height:48px; }
-    .strn { font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .bex, .stage-nav a { font-size:10px; padding:4px 8px; }
-    .stage-nav { gap:4px; }
-    .sm { padding:20px 60px 100px; }
-    .sb { padding:0 12px 16px; flex-wrap:wrap; gap:8px; }
-    .side-nav-left { left:6px; }
-    .side-nav-right { right:6px; }
-    .side-nav-btn { width:44px; height:44px; }
-    /* Picker */
-    .pi { max-width:100%; padding:20px 16px; }
-    .rb { padding:14px 16px; }
-    .rbn { font-size:14px; }
-    .side-nav-btn { width:40px; padding:10px 6px; }
-    .snb-label { font-size:9px; }
-    .snb-arrow { font-size:22px; }
-    .np { max-width:160px; }
-  }
-  @media (max-width: 480px) {
-    .wtitle { font-size:clamp(18px,5vw,26px); }
-    .wlyrics { font-size:clamp(14px,4.2vw,20px); line-height:1.8; padding:0 4px 80px; }
-    .side-nav-btn { width:40px !important; height:40px !important; border-radius:8px !important; }
-    .side-nav-left { left:4px !important; }
-    .side-nav-right { right:4px !important; }
-    .snb-label { display:none; }
-    .sb { padding:0 8px 12px; gap:8px; flex-wrap:wrap; }
-    .th { font-size:10px; }
-    .stb { padding:6px 8px; }
-    .stage-nav a, .bex { font-size:10px !important; padding:3px 6px !important; }
-    .sm { padding:16px 52px 80px; }
-    /* Picker screen on mobile */
-    .pi { padding:16px; }
-    .ptitle { font-size:20px; }
-    .rb { padding:12px 14px; }
-  }
-  /* Picker screen mobile */
-  @media (max-width: 600px) {
-    .pi { padding:0 8px; }
-    .ptitle { font-size:20px; }
-    .psub { font-size:13px; }
-    .rl { padding:10px 12px; }
-    .rn { font-size:14px; }
-  }
-
-  /* ── MOBILE GLOBAL ── */
-  @media (max-width: 768px) {
-    body { overflow-x: hidden; -webkit-text-size-adjust: 100%; }
-    button, a { min-height: 36px; }
-    input, select, textarea { font-size: 16px !important; } /* prevent iOS zoom */
-  }
-  @supports (padding: env(safe-area-inset-bottom)) {
-    .sb { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
-  }
-
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repertuvar</title>
+<!-- DESIGN-TEST-ALT-F-FINAL -->
+<link rel="icon" href="Repertuvar_logo.png">
 <script src="auth.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.admin-only{display:none;}
+body{background:transparent;font-family:"Sora",sans-serif;color:#E6EDF3;min-height:100vh;}
+
+header{padding:0 48px;height:68px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #21262D;background:#0D1117;position:sticky;top:0;z-index:100;}
+header img{height:52px;}
+.h-name{font-size:16px;font-weight:600;color:#E6EDF3;}
+.h-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.h-tag{background:#161B22;border:1px solid #30363D;border-radius:20px;padding:5px 12px;font-size:12px;color:#8B949E;display:flex;align-items:center;gap:6px;}
+.h-dot{width:6px;height:6px;border-radius:50%;background:#3FB950;}
+.h-btn{background:none;border:1px solid #30363D;border-radius:6px;padding:5px 12px;font-size:12px;color:#8B949E;cursor:pointer;font-family:inherit;transition:all .15s;}
+.h-btn:hover{border-color:#8B949E;color:#E6EDF3;}
+
+.hero{max-width:1100px;margin:0 auto;padding:72px 48px 56px;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+@media(max-width:768px){.hero{grid-template-columns:1fr;padding:48px 24px 40px;gap:40px;}}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:#161B22;border:1px solid #30363D;border-radius:20px;padding:6px 14px;font-size:11px;color:#8B949E;margin-bottom:20px;}
+.hero-badge span{color:#58A6FF;}
+h1{font-size:clamp(32px,4.5vw,54px);font-weight:700;line-height:1.1;letter-spacing:-.02em;}
+h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:15px;color:#8B949E;margin-top:16px;line-height:1.75;}
+.hero-actions{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap;}
+.btn-p{background:#238636;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid #2EA043;transition:background .15s;}
+.btn-p:hover{background:#2EA043;}
+.btn-s{background:#21262D;color:#E6EDF3;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:500;text-decoration:none;border:1px solid #30363D;transition:all .15s;}
+.btn-s:hover{border-color:#8B949E;}
+
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.stat-card{background:rgba(22,27,34,0.8);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:20px;transition:border-color .15s;}
+.stat-card:hover{border-color:#30363D;}
+.stat-icon{font-size:20px;margin-bottom:10px;}
+.stat-n{font-size:28px;font-weight:700;color:#E6EDF3;letter-spacing:-.02em;}
+.stat-l{font-size:12px;color:#8B949E;margin-top:3px;}
+.stat-trend{font-size:11px;color:#3FB950;margin-top:8px;}
+
+.section{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
+@media(max-width:768px){.section{padding:0 24px 56px;} .section>div[style*="grid"]{grid-template-columns:1fr !important;}}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.section-title{font-size:13px;font-weight:600;color:#8B949E;letter-spacing:.06em;text-transform:uppercase;}
+
+.cards{display:flex;flex-direction:column;gap:12px;}
+@media(max-width:700px){.section>div{grid-template-columns:1fr !important;}}
+.card{background:rgba(22,27,34,0.8);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
+.card:hover{border-color:#30363D;transform:translateY(-2px);}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;}
+.card-icon-wrap{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.ci-blue{background:rgba(88,166,255,.1);}
+.ci-green{background:rgba(63,185,80,.1);}
+.ci-orange{background:rgba(249,160,74,.1);}
+.card-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:#1F2937;color:#9CA3AF;}
+.card-title{font-size:15px;font-weight:600;color:#E6EDF3;}
+.card-desc{font-size:13px;color:#8B949E;line-height:1.6;flex:1;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #21262D;}
+.card-stat{font-size:12px;color:#8B949E;}
+.card-arrow{font-size:14px;color:#30363D;transition:color .15s;}
+.card:hover .card-arrow{color:#58A6FF;}
+
+.stage-wrap{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
+@media(max-width:768px){.stage-wrap{padding:0 24px 56px;}}
+.stage-card{background:linear-gradient(135deg,rgba(22,27,34,0.85) 0%,rgba(26,16,64,0.85) 100%);border:1px solid #21262D;border-radius:16px;padding:36px 44px;display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;}
+.stage-left h2{font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
+.stage-left h2 span{background:linear-gradient(90deg,#BC8CFF,#58A6FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.stage-left p{font-size:14px;color:#8B949E;line-height:1.7;max-width:360px;}
+.stage-right{display:flex;flex-direction:column;align-items:flex-end;gap:12px;}
+.stage-btn{background:linear-gradient(135deg,#8957E5,#58A6FF);color:#fff;padding:13px 26px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap;transition:opacity .15s;}
+.stage-btn:hover{opacity:.9;}
+.theme-row{display:flex;gap:8px;}
+.tp{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid #30363D;color:#8B949E;cursor:pointer;transition:all .15s;}
+.tp.a{border-color:#BC8CFF;color:#BC8CFF;background:rgba(188,140,255,.08);}
+</style>
 </head>
 <body>
+<canvas id="shaderBg" style="position:fixed;bottom:0;left:0;width:100%;height:60%;z-index:0;pointer-events:none;mask-image:linear-gradient(to bottom,transparent 0%,black 50%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 50%);"></canvas>
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#0D1117;z-index:-1;"></div>
 
-<div class="screen" id="pickerScreen">
-  <div class="pi">
-    <div class="plogo"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:250px;width:auto;"></div>
-    <h1 class="ptitle">Sahne Moduna Hoş Geldiniz</h1>
-    <p class="psub">Hangi repertuvar ile sahneye çıkıyorsunuz?</p>
-    <div class="rsl" id="rsl"><div class="loading">Yükleniyor...</div></div>
-    <button class="bstart" id="bstart" disabled onclick="startStage()">Sahneye Çık →</button>
-    <button class="bstart" id="bedit" disabled onclick="editRep()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);margin-top:8px;">✏️ Repertuvara Eser Ekle</button>
-    <a href="index.html" class="bback">← Ana Sayfaya Dön</a>
+<header>
+  <div class="h-right">
+    <div class="h-tag"><div class="h-dot"></div><span id="navUserName">—</span></div>
+    <button class="h-btn" onclick="logout()">Çıkış</button>
+  </div>
+</header>
+
+<div class="hero" style="position:relative;z-index:1;">
+  <div>
+    <div style="margin-bottom:20px;"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:80px;width:auto;"></div>
+    <h1>Sevdiğiniz Tüm Eserler ve notalar,<br><em>Her an yanınızda.</em></h1>
+    <p class="hero-sub">Eserlerinizi kaydedin, Repertuvarlarınızı oluşturun, Okuma Sırasını Oluşturun, Diğer grup üyeleriyle paylaşın. Sahnede ihtiyacınız olan her şeyi tek bir yerden yönetin.</p>
+    <div class="hero-actions" id="heroActions">
+      <a href="stage.html" class="btn-p" id="btnStage">🎭 Eser okuma Ekranı</a>
+      <a href="eserler.html" class="btn-s">Eserleri İncele →</a>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">🎼</div>
+      <div class="stat-n">399</div>
+      <div class="stat-l">Eser kayıtlı eser mevcut</div>
+      <div class="stat-trend">↑ Bu ay eklenen Eser sayısı 12</div>
+    </div>
+    <div class="stat-card admin-only" style="display:none;">
+      <div class="stat-icon">📋</div>
+      <div class="stat-n" id="statRep">—</div>
+      <div class="stat-l">Repertuvar</div>
+      <div class="stat-trend">Aktif: Cem Çelebi</div>
+    </div>
+    <div class="stat-card admin-only" style="display:none;">
+      <div class="stat-icon">🎤</div>
+      <div class="stat-n" id="statSol">—</div>
+      <div class="stat-l">Solist</div>
+      <div class="stat-trend">3 aktif program</div>
+    </div>
+    <div class="stat-card" style="border-style:dashed;opacity:.5;">
+      <div class="stat-icon">✨</div>
+      <div style="font-size:13px;color:#8B949E;margin-top:8px;">Yakında yeni özellikler</div>
+    </div>
   </div>
 </div>
 
-<div class="screen hidden" id="stageScreen" onclick="nextWork()">
-  <div class="stb">
-    <div class="strn" id="strn">—</div>
-    <div class="stp">
-      <div class="pds" id="pds"></div>
-      <div class="stc" id="stc">1/1</div>
+<div class="section" style="position:relative;z-index:1;">
+  <!-- Yan yana grid: Bölümler + Repertuvarlarım -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+    <div>
+      <div class="section-hdr"><span class="section-title">Bölümler</span></div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <a href="eserler.html" class="card">
+      <div class="card-header">
+        <div class="card-icon-wrap ci-blue">🎼</div>
+        <span class="card-badge">399 eser</span>
+      </div>
+      <div class="card-title">Eserler</div>
+      <div class="card-desc">Makam, akort, karar sesi, güfte ve besteci bilgileriyle tüm arşiviniz her yerde elinizin altında.</div>
+      <div class="card-footer"><span class="card-stat">Son güncelleme: bugün</span><span class="card-arrow">↗</span></div>
+    </a>
+    <a href="repertoires.html" class="card admin-only" style="display:none;">
+      <div class="card-header">
+        <div class="card-icon-wrap ci-green">📋</div>
+        <span class="card-badge">Toplam Repertuvar 4 aktif</span>
+      </div>
+      <div class="card-title">Repertuvarlarım</div>
+      <div class="card-desc">Repertuvarınızı oluşturun ve Şova Başlayın.</div>
+      <div class="card-footer"><span class="card-stat">Cem Çelebi aktif</span><span class="card-arrow">↗</span></div>
+    </a>
+    <a href="artiesten.html" class="card admin-only" style="display:none;">
+      <div class="card-header">
+        <div class="card-icon-wrap ci-orange">🎤</div>
+        <span class="card-badge">12 solist</span>
+      </div>
+      <div class="card-title">Solistler</div>
+      <div class="card-desc">İletişim bilgileri, notlar ve eser tercihleri.</div>
+      <div class="card-footer"><span class="card-stat">Tüm solistler</span><span class="card-arrow">↗</span></div>
+    </a>
+      </div><!-- end cards flex -->
+    </div><!-- end left column -->
+    
+    <!-- Sağ kolon: Repertuvarlarım -->
+    <div id="userRepSection" style="display:none;">
+      <div class="section-hdr">
+        <span class="section-title">Repertuvarlarım</span>
+        <a href="repertoires.html" style="font-size:12px;color:#58A6FF;text-decoration:none;font-weight:600;">+ Yeni</a>
+      </div>
+      <div id="userRepCard"></div>
     </div>
-    <div class="stage-nav">
-      <a href="index.html">🏠 Ana Menü</a>
-      <a href="repertoires.html">📋 Repertuvar</a>
-      <button class="bex" onclick="exitStage(event)">✕ Çık</button>
+    
+    <!-- Admin için sağ kolon boş -->
+    <div id="adminRightCol" class="admin-only" style="display:none;">
+      <div class="section-hdr"><span class="section-title">Hızlı Erişim</span></div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="repertoires.html" style="display:flex;align-items:center;gap:12px;background:rgba(22,27,34,0.8);border:1px solid #21262D;border-radius:10px;padding:14px 16px;text-decoration:none;color:#E6EDF3;transition:border-color .15s;" onmouseover="this.style.borderColor='#58A6FF'" onmouseout="this.style.borderColor='#21262D'">
+          <span style="font-size:20px;">📋</span>
+          <div><div style="font-size:14px;font-weight:600;">Repertuvarlarım</div><div style="font-size:11px;color:#6E7681;margin-top:2px;">Kendi programlarım</div></div>
+          <span style="margin-left:auto;color:#6E7681;">↗</span>
+        </a>
+        <a href="artiesten.html" style="display:flex;align-items:center;gap:12px;background:rgba(22,27,34,0.8);border:1px solid #21262D;border-radius:10px;padding:14px 16px;text-decoration:none;color:#E6EDF3;transition:border-color .15s;" onmouseover="this.style.borderColor='#58A6FF'" onmouseout="this.style.borderColor='#21262D'">
+          <span style="font-size:20px;">🎤</span>
+          <div><div style="font-size:14px;font-weight:600;">Solistler</div><div style="font-size:11px;color:#6E7681;margin-top:2px;">Sanatçı yönetimi</div></div>
+          <span style="margin-left:auto;color:#6E7681;">↗</span>
+        </a>
+      </div>
     </div>
-  </div>
-  <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><span class="snb-arrow">‹</span><span class="snb-label">Önceki</span></button>
-  <div class="sm" id="sm"></div>
-  <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><span class="snb-label">Sonraki</span><span class="snb-arrow">›</span></button>
-  <div class="sb">
-    <div class="np" id="np" style="display:none;">
-      <div class="nl">Sıradaki</div>
-      <div class="nn" id="nn">—</div>
-      <div class="nm" id="nm">—</div>
-    </div>
-    <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
-  </div>
+    
+  </div><!-- end grid -->
 </div>
 
-<div class="screen hidden" id="endScreen">
-  <div class="ei">🎉</div>
-  <h1 class="et">Bravo!</h1>
-  <p class="es" id="ern">Repertuvar tamamlandı</p>
-  <p class="ec" id="erc">0 eser</p>
-  <div class="ea">
-    <button class="be bep" onclick="restartStage()">↺ Baştan Başla</button>
-    <button class="be beg" id="btnRepertuvarSec" onclick="backToPicker()">Repertuvar Seç</button>
-    <a href="index.html" class="be beg" id="btnAnaSayfa">Ana Sayfa</a>
+<div class="stage-wrap" style="position:relative;z-index:1;">
+  <div class="stage-card">
+    <div class="stage-left">
+      <h2>Sahne Modu<br><span>Şova hazır mısınız?</span></h2>
+      <p>Büyük ekran, ileri / geri tuşları ile kolay eser geçişi. Gece ve gündüz tema seçeneğiyle sahneye hazır.</p>
+    </div>
+    <div class="stage-right">
+      <a href="stage.html" class="stage-btn" id="btnStage2">🎭 Sahne Modunu Aç</a>
+      <div class="theme-row">
+        <div class="tp a" onclick="this.closest('.theme-row').querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));this.classList.add('a')">☀️ Gündüz</div>
+        <div class="tp" onclick="this.closest('.theme-row').querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));this.classList.add('a')">🌙 Gece</div>
+      </div>
+    </div>
   </div>
 </div>
-
 <script>
-const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
-
-let WL = {}; // Supabase'den yüklenecek
-
-async function loadWL() {
-  try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?order=id&limit=2000', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
-    });
-    const rows = await r.json();
-    rows.forEach(w => {
-      WL[String(w.id)] = {
-        name: w.name || '',
-        composer: w.composer || '',
-        makam: w.makam || '',
-        instrument: w.instrument || '',
-        closingNote: w.closing_note || '',
-        lyrics: w.lyrics || ''
-      };
-    });
-    // customWorks patch
+(async function(){
+  const ok = await requireAuth(); if(!ok) return;
+  const u = getUser();
+  const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
+  const el = document.getElementById('navUserName'); if(el) el.textContent = name;
+  // Admin ise gizli elementleri göster
+  if (isAdmin()) {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+    // Admin için sağ kolon göster
+    const arc = document.getElementById('adminRightCol');
+    if(arc) arc.style.display = 'block';
+  } else {
     try {
-      const customs = JSON.parse(localStorage.getItem('customWorks') || '[]');
-      customs.forEach(w => {
-        const id = String(parseInt(w.id));
-        if(WL[id]) Object.assign(WL[id], {name:w.name||WL[id].name, lyrics:w.lyrics!==undefined?w.lyrics:WL[id].lyrics, composer:w.composer||WL[id].composer});
-        else WL[id] = {name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||''};
+      const token = localStorage.getItem('sb_token') || SUPA_KEY;
+      const rr = await fetch(SUPA_URL+'/rest/v1/repertoires?user_id=eq.'+getUserId()+'&order=created_at.desc', {
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+token}
       });
-    } catch(e) {}
-  } catch(e) { console.error('WL yüklenemedi:', e); }
-}let reps=[], selId=null, curRep=null, curIdx=0;
-let txStart=0;
-
-async function loadReps(){
-  try{
-    const [r,items] = await Promise.all([
-      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at&user_id=eq.'+getUserId(), {
-      headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY)
+      const rd = await rr.json();
+      const sec = document.getElementById('userRepSection');
+      const card = document.getElementById('userRepCard');
+      if(sec) sec.style.display = 'block';
+      if(!rd || rd.length === 0){
+        const b1=document.getElementById('btnStage');
+        const b2=document.getElementById('btnStage2');
+        if(b1){b1.textContent='+ Repertuvar Oluştur';b1.href='repertoires.html';}
+        if(b2){b2.textContent='+ Repertuvar Oluştur';b2.href='repertoires.html';}
+        if(card) card.innerHTML='<div style="color:var(--text3);font-size:13px;padding:12px 0;">Henüz repertuvarınız yok.</div>';
+      } else {
+        const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
+        if(card) card.innerHTML = rd.slice(0,3).map(r=>`
+          <a href="repertoires.html" style="display:flex;align-items:center;justify-content:space-between;background:rgba(22,27,34,0.8);border:1px solid #21262D;border-radius:10px;padding:12px 16px;text-decoration:none;margin-bottom:8px;transition:border-color .15s;"
+            onmouseover="this.style.borderColor='#58A6FF'" onmouseout="this.style.borderColor='#21262D'">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#E6EDF3;">${r.name}</div>
+              <div style="font-size:11px;color:#6E7681;margin-top:2px;">${r.date||''}${r.venue?' · '+r.venue:''} · ${sl[r.status]||''}</div>
+            </div>
+            <span style="font-size:12px;color:#6E7681;">↗</span>
+          </a>`).join('') + (rd.length>3?`<a href="repertoires.html" style="font-size:12px;color:#58A6FF;text-decoration:none;">+ ${rd.length-3} repertuvar daha →</a>`:'');
       }
-    }).then(r=>r.json()),
-      fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H}).then(r=>r.json())
-    ]);
-    const userId = getUserId();
-    const filteredR = (r||[]).filter(x => !x.user_id || String(x.user_id) === String(userId));
-    return filteredR.map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
-  }catch(e){console.error(e);return [];}
-}
-
-function renderPicker(){
-  const el=document.getElementById('rsl');
-  if(!reps.length){
-    el.innerHTML=`<div style="padding:32px;text-align:center;line-height:1.8;">
-      <div style="font-size:36px;margin-bottom:12px;">🎵</div>
-      <div style="color:var(--text2);font-size:14px;margin-bottom:20px;">Henüz bir repertuvarınız yok.<br>Oluşturmak için aşağıdaki butona tıklayın.</div>
-      <a href="repertoires.html" style="display:inline-block;background:var(--accent);border-radius:8px;padding:12px 28px;color:#fff;font-size:14px;font-weight:600;text-decoration:none;">+ Repertuvar Oluştur</a>
-      <br><a href="index.html" style="color:var(--text3);font-size:12px;text-decoration:none;display:inline-block;margin-top:16px;">← Ana Sayfa</a>
-    </div>`;
-    return;
+    } catch(e){}
   }
-  const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
-  el.innerHTML=reps.map(r=>`<div class="rsi${selId===r.id?' sel':''}" onclick="pickRep('${r.id}')">
-    <div><div class="rsn">${r.name}</div><div class="rsm">${[r.date,r.venue,sl[r.status]].filter(Boolean).join(' · ')}</div></div>
-    <div class="rsc">${(r.items||[]).length} eser</div>
-  </div>`).join('');
-}
-
-function pickRep(id){selId=id;document.getElementById('bstart').disabled=false;const be=document.getElementById('bedit');if(be)be.disabled=false;renderPicker();}
-
-function startStage(){
-  curRep=reps.find(r=>r.id===selId);
-  if(!curRep||(curRep.items||[]).length===0)return;
-  curIdx=0;
-  showScreen('stageScreen');
-  document.getElementById('strn').textContent=curRep.name;
-  renderStage();
-}
-
-function renderStage(){
-  const items=curRep.items||[];
-  const item=items[curIdx];
-  if(!item)return;
-  const w=WL[item.workId]||{};
-  const total=items.length;
-  document.getElementById('stc').textContent=(curIdx+1)+'/'+total;
-  const pds=document.getElementById('pds');
-  if(total<=20){pds.innerHTML=items.map((_,i)=>`<div class="pd ${i<curIdx?'done':i===curIdx?'cur':''}"></div>`).join('');}
-  else pds.innerHTML='';
-  const chips=[
-    w.makam?`<span class="wch m">${w.makam}</span>`:'',
-    (item.closingNote||w.closingNote)?`<span class="wch n">Kapanış: ${item.closingNote||w.closingNote}</span>`:'',
-    w.instrument?`<span class="wch i">${w.instrument}</span>`:''
-  ].filter(Boolean).join('');
-  const lyricsHtml = w.lyrics
-    ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>`
-    : '';
-  document.getElementById('sm').innerHTML=`
-    <div class="wnum">Eser ${curIdx+1} / ${total}</div>
-    <div class="wtitle">${w.name||item.workId}</div>
-    ${chips?`<div class="wcr">${chips}</div>`:''}
-    ${(item.note||w.composer)?`<div class="wnote">${item.note||(w.composer?'— '+w.composer:'')}</div>`:''}
-    ${lyricsHtml}`; 
-  const next=items[curIdx+1];
-  const np=document.getElementById('np');
-  if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
-  else np.style.display='none';
-}
-
-function nextWork(){
-  console.log('nextWork called');
-  sideNavNext();
-}
-
-function prevWork(){
-  sideNavPrev();
-}
-function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?'))backToPicker();}
-function showEndScreen(){
-  showScreen('endScreen');
-  document.getElementById('ern').textContent = curRep.name || '';
-  document.getElementById('erc').textContent = (curRep.items||[]).length + ' eser seslendirdiniz';
-  // Paylaşım modunda Ana Sayfa ve Repertuvar Seç butonlarını gizle
-  const isShared = !!new URLSearchParams(window.location.search).get('share');
-  const btnRep = document.getElementById('btnRepertuvarSec');
-  const btnAna = document.getElementById('btnAnaSayfa');
-  if(btnRep) btnRep.style.display = isShared ? 'none' : '';
-  if(btnAna) btnAna.style.display = isShared ? 'none' : '';
-}
-function restartStage(){curIdx=0;showScreen('stageScreen');renderStage();}
-function backToPicker(){
-  // Paylaşım modunda: sadece paylaşılan repertuvarı göster
-  const shareToken = new URLSearchParams(window.location.search).get('share');
-  if (shareToken && curRep && curRep.id !== 'single') {
-    // Paylaşılan repertuvarı picker'da göster
-    showScreen('pickerScreen');
-    const pi = document.getElementById('pi');
-    if (pi) {
-      pi.innerHTML = `
-        <div class="plogo"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:250px;width:auto;"></div>
-        <h1 class="ptitle">Paylaşılan Repertuvar</h1>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;margin-top:16px;"
-          onclick="startSharedRep()">
-          <div style="font-size:15px;font-weight:600;color:var(--text);">${curRep.name||'Repertuvar'}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px;">${(curRep.items||[]).length} eser</div>
-        </div>`;
+  const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),'Prefer':'count=exact'};
+  const ns = document.querySelectorAll('.stat-n');
+  const urls = ['works','repertoires','solistler'];
+  for(let i=0;i<3;i++){
+    try{ const r=await fetch(SUPA_URL+'/rest/v1/'+urls[i]+'?select=id&limit=1',{headers:H});
+    const cnt=r.headers.get('content-range')?.split('/')[1]; if(cnt&&ns[i]) ns[i].textContent=cnt; }catch(e){}
+  }
+})();
+document.querySelectorAll('.tp').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));
+  b.classList.add('a');
+  localStorage.setItem('stageTheme',b.textContent.includes('Gündüz')?'day':'night');
+}));
+</script>
+<script>
+(function(){
+  const cv=document.getElementById('shaderBg');if(!cv)return;
+  const gl=cv.getContext('webgl');if(!gl)return;
+  const vs=`attribute vec4 p;void main(){gl_Position=p;}`;
+  const fs=`precision highp float;
+  uniform vec2 R;uniform float T;
+  float rnd(float t){return(cos(t)+cos(t*1.3+1.3)+cos(t*1.4+1.4))/3.0;}
+  float py(float x,float h,float o){return rnd(x*.2+T*.2)*h*1.0+o;}
+  void main(){
+    vec2 uv=gl_FragCoord.xy/R.xy;
+    vec2 sp=(gl_FragCoord.xy-R/2.0)/R.x*10.0;
+    float hf=1.0-(cos(uv.x*6.28)*.5+.5);
+    float vf=1.0-(cos(uv.y*6.28)*.5+.5);
+    sp.y+=rnd(sp.x*.5+T*.04)*1.0*(.5+hf);
+    sp.x+=rnd(sp.y*.5+T*.04+2.0)*1.0*hf;
+    vec4 lines=vec4(0.);
+    for(int l=0;l<16;l++){
+      float nl=float(l)/16.;float op=T*.266;float o2=float(l)+sp.x*.5;
+      float r=rnd(o2+op)*.5+.5;float hw=mix(.01,.2,r*hf)/2.;
+      float off=rnd(o2+op*(1.+nl))*mix(.6,2.,hf);
+      float lp=py(sp.x,hf,off);
+      float line=smoothstep(hw,0.,abs(lp-sp.y))/2.+smoothstep(hw*.15+.015,hw*.15,abs(lp-sp.y));
+      float cx=mod(float(l)+T*.2,25.)-12.;
+      vec2 cp=vec2(cx,py(cx,hf,off));
+      line+=smoothstep(.025,.01,length(cp-sp))*4.;
+      lines+=line*vec4(.3,.15,.6,1.)*r;
     }
-    return;
-  }
-  selId=null;document.getElementById('bstart').disabled=true;showScreen('pickerScreen');renderPicker();
-}
-
-function startSharedRep() {
-  curIdx = 0;
-  sideIdx = 0;
-  showScreen('stageScreen');
-  document.getElementById('strn').textContent = curRep.name || '';
-  renderStage();
-  updateSideButtons();
-}
-function showScreen(id){['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));}
-
-document.addEventListener('keydown',e=>{
-  if(document.getElementById('stageScreen').classList.contains('hidden'))return;
-  if(e.key==='ArrowRight'||e.key===' '||e.key==='ArrowDown'){e.preventDefault();nextWork();}
-  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prevWork();}
-  if(e.key==='Escape')exitStage({stopPropagation:()=>{}});
-});
-document.getElementById('stageScreen').addEventListener('touchstart',e=>{txStart=e.touches[0].clientX;},{passive:true});
-document.getElementById('stageScreen').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-txStart;if(Math.abs(dx)>60){dx<0?nextWork():prevWork();}},{passive:true});
-
-// ── NAVİGASYON ──
-let sideList = [];
-let sideIdx  = -1;
-
-function sideNavInit(workId) {
-  const stored = localStorage.getItem('stageWorkList');
-  if (stored) {
-    try { sideList = JSON.parse(stored); } catch(e) { sideList = []; }
-    sideIdx = sideList.indexOf(String(workId));
-  }
-  updateSideButtons();
-}
-
-function updateSideButtons() {
-  const l = document.getElementById('sideLeft');
-  const r = document.getElementById('sideRight');
-  if (!l || !r) return;
-  const isRepMode = curRep && curRep.items && curRep.items.length > 1;
-  const total = isRepMode ? curRep.items.length : sideList.length;
-  const cur   = isRepMode ? curIdx : sideIdx;
-  l.style.display = r.style.display = total > 1 ? 'flex' : 'none';
-  l.classList.toggle('disabled', cur <= 0);
-  r.classList.toggle('disabled', cur >= total - 1);
-}
-
-function sideNavPrev() {
-  if (curRep && curRep.items && curRep.items.length > 1) {
-    if (curIdx <= 0) return;
-    curIdx--;
-    renderStage();
-    updateSideButtons();
-    return;
-  }
-  if (sideIdx <= 0) return;
-  sideIdx--;
-  loadSideWork(sideList[sideIdx]);
-}
-
-function sideNavNext() {
-  console.log('sideNavNext called, curIdx='+curIdx+', items='+(curRep&&curRep.items?curRep.items.length:0));
-  if (curRep && curRep.items && curRep.items.length > 1) {
-    if (curIdx >= curRep.items.length - 1) { showEndScreen(); return; }
-    curIdx++;
-    renderStage();
-    updateSideButtons();
-    return;
-  }
-  if (sideIdx >= sideList.length - 1) return;
-  sideIdx++;
-  loadSideWork(sideList[sideIdx]);
-}
-
-function loadSideWork(id) {
-  const w = WL[id];
-  if (!w) return;
-  curRep = { id: 'single', name: w.name||'', items: [{ workId: id, closingNote: w.closingNote||'' }] };
-  curIdx = 0;
-  sideIdx = sideList.indexOf(String(id));
-  document.getElementById('strn').textContent = w.name || '';
-  renderStage();
-  updateSideButtons();
-}
-// Init
-(async()=>{
-  const authOk = await requireAuth();
-  if(!authOk) return;
-  // User token ile H headers'ı güncelle
-  const userToken = localStorage.getItem('sb_token');
-  if(userToken) H['Authorization'] = 'Bearer ' + userToken;
-  if(isAdmin()){document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');}
-  await loadWL();
-
-  // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda aç
-  const urlParams = new URLSearchParams(window.location.search);
-
-  // Paylaşım linki: ?share=token → token'dan rep ID çöz, Supabase'den yükle
-  const shareToken = urlParams.get('share');
-  if (shareToken) {
-    try {
-      const repId = atob(shareToken + '=='.slice(0, (4 - shareToken.length % 4) % 4));
-      // Supabase'den bu repertuvarı çek (public erişim)
-      const [rRes, iRes] = await Promise.all([
-        fetch(SUPA_URL+'/rest/v1/repertoires?id=eq.'+repId, {
-          headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
-        }),
-        fetch(SUPA_URL+'/rest/v1/repertoire_items?repertoire_id=eq.'+repId+'&order=seq', {
-          headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
-        })
-      ]);
-      const reps = await rRes.json();
-      const items = await iRes.json();
-      if (reps && reps[0]) {
-        curRep = {
-          ...reps[0],
-          items: (items||[]).map(t => ({
-            ...t, workId: String(t.work_id), closingNote: t.closing_note||'', performer: t.performer||''
-          }))
-        };
-        curIdx = 0;
-        showScreen('stageScreen');
-        document.getElementById('strn').textContent = curRep.name || '';
-        renderStage();
-        // Tüm eserleri sideList'e yükle - önceki/sonraki geçiş için
-        // Paylaşım modunda sideList boş bırak - sadece curRep/curIdx kullan
-        sideList = [];
-        sideIdx = -1;
-        updateSideButtons();
-        return;
-      }
-    } catch(e) { console.error('Share token error:', e); }
-  }
-
-  const workParam = urlParams.get('work');
-  if (workParam) {
-    const normalizedId = String(parseInt(workParam));
-    const w = WL[normalizedId] || WL[workParam];
-    if (w) {
-      curRep = {
-        id: 'single',
-        name: w.name || 'Eser',
-        items: [{ workId: normalizedId, closingNote: w.closingNote || '' }]
-      };
-      curIdx = 0;
-      showScreen('stageScreen');
-      document.getElementById('strn').textContent = w.name || '';
-      renderStage();
-      sideNavInit(normalizedId);
-      return;
-    }
-  }
-
-  reps=await loadReps();
-  renderPicker();
-  // Üyenin repertuvarı yoksa Sahneye Çık butonunu değiştir
-  if (!isAdmin() && reps.length === 0) {
-    const btn = document.getElementById('bstart');
-    if (btn) {
-      btn.textContent = '+ Repertuvar Oluştur';
-      btn.disabled = false;
-      btn.onclick = () => window.location.href = 'repertoires.html';
-    }
-  }
-  const autoId=localStorage.getItem('stageRepId');
-  if(autoId){localStorage.removeItem('stageRepId');const f=reps.find(r=>r.id===autoId);if(f){pickRep(autoId);setTimeout(()=>startStage(),100);}}
+    vec4 col=mix(vec4(.05,.05,.08,1.),vec4(.06,.03,.1,1.),uv.x);
+    col*=vf;col.a=1.;col+=lines;gl_FragColor=col;
+  }`;
+  function mk(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;}
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,vs));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(prog);
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  const ap=gl.getAttribLocation(prog,'p');
+  const uR=gl.getUniformLocation(prog,'R');
+  const uT=gl.getUniformLocation(prog,'T');
+  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight*.6;gl.viewport(0,0,cv.width,cv.height);}
+  window.addEventListener('resize',resize);resize();
+  const t0=Date.now();
+  function draw(){const t=(Date.now()-t0)/1e3;gl.useProgram(prog);gl.uniform2f(uR,cv.width,cv.height);gl.uniform1f(uT,t);gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.vertexAttribPointer(ap,2,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(ap);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(draw);}
+  requestAnimationFrame(draw);
 })();
 
-// ── MOBİL SWIPE DESTEĞİ ──
-(function() {
-  let touchStartX = 0, touchStartY = 0;
-  const sm = document.getElementById('sm') || document.body;
-  
-  document.addEventListener('touchstart', function(e) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-  }, {passive: true});
-
-  document.addEventListener('touchend', function(e) {
-    if (!document.getElementById('stageScreen') || 
-        document.getElementById('stageScreen').classList.contains('hidden')) return;
-    
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    const dy = e.changedTouches[0].clientY - touchStartY;
-    
-    // Yalnızca yatay swipe (dikey scroll değil)
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-      if (dx < 0) sideNavNext(); // sola swipe → sonraki
-      else sideNavPrev();         // sağa swipe → önceki
-    }
-  }, {passive: true});
-})();
-
-
-
-function editRep() {
-  if (!selId) return;
-  // Repertuvar sayfasını aynı tab'da aç, repertuvar seçili olarak
-  localStorage.setItem('stageRepId', selId);
-  window.location.href = 'repertoires.html';
-}
-
-async function createRepAndGo() {
-  const nameEl = document.getElementById('newRepName');
-  const name = nameEl ? nameEl.value.trim() : '';
-  if (!name) { alert('Repertuvar adı girin.'); return; }
+async function checkUserHasReps() {
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/repertoires', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify({name, status:'concept', user_id:getUserId(), date:new Date().toISOString().split('T')[0]})
+    const r = await fetch(SUPA_URL+'/rest/v1/repertoires?user_id=eq.'+getUserId()+'&limit=1', {
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY)}
     });
     const data = await r.json();
-    if (data && data[0]) {
-      reps = await loadReps();
-      renderPicker();
-    } else {
-      alert('Hata: ' + JSON.stringify(data));
-    }
-  } catch(e) { alert('Hata: '+e.message); }
+    return data && data.length > 0;
+  } catch(e) { return false; }
 }
+
 </script>
-</body>
-</html>
