@@ -797,6 +797,25 @@ try {
   const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
   localStorage.setItem('worksListCache', JSON.stringify(list));
 } catch(e) {}
+
+function openSuggestModal() {
+  openNewEserModal();
+  const title = document.getElementById('modalTitle');
+  if (title) title.textContent = '🎵 Eser Öner';
+  setTimeout(() => {
+    const existingNote = document.getElementById('suggestNote');
+    if (!existingNote) {
+      const form = document.querySelector('#newEserModal .modal-body') || document.querySelector('#newEserModal .md');
+      if (form) {
+        const note = document.createElement('div');
+        note.id = 'suggestNote';
+        note.style.cssText = 'background:rgba(249,160,74,.1);border:1px solid rgba(249,160,74,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:#F9A04A;margin-bottom:12px;';
+        note.textContent = 'Öneriniz admin onayından sonra herkese açık olacak.';
+        form.insertBefore(note, form.firstChild);
+      }
+    }
+  }, 100);
+}
 </script>
 
 <!-- YENİ ESER MODAL -->
