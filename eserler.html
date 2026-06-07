@@ -453,10 +453,10 @@ function selectWork(id) {
   dc.style.display = 'block';
 
   const chips = [
-    w.makam ? `<span class="chip makam">${w.makam}</span>` : '',
-    w.form ? `<span class="chip form">${w.form}</span>` : '',
-    w.tuning ? `<span class="chip tuning">Akort: ${w.tuning}</span>` : '',
-    w.measurement ? `<span class="chip meas">${w.measurement}</span>` : '',
+    w.makam ? `<span class="chip makam">🎵 Makam: ${w.makam}</span>` : '',
+    w.form ? `<span class="chip form">📋 Form: ${w.form}</span>` : '',
+    w.tuning ? `<span class="chip tuning">🎸 Akort: ${w.tuning}</span>` : '',
+    w.measurement ? `<span class="chip meas">♩ Usul: ${w.measurement}</span>` : '',
   ].filter(Boolean).join('');
 
   function row(label, val) {
@@ -487,13 +487,14 @@ function selectWork(id) {
     <div class="detail-body">
       ${row('Besteci', w.composer)}
       ${row('Güftekâr', w.lyricWriter)}
-      ${row('Kaynak Kişi', w.sourcePerson)}
-      ${row('Bölge', w.region)}
-      ${row('Alan', w.area)}
+      ${row('Makam', w.makam)}
+      ${row('Usul', w.measurement)}
+      ${row('Form', w.form)}
+      ${row('Akort', w.tuning)}
       ${row('Enstrüman', w.instrument)}
-      ${row('Metronom', w.metronom)}
+      ${row('Bölge / Yöre', w.region)}
+      ${row('Kaynak Kişi', w.sourcePerson)}
       ${row('Kapanış Notası', w.closingNote)}
-      ${w.genre ? row('Composer', w.genre) : ''}
       ${videoBtn ? `<div class="detail-row">${videoBtn}</div>` : ''}
       ${w.lyrics ? `<hr class="detail-divider"><div class="detail-row"><div class="detail-row-label">Güfte</div><div class="lyrics-box">${w.lyrics.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></div>` : ''}
     </div>`;
