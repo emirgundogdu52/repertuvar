@@ -782,24 +782,6 @@ document.addEventListener('keydown', function(e) {
 });
 
 
-(function loadCustomWorks() {
-  // Silinmiş eserleri çıkar
-  const deleted = isAdmin() ? [] : JSON.parse(localStorage.getItem('deletedWorks') || '[]');
-  if (deleted.length > 0) {
-    deleted.forEach(id => {
-      const idx = DATA.findIndex(w => w.id === id);
-      if (idx > -1) DATA.splice(idx, 1);
-    });
-  }
-  // Düzenlenmiş/yeni eserleri uygula
-  const customs = getCustomWorks();
-  customs.forEach(w => {
-    const idx = DATA.findIndex(x => x.id === w.id);
-    if (idx > -1) Object.assign(DATA[idx], w); // var olanı güncelle
-    else DATA.push(w);                           // yeni ise ekle
-  });
-})();
-
 // Supabase'den yükle, sonra başlat
 (async function init() {
   const ok = await requireAuth(); if(!ok) return;
@@ -819,19 +801,6 @@ document.addEventListener('keydown', function(e) {
   
   await loadWorksFromSupabase();
   
-  // localStorage'dan silinen/düzenlenmiş eserleri uygula
-  const deleted = isAdmin() ? [] : JSON.parse(localStorage.getItem('deletedWorks') || '[]');
-  deleted.forEach(id => {
-    const idx = DATA.findIndex(w => String(w.id) === String(id));
-    if (idx > -1) DATA.splice(idx, 1);
-  });
-  const customs = JSON.parse(localStorage.getItem('customWorks') || '[]');
-  customs.forEach(w => {
-    const idx = DATA.findIndex(x => String(x.id) === String(w.id));
-    if (idx > -1) Object.assign(DATA[idx], w);
-    else DATA.push(w);
-  });
-
   buildFilters();
   applyFilters();
   if (isAdmin()) updatePendingCount();
