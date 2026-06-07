@@ -530,7 +530,7 @@ function closeWM(){
 }
 function filterW(){
   const q=document.getElementById('ws').value.toLowerCase().trim();
-  const list=q?WLIST.filter(w=>(w.name+w.composer+w.makam).toLowerCase().includes(q)):WLIST;
+  const list=q?WLIST.filter(w=>(w.name+w.composer+w.makam+(WL[w.id]?.lyrics||'')).toLowerCase().includes(q)):WLIST;
   document.getElementById('wpl').innerHTML=list.slice(0,80).map(w=>`<div class="wpi${selWId===w.id?' sel':''}" onclick="pickW('${w.id}')"><div class="wpn">${w.name}</div><div class="wps">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--text3);">Bulunamadı</div>';
 }
 function pickW(id){
