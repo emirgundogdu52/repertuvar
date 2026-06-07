@@ -113,6 +113,9 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
 .side-nav-btn:hover { background: rgba(88,166,255,0.25); border-color: rgba(88,166,255,0.6); transform: translateY(-50%) scale(1.06); }
 .side-nav-btn:active { transform: translateY(-50%) scale(0.96); }
 .side-nav-btn.disabled { opacity: 0.15; pointer-events: none; }
+.align-btn { background:none; border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text3); font-size:15px; cursor:pointer; transition:all .15s; font-family:inherit; }
+.align-btn:hover { border-color:var(--accent); color:var(--accent); }
+.align-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,.12); }
 .side-nav-left  { left: 12px; }
 .side-nav-right { right: 12px; }
 
@@ -211,6 +214,11 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
       <div class="nn" id="nn">—</div>
       <div class="nm" id="nm">—</div>
     </div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button class="align-btn active" id="alignLeft"   onclick="setLyricsAlign('left')"   title="Sola Yasla">&#8676;</button>
+      <button class="align-btn"        id="alignCenter" onclick="setLyricsAlign('center')" title="Ortala">&#8651;</button>
+      <button class="align-btn"        id="alignRight"  onclick="setLyricsAlign('right')"  title="Sağa Yasla">&#8677;</button>
+    </div>
     <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
 </div>
@@ -230,7 +238,25 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
 <script>
 const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
 
+let lyricsAlign = localStorage.getItem('stageAlign') || 'left';
+
+function setLyricsAlign(align) {
+  lyricsAlign = align;
+  localStorage.setItem('stageAlign', align);
+  ['Left','Center','Right'].forEach(a => {
+    const btn = document.getElementById('align'+a);
+    if (btn) btn.classList.toggle('active', a.toLowerCase() === align);
+  });
+  const el = document.querySelector('.wlyrics');
+  if (el) el.style.textAlign = align;
+}
+
 let WL = {}; // Supabase'den yüklenecek
+
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('stageAlign') || 'left';
+  setLyricsAlign(saved);
+});
 
 async function loadWL() {
   try {
@@ -323,7 +349,7 @@ function renderStage(){
     w.instrument?`<span class="wch i">${w.instrument}</span>`:''
   ].filter(Boolean).join('');
   const lyricsHtml = w.lyrics
-    ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>`
+    ? `<div class="wlyrics" style="text-align:${lyricsAlign}">${w.lyrics.replace(/\n/g,'<br>')}</div>`
     : '';
   document.getElementById('sm').innerHTML=`
     <div class="wnum">Eser ${curIdx+1} / ${total}</div>
