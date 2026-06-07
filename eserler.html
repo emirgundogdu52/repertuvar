@@ -244,7 +244,7 @@
   <a href="artiesten.html" class="admin-only" style="display:none;padding:4px 12px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;text-decoration:none;">Solistler</a>
   <div class="search-wrap">
     <span class="search-icon">&#9906;</span>
-    <input type="text" id="searchInput" placeholder="Eser adı, besteci, güftekâr, makam..." autocomplete="off">
+    <input type="text" id="searchInput" placeholder="Eser adı, besteci, güftekâr, makam, güfte..." autocomplete="off">
   </div>
   <button id="btnAdminNewEser" onclick="openNewEserModal()" class="admin-only" style="padding:5px 14px;border-radius:7px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Yeni Eser</button>
   <button id="btnUserSuggest" onclick="openSuggestModal()" style="display:none;padding:5px 14px;border-radius:7px;background:rgba(249,160,74,.15);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Eser Öner</button>
@@ -384,7 +384,7 @@ function applyFilters() {
     if (activeFilters.region && w.region !== activeFilters.region) return false;
     if (activeFilters.makam && w.makam !== activeFilters.makam) return false;
     if (q) {
-      const search = (w.name+w.composer+w.lyricWriter+w.makam+w.region+w.sourcePerson).toLowerCase();
+      const search = (w.name+w.composer+w.lyricWriter+w.makam+w.region+w.sourcePerson+w.lyrics).toLowerCase();
       if (!search.includes(q)) return false;
     }
     return true;
