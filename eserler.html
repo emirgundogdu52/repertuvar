@@ -475,8 +475,8 @@ function selectWork(id) {
       <div class="detail-chips">${chips}</div>
       <div class="detail-stage-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
         ${stageBtn}
-        <button class="edit-btn admin-only" onclick="openEditEserModal(${w.id})">✏️ Düzenle</button>
-        <button class="delete-btn admin-only" onclick="showDeleteConfirm(${w.id})">🗑 Sil</button>
+        <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}">✏️ Düzenle</button>
+        <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}">🗑 Sil</button>
       </div>
       <div class="confirm-bar" id="confirm-${w.id}">
         <span>Bu eseri silmek istediğinize emin misiniz?</span>
@@ -498,6 +498,12 @@ function selectWork(id) {
       ${videoBtn ? `<div class="detail-row">${videoBtn}</div>` : ''}
       ${w.lyrics ? `<hr class="detail-divider"><div class="detail-row"><div class="detail-row-label">Güfte</div><div class="lyrics-box">${w.lyrics.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></div>` : ''}
     </div>`;
+
+  // Admin butonlarını göster/gizle
+  const editBtn = document.getElementById('editBtn-'+w.id);
+  const deleteBtn = document.getElementById('deleteBtn-'+w.id);
+  if (editBtn) editBtn.style.display = isAdmin() ? '' : 'none';
+  if (deleteBtn) deleteBtn.style.display = isAdmin() ? '' : 'none';
 
   // Mobile: show detail panel
   document.getElementById('detailPanel').classList.add('mobile-visible');
@@ -596,6 +602,24 @@ function setLyricsValue(text) {
   const ed = document.getElementById('ne_lyrics_editor');
   if (!ed) return;
   ed.innerText = text || '';
+}
+
+function lyricsInsert(text) {
+  const ed = document.getElementById('ne_lyrics_editor');
+  ed.focus();
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    const node = document.createTextNode(text);
+    range.insertNode(node);
+    range.setStartAfter(node);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  } else {
+    ed.innerText += text;
+  }
 }
 
 function saveNewEser() {
@@ -866,6 +890,16 @@ function openSuggestModal() {
           </select>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
           <button type="button" onclick="lyricsClear()" title="Formatı Temizle" style="padding:0 8px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text3);font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">✕ Temizle</button>
+          <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
+          <span style="font-size:11px;color:var(--text3);margin-right:4px;font-weight:600;letter-spacing:.05em;">ÖZEL</span>
+          <button type="button" onclick="lyricsInsert('[ ]')"   title="Köşeli parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">[ ]</button>
+          <button type="button" onclick="lyricsInsert('{ }')"   title="Süslü parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">{ }</button>
+          <button type="button" onclick="lyricsInsert('( )')"   title="Parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">( )</button>
+          <button type="button" onclick="lyricsInsert('>>')"    title="Çift ok" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">>></button>
+          <button type="button" onclick="lyricsInsert('2X')"    title="2 kez tekrar" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">2X</button>
+          <button type="button" onclick="lyricsInsert('3X')"    title="3 kez tekrar" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">3X</button>
+          <button type="button" onclick="lyricsInsert('\n— Nakarat —\n')" title="Nakarat bölümü" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#BC8CFF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">Nakarat</button>
+          <button type="button" onclick="lyricsInsert('\n— Bağlantı —\n')" title="Bağlantı bölümü" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#BC8CFF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">Bağlantı</button>
         </div>
         <!-- Editable area -->
         <div id="ne_lyrics_editor" contenteditable="true" placeholder="Güfte metni..." 
