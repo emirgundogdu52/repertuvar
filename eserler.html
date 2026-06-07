@@ -268,6 +268,7 @@
   <button id="btnAdminNewEser" onclick="openNewEserModal()" class="admin-only" style="padding:5px 14px;border-radius:7px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Yeni Eser</button>
   <button id="btnUserSuggest" onclick="openSuggestModal()" style="display:none;padding:5px 14px;border-radius:7px;background:rgba(249,160,74,.15);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Eser Öner</button>
   <button id="btnPendingReview" class="admin-only" onclick="showPendingWorks()" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(249,160,74,.15);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">⏳ Bekleyen: <span id="pendingCount">0</span></button>
+  <button class="admin-only" onclick="showEditorManager()" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(188,140,255,.15);border:1px solid rgba(188,140,255,.4);color:#BC8CFF;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">👥 Editörler</button>
   <div class="count-badge" id="countBadge">411 eser</div>
 <div id="userBadge"></div>
 </header>
@@ -712,7 +713,7 @@ function saveNewEser() {
     .catch(err => alert('Bağlantı hatası: ' + err.message));
   } else {
     // Yeni eser - Supabase'e kaydet
-    const status = isAdmin() ? 'approved' : 'pending';
+    const status = (isAdmin() || isEditor()) ? 'approved' : 'pending';
     const saveFields = {
       name: fields.name,
       composer: fields.composer,
@@ -819,7 +820,17 @@ document.addEventListener('keydown', function(e) {
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
-    // Pending eserleri göster
+    setTimeout(() => {
+      const btn = document.getElementById('btnPendingReview');
+      if (btn) btn.classList.remove('admin-only');
+      updatePendingCount();
+    }, 500);
+  } else if (isEditor()) {
+    // Editör: pending onay butonu görünsün, yeni eser direkt ekleyebilsin
+    const suggestBtn = document.getElementById('btnUserSuggest');
+    if (suggestBtn) suggestBtn.style.display = 'none';
+    const adminNewBtn = document.getElementById('btnAdminNewEser');
+    if (adminNewBtn) { adminNewBtn.style.display = ''; }
     setTimeout(() => {
       const btn = document.getElementById('btnPendingReview');
       if (btn) btn.classList.remove('admin-only');
@@ -844,6 +855,61 @@ try {
   const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
   localStorage.setItem('worksListCache', JSON.stringify(list));
 } catch(e) {}
+
+async function showEditorManager() {
+  document.getElementById('editorModal').style.display = 'flex';
+  const list = document.getElementById('editorList');
+  list.innerHTML = '<div style="color:var(--text3);font-size:13px;">Yükleniyor...</div>';
+  const r = await fetch(SUPA_URL + '/rest/v1/profiles?role=eq.editor&select=id,display_name,role', {
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
+  });
+  const editors = await r.json();
+  if (!editors.length) {
+    list.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Henüz editör yok.</div>';
+  } else {
+    list.innerHTML = editors.map(e => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;">
+        <span style="font-size:13px;color:var(--text);">${e.display_name || e.id}</span>
+        <button onclick="removeEditor('${e.id}')" style="padding:4px 10px;border-radius:6px;background:rgba(192,84,68,.1);border:1px solid rgba(192,84,68,.3);color:#e07060;font-size:12px;cursor:pointer;font-family:inherit;">Kaldır</button>
+      </div>`).join('');
+  }
+}
+
+async function assignEditor() {
+  const email = document.getElementById('editorEmailInput').value.trim();
+  const msg = document.getElementById('editorMsg');
+  if (!email) return;
+  // auth.users'dan email ile id bul
+  const r = await fetch(SUPA_URL + '/rest/v1/profiles?display_name=eq.' + encodeURIComponent(email) + '&select=id', {
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
+  });
+  // display_name email olarak kaydettik, direkt güncelle
+  const r2 = await fetch(SUPA_URL + '/rest/v1/profiles?display_name=eq.' + encodeURIComponent(email), {
+    method: 'PATCH',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ role: 'editor' })
+  });
+  if (r2.ok || r2.status === 204) {
+    msg.style.display = 'block';
+    msg.style.color = '#3FB950';
+    msg.textContent = '✓ Editör olarak atandı.';
+    document.getElementById('editorEmailInput').value = '';
+    showEditorManager();
+  } else {
+    msg.style.display = 'block';
+    msg.style.color = '#e07060';
+    msg.textContent = 'Kullanıcı bulunamadı. Email adresi kayıtlı olmalı.';
+  }
+}
+
+async function removeEditor(id) {
+  await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + id, {
+    method: 'PATCH',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ role: 'member' })
+  });
+  showEditorManager();
+}
 
 function showPendingWorks() {
   const pendingWorks = DATA.filter(w => w.status === 'pending');
@@ -945,6 +1011,26 @@ function openSuggestModal() {
   }, 100);
 }
 </script>
+
+<!-- EDITOR MANAGER MODAL -->
+<div id="editorModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:min(560px,96vw);padding:28px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <span style="font-size:16px;font-weight:600;color:var(--text);">👥 Editör Yönetimi</span>
+      <button onclick="document.getElementById('editorModal').style.display='none'" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Editörler pending eserleri onaylayabilir ve direkt eser ekleyebilir.</p>
+    <div id="editorList" style="margin-bottom:20px;"></div>
+    <div style="border-top:1px solid var(--border);padding-top:16px;">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px;font-weight:600;letter-spacing:.05em;">YENİ EDİTÖR ATA</div>
+      <div style="display:flex;gap:8px;">
+        <input id="editorEmailInput" type="email" placeholder="kullanici@email.com" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;">
+        <button onclick="assignEditor()" style="padding:8px 16px;border-radius:8px;background:#BC8CFF;border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Ata</button>
+      </div>
+      <div id="editorMsg" style="font-size:12px;margin-top:8px;display:none;"></div>
+    </div>
+  </div>
+</div>
 
 <!-- PENDING REVIEW MODAL -->
 <div id="pendingModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;">
