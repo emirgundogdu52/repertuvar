@@ -435,14 +435,14 @@ function renderList() {
   }
   panel.innerHTML = filteredData.map(w => {
     const tags = [
-      w.makam ? `<span class="tag makam">${w.makam}</span>` : '',
-      w.form ? `<span class="tag form">${w.form}</span>` : '',
-      w.tuning ? `<span class="tag tuning">${w.tuning}</span>` : '',
+      w.makam ? `<span class="tag makam">Makam: ${w.makam}</span>` : '',
+      w.form ? `<span class="tag form">Form: ${w.form}</span>` : '',
+      w.tuning ? `<span class="tag tuning">Akort: ${w.tuning}</span>` : '',
+      w.measurement ? `<span class="tag" style="border-color:#1f3050;color:#6a9fd4;background:#1a1e27;">Usul: ${w.measurement}</span>` : '',
     ].filter(Boolean).join('');
     const sub = [
       w.composer ? `<span>🎼 ${w.composer}</span>` : '',
-      w.region ? `<span>📍 ${w.region}</span>` : '',
-      w.measurement ? `<span>♩ ${w.measurement}</span>` : '',
+      w.region ? `<span>📍 Bölge: ${w.region}</span>` : '',
     ].filter(Boolean).join('');
     return `<div class="work-item${selectedId===w.id?' selected':''}" onclick="selectWork(${w.id})" data-id="${w.id}">
       <div class="work-num">${w.id||'—'}</div>
