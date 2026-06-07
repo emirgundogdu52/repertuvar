@@ -2,8 +2,6 @@
 var SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
 var SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 
-const ADMIN_USER_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
-
 function getToken() { return localStorage.getItem('sb_token'); }
 function getUser() {
   try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; }
@@ -12,9 +10,6 @@ function getUserId() { return getUser()?.id || null; }
 function getUserName() {
   const u = getUser();
   return u?.user_metadata?.full_name || u?.email?.split('@')[0] || 'Kullanıcı';
-}
-function isAdmin() {
-  return getUserId() === ADMIN_USER_ID;
 }
 
 function authHeaders() {
@@ -34,6 +29,7 @@ async function requireAuth() {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
     });
     if (!r.ok) {
+      // Token expired - try refresh
       const refresh = localStorage.getItem('sb_refresh');
       if (refresh) {
         const r2 = await fetch(SUPA_URL+'/auth/v1/token?grant_type=refresh_token', {
@@ -54,12 +50,44 @@ async function requireAuth() {
     }
     const user = await r.json();
     localStorage.setItem('sb_user', JSON.stringify(user));
+    await loadUserRole();
     return true;
   } catch(e) {
+    // network error - check cached user
     const cachedUser = getUser();
     if (!cachedUser) { window.location.href = 'login.html'; return false; }
     return true;
   }
+}
+
+
+const ADMIN_USER_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
+function isAdmin() {
+  return getUserId() === ADMIN_USER_ID;
+}
+
+function getUserRole() {
+  return localStorage.getItem('user_role') || 'member';
+}
+
+function isEditor() {
+  if (isAdmin()) return true;
+  return getUserRole() === 'editor';
+}
+
+async function loadUserRole() {
+  const uid = getUserId();
+  if (!uid) return;
+  if (isAdmin()) { localStorage.setItem('user_role', 'admin'); return; }
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=role', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) }
+    });
+    if (r.ok) {
+      const data = await r.json();
+      if (data[0]?.role) localStorage.setItem('user_role', data[0].role);
+    }
+  } catch(e) {}
 }
 
 function logout() {
