@@ -463,6 +463,10 @@ function selectWork(id) {
     if (!val) return '';
     return `<div class="detail-row"><div class="detail-row-label">${label}</div><div class="detail-row-value">${val}</div></div>`;
   }
+  function row2(label, val) {
+    if (!val) return '';
+    return `<div class="detail-row" style="min-width:0;"><div class="detail-row-label">${label}</div><div class="detail-row-value" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${val}">${val}</div></div>`;
+  }
 
   const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video İzle</a>` : '';
   const stageId = String(parseInt(w.id));
@@ -485,16 +489,15 @@ function selectWork(id) {
       </div>
     </div>
     <div class="detail-body">
-      ${row('Besteci', w.composer)}
-      ${row('Güftekâr', w.lyricWriter)}
-      ${row('Makam', w.makam)}
-      ${row('Usul', w.measurement)}
-      ${row('Form', w.form)}
-      ${row('Akort', w.tuning)}
-      ${row('Enstrüman', w.instrument)}
-      ${row('Bölge / Yöre', w.region)}
-      ${row('Kaynak Kişi', w.sourcePerson)}
-      ${row('Kapanış Notası', w.closingNote)}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+        ${row2('Besteci', w.composer)}
+        ${row2('Güftekâr', w.lyricWriter)}
+        ${row2('Form', w.form)}
+        ${row2('Enstrüman', w.instrument)}
+        ${row2('Bölge / Yöre', w.region)}
+        ${row2('Kaynak Kişi', w.sourcePerson)}
+        ${row2('Kapanış Notası', w.closingNote)}
+      </div>
       ${videoBtn ? `<div class="detail-row">${videoBtn}</div>` : ''}
       ${w.lyrics ? `<hr class="detail-divider"><div class="detail-row"><div class="detail-row-label">Güfte</div><div class="lyrics-box">${w.lyrics.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></div>` : ''}
     </div>`;
