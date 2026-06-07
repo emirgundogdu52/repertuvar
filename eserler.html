@@ -830,7 +830,7 @@ document.addEventListener('keydown', function(e) {
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
     const adminNewBtn = document.getElementById('btnAdminNewEser');
-    if (adminNewBtn) { adminNewBtn.style.display = ''; }
+    if (adminNewBtn) { adminNewBtn.classList.remove('admin-only'); adminNewBtn.style.display = ''; }
     setTimeout(() => {
       const btn = document.getElementById('btnPendingReview');
       if (btn) btn.classList.remove('admin-only');
