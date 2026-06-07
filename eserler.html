@@ -231,6 +231,25 @@
     vertical-align: middle;
   }
   .pending-row { opacity: 0.75; }
+
+  /* PENDING MODAL */
+  #pendingModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:2000; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; }
+  .pm-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; width:min(680px,96vw); padding:28px; }
+  .pm-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .pm-title { font-size:16px; font-weight:600; color:var(--text); }
+  .pm-close { background:none; border:none; color:var(--text2); font-size:20px; cursor:pointer; }
+  .pm-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:12px; }
+  .pm-item-name { font-size:15px; font-weight:600; color:var(--text); margin-bottom:4px; }
+  .pm-item-meta { font-size:12px; color:var(--text2); margin-bottom:10px; display:flex; gap:12px; flex-wrap:wrap; }
+  .pm-item-lyrics { font-size:12px; color:var(--text3); background:var(--bg); border-radius:6px; padding:10px; max-height:100px; overflow-y:auto; white-space:pre-wrap; margin-bottom:12px; line-height:1.6; }
+  .pm-actions { display:flex; gap:8px; flex-wrap:wrap; }
+  .pm-approve { padding:6px 16px; border-radius:7px; background:#3FB950; border:none; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .pm-approve:hover { filter:brightness(1.15); }
+  .pm-edit { padding:6px 16px; border-radius:7px; background:rgba(88,166,255,.15); border:1px solid rgba(88,166,255,.4); color:var(--accent); font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .pm-edit:hover { background:rgba(88,166,255,.25); }
+  .pm-reject { padding:6px 16px; border-radius:7px; background:rgba(192,84,68,.12); border:1px solid rgba(192,84,68,.4); color:#e07060; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .pm-reject:hover { background:rgba(192,84,68,.25); }
+  .pm-empty { text-align:center; color:var(--text3); padding:32px; font-size:14px; }
 </style>
 <script src="auth.js"></script>
 </head>
@@ -790,15 +809,7 @@ document.addEventListener('keydown', function(e) {
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
     // Pending eserleri göster
-    setTimeout(() => {
-      const pendingWorks = DATA.filter(w => w.status === 'pending');
-      const pendingBtn = document.getElementById('btnPendingReview');
-      const pendingCnt = document.getElementById('pendingCount');
-      if (pendingBtn && pendingWorks.length > 0) {
-        pendingBtn.style.display = '';
-        if (pendingCnt) pendingCnt.textContent = pendingWorks.length;
-      }
-    }, 1000);
+    setTimeout(() => updatePendingCount(), 500);
   } else {
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = '';
@@ -823,6 +834,7 @@ document.addEventListener('keydown', function(e) {
 
   buildFilters();
   applyFilters();
+  if (isAdmin()) updatePendingCount();
 })();
 
 // Cache works list for Solistler page
@@ -830,6 +842,84 @@ try {
   const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
   localStorage.setItem('worksListCache', JSON.stringify(list));
 } catch(e) {}
+
+function showPendingWorks() {
+  const pendingWorks = DATA.filter(w => w.status === 'pending');
+  const list = document.getElementById('pendingList');
+  if (!pendingWorks.length) {
+    list.innerHTML = '<div class="pm-empty">Bekleyen eser yok 🎉</div>';
+  } else {
+    list.innerHTML = pendingWorks.map(w => `
+      <div class="pm-item" id="pm-item-${w.id}">
+        <div class="pm-item-name">${w.name || '(isimsiz)'}</div>
+        <div class="pm-item-meta">
+          ${w.composer ? `<span>🎼 ${w.composer}</span>` : ''}
+          ${w.makam ? `<span>🎵 ${w.makam}</span>` : ''}
+          ${w.form ? `<span>📋 ${w.form}</span>` : ''}
+          ${w.region ? `<span>📍 ${w.region}</span>` : ''}
+          ${w.instrument ? `<span>🎸 ${w.instrument}</span>` : ''}
+          ${w.measurement ? `<span>♩ ${w.measurement}</span>` : ''}
+        </div>
+        ${w.lyrics ? `<div class="pm-item-lyrics">${w.lyrics.substring(0,300)}${w.lyrics.length>300?'…':''}</div>` : ''}
+        <div class="pm-actions">
+          <button class="pm-approve" onclick="approveWork(${w.id})">✓ Onayla</button>
+          <button class="pm-edit"    onclick="closePendingModal();openEditEserModal(${w.id})">✏️ Düzenle</button>
+          <button class="pm-reject"  onclick="rejectWork(${w.id})">✕ Reddet</button>
+        </div>
+      </div>`).join('');
+  }
+  document.getElementById('pendingModal').style.display = 'flex';
+}
+
+function closePendingModal() {
+  document.getElementById('pendingModal').style.display = 'none';
+}
+
+async function approveWork(id) {
+  const btn = document.querySelector(`#pm-item-${id} .pm-approve`);
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
+    method: 'PATCH',
+    headers: {...{'apikey':SUPA_KEY,'Authorization':'Bearer '+localStorage.getItem('sb_token'),'Content-Type':'application/json','Prefer':'return=minimal'}},
+    body: JSON.stringify({ status: 'approved' })
+  });
+  if (r.ok || r.status === 204) {
+    const w = DATA.find(x => x.id === id);
+    if (w) w.status = 'approved';
+    const item = document.getElementById('pm-item-'+id);
+    if (item) { item.style.opacity = '.4'; item.innerHTML = '<div style="padding:8px;color:#3FB950;font-size:13px;">✓ Onaylandı</div>'; }
+    updatePendingCount();
+  } else {
+    alert('Hata: ' + await r.text());
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Onayla'; }
+  }
+}
+
+async function rejectWork(id) {
+  if (!confirm('Bu eseri reddetmek ve silmek istiyor musunuz?')) return;
+  const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
+    method: 'DELETE',
+    headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+localStorage.getItem('sb_token'),'Content-Type':'application/json'}
+  });
+  if (r.ok || r.status === 204) {
+    const idx = DATA.findIndex(x => x.id === id);
+    if (idx > -1) DATA.splice(idx, 1);
+    const item = document.getElementById('pm-item-'+id);
+    if (item) { item.style.opacity = '.4'; item.innerHTML = '<div style="padding:8px;color:#e07060;font-size:13px;">✕ Reddedildi ve silindi</div>'; }
+    updatePendingCount();
+    applyFilters();
+  } else {
+    alert('Hata: ' + await r.text());
+  }
+}
+
+function updatePendingCount() {
+  const cnt = DATA.filter(w => w.status === 'pending').length;
+  const btn = document.getElementById('btnPendingReview');
+  const countEl = document.getElementById('pendingCount');
+  if (btn) btn.style.display = cnt > 0 ? '' : 'none';
+  if (countEl) countEl.textContent = cnt;
+}
 
 function openSuggestModal() {
   openNewEserModal();
@@ -850,6 +940,17 @@ function openSuggestModal() {
   }, 100);
 }
 </script>
+
+<!-- PENDING REVIEW MODAL -->
+<div id="pendingModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;">
+  <div class="pm-card">
+    <div class="pm-header">
+      <span class="pm-title">⏳ Onay Bekleyen Eserler</span>
+      <button class="pm-close" onclick="closePendingModal()">✕</button>
+    </div>
+    <div id="pendingList"></div>
+  </div>
+</div>
 
 <!-- YENİ ESER MODAL -->
 <div id="newEserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
