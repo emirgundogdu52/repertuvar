@@ -318,7 +318,7 @@ let DATA = []; // Supabase'den yüklenecek
 
 async function loadWorksFromSupabase() {
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000'+(isAdmin()?'':'&or=(status.eq.approved,submitted_by.eq.'+getUserId()+')'), {
+    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000'+((isAdmin()||isEditor())?'':'&or=(status.eq.approved,submitted_by.eq.'+getUserId()+')'), {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
     });
     if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
@@ -527,7 +527,7 @@ function selectWork(id) {
   // Admin butonlarını göster/gizle
   const editBtn = document.getElementById('editBtn-'+w.id);
   const deleteBtn = document.getElementById('deleteBtn-'+w.id);
-  if (editBtn) editBtn.style.display = isAdmin() ? '' : 'none';
+  if (editBtn) editBtn.style.display = (isAdmin() || isEditor()) ? '' : 'none';
   if (deleteBtn) deleteBtn.style.display = isAdmin() ? '' : 'none';
 
   // Mobile: show detail panel
@@ -847,7 +847,7 @@ document.addEventListener('keydown', function(e) {
   
   buildFilters();
   applyFilters();
-  if (isAdmin()) updatePendingCount();
+  if (isAdmin() || isEditor()) updatePendingCount();
 })();
 
 // Cache works list for Solistler page
