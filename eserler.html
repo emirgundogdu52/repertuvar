@@ -340,7 +340,9 @@ async function loadWorksFromSupabase() {
       region: w.region || '',
       sourcePerson: w.source_person || '',
       videoLink: w.video_link || '',
-      lyrics: w.lyrics || ''
+      lyrics: w.lyrics || '',
+      status: w.status || 'approved',
+      submitted_by: w.submitted_by || ''
     }));
     return true;
   } catch(e) {
