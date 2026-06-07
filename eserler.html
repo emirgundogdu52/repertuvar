@@ -820,7 +820,11 @@ document.addEventListener('keydown', function(e) {
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
     // Pending eserleri göster
-    setTimeout(() => updatePendingCount(), 500);
+    setTimeout(() => {
+      const btn = document.getElementById('btnPendingReview');
+      if (btn) btn.classList.remove('admin-only');
+      updatePendingCount();
+    }, 500);
   } else {
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = '';
@@ -915,7 +919,10 @@ function updatePendingCount() {
   const cnt = DATA.filter(w => w.status === 'pending').length;
   const btn = document.getElementById('btnPendingReview');
   const countEl = document.getElementById('pendingCount');
-  if (btn) btn.style.display = cnt > 0 ? '' : 'none';
+  if (btn) {
+    btn.classList.remove('admin-only');
+    btn.style.display = cnt > 0 ? '' : 'none';
+  }
   if (countEl) countEl.textContent = cnt;
 }
 
