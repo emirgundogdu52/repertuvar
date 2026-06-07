@@ -665,22 +665,49 @@ function saveNewEser() {
   };
 
   if (editingWorkId !== null) {
-    // Düzenleme modu
-    const idx = DATA.findIndex(x => x.id === editingWorkId);
-    if (idx > -1) Object.assign(DATA[idx], fields);
-    // localStorage güncelle
-    const customs = getCustomWorks().map(w => w.id === editingWorkId ? {...w, ...fields} : w);
-    // Orijinal eser ise custom listesine ekle (varsa güncelle)
-    const inCustom = customs.find(w => w.id === editingWorkId);
-    if (!inCustom) customs.push({...fields, id: editingWorkId});
-    saveCustomWorks(customs);
-    closeNewEserModal();
-    buildFilters();
-    applyFilters();
-    setTimeout(() => {
-      const item = document.querySelector('[data-id="' + editingWorkId + '"]');
-      if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
-    }, 100);
+    // Düzenleme modu — Supabase'e PATCH at
+    const patchFields = {
+      name: fields.name,
+      composer: fields.composer,
+      lyric_writer: fields.lyricWriter,
+      makam: fields.makam,
+      measurement: fields.measurement,
+      form: fields.form,
+      tuning: fields.tuning,
+      instrument: fields.instrument,
+      region: fields.region,
+      source_person: fields.sourcePerson,
+      video_link: fields.videoLink,
+      lyrics: fields.lyrics
+    };
+    const token = localStorage.getItem('sb_token') || SUPA_KEY;
+    fetch(SUPA_URL + '/rest/v1/works?id=eq.' + editingWorkId, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(patchFields)
+    })
+    .then(r => {
+      if (r.ok || r.status === 204) {
+        // DATA'yı güncelle
+        const idx = DATA.findIndex(x => x.id === editingWorkId);
+        if (idx > -1) Object.assign(DATA[idx], fields);
+        closeNewEserModal();
+        buildFilters();
+        applyFilters();
+        setTimeout(() => {
+          const item = document.querySelector('[data-id="' + editingWorkId + '"]');
+          if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
+        }, 100);
+      } else {
+        r.text().then(t => alert('Kayıt hatası: ' + t));
+      }
+    })
+    .catch(err => alert('Bağlantı hatası: ' + err.message));
   } else {
     // Yeni eser - Supabase'e kaydet
     const status = isAdmin() ? 'approved' : 'pending';
