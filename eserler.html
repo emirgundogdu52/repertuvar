@@ -831,7 +831,7 @@ document.addEventListener('keydown', function(e) {
   const ok = await requireAuth(); if(!ok) return;
   renderUserBadge('userBadge');
   if (isAdmin()) {
-    document.querySelectorAll('.admin-only').forEach(el => { el.classList.remove('admin-only'); });
+    document.querySelectorAll('.admin-only').forEach(el => { el.classList.remove('admin-only'); el.style.display = ''; });
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
     setTimeout(() => {
