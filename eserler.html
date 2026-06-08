@@ -327,7 +327,7 @@ let DATA = []; // Supabase'den yüklenecek
 
 async function loadWorksFromSupabase() {
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000'+((isAdmin()||isEditor())?'':'&status=eq.approved'), {
+    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000&status=eq.approved', {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
     });
     if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
@@ -933,9 +933,14 @@ async function removeEditor(id) {
   showEditorManager();
 }
 
-function showPendingWorks() {
-  const pendingWorks = DATA.filter(w => w.status === 'pending');
+async function showPendingWorks() {
   const list = document.getElementById('pendingList');
+  list.innerHTML = '<div class="pm-empty">Yükleniyor...</div>';
+  document.getElementById('pendingModal').style.display = 'flex';
+  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&order=id.desc', {
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) }
+  });
+  const pendingWorks = r.ok ? await r.json() : [];
   if (!pendingWorks.length) {
     list.innerHTML = '<div class="pm-empty">Bekleyen eser yok 🎉</div>';
   } else {
@@ -958,7 +963,6 @@ function showPendingWorks() {
         </div>
       </div>`).join('');
   }
-  document.getElementById('pendingModal').style.display = 'flex';
 }
 
 function closePendingModal() {
@@ -1003,8 +1007,12 @@ async function rejectWork(id) {
   }
 }
 
-function updatePendingCount() {
-  const cnt = DATA.filter(w => w.status === 'pending').length;
+async function updatePendingCount() {
+  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&select=id', {
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) }
+  });
+  const data = r.ok ? await r.json() : [];
+  const cnt = data.length;
   const btn = document.getElementById('btnPendingReview');
   const countEl = document.getElementById('pendingCount');
   if (btn) {
