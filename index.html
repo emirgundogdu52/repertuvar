@@ -98,6 +98,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
     <div class="hero-actions" id="heroActions">
       <a href="stage.html" class="btn-p" id="btnStage">🎭 Eser okuma Ekranı</a>
       <a href="eserler.html" class="btn-s">Eserleri İncele →</a>
+      <a href="onerilerim.html" class="btn-s" id="btnOnerilerim" style="display:none;">📋 Önerilerim</a>
     </div>
   </div>
   <div class="stats-grid">
@@ -197,11 +198,13 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
   const el = document.getElementById('navUserName'); if(el) el.textContent = name;
   // Admin ise gizli elementleri göster
   if (isAdmin()) {
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+    document.querySelectorAll('.admin-only').forEach(el => { el.classList.remove('admin-only'); el.style.display = ''; });
     // Admin için sağ kolon göster
     const arc = document.getElementById('adminRightCol');
     if(arc) arc.style.display = 'block';
   } else {
+    const oBtn = document.getElementById('btnOnerilerim');
+    if (oBtn) oBtn.style.display = '';
     try {
       const token = localStorage.getItem('sb_token') || SUPA_KEY;
       const rr = await fetch(SUPA_URL+'/rest/v1/repertoires?user_id=eq.'+getUserId()+'&order=created_at.desc', {
@@ -233,9 +236,9 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
   }
   const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),'Prefer':'count=exact'};
   const ns = document.querySelectorAll('.stat-n');
-  const urls = ['works','repertoires','solistler'];
+  const urls = ['works?status=eq.approved','repertoires','solistler'];
   for(let i=0;i<3;i++){
-    try{ const r=await fetch(SUPA_URL+'/rest/v1/'+urls[i]+'?select=id&limit=1',{headers:H});
+    try{ const r=await fetch(SUPA_URL+'/rest/v1/'+urls[i]+'&select=id&limit=1',{headers:H});
     const cnt=r.headers.get('content-range')?.split('/')[1];
     if(cnt&&ns[i]) ns[i].textContent=cnt;
     if(cnt&&i===0){const b=document.getElementById('badgeWorks');if(b)b.textContent=cnt+' eser';}
