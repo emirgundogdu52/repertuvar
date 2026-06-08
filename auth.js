@@ -50,6 +50,7 @@ async function requireAuth() {
     }
     const user = await r.json();
     localStorage.setItem('sb_user', JSON.stringify(user));
+    await ensureProfile(user);
     await loadUserRole();
     return true;
   } catch(e) {
@@ -73,6 +74,28 @@ function getUserRole() {
 function isEditor() {
   if (isAdmin()) return true;
   return getUserRole() === 'editor';
+}
+
+async function ensureProfile(user) {
+  if (!user?.id) return;
+  if (user.id === ADMIN_USER_ID) return;
+  try {
+    // Profil yoksa oluştur
+    await fetch(SUPA_URL + '/rest/v1/profiles', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + (getToken() || SUPA_KEY),
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=ignore-duplicates'
+      },
+      body: JSON.stringify({
+        id: user.id,
+        role: 'member',
+        display_name: user.email
+      })
+    });
+  } catch(e) {}
 }
 
 async function loadUserRole() {
