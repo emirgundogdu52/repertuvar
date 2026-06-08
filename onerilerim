@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<!-- design-test v1 -->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repertuvar — Önerilerim</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#0D1117; --surface:#161B22; --surface2:#21262D;
+  --border:#30363D; --border2:#38384f;
+  --accent:#58A6FF; --accent2:#BC8CFF;
+  --text:#E6EDF3; --text2:#8B949E; --text3:#6E7681;
+  --red:#c05444; --green:#4a9462;
+}
+body { background:var(--bg); color:var(--text); font-family:'Sora',sans-serif; font-size:14px; min-height:100vh; }
+
+header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 16px; display:flex; align-items:center; gap:8px; height:56px; position:sticky; top:0; z-index:100; }
+.logo { font-family:'Sora',serif; font-size:18px; color:var(--accent); font-weight:600; white-space:nowrap; }
+.nav-btn { padding:5px 12px; border-radius:7px; border:1px solid var(--border); background:none; color:var(--text2); font-size:12px; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.nav-btn:hover { border-color:var(--accent); color:var(--accent); }
+#userBadge { margin-left:auto; display:flex; align-items:center; gap:8px; }
+
+main { max-width:720px; margin:0 auto; padding:24px 16px; }
+h1 { font-size:18px; font-weight:600; margin-bottom:6px; }
+.subtitle { font-size:13px; color:var(--text2); margin-bottom:24px; }
+
+.empty { text-align:center; color:var(--text3); padding:48px 16px; font-size:14px; }
+.empty a { color:var(--accent); text-decoration:none; }
+
+.card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:12px; }
+.card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px; }
+.card-name { font-size:15px; font-weight:600; color:var(--text); }
+.badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge.pending { background:rgba(249,160,74,.15); border:1px solid rgba(249,160,74,.4); color:#F9A04A; }
+.badge.approved { background:rgba(63,185,80,.12); border:1px solid rgba(63,185,80,.3); color:#3FB950; }
+.card-meta { display:flex; gap:10px; flex-wrap:wrap; font-size:12px; color:var(--text3); margin-bottom:10px; }
+.card-lyrics { font-size:12px; color:var(--text3); background:var(--bg); border-radius:6px; padding:10px; max-height:80px; overflow-y:auto; white-space:pre-wrap; line-height:1.6; margin-bottom:12px; }
+.card-actions { display:flex; gap:8px; }
+.btn-edit { padding:5px 14px; border-radius:7px; background:rgba(88,166,255,.12); border:1px solid rgba(88,166,255,.3); color:var(--accent); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+.btn-edit:hover { background:rgba(88,166,255,.22); }
+.btn-delete { padding:5px 14px; border-radius:7px; background:rgba(192,84,68,.1); border:1px solid rgba(192,84,68,.3); color:#e07060; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+.btn-delete:hover { background:rgba(192,84,68,.2); }
+
+/* EDIT MODAL */
+#editModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:2000; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; }
+.em-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; width:min(600px,96vw); padding:28px; }
+.em-title { font-size:16px; font-weight:600; margin-bottom:20px; }
+.field { margin-bottom:14px; }
+.field label { display:block; font-size:11px; font-weight:600; color:var(--text3); margin-bottom:5px; letter-spacing:.05em; }
+.field input, .field textarea, .field select { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 12px; color:var(--text); font-size:13px; font-family:inherit; outline:none; transition:border-color .15s; }
+.field input:focus, .field textarea:focus { border-color:var(--accent); }
+.field textarea { min-height:120px; resize:vertical; line-height:1.6; }
+.em-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
+.btn-save { padding:8px 20px; border-radius:8px; background:var(--accent); border:none; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+.btn-cancel { padding:8px 16px; border-radius:8px; background:none; border:1px solid var(--border); color:var(--text2); font-size:13px; cursor:pointer; font-family:inherit; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">Repertuvar</span>
+  <button class="nav-btn" onclick="window.location.href='eserler.html'">← Eserler</button>
+  <div id="userBadge"></div>
+</header>
+
+<main>
+  <h1>📋 Önerilerim</h1>
+  <p class="subtitle">Onay bekleyen ve onaylanmış eser önerileriniz.</p>
+  <div id="list"><div class="empty">Yükleniyor...</div></div>
+</main>
+
+<!-- EDIT MODAL -->
+<div id="editModal">
+  <div class="em-card">
+    <div class="em-title">✏️ Öneriyi Düzenle</div>
+    <input type="hidden" id="em_id">
+    <div class="field"><label>ESER ADI *</label><input type="text" id="em_name"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field"><label>BESTECİ</label><input type="text" id="em_composer"></div>
+      <div class="field"><label>GÜFTEKÂR</label><input type="text" id="em_lyric_writer"></div>
+      <div class="field"><label>MAKAM</label><input type="text" id="em_makam"></div>
+      <div class="field"><label>USUL</label><input type="text" id="em_measurement"></div>
+      <div class="field"><label>AKORT</label><input type="text" id="em_tuning"></div>
+      <div class="field"><label>BÖLGE / YÖRE</label><input type="text" id="em_region"></div>
+      <div class="field"><label>KAYNAK KİŞİ</label><input type="text" id="em_source_person"></div>
+      <div class="field"><label>ENSTRÜMAN</label><input type="text" id="em_instrument"></div>
+    </div>
+    <div class="field"><label>GÜFTE</label><textarea id="em_lyrics"></textarea></div>
+    <div class="em-actions">
+      <button class="btn-cancel" onclick="closeEditModal()">İptal</button>
+      <button class="btn-save" onclick="saveEdit()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+
+(async () => {
+  const ok = await requireAuth();
+  if (!ok) return;
+  renderUserBadge('userBadge');
+  loadMyWorks();
+})();
+
+async function loadMyWorks() {
+  const uid = getUserId();
+  const r = await fetch(SUPA_URL + '/rest/v1/works?submitted_by=eq.' + uid + '&order=id.desc', {
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) }
+  });
+  const works = r.ok ? await r.json() : [];
+  const list = document.getElementById('list');
+  if (!works.length) {
+    list.innerHTML = `<div class="empty">Henüz eser önermediniz.<br><br><a href="eserler.html">Eserler sayfasına dön →</a></div>`;
+    return;
+  }
+  list.innerHTML = works.map(w => `
+    <div class="card" id="card-${w.id}">
+      <div class="card-header">
+        <div class="card-name">${w.name || '(isimsiz)'}</div>
+        <span class="badge ${w.status === 'approved' ? 'approved' : 'pending'}">
+          ${w.status === 'approved' ? '✓ Onaylandı' : '⏳ Onay Bekliyor'}
+        </span>
+      </div>
+      <div class="card-meta">
+        ${w.composer ? `<span>🎼 ${w.composer}</span>` : ''}
+        ${w.makam ? `<span>🎵 ${w.makam}</span>` : ''}
+        ${w.region ? `<span>📍 ${w.region}</span>` : ''}
+        ${w.measurement ? `<span>♩ ${w.measurement}</span>` : ''}
+      </div>
+      ${w.lyrics ? `<div class="card-lyrics">${w.lyrics.substring(0,200)}${w.lyrics.length>200?'…':''}</div>` : ''}
+      <div class="card-actions">
+        ${w.status === 'pending' ? `
+          <button class="btn-edit" onclick="openEditModal(${w.id})">✏️ Düzenle</button>
+          <button class="btn-delete" onclick="deleteWork(${w.id})">🗑 Geri Al</button>
+        ` : ''}
+      </div>
+    </div>`).join('');
+}
+
+let WORKS = [];
+async function openEditModal(id) {
+  const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) }
+  });
+  const data = await r.json();
+  const w = data[0];
+  if (!w) return;
+  document.getElementById('em_id').value = w.id;
+  document.getElementById('em_name').value = w.name || '';
+  document.getElementById('em_composer').value = w.composer || '';
+  document.getElementById('em_lyric_writer').value = w.lyric_writer || '';
+  document.getElementById('em_makam').value = w.makam || '';
+  document.getElementById('em_measurement').value = w.measurement || '';
+  document.getElementById('em_tuning').value = w.tuning || '';
+  document.getElementById('em_region').value = w.region || '';
+  document.getElementById('em_source_person').value = w.source_person || '';
+  document.getElementById('em_instrument').value = w.instrument || '';
+  document.getElementById('em_lyrics').value = w.lyrics || '';
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+}
+
+async function saveEdit() {
+  const id = document.getElementById('em_id').value;
+  const body = {
+    name: document.getElementById('em_name').value.trim(),
+    composer: document.getElementById('em_composer').value.trim(),
+    lyric_writer: document.getElementById('em_lyric_writer').value.trim(),
+    makam: document.getElementById('em_makam').value.trim(),
+    measurement: document.getElementById('em_measurement').value.trim(),
+    tuning: document.getElementById('em_tuning').value.trim(),
+    region: document.getElementById('em_region').value.trim(),
+    source_person: document.getElementById('em_source_person').value.trim(),
+    instrument: document.getElementById('em_instrument').value.trim(),
+    lyrics: document.getElementById('em_lyrics').value.trim()
+  };
+  const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
+    method: 'PATCH',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify(body)
+  });
+  if (r.ok || r.status === 204) {
+    closeEditModal();
+    loadMyWorks();
+  } else {
+    alert('Kayıt hatası: ' + await r.text());
+  }
+}
+
+async function deleteWork(id) {
+  if (!confirm('Bu öneriyi geri almak istiyor musunuz? Eser silinecek.')) return;
+  const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) }
+  });
+  if (r.ok || r.status === 204) {
+    const card = document.getElementById('card-' + id);
+    if (card) card.remove();
+  } else {
+    alert('Silme hatası: ' + await r.text());
+  }
+}
+</script>
+</body>
+</html>
