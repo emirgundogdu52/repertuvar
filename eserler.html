@@ -879,26 +879,33 @@ async function assignEditor() {
   const email = document.getElementById('editorEmailInput').value.trim();
   const msg = document.getElementById('editorMsg');
   if (!email) return;
-  // auth.users'dan email ile id bul
-  const r = await fetch(SUPA_URL + '/rest/v1/profiles?display_name=eq.' + encodeURIComponent(email) + '&select=id', {
+  msg.style.display = 'block';
+  msg.textContent = 'Aranıyor...';
+  msg.style.color = 'var(--text3)';
+
+  // 1. auth.users'dan email ile UUID bul
+  const rUser = await fetch(SUPA_URL + '/rest/v1/profiles?display_name=eq.' + encodeURIComponent(email) + '&select=id,role', {
     headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
   });
-  // display_name email olarak kaydettik, direkt güncelle
-  const r2 = await fetch(SUPA_URL + '/rest/v1/profiles?display_name=eq.' + encodeURIComponent(email), {
-    method: 'PATCH',
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-    body: JSON.stringify({ role: 'editor' })
-  });
-  if (r2.ok || r2.status === 204) {
-    msg.style.display = 'block';
+  const users = rUser.ok ? await rUser.json() : [];
+
+  if (users.length > 0) {
+    // Profil var — sadece rolü güncelle
+    const uid = users[0].id;
+    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ role: 'editor' })
+    });
     msg.style.color = '#3FB950';
     msg.textContent = '✓ Editör olarak atandı.';
     document.getElementById('editorEmailInput').value = '';
     showEditorManager();
   } else {
-    msg.style.display = 'block';
+    // Profil yok — auth.users'dan UUID alıp INSERT yap
+    // Bunun için admin RPC gerekir, SQL ile yapılmalı
     msg.style.color = '#e07060';
-    msg.textContent = 'Kullanıcı bulunamadı. Email adresi kayıtlı olmalı.';
+    msg.textContent = 'Kullanıcı profili bulunamadı. Kullanıcının en az bir kez giriş yapmış olması gerekiyor.';
   }
 }
 
