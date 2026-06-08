@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<!-- design-test v1 -->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repertuvar — Üyeler</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="auth.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#0D1117; --surface:#161B22; --surface2:#21262D;
+  --border:#30363D; --accent:#58A6FF; --accent2:#BC8CFF;
+  --text:#E6EDF3; --text2:#8B949E; --text3:#6E7681;
+  --red:#c05444; --green:#4a9462; --orange:#F9A04A;
+}
+body { background:var(--bg); color:var(--text); font-family:'Sora',sans-serif; font-size:14px; min-height:100vh; }
+
+header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 16px; display:flex; align-items:center; gap:8px; height:56px; position:sticky; top:0; z-index:100; flex-wrap:wrap; }
+.logo { font-size:18px; color:var(--accent); font-weight:600; white-space:nowrap; }
+.nav-btn { padding:5px 12px; border-radius:7px; border:1px solid var(--border); background:none; color:var(--text2); font-size:12px; cursor:pointer; font-family:inherit; text-decoration:none; white-space:nowrap; }
+.nav-btn:hover { border-color:var(--accent); color:var(--accent); }
+#userBadge { margin-left:auto; display:flex; align-items:center; gap:8px; }
+
+main { max-width:800px; margin:0 auto; padding:24px 16px; }
+
+.page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+.page-title { font-size:18px; font-weight:600; }
+.stats { display:flex; gap:12px; flex-wrap:wrap; }
+.stat-chip { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:6px 14px; font-size:12px; color:var(--text2); }
+.stat-chip span { color:var(--text); font-weight:600; }
+
+.search-bar { margin-bottom:16px; position:relative; }
+.search-bar input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 12px 8px 36px; color:var(--text); font-size:13px; font-family:inherit; outline:none; transition:border-color .15s; }
+.search-bar input:focus { border-color:var(--accent); }
+.search-bar input::placeholder { color:var(--text3); }
+.search-bar span { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--text3); }
+
+.member-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.member-avatar { width:36px; height:36px; border-radius:50%; background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; color:var(--accent); flex-shrink:0; }
+.member-info { flex:1; min-width:0; }
+.member-email { font-size:13px; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.member-meta { font-size:11px; color:var(--text3); margin-top:2px; }
+.role-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
+.role-badge.admin { background:rgba(248,81,73,.12); border:1px solid rgba(248,81,73,.3); color:#F85149; }
+.role-badge.editor { background:rgba(188,140,255,.12); border:1px solid rgba(188,140,255,.3); color:#BC8CFF; }
+.role-badge.member { background:rgba(139,148,158,.1); border:1px solid rgba(139,148,158,.2); color:var(--text2); }
+.member-actions { display:flex; gap:6px; flex-shrink:0; }
+.btn-sm { padding:5px 12px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; border:1px solid var(--border); background:none; color:var(--text2); white-space:nowrap; }
+.btn-sm:hover { border-color:var(--accent); color:var(--accent); }
+.btn-sm.danger:hover { border-color:var(--red); color:#e07060; }
+.btn-sm.promote { border-color:rgba(188,140,255,.4); color:#BC8CFF; background:rgba(188,140,255,.08); }
+.btn-sm.demote { border-color:rgba(139,148,158,.3); color:var(--text3); }
+
+.empty { text-align:center; color:var(--text3); padding:48px; font-size:14px; }
+.loading { text-align:center; color:var(--text3); padding:32px; }
+
+/* CONFIRM MODAL */
+#confirmModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:2000; align-items:center; justify-content:center; padding:16px; }
+.confirm-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; width:min(400px,96vw); }
+.confirm-title { font-size:15px; font-weight:600; margin-bottom:8px; }
+.confirm-text { font-size:13px; color:var(--text2); margin-bottom:20px; line-height:1.5; }
+.confirm-actions { display:flex; gap:8px; justify-content:flex-end; }
+.btn-confirm-danger { padding:7px 16px; border-radius:7px; background:rgba(192,84,68,.15); border:1px solid rgba(192,84,68,.4); color:#e07060; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+.btn-confirm-cancel { padding:7px 16px; border-radius:7px; background:none; border:1px solid var(--border); color:var(--text2); font-size:13px; cursor:pointer; font-family:inherit; }
+
+@media(max-width:600px) {
+  .member-card { gap:8px; }
+  .member-actions { width:100%; justify-content:flex-end; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">Repertuvar</span>
+  <a href="eserler.html" class="nav-btn">← Eserler</a>
+  <div id="userBadge"></div>
+</header>
+
+<main>
+  <div class="page-header">
+    <div class="page-title">👥 Üye Yönetimi</div>
+    <div class="stats">
+      <div class="stat-chip">Toplam: <span id="statTotal">—</span></div>
+      <div class="stat-chip">Editör: <span id="statEditor">—</span></div>
+      <div class="stat-chip">Üye: <span id="statMember">—</span></div>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <span>🔍</span>
+    <input type="text" id="searchInput" placeholder="Email ile ara..." oninput="filterMembers()">
+  </div>
+
+  <div id="memberList"><div class="loading">Yükleniyor...</div></div>
+</main>
+
+<!-- CONFIRM MODAL -->
+<div id="confirmModal">
+  <div class="confirm-card">
+    <div class="confirm-title" id="confirmTitle"></div>
+    <div class="confirm-text" id="confirmText"></div>
+    <div class="confirm-actions">
+      <button class="btn-confirm-cancel" onclick="closeConfirm()">İptal</button>
+      <button class="btn-confirm-danger" id="confirmBtn">Onayla</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let ALL_MEMBERS = [];
+
+(async () => {
+  const ok = await requireAuth();
+  if (!ok) return;
+  if (!isAdmin()) { window.location.href = 'eserler.html'; return; }
+  renderUserBadge('userBadge');
+  loadMembers();
+})();
+
+async function loadMembers() {
+  const r = await fetch(SUPA_URL + '/rest/v1/profiles?select=id,role,display_name,created_at&order=created_at.desc', {
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + getToken() }
+  });
+  ALL_MEMBERS = r.ok ? await r.json() : [];
+  updateStats();
+  renderMembers(ALL_MEMBERS);
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = ALL_MEMBERS.length;
+  document.getElementById('statEditor').textContent = ALL_MEMBERS.filter(m => m.role === 'editor').length;
+  document.getElementById('statMember').textContent = ALL_MEMBERS.filter(m => m.role === 'member').length;
+}
+
+function filterMembers() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const filtered = q ? ALL_MEMBERS.filter(m => (m.display_name||'').toLowerCase().includes(q)) : ALL_MEMBERS;
+  renderMembers(filtered);
+}
+
+function formatDate(str) {
+  if (!str) return '—';
+  return new Date(str).toLocaleString('tr-TR', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function getInitial(email) {
+  return (email || '?')[0].toUpperCase();
+}
+
+function renderMembers(members) {
+  const list = document.getElementById('memberList');
+  if (!members.length) {
+    list.innerHTML = '<div class="empty">Üye bulunamadı.</div>';
+    return;
+  }
+  list.innerHTML = members.map(m => {
+    const isAdminUser = m.role === 'admin';
+    return `
+    <div class="member-card" id="mc-${m.id}">
+      <div class="member-avatar">${getInitial(m.display_name)}</div>
+      <div class="member-info">
+        <div class="member-email">${m.display_name || m.id}</div>
+        <div class="member-meta">Kayıt: ${formatDate(m.created_at)}</div>
+      </div>
+      <span class="role-badge ${m.role}">${m.role === 'admin' ? '👑 Admin' : m.role === 'editor' ? '✏️ Editör' : '👤 Üye'}</span>
+      <div class="member-actions">
+        ${isAdminUser ? '' : m.role === 'editor'
+          ? `<button class="btn-sm demote" onclick="changeRole('${m.id}', 'member')">Üye Yap</button>`
+          : `<button class="btn-sm promote" onclick="changeRole('${m.id}', 'editor')">Editör Yap</button>`
+        }
+        ${isAdminUser ? '' : `<button class="btn-sm danger" onclick="confirmDelete('${m.id}', '${m.display_name||m.id}')">Sil</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function changeRole(id, role) {
+  const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + id, {
+    method: 'PATCH',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ role })
+  });
+  if (r.ok || r.status === 204) {
+    const m = ALL_MEMBERS.find(x => x.id === id);
+    if (m) m.role = role;
+    updateStats();
+    filterMembers();
+  }
+}
+
+let pendingDeleteId = null;
+function confirmDelete(id, email) {
+  pendingDeleteId = id;
+  document.getElementById('confirmTitle').textContent = 'Üyeyi Sil';
+  document.getElementById('confirmText').textContent = `"${email}" adlı üyeyi silmek istiyor musunuz? Bu işlem geri alınamaz.`;
+  document.getElementById('confirmBtn').onclick = deleteMember;
+  document.getElementById('confirmModal').style.display = 'flex';
+}
+
+function closeConfirm() {
+  document.getElementById('confirmModal').style.display = 'none';
+  pendingDeleteId = null;
+}
+
+async function deleteMember() {
+  if (!pendingDeleteId) return;
+  closeConfirm();
+  // profiles'dan sil
+  await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + pendingDeleteId, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + getToken() }
+  });
+  ALL_MEMBERS = ALL_MEMBERS.filter(m => m.id !== pendingDeleteId);
+  updateStats();
+  filterMembers();
+}
+
+</script>
+</body>
+</html>
