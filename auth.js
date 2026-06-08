@@ -85,9 +85,17 @@ async function loadUserRole() {
     });
     if (r.ok) {
       const data = await r.json();
-      if (data[0]?.role) localStorage.setItem('user_role', data[0].role);
+      console.log('[auth] profiles data:', data);
+      if (data[0]?.role) {
+        localStorage.setItem('user_role', data[0].role);
+        console.log('[auth] role set to:', data[0].role);
+      } else {
+        console.log('[auth] no role found in profiles');
+      }
+    } else {
+      console.log('[auth] profiles fetch failed:', r.status);
     }
-  } catch(e) {}
+  } catch(e) { console.log('[auth] loadUserRole error:', e); }
 }
 
 function logout() {
@@ -101,6 +109,7 @@ function logout() {
   localStorage.removeItem('sb_token');
   localStorage.removeItem('sb_refresh');
   localStorage.removeItem('sb_user');
+  localStorage.removeItem('user_role');
   window.location.href = 'login.html?logout=1';
 }
 
