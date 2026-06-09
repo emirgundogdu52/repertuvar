@@ -388,7 +388,12 @@ function renderDetail(){
     const w=WL[it.workId]||{};
     const cn=it.closingNote||w.closingNote||'';
     const pf = it.performer || '';
-    return `<tr>
+    return `<tr draggable="true" data-idx="${idx}" data-repid="${rep.id}"
+      ondragstart="dragStart(event,${idx},'${rep.id}')"
+      ondragover="dragOver(event)"
+      ondrop="dragDrop(event,${idx},'${rep.id}')"
+      ondragend="dragEnd(event)"
+      style="cursor:grab;">
       <td class="sq"><input class="si" type="number" min="1" max="${items.length}" value="${it.seq}" onchange="chSeq('${rep.id}',${idx},this.value)" onclick="event.stopPropagation()"></td>
       <td>
         <div class="wn">${w.name||'#'+it.workId}</div>
@@ -567,6 +572,45 @@ async function rmItem(repId,itemId){
   try{await dbDel('repertoire_items',itemId);toast('Silindi');await load();}catch(e){toast(e.message,'er');}
 }
 
+
+let dragSrcIdx = null;
+let dragRepId = null;
+
+function dragStart(e, idx, repId) {
+  dragSrcIdx = idx;
+  dragRepId = repId;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.style.opacity = '0.4';
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.style.borderTop = '2px solid var(--accent)';
+}
+
+function dragDrop(e, idx, repId) {
+  e.preventDefault();
+  e.currentTarget.style.borderTop = '';
+  if (dragSrcIdx === null || dragSrcIdx === idx || dragRepId !== repId) return;
+  const rep = getRep(repId);
+  if (!rep) return;
+  const items = [...rep.items];
+  const [moved] = items.splice(dragSrcIdx, 1);
+  items.splice(idx, 0, moved);
+  items.forEach((it, i) => it.seq = i + 1);
+  sync('spin', '...');
+  Promise.all(items.map(it => dbPatch('repertoire_items', it.id, {seq: it.seq})))
+    .then(() => load())
+    .catch(e => toast(e.message, 'er'));
+}
+
+function dragEnd(e) {
+  e.currentTarget.style.opacity = '1';
+  document.querySelectorAll('tr').forEach(tr => tr.style.borderTop = '');
+  dragSrcIdx = null;
+  dragRepId = null;
+}
 async function mv(repId,idx,dir){
   const rep=getRep(repId);if(!rep)return;
   const items=[...rep.items];
