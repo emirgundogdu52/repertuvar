@@ -628,12 +628,15 @@ async function saveChords(id) {
   const ta = document.getElementById('inline_chords_'+id);
   if (!ta) { console.error('textarea bulunamadı: inline_chords_'+id); return; }
   const chords = ta.value.trim();
+  const numId = parseInt(id);
   const token = localStorage.getItem('sb_token') || SUPA_KEY;
-  const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
+  const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+numId, {
     method: 'PATCH',
-    headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
+    headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation'},
     body: JSON.stringify({chords})
   });
+  const respText = await r.text();
+  console.log('PATCH status:', r.status, 'response:', respText.substring(0,200));
   if (r.ok || r.status===204) {
     const idx = DATA.findIndex(x => x.id === id);
     if (idx > -1) DATA[idx].chords = chords;
