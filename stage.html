@@ -210,6 +210,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
       <div class="nn" id="nn">—</div>
       <div class="nm" id="nm">—</div>
     </div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button onclick="setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
+      <button onclick="setLyricsAlign('center')" id="alignCenter" title="Ortala" style="background:rgba(88,166,255,.15);border:1px solid var(--accent);border-radius:6px;color:var(--accent);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☰</button>
+      <button onclick="setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
+    </div>
     <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
 </div>
@@ -283,6 +288,25 @@ function renderPicker(){
 
 function pickRep(id){selId=id;document.getElementById('bstart').disabled=false;renderPicker();}
 
+function setLyricsAlign(align) {
+  localStorage.setItem('stageLyricsAlign', align);
+  const el = document.querySelector('.wlyrics');
+  if (el) el.style.textAlign = align;
+  ['left','center','right'].forEach(a => {
+    const btn = document.getElementById('align' + a.charAt(0).toUpperCase() + a.slice(1));
+    if (!btn) return;
+    if (a === align) {
+      btn.style.background = 'rgba(88,166,255,.15)';
+      btn.style.borderColor = 'var(--accent)';
+      btn.style.color = 'var(--accent)';
+    } else {
+      btn.style.background = 'none';
+      btn.style.borderColor = 'var(--border)';
+      btn.style.color = 'var(--text3)';
+    }
+  });
+}
+
 function renderStageChords(text) {
   if (!text) return '';
   return text.trim().split('\n').map(line => {
@@ -333,7 +357,9 @@ function renderStage(){
     ${chips?`<div class="wcr">${chips}</div>`:''}
     ${(item.note||w.composer)?`<div class="wnote">${item.note||(w.composer?'— '+w.composer:'')}</div>`:''}
     ${lyricsHtml}`; 
-  const next=items[curIdx+1];
+  // Kaydedilmiş hizalamayı uygula
+  const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
+  setLyricsAlign(savedAlign);
   const np=document.getElementById('np');
   if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
   else np.style.display='none';
