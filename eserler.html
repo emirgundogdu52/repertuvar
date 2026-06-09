@@ -788,7 +788,12 @@ function hideDeleteConfirm(id) {
   const bar = document.getElementById('confirm-' + id);
   if (bar) bar.classList.remove('open');
 }
-function deleteWork(id) {
+async function deleteWork(id) {
+  const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
+    method: 'DELETE',
+    headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(getToken()||SUPA_KEY)}
+  });
+  if (!r.ok && r.status !== 204) { alert('Silme hatası: ' + await r.text()); return; }
   const customs = getCustomWorks().filter(w => w.id !== id);
   saveCustomWorks(customs);
   const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
@@ -1118,7 +1123,7 @@ function openSuggestModal() {
           <button type="button" onclick="lyricsClear()" title="Formatı Temizle" style="padding:0 8px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text3);font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">✕ Temizle</button>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
           <span style="font-size:11px;color:var(--text3);margin-right:4px;font-weight:600;letter-spacing:.05em;">ÖZEL</span>
-          <button type="button" onclick="lyricsInsert('[ ]')"   title="Köşeli parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">[ ]</button>
+          <button type="button" onclick="lyricsInsert('[]')"   title="Köşeli parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">[ ]</button>
           <button type="button" onclick="lyricsInsert('{ }')"   title="Süslü parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">{ }</button>
           <button type="button" onclick="lyricsInsert('( )')"   title="Parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">( )</button>
           <button type="button" onclick="lyricsInsert('>>')"    title="Çift ok" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">>></button>
