@@ -93,10 +93,10 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 <div class="hero" style="position:relative;z-index:1;">
   <div>
     <div style="margin-bottom:20px;"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:160px;width:auto;"></div>
-    <h1>Sevdiğiniz Tüm Eserler ve notalar,<br><em>Her an yanınızda.</em></h1>
-    <p class="hero-sub">Eserlerinizi kaydedin, Repertuvarlarınızı oluşturun, Okuma Sırasını Oluşturun, Diğer grup üyeleriyle paylaşın. Sahnede ihtiyacınız olan her şeyi tek bir yerden yönetin.</p>
+    <h1>Tüm eserleriniz,<br><em>Her an yanınızda.</em></h1>
+    <p class="hero-sub">Güfte, makam, akort — hepsi kayıtlı. Sahneye çıkmadan önce tek yapmanız gereken repertuvarı seçmek.</p>
     <div class="hero-actions" id="heroActions">
-      <a href="stage.html" class="btn-p" id="btnStage">🎭 Eser okuma Ekranı</a>
+      <a href="stage.html" class="btn-p" id="btnStage">🎭 Eser Okuma Ekranı</a>
       <a href="eserler.html" class="btn-s">Eserleri İncele →</a>
       <a href="onerilerim.html" class="btn-s" id="btnOnerilerim" style="display:none;">📋 Önerilerim</a>
     </div>
@@ -105,8 +105,8 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
     <div class="stat-card">
       <div class="stat-icon">🎼</div>
       <div class="stat-n">399</div>
-      <div class="stat-l">Eser kayıtlı eser mevcut</div>
-      <div class="stat-trend">↑ Bu ay eklenen Eser sayısı 12</div>
+      <div class="stat-l">Kayıtlı eser</div>
+      <div class="stat-trend">↑ Bu ay eklenen: 12</div>
     </div>
     <div class="stat-card admin-only" style="display:none;">
       <div class="stat-icon">📋</div>
@@ -128,25 +128,22 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
 </div>
 
 <div class="section" style="position:relative;z-index:1;">
-  <!-- Yan yana grid: Bölümler + Repertuvarlarım -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
     <div>
       <div class="section-hdr"><span class="section-title">Bölümler</span></div>
       <div style="display:flex;flex-direction:column;gap:12px;">
         <a href="eserler.html" class="card">
-      <div class="card-header">
-        <div class="card-icon-wrap ci-blue">🎼</div>
-        <span class="card-badge" id="badgeWorks">— eser</span>
+          <div class="card-header">
+            <div class="card-icon-wrap ci-blue">🎼</div>
+            <span class="card-badge" id="badgeWorks">— eser</span>
+          </div>
+          <div class="card-title">Eserler</div>
+          <div class="card-desc">Makam, akort, güfte, besteci — tam arşiv, her cihazda.</div>
+          <div class="card-footer"><span class="card-stat">Son güncelleme: bugün</span><span class="card-arrow">↗</span></div>
+        </a>
       </div>
-      <div class="card-title">Eserler</div>
-      <div class="card-desc">Makam, akort, karar sesi, güfte ve besteci bilgileriyle tüm arşiviniz her yerde elinizin altında.</div>
-      <div class="card-footer"><span class="card-stat">Son güncelleme: bugün</span><span class="card-arrow">↗</span></div>
-    </a>
+    </div>
 
-      </div><!-- end cards flex -->
-    </div><!-- end left column -->
-    
-    <!-- Sağ kolon: Repertuvarlarım -->
     <div id="userRepSection" style="display:none;">
       <div class="section-hdr">
         <span class="section-title">Repertuvarlarım</span>
@@ -154,8 +151,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
       </div>
       <div id="userRepCard"></div>
     </div>
-    
-    <!-- Admin için sağ kolon boş -->
+
     <div id="adminRightCol" class="admin-only" style="display:none;">
       <div class="section-hdr"><span class="section-title">Hızlı Erişim</span></div>
       <div style="display:flex;flex-direction:column;gap:10px;">
@@ -171,14 +167,14 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
         </a>
       </div>
     </div>
-    
-  </div><!-- end grid -->
+
+  </div>
 </div>
 
 <div class="stage-wrap" style="position:relative;z-index:1;">
   <div class="stage-card">
     <div class="stage-left">
-      <h2>Sahne Modu<br><span>Şova hazır mısınız?</span></h2>
+      <h2>Sahne Modu<br><span>Sahne için hazır.</span></h2>
       <p>Büyük ekran, ileri / geri tuşları ile kolay eser geçişi. Gece ve gündüz tema seçeneğiyle sahneye hazır.</p>
     </div>
     <div class="stage-right">
@@ -190,16 +186,15 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
     </div>
   </div>
 </div>
+
 <script>
 (async function(){
   const ok = await requireAuth(); if(!ok) return;
   const u = getUser();
   const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
   const el = document.getElementById('navUserName'); if(el) el.textContent = name;
-  // Admin ise gizli elementleri göster
   if (isAdmin()) {
     document.querySelectorAll('.admin-only').forEach(el => { el.classList.remove('admin-only'); el.style.display = ''; });
-    // Admin için sağ kolon göster
     const arc = document.getElementById('adminRightCol');
     if(arc) arc.style.display = 'block';
   } else {
@@ -310,5 +305,6 @@ async function checkUserHasReps() {
     return data && data.length > 0;
   } catch(e) { return false; }
 }
-
 </script>
+</body>
+</html>
