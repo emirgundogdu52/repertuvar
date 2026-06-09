@@ -626,8 +626,9 @@ function renderChords(text) {
 
 async function saveChords(id) {
   const ta = document.getElementById('inline_chords_'+id);
-  if (!ta) return;
+  if (!ta) { console.error('textarea bulunamadı: inline_chords_'+id); return; }
   const chords = ta.value.trim();
+  console.log('saveChords id:', id, 'chords length:', chords.length, 'preview:', chords.substring(0,100));
   const token = localStorage.getItem('sb_token') || SUPA_KEY;
   const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
     method: 'PATCH',
