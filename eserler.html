@@ -518,9 +518,7 @@ function selectWork(id) {
 
   const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video İzle</a>` : '';
   const stageId = String(parseInt(w.id));
-  const lastTab = localStorage.getItem('detailActiveTab') || 'gufte';
-  const stageMode = lastTab === 'akorlar' ? '&mode=chords' : '';
-  const stageBtn = `<a href="stage.html?work=${stageId}${stageMode}" class="stage-open-btn" onclick="saveStageList('${stageId}');localStorage.setItem('stageShowChords','${lastTab === 'akorlar' ? '1' : '0'}')">🎭 Sahne Modunda Aç</a>`;
+  const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="const t=localStorage.getItem('detailActiveTab')||'gufte';localStorage.setItem('stageShowChords',t==='akorlar'?'1':'0');saveStageList('${stageId}');if(t==='akorlar')this.href='stage.html?work=${stageId}&mode=chords';else this.href='stage.html?work=${stageId}';">🎭 Sahne Modunda Aç</a>`;
 
   dc.innerHTML = `
     <div class="detail-header">
