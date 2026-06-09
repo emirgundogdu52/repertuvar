@@ -570,7 +570,7 @@ function selectWork(id) {
           <div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.6;">
             <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:#58A6FF;">%%</code> ile başlayan satır = akor satırı, altındaki = güfte satırı
           </div>
-          <textarea id="inline_chords_${w.id}" style="width:100%;min-height:160px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:monospace;line-height:1.8;resize:vertical;"
+          <textarea id="inline_chords_${w.id}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" style="width:100%;min-height:160px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:monospace;line-height:1.8;resize:vertical;"
             placeholder="%%Dm  G   Am&#10;Sabahtan kalktım yıkadım yüzüm&#10;%%C        F&#10;Telim örülürken ağladı gözüm"
           >${w.chords
             ? (w.chords).replace(/</g,'&lt;').replace(/>/g,'&gt;')
