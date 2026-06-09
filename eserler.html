@@ -365,6 +365,7 @@ async function loadWorksFromSupabase() {
       sourcePerson: w.source_person || '',
       videoLink: w.video_link || '',
       lyrics: w.lyrics || '',
+      chords: w.chords || '',
       status: w.status || 'approved',
       submitted_by: w.submitted_by || '',
       submitter_email: w.submitter_email || '',
@@ -705,7 +706,7 @@ function openEditEserModal(id) {
     ne_makam: w.makam, ne_measurement: w.measurement, ne_form: w.form,
     ne_tuning: w.tuning, ne_instrument: w.instrument, ne_region: w.region,
     ne_sourcePerson: w.sourcePerson, ne_videoLink: w.videoLink, ne_lyrics: w.lyrics,
-    ne_chords: w.chords
+    ne_chords: w.chords || (w.lyrics||'').split('\n').map(l => '%%\n'+l).join('\n')
   };
   Object.entries(fields).forEach(([id, val]) => {
     const el = document.getElementById(id);
