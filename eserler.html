@@ -518,10 +518,9 @@ function selectWork(id) {
 
   const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video İzle</a>` : '';
   const stageId = String(parseInt(w.id));
-  const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="saveStageList('${stageId}')">🎭 Sahne Modunda Aç</a>`;
-
-  // Restore last active tab or default to 'gufte'
   const lastTab = localStorage.getItem('detailActiveTab') || 'gufte';
+  const stageMode = lastTab === 'akorlar' ? '&mode=chords' : '';
+  const stageBtn = `<a href="stage.html?work=${stageId}${stageMode}" class="stage-open-btn" onclick="saveStageList('${stageId}');localStorage.setItem('stageShowChords','${lastTab === 'akorlar' ? '1' : '0'}')">🎭 Sahne Modunda Aç</a>`;
 
   dc.innerHTML = `
     <div class="detail-header">
@@ -617,13 +616,22 @@ function selectWork(id) {
 }
 
 function renderChords(text) {
-  return text.split('\n').map(line => {
+  const lines = text.trim().split('\n');
+  let html = '';
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     if (line.startsWith('%%')) {
-      const akorlar = line.slice(2);
-      return `<span style="color:#58A6FF;opacity:.9;font-size:12px;letter-spacing:.08em;display:block;">${akorlar}</span>`;
+      const akorlar = line.slice(2).trim();
+      if (akorlar) {
+        html += `<span style="color:#58A6FF;opacity:.9;font-size:12px;letter-spacing:.08em;display:block;margin-top:4px;">${akorlar}</span>`;
+      }
+    } else if (line.trim() === '') {
+      html += `<span style="display:block;height:8px;"></span>`;
+    } else {
+      html += `<span style="color:var(--text2);display:block;">${line.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
     }
-    return `<span style="color:var(--text2);display:block;">${line.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
-  }).join('');
+  }
+  return html;
 }
 
 async function saveChords(id) {
