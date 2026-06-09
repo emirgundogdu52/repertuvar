@@ -1114,7 +1114,7 @@ async function showEditorManager() {
   document.getElementById('editorModal').style.display = 'flex';
   const list = document.getElementById('editorList');
   list.innerHTML = '<div style="color:var(--text3);font-size:13px;">Yükleniyor...</div>';
-  const r = await fetch(SUPA_URL + '/rest/v1/profiles?role=eq.editor&select=id,display_name,role', {
+  const r = await fetch(SUPA_URL + '/rest/v1/profiles?role=eq.editor&select=id,email,role', {
     headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
   });
   const editors = await r.json();
@@ -1123,7 +1123,7 @@ async function showEditorManager() {
   } else {
     list.innerHTML = editors.map(e => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;">
-        <span style="font-size:13px;color:var(--text);">${e.display_name || e.id}</span>
+        <span style="font-size:13px;color:var(--text);">${e.email || e.id}</span>
         <button onclick="removeEditor('${e.id}')" style="padding:4px 10px;border-radius:6px;background:rgba(192,84,68,.1);border:1px solid rgba(192,84,68,.3);color:#e07060;font-size:12px;cursor:pointer;font-family:inherit;">Kaldır</button>
       </div>`).join('');
   }
@@ -1137,8 +1137,8 @@ async function assignEditor() {
   msg.textContent = 'Aranıyor...';
   msg.style.color = 'var(--text3)';
 
-  // 1. auth.users'dan email ile UUID bul
-  const rUser = await fetch(SUPA_URL + '/rest/v1/profiles?display_name=eq.' + encodeURIComponent(email) + '&select=id,role', {
+  // 1. profiles'dan email ile UUID bul
+  const rUser = await fetch(SUPA_URL + '/rest/v1/profiles?email=eq.' + encodeURIComponent(email) + '&select=id,role', {
     headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
   });
   const users = rUser.ok ? await rUser.json() : [];
