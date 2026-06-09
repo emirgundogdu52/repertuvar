@@ -1,195 +1,166 @@
 <!DOCTYPE html>
-<!-- design-test v1 -->
-
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="Repertuvar_logo.png">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Repertuar — Eserler</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Sora:wght@300;400;500;600;700:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Sahne Modu</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0D1117;
-    --surface: #161B22;
-    --surface2: #21262D;
-    --border: #30363D;
-    --border2: #38384f;
-    --accent: #58A6FF;
-    --accent2: #BC8CFF;
-    --text: #E6EDF3;
-    --text2: #8B949E;
-    --text3: #6E7681;
-    --red: #c05444;
-    --green: #4a9462;
-    --tag-bg: #2a2a3e;
-    --tag-text: #b8b4ac;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'Sora', sans-serif; font-size:14px; min-height:100vh; }
+:root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--border:#2a2a3e;--accent:#a855f7;--accent2:#c084fc;--text:#f1f0ff;--text2:#8b8aa8;--text3:#3d3d58;--green:#4a9462;--red:#c05444;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100vh;overflow:hidden;user-select:none;}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;}
+.screen.hidden{display:none;}
 
-  /* HEADER */
-  header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 12px; display:flex; align-items:center; gap:8px; height:56px; position:sticky; top:0; z-index:100; flex-wrap:nowrap; overflow-x:auto; }
-  .logo { font-family:'Playfair Display', serif; font-size:20px; color:var(--accent); letter-spacing:0.02em; white-space:nowrap; }
-  .logo span { color:var(--text2); font-size:13px; font-family:'Sora', sans-serif; margin-left:8px; font-weight:300; }
-  .search-wrap { flex:1; max-width:480px; position:relative; }
-  .search-wrap input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 12px 8px 36px; color:var(--text); font-size:14px; font-family:'Sora', sans-serif; outline:none; transition:border-color .2s; }
-  .search-wrap input:focus { border-color:var(--accent); }
-  .search-wrap input::placeholder { color:var(--text3); }
-  .search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--text3); font-size:15px; pointer-events:none; }
-  .count-badge { margin-left:auto; background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:4px 12px; font-size:12px; color:var(--text2); white-space:nowrap; }
+#pickerScreen{background:var(--bg);align-items:center;justify-content:center;padding:32px 24px;}
+.pi{width:100%;max-width:520px;}
+.plogo{display:flex;align-items:center;gap:10px;margin-bottom:36px;justify-content:center;}
+.plogo span{font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);}
+.plogo small{color:var(--text2);font-size:12px;letter-spacing:.1em;text-transform:uppercase;}
+.ptitle{font-family:'Playfair Display',serif;font-size:28px;color:var(--text);margin-bottom:8px;text-align:center;}
+.psub{font-size:13px;color:var(--text2);margin-bottom:28px;text-align:center;}
+.rsl{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;max-height:55vh;overflow-y:auto;}
+.rsl::-webkit-scrollbar{width:4px;}.rsl::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.rsi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;align-items:center;justify-content:space-between;}
+.rsi:hover{border-color:rgba(168,85,247,.4);background:var(--surface2);}
+.rsi.sel{border-color:var(--accent);background:rgba(168,85,247,.08);}
+.rsn{font-size:15px;font-weight:500;color:var(--text);margin-bottom:3px;}
+.rsm{font-size:12px;color:var(--text2);}
+.rsc{font-size:12px;color:var(--text3);}
+.bstart{width:100%;background:var(--accent);border:none;border-radius:10px;padding:16px;color:#0a0818;font-size:16px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:background .15s,transform .1s;}
+.bstart:hover{background:var(--accent2);}
+.bstart:active{transform:scale(.98);}
+.bstart:disabled{opacity:.35;cursor:not-allowed;}
+.bback{display:block;text-align:center;margin-top:14px;font-size:12px;color:var(--text3);text-decoration:none;}
+.bback:hover{color:var(--text2);}
+.loading{text-align:center;color:var(--text2);padding:24px;font-size:13px;}
 
-  /* LAYOUT */
-  .layout { display:flex; height:calc(100vh - 56px); }
+.stb{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);}
+.strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+.stp{display:flex;align-items:center;gap:10px;}
+.pds{display:flex;gap:5px;align-items:center;}
+.pd{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;flex-shrink:0;}
+.pd.done{background:var(--text3);}
+.pd.cur{background:var(--accent);transform:scale(1.4);}
+.stc{font-size:12px;color:var(--text2);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
+.bex:hover{color:var(--red);border-color:var(--red);}
 
-  /* SIDEBAR FILTERS */
-  .sidebar { display:none; }
-  .sidebar::-webkit-scrollbar { width:4px; }
-  .sidebar::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
-  .filter-section { padding:0 16px 16px; border-bottom:1px solid var(--border); margin-bottom:0; }
-  .filter-section:last-child { border-bottom:none; }
-  .filter-label { font-size:10px; font-weight:500; letter-spacing:0.1em; color:var(--text3); text-transform:uppercase; margin-bottom:8px; padding-top:16px; display:block; }
-  .filter-btn { display:block; width:100%; text-align:left; background:none; border:none; padding:5px 8px; border-radius:6px; color:var(--text2); font-size:13px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .filter-btn:hover { background:var(--surface2); color:var(--text); }
-  .filter-btn.active { background:rgba(88,166,255,0.15); color:var(--accent); }
-  .filter-btn .badge { float:right; background:var(--surface2); border-radius:10px; padding:0 6px; font-size:10px; color:var(--text3); }
-  .filter-btn.active .badge { background:rgba(88,166,255,0.2); color:var(--accent); }
+.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 40px 80px;position:relative;overflow-y:auto;cursor:pointer;}
+.sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
+.wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;opacity:0;animation:si .4s ease forwards;}
+.wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:24px;opacity:0;animation:si .4s ease .07s forwards;}
+.wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;opacity:0;animation:si .4s ease .14s forwards;}
+.wch{padding:5px 14px;border-radius:20px;font-size:13px;border:1px solid var(--border);color:var(--text2);background:var(--surface);}
+.wch.m{border-color:#3a3060;color:#9b8fd4;background:#1a1828;}
+.wch.n{border-color:#3d2a1a;color:var(--accent);background:#1e1208;}
+.wch.i{border-color:#1a2d1a;color:#7ab87a;background:#0f1a0f;}
+.wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:600px;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
+.wlyrics{font-size:clamp(18px,2.8vw,28px);color:var(--text);text-align:center;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;}
+.wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-  /* WORK LIST */
-  .list-panel { flex:1; overflow-y:auto; }
-  .list-panel::-webkit-scrollbar { width:5px; }
-  .list-panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-  .work-item { display:flex; align-items:flex-start; gap:12px; padding:14px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .12s; }
-  .work-item:hover { background:var(--surface); }
-  .work-item.selected { background:var(--surface2); border-left:3px solid var(--accent); padding-left:17px; }
-  .work-num { display:none; }
-  .work-info { flex:1; min-width:0; }
-  .work-name { font-size:14px; font-weight:500; color:var(--text); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .work-sub { font-size:12px; color:var(--text2); display:flex; gap:8px; flex-wrap:wrap; }
-  .work-sub span { display:flex; align-items:center; gap:3px; }
-  .work-tags { display:flex; gap:4px; margin-top:5px; flex-wrap:wrap; }
-  .tag { background:var(--tag-bg); color:var(--tag-text); border-radius:4px; padding:1px 6px; font-size:11px; border:1px solid var(--border); }
-  .tag.makam { border-color:#3a3060; color:#9b8fd4; background:#1e1b2e; }
-  .tag.form { border-color:#2a3d2a; color:#7ab87a; background:#1a271a; }
-  .tag.tuning { border-color:#3d2a1a; color:#c8904a; background:#271a0d; }
+.sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;}
+.np{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;flex:1;max-width:400px;opacity:0;animation:fi .5s ease .4s forwards;}
+.nl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
+.nn{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nm{font-size:11px;color:var(--text3);margin-top:2px;}
+.th{font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;line-height:1.5;opacity:0;animation:fi .5s ease .5s forwards;}
+.th kbd{display:inline-block;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;font-family:'DM Sans',sans-serif;color:var(--text3);}
 
-  /* DETAIL PANEL */
-  .detail { width:520px; min-width:520px; background:var(--surface); border-left:1px solid var(--border); overflow-y:auto; }
-  .detail::-webkit-scrollbar { width:4px; }
-  .detail::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
-  .detail-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text3); gap:12px; }
-  .detail-empty svg { opacity:.3; }
-  .detail-header { padding:20px 20px 16px; border-bottom:1px solid var(--border); }
-  .detail-id { font-size:11px; color:var(--text3); letter-spacing:.05em; margin-bottom:6px; }
-  .detail-title { font-family:'Playfair Display', serif; font-size:20px; color:var(--text); line-height:1.3; margin-bottom:12px; }
-  .detail-chips { display:flex; gap:6px; flex-wrap:wrap; }
-  .chip { padding:3px 10px; border-radius:20px; font-size:12px; font-weight:500; }
-  .chip.makam { background:#1e1b2e; color:#9b8fd4; border:1px solid #3a3060; }
-  .chip.form  { background:#1a271a; color:#7ab87a; border:1px solid #2a3d2a; }
-  .chip.tuning{ background:#271a0d; color:#c8904a; border:1px solid #3d2a1a; }
-  .chip.meas  { background:#1a1e27; color:#6a9fd4; border:1px solid #1f3050; }
-  .detail-body { padding:16px 20px; }
-  .detail-row { margin-bottom:14px; }
-  .detail-row-label { font-size:10px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:4px; }
-  .detail-row-value { font-size:13px; color:var(--text2); line-height:1.5; }
-  .detail-divider { border:none; border-top:1px solid var(--border); margin:16px 0; }
-  .lyrics-box { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px; font-size:13px; color:var(--text2); line-height:1.8; max-height:none; text-align:left;white-space:pre-wrap; word-break:break-word; }
-  .lyrics-box::-webkit-scrollbar { width:3px; }
-  .lyrics-box::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
-  .video-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; background:rgba(88,166,255,.1); border:1px solid rgba(88,166,255,.3); border-radius:6px; color:var(--accent); font-size:13px; text-decoration:none; transition:all .15s; }
-  .video-btn:hover { background:rgba(88,166,255,.2); }
+#endScreen{background:var(--bg);align-items:center;justify-content:center;text-align:center;padding:40px 24px;}
+.ei{font-size:56px;margin-bottom:24px;animation:pls 2s ease infinite;}
+.et{font-family:'Playfair Display',serif;font-size:36px;color:var(--accent);margin-bottom:12px;}
+.es{font-size:15px;color:var(--text2);margin-bottom:8px;}
+.ec{font-size:13px;color:var(--text3);margin-bottom:36px;}
+.ea{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.be{padding:12px 24px;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;}
+.bep{background:var(--accent);border:none;color:#0a0818;font-weight:500;}
+.bep:hover{background:var(--accent2);}
+.beg{background:none;border:1px solid var(--border);color:var(--text2);}
+.beg:hover{border-color:#38383f;color:var(--text);}
+.sf{position:fixed;inset:0;background:rgba(168,85,247,0.06);pointer-events:none;animation:ff .25s ease forwards;z-index:99;}
 
-  /* TOOLBAR */
-  .toolbar { padding:10px 20px; display:flex; gap:8px; align-items:center; border-bottom:1px solid var(--border); background:var(--bg); }
-  .sort-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
-  .sort-btn:hover { border-color:var(--border2); color:var(--text); }
-  .sort-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,.08); }
-  .clear-btn { margin-left:auto; background:none; border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text3); font-size:12px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
-  .clear-btn:hover { color:var(--text2); border-color:var(--border2); }
+@keyframes si{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes pls{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes ff{to{opacity:0}}
 
-  /* EMPTY STATE */
-  .empty-list { padding:60px 20px; text-align:center; color:var(--text3); }
+.stage-nav{display:flex;gap:8px;align-items:center;}
+.stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+.stage-nav a:hover{border-color:var(--accent);color:var(--accent);}
 
+.side-nav-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(168,85,247,0.12);
+  border: 1px solid rgba(168,85,247,0.3);
+  border-radius: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px;
+  padding: 14px 10px;
+  transition: all .2s;
+  z-index: 50;
+  user-select: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.snb-arrow { font-size: 28px; line-height: 1; }
+.snb-label { font-size: 11px; font-weight: 600; letter-spacing: .04em; opacity: .8; }
+.side-nav-btn:hover { background: rgba(168,85,247,0.25); border-color: rgba(168,85,247,0.6); transform: translateY(-50%) scale(1.06); }
+.side-nav-btn:active { transform: translateY(-50%) scale(0.96); }
+.side-nav-btn.disabled { opacity: 0.15; pointer-events: none; }
+.side-nav-left  { left: 12px; }
+.side-nav-right { right: 12px; }
+
+  /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
-    .sidebar { display:none; }
-    .detail { display:none; }
-    .detail.mobile-visible { display:block; position:fixed; top:80px; left:0; right:0; bottom:0; z-index:200; width:100%; overflow-y:auto; }
-    .back-btn { display:flex; align-items:center; gap:6px; padding:12px 20px; color:var(--accent); font-size:14px; cursor:pointer; border-bottom:1px solid var(--border); }
-    header a { font-size:11px; padding:3px 6px; }
-    header a[href="index.html"] img { height:36px !important; }
-    header .count-badge { display:none; }
-    header button[onclick="openNewEserModal()"] { font-size:11px; padding:4px 10px; }
-    .sort-bar { padding:8px 12px; gap:6px; }
-    .sort-btn { font-size:11px; padding:4px 10px; }
+    .stb { padding:8px 10px; height:auto; min-height:48px; }
+    .strn { font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .bex, .stage-nav a { font-size:10px; padding:4px 8px; }
+    .stage-nav { gap:4px; }
+    .sm { padding:20px 60px 100px; }
+    .sb { padding:0 12px 16px; flex-wrap:wrap; gap:8px; }
+    .side-nav-left { left:6px; }
+    .side-nav-right { right:6px; }
+    .side-nav-btn { width:44px; height:44px; }
+    /* Picker */
+    .pi { max-width:100%; padding:20px 16px; }
+    .rb { padding:14px 16px; }
+    .rbn { font-size:14px; }
+    .side-nav-btn { width:40px; padding:10px 6px; }
+    .snb-label { font-size:9px; }
+    .snb-arrow { font-size:22px; }
+    .np { max-width:160px; }
   }
   @media (max-width: 480px) {
-    header { gap:4px; padding:0 8px; }
-    header a[href="repertoires.html"], header a[href="artiesten.html"] { display:none; }
-    header a[href="index.html"] img { height:30px !important; }
-    header a[href="stage.html"] { display:none; }
-    header { gap:3px; padding:0 6px; height:56px; }
-    .layout { height:calc(100vh - 56px); }
-    .detail.mobile-visible { top:56px; }
+    .wtitle { font-size:clamp(18px,5vw,26px); }
+    .wlyrics { font-size:clamp(14px,4.2vw,20px); line-height:1.8; padding:0 4px 80px; }
+    .side-nav-btn { width:40px !important; height:40px !important; border-radius:8px !important; }
+    .side-nav-left { left:4px !important; }
+    .side-nav-right { right:4px !important; }
+    .snb-label { display:none; }
+    .sb { padding:0 8px 12px; gap:8px; flex-wrap:wrap; }
+    .th { font-size:10px; }
+    .stb { padding:6px 8px; }
+    .stage-nav a, .bex { font-size:10px !important; padding:3px 6px !important; }
+    .sm { padding:16px 52px 80px; }
+    /* Picker screen on mobile */
+    .pi { padding:16px; }
+    .ptitle { font-size:20px; }
+    .rb { padding:12px 14px; }
   }
-  @media (min-width: 769px) {
-    .back-btn { display:none; }
+  /* Picker screen mobile */
+  @media (max-width: 600px) {
+    .pi { padding:0 8px; }
+    .ptitle { font-size:20px; }
+    .psub { font-size:13px; }
+    .rl { padding:10px 12px; }
+    .rn { font-size:14px; }
   }
-
-  /* ── SİL BUTONU & ONAY ── */
-  .delete-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: 8px;
-    background: rgba(192,84,68,0.1); border: 1px solid rgba(192,84,68,0.35);
-    color: #e07060; font-size: 13px; font-weight: 500; cursor: pointer;
-    transition: all .15s; font-family: inherit;
-  }
-  .delete-btn:hover { background: rgba(192,84,68,0.22); border-color: rgba(192,84,68,0.6); }
-
-  .stage-open-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: 8px;
-    background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.35);
-    color: var(--accent); font-size: 13px; font-weight: 500;
-    text-decoration: none; transition: all .15s;
-  }
-  .stage-open-btn:hover { background: rgba(88,166,255,0.2); border-color: rgba(88,166,255,0.6); }
-
-  .confirm-bar {
-    display: none; margin-top: 10px; padding: 12px 14px;
-    background: rgba(192,84,68,0.08); border: 1px solid rgba(192,84,68,0.3);
-    border-radius: 8px; gap: 10px; align-items: center; flex-wrap: wrap;
-  }
-  .confirm-bar.open { display: flex; }
-  .confirm-bar span { font-size: 13px; color: var(--text); flex: 1; min-width: 160px; }
-  .confirm-yes {
-    padding: 6px 14px; border-radius: 7px; border: none;
-    background: #c05444; color: #fff; font-size: 13px;
-    font-weight: 600; cursor: pointer; font-family: inherit;
-  }
-  .confirm-yes:hover { filter: brightness(1.2); }
-  .confirm-no {
-    padding: 6px 14px; border-radius: 7px;
-    background: none; border: 1px solid var(--border);
-    color: var(--text2); font-size: 13px; cursor: pointer; font-family: inherit;
-  }
-  .confirm-no:hover { border-color: var(--border2); color: var(--text); }
-
-
-  .edit-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: 8px;
-    background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.35);
-    color: #60a5fa; font-size: 13px; font-weight: 500;
-    cursor: pointer; transition: all .15s; font-family: inherit;
-  }
-  .edit-btn:hover { background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.6); }
-
-  #ne_lyrics_editor:empty:before {
-    content: attr(placeholder);
-    color: var(--text3);
-    pointer-events: none;
-  }
-  #ne_lyrics_editor:focus { outline: none; }
 
   /* ── MOBILE GLOBAL ── */
   @media (max-width: 768px) {
@@ -201,1100 +172,418 @@
     .sb { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
   }
 
-
-  @media (max-width: 600px) {
-    #newEserModal > div {
-      width: 96vw !important;
-      max-height: 90vh !important;
-      padding: 16px !important;
-      border-radius: 12px !important;
-    }
-    #newEserModal > div > div[style*="grid-template-columns"] {
-      grid-template-columns: 1fr !important;
-    }
-    #ne_lyrics_editor { min-height: 120px !important; max-height: 200px !important; }
-  }
-
-
-  /* Yetki sistemi */
-  .admin-only { display: none; }
-  .pending-badge {
-    display: inline-block;
-    background: rgba(249,160,74,.15);
-    border: 1px solid rgba(249,160,74,.4);
-    color: #F9A04A;
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-left: 6px;
-    vertical-align: middle;
-  }
-  .pending-row { opacity: 0.75; }
-
-  /* DETAIL TABS */
-  .detail-tabs { display:flex; border-bottom:1px solid var(--border); background:var(--surface); }
-  .detail-tab {
-    flex:1; padding:10px 6px; text-align:center; font-size:12px; font-weight:500;
-    color:var(--text3); cursor:pointer; border-bottom:2px solid transparent;
-    transition:all .15s; letter-spacing:.02em; user-select:none;
-  }
-  .detail-tab:hover { color:var(--text2); background:var(--surface2); }
-  .detail-tab.active { color:var(--accent); border-bottom-color:var(--accent); background:rgba(88,166,255,.05); }
-  .detail-tab-content { display:none; }
-  .detail-tab-content.active { display:block; }
-
-  /* PENDING MODAL */
-  #pendingModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:2000; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; }
-  .pm-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; width:min(680px,96vw); padding:28px; }
-  .pm-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
-  .pm-title { font-size:16px; font-weight:600; color:var(--text); }
-  .pm-close { background:none; border:none; color:var(--text2); font-size:20px; cursor:pointer; }
-  .pm-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:12px; }
-  .pm-item-name { font-size:15px; font-weight:600; color:var(--text); margin-bottom:4px; }
-  .pm-item-meta { font-size:12px; color:var(--text2); margin-bottom:10px; display:flex; gap:12px; flex-wrap:wrap; }
-  .pm-item-lyrics { font-size:12px; color:var(--text3); background:var(--bg); border-radius:6px; padding:10px; max-height:100px; overflow-y:auto; white-space:pre-wrap; margin-bottom:12px; line-height:1.6; }
-  .pm-actions { display:flex; gap:8px; flex-wrap:wrap; }
-  .pm-approve { padding:6px 16px; border-radius:7px; background:#3FB950; border:none; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
-  .pm-approve:hover { filter:brightness(1.15); }
-  .pm-edit { padding:6px 16px; border-radius:7px; background:rgba(88,166,255,.15); border:1px solid rgba(88,166,255,.4); color:var(--accent); font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
-  .pm-edit:hover { background:rgba(88,166,255,.25); }
-  .pm-reject { padding:6px 16px; border-radius:7px; background:rgba(192,84,68,.12); border:1px solid rgba(192,84,68,.4); color:#e07060; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
-  .pm-reject:hover { background:rgba(192,84,68,.25); }
-  .pm-empty { text-align:center; color:var(--text3); padding:32px; font-size:14px; }
 </style>
 <script src="auth.js"></script>
 </head>
 <body>
 
-<header>
-  <a href="index.html" style="padding:4px 12px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;text-decoration:none;margin-right:2px;">🏠 Ana Sayfa</a>
-  <a href="eserler.html" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(88,166,255,.3);background:rgba(88,166,255,.12);color:var(--accent);font-size:13px;text-decoration:none;margin-right:2px;">Eserler</a>
-  <a href="repertoires.html" class="admin-only" style="display:none;padding:4px 12px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;text-decoration:none;margin-right:2px;">Repertuvar</a>
-  <a href="stage.html" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(88,166,255,.4);background:rgba(88,166,255,.12);color:var(--accent);font-size:13px;text-decoration:none;margin-right:2px;">🎭 Sahne Modu</a>
-  <a href="artiesten.html" class="admin-only" style="display:none;padding:4px 12px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;text-decoration:none;">Solistler</a>
-  <div class="search-wrap" style="display:none;">
-    <span class="search-icon">&#9906;</span>
-    <input type="text" id="searchInput" placeholder="Eser adı, besteci, güftekâr, makam, güfte..." autocomplete="off">
+<div class="screen" id="pickerScreen">
+  <div class="pi">
+    <div class="plogo"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:180px;width:auto;"></div>
+    <h1 class="ptitle">Sahne Moduna Hoş Geldiniz</h1>
+    <p class="psub">Hangi repertuvar ile sahneye çıkıyorsunuz?</p>
+    <div class="rsl" id="rsl"><div class="loading">Yükleniyor...</div></div>
+    <button class="bstart" id="bstart" disabled onclick="startStage()">Sahneye Çık →</button>
+    <a href="index.html" class="bback">← Ana Sayfaya Dön</a>
   </div>
-  <button id="btnAdminNewEser" onclick="openNewEserModal()" class="admin-only" style="padding:5px 14px;border-radius:7px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Yeni Eser</button>
-  <button id="btnUserSuggest" onclick="openSuggestModal()" style="display:none;padding:5px 14px;border-radius:7px;background:rgba(249,160,74,.15);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Eser Öner</button>
-  <button id="btnOnerilerim" onclick="window.location.href='onerilerim.html'" style="display:none;padding:5px 14px;border-radius:7px;background:rgba(249,160,74,.08);border:1px solid rgba(249,160,74,.3);color:#F9A04A;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">📋 Önerilerim</button>
-  <button id="btnPendingReview" class="admin-only" onclick="showPendingWorks()" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(249,160,74,.15);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">⏳ Bekleyen: <span id="pendingCount">0</span></button>
-  <button class="admin-only" onclick="showEditorManager()" style="padding:5px 12px;border-radius:7px;background:rgba(188,140,255,.15);border:1px solid rgba(188,140,255,.4);color:#BC8CFF;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">👥 Editörler</button>
-  <a href="uyeler.html" class="admin-only" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.3);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap;">👤 Üyeler</a>
-  <div class="count-badge" id="countBadge">411 eser</div>
-<div id="userBadge"></div>
-</header>
+</div>
 
-<div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="filter-section">
-      <span class="filter-label">Tür / Form</span>
-      <div id="formFilters"></div>
+<div class="screen hidden" id="stageScreen" onclick="nextWork()">
+  <div class="stb">
+    <div class="strn" id="strn">—</div>
+    <div class="stp">
+      <div class="pds" id="pds"></div>
+      <div class="stc" id="stc">1/1</div>
     </div>
-    <div class="filter-section">
-      <span class="filter-label">Akort</span>
-      <div id="tuningFilters"></div>
+    <div class="stage-nav">
+      <a href="index.html">🏠 Ana Menü</a>
+      <a href="repertoires.html">📋 Repertuvar</a>
+      <button class="bex" onclick="exitStage(event)">✕ Çık</button>
     </div>
-    <div class="filter-section">
-      <span class="filter-label">Bölge</span>
-      <div id="regionFilters"></div>
-    </div>
-    <div class="filter-section">
-      <span class="filter-label">Makam</span>
-      <div id="makamFilters"></div>
-    </div>
-  </aside>
-
-  <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
-    <div style="padding:10px 16px 0;background:var(--bg);">
-      <div style="position:relative;">
-        <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none;">&#9906;</span>
-        <input type="text" id="searchInput2" placeholder="Eser adı, besteci, güftekâr, makam, güfte..." autocomplete="off"
-          style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 36px;color:var(--text);font-size:14px;font-family:'Sora',sans-serif;outline:none;transition:border-color .2s;"
-          oninput="document.getElementById('searchInput').value=this.value;applyFilters();">
-      </div>
-    </div>
-    <div class="toolbar">
-      <span style="font-size:12px;color:var(--text3);margin-right:4px;">Sırala:</span>
-      <button class="sort-btn active" id="sortName" onclick="setSort('name')">Ada Göre</button>
-      <button class="sort-btn" id="sortId" onclick="setSort('id')">Numaraya Göre</button>
-      <button class="sort-btn" id="sortComposer" onclick="setSort('composer')">Besteciye Göre</button>
-      <button class="clear-btn" onclick="clearFilters()">Filtreleri Temizle</button>
-    </div>
-    <div class="list-panel" id="listPanel"></div>
   </div>
-
-  <aside class="detail" id="detailPanel">
-    <div class="detail-empty" id="detailEmpty">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-      <p>Bir eser seçin</p>
+  <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><span class="snb-arrow">‹</span><span class="snb-label">Önceki</span></button>
+  <div class="sm" id="sm"></div>
+  <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><span class="snb-label">Sonraki</span><span class="snb-arrow">›</span></button>
+  <div class="sb">
+    <div class="np" id="np" style="display:none;">
+      <div class="nl">Sıradaki</div>
+      <div class="nn" id="nn">—</div>
+      <div class="nm" id="nm">—</div>
     </div>
-    <div id="detailContent" style="display:none;"></div>
-  </aside>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button onclick="setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
+      <button onclick="setLyricsAlign('center')" id="alignCenter" title="Ortala" style="background:rgba(88,166,255,.15);border:1px solid var(--accent);border-radius:6px;color:var(--accent);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☰</button>
+      <button onclick="setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
+    </div>
+    <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
+  </div>
+</div>
+
+<div class="screen hidden" id="endScreen">
+  <div class="ei">🎉</div>
+  <h1 class="et">Bravo!</h1>
+  <p class="es" id="ern">Repertuvar tamamlandı</p>
+  <p class="ec" id="erc">0 eser</p>
+  <div class="ea">
+    <button class="be bep" onclick="restartStage()">↺ Baştan Başla</button>
+    <button class="be beg" id="btnRepertuvarSec" onclick="backToPicker()">Repertuvar Seç</button>
+    <a href="index.html" class="be beg" id="btnAnaSayfa">Ana Sayfa</a>
+  </div>
 </div>
 
 <script>
-let DATA = []; // Supabase'den yüklenecek
+const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
 
-async function loadWorksFromSupabase() {
+let WL = {}; // Supabase'den yüklenecek
+
+async function loadWL() {
   try {
-    const token = localStorage.getItem('sb_token') || SUPA_KEY;
-    const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=name&limit=2000&status=eq.approved', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
+    const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=id&limit=2000', {
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY)}
     });
-    if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
     const rows = await r.json();
-    if (!Array.isArray(rows)) { console.error('Supabase unexpected response:', rows); return false; }
-    DATA = rows.map(w => ({
-      id: w.id,
-      name: w.name || '',
-      composer: w.composer || '',
-      lyricWriter: w.lyric_writer || '',
-      makam: w.makam || '',
-      form: w.form || '',
-      measurement: w.measurement || '',
-      metronom: '',
-      genre: '',
-      instrument: w.instrument || '',
-      tuning: w.tuning || '',
-      closingNote: w.closing_note || '',
-      area: '',
-      region: w.region || '',
-      sourcePerson: w.source_person || '',
-      videoLink: w.video_link || '',
-      lyrics: w.lyrics || '',
-      chords: w.chords || '',
-      status: w.status || 'approved',
-      submitted_by: w.submitted_by || '',
-      submitter_email: w.submitter_email || '',
-      submitted_at: w.submitted_at || ''
-    }));
-    return true;
-  } catch(e) {
-    console.error('Supabase yüklenemedi:', e);
-    return false;
-  }
-}
-let filteredData = [...DATA];
-let selectedId = null;
-let sortMode = 'name';
-let activeFilters = { form: null, tuning: null, region: null, makam: null };
+    rows.forEach(w => {
+      WL[String(w.id)] = {
+        name: w.name || '',
+        composer: w.composer || '',
+        makam: w.makam || '',
+        instrument: w.instrument || '',
+        closingNote: w.closing_note || '',
+        lyrics: w.lyrics || '',
+        chords: w.chords || ''
+      };
+    });
+    // customWorks patch
+    try {
+      const customs = JSON.parse(localStorage.getItem('customWorks') || '[]');
+      customs.forEach(w => {
+        const id = String(parseInt(w.id));
+        if(WL[id]) Object.assign(WL[id], {name:w.name||WL[id].name, lyrics:w.lyrics!==undefined?w.lyrics:WL[id].lyrics, composer:w.composer||WL[id].composer});
+        else WL[id] = {name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||''};
+      });
+    } catch(e) {}
+  } catch(e) { console.error('WL yüklenemedi:', e); }
+}let reps=[], selId=null, curRep=null, curIdx=0;
+let txStart=0;
 
-function getUnique(field) {
-  const counts = {};
-  DATA.forEach(w => { const v = w[field]; if(v) counts[v] = (counts[v]||0)+1; });
-  return Object.entries(counts).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0], 'tr'));
+async function loadReps(){
+  try{
+    const [r,items] = await Promise.all([
+      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at',{headers:H}).then(r=>r.json()),
+      fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H}).then(r=>r.json())
+    ]);
+    return (r||[]).map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
+  }catch(e){console.error(e);return [];}
 }
 
-function buildFilters() {
-  function makeSection(id, field) {
-    const el = document.getElementById(id);
-    const items = getUnique(field);
-    el.innerHTML = items.map(([val, cnt]) =>
-      `<button class="filter-btn" data-field="${field}" data-val="${val.replace(/"/g,'&quot;')}" onclick="toggleFilter('${field}','${val.replace(/'/g,"\'")}')">
-        ${val} <span class="badge">${cnt}</span>
-      </button>`
-    ).join('');
-  }
-  makeSection('formFilters', 'form');
-  makeSection('tuningFilters', 'tuning');
-  makeSection('regionFilters', 'region');
-  makeSection('makamFilters', 'makam');
+function renderPicker(){
+  const el=document.getElementById('rsl');
+  if(!reps.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);line-height:1.8;">Henüz repertuvar yok.<br><a href=\"repertoires.html\" style=\"color:var(--accent)\">Repertuvar sayfasında</a> repertuvar oluşturun.</div>';return;}
+  const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
+  el.innerHTML=reps.map(r=>`<div class="rsi${selId===r.id?' sel':''}" onclick="pickRep('${r.id}')">
+    <div><div class="rsn">${r.name}</div><div class="rsm">${[r.date,r.venue,sl[r.status]].filter(Boolean).join(' · ')}</div></div>
+    <div class="rsc">${(r.items||[]).length} eser</div>
+  </div>`).join('');
 }
 
-function toggleFilter(field, val) {
-  activeFilters[field] = activeFilters[field] === val ? null : val;
-  updateFilterButtons();
-  applyFilters();
-}
+function pickRep(id){selId=id;document.getElementById('bstart').disabled=false;renderPicker();}
 
-function updateFilterButtons() {
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    const f = btn.dataset.field, v = btn.dataset.val;
-    btn.classList.toggle('active', activeFilters[f] === v);
-  });
-}
-
-function clearFilters() {
-  activeFilters = { form: null, tuning: null, region: null, makam: null };
-  document.getElementById('searchInput').value = '';
-  updateFilterButtons();
-  applyFilters();
-}
-
-function applyFilters() {
-  const q = document.getElementById('searchInput').value.toLowerCase().trim();
-  filteredData = DATA.filter(w => {
-    if (activeFilters.form && w.form !== activeFilters.form) return false;
-    if (activeFilters.tuning && w.tuning !== activeFilters.tuning) return false;
-    if (activeFilters.region && w.region !== activeFilters.region) return false;
-    if (activeFilters.makam && w.makam !== activeFilters.makam) return false;
-    if (q) {
-      const search = (w.name+w.composer+w.lyricWriter+w.makam+w.region+w.sourcePerson+w.lyrics).toLowerCase();
-      if (!search.includes(q)) return false;
+function setLyricsAlign(align) {
+  localStorage.setItem('stageLyricsAlign', align);
+  const el = document.querySelector('.wlyrics');
+  if (el) el.style.textAlign = align;
+  ['left','center','right'].forEach(a => {
+    const btn = document.getElementById('align' + a.charAt(0).toUpperCase() + a.slice(1));
+    if (!btn) return;
+    if (a === align) {
+      btn.style.background = 'rgba(88,166,255,.15)';
+      btn.style.borderColor = 'var(--accent)';
+      btn.style.color = 'var(--accent)';
+    } else {
+      btn.style.background = 'none';
+      btn.style.borderColor = 'var(--border)';
+      btn.style.color = 'var(--text3)';
     }
-    return true;
   });
-  sortData();
-  renderList();
-  document.getElementById('countBadge').textContent = filteredData.length + ' eser';
 }
 
-function setSort(mode) {
-  sortMode = mode;
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('sort' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
-  sortData();
-  renderList();
-}
-
-function sortData() {
-  if (sortMode === 'name') filteredData.sort((a,b) => (a.name||'').localeCompare(b.name||'','tr'));
-  else if (sortMode === 'id') filteredData.sort((a,b) => (a.id||9999)-(b.id||9999));
-  else if (sortMode === 'composer') filteredData.sort((a,b) => (a.composer||'zzz').localeCompare(b.composer||'zzz','tr'));
-}
-
-function renderList() {
-  const panel = document.getElementById('listPanel');
-  if (!filteredData.length) {
-    panel.innerHTML = '<div class="empty-list">Eser bulunamadı</div>';
-    return;
-  }
-  panel.innerHTML = filteredData.map(w => {
-    const tags = [
-      w.makam ? `<span class="tag makam">Makam: ${w.makam}</span>` : '',
-      w.form ? `<span class="tag form">Form: ${w.form}</span>` : '',
-      w.tuning ? `<span class="tag tuning">Akort: ${w.tuning}</span>` : '',
-      w.measurement ? `<span class="tag" style="border-color:#1f3050;color:#6a9fd4;background:#1a1e27;">Usul: ${w.measurement}</span>` : '',
-    ].filter(Boolean).join('');
-    const sub = [
-      w.composer ? `<span>🎼 ${w.composer}</span>` : '',
-      w.region ? `<span>📍 Bölge: ${w.region}</span>` : '',
-    ].filter(Boolean).join('');
-    return `<div class="work-item${selectedId===w.id?' selected':''}" onclick="selectWork(${w.id})" data-id="${w.id}">
-      <div class="work-num">${w.id||'—'}</div>
-      <div class="work-info">
-        <div class="work-name">${w.name||'(isimsiz)'}</div>
-        <div class="work-sub">${sub}</div>
-        ${tags ? `<div class="work-tags">${tags}</div>` : ''}
-      </div>
-    </div>`;
+function renderStageChords(text) {
+  if (!text) return '';
+  return text.trim().split('\n').map(line => {
+    if (line.startsWith('%%')) {
+      const akorlar = line.slice(2).trim();
+      return akorlar
+        ? `<span style="color:#58A6FF;font-size:0.85em;letter-spacing:.08em;font-family:monospace;display:block;margin-top:8px;">${akorlar}</span>`
+        : '';
+    } else if (line.trim() === '') {
+      return '<br>';
+    } else {
+      return `<span style="display:block;">${line.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
+    }
   }).join('');
 }
 
-
-function saveStageList(currentId) {
-  const ids = filteredData.map(x => String(parseInt(x.id)));
-  localStorage.setItem('stageWorkList', JSON.stringify(ids));
-  localStorage.setItem('stageWorkId', currentId);
+function startStage(){
+  curRep=reps.find(r=>r.id===selId);
+  if(!curRep||(curRep.items||[]).length===0)return;
+  curIdx=0;
+  showScreen('stageScreen');
+  document.getElementById('strn').textContent=curRep.name;
+  renderStage();
 }
-function selectWork(id) {
-  selectedId = id;
-  const w = DATA.find(x => x.id === id);
-  document.querySelectorAll('.work-item').forEach(el => el.classList.toggle('selected', parseInt(el.dataset.id)===id));
-  if (!w) return;
 
-  document.getElementById('detailEmpty').style.display = 'none';
-  const dc = document.getElementById('detailContent');
-  dc.style.display = 'block';
-
-  const chips = [
-    w.makam ? `<span class="chip makam">🎵 Makam: ${w.makam}</span>` : '',
-    w.form ? `<span class="chip form">📋 Form: ${w.form}</span>` : '',
-    w.tuning ? `<span class="chip tuning">🎸 Akort: ${w.tuning}</span>` : '',
-    w.measurement ? `<span class="chip meas">♩ Usul: ${w.measurement}</span>` : '',
+function renderStage(){
+  const items=curRep.items||[];
+  const item=items[curIdx];
+  if(!item)return;
+  const w=WL[item.workId]||{};
+  const total=items.length;
+  document.getElementById('stc').textContent=(curIdx+1)+'/'+total;
+  const pds=document.getElementById('pds');
+  if(total<=20){pds.innerHTML=items.map((_,i)=>`<div class="pd ${i<curIdx?'done':i===curIdx?'cur':''}"></div>`).join('');}
+  else pds.innerHTML='';
+  const chips=[
+    w.makam?`<span class="wch m">${w.makam}</span>`:'',
+    (item.closingNote||w.closingNote)?`<span class="wch n">Kapanış: ${item.closingNote||w.closingNote}</span>`:'',
+    w.instrument?`<span class="wch i">${w.instrument}</span>`:''
   ].filter(Boolean).join('');
-
-  function row(label, val) {
-    if (!val) return '';
-    return `<div class="detail-row"><div class="detail-row-label">${label}</div><div class="detail-row-value">${val}</div></div>`;
-  }
-  function row2(label, val) {
-    if (!val) return '';
-    return `<div class="detail-row" style="min-width:0;"><div class="detail-row-label">${label}</div><div class="detail-row-value" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${val}">${val}</div></div>`;
-  }
-
-  const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video İzle</a>` : '';
-  const stageId = String(parseInt(w.id));
-  const lastTab = localStorage.getItem('detailActiveTab') || 'gufte';
-  const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="openStageFromDetail('${stageId}');return false;">🎭 Sahne Modunda Aç</a>`;
-
-  dc.innerHTML = `
-    <div class="detail-header">
-      <div class="detail-id">#${w.id||'—'}</div>
-      <div class="detail-title">${w.name||'(isimsiz)'}</div>
-      <div class="detail-chips">${chips}</div>
-      <div class="detail-stage-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
-        ${stageBtn}
-        <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}">✏️ Düzenle</button>
-        <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}">🗑 Sil</button>
-      </div>
-      <div class="confirm-bar" id="confirm-${w.id}">
-        <span>Bu eseri silmek istediğinize emin misiniz?</span>
-        <button class="confirm-yes" onclick="deleteWork(${w.id})">Evet, Sil</button>
-        <button class="confirm-no" onclick="hideDeleteConfirm(${w.id})">İptal</button>
-      </div>
-    </div>
-
-    <div class="detail-tabs">
-      <div class="detail-tab${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</div>
-      <div class="detail-tab${lastTab==='akorlar'?' active':''}" onclick="switchDetailTab('akorlar')">🎸 Akorlar</div>
-      <div class="detail-tab${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">📋 Bilgiler</div>
-      <div class="detail-tab${lastTab==='hikaye'?' active':''}" onclick="switchDetailTab('hikaye')">📖 Hikaye</div>
-    </div>
-
-    <div id="tab-gufte" class="detail-tab-content detail-body${lastTab==='gufte'?' active':''}">
-      ${w.lyrics
-        ? `<div class="lyrics-box">${w.lyrics.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
-        : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">Bu eser için güfte eklenmemiş.</div>`
-      }
-    </div>
-
-    <div id="tab-akorlar" class="detail-tab-content detail-body${lastTab==='akorlar'?' active':''}">
-      ${(isAdmin() || isEditor()) ? `
-        <div style="margin-bottom:16px;">
-          <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Güfte & Akorlar</div>
-          <div class="lyrics-box" style="font-family:monospace;font-size:13px;line-height:2;">
-            ${w.chords && w.chords.trim()
-              ? renderChords(w.chords.trim())
-              : (w.lyrics
-                  ? `<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş. Düzenle butonundan ekleyebilirsiniz.</span>`
-                  : `<span style="color:var(--text3);font-size:12px;">Güfte ve akor bilgisi yok.</span>`)
-            }
-          </div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
-          <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Akor Gir</div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.6;">
-            <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:#58A6FF;">%%</code> ile başlayan satır = akor satırı, altındaki = güfte satırı
-          </div>
-          <textarea id="inline_chords_${w.id}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" style="width:100%;min-height:160px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:monospace;line-height:1.8;resize:vertical;"
-            placeholder="%%Dm  G   Am&#10;Sabahtan kalktım yıkadım yüzüm&#10;%%C        F&#10;Telim örülürken ağladı gözüm"
-          >${w.chords
-            ? (w.chords).replace(/</g,'&lt;').replace(/>/g,'&gt;')
-            : (w.lyrics||'').split('\n').map(l => '%%\n'+l).join('\n')
-          }</textarea>
-          <button onclick="saveChords(${w.id})" style="margin-top:10px;padding:7px 18px;background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">💾 Kaydet</button>
-        </div>
-      ` : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">Akor bilgisi sadece editörler tarafından görüntülenebilir.</div>`}
-    </div>
-
-    <div id="tab-bilgiler" class="detail-tab-content detail-body${lastTab==='bilgiler'?' active':''}">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
-        ${row2('Besteci', w.composer)}
-        ${row2('Güftekâr', w.lyricWriter)}
-        ${row2('Form', w.form)}
-        ${row2('Enstrüman', w.instrument)}
-        ${row2('Bölge / Yöre', w.region)}
-        ${row2('Kaynak Kişi', w.sourcePerson)}
-        ${row2('Kapanış Notası', w.closingNote)}
-      </div>
-      ${videoBtn ? `<div class="detail-row" style="margin-top:8px;">${videoBtn}</div>` : ''}
-    </div>
-
-    <div id="tab-hikaye" class="detail-tab-content detail-body${lastTab==='hikaye'?' active':''}">
-      ${(w.submitter_email||w.submitted_at)
-        ? `<div style="display:flex;flex-direction:column;gap:10px;">
-            ${w.submitter_email ? `<div class="detail-row"><div class="detail-row-label">Ekleyen</div><div class="detail-row-value">${w.submitter_email}</div></div>` : ''}
-            ${w.submitted_at ? `<div class="detail-row"><div class="detail-row-label">Eklenme Tarihi</div><div class="detail-row-value">${new Date(w.submitted_at).toLocaleDateString('tr-TR',{year:'numeric',month:'long',day:'numeric'})}</div></div>` : ''}
-           </div>`
-        : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">Bu eser için hikaye bilgisi yok.</div>`
-      }
-    </div>`;
-
-  // Admin butonlarını göster/gizle
-  const editBtn = document.getElementById('editBtn-'+w.id);
-  const deleteBtn = document.getElementById('deleteBtn-'+w.id);
-  if (editBtn) editBtn.style.display = (isAdmin() || isEditor()) ? '' : 'none';
-  if (deleteBtn) deleteBtn.style.display = isAdmin() ? '' : 'none';
-
-  // Mobile: show detail panel
-  document.getElementById('detailPanel').classList.add('mobile-visible');
+  const showChords = localStorage.getItem('stageShowChords') === '1';
+  const lyricsHtml = (showChords && w.chords)
+    ? `<div class="wlyrics" style="text-align:left;">${renderStageChords(w.chords)}</div>`
+    : (w.lyrics ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>` : '');
+  document.getElementById('sm').innerHTML=`
+    <div class="wnum">Eser ${curIdx+1} / ${total}</div>
+    <div class="wtitle">${w.name||item.workId}</div>
+    ${chips?`<div class="wcr">${chips}</div>`:''}
+    ${(item.note||w.composer)?`<div class="wnote">${item.note||(w.composer?'— '+w.composer:'')}</div>`:''}
+    ${lyricsHtml}`; 
+  // Kaydedilmiş hizalamayı uygula
+  const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
+  setLyricsAlign(savedAlign);
+  const np=document.getElementById('np');
+  if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
+  else np.style.display='none';
 }
 
-function renderChords(text) {
-  const lines = text.trim().split('\n');
-  let html = '';
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (line.startsWith('%%')) {
-      const akorlar = line.slice(2).trim();
-      if (akorlar) {
-        html += `<span style="color:#58A6FF;opacity:.9;font-size:12px;letter-spacing:.08em;display:block;margin-top:4px;">${akorlar}</span>`;
-      }
-    } else if (line.trim() === '') {
-      html += `<span style="display:block;height:8px;"></span>`;
-    } else {
-      html += `<span style="color:var(--text2);display:block;">${line.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
+function nextWork(){
+  console.log('nextWork called');
+  sideNavNext();
+}
+
+function prevWork(){
+  sideNavPrev();
+}
+function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?'))backToPicker();}
+function showEndScreen(){
+  showScreen('endScreen');
+  document.getElementById('ern').textContent = curRep.name || '';
+  document.getElementById('erc').textContent = (curRep.items||[]).length + ' eser seslendirdiniz';
+  // Paylaşım modunda Ana Sayfa ve Repertuvar Seç butonlarını gizle
+  const isShared = !!new URLSearchParams(window.location.search).get('share');
+  const btnRep = document.getElementById('btnRepertuvarSec');
+  const btnAna = document.getElementById('btnAnaSayfa');
+  if(btnRep) btnRep.style.display = isShared ? 'none' : '';
+  if(btnAna) btnAna.style.display = isShared ? 'none' : '';
+}
+function restartStage(){curIdx=0;showScreen('stageScreen');renderStage();}
+function backToPicker(){
+  // Paylaşım modunda: sadece paylaşılan repertuvarı göster
+  const shareToken = new URLSearchParams(window.location.search).get('share');
+  if (shareToken && curRep && curRep.id !== 'single') {
+    // Paylaşılan repertuvarı picker'da göster
+    showScreen('pickerScreen');
+    const pi = document.getElementById('pi');
+    if (pi) {
+      pi.innerHTML = `
+        <div class="plogo"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:180px;width:auto;"></div>
+        <h1 class="ptitle">Paylaşılan Repertuvar</h1>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;margin-top:16px;"
+          onclick="startSharedRep()">
+          <div style="font-size:15px;font-weight:600;color:var(--text);">${curRep.name||'Repertuvar'}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px;">${(curRep.items||[]).length} eser</div>
+        </div>`;
     }
+    return;
   }
-  return html;
+  selId=null;document.getElementById('bstart').disabled=true;showScreen('pickerScreen');renderPicker();
 }
 
-async function saveChords(id) {
-  const ta = document.getElementById('inline_chords_'+id);
-  if (!ta) { console.error('textarea bulunamadı: inline_chords_'+id); return; }
-  const chords = ta.value.trim();
-  const token = localStorage.getItem('sb_token') || SUPA_KEY;
-  fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + token,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({chords: chords})
-  }).then(r => {
-    if (r.ok || r.status === 204) {
-      const idx = DATA.findIndex(x => x.id === id || x.id === parseInt(id));
-      if (idx > -1) DATA[idx].chords = chords;
-      const display = document.querySelector('#tab-akorlar .lyrics-box');
-      if (display) {
-        display.innerHTML = chords ? renderChords(chords) : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>';
-      }
-      const alertMsg = document.createElement('div');
-      alertMsg.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;';
-      alertMsg.textContent = '✓ Akorlar kaydedildi';
-      document.body.appendChild(alertMsg);
-      setTimeout(() => alertMsg.remove(), 2500);
-    } else {
-      r.text().then(t => alert('Kayıt hatası: ' + t));
-    }
-  }).catch(err => alert('Bağlantı hatası: ' + err.message));
+function startSharedRep() {
+  curIdx = 0;
+  sideIdx = 0;
+  showScreen('stageScreen');
+  document.getElementById('strn').textContent = curRep.name || '';
+  renderStage();
+  updateSideButtons();
+}
+function showScreen(id){['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));}
+
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('stageScreen').classList.contains('hidden'))return;
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='ArrowDown'){e.preventDefault();nextWork();}
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prevWork();}
+  if(e.key==='Escape')exitStage({stopPropagation:()=>{}});
+});
+document.getElementById('stageScreen').addEventListener('touchstart',e=>{txStart=e.touches[0].clientX;},{passive:true});
+document.getElementById('stageScreen').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-txStart;if(Math.abs(dx)>60){dx<0?nextWork():prevWork();}},{passive:true});
+
+// ── NAVİGASYON ──
+let sideList = [];
+let sideIdx  = -1;
+
+function sideNavInit(workId) {
+  const stored = localStorage.getItem('stageWorkList');
+  if (stored) {
+    try { sideList = JSON.parse(stored); } catch(e) { sideList = []; }
+    sideIdx = sideList.indexOf(String(workId));
+  }
+  updateSideButtons();
 }
 
-function openStageFromDetail(stageId) {
-  const t = localStorage.getItem('detailActiveTab') || 'gufte';
-  localStorage.setItem('stageShowChords', t === 'akorlar' ? '1' : '0');
-  saveStageList(stageId);
-  const url = t === 'akorlar'
-    ? 'stage.html?work=' + stageId + '&mode=chords'
-    : 'stage.html?work=' + stageId;
-  window.location.href = url;
+function updateSideButtons() {
+  const l = document.getElementById('sideLeft');
+  const r = document.getElementById('sideRight');
+  if (!l || !r) return;
+  const isRepMode = curRep && curRep.items && curRep.items.length > 1;
+  const total = isRepMode ? curRep.items.length : sideList.length;
+  const cur   = isRepMode ? curIdx : sideIdx;
+  l.style.display = r.style.display = total > 1 ? 'flex' : 'none';
+  l.classList.toggle('disabled', cur <= 0);
+  r.classList.toggle('disabled', cur >= total - 1);
 }
 
-function switchDetailTab(tabId) {
-  localStorage.setItem('detailActiveTab', tabId);
-  document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.detail-tab-content').forEach(t => t.classList.remove('active'));
-  // Activate clicked tab button
-  document.querySelectorAll('.detail-tab').forEach(t => {
-    if (t.getAttribute('onclick') === `switchDetailTab('${tabId}')`) t.classList.add('active');
-  });
-  const content = document.getElementById('tab-'+tabId);
-  if (content) content.classList.add('active');
+function sideNavPrev() {
+  if (curRep && curRep.items && curRep.items.length > 1) {
+    if (curIdx <= 0) return;
+    curIdx--;
+    renderStage();
+    updateSideButtons();
+    return;
+  }
+  if (sideIdx <= 0) return;
+  sideIdx--;
+  loadSideWork(sideList[sideIdx]);
 }
 
-document.getElementById('searchInput').addEventListener('input', applyFilters);
-
-
-// ── YENİ ESER FONKSİYONLARI ──
-const LOCAL_KEY = 'customWorks';
-
-function getCustomWorks() {
-  try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); } catch(e) { return []; }
-}
-function saveCustomWorks(arr) {
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(arr));
-}
-
-let editingWorkId = null;
-
-function openNewEserModal() {
-  editingWorkId = null;
-  document.getElementById('modalTitle').textContent = '+ Yeni Eser Ekle';
-  ['ne_name','ne_composer','ne_lyricWriter','ne_makam','ne_measurement','ne_form',
-   'ne_tuning','ne_instrument','ne_region','ne_sourcePerson','ne_videoLink','ne_lyrics','ne_chords']
-    .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-  setLyricsValue('');
-  document.getElementById('newEserModal').style.display = 'flex';
+function sideNavNext() {
+  console.log('sideNavNext called, curIdx='+curIdx+', items='+(curRep&&curRep.items?curRep.items.length:0));
+  if (curRep && curRep.items && curRep.items.length > 1) {
+    if (curIdx >= curRep.items.length - 1) { showEndScreen(); return; }
+    curIdx++;
+    renderStage();
+    updateSideButtons();
+    return;
+  }
+  if (sideIdx >= sideList.length - 1) return;
+  sideIdx++;
+  loadSideWork(sideList[sideIdx]);
 }
 
-function openEditEserModal(id) {
-  const w = DATA.find(x => x.id === id);
+function loadSideWork(id) {
+  const w = WL[id];
   if (!w) return;
-  editingWorkId = id;
-  document.getElementById('modalTitle').textContent = '✏️ Eseri Düzenle';
-  const fields = {
-    ne_name: w.name, ne_composer: w.composer, ne_lyricWriter: w.lyricWriter,
-    ne_makam: w.makam, ne_measurement: w.measurement, ne_form: w.form,
-    ne_tuning: w.tuning, ne_instrument: w.instrument, ne_region: w.region,
-    ne_sourcePerson: w.sourcePerson, ne_videoLink: w.videoLink, ne_lyrics: w.lyrics,
-    ne_chords: w.chords || (w.lyrics||'').split('\n').map(l => '%%\n'+l).join('\n')
-  };
-  Object.entries(fields).forEach(([id, val]) => {
-    const el = document.getElementById(id);
-    if (el) el.value = val || '';
-  });
-  setLyricsValue(w.lyrics || '');
-  document.getElementById('newEserModal').style.display = 'flex';
+  curRep = { id: 'single', name: w.name||'', items: [{ workId: id, closingNote: w.closingNote||'' }] };
+  curIdx = 0;
+  sideIdx = sideList.indexOf(String(id));
+  document.getElementById('strn').textContent = w.name || '';
+  renderStage();
+  updateSideButtons();
 }
-function closeNewEserModal() {
-  document.getElementById('newEserModal').style.display = 'none';
-}
+// Init
+(async()=>{
+  // Önce Supabase'den WL'yi yükle
+  await loadWL();
 
-// ── GÜFTE EDİTÖR TOOLBAR ──
-function lyricsCmd(cmd) {
-  document.getElementById('ne_lyrics_editor').focus();
-  document.execCommand(cmd, false, null);
-}
-function lyricsAlign(align) {
-  const ed = document.getElementById('ne_lyrics_editor');
-  ed.focus();
-  document.execCommand('justify' + align.charAt(0).toUpperCase() + align.slice(1), false, null);
-}
-function lyricsFontSize(size) {
-  if (!size) return;
-  const ed = document.getElementById('ne_lyrics_editor');
-  ed.focus();
-  const sel = window.getSelection();
-  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-    document.execCommand('fontSize', false, '7');
-    ed.querySelectorAll('font[size="7"]').forEach(el => {
-      el.removeAttribute('size');
-      el.style.fontSize = size;
-    });
-  } else {
-    ed.style.fontSize = size;
-  }
-}
-function lyricsClear() {
-  const ed = document.getElementById('ne_lyrics_editor');
-  ed.focus();
-  const sel = window.getSelection();
-  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-    document.execCommand('removeFormat', false, null);
-  } else {
-    ed.style.fontSize = '';
-    ed.style.textAlign = '';
-  }
-}
-function getLyricsValue() {
-  const ed = document.getElementById('ne_lyrics_editor');
-  if (!ed) return '';
-  // innerHTML'i düz metne çevir (satır sonları koru)
-  return ed.innerText || ed.textContent || '';
-}
-function setLyricsValue(text) {
-  const ed = document.getElementById('ne_lyrics_editor');
-  if (!ed) return;
-  ed.innerText = text || '';
-}
+  // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda aç
+  const urlParams = new URLSearchParams(window.location.search);
 
-function lyricsInsert(text) {
-  const ed = document.getElementById('ne_lyrics_editor');
-  ed.focus();
-  const sel = window.getSelection();
-  if (sel && sel.rangeCount > 0) {
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-    const node = document.createTextNode(text);
-    range.insertNode(node);
-    range.setStartAfter(node);
-    range.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(range);
-  } else {
-    ed.innerText += text;
-  }
-}
-
-function saveNewEser() {
-  const name = document.getElementById('ne_name').value.trim();
-  if (!name) { alert('Eser adı zorunludur.'); return; }
-
-  const fields = {
-    name,
-    composer:     document.getElementById('ne_composer').value.trim(),
-    lyricWriter:  document.getElementById('ne_lyricWriter').value.trim(),
-    makam:        document.getElementById('ne_makam').value.trim(),
-    measurement:  document.getElementById('ne_measurement').value.trim(),
-    form:         document.getElementById('ne_form').value.trim(),
-    tuning:       document.getElementById('ne_tuning').value.trim(),
-    instrument:   document.getElementById('ne_instrument').value.trim(),
-    region:       document.getElementById('ne_region').value.trim(),
-    sourcePerson: document.getElementById('ne_sourcePerson').value.trim(),
-    videoLink:    document.getElementById('ne_videoLink').value.trim(),
-    lyrics:       getLyricsValue().trim(),
-    chords:       (document.getElementById('ne_chords')?.value || '').trim(),
-    metronom: '', area: '', closingNote: '', genre: '', _custom: true
-  };
-
-  if (editingWorkId !== null) {
-    // Düzenleme modu — Supabase'e PATCH at
-    const patchFields = {
-      name: fields.name,
-      composer: fields.composer,
-      lyric_writer: fields.lyricWriter,
-      makam: fields.makam,
-      measurement: fields.measurement,
-      form: fields.form,
-      tuning: fields.tuning,
-      instrument: fields.instrument,
-      region: fields.region,
-      source_person: fields.sourcePerson,
-      video_link: fields.videoLink,
-      lyrics: fields.lyrics,
-      chords: fields.chords
-    };
-    const token = localStorage.getItem('sb_token') || SUPA_KEY;
-    fetch(SUPA_URL + '/rest/v1/works?id=eq.' + editingWorkId, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(patchFields)
-    })
-    .then(r => {
-      if (r.ok || r.status === 204) {
-        // DATA'yı güncelle
-        const idx = DATA.findIndex(x => x.id === editingWorkId);
-        if (idx > -1) Object.assign(DATA[idx], fields);
-        closeNewEserModal();
-        buildFilters();
-        applyFilters();
-        setTimeout(() => {
-          const item = document.querySelector('[data-id="' + editingWorkId + '"]');
-          if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
-        }, 100);
-      } else {
-        r.text().then(t => alert('Kayıt hatası: ' + t));
+  // Paylaşım linki: ?share=token → token'dan rep ID çöz, Supabase'den yükle
+  const shareToken = urlParams.get('share');
+  if (shareToken) {
+    try {
+      const repId = atob(shareToken + '=='.slice(0, (4 - shareToken.length % 4) % 4));
+      // Supabase'den bu repertuvarı çek (public erişim)
+      const [rRes, iRes] = await Promise.all([
+        fetch(SUPA_URL+'/rest/v1/repertoires?id=eq.'+repId, {
+          headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
+        }),
+        fetch(SUPA_URL+'/rest/v1/repertoire_items?repertoire_id=eq.'+repId+'&order=seq', {
+          headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
+        })
+      ]);
+      const reps = await rRes.json();
+      const items = await iRes.json();
+      if (reps && reps[0]) {
+        curRep = {
+          ...reps[0],
+          items: (items||[]).map(t => ({
+            ...t, workId: String(t.work_id), closingNote: t.closing_note||'', performer: t.performer||''
+          }))
+        };
+        curIdx = 0;
+        showScreen('stageScreen');
+        document.getElementById('strn').textContent = curRep.name || '';
+        renderStage();
+        // Tüm eserleri sideList'e yükle - önceki/sonraki geçiş için
+        // Paylaşım modunda sideList boş bırak - sadece curRep/curIdx kullan
+        sideList = [];
+        sideIdx = -1;
+        updateSideButtons();
+        return;
       }
-    })
-    .catch(err => alert('Bağlantı hatası: ' + err.message));
-  } else {
-    // Yeni eser - Supabase'e kaydet
-    const status = (isAdmin() || isEditor()) ? 'approved' : 'pending';
-    const saveFields = {
-      name: fields.name,
-      composer: fields.composer,
-      lyric_writer: fields.lyricWriter,
-      makam: fields.makam,
-      measurement: fields.measurement,
-      form: fields.form,
-      tuning: fields.tuning,
-      instrument: fields.instrument,
-      region: fields.region,
-      source_person: fields.sourcePerson,
-      video_link: fields.videoLink,
-      lyrics: fields.lyrics,
-      status,
-      submitted_by: getUserId(),
-      submitter_email: getUser()?.email || '',
-      submitted_at: new Date().toISOString()
-    };
-
-    fetch(SUPA_URL + '/rest/v1/works', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(saveFields)
-    })
-    .then(r => r.json())
-    .then(data => {
-      const newWork = { ...saveFields, id: data[0]?.id || Date.now() };
-      DATA.push(newWork);
-      closeNewEserModal();
-      buildFilters();
-      applyFilters();
-      if (status === 'pending') {
-        alert('Eser öneriniz iletildi! Admin onayından sonra yayınlanacak.');
-      } else {
-        alert('Eser kaydedildi.');
-        setTimeout(() => {
-          const item = document.querySelector('[data-id="' + newWork.id + '"]');
-          if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
-        }, 100);
-      }
-    })
-    .catch(err => {
-      alert('Kayıt hatası: ' + err.message);
-    });
+    } catch(e) { console.error('Share token error:', e); }
   }
-}
 
-// ── SİL FONKSİYONLARI ──
-function showDeleteConfirm(id) {
-  document.querySelectorAll('.confirm-bar').forEach(el => el.classList.remove('open'));
-  const bar = document.getElementById('confirm-' + id);
-  if (bar) bar.classList.add('open');
-}
-function hideDeleteConfirm(id) {
-  const bar = document.getElementById('confirm-' + id);
-  if (bar) bar.classList.remove('open');
-}
-async function deleteWork(id) {
-  const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
-    method: 'DELETE',
-    headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(getToken()||SUPA_KEY)}
-  });
-  if (!r.ok && r.status !== 204) { alert('Silme hatası: ' + await r.text()); return; }
-  const customs = getCustomWorks().filter(w => w.id !== id);
-  saveCustomWorks(customs);
-  const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
-  if (!deleted.includes(id)) { deleted.push(id); localStorage.setItem('deletedWorks', JSON.stringify(deleted)); }
-  const idx = DATA.findIndex(w => w.id === id);
-  if (idx > -1) DATA.splice(idx, 1);
-  buildFilters();
-  applyFilters();
-  // Admin için pending sayısını göster
-  if (isAdmin()) {
-    const pendingWorks = DATA.filter(w => w.status === 'pending');
-    const pendingBtn = document.getElementById('btnPendingReview');
-    const pendingCount = document.getElementById('pendingCount');
-    if (pendingBtn && pendingWorks.length > 0) {
-      pendingBtn.style.display = '';
-      if (pendingCount) pendingCount.textContent = pendingWorks.length;
+  const workParam = urlParams.get('work');
+  if (workParam) {
+    const normalizedId = String(parseInt(workParam));
+    const w = WL[normalizedId] || WL[workParam];
+    if (w) {
+      curRep = {
+        id: 'single',
+        name: w.name || 'Eser',
+        items: [{ workId: normalizedId, closingNote: w.closingNote || '' }]
+      };
+      curIdx = 0;
+      showScreen('stageScreen');
+      document.getElementById('strn').textContent = w.name || '';
+      renderStage();
+      sideNavInit(normalizedId);
+      return;
     }
   }
-  document.getElementById('detailEmpty').style.display = '';
-  document.getElementById('detailContent').style.display = 'none';
-  selectedId = null;
-}
 
-// Modal overlay click to close
-document.addEventListener('DOMContentLoaded', function() {
-  const overlay = document.getElementById('newEserModal');
-  if (overlay) {
-    overlay.addEventListener('click', function(e) {
-      if (e.target === this) closeNewEserModal();
-    });
-  }
-});
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeNewEserModal();
-});
-
-
-// Supabase'den yükle, sonra başlat
-(async function init() {
-  const ok = await requireAuth(); if(!ok) return;
-  renderUserBadge('userBadge');
-  if (isAdmin()) {
-    document.querySelectorAll('.admin-only').forEach(el => { el.classList.remove('admin-only'); el.style.display = ''; });
-    const suggestBtn = document.getElementById('btnUserSuggest');
-    if (suggestBtn) suggestBtn.style.display = 'none';
-    setTimeout(() => {
-      const btn = document.getElementById('btnPendingReview');
-      if (btn) btn.classList.remove('admin-only');
-      updatePendingCount();
-    }, 500);
-  } else if (isEditor()) {
-    // Editör: pending onay butonu görünsün, yeni eser direkt ekleyebilsin
-    const suggestBtn = document.getElementById('btnUserSuggest');
-    if (suggestBtn) suggestBtn.style.display = 'none';
-    const adminNewBtn = document.getElementById('btnAdminNewEser');
-    if (adminNewBtn) { adminNewBtn.classList.remove('admin-only'); adminNewBtn.style.display = ''; }
-    setTimeout(() => {
-      const btn = document.getElementById('btnPendingReview');
-      if (btn) btn.classList.remove('admin-only');
-      updatePendingCount();
-    }, 500);
-  } else {
-    const suggestBtn = document.getElementById('btnUserSuggest');
-    if (suggestBtn) suggestBtn.style.display = '';
-    const onerilerimBtn = document.getElementById('btnOnerilerim');
-    if (onerilerimBtn) onerilerimBtn.style.display = '';
-  }
-  // Yükleniyor göstergesi
-  const _lp = document.getElementById('listPanel'); if(_lp) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">Eserler yükleniyor...</div>';
-  
-  await loadWorksFromSupabase();
-  
-  buildFilters();
-  applyFilters();
-  if (isAdmin() || isEditor()) updatePendingCount();
+  reps=await loadReps();
+  renderPicker();
+  const autoId=localStorage.getItem('stageRepId');
+  if(autoId){localStorage.removeItem('stageRepId');const f=reps.find(r=>r.id===autoId);if(f){pickRep(autoId);setTimeout(()=>startStage(),100);}}
 })();
 
-// Cache works list for Solistler page
-try {
-  const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
-  localStorage.setItem('worksListCache', JSON.stringify(list));
-} catch(e) {}
+// ── MOBİL SWIPE DESTEĞİ ──
+(function() {
+  let touchStartX = 0, touchStartY = 0;
+  const sm = document.getElementById('sm') || document.body;
+  
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, {passive: true});
 
-async function showEditorManager() {
-  document.getElementById('editorModal').style.display = 'flex';
-  const list = document.getElementById('editorList');
-  list.innerHTML = '<div style="color:var(--text3);font-size:13px;">Yükleniyor...</div>';
-  const r = await fetch(SUPA_URL + '/rest/v1/profiles?role=eq.editor&select=id,display_name,role', {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
-  });
-  const editors = await r.json();
-  if (!editors.length) {
-    list.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Henüz editör yok.</div>';
-  } else {
-    list.innerHTML = editors.map(e => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;">
-        <span style="font-size:13px;color:var(--text);">${e.display_name || e.id}</span>
-        <button onclick="removeEditor('${e.id}')" style="padding:4px 10px;border-radius:6px;background:rgba(192,84,68,.1);border:1px solid rgba(192,84,68,.3);color:#e07060;font-size:12px;cursor:pointer;font-family:inherit;">Kaldır</button>
-      </div>`).join('');
-  }
-}
-
-async function assignEditor() {
-  const email = document.getElementById('editorEmailInput').value.trim();
-  const msg = document.getElementById('editorMsg');
-  if (!email) return;
-  msg.style.display = 'block';
-  msg.textContent = 'Aranıyor...';
-  msg.style.color = 'var(--text3)';
-
-  // 1. auth.users'dan email ile UUID bul
-  const rUser = await fetch(SUPA_URL + '/rest/v1/profiles?display_name=eq.' + encodeURIComponent(email) + '&select=id,role', {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
-  });
-  const users = rUser.ok ? await rUser.json() : [];
-
-  if (users.length > 0) {
-    // Profil var — sadece rolü güncelle
-    const uid = users[0].id;
-    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
-      method: 'PATCH',
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ role: 'editor' })
-    });
-    msg.style.color = '#3FB950';
-    msg.textContent = '✓ Editör olarak atandı.';
-    document.getElementById('editorEmailInput').value = '';
-    showEditorManager();
-  } else {
-    // Profil yok — auth.users'dan UUID alıp INSERT yap
-    // Bunun için admin RPC gerekir, SQL ile yapılmalı
-    msg.style.color = '#e07060';
-    msg.textContent = 'Kullanıcı profili bulunamadı. Kullanıcının en az bir kez giriş yapmış olması gerekiyor.';
-  }
-}
-
-async function removeEditor(id) {
-  await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + id, {
-    method: 'PATCH',
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-    body: JSON.stringify({ role: 'member' })
-  });
-  showEditorManager();
-}
-
-async function showPendingWorks() {
-  const list = document.getElementById('pendingList');
-  list.innerHTML = '<div class="pm-empty">Yükleniyor...</div>';
-  document.getElementById('pendingModal').style.display = 'flex';
-  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&order=id.desc', {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) }
-  });
-  const pendingWorks = r.ok ? await r.json() : [];
-  if (!pendingWorks.length) {
-    list.innerHTML = '<div class="pm-empty">Bekleyen eser yok 🎉</div>';
-  } else {
-    list.innerHTML = pendingWorks.map(w => `
-      <div class="pm-item" id="pm-item-${w.id}">
-        <div class="pm-item-name">${w.name || '(isimsiz)'}</div>
-        <div class="pm-item-meta">
-          ${w.submitter_email ? `<span>👤 ${w.submitter_email}</span>` : ''}
-          ${w.submitted_at ? `<span>🕐 ${new Date(w.submitted_at).toLocaleString('tr-TR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
-          ${w.composer ? `<span>🎼 ${w.composer}</span>` : ''}
-          ${w.makam ? `<span>🎵 ${w.makam}</span>` : ''}
-          ${w.region ? `<span>📍 ${w.region}</span>` : ''}
-          ${w.measurement ? `<span>♩ ${w.measurement}</span>` : ''}
-        </div>
-        ${w.lyrics ? `<div class="pm-item-lyrics">${w.lyrics.substring(0,300)}${w.lyrics.length>300?'…':''}</div>` : ''}
-        <div class="pm-actions">
-          <button class="pm-approve" onclick="approveWork(${w.id})">✓ Onayla</button>
-          <button class="pm-edit"    onclick="closePendingModal();openEditEserModal(${w.id})">✏️ Düzenle</button>
-          <button class="pm-reject"  onclick="rejectWork(${w.id})">✕ Reddet</button>
-        </div>
-      </div>`).join('');
-  }
-}
-
-function closePendingModal() {
-  document.getElementById('pendingModal').style.display = 'none';
-}
-
-async function approveWork(id) {
-  const btn = document.querySelector(`#pm-item-${id} .pm-approve`);
-  if (btn) { btn.disabled = true; btn.textContent = '...'; }
-  const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
-    method: 'PATCH',
-    headers: {...{'apikey':SUPA_KEY,'Authorization':'Bearer '+localStorage.getItem('sb_token'),'Content-Type':'application/json','Prefer':'return=minimal'}},
-    body: JSON.stringify({ status: 'approved', reviewed_by: getUserId(), reviewed_at: new Date().toISOString() })
-  });
-  if (r.ok || r.status === 204) {
-    const w = DATA.find(x => x.id === id);
-    if (w) w.status = 'approved';
-    const item = document.getElementById('pm-item-'+id);
-    if (item) { item.style.opacity = '.4'; item.innerHTML = '<div style="padding:8px;color:#3FB950;font-size:13px;">✓ Onaylandı</div>'; }
-    updatePendingCount();
-  } else {
-    alert('Hata: ' + await r.text());
-    if (btn) { btn.disabled = false; btn.textContent = '✓ Onayla'; }
-  }
-}
-
-async function rejectWork(id) {
-  if (!confirm('Bu eseri reddetmek ve silmek istiyor musunuz?')) return;
-  const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
-    method: 'DELETE',
-    headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+localStorage.getItem('sb_token'),'Content-Type':'application/json'}
-  });
-  if (r.ok || r.status === 204) {
-    const idx = DATA.findIndex(x => x.id === id);
-    if (idx > -1) DATA.splice(idx, 1);
-    const item = document.getElementById('pm-item-'+id);
-    if (item) { item.remove(); }
-    updatePendingCount();
-    applyFilters();
-  } else {
-    alert('Hata: ' + await r.text());
-  }
-}
-
-async function updatePendingCount() {
-  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&select=id', {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) }
-  });
-  const data = r.ok ? await r.json() : [];
-  const cnt = data.length;
-  const btn = document.getElementById('btnPendingReview');
-  const countEl = document.getElementById('pendingCount');
-  if (btn) {
-    btn.classList.remove('admin-only');
-    btn.style.display = cnt > 0 ? '' : 'none';
-  }
-  if (countEl) countEl.textContent = cnt;
-}
-
-function openSuggestModal() {
-  openNewEserModal();
-  const title = document.getElementById('modalTitle');
-  if (title) title.textContent = '🎵 Eser Öner';
-  setTimeout(() => {
-    const existingNote = document.getElementById('suggestNote');
-    if (!existingNote) {
-      const form = document.querySelector('#newEserModal .modal-body') || document.querySelector('#newEserModal .md');
-      if (form) {
-        const note = document.createElement('div');
-        note.id = 'suggestNote';
-        note.style.cssText = 'background:rgba(249,160,74,.1);border:1px solid rgba(249,160,74,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:#F9A04A;margin-bottom:12px;';
-        note.textContent = 'Öneriniz admin onayından sonra herkese açık olacak.';
-        form.insertBefore(note, form.firstChild);
-      }
+  document.addEventListener('touchend', function(e) {
+    if (!document.getElementById('stageScreen') || 
+        document.getElementById('stageScreen').classList.contains('hidden')) return;
+    
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    
+    // Yalnızca yatay swipe (dikey scroll değil)
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) sideNavNext(); // sola swipe → sonraki
+      else sideNavPrev();         // sağa swipe → önceki
     }
-  }, 100);
-}
+  }, {passive: true});
+})();
+
 </script>
-
-<!-- EDITOR MANAGER MODAL -->
-<div id="editorModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:min(560px,96vw);padding:28px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <span style="font-size:16px;font-weight:600;color:var(--text);">👥 Editör Yönetimi</span>
-      <button onclick="document.getElementById('editorModal').style.display='none'" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Editörler pending eserleri onaylayabilir ve direkt eser ekleyebilir.</p>
-    <div id="editorList" style="margin-bottom:20px;"></div>
-    <div style="border-top:1px solid var(--border);padding-top:16px;">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:8px;font-weight:600;letter-spacing:.05em;">YENİ EDİTÖR ATA</div>
-      <div style="display:flex;gap:8px;">
-        <input id="editorEmailInput" type="email" placeholder="kullanici@email.com" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;">
-        <button onclick="assignEditor()" style="padding:8px 16px;border-radius:8px;background:#BC8CFF;border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Ata</button>
-      </div>
-      <div id="editorMsg" style="font-size:12px;margin-top:8px;display:none;"></div>
-    </div>
-  </div>
-</div>
-
-<!-- PENDING REVIEW MODAL -->
-<div id="pendingModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;">
-  <div class="pm-card">
-    <div class="pm-header">
-      <span class="pm-title">⏳ Onay Bekleyen Eserler</span>
-      <button class="pm-close" onclick="closePendingModal()">✕</button>
-    </div>
-    <div id="pendingList"></div>
-  </div>
-</div>
-
-<!-- YENİ ESER MODAL -->
-<div id="newEserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;width:min(560px,92vw);max-height:85vh;overflow-y:auto;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <h2 id="modalTitle" style="font-size:16px;font-weight:600;color:var(--text);">+ Yeni Eser Ekle</h2>
-      <button onclick="closeNewEserModal()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;">✕</button>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div style="grid-column:1/-1;"><label style="font-size:12px;color:var(--text2);">Eser Adı *</label><input id="ne_name" placeholder="Eser adı..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Besteci</label><input id="ne_composer" placeholder="Besteci..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Güftekâr</label><input id="ne_lyricWriter" placeholder="Güftekâr..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Makam</label><input id="ne_makam" placeholder="Makam..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Usul</label><input id="ne_measurement" placeholder="Usul..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Form</label><input id="ne_form" placeholder="Form..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Akort</label><input id="ne_tuning" placeholder="Akort..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Enstrüman</label><input id="ne_instrument" placeholder="Enstrüman..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Yöre/Bölge</label><input id="ne_region" placeholder="Yöre..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Kaynak Kişi</label><input id="ne_sourcePerson" placeholder="Kaynak..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div style="grid-column:1/-1;"><label style="font-size:12px;color:var(--text2);">Video Linki</label><input id="ne_videoLink" placeholder="https://..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div style="grid-column:1/-1;">
-        <label style="font-size:12px;color:var(--text2);">Akorlar <span style="color:var(--text3);font-weight:300;">(opsiyonel — %% ile başlayan satırlar akor satırı)</span></label>
-        <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="%%Am  Dm&#10;Sabahtan kalktım yıkadım yüzüm" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:100px;resize:vertical;"></textarea>
-      </div>
-      <div style="grid-column:1/-1;">
-      <label style="font-size:12px;color:var(--text2);">Güfte</label>
-      <div style="margin-top:6px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
-        <!-- Toolbar -->
-        <div id="lyricsToolbar" style="display:flex;align-items:center;gap:2px;padding:6px 8px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;">
-          <span style="font-size:11px;color:var(--text3);margin-right:6px;font-weight:600;letter-spacing:.05em;">FORMAT</span>
-          <button type="button" onclick="lyricsCmd('bold')"       title="Kalın"         style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-weight:700;font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><b>B</b></button>
-          <button type="button" onclick="lyricsCmd('italic')"     title="İtalik"        style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><i>I</i></button>
-          <button type="button" onclick="lyricsCmd('underline')"  title="Altı Çizili"   style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><u>U</u></button>
-          <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
-          <button type="button" onclick="lyricsAlign('left')"     title="Sola Yasla"    style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">≡</button>
-          <button type="button" onclick="lyricsAlign('center')"   title="Ortala"        style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">☰</button>
-          <button type="button" onclick="lyricsAlign('right')"    title="Sağa Yasla"    style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">≡</button>
-          <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
-          <select onchange="lyricsFontSize(this.value)" title="Font Boyutu" style="height:28px;padding:0 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;">
-            <option value="">Boyut</option>
-            <option value="12px">Küçük</option>
-            <option value="14px" selected>Normal</option>
-            <option value="17px">Büyük</option>
-            <option value="20px">X-Büyük</option>
-          </select>
-          <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
-          <button type="button" onclick="lyricsClear()" title="Formatı Temizle" style="padding:0 8px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text3);font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">✕ Temizle</button>
-          <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
-          <span style="font-size:11px;color:var(--text3);margin-right:4px;font-weight:600;letter-spacing:.05em;">ÖZEL</span>
-          <button type="button" onclick="lyricsInsert('[]')"   title="Köşeli parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">[ ]</button>
-          <button type="button" onclick="lyricsInsert('{ }')"   title="Süslü parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">{ }</button>
-          <button type="button" onclick="lyricsInsert('( )')"   title="Parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">( )</button>
-          <button type="button" onclick="lyricsInsert('>>')"    title="Çift ok" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">>></button>
-          <button type="button" onclick="lyricsInsert('2X')"    title="2 kez tekrar" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">2X</button>
-          <button type="button" onclick="lyricsInsert('3X')"    title="3 kez tekrar" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">3X</button>
-          <button type="button" onclick="lyricsInsert('\n— Nakarat —\n')" title="Nakarat bölümü" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#BC8CFF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">Nakarat</button>
-          <button type="button" onclick="lyricsInsert('\n— Bağlantı —\n')" title="Bağlantı bölümü" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#BC8CFF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">Bağlantı</button>
-        </div>
-        <!-- Editable area -->
-        <div id="ne_lyrics_editor" contenteditable="true" placeholder="Güfte metni..." 
-          style="min-height:200px;max-height:400px;overflow-y:auto;padding:12px;background:var(--surface2);color:var(--text);font-size:14px;line-height:1.8;font-family:'Sora',sans-serif;outline:none;white-space:pre-wrap;">
-        </div>
-      </div>
-      <input type="hidden" id="ne_lyrics">
-    </div>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-      <button onclick="closeNewEserModal()" style="padding:8px 18px;border-radius:8px;background:none;border:1px solid var(--border);color:var(--text2);font-size:13px;cursor:pointer;">İptal</button>
-      <button onclick="saveNewEser()" style="padding:8px 18px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Kaydet</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
