@@ -340,8 +340,9 @@ let DATA = []; // Supabase'den yüklenecek
 
 async function loadWorksFromSupabase() {
   try {
+    const token = localStorage.getItem('sb_token') || SUPA_KEY;
     const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=name&limit=2000&status=eq.approved', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
     });
     if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
     const rows = await r.json();
