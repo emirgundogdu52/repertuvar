@@ -6,11 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Sahne Modu</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Sora:wght@300;400;500;600;700:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--border:#2a2a3e;--accent:#58A6FF;--accent2:#BC8CFF;--text:#f1f0ff;--text2:#8b8aa8;--text3:#3d3d58;--green:#4a9462;--red:#c05444;}
+:root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--border:#2a2a3e;--accent:#a855f7;--accent2:#c084fc;--text:#f1f0ff;--text2:#8b8aa8;--text3:#3d3d58;--green:#4a9462;--red:#c05444;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height:100vh;overflow:hidden;user-select:none;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100vh;overflow:hidden;user-select:none;}
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;}
 .screen.hidden{display:none;}
 
@@ -24,12 +24,12 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
 .rsl{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;max-height:55vh;overflow-y:auto;}
 .rsl::-webkit-scrollbar{width:4px;}.rsl::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 .rsi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;align-items:center;justify-content:space-between;}
-.rsi:hover{border-color:rgba(88,166,255,.4);background:var(--surface2);}
-.rsi.sel{border-color:var(--accent);background:rgba(88,166,255,.08);}
+.rsi:hover{border-color:rgba(168,85,247,.4);background:var(--surface2);}
+.rsi.sel{border-color:var(--accent);background:rgba(168,85,247,.08);}
 .rsn{font-size:15px;font-weight:500;color:var(--text);margin-bottom:3px;}
 .rsm{font-size:12px;color:var(--text2);}
 .rsc{font-size:12px;color:var(--text3);}
-.bstart{width:100%;background:var(--accent);border:none;border-radius:10px;padding:16px;color:#0a0818;font-size:16px;font-weight:500;font-family:'Sora',sans-serif;cursor:pointer;transition:background .15s,transform .1s;}
+.bstart{width:100%;background:var(--accent);border:none;border-radius:10px;padding:16px;color:#0a0818;font-size:16px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:background .15s,transform .1s;}
 .bstart:hover{background:var(--accent2);}
 .bstart:active{transform:scale(.98);}
 .bstart:disabled{opacity:.35;cursor:not-allowed;}
@@ -45,13 +45,13 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
 .pd.done{background:var(--text3);}
 .pd.cur{background:var(--accent);transform:scale(1.4);}
 .stc{font-size:12px;color:var(--text2);white-space:nowrap;font-variant-numeric:tabular-nums;}
-.bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'Sora',sans-serif;cursor:pointer;transition:all .15s;}
+.bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
 .bex:hover{color:var(--red);border-color:var(--red);}
 
 .sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 40px 80px;position:relative;overflow-y:auto;cursor:pointer;}
-.sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(88,166,255,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
+.sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;opacity:0;animation:si .4s ease forwards;}
-.wtitle{font-family:'Sora',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:24px;opacity:0;animation:si .4s ease .07s forwards;}
+.wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:24px;opacity:0;animation:si .4s ease .07s forwards;}
 .wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;opacity:0;animation:si .4s ease .14s forwards;}
 .wch{padding:5px 14px;border-radius:20px;font-size:13px;border:1px solid var(--border);color:var(--text2);background:var(--surface);}
 .wch.m{border-color:#3a3060;color:#9b8fd4;background:#1a1828;}
@@ -67,7 +67,7 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
 .nn{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .nm{font-size:11px;color:var(--text3);margin-top:2px;}
 .th{font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;line-height:1.5;opacity:0;animation:fi .5s ease .5s forwards;}
-.th kbd{display:inline-block;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;font-family:'Sora',sans-serif;color:var(--text3);}
+.th kbd{display:inline-block;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;font-family:'DM Sans',sans-serif;color:var(--text3);}
 
 #endScreen{background:var(--bg);align-items:center;justify-content:center;text-align:center;padding:40px 24px;}
 .ei{font-size:56px;margin-bottom:24px;animation:pls 2s ease infinite;}
@@ -75,12 +75,12 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
 .es{font-size:15px;color:var(--text2);margin-bottom:8px;}
 .ec{font-size:13px;color:var(--text3);margin-bottom:36px;}
 .ea{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-.be{padding:12px 24px;border-radius:8px;font-size:14px;font-family:'Sora',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;}
+.be{padding:12px 24px;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;}
 .bep{background:var(--accent);border:none;color:#0a0818;font-weight:500;}
 .bep:hover{background:var(--accent2);}
 .beg{background:none;border:1px solid var(--border);color:var(--text2);}
 .beg:hover{border-color:#38383f;color:var(--text);}
-.sf{position:fixed;inset:0;background:rgba(88,166,255,0.06);pointer-events:none;animation:ff .25s ease forwards;z-index:99;}
+.sf{position:fixed;inset:0;background:rgba(168,85,247,0.06);pointer-events:none;animation:ff .25s ease forwards;z-index:99;}
 
 @keyframes si{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fi{from{opacity:0}to{opacity:1}}
@@ -88,15 +88,15 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
 @keyframes ff{to{opacity:0}}
 
 .stage-nav{display:flex;gap:8px;align-items:center;}
-.stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'Sora',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+.stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
 .stage-nav a:hover{border-color:var(--accent);color:var(--accent);}
 
 .side-nav-btn {
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(88,166,255,0.12);
-  border: 1px solid rgba(88,166,255,0.3);
+  background: rgba(168,85,247,0.12);
+  border: 1px solid rgba(168,85,247,0.3);
   border-radius: 12px;
   color: var(--accent);
   cursor: pointer;
@@ -106,16 +106,13 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
   transition: all .2s;
   z-index: 50;
   user-select: none;
-  font-family: 'Sora', sans-serif;
+  font-family: 'DM Sans', sans-serif;
 }
 .snb-arrow { font-size: 28px; line-height: 1; }
 .snb-label { font-size: 11px; font-weight: 600; letter-spacing: .04em; opacity: .8; }
-.side-nav-btn:hover { background: rgba(88,166,255,0.25); border-color: rgba(88,166,255,0.6); transform: translateY(-50%) scale(1.06); }
+.side-nav-btn:hover { background: rgba(168,85,247,0.25); border-color: rgba(168,85,247,0.6); transform: translateY(-50%) scale(1.06); }
 .side-nav-btn:active { transform: translateY(-50%) scale(0.96); }
 .side-nav-btn.disabled { opacity: 0.15; pointer-events: none; }
-.align-btn { background:none; border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text3); font-size:15px; cursor:pointer; transition:all .15s; font-family:inherit; }
-.align-btn:hover { border-color:var(--accent); color:var(--accent); }
-.align-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,.12); }
 .side-nav-left  { left: 12px; }
 .side-nav-right { right: 12px; }
 
@@ -182,12 +179,11 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
 
 <div class="screen" id="pickerScreen">
   <div class="pi">
-    <div class="plogo"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:250px;width:auto;"></div>
+    <div class="plogo"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:180px;width:auto;"></div>
     <h1 class="ptitle">Sahne Moduna Hoş Geldiniz</h1>
     <p class="psub">Hangi repertuvar ile sahneye çıkıyorsunuz?</p>
     <div class="rsl" id="rsl"><div class="loading">Yükleniyor...</div></div>
     <button class="bstart" id="bstart" disabled onclick="startStage()">Sahneye Çık →</button>
-    <button class="bstart" id="bedit" disabled onclick="editRep()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);margin-top:8px;">✏️ Repertuvara Eser Ekle</button>
     <a href="index.html" class="bback">← Ana Sayfaya Dön</a>
   </div>
 </div>
@@ -214,11 +210,6 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
       <div class="nn" id="nn">—</div>
       <div class="nm" id="nm">—</div>
     </div>
-    <div style="display:flex;gap:6px;align-items:center;">
-      <button class="align-btn active" id="alignLeft"   onclick="setLyricsAlign('left')"   title="Sola Yasla">&#8676;</button>
-      <button class="align-btn"        id="alignCenter" onclick="setLyricsAlign('center')" title="Ortala">&#8651;</button>
-      <button class="align-btn"        id="alignRight"  onclick="setLyricsAlign('right')"  title="Sağa Yasla">&#8677;</button>
-    </div>
     <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
 </div>
@@ -238,30 +229,12 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;height
 <script>
 const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
 
-let lyricsAlign = localStorage.getItem('stageAlign') || 'left';
-
-function setLyricsAlign(align) {
-  lyricsAlign = align;
-  localStorage.setItem('stageAlign', align);
-  ['Left','Center','Right'].forEach(a => {
-    const btn = document.getElementById('align'+a);
-    if (btn) btn.classList.toggle('active', a.toLowerCase() === align);
-  });
-  const el = document.querySelector('.wlyrics');
-  if (el) el.style.textAlign = align;
-}
-
 let WL = {}; // Supabase'den yüklenecek
-
-window.addEventListener('DOMContentLoaded', () => {
-  const saved = localStorage.getItem('stageAlign') || 'left';
-  setLyricsAlign(saved);
-});
 
 async function loadWL() {
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?order=id&limit=2000', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
+    const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=id&limit=2000', {
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY)}
     });
     const rows = await r.json();
     rows.forEach(w => {
@@ -271,7 +244,8 @@ async function loadWL() {
         makam: w.makam || '',
         instrument: w.instrument || '',
         closingNote: w.closing_note || '',
-        lyrics: w.lyrics || ''
+        lyrics: w.lyrics || '',
+        chords: w.chords || ''
       };
     });
     // customWorks patch
@@ -290,31 +264,16 @@ let txStart=0;
 async function loadReps(){
   try{
     const [r,items] = await Promise.all([
-      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at&user_id=eq.'+getUserId(), {
-      headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY)
-      }
-    }).then(r=>r.json()),
+      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at',{headers:H}).then(r=>r.json()),
       fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H}).then(r=>r.json())
     ]);
-    const userId = getUserId();
-    const filteredR = (r||[]).filter(x => !x.user_id || String(x.user_id) === String(userId));
-    return filteredR.map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
+    return (r||[]).map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
   }catch(e){console.error(e);return [];}
 }
 
 function renderPicker(){
   const el=document.getElementById('rsl');
-  if(!reps.length){
-    el.innerHTML=`<div style="padding:32px;text-align:center;line-height:1.8;">
-      <div style="font-size:36px;margin-bottom:12px;">🎵</div>
-      <div style="color:var(--text2);font-size:14px;margin-bottom:20px;">Henüz bir repertuvarınız yok.<br>Oluşturmak için aşağıdaki butona tıklayın.</div>
-      <a href="repertoires.html" style="display:inline-block;background:var(--accent);border-radius:8px;padding:12px 28px;color:#fff;font-size:14px;font-weight:600;text-decoration:none;">+ Repertuvar Oluştur</a>
-      <br><a href="index.html" style="color:var(--text3);font-size:12px;text-decoration:none;display:inline-block;margin-top:16px;">← Ana Sayfa</a>
-    </div>`;
-    return;
-  }
+  if(!reps.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);line-height:1.8;">Henüz repertuvar yok.<br><a href=\"repertoires.html\" style=\"color:var(--accent)\">Repertuvar sayfasında</a> repertuvar oluşturun.</div>';return;}
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   el.innerHTML=reps.map(r=>`<div class="rsi${selId===r.id?' sel':''}" onclick="pickRep('${r.id}')">
     <div><div class="rsn">${r.name}</div><div class="rsm">${[r.date,r.venue,sl[r.status]].filter(Boolean).join(' · ')}</div></div>
@@ -322,7 +281,23 @@ function renderPicker(){
   </div>`).join('');
 }
 
-function pickRep(id){selId=id;document.getElementById('bstart').disabled=false;const be=document.getElementById('bedit');if(be)be.disabled=false;renderPicker();}
+function pickRep(id){selId=id;document.getElementById('bstart').disabled=false;renderPicker();}
+
+function renderStageChords(text) {
+  if (!text) return '';
+  return text.trim().split('\n').map(line => {
+    if (line.startsWith('%%')) {
+      const akorlar = line.slice(2).trim();
+      return akorlar
+        ? `<span style="color:#58A6FF;font-size:0.85em;letter-spacing:.08em;font-family:monospace;display:block;margin-top:8px;">${akorlar}</span>`
+        : '';
+    } else if (line.trim() === '') {
+      return '<br>';
+    } else {
+      return `<span style="display:block;">${line.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
+    }
+  }).join('');
+}
 
 function startStage(){
   curRep=reps.find(r=>r.id===selId);
@@ -348,9 +323,10 @@ function renderStage(){
     (item.closingNote||w.closingNote)?`<span class="wch n">Kapanış: ${item.closingNote||w.closingNote}</span>`:'',
     w.instrument?`<span class="wch i">${w.instrument}</span>`:''
   ].filter(Boolean).join('');
-  const lyricsHtml = w.lyrics
-    ? `<div class="wlyrics" style="text-align:${lyricsAlign}">${w.lyrics.replace(/\n/g,'<br>')}</div>`
-    : '';
+  const showChords = localStorage.getItem('stageShowChords') === '1';
+  const lyricsHtml = (showChords && w.chords)
+    ? `<div class="wlyrics" style="text-align:left;">${renderStageChords(w.chords)}</div>`
+    : (w.lyrics ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>` : '');
   document.getElementById('sm').innerHTML=`
     <div class="wnum">Eser ${curIdx+1} / ${total}</div>
     <div class="wtitle">${w.name||item.workId}</div>
@@ -393,7 +369,7 @@ function backToPicker(){
     const pi = document.getElementById('pi');
     if (pi) {
       pi.innerHTML = `
-        <div class="plogo"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:250px;width:auto;"></div>
+        <div class="plogo"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:180px;width:auto;"></div>
         <h1 class="ptitle">Paylaşılan Repertuvar</h1>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;margin-top:16px;"
           onclick="startSharedRep()">
@@ -489,12 +465,7 @@ function loadSideWork(id) {
 }
 // Init
 (async()=>{
-  const authOk = await requireAuth();
-  if(!authOk) return;
-  // User token ile H headers'ı güncelle
-  const userToken = localStorage.getItem('sb_token');
-  if(userToken) H['Authorization'] = 'Bearer ' + userToken;
-  if(isAdmin()){document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');}
+  // Önce Supabase'den WL'yi yükle
   await loadWL();
 
   // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda aç
@@ -558,15 +529,6 @@ function loadSideWork(id) {
 
   reps=await loadReps();
   renderPicker();
-  // Üyenin repertuvarı yoksa Sahneye Çık butonunu değiştir
-  if (!isAdmin() && reps.length === 0) {
-    const btn = document.getElementById('bstart');
-    if (btn) {
-      btn.textContent = '+ Repertuvar Oluştur';
-      btn.disabled = false;
-      btn.onclick = () => window.location.href = 'repertoires.html';
-    }
-  }
   const autoId=localStorage.getItem('stageRepId');
   if(autoId){localStorage.removeItem('stageRepId');const f=reps.find(r=>r.id===autoId);if(f){pickRep(autoId);setTimeout(()=>startStage(),100);}}
 })();
@@ -596,39 +558,6 @@ function loadSideWork(id) {
   }, {passive: true});
 })();
 
-
-
-function editRep() {
-  if (!selId) return;
-  // Repertuvar sayfasını aynı tab'da aç, repertuvar seçili olarak
-  localStorage.setItem('stageRepId', selId);
-  window.location.href = 'repertoires.html';
-}
-
-async function createRepAndGo() {
-  const nameEl = document.getElementById('newRepName');
-  const name = nameEl ? nameEl.value.trim() : '';
-  if (!name) { alert('Repertuvar adı girin.'); return; }
-  try {
-    const r = await fetch(SUPA_URL+'/rest/v1/repertoires', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify({name, status:'concept', user_id:getUserId(), date:new Date().toISOString().split('T')[0]})
-    });
-    const data = await r.json();
-    if (data && data[0]) {
-      reps = await loadReps();
-      renderPicker();
-    } else {
-      alert('Hata: ' + JSON.stringify(data));
-    }
-  } catch(e) { alert('Hata: '+e.message); }
-}
 </script>
 </body>
 </html>
