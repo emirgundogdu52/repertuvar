@@ -1000,7 +1000,7 @@ async function rejectWork(id) {
     const idx = DATA.findIndex(x => x.id === id);
     if (idx > -1) DATA.splice(idx, 1);
     const item = document.getElementById('pm-item-'+id);
-    if (item) { item.style.opacity = '.4'; item.innerHTML = '<div style="padding:8px;color:#e07060;font-size:13px;">✕ Reddedildi ve silindi</div>'; }
+    if (item) { item.remove(); }
     updatePendingCount();
     applyFilters();
   } else {
