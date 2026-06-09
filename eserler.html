@@ -572,7 +572,10 @@ function selectWork(id) {
           </div>
           <textarea id="inline_chords_${w.id}" style="width:100%;min-height:160px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:monospace;line-height:1.8;resize:vertical;"
             placeholder="%%Dm  G   Am&#10;Sabahtan kalktım yıkadım yüzüm&#10;%%C        F&#10;Telim örülürken ağladı gözüm"
-          >${(w.chords||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+          >${w.chords
+            ? (w.chords).replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            : (w.lyrics||'').split('\n').map(l => '%%\n'+l).join('\n')
+          }</textarea>
           <button onclick="saveChords(${w.id})" style="margin-top:10px;padding:7px 18px;background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">💾 Kaydet</button>
         </div>
       ` : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">Akor bilgisi sadece editörler tarafından görüntülenebilir.</div>`}
