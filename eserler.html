@@ -630,33 +630,33 @@ async function saveChords(id) {
   const ta = document.getElementById('inline_chords_'+id);
   if (!ta) { console.error('textarea bulunamadı: inline_chords_'+id); return; }
   const chords = ta.value.trim();
-  const numId = parseInt(id);
-  const w = DATA.find(x => x.id === id || x.id === numId);
-  if (!w) { alert('Eser bulunamadı!'); return; }
   const token = localStorage.getItem('sb_token') || SUPA_KEY;
-  const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+numId, {
+  fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
     method: 'PATCH',
-    headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
     body: JSON.stringify({chords: chords})
-  });
-  const respText = await r.text();
-  console.log('PATCH status:', r.status, 'response:', respText.substring(0,200));
-  if (r.ok || r.status===204) {
-    const idx = DATA.findIndex(x => x.id === id);
-    if (idx > -1) DATA[idx].chords = chords;
-    // Görüntüleme alanını güncelle — selectWork çağırmadan
-    const display = document.querySelector('#tab-akorlar .lyrics-box');
-    if (display) {
-      display.innerHTML = chords ? renderChords(chords) : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>';
+  }).then(r => {
+    if (r.ok || r.status === 204) {
+      const idx = DATA.findIndex(x => x.id === id || x.id === parseInt(id));
+      if (idx > -1) DATA[idx].chords = chords;
+      const display = document.querySelector('#tab-akorlar .lyrics-box');
+      if (display) {
+        display.innerHTML = chords ? renderChords(chords) : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>';
+      }
+      const alertMsg = document.createElement('div');
+      alertMsg.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;';
+      alertMsg.textContent = '✓ Akorlar kaydedildi';
+      document.body.appendChild(alertMsg);
+      setTimeout(() => alertMsg.remove(), 2500);
+    } else {
+      r.text().then(t => alert('Kayıt hatası: ' + t));
     }
-    const alertMsg = document.createElement('div');
-    alertMsg.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;';
-    alertMsg.textContent = '✓ Akorlar kaydedildi';
-    document.body.appendChild(alertMsg);
-    setTimeout(() => alertMsg.remove(), 2500);
-  } else {
-    alert('Kayıt hatası!');
-  }
+  }).catch(err => alert('Bağlantı hatası: ' + err.message));
 }
 
 function switchDetailTab(tabId) {
