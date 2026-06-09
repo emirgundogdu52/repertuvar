@@ -641,12 +641,16 @@ async function saveChords(id) {
   if (r.ok || r.status===204) {
     const idx = DATA.findIndex(x => x.id === id);
     if (idx > -1) DATA[idx].chords = chords;
+    // Görüntüleme alanını güncelle — selectWork çağırmadan
+    const display = document.querySelector('#tab-akorlar .lyrics-box');
+    if (display) {
+      display.innerHTML = chords ? renderChords(chords) : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>';
+    }
     const alertMsg = document.createElement('div');
     alertMsg.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;';
     alertMsg.textContent = '✓ Akorlar kaydedildi';
     document.body.appendChild(alertMsg);
     setTimeout(() => alertMsg.remove(), 2500);
-    selectWork(id);
   } else {
     alert('Kayıt hatası!');
   }
