@@ -518,6 +518,7 @@ function selectWork(id) {
 
   const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video İzle</a>` : '';
   const stageId = String(parseInt(w.id));
+  const lastTab = localStorage.getItem('detailActiveTab') || 'gufte';
   const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="openStageFromDetail('${stageId}');return false;">🎭 Sahne Modunda Aç</a>`;
 
   dc.innerHTML = `
