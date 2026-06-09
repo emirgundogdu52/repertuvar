@@ -193,7 +193,7 @@ async function doRegister() {
 async function doReset() {
   const email = document.getElementById('loginEmail').value.trim();
   if(!email) { showMsg('err','Önce e-posta adresinizi girin.'); return; }
-  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: window.location.origin+'/index.html'});
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: 'https://emirgundogdu52.github.io/repertuvar/login.html'});
   if(error) showMsg('err', error.message);
   else showMsg('ok','Şifre sıfırlama bağlantısı gönderildi.');
 }
@@ -201,7 +201,7 @@ async function doReset() {
 async function loginGoogle() {
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: {redirectTo: window.location.origin+'/index.html'}
+    options: {redirectTo: 'https://emirgundogdu52.github.io/repertuvar/login.html'}
   });
 }
 </script>
