@@ -558,8 +558,8 @@ function selectWork(id) {
         <div style="margin-bottom:16px;">
           <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Güfte & Akorlar</div>
           <div class="lyrics-box" style="font-family:monospace;font-size:13px;line-height:2;">
-            ${w.chords
-              ? renderChords(w.chords)
+            ${w.chords && w.chords.trim()
+              ? renderChords(w.chords.trim())
               : (w.lyrics
                   ? `<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş. Düzenle butonundan ekleyebilirsiniz.</span>`
                   : `<span style="color:var(--text3);font-size:12px;">Güfte ve akor bilgisi yok.</span>`)
