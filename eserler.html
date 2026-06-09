@@ -366,6 +366,7 @@ async function loadWorksFromSupabase() {
       videoLink: w.video_link || '',
       lyrics: w.lyrics || '',
       chords: w.chords || '',
+      notaUrl: w.nota_url || '',
       status: w.status || 'approved',
       submitted_by: w.submitted_by || '',
       submitter_email: w.submitter_email || '',
@@ -542,6 +543,7 @@ function selectWork(id) {
       <div class="detail-tab${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</div>
       <div class="detail-tab${lastTab==='akorlar'?' active':''}" onclick="switchDetailTab('akorlar')">🎸 Akorlar</div>
       <div class="detail-tab${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">📋 Bilgiler</div>
+      <div class="detail-tab${lastTab==='nota'?' active':''}" onclick="switchDetailTab('nota')">🎼 Nota</div>
       <div class="detail-tab${lastTab==='hikaye'?' active':''}" onclick="switchDetailTab('hikaye')">📖 Hikaye</div>
     </div>
 
@@ -592,6 +594,37 @@ function selectWork(id) {
         ${row2('Kapanış Notası', w.closingNote)}
       </div>
       ${videoBtn ? `<div class="detail-row" style="margin-top:8px;">${videoBtn}</div>` : ''}
+    </div>
+
+    <div id="tab-nota" class="detail-tab-content detail-body${lastTab==='nota'?' active':''}">
+      ${w.notaUrl ? `
+        <div style="margin-bottom:12px;">
+          ${w.notaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+            ? `<img src="${w.notaUrl}" style="width:100%;border-radius:8px;border:1px solid var(--border);" alt="Nota">`
+            : `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px;">
+                <span style="font-size:24px;">📄</span>
+                <div>
+                  <div style="font-size:13px;color:var(--text);margin-bottom:4px;">Nota dosyası mevcut</div>
+                  <a href="${w.notaUrl}" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none;">↗ Notayı Aç / İndir</a>
+                </div>
+               </div>`
+          }
+        </div>
+      ` : `<div style="color:var(--text3);font-size:13px;padding:12px 0 16px;">Bu eser için nota eklenmemiş.</div>`}
+      ${(isAdmin() || isEditor()) ? `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">Nota Yükle</div>
+          <input type="file" id="notaFile_${w.id}" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
+            style="display:none;" onchange="uploadNota(${w.id}, this)">
+          <label for="notaFile_${w.id}" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;"
+            onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
+            📎 Dosya Seç (PDF, JPG, PNG)
+          </label>
+          <div id="notaUploadStatus_${w.id}" style="margin-top:8px;font-size:12px;color:var(--text3);"></div>
+          ${w.notaUrl ? `<button onclick="deleteNota(${w.id})" style="margin-top:8px;display:block;background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">🗑 Notayı Kaldır</button>` : ''}
+        </div>
+      ` : ''}
     </div>
 
     <div id="tab-hikaye" class="detail-tab-content detail-body${lastTab==='hikaye'?' active':''}">
@@ -664,6 +697,61 @@ async function saveChords(id) {
       r.text().then(t => alert('Kayıt hatası: ' + t));
     }
   }).catch(err => alert('Bağlantı hatası: ' + err.message));
+}
+
+async function uploadNota(id, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('notaUploadStatus_'+id);
+  if (status) status.textContent = '⏳ Yükleniyor...';
+  const token = localStorage.getItem('sb_token') || SUPA_KEY;
+  const ext = file.name.split('.').pop();
+  const path = `works/${id}/nota_${Date.now()}.${ext}`;
+  // Upload to Supabase Storage
+  const uploadRes = await fetch(`${SUPA_URL}/storage/v1/object/notalar/${path}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': file.type,
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+  if (!uploadRes.ok) {
+    if (status) status.textContent = '❌ Yükleme hatası!';
+    return;
+  }
+  const notaUrl = `${SUPA_URL}/storage/v1/object/public/notalar/${path}`;
+  // Save URL to works table
+  const patchRes = await fetch(`${SUPA_URL}/rest/v1/works?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body: JSON.stringify({nota_url: notaUrl})
+  });
+  if (patchRes.ok || patchRes.status === 204) {
+    const idx = DATA.findIndex(x => x.id === id);
+    if (idx > -1) DATA[idx].notaUrl = notaUrl;
+    if (status) status.textContent = '✓ Yüklendi!';
+    setTimeout(() => selectWork(id), 800);
+  } else {
+    if (status) status.textContent = '❌ Kayıt hatası!';
+  }
+}
+
+async function deleteNota(id) {
+  if (!confirm('Notayı kaldırmak istediğinizden emin misiniz?')) return;
+  const token = localStorage.getItem('sb_token') || SUPA_KEY;
+  const r = await fetch(`${SUPA_URL}/rest/v1/works?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body: JSON.stringify({nota_url: null})
+  });
+  if (r.ok || r.status === 204) {
+    const idx = DATA.findIndex(x => x.id === id);
+    if (idx > -1) DATA[idx].notaUrl = '';
+    selectWork(id);
+  }
 }
 
 function openStageFromDetail(stageId) {
