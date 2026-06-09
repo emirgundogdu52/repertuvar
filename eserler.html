@@ -633,8 +633,8 @@ async function saveChords(id) {
   const token = localStorage.getItem('sb_token') || SUPA_KEY;
   const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+numId, {
     method: 'PATCH',
-    headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation'},
-    body: JSON.stringify({chords})
+    headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body: JSON.stringify({chords: chords || null})
   });
   const respText = await r.text();
   console.log('PATCH status:', r.status, 'response:', respText.substring(0,200));
