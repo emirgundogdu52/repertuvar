@@ -231,7 +231,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webki
   }
   const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),'Prefer':'count=exact'};
   const ns = document.querySelectorAll('.stat-n');
-  const urls = ['works?status=eq.approved','repertoires','solistler'];
+  const urls = ['works?status=eq.approved','repertoires?','solistler?'];
   for(let i=0;i<3;i++){
     try{ const r=await fetch(SUPA_URL+'/rest/v1/'+urls[i]+'&select=id&limit=1',{headers:H});
     const cnt=r.headers.get('content-range')?.split('/')[1];
