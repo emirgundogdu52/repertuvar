@@ -197,6 +197,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
     </div>
     <div class="stage-nav">
       <a href="index.html">🏠 Ana Menü</a>
+      <a href="eserler.html">🎼 Eserler</a>
       <a href="repertoires.html">📋 Repertuvar</a>
       <button class="bex" onclick="exitStage(event)">✕ Çık</button>
     </div>
@@ -360,6 +361,7 @@ function renderStage(){
   // Kaydedilmiş hizalamayı uygula
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
   setLyricsAlign(savedAlign);
+  const next=items[curIdx+1];
   const np=document.getElementById('np');
   if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
   else np.style.display='none';
