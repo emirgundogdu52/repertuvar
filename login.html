@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repertuvar — Giriş</title>
 <link rel="icon" href="Repertuvar_logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -51,6 +50,29 @@ body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-he
 .msg{font-size:13px;text-align:center;padding:10px;border-radius:8px;margin-top:12px;display:none;}
 .msg.err{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red);}
 .msg.ok{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--green);}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style id="v2-login-css">
+:root{--bg:#07071a;--surface:#12123a;--surface2:#1a1a4a;--border:rgba(120,100,255,0.18);--border2:rgba(120,100,255,0.32);--accent:#7c6fff;--accent2:#a78bfa;--accent3:#c4b5fd;--text:#e2e0ff;--text2:#9d9bc4;--text3:#5e5c8a;--green:#4ade80;--red:#f87171;--font:'Plus Jakarta Sans',sans-serif;}
+body{font-family:var(--font)!important;background:var(--bg)!important;color:var(--text)!important;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.logo-wrap img{filter:drop-shadow(0 0 24px rgba(124,111,255,0.4));}
+.logo-wrap h1{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.logo-wrap p{color:var(--text2);}
+.card{background:rgba(18,18,58,0.8);backdrop-filter:blur(16px);border:1px solid var(--border2);border-radius:20px;padding:32px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(124,111,255,0.15);}
+.tabs{display:flex;gap:4px;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:24px;}
+.tab{flex:1;padding:8px;border-radius:7px;border:none;background:none;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);transition:all .15s;}
+.tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 2px 8px rgba(124,111,255,0.3);}
+.field label{color:var(--text2);}
+.field input{background:var(--surface2)!important;border:1px solid var(--border)!important;color:var(--text)!important;border-radius:10px!important;}
+.field input:focus{border-color:var(--accent)!important;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2))!important;border:none!important;border-radius:10px!important;box-shadow:0 4px 14px rgba(124,111,255,0.3);}
+.btn-google{background:var(--surface2)!important;border:1px solid var(--border)!important;color:var(--text)!important;border-radius:10px!important;}
+.btn-google:hover{border-color:var(--accent)!important;}
+.divider hr{border-color:var(--border)!important;}
+.divider span{color:var(--text3)!important;}
+.forgot{color:var(--accent)!important;}
+.msg.err{background:rgba(248,113,113,.1)!important;border-color:rgba(248,113,113,.3)!important;color:var(--red)!important;}
+.msg.ok{background:rgba(74,222,128,.1)!important;border-color:rgba(74,222,128,.3)!important;color:var(--green)!important;}
 </style>
 </head>
 <body>
