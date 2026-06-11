@@ -121,10 +121,14 @@ tr:hover .ra{opacity:1;}
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
-    nav { padding:0 8px; gap:3px; height:64px; overflow-x:auto; }
+    nav { padding:0 8px; gap:3px; height:56px; overflow-x:auto; }
     .nb { font-size:11px; padding:4px 8px; white-space:nowrap; }
-    .layout { flex-direction:column; height:auto; min-height:calc(100vh - 64px); }
-    .lp { width:100%; min-width:unset; max-height:220px; border-right:none; border-bottom:1px solid var(--border); }
+    .layout { flex-direction:column; height:auto; min-height:calc(100vh - 56px - 68px); }
+    .lp { width:100%; min-width:unset; max-height:none; border-right:none; border-bottom:1px solid var(--border); }
+    .dp { display:none; }
+    .dp.mobile-open { display:flex !important; flex-direction:column; }
+    .lp.mobile-hidden { display:none !important; }
+    .mobile-back-btn { display:flex; align-items:center; gap:8px; padding:12px 16px; color:var(--accent); font-size:13px; font-weight:600; cursor:pointer; border-bottom:1px solid var(--border); background:var(--surface); }
     .dc { padding:16px; }
     .dh { padding:14px 16px; }
     .dn { font-size:18px; }
@@ -305,8 +309,8 @@ tr:hover .ra{opacity:1;}
 <script>
 
 const H = {
-  'apikey': SUPA_KEY,
-  'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
+  get apikey() { return SUPA_KEY; },
+  get Authorization() { return 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY); },
   'Content-Type': 'application/json',
   'Prefer': 'return=representation'
 };
@@ -380,7 +384,8 @@ async function load(){
     sync('ok','Senkronize');
     renderList();
     const urlRep=new URLSearchParams(window.location.search).get('rep');
-    if(urlRep&&reps.find(x=>x.id===urlRep)){selId=urlRep;}else if(!selId&&reps.length){selId=reps[0].id;}
+    if(urlRep&&reps.find(x=>x.id===urlRep)){selId=urlRep;}
+    else if(!selId && reps.length && window.innerWidth >= 768){selId=reps[0].id;}
     renderList();renderDetail();
   }catch(e){sync('err','Bağlantı hatası');toast(e.message,'er');}
 }
@@ -396,7 +401,28 @@ function renderList(){
   </div>`).join('');
 }
 
-function sel(id){selId=id;renderList();renderDetail();}
+function sel(id){
+  selId=id;
+  renderList();
+  renderDetail();
+  if(window.innerWidth < 768){
+    const lp=document.querySelector('.lp');
+    const dp=document.getElementById('dp');
+    if(lp) lp.classList.add('mobile-hidden');
+    if(dp) dp.classList.add('mobile-open');
+    const btn=document.getElementById('mobileBackBtn');
+    if(btn) btn.style.display='flex';
+  }
+}
+
+function goBackToList(){
+  const lp=document.querySelector('.lp');
+  const dp=document.getElementById('dp');
+  if(lp) lp.classList.remove('mobile-hidden');
+  if(dp) dp.classList.remove('mobile-open');
+  const btn=document.getElementById('mobileBackBtn');
+  if(btn) btn.style.display='none';
+}
 function getRep(id){return reps.find(r=>r.id===id);}
 
 function renderDetail(){
@@ -412,8 +438,8 @@ function renderDetail(){
     const w=WL[it.workId]||{};
     const cn=it.closingNote||w.closingNote||'';
     const pf = it.performer || '';
-    return `<tr>
-      <td class="sq"><input class="si" type="number" min="1" max="${items.length}" value="${it.seq}" onchange="chSeq('${rep.id}',${idx},this.value)" onclick="event.stopPropagation()"></td>
+    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" style="cursor:grab;">
+      <td class="sq" style="cursor:grab;color:var(--text3);font-size:16px;text-align:center;user-select:none;" title="Sürükle">⠿</td>
       <td>
         <div class="wn">${w.name||'#'+it.workId}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
@@ -432,6 +458,7 @@ function renderDetail(){
 
   dc.innerHTML=`
     <div class="dh">
+      <div class="mobile-back-btn" onclick="goBackToList()" style="display:none;" id="mobileBackBtn">← Repertuvar Listesi</div>
       <div class="dht">
         <div><div class="did">#${rep.id.slice(0,8).toUpperCase()}</div><div class="dn">${rep.name}</div></div>
         <div class="da">
@@ -589,6 +616,51 @@ async function addWork(){
 
 async function rmItem(repId,itemId){
   try{await dbDel('repertoire_items',itemId);toast('Silindi');await load();}catch(e){toast(e.message,'er');}
+}
+
+
+let dragSrcIdx = null;
+let dragRepId = null;
+
+function dragStart(e) {
+  dragSrcIdx = parseInt(e.currentTarget.dataset.idx);
+  dragRepId = e.currentTarget.dataset.rep;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.style.opacity = '0.4';
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+async function dragDrop(e) {
+  e.stopPropagation();
+  const targetIdx = parseInt(e.currentTarget.dataset.idx);
+  const targetRep = e.currentTarget.dataset.rep;
+  // Opacity'yi resetle
+  document.querySelectorAll('tr[draggable]').forEach(r => r.style.opacity = '1');
+  if (dragSrcIdx === null || dragSrcIdx === targetIdx || dragRepId !== targetRep) return;
+  const rep = getRep(targetRep);
+  if (!rep) return;
+  const items = [...rep.items];
+  const moved = items.splice(dragSrcIdx, 1)[0];
+  items.splice(targetIdx, 0, moved);
+  // seq'leri güncelle
+  const updates = items.map((it, i) => ({id: it.id, seq: i + 1}));
+  try {
+    await Promise.all(updates.map(u =>
+      fetch(SUPA_URL + '/rest/v1/repertoire_items?id=eq.' + u.id, {
+        method: 'PATCH',
+        headers: { ...H, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ seq: u.seq })
+      })
+    ));
+    toast('Sıra güncellendi ✓');
+    await load();
+  } catch(err) { toast('Hata: ' + err.message, 'er'); }
+  dragSrcIdx = null;
 }
 
 async function mv(repId,idx,dir){
