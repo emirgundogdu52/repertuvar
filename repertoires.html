@@ -394,8 +394,11 @@ async function load(){
     reps = r.map(x=>({...x, items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||''}))}));
     sync('ok','Senkronize');
     renderList();
-    if(selId) renderDetail();
-    else if(reps.length){selId=reps[0].id;renderList();renderDetail();}
+    // ?rep=ID parametresi varsa o repertuvarı aç
+    const urlRep = new URLSearchParams(window.location.search).get('rep');
+    if (urlRep && reps.find(x=>x.id===urlRep)) { selId=urlRep; }
+    else if(!selId && reps.length){ selId=reps[0].id; }
+    renderList(); renderDetail();
   }catch(e){sync('err','Bağlantı hatası');toast(e.message,'er');}
 }
 
