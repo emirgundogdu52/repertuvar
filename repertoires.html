@@ -362,7 +362,7 @@ async function loadWorksData() {
 }
 let reps=[], selId=null, editId=null, selWId=null, addRepId=null;
 
-function sync(s,t){document.getElementById('dot').className='dot '+s;document.getElementById('sl').textContent=t;}
+function sync(s,t){const d=document.getElementById('dot');const sl=document.getElementById('sl');if(d)d.className='dot '+s;if(sl)sl.textContent=t;}
 function toast(m,t='ok'){const e=document.createElement('div');e.className='toast '+t;e.textContent=m;document.body.appendChild(e);setTimeout(()=>e.remove(),2500);}
 
 let SOLISTLER = []; // sanatçı listesi
