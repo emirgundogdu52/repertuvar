@@ -380,7 +380,7 @@ async function load(){
   sync('spin','Yükleniyor...');
   try{
     const [r,i,s] = await Promise.all([
-      dbGet('repertoires','order=created_at'),
+      dbGet('repertoires','order=created_at&limit=100'),
       dbGet('repertoire_items','order=seq'),
       dbGet('solistler','order=name')
     ]);
