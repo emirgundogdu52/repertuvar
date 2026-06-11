@@ -497,8 +497,8 @@ function renderDetail(){
       </div>
       <div class="dmr" style="gap:8px;padding-bottom:4px;flex-wrap:nowrap;overflow-x:auto;">
         <div class="mc"><span class="sp ${sc[rep.status]||'sc'}">${sl[rep.status]||'Taslak'}</span></div>
-        ${rep.date?`<div class="mc" style="white-space:nowrap;">📅 <strong>${rep.date}</strong></div>`:''}
-        ${rep.venue?`<div class="mc" style="white-space:nowrap;">📍 <strong>${rep.venue}</strong></div>`:''}
+        ${rep.date?`<div class="mc" style="white-space:nowrap;">📅 <strong>${rep.date}</strong>${rep.venue?` &nbsp;📍 <strong>${rep.venue}</strong>`:''}</div>`:''}
+        ${!rep.date&&rep.venue?`<div class="mc" style="white-space:nowrap;">📍 <strong>${rep.venue}</strong></div>`:''}
         ${rep.notes?`<div class="mc" style="color:var(--text3);white-space:nowrap;">📝 ${rep.notes}</div>`:''}
       </div>
     </div>
