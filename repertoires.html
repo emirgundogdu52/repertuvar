@@ -126,10 +126,10 @@ tr:hover .ra{opacity:1;}
   @media (max-width: 768px) {
     nav { padding:0 8px; gap:3px; height:56px; overflow-x:auto; }
     .nb { font-size:11px; padding:4px 8px; white-space:nowrap; }
-    .layout { flex-direction:column; height:auto; }
-    .lp { width:100%; min-width:unset; height:calc(100vh - 56px - 68px); max-height:none; border-right:none; border-bottom:none; display:flex; flex-direction:column; overflow:hidden; }
+    .layout { flex-direction:column; height:calc(100vh - 56px - 68px); }
+    .lp { width:100%; min-width:unset; flex:1; height:100%; max-height:none; border-right:none; border-bottom:none; display:flex; flex-direction:column; overflow:hidden; }
     .lph { flex-shrink:0; }
-    .ls { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; }
+    .ls { flex:1; overflow-y:scroll; -webkit-overflow-scrolling:touch; min-height:0; }
     .dp { display:none; }
     .dp.mobile-open { display:flex !important; flex-direction:column; }
     .lp.mobile-hidden { display:none !important; }
