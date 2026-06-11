@@ -484,21 +484,20 @@ function renderDetail(){
       <div class="mobile-back-btn" onclick="goBackToList()" style="display:none;margin:-10px -14px 8px;padding:8px 14px;" id="mobileBackBtn">← Repertuvar Listesi</div>
       <div class="dht" style="margin-bottom:6px;">
         <div style="min-width:0;flex:1;">
-          <div class="did" style="font-size:9px;">#${rep.id.slice(0,8).toUpperCase()}</div>
           <div class="dn" style="font-size:15px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${rep.name}</div>
         </div>
         <div class="da" style="flex-wrap:nowrap;overflow-x:auto;gap:4px;flex-shrink:0;">
           <a href="stage.html" class="bi bstage" style="white-space:nowrap;font-size:11px;padding:4px 8px;" onclick="localStorage.setItem('stageRepId','${rep.id}')">🎭 Sahneye Çık</a>
-          <button class="bi" style="font-size:11px;padding:4px 8px;" onclick="openEdit('${rep.id}')">✏️</button>
-          <button class="bi bshare" style="font-size:11px;padding:4px 8px;" onclick="shareRep('${rep.id}')">🔗</button>
-          <button class="bi" style="font-size:11px;padding:4px 8px;" onclick="printR('${rep.id}')">🖨️</button>
-          <button class="bi bd" style="font-size:11px;padding:4px 8px;" onclick="delRep('${rep.id}')">🗑️</button>
+          <button class="bi" style="font-size:11px;padding:4px 8px;" title="Düzenle" onclick="openEdit('${rep.id}')">✏️</button>
+          <button class="bi bshare" style="font-size:11px;padding:4px 8px;" title="Paylaş" onclick="shareRep('${rep.id}')">🔗</button>
+          <button class="bi" style="font-size:11px;padding:4px 8px;" title="Yazdır" onclick="printR('${rep.id}')">🖨️</button>
+          <button class="bi bd" style="font-size:11px;padding:4px 8px;" title="Sil" onclick="delRep('${rep.id}')">🗑️</button>
         </div>
       </div>
       <div class="dmr" style="gap:8px;padding-bottom:4px;flex-wrap:nowrap;overflow-x:auto;">
         <div class="mc"><span class="sp ${sc[rep.status]||'sc'}">${sl[rep.status]||'Taslak'}</span></div>
-        ${rep.date?`<div class="mc" style="white-space:nowrap;">📅 <strong>${rep.date}</strong>${rep.venue?` &nbsp;📍 <strong>${rep.venue}</strong>`:''}</div>`:''}
-        ${!rep.date&&rep.venue?`<div class="mc" style="white-space:nowrap;">📍 <strong>${rep.venue}</strong></div>`:''}
+        ${rep.date?`<div class="mc" style="white-space:nowrap;">📅 <strong>${rep.date}</strong>${rep.venue?` &nbsp;📍 Mekan: <strong>${rep.venue}</strong>`:''}</div>`:''}
+        ${!rep.date&&rep.venue?`<div class="mc" style="white-space:nowrap;">📍 Mekan: <strong>${rep.venue}</strong></div>`:''}
         ${rep.notes?`<div class="mc" style="color:var(--text3);white-space:nowrap;">📝 ${rep.notes}</div>`:''}
       </div>
     </div>
