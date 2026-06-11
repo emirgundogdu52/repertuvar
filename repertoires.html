@@ -305,12 +305,12 @@ tr:hover .ra{opacity:1;}
 <script>
 
 const H = {
-  get apikey() { return SUPA_KEY; },
-  get Authorization() { return 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY); },
+  'apikey': SUPA_KEY,
+  'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
   'Content-Type': 'application/json',
   'Prefer': 'return=representation'
 };
-async async function dbGet(table, qs='') {
+async function dbGet(table, qs='') {
   const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?'+qs, {headers:H});
   if (!r.ok) throw new Error(await r.text());
   return r.json();
