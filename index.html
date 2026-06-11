@@ -419,7 +419,8 @@ body {
 }
 .wc-play:hover { background: rgba(124,111,255,0.2); }
 
-.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+@media (max-width: 480px) { .stats-row { grid-template-columns: repeat(2,1fr); } }
 .stat-pill {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 12px; padding: 14px 10px; text-align: center;
@@ -523,13 +524,7 @@ body {
   <!-- İçerik -->
   <div class="page" style="position:relative;z-index:1;">
 
-    <div class="quick-bar">
-      <a href="stage.html" class="qb-item qb-stage"><div class="qb-icon">🎭</div><span class="qb-label">Sahne Modu</span></a>
-      <a href="eserler.html" class="qb-item"><div class="qb-icon">🎼</div><span class="qb-label">Eserler</span></a>
-      <a href="repertoires.html" class="qb-item admin-only"><div class="qb-icon">📋</div><span class="qb-label">Listeler</span></a>
-      <a href="artiesten.html" class="qb-item admin-only"><div class="qb-icon">🎤</div><span class="qb-label">Solistler</span></a>
-      <a href="eserler.html?new=1" class="qb-item"><div class="qb-icon" style="font-size:26px;font-weight:300">＋</div><span class="qb-label">Yeni Eser</span></a>
-    </div>
+
 
     <div class="section">
       <div class="sec-header"><span class="sec-title">Aktif Liste</span><a href="repertoires.html" class="sec-action">Tümünü Gör →</a></div>
@@ -557,6 +552,10 @@ body {
         <div class="stat-pill"><div class="sp-n" id="statWorks">—</div><div class="sp-l">Eser</div><div class="sp-t" id="statTrend">—</div></div>
         <div class="stat-pill"><div class="sp-n" id="statReps">—</div><div class="sp-l">Repertuvar</div><div class="sp-t">Liste</div></div>
         <div class="stat-pill"><div class="sp-n" id="statSol">—</div><div class="sp-l">Solist</div><div class="sp-t">Aktif</div></div>
+        <a href="eserler.html?new=1" class="stat-pill" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;border-color:rgba(124,111,255,0.32);background:rgba(124,111,255,0.06);cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(124,111,255,0.14)'" onmouseout="this.style.background='rgba(124,111,255,0.06)'">
+          <div style="font-size:24px;color:var(--accent2);">＋</div>
+          <div class="sp-l" style="color:var(--accent3);margin-top:3px;">Yeni Eser</div>
+        </a>
       </div>
     </div>
 
