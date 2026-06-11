@@ -39,7 +39,8 @@
   .count-badge { margin-left:auto; background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:4px 12px; font-size:12px; color:var(--text2); white-space:nowrap; }
 
   /* LAYOUT */
-  .layout { display:flex; height:calc(100vh - 56px); }
+  .layout { display:flex; height:calc(100vh - var(--topnav-h, 56px)); }
+  @media (min-width:1024px) { .layout { height:calc(100vh - 49px); } } /* desktop topbar height */
 
   /* SIDEBAR FILTERS */
   .sidebar { display:none; }
@@ -112,23 +113,14 @@
   @media (max-width: 768px) {
     .sidebar { display:none; }
     .detail { display:none; }
-    .detail.mobile-visible { display:block; position:fixed; top:80px; left:0; right:0; bottom:0; z-index:200; width:100%; overflow-y:auto; }
+    .detail.mobile-visible { display:block; position:fixed; top:var(--topnav-h, 56px); left:0; right:0; bottom:var(--bottom-h, 68px); z-index:200; width:100%; overflow-y:auto; }
     .back-btn { display:flex; align-items:center; gap:6px; padding:12px 20px; color:var(--accent); font-size:14px; cursor:pointer; border-bottom:1px solid var(--border); }
-    header a { font-size:11px; padding:3px 6px; }
-    header a[href="index.html"] img { height:36px !important; }
-    header .count-badge { display:none; }
-    header button[onclick="openNewEserModal()"] { font-size:11px; padding:4px 10px; }
     .sort-bar { padding:8px 12px; gap:6px; }
     .sort-btn { font-size:11px; padding:4px 10px; }
+    .layout { height:calc(100vh - var(--topnav-h, 56px) - var(--bottom-h, 68px)); }
   }
   @media (max-width: 480px) {
-    header { gap:4px; padding:0 8px; }
-    header a[href="repertoires.html"], header a[href="artiesten.html"] { display:none; }
-    header a[href="index.html"] img { height:30px !important; }
-    header a[href="stage.html"] { display:none; }
-    header { gap:3px; padding:0 6px; height:56px; }
-    .layout { height:calc(100vh - 56px); }
-    .detail.mobile-visible { top:56px; }
+    .layout { height:calc(100vh - var(--topnav-h, 56px) - var(--bottom-h, 68px)); }
   }
   @media (min-width: 769px) {
     .back-btn { display:none; }
@@ -373,7 +365,9 @@ let DATA = []; // Supabase'den yüklenecek
 async function loadWorksFromSupabase() {
   try {
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
-    const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=name&limit=2000&status=eq.approved', {
+    // Admin ve editör tüm eserleri görür, üye sadece onaylananları
+    const statusFilter = (isAdmin() || isEditor()) ? '' : '&status=eq.approved';
+    const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=name&limit=2000'+statusFilter, {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
     });
     if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
@@ -1131,16 +1125,18 @@ document.addEventListener('keydown', function(e) {
   
   await loadWorksFromSupabase();
   
+  // Cache works list for Solistler page (DATA artık dolu)
+  try {
+    const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
+    localStorage.setItem('worksListCache', JSON.stringify(list));
+  } catch(e) {}
+
   buildFilters();
   applyFilters();
   if (isAdmin() || isEditor()) updatePendingCount();
 })();
 
-// Cache works list for Solistler page
-try {
-  const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
-  localStorage.setItem('worksListCache', JSON.stringify(list));
-} catch(e) {}
+
 
 async function showEditorManager() {
   document.getElementById('editorModal').style.display = 'flex';
