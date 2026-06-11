@@ -3,308 +3,685 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Repertuvar</title>
-<!-- DESIGN-TEST-ALT-F-FINAL-v2 -->
+<title>Repertuvar — v2 Preview</title>
 <link rel="icon" href="Repertuvar_logo.png">
 <script src="auth.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-.admin-only{display:none;}
-body{background:transparent;font-family:"Sora",sans-serif;color:#E6EDF3;min-height:100vh;}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-header{padding:0 48px;height:68px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #21262D;background:#0D1117;position:sticky;top:0;z-index:100;}
-header img{height:52px;}
-.h-name{font-size:16px;font-weight:600;color:#E6EDF3;}
-.h-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
-.h-tag{background:#161B22;border:1px solid #30363D;border-radius:20px;padding:5px 12px;font-size:12px;color:#8B949E;display:flex;align-items:center;gap:6px;}
-.h-dot{width:6px;height:6px;border-radius:50%;background:#3FB950;}
-.h-btn{background:none;border:1px solid #30363D;border-radius:6px;padding:5px 12px;font-size:12px;color:#8B949E;cursor:pointer;font-family:inherit;transition:all .15s;}
-.h-btn:hover{border-color:#8B949E;color:#E6EDF3;}
+:root {
+  --bg:         #07071a;
+  --bg2:        #0f0f2e;
+  --surface:    #12123a;
+  --surface2:   #1a1a4a;
+  --border:     rgba(120,100,255,0.18);
+  --border2:    rgba(120,100,255,0.32);
+  --accent:     #7c6fff;
+  --accent2:    #a78bfa;
+  --accent3:    #c4b5fd;
+  --text:       #e2e0ff;
+  --text2:      #9d9bc4;
+  --text3:      #5e5c8a;
+  --green:      #4ade80;
+  --sidebar-w:  220px;
+  --topnav-h:   56px;
+  --tabnav-h:   52px;
+  --bottom-h:   68px;
+}
 
-.hero{max-width:1100px;margin:0 auto;padding:72px 48px 56px;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
-@media(max-width:768px){.hero{grid-template-columns:1fr;padding:48px 24px 40px;gap:40px;}}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:#161B22;border:1px solid #30363D;border-radius:20px;padding:6px 14px;font-size:11px;color:#8B949E;margin-bottom:20px;}
-.hero-badge span{color:#58A6FF;}
-h1{font-size:clamp(32px,4.5vw,54px);font-weight:700;line-height:1.1;letter-spacing:-.02em;}
-h1 em{font-style:normal;background:linear-gradient(90deg,#58A6FF,#BC8CFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.hero-sub{font-size:15px;color:#8B949E;margin-top:16px;line-height:1.75;}
-.hero-actions{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap;}
-.btn-p{background:#238636;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid #2EA043;transition:background .15s;}
-.btn-p:hover{background:#2EA043;}
-.btn-s{background:#21262D;color:#E6EDF3;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:500;text-decoration:none;border:1px solid #30363D;transition:all .15s;}
-.btn-s:hover{border-color:#8B949E;}
+body {
+  background: var(--bg);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+}
 
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.stat-card{background:rgba(22,27,34,0.8);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:20px;transition:border-color .15s;}
-.stat-card:hover{border-color:#30363D;}
-.stat-icon{font-size:20px;margin-bottom:10px;}
-.stat-n{font-size:28px;font-weight:700;color:#E6EDF3;letter-spacing:-.02em;}
-.stat-l{font-size:12px;color:#8B949E;margin-top:3px;}
-.stat-trend{font-size:11px;color:#3FB950;margin-top:8px;}
+/* ── Background glow ── */
+.bg-glow {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.bg-glow::before {
+  content: ''; position: absolute; top: -15%; left: 25%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(124,111,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.bg-glow::after {
+  content: ''; position: absolute; bottom: 10%; right: 5%;
+  width: 350px; height: 350px;
+  background: radial-gradient(circle, rgba(167,139,250,0.07) 0%, transparent 70%);
+  border-radius: 50%;
+}
 
-.section{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
-@media(max-width:768px){.section{padding:0 24px 56px;} .section>div[style*="grid"]{grid-template-columns:1fr !important;}}
-.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.section-title{font-size:13px;font-weight:600;color:#8B949E;letter-spacing:.06em;text-transform:uppercase;}
+/* ════════════════════════════
+   DESKTOP ≥ 1024px  →  Sol Sidebar
+════════════════════════════ */
+@media (min-width: 1024px) {
+  body { display: flex; }
 
-.cards{display:flex;flex-direction:column;gap:12px;}
-@media(max-width:700px){.section>div{grid-template-columns:1fr !important;}}
-.card{background:rgba(22,27,34,0.8);backdrop-filter:blur(6px);border:1px solid #21262D;border-radius:12px;padding:24px;text-decoration:none;color:#E6EDF3;display:flex;flex-direction:column;gap:12px;transition:border-color .18s,transform .18s;}
-.card:hover{border-color:#30363D;transform:translateY(-2px);}
-.card-header{display:flex;align-items:flex-start;justify-content:space-between;}
-.card-icon-wrap{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;}
-.ci-blue{background:rgba(88,166,255,.1);}
-.ci-green{background:rgba(63,185,80,.1);}
-.ci-orange{background:rgba(249,160,74,.1);}
-.card-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:#1F2937;color:#9CA3AF;}
-.card-title{font-size:15px;font-weight:600;color:#E6EDF3;}
-.card-desc{font-size:13px;color:#8B949E;line-height:1.6;flex:1;}
-.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #21262D;}
-.card-stat{font-size:12px;color:#8B949E;}
-.card-arrow{font-size:14px;color:#30363D;transition:color .15s;}
-.card:hover .card-arrow{color:#58A6FF;}
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: rgba(9,9,28,0.96);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    z-index: 300; padding-bottom: 20px;
+  }
+  .sb-brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid var(--border); margin-bottom: 10px;
+  }
+  .sb-logo {
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800; color: #fff;
+    box-shadow: 0 0 16px rgba(124,111,255,0.35);
+  }
+  .sb-appname { font-size: 15px; font-weight: 700; color: var(--text); }
+  .sb-domain  { font-size: 10px; color: var(--text3); margin-top: 1px; }
+  .sb-nav { flex: 1; padding: 0 10px; display: flex; flex-direction: column; gap: 2px; }
+  .sb-label {
+    font-size: 10px; font-weight: 700; color: var(--text3);
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 8px 12px 4px;
+  }
+  .sb-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    font-size: 13px; font-weight: 600; color: var(--text2);
+    text-decoration: none; transition: all .15s; position: relative;
+  }
+  .sb-item:hover { background: var(--surface); color: var(--text); }
+  .sb-item.active {
+    background: rgba(124,111,255,0.12); color: var(--accent3);
+    border: 1px solid rgba(124,111,255,0.2);
+  }
+  .sb-item.active::before {
+    content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
+    width: 3px; border-radius: 0 3px 3px 0;
+    background: linear-gradient(to bottom, var(--accent), var(--accent2));
+  }
+  .sb-icon { font-size: 16px; width: 20px; text-align: center; }
+  .sb-count {
+    margin-left: auto; font-size: 10px; font-weight: 700;
+    background: rgba(124,111,255,0.15); border: 1px solid rgba(124,111,255,0.25);
+    color: var(--accent2); border-radius: 10px; padding: 1px 7px;
+  }
+  .sb-divider { height: 1px; background: var(--border); margin: 8px 10px; }
+  .sb-stage {
+    margin: 6px 10px 0;
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px; border-radius: 12px;
+    font-size: 13px; font-weight: 700; color: #fff;
+    text-decoration: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 4px 16px rgba(124,111,255,0.3);
+    transition: opacity .15s;
+  }
+  .sb-stage:hover { opacity: .9; }
+  .sb-user {
+    margin: 10px 10px 0;
+    padding: 12px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; display: flex; align-items: center; gap: 10px;
+  }
+  .sb-avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff;
+  }
+  .sb-uname { font-size: 12px; font-weight: 600; color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sb-urole { font-size: 10px; color: var(--text3); }
+  .sb-logout {
+    background: none; border: none; color: var(--text3);
+    cursor: pointer; font-size: 14px; padding: 4px; transition: color .15s;
+  }
+  .sb-logout:hover { color: var(--accent); }
 
-.stage-wrap{max-width:1100px;margin:0 auto;padding:0 48px 72px;}
-@media(max-width:768px){.stage-wrap{padding:0 24px 56px;}}
-.stage-card{background:linear-gradient(135deg,rgba(22,27,34,0.85) 0%,rgba(26,16,64,0.85) 100%);border:1px solid #21262D;border-radius:16px;padding:36px 44px;display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;}
-.stage-left h2{font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
-.stage-left h2 span{background:linear-gradient(90deg,#BC8CFF,#58A6FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.stage-left p{font-size:14px;color:#8B949E;line-height:1.7;max-width:360px;}
-.stage-right{display:flex;flex-direction:column;align-items:flex-end;gap:12px;}
-.stage-btn{background:linear-gradient(135deg,#8957E5,#58A6FF);color:#fff;padding:13px 26px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap;transition:opacity .15s;}
-.stage-btn:hover{opacity:.9;}
-.theme-row{display:flex;gap:8px;}
-.tp{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid #30363D;color:#8B949E;cursor:pointer;transition:all .15s;}
-.tp.a{border-color:#BC8CFF;color:#BC8CFF;background:rgba(188,140,255,.08);}
+  .main-wrap { margin-left: var(--sidebar-w); flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  /* slim topbar inside main */
+  .desktop-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 32px; border-bottom: 1px solid var(--border);
+    background: rgba(7,7,26,0.6); backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .dt-crumb { font-size: 13px; color: var(--text2); }
+  .dt-crumb span { color: var(--text); font-weight: 600; }
+  .dt-search {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 14px;
+    font-size: 12px; color: var(--text3); cursor: pointer; transition: border-color .15s;
+  }
+  .dt-search:hover { border-color: var(--accent2); }
+
+  /* hide mobile/tablet elements */
+  .topnav, .tabnav, .bottom-nav { display: none !important; }
+
+  .page { padding: 28px 32px; }
+  .quick-bar { padding: 0 0 4px; }
+  .section { padding: 24px 0 0; }
+  .stage-banner { margin: 24px 0 0; }
+}
+
+/* ════════════════════════════
+   TABLET  768px – 1023px  →  Üst Tab Bar + Alt Bar
+════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1023px) {
+  body { padding-bottom: var(--bottom-h); }
+  .sidebar { display: none; }
+  .desktop-topbar { display: none; }
+  .main-wrap { display: contents; }
+
+  /* Üst: logo + alan adı */
+  .topnav {
+    position: sticky; top: 0; z-index: 200;
+    height: var(--topnav-h);
+    background: rgba(7,7,26,0.92);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 20px; gap: 12px;
+  }
+  .tn-logo {
+    width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: #fff;
+    box-shadow: 0 0 14px rgba(124,111,255,0.3);
+  }
+  .tn-name { font-size: 16px; font-weight: 700; color: var(--text); }
+  .tn-domain {
+    font-size: 11px; color: var(--text3); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px;
+  }
+  .tn-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .tn-user {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 12px 4px 6px;
+  }
+  .tn-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff;
+  }
+  .tn-uname { font-size: 12px; font-weight: 500; color: var(--text2); }
+  .tn-logout {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 10px; font-size: 11px; color: var(--text3);
+    cursor: pointer; font-family: inherit; transition: all .15s;
+  }
+  .tn-logout:hover { border-color: var(--accent); color: var(--accent); }
+
+  .tabnav { display: none; }
+
+  /* Alt Bar */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    height: var(--bottom-h);
+    background: rgba(7,7,26,0.95);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center;
+  }
+  .bn-items { display: flex; width: 100%; padding: 0 8px; }
+  .bn-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 4px; padding: 7px 4px;
+    text-decoration: none; color: var(--text3);
+    border-radius: 10px; transition: all .15s; position: relative;
+  }
+  .bn-item.active { color: var(--accent); }
+  .bn-icon { font-size: 20px; line-height: 1; }
+  .bn-label { font-size: 10px; font-weight: 600; }
+  .bn-dot { position: absolute; bottom: 2px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+  .bn-stage {
+    background: linear-gradient(135deg, rgba(124,111,255,0.18), rgba(167,139,250,0.08));
+    border: 1px solid rgba(124,111,255,0.25);
+    color: var(--accent2) !important;
+    margin: 4px 2px; border-radius: 12px;
+  }
+
+  .page { padding: 0; }
+  .quick-bar { padding: 16px 16px 0; }
+  .section { padding: 20px 16px 0; }
+  .stage-banner { margin: 20px 16px 0; }
+  .page-bottom { height: 16px; }
+}
+
+/* ════════════════════════════
+   MOBİL  < 768px  →  Üst Bar + Alt Bar
+════════════════════════════ */
+@media (max-width: 767px) {
+  body { padding-bottom: var(--bottom-h); }
+  .sidebar { display: none; }
+  .desktop-topbar { display: none; }
+  .tabnav { display: none; }
+  .main-wrap { display: contents; }
+
+  /* Üst bar (logo + kullanıcı) */
+  .topnav {
+    position: sticky; top: 0; z-index: 200;
+    height: var(--topnav-h);
+    background: rgba(7,7,26,0.92);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 16px; gap: 10px;
+  }
+  .tn-logo {
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: #fff;
+  }
+  .tn-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .tn-domain { display: none; }
+  .tn-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .tn-user { display: flex; align-items: center; gap: 5px; }
+  .tn-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff;
+  }
+  .tn-uname { display: none; }
+  .tn-logout {
+    background: none; border: none; color: var(--text3);
+    font-size: 16px; cursor: pointer; padding: 4px;
+  }
+
+  /* Alt bar */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    height: var(--bottom-h);
+    background: rgba(7,7,26,0.95);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center;
+  }
+  .bn-items { display: flex; width: 100%; padding: 0 4px; }
+  .bn-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; padding: 7px 2px;
+    text-decoration: none; color: var(--text3);
+    border-radius: 10px; transition: all .15s; position: relative;
+  }
+  .bn-item.active { color: var(--accent); }
+  .bn-icon { font-size: 19px; line-height: 1; }
+  .bn-label { font-size: 9px; font-weight: 600; }
+  .bn-dot { position: absolute; bottom: 2px; width: 3px; height: 3px; border-radius: 50%; background: var(--accent); }
+  .bn-stage {
+    background: linear-gradient(135deg, rgba(124,111,255,0.18), rgba(167,139,250,0.08));
+    border: 1px solid rgba(124,111,255,0.25);
+    color: var(--accent2) !important;
+    margin: 5px 2px; border-radius: 11px;
+  }
+
+  .page { padding: 0; }
+  .quick-bar { padding: 14px 14px 0; }
+  .section { padding: 18px 14px 0; }
+  .stage-banner { margin: 18px 14px 0; }
+  .page-bottom { height: 16px; }
+}
+
+/* ════════════════════
+   ORTAK BILEŞENLER
+════════════════════ */
+.quick-bar { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.quick-bar::-webkit-scrollbar { display: none; }
+.qb-item {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  min-width: 62px; padding: 0 4px; cursor: pointer; text-decoration: none;
+}
+.qb-icon {
+  width: 54px; height: 54px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; transition: all .15s;
+}
+.qb-item:hover .qb-icon { border-color: var(--accent); background: var(--surface2); box-shadow: 0 0 12px rgba(124,111,255,0.2); }
+.qb-label { font-size: 10px; color: var(--text2); text-align: center; white-space: nowrap; }
+.qb-stage .qb-icon {
+  background: linear-gradient(135deg, rgba(124,111,255,0.22), rgba(167,139,250,0.12));
+  border-color: var(--accent); box-shadow: 0 0 14px rgba(124,111,255,0.18);
+}
+.qb-stage .qb-label { color: var(--accent3); font-weight: 600; }
+
+.section { position: relative; z-index: 1; }
+.sec-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.sec-title { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; }
+.sec-action { font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 500; }
+
+.active-card {
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(22,20,60,0.9) 100%);
+  border: 1px solid var(--border2); border-radius: 16px;
+  padding: 16px; display: flex; align-items: center; gap: 14px;
+  text-decoration: none; color: var(--text); transition: all .2s;
+  position: relative; overflow: hidden;
+}
+.active-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(to bottom, var(--accent), var(--accent2));
+  border-radius: 3px 0 0 3px;
+}
+.active-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.active-thumb {
+  width: 50px; height: 50px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--surface2), var(--bg2));
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+}
+.active-info { flex: 1; min-width: 0; }
+.active-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.active-meta { font-size: 11px; color: var(--text2); margin-top: 3px; display: flex; gap: 8px; }
+.meta-badge {
+  background: rgba(124,111,255,0.12); border: 1px solid rgba(124,111,255,0.2);
+  border-radius: 5px; padding: 1px 7px; font-size: 10px; color: var(--accent3); font-weight: 600;
+}
+.active-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
+.active-arrow { font-size: 18px; color: var(--text3); transition: color .15s; }
+.active-card:hover .active-arrow { color: var(--accent); }
+
+.work-list { display: flex; flex-direction: column; gap: 1px; }
+.work-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 10px;
+  text-decoration: none; color: var(--text); transition: background .15s; cursor: pointer;
+}
+.work-row:hover { background: var(--surface); }
+.work-num { width: 18px; font-size: 11px; color: var(--text3); font-weight: 600; flex-shrink: 0; text-align: right; }
+.work-thumb {
+  width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0;
+  background: var(--surface2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+}
+.work-info { flex: 1; min-width: 0; }
+.work-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.work-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.work-badges { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+.wb { font-size: 10px; color: var(--text3); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; }
+.wb-key { color: var(--accent2); border-color: rgba(124,111,255,0.2); background: rgba(124,111,255,0.08); }
+.wc-play {
+  width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+  background: rgba(124,111,255,0.1); border: 1px solid rgba(124,111,255,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--accent2); cursor: pointer; transition: all .15s;
+}
+.wc-play:hover { background: rgba(124,111,255,0.2); }
+
+.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.stat-pill {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 10px; text-align: center;
+}
+.sp-n { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
+.sp-l { font-size: 10px; color: var(--text3); margin-top: 3px; }
+.sp-t { font-size: 10px; color: var(--green); margin-top: 5px; font-weight: 500; }
+
+.stage-banner {
+  background: linear-gradient(135deg, rgba(124,111,255,0.13) 0%, rgba(167,139,250,0.06) 100%);
+  border: 1px solid var(--accent); border-radius: 16px;
+  padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  position: relative; overflow: hidden;
+}
+.stage-banner::before {
+  content: '🎭'; position: absolute; right: -8px; top: -8px;
+  font-size: 70px; opacity: 0.055; pointer-events: none;
+}
+.sb-left { flex: 1; }
+.sb-title { font-size: 17px; font-weight: 800; letter-spacing: -.02em; }
+.sb-title span { color: var(--accent3); }
+.sb-sub { font-size: 12px; color: var(--text2); margin-top: 5px; line-height: 1.55; }
+.sb-right { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.stage-go-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; border: none; border-radius: 10px; padding: 10px 18px;
+  font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+  text-decoration: none; display: block;
+  box-shadow: 0 4px 14px rgba(124,111,255,0.3);
+  transition: opacity .15s; white-space: nowrap;
+}
+.stage-go-btn:hover { opacity: .88; }
+.theme-chips { display: flex; gap: 5px; }
+.tc {
+  padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 600;
+  border: 1px solid var(--border); color: var(--text3); cursor: pointer; transition: all .15s;
+}
+.tc.active { border-color: var(--accent2); color: var(--accent3); background: rgba(167,139,250,0.1); }
+
+.admin-only { display: none; }
 </style>
 </head>
 <body>
-<canvas id="shaderBg" style="position:fixed;bottom:0;left:0;width:100%;height:60%;z-index:0;pointer-events:none;mask-image:linear-gradient(to bottom,transparent 0%,black 50%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 50%);"></canvas>
-<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#0D1117;z-index:-1;"></div>
+<div class="bg-glow"></div>
 
-<header>
-  <div class="h-right">
-    <div class="h-tag"><div class="h-dot"></div><span id="navUserName">—</span></div>
-    <button class="h-btn" onclick="logout()">Çıkış</button>
-  </div>
-</header>
-
-<div class="hero" style="position:relative;z-index:1;">
-  <div>
-    <div style="margin-bottom:20px;"><img src="Repertuvar_logo.png" alt="Repertuvar" style="height:160px;width:auto;"></div>
-    <h1>Tüm eserleriniz,<br><em>Her an yanınızda.</em></h1>
-    <p class="hero-sub">Güfte, makam, akort — hepsi kayıtlı. Sahneye çıkmadan önce tek yapmanız gereken repertuvarı seçmek.</p>
-    <div class="hero-actions" id="heroActions">
-      <a href="stage.html" class="btn-p" id="btnStage">🎭 Eser Okuma Ekranı</a>
-      <a href="eserler.html" class="btn-s">Eserleri İncele →</a>
-      <a href="onerilerim.html" class="btn-s" id="btnOnerilerim" style="display:none;">📋 Önerilerim</a>
-    </div>
-  </div>
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">🎼</div>
-      <div class="stat-n">399</div>
-      <div class="stat-l">Kayıtlı eser</div>
-      <div class="stat-trend">↑ Bu ay eklenen: 12</div>
-    </div>
-    <div class="stat-card admin-only" style="display:none;">
-      <div class="stat-icon">📋</div>
-      <div class="stat-n" id="statRep">—</div>
-      <div class="stat-l">Repertuvar</div>
-      <div class="stat-trend">Aktif: Cem Çelebi</div>
-    </div>
-    <div class="stat-card admin-only" style="display:none;">
-      <div class="stat-icon">🎤</div>
-      <div class="stat-n" id="statSol">—</div>
-      <div class="stat-l">Solist</div>
-      <div class="stat-trend">3 aktif program</div>
-    </div>
-    <div class="stat-card" style="border-style:dashed;opacity:.5;">
-      <div class="stat-icon">✨</div>
-      <div style="font-size:13px;color:#8B949E;margin-top:8px;">Yakında yeni özellikler</div>
-    </div>
-  </div>
-</div>
-
-<div class="section" style="position:relative;z-index:1;">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+<!-- ══ DESKTOP: Sol Sidebar ══ -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">R</div>
     <div>
-      <div class="section-hdr"><span class="section-title">Bölümler</span></div>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <a href="eserler.html" class="card">
-          <div class="card-header">
-            <div class="card-icon-wrap ci-blue">🎼</div>
-            <span class="card-badge" id="badgeWorks">— eser</span>
-          </div>
-          <div class="card-title">Eserler</div>
-          <div class="card-desc">Makam, akort, güfte, besteci — tam arşiv, her cihazda.</div>
-          <div class="card-footer"><span class="card-stat">Son güncelleme: bugün</span><span class="card-arrow">↗</span></div>
-        </a>
-      </div>
-    </div>
-
-    <div id="userRepSection" style="display:none;">
-      <div class="section-hdr">
-        <span class="section-title">Repertuvarlarım</span>
-        <a href="repertoires.html" style="font-size:12px;color:#58A6FF;text-decoration:none;font-weight:600;">+ Yeni</a>
-      </div>
-      <div id="userRepCard"></div>
-    </div>
-
-    <div id="adminRightCol" class="admin-only" style="display:none;">
-      <div class="section-hdr"><span class="section-title">Hızlı Erişim</span></div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <a href="repertoires.html" style="display:flex;align-items:center;gap:12px;background:rgba(22,27,34,0.8);border:1px solid #21262D;border-radius:10px;padding:14px 16px;text-decoration:none;color:#E6EDF3;transition:border-color .15s;" onmouseover="this.style.borderColor='#58A6FF'" onmouseout="this.style.borderColor='#21262D'">
-          <span style="font-size:20px;">📋</span>
-          <div><div style="font-size:14px;font-weight:600;">Repertuvarlarım</div><div style="font-size:11px;color:#6E7681;margin-top:2px;">Kendi programlarım</div></div>
-          <span style="margin-left:auto;color:#6E7681;">↗</span>
-        </a>
-        <a href="artiesten.html" style="display:flex;align-items:center;gap:12px;background:rgba(22,27,34,0.8);border:1px solid #21262D;border-radius:10px;padding:14px 16px;text-decoration:none;color:#E6EDF3;transition:border-color .15s;" onmouseover="this.style.borderColor='#58A6FF'" onmouseout="this.style.borderColor='#21262D'">
-          <span style="font-size:20px;">🎤</span>
-          <div><div style="font-size:14px;font-weight:600;">Solistler</div><div style="font-size:11px;color:#6E7681;margin-top:2px;">Sanatçı yönetimi</div></div>
-          <span style="margin-left:auto;color:#6E7681;">↗</span>
-        </a>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<div class="stage-wrap" style="position:relative;z-index:1;">
-  <div class="stage-card">
-    <div class="stage-left">
-      <h2>Sahne Modu<br><span>Sahne için hazır.</span></h2>
-      <p>Büyük ekran, ileri / geri tuşları ile kolay eser geçişi. Gece ve gündüz tema seçeneğiyle sahneye hazır.</p>
-    </div>
-    <div class="stage-right">
-      <a href="stage.html" class="stage-btn" id="btnStage2">🎭 Sahne Modunu Aç</a>
-      <div class="theme-row">
-        <div class="tp a" onclick="this.closest('.theme-row').querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));this.classList.add('a')">☀️ Gündüz</div>
-        <div class="tp" onclick="this.closest('.theme-row').querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));this.classList.add('a')">🌙 Gece</div>
-      </div>
+      <div class="sb-appname">repertuvar</div>
+      <div class="sb-domain">repertuvar.app</div>
     </div>
   </div>
-</div>
+  <nav class="sb-nav">
+    <div class="sb-label">Menü</div>
+    <a href="index.html" class="sb-item active"><span class="sb-icon">🏠</span>Ana Sayfa</a>
+    <a href="eserler.html" class="sb-item"><span class="sb-icon">🎼</span>Eserler<span class="sb-count" id="sbWorkCount">—</span></a>
+    <a href="repertoires.html" class="sb-item admin-only"><span class="sb-icon">📋</span>Listeler</a>
+    <a href="artiesten.html" class="sb-item admin-only"><span class="sb-icon">🎤</span>Solistler</a>
+    <div class="sb-divider"></div>
+    <div class="sb-label">Araçlar</div>
+    <a href="ayarlar.html" class="sb-item"><span class="sb-icon">⚙️</span>Ayarlar</a>
+  </nav>
+  <a href="stage.html" class="sb-stage"><span style="font-size:17px">🎭</span> Sahneye Çık</a>
+  <div style="flex:1"></div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sbAvatar">—</div>
+    <div style="flex:1;min-width:0">
+      <div class="sb-uname" id="sbUserName">—</div>
+      <div class="sb-urole" id="sbUserRole">Üye</div>
+    </div>
+    <button class="sb-logout" onclick="logout()" title="Çıkış">↩</button>
+  </div>
+</aside>
+
+<!-- ══ MAIN WRAP ══ -->
+<div class="main-wrap">
+
+  <!-- Tablet + Mobil: Üst Bar -->
+  <header class="topnav">
+    <div class="tn-logo">R</div>
+    <span class="tn-name">repertuvar</span>
+    <span class="tn-domain">repertuvar.app</span>
+    <div class="tn-right">
+      <div class="tn-user">
+        <div class="tn-avatar" id="tnAvatar">—</div>
+        <span class="tn-uname" id="tnUserName">—</span>
+      </div>
+      <button class="tn-logout" onclick="logout()">↩ Çıkış</button>
+    </div>
+  </header>
+
+  <!-- Tablet: Yatay Tab Bar -->
+  <nav class="tabnav">
+    <a href="index.html" class="tab-item active"><span class="tab-icon">🏠</span>Ana Sayfa</a>
+    <a href="eserler.html" class="tab-item"><span class="tab-icon">🎼</span>Eserler</a>
+    <a href="repertoires.html" class="tab-item admin-only"><span class="tab-icon">📋</span>Listeler</a>
+    <a href="artiesten.html" class="tab-item admin-only"><span class="tab-icon">🎤</span>Solistler</a>
+    <a href="ayarlar.html" class="tab-item"><span class="tab-icon">⚙️</span>Ayarlar</a>
+    <a href="stage.html" class="tab-item tab-stage"><span class="tab-icon">🎭</span>Sahneye Çık</a>
+  </nav>
+
+  <!-- Desktop: Slim topbar -->
+  <div class="desktop-topbar">
+    <div class="dt-crumb">repertuvar / <span>Ana Sayfa</span></div>
+    <div class="dt-search">🔍 <span>Eser ara…</span></div>
+  </div>
+
+  <!-- İçerik -->
+  <div class="page" style="position:relative;z-index:1;">
+
+    <div class="quick-bar">
+      <a href="stage.html" class="qb-item qb-stage"><div class="qb-icon">🎭</div><span class="qb-label">Sahne Modu</span></a>
+      <a href="eserler.html" class="qb-item"><div class="qb-icon">🎼</div><span class="qb-label">Eserler</span></a>
+      <a href="repertoires.html" class="qb-item admin-only"><div class="qb-icon">📋</div><span class="qb-label">Listeler</span></a>
+      <a href="artiesten.html" class="qb-item admin-only"><div class="qb-icon">🎤</div><span class="qb-label">Solistler</span></a>
+      <a href="eserler.html?new=1" class="qb-item"><div class="qb-icon" style="font-size:26px;font-weight:300">＋</div><span class="qb-label">Yeni Eser</span></a>
+    </div>
+
+    <div class="section">
+      <div class="sec-header"><span class="sec-title">Aktif Liste</span><a href="repertoires.html" class="sec-action">Tümünü Gör →</a></div>
+      <a href="repertoires.html" class="active-card">
+        <div class="active-thumb">🎵</div>
+        <div class="active-info">
+          <div class="active-name" id="activeListName">Yükleniyor…</div>
+          <div class="active-meta"><span class="meta-badge" id="activeListCount">— Parça</span><span style="color:var(--text3);font-size:11px">Aktif Repertuvar</span></div>
+          <div class="active-sub" id="activeListSub">—</div>
+        </div>
+        <div class="active-arrow">›</div>
+      </a>
+    </div>
+
+    <div class="section">
+      <div class="sec-header"><span class="sec-title">Son Eklenen Eserler</span><a href="eserler.html" class="sec-action">Tümü →</a></div>
+      <div class="work-list" id="recentWorks">
+        <div class="work-row"><div class="work-num">1</div><div class="work-thumb">🎵</div><div class="work-info"><div class="work-name">Yükleniyor…</div><div class="work-sub">—</div></div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-header"><span class="sec-title">Arşiv</span></div>
+      <div class="stats-row">
+        <div class="stat-pill"><div class="sp-n" id="statWorks">—</div><div class="sp-l">Eser</div><div class="sp-t" id="statTrend">—</div></div>
+        <div class="stat-pill"><div class="sp-n" id="statReps">—</div><div class="sp-l">Repertuvar</div><div class="sp-t">Liste</div></div>
+        <div class="stat-pill"><div class="sp-n" id="statSol">—</div><div class="sp-l">Solist</div><div class="sp-t">Aktif</div></div>
+      </div>
+    </div>
+
+    <div class="stage-banner">
+      <div class="sb-left">
+        <div class="sb-title">Sahne Modu<br><span>hazır mısınız?</span></div>
+        <div class="sb-sub">Büyük ekran, hızlı eser geçişi.<br>Gece ve gündüz tema seçeneğiyle.</div>
+      </div>
+      <div class="sb-right">
+        <a href="stage.html" class="stage-go-btn">🎭 Sahneye Çık</a>
+        <div class="theme-chips">
+          <div class="tc active" id="tc-day">☀️ Gündüz</div>
+          <div class="tc" id="tc-night">🌙 Gece</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-bottom"></div>
+  </div>
+</div><!-- /main-wrap -->
+
+<!-- Tablet + Mobil: Alt Bar -->
+<nav class="bottom-nav">
+  <div class="bn-items">
+    <a href="index.html" class="bn-item active">
+      <span class="bn-icon">🏠</span><span class="bn-label">Ana Sayfa</span><div class="bn-dot"></div>
+    </a>
+    <a href="eserler.html" class="bn-item">
+      <span class="bn-icon">🎼</span><span class="bn-label">Eserler</span>
+    </a>
+    <a href="repertoires.html" class="bn-item">
+      <span class="bn-icon">📋</span><span class="bn-label">Repertuvarlar</span>
+    </a>
+    <a href="stage.html" class="bn-item bn-stage">
+      <span class="bn-icon">🎭</span><span class="bn-label">Sahne Modu</span>
+    </a>
+    <a href="ayarlar.html" class="bn-item">
+      <span class="bn-icon">⚙️</span><span class="bn-label">Ayarlar</span>
+    </a>
+  </div>
+</nav>
 
 <script>
-(async function(){
-  const ok = await requireAuth(); if(!ok) return;
+document.getElementById('tc-day').addEventListener('click', function() {
+  document.querySelectorAll('.tc').forEach(x => x.classList.remove('active'));
+  this.classList.add('active'); localStorage.setItem('stageTheme','day');
+});
+document.getElementById('tc-night').addEventListener('click', function() {
+  document.querySelectorAll('.tc').forEach(x => x.classList.remove('active'));
+  this.classList.add('active'); localStorage.setItem('stageTheme','night');
+});
+if (localStorage.getItem('stageTheme') === 'night') {
+  document.getElementById('tc-day').classList.remove('active');
+  document.getElementById('tc-night').classList.add('active');
+}
+
+(async function() {
+  const ok = await requireAuth(); if (!ok) return;
   const u = getUser();
   const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
-  const el = document.getElementById('navUserName'); if(el) el.textContent = name;
-  if (isAdmin()) {
-    document.querySelectorAll('.admin-only').forEach(el => { el.classList.remove('admin-only'); el.style.display = ''; });
-    const arc = document.getElementById('adminRightCol');
-    if(arc) arc.style.display = 'block';
-  } else {
-    const oBtn = document.getElementById('btnOnerilerim');
-    if (oBtn) oBtn.style.display = '';
-    try {
-      const token = localStorage.getItem('sb_token') || SUPA_KEY;
-      const rr = await fetch(SUPA_URL+'/rest/v1/repertoires?user_id=eq.'+getUserId()+'&order=created_at.desc', {
-        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+token}
-      });
-      const rd = await rr.json();
-      const sec = document.getElementById('userRepSection');
-      const card = document.getElementById('userRepCard');
-      if(sec) sec.style.display = 'block';
-      if(!rd || rd.length === 0){
-        const b1=document.getElementById('btnStage');
-        const b2=document.getElementById('btnStage2');
-        if(b1){b1.textContent='+ Repertuvar Oluştur';b1.href='repertoires.html';}
-        if(b2){b2.textContent='+ Repertuvar Oluştur';b2.href='repertoires.html';}
-        if(card) card.innerHTML='<div style="color:var(--text3);font-size:13px;padding:12px 0;">Henüz repertuvarınız yok.</div>';
-      } else {
-        const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
-        if(card) card.innerHTML = rd.slice(0,3).map(r=>`
-          <a href="repertoires.html" style="display:flex;align-items:center;justify-content:space-between;background:rgba(22,27,34,0.8);border:1px solid #21262D;border-radius:10px;padding:12px 16px;text-decoration:none;margin-bottom:8px;transition:border-color .15s;"
-            onmouseover="this.style.borderColor='#58A6FF'" onmouseout="this.style.borderColor='#21262D'">
-            <div>
-              <div style="font-size:14px;font-weight:600;color:#E6EDF3;">${r.name}</div>
-              <div style="font-size:11px;color:#6E7681;margin-top:2px;">${r.date||''}${r.venue?' · '+r.venue:''} · ${sl[r.status]||''}</div>
-            </div>
-            <span style="font-size:12px;color:#6E7681;">↗</span>
-          </a>`).join('') + (rd.length>3?`<a href="repertoires.html" style="font-size:12px;color:#58A6FF;text-decoration:none;">+ ${rd.length-3} repertuvar daha →</a>`:'');
-      }
-    } catch(e){}
-  }
-  const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),'Prefer':'count=exact'};
-  const ns = document.querySelectorAll('.stat-n');
-  const urls = ['works?status=eq.approved','repertoires?','solistler?'];
-  for(let i=0;i<3;i++){
-    try{ const r=await fetch(SUPA_URL+'/rest/v1/'+urls[i]+'&select=id&limit=1',{headers:H});
-    const cnt=r.headers.get('content-range')?.split('/')[1];
-    if(cnt&&ns[i]) ns[i].textContent=cnt;
-    if(cnt&&i===0){const b=document.getElementById('badgeWorks');if(b)b.textContent=cnt+' eser';}
-    if(cnt&&i===1){const b=document.getElementById('badgeRep');if(b)b.textContent=cnt+' repertuvar';}
-    if(cnt&&i===2){const b=document.getElementById('badgeSol');if(b)b.textContent=cnt+' solist';}
-    }catch(e){}
-  }
-})();
-document.querySelectorAll('.tp').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.tp').forEach(x=>x.classList.remove('a'));
-  b.classList.add('a');
-  localStorage.setItem('stageTheme',b.textContent.includes('Gündüz')?'day':'night');
-}));
-</script>
-<script>
-(function(){
-  const cv=document.getElementById('shaderBg');if(!cv)return;
-  const gl=cv.getContext('webgl');if(!gl)return;
-  const vs=`attribute vec4 p;void main(){gl_Position=p;}`;
-  const fs=`precision highp float;
-  uniform vec2 R;uniform float T;
-  float rnd(float t){return(cos(t)+cos(t*1.3+1.3)+cos(t*1.4+1.4))/3.0;}
-  float py(float x,float h,float o){return rnd(x*.2+T*.2)*h*1.0+o;}
-  void main(){
-    vec2 uv=gl_FragCoord.xy/R.xy;
-    vec2 sp=(gl_FragCoord.xy-R/2.0)/R.x*10.0;
-    float hf=1.0-(cos(uv.x*6.28)*.5+.5);
-    float vf=1.0-(cos(uv.y*6.28)*.5+.5);
-    sp.y+=rnd(sp.x*.5+T*.04)*1.0*(.5+hf);
-    sp.x+=rnd(sp.y*.5+T*.04+2.0)*1.0*hf;
-    vec4 lines=vec4(0.);
-    for(int l=0;l<16;l++){
-      float nl=float(l)/16.;float op=T*.266;float o2=float(l)+sp.x*.5;
-      float r=rnd(o2+op)*.5+.5;float hw=mix(.01,.2,r*hf)/2.;
-      float off=rnd(o2+op*(1.+nl))*mix(.6,2.,hf);
-      float lp=py(sp.x,hf,off);
-      float line=smoothstep(hw,0.,abs(lp-sp.y))/2.+smoothstep(hw*.15+.015,hw*.15,abs(lp-sp.y));
-      float cx=mod(float(l)+T*.2,25.)-12.;
-      vec2 cp=vec2(cx,py(cx,hf,off));
-      line+=smoothstep(.025,.01,length(cp-sp))*4.;
-      lines+=line*vec4(.3,.15,.6,1.)*r;
-    }
-    vec4 col=mix(vec4(.05,.05,.08,1.),vec4(.06,.03,.1,1.),uv.x);
-    col*=vf;col.a=1.;col+=lines;gl_FragColor=col;
-  }`;
-  function mk(t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh;}
-  const prog=gl.createProgram();
-  gl.attachShader(prog,mk(gl.VERTEX_SHADER,vs));
-  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fs));
-  gl.linkProgram(prog);
-  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-  const ap=gl.getAttribLocation(prog,'p');
-  const uR=gl.getUniformLocation(prog,'R');
-  const uT=gl.getUniformLocation(prog,'T');
-  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight*.6;gl.viewport(0,0,cv.width,cv.height);}
-  window.addEventListener('resize',resize);resize();
-  const t0=Date.now();
-  function draw(){const t=(Date.now()-t0)/1e3;gl.useProgram(prog);gl.uniform2f(uR,cv.width,cv.height);gl.uniform1f(uT,t);gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.vertexAttribPointer(ap,2,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(ap);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(draw);}
-  requestAnimationFrame(draw);
-})();
+  const initial = name.charAt(0).toUpperCase();
 
-async function checkUserHasReps() {
+  ['sbUserName','tnUserName'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=name; });
+  ['sbAvatar','tnAvatar'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=initial; });
+
+  const H = {
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
+    'Prefer': 'count=exact'
+  };
+
+  const statCfg = [['works','statWorks'],['repertoires','statReps'],['solistler','statSol']];
+  for (const [tbl, elId] of statCfg) {
+    try {
+      const r = await fetch(SUPA_URL+'/rest/v1/'+tbl+'?select=id&limit=1', {headers:H});
+      const cnt = r.headers.get('content-range')?.split('/')[1];
+      if (cnt) {
+        const el=document.getElementById(elId); if(el) el.textContent=cnt;
+        if (tbl==='works') { const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=cnt; }
+      }
+    } catch(e) {}
+  }
+
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/repertoires?user_id=eq.'+getUserId()+'&limit=1', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY)}
-    });
+    const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,eser_adi,artist,makam,ton&order=id.desc&limit=6', {headers:H});
     const data = await r.json();
-    return data && data.length > 0;
-  } catch(e) { return false; }
-}
+    const container = document.getElementById('recentWorks');
+    if (container && Array.isArray(data) && data.length) {
+      container.innerHTML = data.map((w,i) => `
+        <a href="eserler.html?id=${w.id}" class="work-row">
+          <div class="work-num">${i+1}</div>
+          <div class="work-thumb">🎵</div>
+          <div class="work-info">
+            <div class="work-name">${w.eser_adi||'—'}</div>
+            <div class="work-sub">${w.artist||'—'}</div>
+          </div>
+          <div class="work-badges">
+            ${w.makam?`<span class="wb">${w.makam}</span>`:''}
+            ${w.ton?`<span class="wb wb-key">${w.ton}</span>`:''}
+          </div>
+          <div class="wc-play">▶</div>
+        </a>`).join('');
+    }
+  } catch(e) {}
+
+  try {
+    const rp = await fetch(SUPA_URL+'/rest/v1/profiles?select=role&user_id=eq.'+u.id, {headers:H});
+    const pd = await rp.json();
+    const role = pd?.[0]?.role || 'member';
+    const roleEl = document.getElementById('sbUserRole');
+    if (roleEl) roleEl.textContent = role==='admin'?'Admin':role==='editor'?'Editör':'Üye';
+    if (role==='admin' || role==='editor') {
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
+    }
+  } catch(e) {}
+})();
 </script>
 </body>
 </html>
