@@ -62,7 +62,10 @@ table{width:100%;border-collapse:collapse;}
 th{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);}
 td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);vertical-align:middle;}
 tr:hover td{background:var(--surface2);}
-.sq{width:52px;}
+.sq{width:28px;}
+.col-kapanis{width:80px;}
+.col-not{width:60px;}
+@media(max-width:768px){.col-kapanis,.col-not{display:none;} .sq{width:24px;}}
 .si{width:44px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:4px 6px;color:var(--accent);font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;text-align:center;outline:none;cursor:pointer;transition:border-color .15s;-moz-appearance:textfield;}
 .si::-webkit-outer-spin-button,.si::-webkit-inner-spin-button{-webkit-appearance:none;}
 .si:focus{border-color:var(--accent);}
@@ -123,8 +126,8 @@ tr:hover .ra{opacity:1;}
   @media (max-width: 768px) {
     nav { padding:0 8px; gap:3px; height:56px; overflow-x:auto; }
     .nb { font-size:11px; padding:4px 8px; white-space:nowrap; }
-    .layout { flex-direction:column; height:auto; min-height:calc(100vh - 56px - 68px); }
-    .lp { width:100%; min-width:unset; max-height:none; border-right:none; border-bottom:1px solid var(--border); }
+    .layout { flex-direction:column; height:auto; }
+    .lp { width:100%; min-width:unset; height:calc(100vh - 56px - 68px); max-height:none; border-right:none; border-bottom:1px solid var(--border); display:flex; flex-direction:column; }
     .dp { display:none; }
     .dp.mobile-open { display:flex !important; flex-direction:column; }
     .lp.mobile-hidden { display:none !important; }
@@ -384,8 +387,7 @@ async function load(){
     sync('ok','Senkronize');
     renderList();
     const urlRep=new URLSearchParams(window.location.search).get('rep');
-    if(urlRep&&reps.find(x=>x.id===urlRep)){selId=urlRep;}
-    else if(!selId && reps.length && window.innerWidth >= 768){selId=reps[0].id;}
+    if(urlRep&&reps.find(x=>x.id===urlRep)){selId=urlRep;}else if(!selId&&reps.length){selId=reps[0].id;}
     renderList();renderDetail();
   }catch(e){sync('err','Bağlantı hatası');toast(e.message,'er');}
 }
@@ -445,8 +447,8 @@ function renderDetail(){
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
         ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
       </td>
-      <td>${cn?'<span class="cn">'+cn+'</span>':''}</td>
-      <td style="color:var(--text3);font-size:12px;">${it.note||''}</td>
+      <td class="col-kapanis">${cn?'<span class="cn">'+cn+'</span>':''}</td>
+      <td class="col-not" style="color:var(--text3);font-size:12px;">${it.note||''}</td>
       <td><div class="ra">
         <button class="br" onclick="mv('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
         <button class="br" onclick="mv('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
@@ -478,7 +480,7 @@ function renderDetail(){
     </div>
     <div class="is">
       <div class="ih"><h3>${items.length} Eser</h3><button class="baw" onclick="openWM('${rep.id}')">+ Eser Ekle</button></div>
-      <table><thead><tr><th>#</th><th>Eser Adı</th><th>Kapanış</th><th>Not</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th class="sq"></th><th>Eser Adı</th><th class="col-kapanis">Kapanış</th><th class="col-not">Not</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
 }
 
@@ -616,51 +618,6 @@ async function addWork(){
 
 async function rmItem(repId,itemId){
   try{await dbDel('repertoire_items',itemId);toast('Silindi');await load();}catch(e){toast(e.message,'er');}
-}
-
-
-let dragSrcIdx = null;
-let dragRepId = null;
-
-function dragStart(e) {
-  dragSrcIdx = parseInt(e.currentTarget.dataset.idx);
-  dragRepId = e.currentTarget.dataset.rep;
-  e.dataTransfer.effectAllowed = 'move';
-  e.currentTarget.style.opacity = '0.4';
-}
-
-function dragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  return false;
-}
-
-async function dragDrop(e) {
-  e.stopPropagation();
-  const targetIdx = parseInt(e.currentTarget.dataset.idx);
-  const targetRep = e.currentTarget.dataset.rep;
-  // Opacity'yi resetle
-  document.querySelectorAll('tr[draggable]').forEach(r => r.style.opacity = '1');
-  if (dragSrcIdx === null || dragSrcIdx === targetIdx || dragRepId !== targetRep) return;
-  const rep = getRep(targetRep);
-  if (!rep) return;
-  const items = [...rep.items];
-  const moved = items.splice(dragSrcIdx, 1)[0];
-  items.splice(targetIdx, 0, moved);
-  // seq'leri güncelle
-  const updates = items.map((it, i) => ({id: it.id, seq: i + 1}));
-  try {
-    await Promise.all(updates.map(u =>
-      fetch(SUPA_URL + '/rest/v1/repertoire_items?id=eq.' + u.id, {
-        method: 'PATCH',
-        headers: { ...H, 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ seq: u.seq })
-      })
-    ));
-    toast('Sıra güncellendi ✓');
-    await load();
-  } catch(err) { toast('Hata: ' + err.message, 'er'); }
-  dragSrcIdx = null;
 }
 
 async function mv(repId,idx,dir){
