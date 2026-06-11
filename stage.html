@@ -8,13 +8,27 @@
 <title>Sahne Modu</title>
 <style>
 :root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--border:#2a2a3e;--accent:#a855f7;--accent2:#c084fc;--text:#f1f0ff;--text2:#8b8aa8;--text3:#3d3d58;--green:#4a9462;--red:#c05444;}
+
+/* ── Gündüz Teması ── */
+body.day-theme {
+  --bg:#f5f4f0; --surface:#ffffff; --surface2:#f0eeea;
+  --border:#d8d4cc; --accent:#7c6fff; --accent2:#a78bfa;
+  --text:#1a1825; --text2:#5a5670; --text3:#9d9aae;
+  --green:#2d7a4a; --red:#c04040;
+}
+body.day-theme .sm::before { background:radial-gradient(circle,rgba(124,111,255,0.05) 0%,transparent 70%); }
+body.day-theme .wlyrics { color: var(--text); }
+body.day-theme .wtitle { color: var(--text); }
+body.day-theme .wnum { color: var(--accent); }
+body.day-theme .stb { background: var(--surface); border-color: var(--border); }
+body.day-theme .side-nav-btn { background:rgba(124,111,255,0.1); border-color:rgba(124,111,255,0.25); }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100vh;overflow:hidden;user-select:none;}
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;}
 .screen.hidden{display:none;}
 
-#pickerScreen{background:var(--bg);align-items:center;justify-content:center;padding:32px 24px;overflow-y:auto;}
-.pi{width:100%;max-width:520px;}
+#pickerScreen{background:var(--bg);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:0;overflow:hidden;}
+.pi{width:100%;max-width:520px;margin:0 auto;padding:72px 24px 88px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;}
 .plogo{display:flex;align-items:center;gap:10px;margin-bottom:36px;justify-content:center;}
 .plogo span{font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);}
 .plogo small{color:var(--text2);font-size:12px;letter-spacing:.1em;text-transform:uppercase;}
@@ -189,7 +203,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 .v2-stn-back{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--text3);cursor:pointer;font-family:var(--font);text-decoration:none;display:inline-block;transition:all .15s;}
 .v2-stn-back:hover{border-color:var(--accent);color:var(--accent);}
 /* Add top padding to picker screen when nav is shown */
-#pickerScreen{padding-top:72px!important;padding-bottom:80px!important;overflow-y:auto;}
+/* picker screen scroll handled via .pi */
 </style>
 </head>
 <body>
@@ -375,10 +389,21 @@ function renderStageChords(text) {
   }).join('');
 }
 
+function applyTheme(screen) {
+  const theme = localStorage.getItem('stageTheme') || 'night';
+  if (screen === 'stage') {
+    document.body.classList.toggle('day-theme', theme === 'day');
+  } else {
+    // Picker ve end screen daima koyu
+    document.body.classList.remove('day-theme');
+  }
+}
+
 function startStage(){
   curRep=reps.find(r=>r.id===selId);
   if(!curRep||(curRep.items||[]).length===0)return;
   curIdx=0;
+  applyTheme('stage');
   showScreen('stageScreen');
   document.getElementById('strn').textContent=curRep.name;
   renderStage();
@@ -426,7 +451,7 @@ function nextWork(){
 function prevWork(){
   sideNavPrev();
 }
-function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?'))backToPicker();}
+function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){applyTheme('picker');backToPicker();}}
 function goToActiveRep(e) {
   e.stopPropagation();
   // curRep varsa ve gerçek bir repertuvar ID'si taşıyorsa o repertuvara git
@@ -437,6 +462,7 @@ function goToActiveRep(e) {
   }
 }
 function showEndScreen(){
+  applyTheme('picker');
   showScreen('endScreen');
   document.getElementById('ern').textContent = curRep.name || '';
   document.getElementById('erc').textContent = (curRep.items||[]).length + ' eser seslendirdiniz';
