@@ -391,7 +391,26 @@ async function load(){
     const urlRep=new URLSearchParams(window.location.search).get('rep');
     if(urlRep&&reps.find(x=>x.id===urlRep)){selId=urlRep;}else if(!selId&&reps.length){selId=reps[0].id;}
     renderList();renderDetail();
+    setTimeout(fixMobileHeight, 100);
   }catch(e){sync('err','Bağlantı hatası');toast(e.message,'er');}
+}
+
+function fixMobileHeight() {
+  if (window.innerWidth >= 768) return;
+  const topnav = document.querySelector('.v2-topnav');
+  const botnav = document.querySelector('.v2-bottom-nav');
+  const lp = document.querySelector('.lp');
+  const ls = document.getElementById('list');
+  if (!lp || !ls) return;
+  const topH = topnav ? topnav.offsetHeight : 56;
+  const botH = botnav ? botnav.offsetHeight : 68;
+  const available = window.innerHeight - topH - botH;
+  lp.style.height = available + 'px';
+  lp.style.maxHeight = available + 'px';
+  const lph = lp.querySelector('.lph');
+  const lphH = lph ? lph.offsetHeight : 50;
+  ls.style.height = (available - lphH) + 'px';
+  ls.style.overflowY = 'scroll';
 }
 
 function renderList(){
@@ -856,7 +875,8 @@ function shareViaWhatsApp() {
   function _v2(){if(typeof getUser!=='function')return;const u=getUser();if(!u)return;const name=u?.user_metadata?.full_name||u?.email?.split('@')[0]||'—';const ini=name.charAt(0).toUpperCase();['sbUserName','tnUserName'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=name;});['sbAvatar','tnAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=ini;});}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_v2);else _v2();
   setTimeout(()=>{if(typeof isAdmin!=='function')return;if(isAdmin()||isEditor())document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('admin-only'));const r=document.getElementById('sbUserRole');if(r)r.textContent=isAdmin()?'Admin':isEditor()?'Editör':'Üye';},300);
-})();
+window.addEventListener('resize', fixMobileHeight);
+window.addEventListener('orientationchange', () => setTimeout(fixMobileHeight, 300));
 </script>
 </body>
 </html>
