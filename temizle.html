@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Veri Temizleme</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#0b0b0c;--surface:#131315;--border:#252528;--accent:#c9963a;--red:#c05444;--green:#4a9462;--text:#f0ede6;--text2:#9b9890;--text3:#4a4845;}
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -29,8 +28,37 @@
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
   hr{border:none;border-top:1px solid var(--border);margin:20px 0;}
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style id="v2-t-css">
+:root{--bg:#07071a;--surface:#12123a;--surface2:#1a1a4a;--border:rgba(120,100,255,0.18);--accent:#7c6fff;--accent2:#a78bfa;--text:#e2e0ff;--text2:#9d9bc4;--text3:#5e5c8a;--red:#f87171;--green:#4ade80;--font:'Plus Jakarta Sans',sans-serif;}
+body{font-family:var(--font)!important;background:var(--bg)!important;color:var(--text)!important;}
+h1{color:var(--accent2)!important;}
+p{color:var(--text2)!important;}
+.card{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:16px!important;}
+.card h2{color:var(--text2)!important;}
+.btn{font-family:var(--font)!important;border-radius:10px!important;}
+.btn-scan{background:linear-gradient(135deg,var(--accent),var(--accent2))!important;color:#fff!important;}
+.btn-delete{background:rgba(248,113,113,.15)!important;border:1px solid rgba(248,113,113,.4)!important;color:var(--red)!important;}
+.btn-back{background:var(--surface2)!important;border:1px solid var(--border)!important;color:var(--text2)!important;}
+.log{color:var(--text2)!important;}
+.log .ok{color:var(--green)!important;}
+.log .err{color:var(--red)!important;}
+.log .warn{color:var(--accent2)!important;}
+.count{color:var(--accent2)!important;}
+/* Slim topbar */
+.v2-admin-topnav{display:flex;align-items:center;gap:12px;padding:14px 32px;border-bottom:1px solid var(--border);background:rgba(7,7,26,0.8);backdrop-filter:blur(12px);margin-bottom:32px;}
+.v2-atn-logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;}
+.v2-atn-name{font-size:14px;font-weight:700;color:var(--text);}
+.v2-atn-back{margin-left:auto;background:none;border:1px solid var(--border);border-radius:7px;padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font);text-decoration:none;transition:all .15s;}
+.v2-atn-back:hover{border-color:var(--accent);color:var(--accent);}
+</style>
 </head>
 <body>
+<div class="v2-admin-topnav">
+  <div class="v2-atn-logo">R</div>
+  <span class="v2-atn-name">repertuvar — Yönetim</span>
+  <a href="eserler.html" class="v2-atn-back">← Eserler</a>
+</div>
 
 <h1>🧹 Veri Temizleme Aracı</h1>
 <p>İsmi boş veya eksik olan eserleri bulup siler.</p>
@@ -55,8 +83,7 @@
   <div class="log" id="deleteLog"></div>
 </div>
 
-<br>
-<a href="eserler.html"><button class="btn btn-back">← Eserler</button></a>
+
 
 <script>
 const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
