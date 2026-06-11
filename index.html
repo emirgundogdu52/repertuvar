@@ -513,15 +513,6 @@ body {
     </div>
   </header>
 
-  <!-- Tablet: Yatay Tab Bar -->
-  <nav class="tabnav">
-    <a href="index.html" class="tab-item active"><span class="tab-icon">🏠</span>Ana Sayfa</a>
-    <a href="eserler.html" class="tab-item"><span class="tab-icon">🎼</span>Eserler</a>
-    <a href="repertoires.html" class="tab-item admin-only"><span class="tab-icon">📋</span>Listeler</a>
-    <a href="artiesten.html" class="tab-item admin-only"><span class="tab-icon">🎤</span>Solistler</a>
-    <a href="ayarlar.html" class="tab-item"><span class="tab-icon">⚙️</span>Ayarlar</a>
-    <a href="stage.html" class="tab-item tab-stage"><span class="tab-icon">🎭</span>Sahneye Çık</a>
-  </nav>
 
   <!-- Desktop: Slim topbar -->
   <div class="desktop-topbar">
@@ -649,8 +640,9 @@ if (localStorage.getItem('stageTheme') === 'night') {
     } catch(e) {}
   }
 
+  // Son eklenen eserler — kolon adları: name, composer, makam, tuning
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,eser_adi,artist,makam,ton&order=id.desc&limit=6', {headers:H});
+    const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,makam,tuning&order=id.desc&limit=6', {headers:H});
     const data = await r.json();
     const container = document.getElementById('recentWorks');
     if (container && Array.isArray(data) && data.length) {
@@ -659,15 +651,41 @@ if (localStorage.getItem('stageTheme') === 'night') {
           <div class="work-num">${i+1}</div>
           <div class="work-thumb">🎵</div>
           <div class="work-info">
-            <div class="work-name">${w.eser_adi||'—'}</div>
-            <div class="work-sub">${w.artist||'—'}</div>
+            <div class="work-name">${w.name||'—'}</div>
+            <div class="work-sub">${w.composer||'—'}</div>
           </div>
           <div class="work-badges">
             ${w.makam?`<span class="wb">${w.makam}</span>`:''}
-            ${w.ton?`<span class="wb wb-key">${w.ton}</span>`:''}
+            ${w.tuning?`<span class="wb wb-key">${w.tuning}</span>`:''}
           </div>
           <div class="wc-play">▶</div>
         </a>`).join('');
+    } else if (container) {
+      container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">Henüz eser yok.</div>';
+    }
+  } catch(e) {
+    const container = document.getElementById('recentWorks');
+    if (container) container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">Yüklenemedi.</div>';
+  }
+
+  // Aktif repertuvar — en son güncellenen
+  try {
+    const r = await fetch(SUPA_URL+'/rest/v1/repertoires?order=updated_at.desc&limit=1', {headers:H});
+    const data = await r.json();
+    const rep = data?.[0];
+    if (rep) {
+      const nameEl = document.getElementById('activeListName');
+      const subEl  = document.getElementById('activeListSub');
+      if (nameEl) nameEl.textContent = rep.name || '—';
+      if (subEl)  subEl.textContent  = rep.date || rep.venue || '—';
+      // Eser sayısını çek
+      const ri = await fetch(SUPA_URL+'/rest/v1/repertoire_items?repertoire_id=eq.'+rep.id+'&select=id', {headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),'Prefer':'count=exact'}});
+      const cnt = ri.headers.get('content-range')?.split('/')[1];
+      const countEl = document.getElementById('activeListCount');
+      if (countEl) countEl.textContent = (cnt||'?') + ' Parça';
+      // Linki doğru repertuara yönlendir
+      const card = document.querySelector('.active-card');
+      if (card) card.href = 'repertoires.html';
     }
   } catch(e) {}
 
