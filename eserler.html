@@ -335,9 +335,9 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     <div style="padding:10px 16px 0;background:var(--bg);">
       <div style="position:relative;">
         <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none;">&#9906;</span>
-        <input type="text" id="searchInput2" placeholder="Eser adı, besteci, güftekâr, makam, güfte..." autocomplete="off"
+        <input type="text" id="searchInput" placeholder="Eser adı, besteci, güftekâr, makam, güfte..." autocomplete="off"
           style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 36px;color:var(--text);font-size:14px;font-family:'Sora',sans-serif;outline:none;transition:border-color .2s;"
-          oninput="document.getElementById('searchInput').value=this.value;applyFilters();">
+          oninput="applyFilters();">
       </div>
     </div>
     <div class="toolbar">
