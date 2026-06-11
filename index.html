@@ -527,13 +527,12 @@ body {
 
 
     <div class="section">
-      <div class="sec-header"><span class="sec-title">Aktif Liste</span><a href="repertoires.html" class="sec-action">Tümünü Gör →</a></div>
-      <a href="repertoires.html" class="active-card">
-        <div class="active-thumb">🎵</div>
+      <div class="sec-header"><span class="sec-title">Arşiv</span></div>
+      <a href="eserler.html" class="active-card" style="text-decoration:none;">
+        <div class="active-thumb">🎼</div>
         <div class="active-info">
-          <div class="active-name" id="activeListName">Yükleniyor…</div>
-          <div class="active-meta"><span class="meta-badge" id="activeListCount">— Parça</span><span style="color:var(--text3);font-size:11px">Aktif Repertuvar</span></div>
-          <div class="active-sub" id="activeListSub">—</div>
+          <div class="active-name">Şu an sistemde <span id="activeListCount" style="color:var(--accent2);">—</span> eser kayıtlı</div>
+          <div class="active-meta"><span style="color:var(--text3);font-size:11px;">Tümünü görüntülemek için tıklayın</span></div>
         </div>
         <div class="active-arrow">›</div>
       </a>
@@ -634,7 +633,10 @@ if (localStorage.getItem('stageTheme') === 'night') {
       const cnt = r.headers.get('content-range')?.split('/')[1];
       if (cnt) {
         const el=document.getElementById(elId); if(el) el.textContent=cnt;
-        if (tbl==='works') { const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=cnt; }
+        if (tbl==='works') {
+          const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=cnt;
+          const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=cnt;
+        }
       }
     } catch(e) {}
   }
@@ -667,26 +669,8 @@ if (localStorage.getItem('stageTheme') === 'night') {
     if (container) container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">Yüklenemedi.</div>';
   }
 
-  // Aktif repertuvar — en son güncellenen
-  try {
-    const r = await fetch(SUPA_URL+'/rest/v1/repertoires?order=updated_at.desc&limit=1', {headers:H});
-    const data = await r.json();
-    const rep = data?.[0];
-    if (rep) {
-      const nameEl = document.getElementById('activeListName');
-      const subEl  = document.getElementById('activeListSub');
-      if (nameEl) nameEl.textContent = rep.name || '—';
-      if (subEl)  subEl.textContent  = rep.date || rep.venue || '—';
-      // Eser sayısını çek
-      const ri = await fetch(SUPA_URL+'/rest/v1/repertoire_items?repertoire_id=eq.'+rep.id+'&select=id', {headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),'Prefer':'count=exact'}});
-      const cnt = ri.headers.get('content-range')?.split('/')[1];
-      const countEl = document.getElementById('activeListCount');
-      if (countEl) countEl.textContent = (cnt||'?') + ' Parça';
-      // Linki doğru repertuara yönlendir
-      const card = document.querySelector('.active-card');
-      if (card) card.href = 'repertoires.html';
-    }
-  } catch(e) {}
+
+
 
   try {
     const rp = await fetch(SUPA_URL+'/rest/v1/profiles?select=role&user_id=eq.'+u.id, {headers:H});
