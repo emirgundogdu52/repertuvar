@@ -426,16 +426,34 @@ async function changePassword() {
   ['sbUserName','tnUserName','profileName'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=name; });
   const emailEl = document.getElementById('profileEmail'); if(emailEl) emailEl.textContent = email;
 
-  // Rol
+  // Rol - auth.js fonksiyonlarını kullan, yoksa Supabase'den çek
   try {
-    const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) };
-    const rp = await fetch(SUPA_URL + '/rest/v1/profiles?select=role&user_id=eq.' + u.id, { headers: H });
-    const pd = await rp.json();
-    const role = pd?.[0]?.role || 'member';
+    let role = 'member';
+    if (typeof isAdmin === 'function' && isAdmin()) role = 'admin';
+    else if (typeof isEditor === 'function' && isEditor()) role = 'editor';
+    else {
+      // auth.js'de fonksiyon yoksa Supabase'den çek
+      const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) };
+      const rp = await fetch(SUPA_URL + '/rest/v1/profiles?select=role&user_id=eq.' + u.id, { headers: H });
+      const pd = await rp.json();
+      role = pd?.[0]?.role || 'member';
+    }
     const roleLabel = role === 'admin' ? 'Admin' : role === 'editor' ? 'Editör' : 'Üye';
     ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=roleLabel; });
     if (role === 'admin' || role === 'editor') {
       document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
+    }
+    // Gecikme ile tekrar dene - auth.js bazen async yüklenir
+    if (role === 'member') {
+      setTimeout(async () => {
+        if (typeof isAdmin === 'function' && isAdmin()) {
+          document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
+          ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='Admin'; });
+        } else if (typeof isEditor === 'function' && isEditor()) {
+          document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
+          ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='Editör'; });
+        }
+      }, 500);
     }
   } catch(e) {}
 
