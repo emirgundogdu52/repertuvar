@@ -220,37 +220,7 @@ body {
   }
   .tn-logout:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* Yatay Tab Bar (üst nav'ın altında) */
-  .tabnav {
-    position: sticky; top: var(--topnav-h); z-index: 190;
-    height: var(--tabnav-h);
-    background: rgba(9,9,28,0.94);
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center;
-    padding: 0 16px; gap: 4px; overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .tabnav::-webkit-scrollbar { display: none; }
-  .tab-item {
-    display: flex; align-items: center; gap: 7px;
-    padding: 8px 16px; border-radius: 9px;
-    font-size: 13px; font-weight: 600; color: var(--text2);
-    text-decoration: none; white-space: nowrap; transition: all .15s;
-    flex-shrink: 0;
-  }
-  .tab-item:hover { background: var(--surface); color: var(--text); }
-  .tab-item.active {
-    background: rgba(124,111,255,0.14); color: var(--accent3);
-    border: 1px solid rgba(124,111,255,0.22);
-  }
-  .tab-icon { font-size: 15px; }
-  .tab-stage {
-    background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
-    color: #fff !important; border: none !important;
-    box-shadow: 0 3px 12px rgba(124,111,255,0.3);
-    margin-left: auto;
-  }
+  .tabnav { display: none; }
 
   /* Alt Bar */
   .bottom-nav {
@@ -627,7 +597,7 @@ body {
       <span class="bn-icon">🎼</span><span class="bn-label">Eserler</span>
     </a>
     <a href="repertoires.html" class="bn-item">
-      <span class="bn-icon">📋</span><span class="bn-label">Listeler</span>
+      <span class="bn-icon">📋</span><span class="bn-label">Repertuvarlar</span>
     </a>
     <a href="stage.html" class="bn-item bn-stage">
       <span class="bn-icon">🎭</span><span class="bn-label">Sahne Modu</span>
