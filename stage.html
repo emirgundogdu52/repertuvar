@@ -229,7 +229,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     <div class="stage-nav">
       <a href="index.html">🏠 Ana Menü</a>
       <a href="eserler.html">🎼 Eserler</a>
-      <a href="repertoires.html">📋 Repertuvar</a>
+      <a href="repertoires.html" id="btnActiveRep" onclick="goToActiveRep(event)">📋 Repertuvar</a>
       <button class="bex" onclick="exitStage(event)">✕ Çık</button>
     </div>
   </div>
@@ -407,6 +407,15 @@ function prevWork(){
   sideNavPrev();
 }
 function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?'))backToPicker();}
+function goToActiveRep(e) {
+  e.stopPropagation();
+  // curRep varsa ve gerçek bir repertuvar ID'si taşıyorsa o repertuvara git
+  if (curRep && curRep.id && curRep.id !== 'single') {
+    window.location.href = 'repertoires.html?rep=' + curRep.id;
+  } else {
+    window.location.href = 'repertoires.html';
+  }
+}
 function showEndScreen(){
   showScreen('endScreen');
   document.getElementById('ern').textContent = curRep.name || '';
