@@ -237,6 +237,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <button onclick="setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
       <button onclick="setLyricsAlign('center')" id="alignCenter" title="Ortala" style="background:rgba(88,166,255,.15);border:1px solid var(--accent);border-radius:6px;color:var(--accent);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☰</button>
       <button onclick="setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
+      <button onclick="toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☀️</button>
     </div>
     <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
@@ -347,9 +348,20 @@ function renderStageChords(text) {
 }
 
 
+function toggleStageTheme(){
+  const t = localStorage.getItem('stageTheme')||'night';
+  const next = t==='night' ? 'day' : 'night';
+  setTheme(next);
+  applyTheme('stage');
+  const btn = document.getElementById('stageThemeBtn');
+  if(btn) btn.textContent = next==='day' ? '🌙' : '☀️';
+}
+
 function applyTheme(screen){
   const t=localStorage.getItem('stageTheme')||'night';
   document.body.classList.toggle('day-theme', screen==='stage' && t==='day');
+  const btn=document.getElementById('stageThemeBtn');
+  if(btn) btn.textContent = t==='day' ? '🌙' : '☀️';
 }
 function setTheme(t){
   localStorage.setItem('stageTheme',t);
