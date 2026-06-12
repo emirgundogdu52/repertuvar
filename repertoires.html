@@ -438,6 +438,48 @@ function sel(id){
   }
 }
 
+let dragSrcIdx = null;
+let dragRepId = null;
+
+function dragStart(e) {
+  dragSrcIdx = parseInt(e.currentTarget.dataset.idx);
+  dragRepId = e.currentTarget.dataset.rep;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => e.currentTarget.style.opacity = '0.4', 0);
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+async function dragDrop(e) {
+  e.stopPropagation();
+  document.querySelectorAll('tr[draggable]').forEach(r => r.style.opacity = '1');
+  const targetIdx = parseInt(e.currentTarget.dataset.idx);
+  const targetRep = e.currentTarget.dataset.rep;
+  if (dragSrcIdx === null || dragSrcIdx === targetIdx || dragRepId !== targetRep) return;
+  const rep = getRep(targetRep);
+  if (!rep) return;
+  const items = [...rep.items];
+  const moved = items.splice(dragSrcIdx, 1)[0];
+  items.splice(targetIdx, 0, moved);
+  const updates = items.map((it, i) => ({id: it.id, seq: i + 1}));
+  try {
+    await Promise.all(updates.map(u =>
+      fetch(SUPA_URL + '/rest/v1/repertoire_items?id=eq.' + u.id, {
+        method: 'PATCH',
+        headers: {...H, 'Prefer': 'return=minimal'},
+        body: JSON.stringify({seq: u.seq})
+      })
+    ));
+    toast('Sıra güncellendi ✓');
+    await load();
+  } catch(err) { toast('Hata: ' + err.message, 'er'); }
+  dragSrcIdx = null;
+}
+
 function goBackToList(){
   const lp=document.querySelector('.lp');
   const dp=document.getElementById('dp');
