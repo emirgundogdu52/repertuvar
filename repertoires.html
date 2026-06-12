@@ -391,6 +391,7 @@ async function load(){
     const urlRep=new URLSearchParams(window.location.search).get('rep');
     if(urlRep&&reps.find(x=>x.id===urlRep)){selId=urlRep;}else if(!selId&&reps.length){selId=reps[0].id;}
     renderList();renderDetail();
+    setTimeout(initTouchDrag, 300);
     setTimeout(fixMobileHeight, 100);
   }catch(e){sync('err','Bağlantı hatası');toast(e.message,'er');}
 }
@@ -440,6 +441,8 @@ function sel(id){
 
 let dragSrcIdx = null;
 let dragRepId = null;
+let touchDragEl = null;
+let touchClone = null;
 
 function dragStart(e) {
   dragSrcIdx = parseInt(e.currentTarget.dataset.idx);
@@ -447,24 +450,82 @@ function dragStart(e) {
   e.dataTransfer.effectAllowed = 'move';
   setTimeout(() => e.currentTarget.style.opacity = '0.4', 0);
 }
-
-function dragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  return false;
-}
-
+function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; }
 async function dragDrop(e) {
   e.stopPropagation();
   document.querySelectorAll('tr[draggable]').forEach(r => r.style.opacity = '1');
   const targetIdx = parseInt(e.currentTarget.dataset.idx);
   const targetRep = e.currentTarget.dataset.rep;
   if (dragSrcIdx === null || dragSrcIdx === targetIdx || dragRepId !== targetRep) return;
-  const rep = getRep(targetRep);
-  if (!rep) return;
+  await doReorder(targetRep, dragSrcIdx, targetIdx);
+  dragSrcIdx = null;
+}
+
+// Touch desteği
+function initTouchDrag() {
+  document.querySelectorAll('tr[draggable]').forEach(row => {
+    row.addEventListener('touchstart', touchStart, {passive: false});
+    row.addEventListener('touchmove', touchMove, {passive: false});
+    row.addEventListener('touchend', touchEnd, {passive: false});
+  });
+}
+
+function touchStart(e) {
+  const row = e.currentTarget;
+  // Sadece ⠿ ikonuna dokunulunca drag başlasın
+  const handle = row.querySelector('td:first-child');
+  const touch = e.touches[0];
+  const rect = handle.getBoundingClientRect();
+  if (touch.clientX > rect.right + 20) return; // İkon dışında dokunulmuşsa iptal
+  e.preventDefault();
+  dragSrcIdx = parseInt(row.dataset.idx);
+  dragRepId = row.dataset.rep;
+  touchDragEl = row;
+  row.style.opacity = '0.5';
+  // Görsel klon oluştur
+  touchClone = row.cloneNode(true);
+  touchClone.style.cssText = `position:fixed;z-index:9999;opacity:0.85;background:var(--surface2);border:1px solid var(--accent);border-radius:8px;pointer-events:none;width:${row.offsetWidth}px;left:${row.getBoundingClientRect().left}px;top:${row.getBoundingClientRect().top}px;`;
+  document.body.appendChild(touchClone);
+}
+
+function touchMove(e) {
+  if (!touchClone) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchClone.style.top = (touch.clientY - 20) + 'px';
+  // Hangi satırın üzerinde olduğunu bul
+  touchClone.style.display = 'none';
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  touchClone.style.display = '';
+  const targetRow = el?.closest('tr[draggable]');
+  document.querySelectorAll('tr[draggable]').forEach(r => r.style.background = '');
+  if (targetRow && targetRow !== touchDragEl) {
+    targetRow.style.background = 'rgba(124,111,255,0.1)';
+  }
+}
+
+async function touchEnd(e) {
+  if (!touchClone) return;
+  touchClone.remove(); touchClone = null;
+  if (touchDragEl) touchDragEl.style.opacity = '1';
+  document.querySelectorAll('tr[draggable]').forEach(r => r.style.background = '');
+  const touch = e.changedTouches[0];
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const targetRow = el?.closest('tr[draggable]');
+  if (!targetRow || targetRow === touchDragEl) { dragSrcIdx = null; touchDragEl = null; return; }
+  const targetIdx = parseInt(targetRow.dataset.idx);
+  const targetRep = targetRow.dataset.rep;
+  if (dragSrcIdx !== null && dragSrcIdx !== targetIdx && dragRepId === targetRep) {
+    await doReorder(targetRep, dragSrcIdx, targetIdx);
+  }
+  dragSrcIdx = null; touchDragEl = null;
+}
+
+async function doReorder(repId, fromIdx, toIdx) {
+  const rep = getRep(repId); if (!rep) return;
   const items = [...rep.items];
-  const moved = items.splice(dragSrcIdx, 1)[0];
-  items.splice(targetIdx, 0, moved);
+  const moved = items.splice(fromIdx, 1)[0];
+  items.splice(toIdx, 0, moved);
   const updates = items.map((it, i) => ({id: it.id, seq: i + 1}));
   try {
     await Promise.all(updates.map(u =>
@@ -476,8 +537,8 @@ async function dragDrop(e) {
     ));
     toast('Sıra güncellendi ✓');
     await load();
+    setTimeout(initTouchDrag, 300);
   } catch(err) { toast('Hata: ' + err.message, 'er'); }
-  dragSrcIdx = null;
 }
 
 function goBackToList(){
@@ -495,8 +556,7 @@ function renderDetail(){
   document.getElementById('es').style.display=rep?'none':'flex';
   const dc=document.getElementById('dc');
   dc.style.display=rep?'block':'none';
-  if(!rep)return;
-  const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
+  if(!rep)return;  const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
   const items=rep.items||[];
   const rows=items.length?items.map((it,idx)=>{
