@@ -225,8 +225,9 @@ let selectedWorkId = null;
 let addingToArtistId = null;
 
 function setSyncStatus(state, label) {
-  document.getElementById('syncDot').className = 'sync-dot ' + state;
-  document.getElementById('syncLabel').textContent = label;
+  const d=document.getElementById('syncDot'); const sl=document.getElementById('syncLabel');
+  if(d) d.className = 'sync-dot ' + state;
+  if(sl) sl.textContent = label;
 }
 function showToast(msg, type='ok') {
   const t = document.createElement('div');
@@ -425,7 +426,19 @@ document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeModal(); 
 document.getElementById('artistModal').addEventListener('click', e => { if(e.target.id==='artistModal') closeModal(); });
 document.getElementById('workModal').addEventListener('click', e => { if(e.target.id==='workModal') closeWorkModal(); });
 
-loadAll();
+if(typeof requireAuth === 'function'){
+  requireAuth().then(ok => {
+    if(!ok) return;
+    const u = typeof getUser==='function' ? getUser() : null;
+    if(u){
+      const name=u?.user_metadata?.full_name||u?.email?.split('@')[0]||'—';
+      const ini=name.charAt(0).toUpperCase();
+      ['sbUserName','tnUserName'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=name;});
+      ['sbAvatar','tnAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=ini;});
+    }
+    loadAll();
+  });
+} else { loadAll(); }
 </script>
 
 </div><!-- /v2-main-wrap -->
