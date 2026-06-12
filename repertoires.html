@@ -463,6 +463,11 @@ function renderDetail(){
     const pf = it.performer || '';
     return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" style="cursor:grab;">
       <td class="sq" style="cursor:grab;color:var(--text3);font-size:16px;text-align:center;user-select:none;" title="Sürükle">⠿</td>
+      <td class="sq" style="width:36px;text-align:center;">
+        <input class="si" type="number" min="1" max="${items.length}" value="${it.seq}"
+          style="width:32px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;text-align:center;padding:2px;"
+          onchange="chSeq('${rep.id}',${idx},this.value)" onclick="event.stopPropagation()">
+      </td>
       <td>
         <div class="wn">${w.name||'#'+it.workId}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
@@ -503,7 +508,7 @@ function renderDetail(){
     </div>
     <div class="is">
       <div class="ih"><h3>${items.length} Eser</h3><button class="baw" onclick="openWM('${rep.id}')">+ Eser Ekle</button></div>
-      <table><thead><tr><th class="sq"></th><th>Eser Adı</th><th class="col-kapanis">Kapanış</th><th class="col-not">Not</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th class="sq"></th><th class="sq" style="width:36px;text-align:center;">#</th><th>Eser Adı</th><th class="col-kapanis">Kapanış</th><th class="col-not">Not</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
 }
 
@@ -858,7 +863,6 @@ function shareViaWhatsApp() {
 (async function() {
   const ok = await requireAuth();
   if(!ok) return;
-  // Kullanıcı adını doldur
   const u = getUser();
   if(u) {
     const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
