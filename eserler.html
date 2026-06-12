@@ -469,7 +469,8 @@ function applyFilters() {
   });
   sortData();
   renderList();
-  document.getElementById('countBadge').textContent = filteredData.length + ' eser';
+  const countBadgeEl = document.getElementById('countBadge');
+  if (countBadgeEl) countBadgeEl.textContent = filteredData.length + ' eser';
 }
 
 function setSort(mode) {
