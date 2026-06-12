@@ -464,60 +464,48 @@ async function dragDrop(e) {
 // Touch desteği
 function initTouchDrag() {
   document.querySelectorAll('tr[draggable]').forEach(row => {
-    row.addEventListener('touchstart', touchStart, {passive: false});
-    row.addEventListener('touchmove', touchMove, {passive: false});
-    row.addEventListener('touchend', touchEnd, {passive: false});
+    const handle = row.querySelector('td:first-child');
+    if (!handle) return;
+    handle.style.cursor = 'grab';
+    handle.style.touchAction = 'none';
+
+    handle.addEventListener('touchstart', e => {
+      e.preventDefault(); e.stopPropagation();
+      dragSrcIdx = parseInt(row.dataset.idx);
+      dragRepId = row.dataset.rep;
+      touchDragEl = row;
+      row.style.opacity = '0.5';
+    }, {passive: false});
+
+    handle.addEventListener('touchmove', e => {
+      e.preventDefault(); e.stopPropagation();
+      if (dragSrcIdx === null) return;
+      const touch = e.touches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetRow = el?.closest('tr[draggable]');
+      document.querySelectorAll('tr[draggable]').forEach(r => { if(r !== touchDragEl) r.style.background = ''; });
+      if (targetRow && targetRow !== touchDragEl) targetRow.style.background = 'rgba(124,111,255,0.15)';
+    }, {passive: false});
+
+    handle.addEventListener('touchend', async e => {
+      e.preventDefault(); e.stopPropagation();
+      if (dragSrcIdx === null) return;
+      const touch = e.changedTouches[0];
+      document.querySelectorAll('tr[draggable]').forEach(r => { r.style.opacity='1'; r.style.background=''; });
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetRow = el?.closest('tr[draggable]');
+      if (targetRow && targetRow !== touchDragEl) {
+        const ti = parseInt(targetRow.dataset.idx);
+        if (dragRepId === targetRow.dataset.rep && dragSrcIdx !== ti) await doReorder(dragRepId, dragSrcIdx, ti);
+      }
+      dragSrcIdx = null; touchDragEl = null;
+    }, {passive: false});
   });
 }
 
-function touchStart(e) {
-  const row = e.currentTarget;
-  // Sadece ⠿ ikonuna dokunulunca drag başlasın
-  const handle = row.querySelector('td:first-child');
-  const touch = e.touches[0];
-  const rect = handle.getBoundingClientRect();
-  if (touch.clientX > rect.right + 20) return; // İkon dışında dokunulmuşsa iptal
-  e.preventDefault();
-  dragSrcIdx = parseInt(row.dataset.idx);
-  dragRepId = row.dataset.rep;
-  touchDragEl = row;
-  row.style.opacity = '0.5';
-  // Görsel klon oluştur
-  touchClone = row.cloneNode(true);
-  touchClone.style.cssText = `position:fixed;z-index:9999;opacity:0.85;background:var(--surface2);border:1px solid var(--accent);border-radius:8px;pointer-events:none;width:${row.offsetWidth}px;left:${row.getBoundingClientRect().left}px;top:${row.getBoundingClientRect().top}px;`;
-  document.body.appendChild(touchClone);
-}
-
-function touchMove(e) {
-  if (!touchClone) return;
-  e.preventDefault();
-  const touch = e.touches[0];
-  touchClone.style.top = (touch.clientY - 20) + 'px';
-  // Hangi satırın üzerinde olduğunu bul
-  touchClone.style.display = 'none';
-  const el = document.elementFromPoint(touch.clientX, touch.clientY);
-  touchClone.style.display = '';
-  const targetRow = el?.closest('tr[draggable]');
-  document.querySelectorAll('tr[draggable]').forEach(r => r.style.background = '');
-  if (targetRow && targetRow !== touchDragEl) {
-    targetRow.style.background = 'rgba(124,111,255,0.1)';
-  }
-}
-
-async function touchEnd(e) {
-  if (!touchClone) return;
-  touchClone.remove(); touchClone = null;
-  if (touchDragEl) touchDragEl.style.opacity = '1';
-  document.querySelectorAll('tr[draggable]').forEach(r => r.style.background = '');
-  const touch = e.changedTouches[0];
-  const el = document.elementFromPoint(touch.clientX, touch.clientY);
-  const targetRow = el?.closest('tr[draggable]');
-  if (!targetRow || targetRow === touchDragEl) { dragSrcIdx = null; touchDragEl = null; return; }
-  const targetIdx = parseInt(targetRow.dataset.idx);
-  const targetRep = targetRow.dataset.rep;
-  if (dragSrcIdx !== null && dragSrcIdx !== targetIdx && dragRepId === targetRep) {
-    await doReorder(targetRep, dragSrcIdx, targetIdx);
-  }
+async function touchEnd(e) { /* legacy - unused */ }
+function touchStart(e) { /* legacy - unused */ }
+function touchMove(e) { /* legacy - unused */ }
   dragSrcIdx = null; touchDragEl = null;
 }
 
