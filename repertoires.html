@@ -858,6 +858,14 @@ function shareViaWhatsApp() {
 (async function() {
   const ok = await requireAuth();
   if(!ok) return;
+  // Kullanıcı adını doldur
+  const u = getUser();
+  if(u) {
+    const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
+    const ini = name.charAt(0).toUpperCase();
+    ['sbUserName','tnUserName'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=name;});
+    ['sbAvatar','tnAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=ini;});
+  }
   await loadWorksData();
   load();
 })();
