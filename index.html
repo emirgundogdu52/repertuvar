@@ -173,6 +173,13 @@ body {
 /* ════════════════════════════
    TABLET  768px – 1023px  →  Üst Tab Bar + Alt Bar
 ════════════════════════════ */
+@media (max-width: 767px) {
+  body { padding-bottom: var(--bottom-h); }
+  .sidebar { display: none !important; }
+  .desktop-topbar { display: none; }
+  .main-wrap { display: contents; }
+}
+
 @media (min-width: 768px) and (max-width: 1023px) {
   body { padding-bottom: var(--bottom-h); }
   .sidebar { display: none; }
