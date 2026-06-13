@@ -24,7 +24,7 @@
   .sync-dot.loading{background:var(--accent);animation:pulse .8s ease infinite;}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
   .layout{display:flex;height:calc(100vh - 49px);}
-  .artist-list-panel{width:280px;min-width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+  .artist-list-panel{width:280px;min-width:280px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;}
   .panel-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
   .panel-header h2{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}
   .btn-new{background:var(--accent);border:none;border-radius:6px;padding:5px 12px;color:#0a0818;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;}
@@ -142,13 +142,9 @@
   </div>
 </aside>
 <div class="v2-main-wrap">
-<header class="v2-topnav">
-  <img src="logo_slogan.png" alt="repertuvar.app" style="height:75px;width:auto;">
-  <div class="v2-tn-right">
-    <div class="v2-tn-user"><div class="v2-tn-avatar" id="tnAvatar">—</div><span class="v2-tn-uname" id="tnUserName">—</span></div>
-    <button class="v2-tn-logout" onclick="logout()">↩ Çıkış</button>
-  </div>
-</header>
+<div id="r-topnav-container"></div>
+<script src="topnav.js"></script>
+
 <div class="v2-desktop-topbar"><div class="v2-crumb">repertuvar / <span>Solistler</span></div></div>
 <div class="layout">
   <aside class="artist-list-panel">
