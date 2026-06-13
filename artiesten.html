@@ -206,8 +206,10 @@ let selectedWorkId = null;
 let addingToArtistId = null;
 
 function setSyncStatus(state, label) {
-  document.getElementById('syncDot').className = 'sync-dot ' + state;
-  document.getElementById('syncLabel').textContent = label;
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  if (dot) dot.className = 'sync-dot ' + state;
+  if (lbl) lbl.textContent = label;
 }
 function showToast(msg, type='ok') {
   const t = document.createElement('div');
