@@ -23,7 +23,7 @@
   .sync-dot.err{background:var(--red);}
   .sync-dot.loading{background:var(--accent);animation:pulse .8s ease infinite;}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-  .layout{display:flex;height:calc(100vh - 60px);}
+  .layout{display:flex;height:calc(100vh - 49px);}
   .artist-list-panel{width:280px;min-width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
   .panel-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
   .panel-header h2{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}
@@ -197,8 +197,7 @@
 </div>
 
 <script>
-const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
-
+if (typeof sb === 'undefined') { var sb = supabase.createClient(SUPA_URL, SUPA_KEY); }
 let WORKS_LIST = [];
 let artists = [];
 let selectedId = null;
@@ -442,10 +441,9 @@ loadAll();
     <a href="ayarlar.html" class="v2-bn-item"><span class="v2-bn-icon">⚙️</span><span class="v2-bn-label">Ayarlar</span></a>
   </div>
 </nav>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="auth.js"></script>
 <script>
-const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
-
 let WORKS_LIST = [];
 let artists = [];
 let selectedId = null;
