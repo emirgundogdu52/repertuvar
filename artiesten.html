@@ -291,10 +291,9 @@ function renderDetail() {
         ${a.email?`<div class="info-card"><div class="info-card-label">E-posta</div><div class="info-card-value"><a href="mailto:${a.email}">${a.email}</a></div></div>`:''}
         ${a.notes?`<div class="info-card full"><div class="info-card-label">Notlar</div><div class="notes-box">${a.notes}</div></div>`:''}
       </div>
-      <div class="section-title">Eser Detayları</div>
       <div class="works-chips">
         ${workChips}
-        <button class="btn-add-work-chip" onclick="openWorkModal('${a.id}')">+ Eser Ekle</button>
+        
       </div>
     </div>`;
 }
