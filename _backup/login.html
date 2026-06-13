@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<!-- DESIGN-TEST-ALT-F-FINAL -->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repertuvar — Giriş</title>
+<link rel="icon" href="Repertuvar_logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0D1117;--surface:#161B22;--surface2:#21262D;
+  --border:#30363D;--text:#E6EDF3;--text2:#8B949E;--text3:#6E7681;
+  --accent:#58A6FF;--accent2:#BC8CFF;--green:#3FB950;--red:#F85149;
+}
+body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+
+.logo-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:32px;}
+.logo-wrap img{height:72px;width:auto;}
+.logo-wrap h1{font-size:22px;font-weight:600;letter-spacing:-.01em;}
+.logo-wrap p{font-size:13px;color:var(--text2);}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:400px;}
+
+.tabs{display:flex;gap:4px;background:var(--surface2);border-radius:8px;padding:4px;margin-bottom:24px;}
+.tab{flex:1;padding:8px;border-radius:6px;border:none;background:none;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border-color .15s;}
+.field input:focus{border-color:var(--accent);}
+.field input::placeholder{color:var(--text3);}
+
+.btn-primary{width:100%;padding:11px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;margin-top:4px;}
+.btn-primary:hover{opacity:.85;}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+
+.btn-google{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:border-color .15s;margin-bottom:20px;}
+.btn-google:hover{border-color:var(--text2);}
+
+.divider{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.divider hr{flex:1;border:none;border-top:1px solid var(--border);}
+.divider span{font-size:11px;color:var(--text3);}
+
+.forgot{font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;margin-top:12px;display:block;text-align:center;width:100%;}
+.forgot:hover{text-decoration:underline;}
+
+.msg{font-size:13px;text-align:center;padding:10px;border-radius:8px;margin-top:12px;display:none;}
+.msg.err{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red);}
+.msg.ok{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--green);}
+</style>
+</head>
+<body>
+
+<div class="logo-wrap">
+  <img src="Repertuvar_logo.png" alt="Repertuvar">
+  <h1>Repertuvar</h1>
+  <p>Sahne Sizin</p>
+</div>
+
+<div class="card">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('login')">Giriş Yap</button>
+    <button class="tab" onclick="switchTab('register')">Kayıt Ol</button>
+  </div>
+
+  <!-- Google -->
+  <button class="btn-google" onclick="loginGoogle()">
+    <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Google ile devam et
+  </button>
+
+  <div class="divider"><hr><span>veya</span><hr></div>
+
+  <!-- Login form -->
+  <div id="loginForm">
+    <div class="field">
+      <label>E-posta</label>
+      <input type="email" id="loginEmail" placeholder="ornek@mail.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Şifre</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="btn-primary" onclick="doLogin()" id="loginBtn">Giriş Yap</button>
+    <button class="forgot" onclick="doReset()">Şifremi unuttum</button>
+  </div>
+
+  <!-- Register form -->
+  <div id="registerForm" style="display:none;">
+    <div class="field">
+      <label>E-posta</label>
+      <input type="email" id="regEmail" placeholder="ornek@mail.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Şifre</label>
+      <input type="password" id="regPass" placeholder="En az 6 karakter" autocomplete="new-password"
+        onkeydown="if(event.key==='Enter') doRegister()">
+    </div>
+    <button class="btn-primary" onclick="doRegister()" id="regBtn">Kayıt Ol</button>
+  </div>
+
+  <div class="msg" id="msg"></div>
+</div>
+
+<script>
+const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// Email onay / şifre sıfırlama token'ını yakala
+(async () => {
+  const hash = window.location.hash;
+  if (hash.includes('access_token')) {
+    const params = new URLSearchParams(hash.substring(1));
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    const type = params.get('type'); // signup veya recovery
+    if (access_token) {
+      const { data, error } = await sb.auth.setSession({ access_token, refresh_token });
+      if (data?.session) {
+        localStorage.setItem('sb_token', data.session.access_token);
+        localStorage.setItem('sb_refresh', data.session.refresh_token);
+        if (type === 'recovery') {
+          // Şifre sıfırlama — sayfada kal, yeni şifre formu göster
+          showMsg('ok', 'Kimlik doğrulandı. Yeni şifrenizi girin.');
+          // TODO: şifre sıfırlama formu
+        } else {
+          showMsg('ok', 'E-posta doğrulandı! Yönlendiriliyorsunuz...');
+          setTimeout(() => window.location.href = 'index.html', 1500);
+        }
+        return;
+      } else {
+        showMsg('err', 'Doğrulama başarısız. Lütfen tekrar deneyin.');
+      }
+    }
+  }
+})();
+
+// Zaten giriş yaptıysa yönlendir
+// Sadece localStorage token kontrolü - SDK session cache değil
+if(!window.location.search.includes('logout=1')) {
+  const token = localStorage.getItem('sb_token');
+  if(token) window.location.href = 'index.html';
+}
+
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', (i===0&&t==='login')||(i===1&&t==='register')));
+  document.getElementById('loginForm').style.display = t==='login' ? '' : 'none';
+  document.getElementById('registerForm').style.display = t==='register' ? '' : 'none';
+  showMsg('','');
+}
+
+function showMsg(type, text) {
+  const el = document.getElementById('msg');
+  el.className = 'msg' + (type ? ' '+type : '');
+  el.textContent = text;
+  el.style.display = text ? 'block' : 'none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  if(!email || !pass) { showMsg('err','E-posta ve şifre gerekli.'); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Giriş yapılıyor...';
+  const {data, error} = await sb.auth.signInWithPassword({email, password: pass});
+  if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent='Giriş Yap'; return; }
+  if(data.session) {
+    localStorage.setItem('sb_token', data.session.access_token);
+    localStorage.setItem('sb_refresh', data.session.refresh_token);
+    window.location.href = 'index.html';
+  }
+}
+
+async function doRegister() {
+  const email = document.getElementById('regEmail').value.trim();
+  const pass  = document.getElementById('regPass').value;
+  if(!email || !pass) { showMsg('err','E-posta ve şifre gerekli.'); return; }
+  if(pass.length < 6) { showMsg('err','Şifre en az 6 karakter olmalı.'); return; }
+  const btn = document.getElementById('regBtn');
+  btn.disabled = true; btn.textContent = 'Kaydediliyor...';
+  const {error} = await sb.auth.signUp({email, password: pass});
+  if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent='Kayıt Ol'; return; }
+  showMsg('ok','Kayıt başarılı! E-postanızı doğrulayın.');
+  btn.disabled=false; btn.textContent='Kayıt Ol';
+}
+
+async function doReset() {
+  const email = document.getElementById('loginEmail').value.trim();
+  if(!email) { showMsg('err','Önce e-posta adresinizi girin.'); return; }
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: 'https://emirgundogdu52.github.io/repertuvar/login.html'});
+  if(error) showMsg('err', error.message);
+  else showMsg('ok','Şifre sıfırlama bağlantısı gönderildi.');
+}
+
+async function loginGoogle() {
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: {redirectTo: 'https://emirgundogdu52.github.io/repertuvar/login.html'}
+  });
+}
+</script>
+</body>
+</html>
