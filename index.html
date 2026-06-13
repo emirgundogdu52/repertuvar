@@ -475,4 +475,215 @@ body {
 <rect x="136" y="33" width="46" height="4" rx="2" fill="white"/>
 </svg>
     <div style="font-size:13px;color:#9d9bc4;line-height:1.5;text-align:center;width:100%;margin-top:-10px;">Modern Müzisyen İçin Akıllı<br>Sahne ve Repertuvar Yönetimi</div>
-  
+    <div style="font-size:13px;color:#9d9bc4;line-height:1.5;text-align:center;width:100%;margin-top:-10px;">Modern Müzisyen İçin Akıllı<br>Sahne ve Repertuvar Yönetimi</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-label">Menü</div>
+    <a href="index.html" class="sb-item active"><span class="sb-icon">🏠</span>Ana Sayfa</a>
+    <a href="eserler.html" class="sb-item"><span class="sb-icon">🎼</span>Eserler<span class="sb-count" id="sbWorkCount">—</span></a>
+    <a href="repertoires.html" class="sb-item"><span class="sb-icon">📋</span>Repertuvarlar</a>
+    <a href="artiesten.html" class="sb-item"><span class="sb-icon">🎤</span>Solistler</a>
+    <div class="sb-divider"></div>
+    <div class="sb-label">Araçlar</div>
+    <a href="uyeler.html" class="sb-item admin-only"><span class="sb-icon">👥</span>Üyeler</a>
+    <a href="ayarlar.html" class="sb-item"><span class="sb-icon">⚙️</span>Ayarlar</a>
+  </nav>
+  <a href="stage.html" class="sb-stage"><span style="font-size:17px">🎭</span> Sahneye Çık</a>
+  <div style="flex:1"></div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sbAvatar">—</div>
+    <div style="flex:1;min-width:0">
+      <div class="sb-uname" id="sbUserName">—</div>
+      <div class="sb-urole" id="sbUserRole">Üye</div>
+    </div>
+    <button class="sb-logout" onclick="logout()" title="Çıkış">↩</button>
+  </div>
+</aside>
+
+<!-- ══ MAIN WRAP ══ -->
+<div class="main-wrap">
+
+  <!-- Tablet + Mobil: Üst Bar -->
+  <header class="topnav">
+    <svg width="188" height="34" viewBox="0 0 188 34" role="img" style="display:block;flex-shrink:0;"><title>repertuvar.app</title><text x="0" y="26" font-family="Inter,Arial,sans-serif" font-size="26" font-weight="600" fill="white">repertuvar<tspan fill="#a78bfa">.app</tspan></text></svg>
+    <div class="tn-right">
+      <div class="tn-user">
+        <div class="tn-avatar" id="tnAvatar">—</div>
+        <span class="tn-uname" id="tnUserName">—</span>
+      </div>
+      <button class="tn-logout" onclick="logout()">↩ Çıkış</button>
+    </div>
+  </header>
+
+
+  <!-- Desktop: Slim topbar -->
+  <div class="desktop-topbar">
+    <div class="dt-crumb">repertuvar / <span>Ana Sayfa</span></div>
+    <div class="dt-search">🔍 <span>Eser ara…</span></div>
+  </div>
+
+  <!-- İçerik -->
+  <div class="page" style="position:relative;z-index:1;">
+
+
+
+    <div class="section">
+      <div class="sec-header"><span class="sec-title">Arşiv</span></div>
+      <a href="eserler.html" class="active-card" style="text-decoration:none;">
+        <div class="active-thumb">🎼</div>
+        <div class="active-info">
+          <div class="active-name">Şu an sistemde <span id="activeListCount" style="color:var(--accent2);">—</span> eser kayıtlı</div>
+          <div class="active-meta"><span style="color:var(--text3);font-size:11px;">Tümünü görüntülemek için tıklayın</span></div>
+        </div>
+        <div class="active-arrow">›</div>
+      </a>
+    </div>
+
+    <div class="section">
+      <div class="sec-header"><span class="sec-title">Son Eklenen Eserler</span><a href="eserler.html" class="sec-action">Tümü →</a></div>
+      <div class="work-list" id="recentWorks">
+        <div class="work-row"><div class="work-num">1</div><div class="work-thumb">🎵</div><div class="work-info"><div class="work-name">Yükleniyor…</div><div class="work-sub">—</div></div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-header"><span class="sec-title">Arşiv</span></div>
+      <div class="stats-row">
+        <div class="stat-pill"><div class="sp-n" id="statWorks">—</div><div class="sp-l">Eser</div><div class="sp-t" id="statTrend">—</div></div>
+        <div class="stat-pill"><div class="sp-n" id="statReps">—</div><div class="sp-l">Repertuvar</div><div class="sp-t">Liste</div></div>
+        <div class="stat-pill"><div class="sp-n" id="statSol">—</div><div class="sp-l">Solist</div><div class="sp-t">Aktif</div></div>
+        <a href="eserler.html?new=1" class="stat-pill" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;border-color:rgba(124,111,255,0.32);background:rgba(124,111,255,0.06);cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(124,111,255,0.14)'" onmouseout="this.style.background='rgba(124,111,255,0.06)'">
+          <div style="font-size:24px;color:var(--accent2);">＋</div>
+          <div class="sp-l" style="color:var(--accent3);margin-top:3px;">Yeni Eser</div>
+        </a>
+      </div>
+    </div>
+
+    <div class="stage-banner">
+      <div class="sb-left">
+        <div class="sb-title">Sahne Modu<br><span>hazır mısınız?</span></div>
+        <div class="sb-sub">Büyük ekran, hızlı eser geçişi.<br>Gece ve gündüz tema seçeneğiyle.</div>
+      </div>
+      <div class="sb-right">
+        <a href="stage.html" class="stage-go-btn">🎭 Sahneye Çık</a>
+        <div class="theme-chips">
+          <div class="tc active" id="tc-day">☀️ Gündüz</div>
+          <div class="tc" id="tc-night">🌙 Gece</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-bottom"></div>
+  </div>
+</div><!-- /main-wrap -->
+
+<!-- Tablet + Mobil: Alt Bar -->
+<nav class="bottom-nav">
+  <div class="bn-items">
+    <a href="index.html" class="bn-item active">
+      <span class="bn-icon">🏠</span><span class="bn-label">Ana Sayfa</span><div class="bn-dot"></div>
+    </a>
+    <a href="eserler.html" class="bn-item">
+      <span class="bn-icon">🎼</span><span class="bn-label">Eserler</span>
+    </a>
+    <a href="repertoires.html" class="bn-item">
+      <span class="bn-icon">📋</span><span class="bn-label">Repertuvarlar</span>
+    </a>
+    <a href="stage.html" class="bn-item bn-stage">
+      <span class="bn-icon">🎭</span><span class="bn-label">Sahne Modu</span>
+    </a>
+    <a href="ayarlar.html" class="bn-item">
+      <span class="bn-icon">⚙️</span><span class="bn-label">Ayarlar</span>
+    </a>
+  </div>
+</nav>
+
+<script>
+document.getElementById('tc-day').addEventListener('click', function() {
+  document.querySelectorAll('.tc').forEach(x => x.classList.remove('active'));
+  this.classList.add('active'); localStorage.setItem('stageTheme','day');
+});
+document.getElementById('tc-night').addEventListener('click', function() {
+  document.querySelectorAll('.tc').forEach(x => x.classList.remove('active'));
+  this.classList.add('active'); localStorage.setItem('stageTheme','night');
+});
+if (localStorage.getItem('stageTheme') === 'night') {
+  document.getElementById('tc-day').classList.remove('active');
+  document.getElementById('tc-night').classList.add('active');
+}
+
+(async function() {
+  const ok = await requireAuth(); if (!ok) return;
+  const u = getUser();
+  const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
+  const initial = name.charAt(0).toUpperCase();
+
+  ['sbUserName','tnUserName'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=name; });
+  ['sbAvatar','tnAvatar'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=initial; });
+
+  const H = {
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
+    'Prefer': 'count=exact'
+  };
+
+  const statCfg = [['works','statWorks'],['repertoires','statReps'],['solistler','statSol']];
+  for (const [tbl, elId] of statCfg) {
+    try {
+      const r = await fetch(SUPA_URL+'/rest/v1/'+tbl+'?select=id&limit=1', {headers:H});
+      const cnt = r.headers.get('content-range')?.split('/')[1];
+      if (cnt) {
+        const el=document.getElementById(elId); if(el) el.textContent=cnt;
+        if (tbl==='works') {
+          const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=cnt;
+          const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=cnt;
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Son eklenen eserler — kolon adları: name, composer, makam, tuning
+  try {
+    const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,makam,tuning&order=id.desc&limit=6', {headers:H});
+    const data = await r.json();
+    const container = document.getElementById('recentWorks');
+    if (container && Array.isArray(data) && data.length) {
+      container.innerHTML = data.map((w,i) => `
+        <a href="eserler.html?id=${w.id}" class="work-row">
+          <div class="work-num">${i+1}</div>
+          <div class="work-thumb">🎵</div>
+          <div class="work-info">
+            <div class="work-name">${w.name||'—'}</div>
+            <div class="work-sub">${w.composer||'—'}</div>
+          </div>
+          <div class="work-badges">
+            ${w.makam?`<span class="wb">${w.makam}</span>`:''}
+            ${w.tuning?`<span class="wb wb-key">${w.tuning}</span>`:''}
+          </div>
+          <div class="wc-play">▶</div>
+        </a>`).join('');
+    } else if (container) {
+      container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">Henüz eser yok.</div>';
+    }
+  } catch(e) {
+    const container = document.getElementById('recentWorks');
+    if (container) container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">Yüklenemedi.</div>';
+  }
+
+
+
+
+  try {
+    const rp = await fetch(SUPA_URL+'/rest/v1/profiles?select=role&user_id=eq.'+u.id, {headers:H});
+    const pd = await rp.json();
+    const role = pd?.[0]?.role || 'member';
+    const roleEl = document.getElementById('sbUserRole');
+    if (roleEl) roleEl.textContent = role==='admin'?'Admin':role==='editor'?'Editör':'Üye';
+    if (role==='admin' || role==='editor') {
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
+    }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
