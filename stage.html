@@ -186,17 +186,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 /* Gündüz teması */
 body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;--accent:#7c6fff;--accent2:#a78bfa;--text:#1a1825;--text2:#5a5670;--text3:#9d9aae;}
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
 <body>
-<header class="v2-stage-topnav" id="v2StageTopnav">
-  <img src="logo_slogan.png" alt="repertuvar.app" style="height:75px;width:auto;">
-  <span class="v2-stn-name">repertuvar</span>
-  <div class="v2-stn-right">
-    <div class="v2-stn-user"><div class="v2-stn-avatar" id="stnAvatar">—</div><span class="v2-stn-uname" id="stnUserName">—</span></div>
-    <a href="index.html" class="v2-stn-back">← Ana Sayfa</a>
-    <button class="v2-stn-back" onclick="logout()">↩ Çıkış</button>
-  </div>
-</header>
+<div id="r-topnav-container"></div>
+<script src="topnav.js"></script>
+
 
 <div class="screen" id="pickerScreen" style="overflow-y:auto;-webkit-overflow-scrolling:touch;">
   <div class="pi" style="padding-top:72px;padding-bottom:88px;">
