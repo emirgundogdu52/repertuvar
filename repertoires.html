@@ -478,18 +478,14 @@ function renderDetail(){
     const cn=it.closingNote||w.closingNote||'';
     const pf = it.performer || '';
     return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" style="touch-action:pan-y;">
-      <td class="sq" style="text-align:center;user-select:none;padding:0 2px;vertical-align:middle;width:44px;" title="Sürükle">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-          <input type="number" min="1" max="${items.length}" value="${idx+1}"
-            style="width:26px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:9px;font-weight:500;padding:1px 1px;font-family:inherit;"
-            onchange="chSeq('${rep.id}',${idx},this.value)"
-            onclick="event.stopPropagation()"
-            title="Sırayı değiştir">
+      <td class="sq" style="text-align:center;user-select:none;padding:0 2px;vertical-align:middle;width:48px;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
+          <span style="color:var(--text3);font-size:11px;font-weight:600;min-width:14px;">${idx+1}</span>
           <span ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)"
-            style="color:var(--text3);font-size:18px;line-height:1;padding:4px 8px;cursor:grab;touch-action:none;display:block;">⠿</span>
+            style="color:var(--text3);font-size:20px;line-height:1;padding:6px 4px;cursor:grab;touch-action:none;display:block;">⠿</span>
         </div>
       </td>
-      <td style="padding-left:8px;">
+      <td style="padding-left:16px;">
         <div class="wn">${w.name||'#'+it.workId}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
         ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
