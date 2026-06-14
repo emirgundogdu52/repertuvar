@@ -511,12 +511,12 @@ function renderDetail(){
           <a href="stage.html" class="bi bstage" style="white-space:nowrap;font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;" onclick="localStorage.setItem('stageRepId','${rep.id}')"><i class="ti ti-microphone" style="font-size:14px;" aria-hidden="true"></i> Sahneye Çık</a>
           ${rep.isOwner ? `
           <button class="bi" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="openEdit('${rep.id}')"><i class="ti ti-edit" style="font-size:14px;" aria-hidden="true"></i> Düzenle</button>
-          <button class="bi bshare" style="font-size:15px;padding:3px 7px;" onclick="shareRep('${rep.id}')"><i class="ti ti-share" aria-hidden="true"></i></button>
-          <button class="bi" style="font-size:15px;padding:3px 7px;" onclick="printR('${rep.id}')"><i class="ti ti-printer" aria-hidden="true"></i></button>
+          <button class="bi bshare" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="shareRep('${rep.id}')"><i class="ti ti-share" style="font-size:14px;" aria-hidden="true"></i> Paylaş</button>
+          <button class="bi" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="printR('${rep.id}')"><i class="ti ti-printer" style="font-size:14px;" aria-hidden="true"></i> Yazdır</button>
           <button class="bi ${rep.is_public?'bshare':''}" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="togglePublic('${rep.id}')" title="${rep.is_public?'Public — tıkla gizle':'Private — tıkla herkese aç'}">${rep.is_public?'<i class="ti ti-lock-open" aria-hidden="true"></i> Public':'<i class="ti ti-lock" aria-hidden="true"></i> Private'}</button>
-          <button class="bi bd" style="font-size:15px;padding:3px 7px;" onclick="delRep('${rep.id}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
+          <button class="bi bd" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="delRep('${rep.id}')"><i class="ti ti-trash" style="font-size:14px;" aria-hidden="true"></i> Sil</button>
           ` : `
-          <button class="baw" style="font-size:15px;padding:3px 7px;" onclick="copyRep('${rep.id}')"><i class="ti ti-copy" aria-hidden="true"></i> Kopyala</button>
+          <button class="baw" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="copyRep('${rep.id}')"><i class="ti ti-copy" style="font-size:14px;" aria-hidden="true"></i> Kopyala</button>
           `}
         </div>
       </div>
