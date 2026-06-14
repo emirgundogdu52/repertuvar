@@ -970,5 +970,28 @@ function shareViaWhatsApp() {
 window.addEventListener('resize', fixMobileHeight);
 window.addEventListener('orientationchange', () => setTimeout(fixMobileHeight, 300));
 </script>
+
+<!-- ══ SHARE MODAL ══ -->
+<div id="shareModal" class="share-modal" onclick="if(event.target===this)closeShare()">
+  <div class="share-box">
+    <button class="share-close" onclick="closeShare()">✕</button>
+    <div class="share-title">🔗 Repertuvar Paylaş</div>
+    <div class="share-desc">
+      <strong id="shareRepName"></strong> repertuvarını sahne modunda görüntülemek için bu bağlantıyı paylaşın.
+    </div>
+    <div class="share-link-box">
+      <span id="shareLink"></span>
+      <button id="copyBtn" onclick="copyShareLink()" style="padding:6px 14px;border-radius:7px;background:var(--accent);border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;">Kopyala</button>
+    </div>
+    <div class="share-note">
+      Bu bağlantıyı alan herkes repertuvarınızı giriş yapmadan sahne modunda görebilir.
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="shareViaWhatsApp()" style="padding:7px 14px;border-radius:7px;background:#25D366;border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📱 WhatsApp</button>
+      <button onclick="closeShare()" style="padding:7px 14px;border-radius:7px;background:none;border:1px solid var(--border);color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;">Kapat</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
