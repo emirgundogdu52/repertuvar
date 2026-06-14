@@ -36,14 +36,25 @@
       font-size: 13px; font-weight: 600; color: #e2e0ff;
       max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .r-tn-logout {
-      background: rgba(124,111,255,0.1);
-      border: 1px solid rgba(124,111,255,0.25);
-      border-radius: 8px; padding: 5px 12px;
-      font-size: 12px; color: #9d9bc4; cursor: pointer;
-      font-family: inherit; transition: all .15s;
+    .r-tn-user { cursor: pointer; position: relative; }
+    .r-tn-dropdown {
+      display: none; position: absolute; top: calc(100% + 6px); right: 0;
+      background: #12123a; border: 1px solid rgba(120,100,255,0.25);
+      border-radius: 10px; padding: 6px; min-width: 140px; z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
-    .r-tn-logout:hover { border-color: #7c6fff; color: #c4b5fd; }
+    .r-tn-dropdown.open { display: block; }
+    .r-tn-dd-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 7px;
+      font-size: 13px; color: #9d9bc4; cursor: pointer;
+      font-family: inherit; background: none; border: none; width: 100%;
+      text-align: left; transition: all .15s;
+    }
+    .r-tn-dd-item:hover { background: rgba(124,111,255,0.12); color: #e2e0ff; }
+    .r-tn-dd-item.danger { color: #f87171; }
+    .r-tn-dd-item.danger:hover { background: rgba(248,113,113,0.1); }
+    .r-tn-logout { display: none; }
     @media (min-width: 1024px) { .r-topnav { display: none !important; } }
   `;
   document.head.appendChild(style);
@@ -56,11 +67,15 @@
       <header class="r-topnav">
         <img src="logo2.png" alt="repertuvar.app" class="r-logo">
         <div class="r-tn-right">
-          <div class="r-tn-user">
+          <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar">—</div>
             <span class="r-tn-uname" id="rTnUserName">—</span>
+            <div class="r-tn-dropdown" id="rTnDropdown">
+              <button class="r-tn-dd-item danger" onclick="logout()">
+                <i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> Çıkış Yap
+              </button>
+            </div>
           </div>
-          <button class="r-tn-logout" onclick="logout()">↩ Çıkış</button>
         </div>
       </header>
     `;
@@ -85,4 +100,13 @@
     render();
     setTimeout(fillUser, 400);
   }
+  window.toggleTnDropdown = function(e) {
+    e.stopPropagation();
+    const dd = document.getElementById('rTnDropdown');
+    if (dd) dd.classList.toggle('open');
+  };
+  document.addEventListener('click', function() {
+    const dd = document.getElementById('rTnDropdown');
+    if (dd) dd.classList.remove('open');
+  });
 })();
