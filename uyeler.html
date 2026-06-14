@@ -190,14 +190,29 @@ function renderMembers(list) {
       </div>
       ${roleBadge(m.role)}
       <div class="member-actions">
-        ${m.role !== 'admin' ? `<button class="btn-sm promote" onclick="changeRole('${m.id}', '${m.role === 'editor' ? 'member' : 'editor'}', '${m.email}')">${m.role === 'editor' ? '↓ Üye Yap' : '↑ Editör Yap'}</button>` : ''}
-        ${m.role !== 'admin' ? `<button class="btn-sm danger" onclick="removeMember('${m.id}', '${m.email}')">Kaldır</button>` : ''}
+        ${m.role !== 'admin' ? `<button class="btn-sm promote" data-uid="${m.id}" data-role="${m.role}" data-email="${m.email}" onclick="handleRoleChange(this)">${m.role === 'editor' ? '↓ Üye Yap' : '↑ Editör Yap'}</button>` : ''}
+        ${m.role !== 'admin' ? `<button class="btn-sm danger" data-uid="${m.id}" data-email="${m.email}" onclick="handleRemove(this)">Kaldır</button>` : ''}
       </div>
     </div>
   `).join('');
 }
 
-function filterMembers() {
+function handleRoleChange(btn) {
+  const uid = btn.dataset.uid;
+  const role = btn.dataset.role;
+  const email = btn.dataset.email;
+  const newRole = role === 'editor' ? 'member' : 'editor';
+  changeRole(uid, newRole, email);
+}
+
+function handleRemove(btn) {
+  const uid = btn.dataset.uid;
+  const email = btn.dataset.email;
+  console.log('handleRemove called', uid, email);
+  removeMember(uid, email);
+}
+
+
   const q = document.getElementById('searchInput').value.toLowerCase();
   const filtered = q ? allMembers.filter(m => (m.email||'').toLowerCase().includes(q) || (m.role||'').includes(q)) : allMembers;
   renderMembers(filtered);
