@@ -113,7 +113,7 @@
   @media (max-width: 768px) {
     .sidebar { display:none; }
     .detail { display:none; }
-    .detail.mobile-visible { display:block; position:fixed; top:var(--topnav-h, 56px); left:0; right:0; bottom:var(--bottom-h, 68px); z-index:200; width:100%; overflow-y:auto; }
+    .detail.mobile-visible { display:block; position:fixed; top:0; left:0; right:0; bottom:var(--bottom-h, 68px); z-index:150; width:100%; overflow-y:auto; }
     .back-btn { display:flex; align-items:center; gap:6px; padding:12px 20px; color:var(--accent); font-size:14px; cursor:pointer; border-bottom:1px solid var(--border); }
     .sort-bar { padding:8px 12px; gap:6px; }
     .sort-btn { font-size:11px; padding:4px 10px; }
@@ -675,6 +675,13 @@ function selectWork(id) {
   const deleteBtn = document.getElementById('deleteBtn-'+w.id);
   if (editBtn) editBtn.style.display = (isAdmin() || isEditor()) ? '' : 'none';
   if (deleteBtn) deleteBtn.style.display = isAdmin() ? '' : 'none';
+
+  // Mobile: detail panel top offset
+  function setDetailTop() {
+    const tn = document.querySelector('.r-topnav');
+    const detail = document.querySelector('.detail.mobile-visible');
+    if (tn && detail) detail.style.paddingTop = tn.offsetHeight + 'px';
+  }
 
   // Mobile: show detail panel
   document.getElementById('detailPanel').classList.add('mobile-visible');
