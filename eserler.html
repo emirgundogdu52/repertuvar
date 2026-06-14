@@ -1470,5 +1470,14 @@ function openSuggestModal() {
   setTimeout(_v2RoleInit,300);
 })();
 </script>
+<script>
+// Ana sayfadan "Eser ara" butonuyla gelindiyse arama kutusuna fokuslan
+if (new URLSearchParams(window.location.search).get('search') === '1') {
+  window.addEventListener('DOMContentLoaded', function() {
+    const inp = document.querySelector('.search-wrap input');
+    if (inp) { inp.focus(); inp.select(); }
+  });
+}
+</script>
 </body>
 </html>
