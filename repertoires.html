@@ -969,6 +969,7 @@ function shareViaWhatsApp() {
   setTimeout(()=>{if(typeof isAdmin!=='function')return;if(isAdmin()||isEditor())document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('admin-only'));const r=document.getElementById('sbUserRole');if(r)r.textContent=isAdmin()?'Admin':isEditor()?'Editör':'Üye';},300);
 window.addEventListener('resize', fixMobileHeight);
 window.addEventListener('orientationchange', () => setTimeout(fixMobileHeight, 300));
+})();
 </script>
 
 <!-- ══ SHARE MODAL ══ -->
