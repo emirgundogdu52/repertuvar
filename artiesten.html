@@ -411,21 +411,6 @@ loadAll();
 (async function(){
   const ok = await requireAuth();
   if(!ok) return;
-  // requireAuth sonrası user'ı tekrar oku
-  const currentUser = getUser();
-  const currentUserId = currentUser?.id || null;
-  const adminCheck = currentUserId === '4f965624-e524-4cb0-a351-3368f1297d28';
-  if (!adminCheck) {
-    document.body.innerHTML = `
-      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0D1117;font-family:'Sora',sans-serif;color:#E6EDF3;text-align:center;padding:24px;">
-        <div style="font-size:48px;margin-bottom:16px;">🔒</div>
-        <h2 style="font-size:20px;margin-bottom:8px;">Bu sayfa yalnızca yöneticiye açık</h2>
-        <p style="color:#8B949E;font-size:14px;margin-bottom:24px;">Eserler ve Sahne Modunu kullanabilirsiniz.</p>
-        <a href="eserler.html" style="background:#58A6FF;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Eserlere Git</a><br>
-        <a href="index.html" style="margin-top:12px;color:#8B949E;font-size:13px;text-decoration:none;">Ana Sayfa</a>
-      </div>`;
-    return;
-  }
   renderUserBadge('userBadge');
 })();
 </script>
