@@ -206,12 +206,11 @@ function filterMembers() {
 async function loadMembers() {
   try {
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
-    const r = await fetch(SUPA_URL + '/rest/v1/profiles?select=*&order=role&limit=1', {
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?select=id,role,email,display_name,created_at&order=role', {
       headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
     });
     if (!r.ok) throw new Error(await r.text());
     allMembers = await r.json();
-    console.log('profiles columns:', JSON.stringify(allMembers[0]));
     document.getElementById('totalCount').textContent = allMembers.length;
     document.getElementById('editorCount').textContent = allMembers.filter(m => m.role === 'editor').length;
     renderMembers(allMembers);
