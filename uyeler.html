@@ -195,7 +195,7 @@ function renderMembers(list) {
     var email = m.email || '—';
     var date = m.created_at ? new Date(m.created_at).toLocaleDateString('tr-TR') : '';
     var roleBtn = m.role !== 'admin' ? '<button class="btn-sm promote" data-uid="' + uid + '" data-role="' + m.role + '" data-email="' + email + '">' + (m.role === 'editor' ? '↓ Üye Yap' : '↑ Editör Yap') + '</button>' : '';
-    var delBtn = m.role !== 'admin' ? '<button class="btn-sm danger" data-uid="' + uid + '" data-email="' + email + '" class2="del">Kaldır</button>' : '';
+    var delBtn = m.role !== 'admin' ? '<button class="btn-sm danger" data-uid="' + uid + '" data-email="' + email + '">Kaldır</button>' : '';
     html += '<div class="member-card">' +
       '<div class="member-avatar">' + initials(email) + '</div>' +
       '<div class="member-info"><div class="member-email">' + email + '</div>' +
