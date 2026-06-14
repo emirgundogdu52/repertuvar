@@ -135,7 +135,9 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 var allMembers = [];
 
 document.addEventListener('click', function(e) {
+  console.log('click on:', e.target.tagName, e.target.className);
   var btn = e.target.closest('button[data-uid]');
+  console.log('btn found:', btn);
   if (!btn) return;
   var uid = btn.dataset.uid;
   var email = btn.dataset.email;
