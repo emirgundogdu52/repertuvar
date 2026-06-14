@@ -1474,11 +1474,11 @@ function openSuggestModal() {
 // Ana sayfadan "Eser ara" butonuyla gelindiyse arama kutusuna fokuslan
 if (new URLSearchParams(window.location.search).get('search') === '1') {
   function _focusSearch() {
-    const inp = document.querySelector('.search-wrap input');
+    const inp = document.getElementById('searchInput');
     if (inp) { inp.focus(); inp.select(); }
-    else setTimeout(_focusSearch, 100);
+    else setTimeout(_focusSearch, 150);
   }
-  setTimeout(_focusSearch, 400);
+  setTimeout(_focusSearch, 800);
 }
 </script>
 </body>
