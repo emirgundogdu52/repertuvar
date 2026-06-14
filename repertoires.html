@@ -61,7 +61,7 @@ nav.v2-bottom-nav{background:rgba(7,7,26,0.95)!important;border-top:1px solid va
 table{width:100%;border-collapse:collapse;}
 th{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);}
 td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);vertical-align:middle;}
-tr:hover td{background:var(--surface2);}
+tr:hover td{background:var(--surface2);}tr.drag-over td{background:rgba(124,111,255,0.15);border-top:2px solid var(--accent);}
 .sq{width:28px;}
 .col-kapanis{width:80px;}
 .col-not{width:60px;}
@@ -463,8 +463,8 @@ function renderDetail(){
     const w=WL[it.workId]||{};
     const cn=it.closingNote||w.closingNote||'';
     const pf = it.performer || '';
-    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" style="cursor:grab;">
-      <td class="sq" style="cursor:grab;color:var(--text3);font-size:16px;text-align:center;user-select:none;" title="Sürükle">⠿</td>
+    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" style="cursor:grab;">
+      <td class="sq" style="cursor:grab;text-align:center;user-select:none;white-space:nowrap;padding:0 8px;" title="Sürükle"><span style="color:var(--text3);font-size:11px;font-weight:600;margin-right:4px;">${idx+1}</span><span style="color:var(--text3);font-size:15px;vertical-align:middle;">⠿</span></td>
       <td>
         <div class="wn">${w.name||'#'+it.workId}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
@@ -645,12 +645,49 @@ async function rmItem(repId,itemId){
   try{await dbDel('repertoire_items',itemId);toast('Silindi');await load();}catch(e){toast(e.message,'er');}
 }
 
+
+// ── DRAG & DROP ──
+let _dragSrcIdx = null;
+let _dragRepId  = null;
+
+function dragStart(e) {
+  const tr = e.currentTarget;
+  _dragSrcIdx = parseInt(tr.dataset.idx);
+  _dragRepId  = tr.dataset.rep;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => tr.style.opacity = '0.4', 0);
+}
+
+function dragEnd(e) {
+  e.currentTarget.style.opacity = '';
+  document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
+}
+
+async function dragDrop(e) {
+  e.preventDefault();
+  const tr = e.currentTarget;
+  const destIdx = parseInt(tr.dataset.idx);
+  tr.classList.remove('drag-over');
+  if (_dragSrcIdx === null || _dragSrcIdx === destIdx) return;
+  await mv(_dragRepId, _dragSrcIdx, destIdx - _dragSrcIdx);
+  _dragSrcIdx = null;
+}
+
 async function mv(repId,idx,dir){
   const rep=getRep(repId);if(!rep)return;
   const items=[...rep.items];
   const ni=idx+dir;
   if(ni<0||ni>=items.length)return;
-  [items[idx],items[ni]]=[items[ni],items[idx]];
+  // Drag-drop: splice to destination
+  const [moved]=items.splice(idx,1);
+  items.splice(ni,0,moved);
   items.forEach((it,i)=>it.seq=i+1);
   sync('spin','...');
   try{
