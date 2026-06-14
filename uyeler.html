@@ -165,6 +165,7 @@ function closeConfirm() {
 }
 
 function confirmAction() {
+  console.log('confirmAction called, callback:', confirmCallback);
   closeConfirm();
   if (confirmCallback) confirmCallback();
 }
