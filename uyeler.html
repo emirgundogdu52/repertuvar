@@ -213,6 +213,7 @@ function handleRemove(btn) {
 }
 
 
+function filterMembers() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const filtered = q ? allMembers.filter(m => (m.email||'').toLowerCase().includes(q) || (m.role||'').includes(q)) : allMembers;
   renderMembers(filtered);
