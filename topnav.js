@@ -18,7 +18,7 @@
     }
     .r-topnav .r-tn-right {
       margin-left: auto;
-      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+      display: flex; flex-direction: row; align-items: center; gap: 8px;
     }
     .r-tn-user {
       display: flex; align-items: center; gap: 6px;
