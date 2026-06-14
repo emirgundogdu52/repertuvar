@@ -938,6 +938,20 @@ function copyShareLink() {
   });
 }
 
+function shareViaEmail() {
+  const link = document.getElementById('shareLink').dataset.url;
+  const rep = getRep(shareRepId);
+  const subject = encodeURIComponent('🎵 ' + (rep ? rep.name : 'Repertuvar') + ' — Sahne Modu');
+  const body = encodeURIComponent('Merhaba,
+
+' + (rep ? rep.name : 'Repertuvar') + ' repertuvarını sahne modunda görüntülemek için aşağıdaki bağlantıyı kullanabilirsin:
+
+' + link + '
+
+İyi müzikler!');
+  window.open('mailto:?subject=' + subject + '&body=' + body, '_blank');
+}
+
 function shareViaWhatsApp() {
   const link = document.getElementById('shareLink').dataset.url;
   const rep = getRep(shareRepId);
@@ -989,6 +1003,7 @@ window.addEventListener('orientationchange', () => setTimeout(fixMobileHeight, 3
     </div>
     <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
       <button onclick="shareViaWhatsApp()" style="padding:7px 14px;border-radius:7px;background:#25D366;border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📱 WhatsApp</button>
+      <button onclick="shareViaEmail()" style="padding:7px 14px;border-radius:7px;background:#4A90D9;border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">✉️ E-posta</button>
       <button onclick="closeShare()" style="padding:7px 14px;border-radius:7px;background:none;border:1px solid var(--border);color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;">Kapat</button>
     </div>
   </div>
