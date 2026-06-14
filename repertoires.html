@@ -382,12 +382,13 @@ async function load(){
   sync('spin','Yükleniyor...');
   try{
     const [r,i,s] = await Promise.all([
-      dbGet('repertoires','order=created_at&limit=100'),
+      dbGet('repertoires','order=created_at&limit=100&or=(owner_id.eq.'+getUserId()+',is_public.eq.true)'),
       dbGet('repertoire_items','order=seq'),
       dbGet('solistler','order=name')
     ]);
     SOLISTLER = (s||[]).map(x=>x.name).filter(Boolean);
-    reps = r.map(x=>({...x, items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||''}))}));
+    const uid = getUserId();
+    reps = r.map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||''}))}));
     sync('ok','Senkronize');
     renderList();
     const urlRep=new URLSearchParams(window.location.search).get('rep');
@@ -420,10 +421,24 @@ function renderList(){
   if(!reps.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">Henüz repertuvar yok</div>';return;}
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
-  el.innerHTML=reps.map(r=>`<div class="ri${selId===r.id?' active':''}" onclick="sel('${r.id}')">
-    <div class="rn">${r.name}</div>
-    <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${r.date?'<span>'+r.date+'</span>':''}<span>${(r.items||[]).length} eser</span></div>
-  </div>`).join('');
+  const mine = reps.filter(r=>r.isOwner);
+  const pub  = reps.filter(r=>!r.isOwner && r.is_public);
+  function repCard(r){
+    return `<div class="ri${selId===r.id?' active':''}" onclick="sel('${r.id}')">
+      <div class="rn">${r.name}${r.is_public&&r.isOwner?' <span style="font-size:10px;color:#4ade80;font-weight:600;">🌐</span>':''}</div>
+      <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${r.date?'<span>'+r.date+'</span>':''}<span>${(r.items||[]).length} eser</span></div>
+    </div>`;
+  }
+  let html = '';
+  if(mine.length){
+    html += '<div style="padding:8px 12px 4px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;">📁 Repertuvarlarım</div>';
+    html += mine.map(repCard).join('');
+  }
+  if(pub.length){
+    html += '<div style="padding:12px 12px 4px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;">🌐 Genel Repertuvarlar</div>';
+    html += pub.map(repCard).join('');
+  }
+  el.innerHTML = html;
 }
 
 function sel(id){
@@ -490,10 +505,15 @@ function renderDetail(){
         </div>
         <div class="da" style="flex-wrap:nowrap;overflow-x:auto;gap:4px;flex-shrink:0;">
           <a href="stage.html" class="bi bstage" style="white-space:nowrap;font-size:11px;padding:4px 8px;" onclick="localStorage.setItem('stageRepId','${rep.id}')">🎭 Sahneye Çık</a>
+          ${rep.isOwner ? `
           <button class="bi" style="font-size:11px;padding:4px 8px;" onclick="openEdit('${rep.id}')">✏️</button>
           <button class="bi bshare" style="font-size:11px;padding:4px 8px;" onclick="shareRep('${rep.id}')">🔗</button>
           <button class="bi" style="font-size:11px;padding:4px 8px;" onclick="printR('${rep.id}')">🖨️</button>
+          <button class="bi ${rep.is_public?'bshare':''}" style="font-size:11px;padding:4px 8px;" onclick="togglePublic('${rep.id}')" title="${rep.is_public?'Public — tıkla gizle':'Private — tıkla herkese aç'}">${rep.is_public?'🌐 Public':'🔒 Private'}</button>
           <button class="bi bd" style="font-size:11px;padding:4px 8px;" onclick="delRep('${rep.id}')">🗑️</button>
+          ` : `
+          <button class="baw" style="font-size:11px;padding:4px 8px;" onclick="copyRep('${rep.id}')">📋 Kopyala</button>
+          `}
         </div>
       </div>
       <div class="dmr" style="gap:8px;padding-bottom:4px;flex-wrap:nowrap;overflow-x:auto;">
@@ -509,6 +529,45 @@ function renderDetail(){
     </div>`;
 }
 
+async function togglePublic(repId){
+  const rep=getRep(repId);if(!rep)return;
+  const newVal=!rep.is_public;
+  try{
+    await dbPatch('repertoires',repId,{is_public:newVal});
+    toast(newVal?'🌐 Repertuvar herkese açık':'🔒 Repertuvar gizlendi');
+    await load();
+  }catch(e){toast(e.message,'er');}
+}
+
+async function copyRep(repId){
+  const rep=getRep(repId);if(!rep)return;
+  const uid=getUserId();
+  sync('spin','Kopyalanıyor...');
+  try{
+    // Yeni repertuvar oluştur
+    const H=authHeaders();
+    const r=await fetch(SUPA_URL+'/rest/v1/repertoires',{
+      method:'POST',
+      headers:{...H,'Prefer':'return=representation'},
+      body:JSON.stringify({name:rep.name+' (kopya)',status:'concept',user_id:uid,owner_id:uid,is_public:false})
+    });
+    if(!r.ok)throw new Error(await r.text());
+    const [newRep]=await r.json();
+    // Eserleri kopyala
+    if(rep.items&&rep.items.length){
+      await fetch(SUPA_URL+'/rest/v1/repertoire_items',{
+        method:'POST',
+        headers:{...H,'Prefer':'return=minimal'},
+        body:JSON.stringify(rep.items.map((it,i)=>({repertoire_id:newRep.id,work_id:parseInt(it.workId),seq:i+1,closing_note:it.closingNote||null,note:it.note||null,performer:it.performer||null})))
+      });
+    }
+    toast('📋 Repertuvar kopyalandı!');
+    await load();
+    selId=newRep.id;
+    renderList();renderDetail();
+  }catch(e){sync('err','Hata');toast(e.message,'er');}
+}
+
 function openNew(){editId=null;document.getElementById('rmt').textContent='Yeni Repertuvar';['fN','fD','fV','fNo'].forEach(x=>document.getElementById(x).value='');document.getElementById('fS').value='concept';document.getElementById('rm').style.display='flex';setTimeout(()=>document.getElementById('fN').focus(),50);}
 function openEdit(id){const r=getRep(id);if(!r)return;editId=id;document.getElementById('rmt').textContent='Düzenle';document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';document.getElementById('rm').style.display='flex';}
 function closeRM(){document.getElementById('rm').style.display='none';}
@@ -516,7 +575,7 @@ function closeRM(){document.getElementById('rm').style.display='none';}
 async function saveRep(){
   const name=document.getElementById('fN').value.trim();
   if(!name){document.getElementById('fN').focus();return;}
-  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,user_id:getUserId()||undefined};
+  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,user_id:getUserId()||undefined,owner_id:editId?undefined:(getUserId()||undefined)};
   sync('spin','Kaydediliyor...');
   try{
     if(editId){await dbPatch('repertoires',editId,data);}
