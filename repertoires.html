@@ -463,7 +463,7 @@ function renderDetail(){
     const w=WL[it.workId]||{};
     const cn=it.closingNote||w.closingNote||'';
     const pf = it.performer || '';
-    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" style="cursor:grab;">
+    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)" style="cursor:grab;touch-action:none;">
       <td class="sq" style="cursor:grab;text-align:center;user-select:none;white-space:nowrap;padding:0 8px;" title="Sürükle"><span style="color:var(--text3);font-size:11px;font-weight:600;margin-right:4px;">${idx+1}</span><span style="color:var(--text3);font-size:15px;vertical-align:middle;">⠿</span></td>
       <td>
         <div class="wn">${w.name||'#'+it.workId}</div>
@@ -646,10 +646,13 @@ async function rmItem(repId,itemId){
 }
 
 
-// ── DRAG & DROP ──
+// ── DRAG & DROP (desktop + touch) ──
 let _dragSrcIdx = null;
 let _dragRepId  = null;
+let _touchClone = null;
+let _touchSrcTr = null;
 
+// ── Desktop drag ──
 function dragStart(e) {
   const tr = e.currentTarget;
   _dragSrcIdx = parseInt(tr.dataset.idx);
@@ -657,25 +660,72 @@ function dragStart(e) {
   e.dataTransfer.effectAllowed = 'move';
   setTimeout(() => tr.style.opacity = '0.4', 0);
 }
-
 function dragEnd(e) {
   e.currentTarget.style.opacity = '';
   document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
 }
-
 function dragOver(e) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
   document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
   e.currentTarget.classList.add('drag-over');
 }
-
 async function dragDrop(e) {
   e.preventDefault();
   const tr = e.currentTarget;
   const destIdx = parseInt(tr.dataset.idx);
   tr.classList.remove('drag-over');
   if (_dragSrcIdx === null || _dragSrcIdx === destIdx) return;
+  await mv(_dragRepId, _dragSrcIdx, destIdx - _dragSrcIdx);
+  _dragSrcIdx = null;
+}
+
+// ── Touch drag ──
+function touchDragStart(e) {
+  const tr = e.currentTarget;
+  _dragSrcIdx = parseInt(tr.dataset.idx);
+  _dragRepId  = tr.dataset.rep;
+  _touchSrcTr = tr;
+
+  // Klon oluştur
+  _touchClone = tr.cloneNode(true);
+  _touchClone.style.cssText = 'position:fixed;z-index:9999;opacity:0.85;pointer-events:none;background:var(--surface2);border:1px solid var(--accent);border-radius:6px;width:'+tr.offsetWidth+'px;transition:none;';
+  document.body.appendChild(_touchClone);
+  tr.style.opacity = '0.3';
+
+  const t = e.touches[0];
+  _touchClone.style.left = (t.clientX - tr.offsetWidth/2) + 'px';
+  _touchClone.style.top  = (t.clientY - 20) + 'px';
+}
+
+function touchDragMove(e) {
+  if (!_touchClone) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  _touchClone.style.left = (t.clientX - _touchClone.offsetWidth/2) + 'px';
+  _touchClone.style.top  = (t.clientY - 20) + 'px';
+
+  // Altındaki satırı bul
+  _touchClone.style.display = 'none';
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  _touchClone.style.display = '';
+  const targetTr = el ? el.closest('tr[data-idx]') : null;
+  document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
+  if (targetTr) targetTr.classList.add('drag-over');
+}
+
+async function touchDragEnd(e) {
+  if (!_touchClone) return;
+  _touchClone.remove(); _touchClone = null;
+  if (_touchSrcTr) _touchSrcTr.style.opacity = '';
+  document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
+
+  const t = e.changedTouches[0];
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  const targetTr = el ? el.closest('tr[data-idx]') : null;
+  if (!targetTr) { _dragSrcIdx = null; return; }
+  const destIdx = parseInt(targetTr.dataset.idx);
+  if (_dragSrcIdx === null || _dragSrcIdx === destIdx) { _dragSrcIdx = null; return; }
   await mv(_dragRepId, _dragSrcIdx, destIdx - _dragSrcIdx);
   _dragSrcIdx = null;
 }
