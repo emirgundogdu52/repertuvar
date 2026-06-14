@@ -478,17 +478,17 @@ function renderDetail(){
     const cn=it.closingNote||w.closingNote||'';
     const pf = it.performer || '';
     return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)" style="cursor:grab;touch-action:none;">
-      <td class="sq" style="cursor:grab;text-align:center;user-select:none;padding:0 4px;" title="Sürükle">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+      <td class="sq" style="cursor:grab;text-align:center;user-select:none;padding:0 4px;vertical-align:middle;" title="Sürükle">
+        <div style="display:flex;align-items:center;gap:2px;justify-content:center;">
           <input type="number" min="1" max="${items.length}" value="${idx+1}"
-            style="width:30px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;font-weight:500;padding:1px 2px;font-family:inherit;"
+            style="width:24px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:9px;font-weight:500;padding:1px 1px;font-family:inherit;"
             onchange="chSeq('${rep.id}',${idx},this.value)"
             onclick="event.stopPropagation()"
             title="Sırayı değiştir">
-          <span style="color:var(--text3);font-size:11px;line-height:1;">⠿</span>
+          <span style="color:var(--text3);font-size:10px;line-height:1;">⠿</span>
         </div>
       </td>
-      <td>
+      <td style="padding-left:6px;">
         <div class="wn">${w.name||'#'+it.workId}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
         ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
