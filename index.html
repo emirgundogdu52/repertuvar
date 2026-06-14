@@ -688,7 +688,7 @@ if (localStorage.getItem('stageTheme') === 'night') {
 
 
   try {
-    const rp = await fetch(SUPA_URL+'/rest/v1/profiles?select=role&user_id=eq.'+u.id, {headers:H});
+    const rp = await fetch(SUPA_URL+'/rest/v1/profiles?select=role&id=eq.'+u.id, {headers:H});
     const pd = await rp.json();
     const role = pd?.[0]?.role || 'member';
     const roleEl = document.getElementById('sbUserRole');
