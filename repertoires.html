@@ -75,6 +75,7 @@ tr:hover td{background:var(--surface2);}tr.drag-over td{background:rgba(124,111,
 .ra{display:flex;gap:4px;opacity:0;transition:opacity .15s;}
 tr:hover .ra{opacity:1;}
 .br{background:none;border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:11px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s;}
+.br.active{border-color:var(--accent);color:var(--accent);}
 .br:hover{color:var(--text);border-color:var(--border2);}
 .br.dl:hover{color:var(--red);border-color:var(--red);}
 .br:disabled{opacity:.25;cursor:not-allowed;}
@@ -370,7 +371,7 @@ async function loadWorksData() {
     } catch(e) {}
   } catch(e) { console.error('Works yüklenemedi:', e); }
 }
-let reps=[], selId=null, editId=null, selWId=null, addRepId=null;
+let reps=[], selId=null, editId=null, selWId=null, addRepId=null, activeItemIdx=null, activeItemRepId=null;
 
 function sync(s,t){const d=document.getElementById('dot');const sl=document.getElementById('sl');if(d)d.className='dot '+s;if(sl)sl.textContent=t;}
 function toast(m,t='ok'){const e=document.createElement('div');e.className='toast '+t;e.textContent=m;document.body.appendChild(e);setTimeout(()=>e.remove(),2500);}
@@ -493,8 +494,8 @@ function renderDetail(){
       <td class="col-kapanis">${cn?'<span class="cn">'+cn+'</span>':''}</td>
       <td class="col-not" style="color:var(--text3);font-size:12px;">${it.note||''}</td>
       <td><div class="ra">
-        <button class="br" onclick="mv('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
-        <button class="br" onclick="mv('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
+        <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="setActiveItem('${rep.id}',${idx});mv('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
+        <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="setActiveItem('${rep.id}',${idx});mv('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
         <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
         <button class="br dl" onclick="rmItem('${rep.id}','${it.id}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
       </div></td>
@@ -766,7 +767,7 @@ function touchDragStart(e) {
 }
 
 function touchDragMove(e) {
-  if (!_touchClone) { clearTimeout(_touchTimer); return; }
+  if (!_touchClone) return;
   e.preventDefault();
   const t = e.touches[0];
   _touchClone.style.left = (t.clientX - _touchClone.offsetWidth/2) + 'px';
@@ -798,6 +799,11 @@ async function touchDragEnd(e) {
   _dragSrcIdx = null;
 }
 
+function setActiveItem(repId, idx) {
+  activeItemRepId = repId;
+  activeItemIdx = idx;
+}
+
 async function mv(repId,idx,dir){
   const rep=getRep(repId);if(!rep)return;
   const items=[...rep.items];
@@ -810,6 +816,7 @@ async function mv(repId,idx,dir){
   sync('spin','...');
   try{
     await Promise.all(items.map(it=>dbPatch('repertoire_items',it.id,{seq:it.seq})));
+    if(activeItemRepId===repId) activeItemIdx = idx+dir < 0 ? 0 : idx+dir >= items.length ? items.length-1 : idx+dir;
     await load();
   }catch(e){toast(e.message,'er');}
 }
