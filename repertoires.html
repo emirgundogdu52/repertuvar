@@ -510,7 +510,7 @@ function renderDetail(){
         <div class="da" style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:4px;">
           <a href="stage.html" class="bi bstage" style="white-space:nowrap;font-size:12px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;" onclick="localStorage.setItem('stageRepId','${rep.id}')"><i class="ti ti-microphone" style="font-size:14px;" aria-hidden="true"></i> Sahneye Çık</a>
           ${rep.isOwner ? `
-          <button class="bi" style="font-size:15px;padding:3px 7px;" onclick="openEdit('${rep.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
+          <button class="bi" style="font-size:15px;padding:3px 7px;" onclick="openEdit('${rep.id}')" style="font-size:12px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-edit" style="font-size:14px;" aria-hidden="true"></i> Düzenle</button>
           <button class="bi bshare" style="font-size:15px;padding:3px 7px;" onclick="shareRep('${rep.id}')"><i class="ti ti-share" aria-hidden="true"></i></button>
           <button class="bi" style="font-size:15px;padding:3px 7px;" onclick="printR('${rep.id}')"><i class="ti ti-printer" aria-hidden="true"></i></button>
           <button class="bi ${rep.is_public?'bshare':''}" style="font-size:12px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;" onclick="togglePublic('${rep.id}')" title="${rep.is_public?'Public — tıkla gizle':'Private — tıkla herkese aç'}">${rep.is_public?'<i class="ti ti-lock-open" aria-hidden="true"></i> Public':'<i class="ti ti-lock" aria-hidden="true"></i> Private'}</button>
