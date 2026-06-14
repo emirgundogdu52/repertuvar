@@ -137,7 +137,7 @@ tr:hover .ra{opacity:1;}
     .dc { padding:16px; }
     .dh { padding:14px 16px; }
     .dn { font-size:18px; }
-    .da { flex-wrap:wrap; gap:6px; }
+    .da { flex-wrap:nowrap; overflow-x:auto; gap:4px; }
     .bi { font-size:11px; padding:5px 10px; }
     table { font-size:12px; }
     .ra { gap:3px; }
@@ -153,7 +153,7 @@ tr:hover .ra{opacity:1;}
     .lp { max-height:180px; }
     .dmr { flex-direction:column; gap:6px; }
     .dt { font-size:11px; }
-    .da { flex-wrap:wrap; gap:4px; }
+    .da { flex-wrap:nowrap; overflow-x:auto; gap:4px; }
     .bi { font-size:11px; padding:5px 8px; }
     /* Modals on small screen */
     #wm > div { width:92vw !important; max-height:85vh !important; overflow-y:auto; }
@@ -477,18 +477,19 @@ function renderDetail(){
     const w=WL[it.workId]||{};
     const cn=it.closingNote||w.closingNote||'';
     const pf = it.performer || '';
-    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)" style="cursor:grab;touch-action:none;">
-      <td class="sq" style="cursor:grab;text-align:center;user-select:none;padding:0 4px;vertical-align:middle;" title="Sürükle">
-        <div style="display:flex;align-items:center;gap:2px;justify-content:center;">
+    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" style="touch-action:pan-y;">
+      <td class="sq" style="text-align:center;user-select:none;padding:0 2px;vertical-align:middle;width:44px;" title="Sürükle">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
           <input type="number" min="1" max="${items.length}" value="${idx+1}"
-            style="width:24px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:9px;font-weight:500;padding:1px 1px;font-family:inherit;"
+            style="width:26px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:9px;font-weight:500;padding:1px 1px;font-family:inherit;"
             onchange="chSeq('${rep.id}',${idx},this.value)"
             onclick="event.stopPropagation()"
             title="Sırayı değiştir">
-          <span style="color:var(--text3);font-size:10px;line-height:1;">⠿</span>
+          <span ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)"
+            style="color:var(--text3);font-size:18px;line-height:1;padding:4px 8px;cursor:grab;touch-action:none;display:block;">⠿</span>
         </div>
       </td>
-      <td style="padding-left:6px;">
+      <td style="padding-left:8px;">
         <div class="wn">${w.name||'#'+it.workId}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
         ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
@@ -746,25 +747,30 @@ async function dragDrop(e) {
 }
 
 // ── Touch drag ──
+let _touchTimer = null;
 function touchDragStart(e) {
-  const tr = e.currentTarget;
-  _dragSrcIdx = parseInt(tr.dataset.idx);
-  _dragRepId  = tr.dataset.rep;
-  _touchSrcTr = tr;
-
-  // Klon oluştur
-  _touchClone = tr.cloneNode(true);
-  _touchClone.style.cssText = 'position:fixed;z-index:9999;opacity:0.85;pointer-events:none;background:var(--surface2);border:1px solid var(--accent);border-radius:6px;width:'+tr.offsetWidth+'px;transition:none;';
-  document.body.appendChild(_touchClone);
-  tr.style.opacity = '0.3';
-
+  e.stopPropagation();
+  const handle = e.currentTarget;
+  const tr = handle.closest('tr[data-idx]');
   const t = e.touches[0];
-  _touchClone.style.left = (t.clientX - tr.offsetWidth/2) + 'px';
-  _touchClone.style.top  = (t.clientY - 20) + 'px';
+  const startX = t.clientX, startY = t.clientY;
+
+  _touchTimer = setTimeout(() => {
+    _dragSrcIdx = parseInt(tr.dataset.idx);
+    _dragRepId  = tr.dataset.rep;
+    _touchSrcTr = tr;
+
+    _touchClone = tr.cloneNode(true);
+    _touchClone.style.cssText = 'position:fixed;z-index:9999;opacity:0.85;pointer-events:none;background:var(--surface2);border:1px solid var(--accent);border-radius:6px;width:'+tr.offsetWidth+'px;transition:none;';
+    document.body.appendChild(_touchClone);
+    tr.style.opacity = '0.3';
+    _touchClone.style.left = (startX - tr.offsetWidth/2) + 'px';
+    _touchClone.style.top  = (startY - 20) + 'px';
+  }, 300);
 }
 
 function touchDragMove(e) {
-  if (!_touchClone) return;
+  if (!_touchClone) { clearTimeout(_touchTimer); return; }
   e.preventDefault();
   const t = e.touches[0];
   _touchClone.style.left = (t.clientX - _touchClone.offsetWidth/2) + 'px';
@@ -780,6 +786,7 @@ function touchDragMove(e) {
 }
 
 async function touchDragEnd(e) {
+  clearTimeout(_touchTimer);
   if (!_touchClone) return;
   _touchClone.remove(); _touchClone = null;
   if (_touchSrcTr) _touchSrcTr.style.opacity = '';
