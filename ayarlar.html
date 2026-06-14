@@ -194,15 +194,8 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 <div class="v2-main-wrap">
 
   <!-- Tablet + Mobil: Üst Bar -->
-  <header class="v2-topnav">
-    <svg width="188" height="34" viewBox="0 0 188 34" role="img" style="display:block;flex-shrink:0;"><title>repertuvar.app</title><text x="0" y="26" font-family="Inter,Arial,sans-serif" font-size="26" font-weight="600" fill="white">repertuvar<tspan fill="#a78bfa">.app</tspan></text></svg>
-    
-    <span class="v2-tn-domain">repertuvar.app</span>
-    <div class="v2-tn-right">
-      <div class="v2-tn-user"><div class="v2-tn-avatar" id="tnAvatar">—</div><span class="v2-tn-uname" id="tnUserName">—</span></div>
-      <button class="v2-tn-logout" onclick="logout()"><i class="ti ti-logout" style="font-size:14px;margin-right:4px;" aria-hidden="true"></i>Çıkış</button>
-    </div>
-  </header>
+  <div id="r-topnav-container"></div>
+<script src="topnav.js"></script>
 
   <!-- Desktop: Slim topbar -->
   <div class="v2-desktop-topbar">
