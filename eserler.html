@@ -1473,10 +1473,12 @@ function openSuggestModal() {
 <script>
 // Ana sayfadan "Eser ara" butonuyla gelindiyse arama kutusuna fokuslan
 if (new URLSearchParams(window.location.search).get('search') === '1') {
-  window.addEventListener('DOMContentLoaded', function() {
+  function _focusSearch() {
     const inp = document.querySelector('.search-wrap input');
     if (inp) { inp.focus(); inp.select(); }
-  });
+    else setTimeout(_focusSearch, 100);
+  }
+  setTimeout(_focusSearch, 400);
 }
 </script>
 </body>
