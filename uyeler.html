@@ -174,8 +174,9 @@ function closeConfirm() {
 }
 
 function confirmAction() {
+  var cb = confirmCallback;
   closeConfirm();
-  if (confirmCallback) confirmCallback();
+  if (cb) cb();
 }
 
 function initials(email) {
