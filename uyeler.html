@@ -40,7 +40,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);}
 .page-content{max-width:800px;padding:24px 32px;}
 @media(max-width:767px){.page-content{padding:16px;}}
-.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:nowrap;gap:12px;}
 .page-title{font-size:18px;font-weight:600;color:var(--text);}
 .stat-chips{display:flex;gap:8px;flex-wrap:wrap;}
 .stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--text2);}
@@ -89,7 +89,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 <div class="v2-main-wrap">
 <div id="r-topnav-container"></div>
 <script src="topnav.js"></script>
-<div class="v2-desktop-topbar"><div class="v2-crumb">repertuvar / <span>Üyeler</span></div></div>
+<div class="v2-desktop-topbar" style="justify-content:space-between;"><div class="v2-crumb">repertuvar / <span>Üyeler</span></div></div>
 <div class="page-content">
   <div class="page-header" style="display:flex;align-items:center;gap:12px;flex-wrap:nowrap;">
     <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
