@@ -494,8 +494,8 @@ function renderDetail(){
       <td class="col-kapanis">${cn?'<span class="cn">'+cn+'</span>':''}</td>
       <td class="col-not" style="color:var(--text3);font-size:12px;">${it.note||''}</td>
       <td><div class="ra">
-        <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="setActiveItem('${rep.id}',${idx});mv('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
-        <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="setActiveItem('${rep.id}',${idx});mv('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
+        <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
+        <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
         <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
         <button class="br dl" onclick="rmItem('${rep.id}','${it.id}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
       </div></td>
@@ -507,13 +507,13 @@ function renderDetail(){
       <div class="mobile-back-btn" onclick="goBackToList()" style="display:none;margin:-10px -14px 8px;padding:8px 14px;" id="mobileBackBtn">← Repertuvar Listesi</div>
       <div style="margin-bottom:6px;">
         <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:6px;">${rep.name}</div>
-        <div class="da" style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:4px;">
-          <a href="stage.html" class="bi bstage" style="white-space:nowrap;font-size:12px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;" onclick="localStorage.setItem('stageRepId','${rep.id}')"><i class="ti ti-microphone" style="font-size:14px;" aria-hidden="true"></i> Sahneye Çık</a>
+        <div class="da" style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+          <a href="stage.html" class="bi bstage" style="white-space:nowrap;font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;" onclick="localStorage.setItem('stageRepId','${rep.id}')"><i class="ti ti-microphone" style="font-size:14px;" aria-hidden="true"></i> Sahneye Çık</a>
           ${rep.isOwner ? `
-          <button class="bi" style="font-size:12px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;" onclick="openEdit('${rep.id}')"><i class="ti ti-edit" style="font-size:14px;" aria-hidden="true"></i> Düzenle</button>
+          <button class="bi" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="openEdit('${rep.id}')"><i class="ti ti-edit" style="font-size:14px;" aria-hidden="true"></i> Düzenle</button>
           <button class="bi bshare" style="font-size:15px;padding:3px 7px;" onclick="shareRep('${rep.id}')"><i class="ti ti-share" aria-hidden="true"></i></button>
           <button class="bi" style="font-size:15px;padding:3px 7px;" onclick="printR('${rep.id}')"><i class="ti ti-printer" aria-hidden="true"></i></button>
-          <button class="bi ${rep.is_public?'bshare':''}" style="font-size:12px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;" onclick="togglePublic('${rep.id}')" title="${rep.is_public?'Public — tıkla gizle':'Private — tıkla herkese aç'}">${rep.is_public?'<i class="ti ti-lock-open" aria-hidden="true"></i> Public':'<i class="ti ti-lock" aria-hidden="true"></i> Private'}</button>
+          <button class="bi ${rep.is_public?'bshare':''}" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="togglePublic('${rep.id}')" title="${rep.is_public?'Public — tıkla gizle':'Private — tıkla herkese aç'}">${rep.is_public?'<i class="ti ti-lock-open" aria-hidden="true"></i> Public':'<i class="ti ti-lock" aria-hidden="true"></i> Private'}</button>
           <button class="bi bd" style="font-size:15px;padding:3px 7px;" onclick="delRep('${rep.id}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
           ` : `
           <button class="baw" style="font-size:15px;padding:3px 7px;" onclick="copyRep('${rep.id}')"><i class="ti ti-copy" aria-hidden="true"></i> Kopyala</button>
@@ -799,6 +799,17 @@ async function touchDragEnd(e) {
   _dragSrcIdx = null;
 }
 
+function mvActive(repId, idx, dir) {
+  // Aktif eser varsa onu taşı, yoksa bu idx'i akifleştir ve taşı
+  if (activeItemRepId === repId && activeItemIdx !== null) {
+    setActiveItem(repId, activeItemIdx);
+    mv(repId, activeItemIdx, dir);
+  } else {
+    setActiveItem(repId, idx);
+    mv(repId, idx, dir);
+  }
+}
+
 function setActiveItem(repId, idx) {
   activeItemRepId = repId;
   activeItemIdx = idx;
@@ -818,6 +829,7 @@ async function mv(repId,idx,dir){
     await Promise.all(items.map(it=>dbPatch('repertoire_items',it.id,{seq:it.seq})));
     if(activeItemRepId===repId) activeItemIdx = ni;
     await load();
+    // activeItemIdx zaten set edildi, renderDetail load içinde çağrılıyor
   }catch(e){toast(e.message,'er');}
 }
 
