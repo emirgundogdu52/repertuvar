@@ -248,7 +248,10 @@ async function removeMember(userId, email) {
           method: 'DELETE',
           headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
         });
-        if (!r.ok) throw new Error(await r.text());
+        console.log('DELETE status:', r.status, 'userId:', userId);
+        const body = await r.text();
+        console.log('DELETE body:', body);
+        if (!r.ok) throw new Error(body);
         toast('Üye kaldırıldı ✓');
         await loadMembers();
       } catch(e) { toast('Hata: ' + e.message, 'er'); }
