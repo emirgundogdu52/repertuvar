@@ -53,8 +53,8 @@ nav.v2-bottom-nav{background:rgba(7,7,26,0.95)!important;border-top:1px solid va
 .dmr{display:flex;gap:20px;padding-bottom:14px;flex-wrap:wrap;}
 .mc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
 .mc strong{color:var(--text);}
-.is{padding:8px 14px;flex:1;}
-.ih{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.is{padding:4px 14px;flex:1;}
+.ih{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
 .ih h3{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}
 .baw{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
 .baw:hover{border-color:var(--accent);color:var(--accent);}
@@ -478,13 +478,15 @@ function renderDetail(){
     const cn=it.closingNote||w.closingNote||'';
     const pf = it.performer || '';
     return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)" style="cursor:grab;touch-action:none;">
-      <td class="sq" style="cursor:grab;text-align:center;user-select:none;white-space:nowrap;padding:0 4px;" title="Sürükle">
-        <input type="number" min="1" max="${items.length}" value="${idx+1}"
-          style="width:32px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:11px;font-weight:600;padding:2px 2px;font-family:inherit;"
-          onchange="chSeq('${rep.id}',${idx},this.value)"
-          onclick="event.stopPropagation()"
-          title="Sırayı değiştir">
-        <span style="color:var(--text3);font-size:13px;vertical-align:middle;display:block;">⠿</span>
+      <td class="sq" style="cursor:grab;text-align:center;user-select:none;padding:0 4px;" title="Sürükle">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <input type="number" min="1" max="${items.length}" value="${idx+1}"
+            style="width:30px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;font-weight:500;padding:1px 2px;font-family:inherit;"
+            onchange="chSeq('${rep.id}',${idx},this.value)"
+            onclick="event.stopPropagation()"
+            title="Sırayı değiştir">
+          <span style="color:var(--text3);font-size:11px;line-height:1;">⠿</span>
+        </div>
       </td>
       <td>
         <div class="wn">${w.name||'#'+it.workId}</div>
