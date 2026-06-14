@@ -8,7 +8,7 @@
       background: rgba(7,7,26,0.92);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(120,100,255,0.18);
-      display: flex; flex-direction: row; align-items: center;
+      display: flex; flex-direction: row; align-items: flex-start;
       padding: 8px 20px;
       padding-top: max(8px, env(safe-area-inset-top));
       gap: 12px;
@@ -18,7 +18,7 @@
     }
     .r-topnav .r-tn-right {
       margin-left: auto;
-      display: flex; flex-direction: row; align-items: center; gap: 8px;
+      display: flex; flex-direction: row; align-items: flex-start; gap: 8px;
     }
     .r-tn-user {
       display: flex; align-items: center; gap: 6px;
