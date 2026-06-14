@@ -1475,8 +1475,11 @@ function openSuggestModal() {
 if (new URLSearchParams(window.location.search).get('search') === '1') {
   function _focusSearch() {
     const inp = document.getElementById('searchInput');
-    if (inp) { inp.focus(); inp.select(); }
-    else setTimeout(_focusSearch, 150);
+    if (inp) {
+      requestAnimationFrame(() => { inp.focus(); inp.select(); });
+    } else {
+      setTimeout(_focusSearch, 150);
+    }
   }
   setTimeout(_focusSearch, 800);
 }
