@@ -87,7 +87,7 @@ async function ensureProfile(user) {
         'apikey': SUPA_KEY,
         'Authorization': 'Bearer ' + (getToken() || SUPA_KEY),
         'Content-Type': 'application/json',
-        'Prefer': 'resolution=ignore-duplicates'
+        'Prefer': 'resolution=merge-duplicates'
       },
       body: JSON.stringify({
         id: user.id,
