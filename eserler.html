@@ -104,8 +104,21 @@
   .sort-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
   .sort-btn:hover { border-color:var(--border2); color:var(--text); }
   .sort-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,.08); }
-  .clear-btn { margin-left:auto; background:none; border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text3); font-size:12px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
+  .clear-btn { margin-left:auto; background:none; border:1px solid var(--border); border-radius:6px; padding:4px 7px; color:var(--text3); font-size:10px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
   .clear-btn:hover { color:var(--text2); border-color:var(--border2); }
+
+  /* SORT DROPDOWN */
+  .sort-dropdown-wrap { position:relative; }
+  .sort-dropdown-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:5px; }
+  .sort-dropdown-btn:hover { border-color:var(--border2); color:var(--text); }
+  .sort-dropdown-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,.08); }
+  .sort-dropdown-menu { display:none; position:absolute; top:calc(100% + 4px); left:0; background:var(--surface2); border:1px solid var(--border); border-radius:8px; min-width:180px; z-index:500; box-shadow:0 8px 24px rgba(0,0,0,.4); overflow:hidden; }
+  .sort-dropdown-menu.open { display:block; }
+  .sort-dropdown-item { display:flex; align-items:center; justify-content:space-between; width:100%; padding:8px 12px; background:none; border:none; color:var(--text2); font-size:12px; font-family:'Sora', sans-serif; cursor:pointer; text-align:left; transition:background .12s; }
+  .sort-dropdown-item:hover { background:var(--surface); color:var(--text); }
+  .sort-dropdown-item.active { color:var(--accent); background:rgba(88,166,255,.06); }
+  .sort-dropdown-item .sort-dir { font-size:10px; color:var(--text3); }
+  .sort-dropdown-item.active .sort-dir { color:var(--accent); }
 
   /* EMPTY STATE */
   .empty-list { padding:60px 20px; text-align:center; color:var(--text3); }
@@ -343,11 +356,25 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
       </div>
     </div>
     <div class="toolbar">
-      <span style="font-size:12px;color:var(--text3);margin-right:4px;">Sırala:</span>
-      <button class="sort-btn active" id="sortName" onclick="setSort('name')">Ada Göre</button>
-      <button class="sort-btn" id="sortId" onclick="setSort('id')">Numaraya Göre</button>
-      <button class="sort-btn" id="sortComposer" onclick="setSort('composer')">Besteciye Göre</button>
+      <div class="sort-dropdown-wrap" id="sortDropdownWrap">
+        <button class="sort-dropdown-btn active" id="sortDropdownBtn" onclick="toggleSortDropdown(event)">
+          <i class="ti ti-arrows-sort" style="font-size:13px;"></i>
+          <span id="sortDropdownLabel">Ada Göre</span>
+          <i class="ti ti-chevron-down" style="font-size:11px;opacity:.6;" id="sortDropdownChevron"></i>
+        </button>
+        <div class="sort-dropdown-menu" id="sortDropdownMenu">
+          <button class="sort-dropdown-item active" data-mode="name" onclick="setSort('name')">Ada Göre <span class="sort-dir">A→Z</span></button>
+          <button class="sort-dropdown-item" data-mode="composer" onclick="setSort('composer')">Besteciye Göre <span class="sort-dir">A→Z</span></button>
+          <button class="sort-dropdown-item" data-mode="lyricWriter" onclick="setSort('lyricWriter')">Söz Yazarına Göre <span class="sort-dir">A→Z</span></button>
+          <button class="sort-dropdown-item" data-mode="makam" onclick="setSort('makam')">Makama Göre <span class="sort-dir">A→Z</span></button>
+          <button class="sort-dropdown-item" data-mode="region" onclick="setSort('region')">Yöreye Göre <span class="sort-dir">A→Z</span></button>
+          <button class="sort-dropdown-item" data-mode="form" onclick="setSort('form')">Forma Göre <span class="sort-dir">A→Z</span></button>
+          <button class="sort-dropdown-item" data-mode="measurement" onclick="setSort('measurement')">Usule Göre <span class="sort-dir">A→Z</span></button>
+        </div>
+      </div>
       <button class="clear-btn" onclick="clearFilters()">Filtreleri Temizle</button>
+      <button id="btnMobileNewEser" class="admin-only" onclick="openNewEserModal()" style="display:none;align-items:center;gap:5px;background:var(--accent);border:none;border-radius:7px;padding:6px 10px;font-size:10.5px;color:#fff;font-weight:600;cursor:pointer;font-family:var(--font);white-space:normal;text-align:center;line-height:1.3;max-width:56px;">Yeni<br>Eser</button>
+      <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);">🎵 Öner</button>
     </div>
     <div class="list-panel" id="listPanel"></div>
   </div>
@@ -472,18 +499,42 @@ function applyFilters() {
   if (countBadgeEl) countBadgeEl.textContent = filteredData.length + ' eser';
 }
 
+const SORT_LABELS = {
+  name: 'Ada Göre', composer: 'Besteciye Göre', lyricWriter: 'Söz Yazarına Göre',
+  makam: 'Makama Göre', region: 'Yöreye Göre', form: 'Forma Göre', measurement: 'Usule Göre',
+};
+
+function toggleSortDropdown(e) {
+  e.stopPropagation();
+  document.getElementById('sortDropdownMenu').classList.toggle('open');
+}
+
+document.addEventListener('click', function() {
+  const menu = document.getElementById('sortDropdownMenu');
+  if (menu) menu.classList.remove('open');
+});
+
 function setSort(mode) {
   sortMode = mode;
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('sort' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+  const label = document.getElementById('sortDropdownLabel');
+  if (label) label.textContent = SORT_LABELS[mode] || mode;
+  document.querySelectorAll('.sort-dropdown-item').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  const menu = document.getElementById('sortDropdownMenu');
+  if (menu) menu.classList.remove('open');
   sortData();
   renderList();
 }
 
 function sortData() {
-  if (sortMode === 'name') filteredData.sort((a,b) => (a.name||'').localeCompare(b.name||'','tr'));
-  else if (sortMode === 'id') filteredData.sort((a,b) => (a.id||9999)-(b.id||9999));
-  else if (sortMode === 'composer') filteredData.sort((a,b) => (a.composer||'zzz').localeCompare(b.composer||'zzz','tr'));
+  const loc = (a, b, field) => (a[field]||'zzz').localeCompare(b[field]||'zzz','tr');
+  if (sortMode === 'name')             filteredData.sort((a,b) => (a.name||'').localeCompare(b.name||'','tr'));
+  else if (sortMode === 'id')          filteredData.sort((a,b) => (a.id||9999)-(b.id||9999));
+  else if (sortMode === 'composer')    filteredData.sort((a,b) => loc(a,b,'composer'));
+  else if (sortMode === 'lyricWriter') filteredData.sort((a,b) => loc(a,b,'lyricWriter'));
+  else if (sortMode === 'makam')       filteredData.sort((a,b) => loc(a,b,'makam'));
+  else if (sortMode === 'region')      filteredData.sort((a,b) => loc(a,b,'region'));
+  else if (sortMode === 'form')        filteredData.sort((a,b) => loc(a,b,'form'));
+  else if (sortMode === 'measurement') filteredData.sort((a,b) => loc(a,b,'measurement'));
 }
 
 function renderList() {
@@ -811,7 +862,7 @@ function switchDetailTab(tabId) {
   if (content) content.classList.add('active');
 }
 
-document.getElementById('searchInput').addEventListener('input', applyFilters);
+// searchInput listener — DOMContentLoaded'da ekleniyor (aşağıda)
 
 
 // ── YENİ ESER FONKSİYONLARI ──
@@ -1087,6 +1138,8 @@ async function deleteWork(id) {
 
 // Modal overlay click to close
 document.addEventListener('DOMContentLoaded', function() {
+  const searchEl = document.getElementById('searchInput');
+  if (searchEl) searchEl.addEventListener('input', applyFilters);
   const overlay = document.getElementById('newEserModal');
   if (overlay) {
     overlay.addEventListener('click', function(e) {
@@ -1105,22 +1158,34 @@ document.addEventListener('keydown', function(e) {
   
   if (isAdmin()) {
     document.querySelectorAll('.admin-only').forEach(el => { el.classList.remove('admin-only'); el.style.display = ''; });
+    const adminNewBtn = document.getElementById('btnAdminNewEser');
+    if (adminNewBtn) adminNewBtn.style.display = 'flex';
+    const mobileNewBtn = document.getElementById('btnMobileNewEser');
+    if (mobileNewBtn) { mobileNewBtn.classList.remove('admin-only'); mobileNewBtn.style.display = 'flex'; }
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
+    const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
+    if (mobileSuggestBtn) mobileSuggestBtn.style.display = 'none';
     const onerilerimBtn = document.getElementById('btnOnerilerim');
     if (onerilerimBtn) onerilerimBtn.style.display = 'none';
     updatePendingCount();
   } else if (isEditor()) {
+    const adminNewBtn = document.getElementById('btnAdminNewEser');
+    if (adminNewBtn) { adminNewBtn.classList.remove('admin-only'); adminNewBtn.style.display = 'flex'; }
+    const mobileNewBtn = document.getElementById('btnMobileNewEser');
+    if (mobileNewBtn) { mobileNewBtn.classList.remove('admin-only'); mobileNewBtn.style.display = 'flex'; }
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
-    const adminNewBtn = document.getElementById('btnAdminNewEser');
-    if (adminNewBtn) { adminNewBtn.classList.remove('admin-only'); adminNewBtn.style.display = ''; }
+    const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
+    if (mobileSuggestBtn) mobileSuggestBtn.style.display = 'none';
     const onerilerimBtn = document.getElementById('btnOnerilerim');
     if (onerilerimBtn) onerilerimBtn.style.display = 'none';
     updatePendingCount();
   } else {
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = '';
+    const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
+    if (mobileSuggestBtn) mobileSuggestBtn.style.display = 'flex';
     const onerilerimBtn = document.getElementById('btnOnerilerim');
     if (onerilerimBtn) onerilerimBtn.style.display = '';
   }
