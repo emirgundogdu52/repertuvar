@@ -843,6 +843,7 @@ async function deleteNota(id) {
 function openStageFromDetail(stageId) {
   const t = localStorage.getItem('detailActiveTab') || 'gufte';
   localStorage.setItem('stageShowChords', t === 'akorlar' ? '1' : '0');
+  localStorage.setItem('stageSource', 'eserler');
   saveStageList(stageId);
   const url = t === 'akorlar'
     ? 'stage.html?work=' + stageId + '&mode=chords'

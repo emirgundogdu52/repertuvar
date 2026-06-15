@@ -216,7 +216,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="stc" id="stc">1/1</div>
     </div>
     <div class="stage-nav">
-      <a href="eserler.html">🎼 Eserler</a>
+      <a href="#" id="btnGoBack" onclick="goBack(event)" style="display:none;">‹ Geri Dön</a>
       <a href="repertoires.html" id="btnActiveRep" onclick="goToActiveRep(event)">📋 Repertuvar</a>
       <button class="bex" onclick="exitStage(event)">✕ Çık</button>
     </div>
@@ -426,6 +426,16 @@ function nextWork(){
 function prevWork(){
   sideNavPrev();
 }
+
+function goBack(e) {
+  if (e) e.preventDefault();
+  const src = localStorage.getItem('stageSource');
+  if (src === 'eserler') window.location.href = 'eserler.html';
+  else if (src === 'repertoires') window.location.href = 'repertoires.html';
+  else if (src === 'index') window.location.href = 'index.html';
+  else window.location.href = 'index.html';
+}
+
 function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){applyTheme('picker');backToPicker();}}
 function showEndScreen(){
   applyTheme('picker');
@@ -615,6 +625,15 @@ function loadSideWork(id) {
   reps=await loadReps();
   renderPicker();
   setTheme(localStorage.getItem('stageTheme')||'night');
+  // Geri dön butonu
+  const src = localStorage.getItem('stageSource');
+  const backBtn = document.getElementById('btnGoBack');
+  if (backBtn && src) {
+    const labels = { eserler: '‹ Eserler', repertoires: '‹ Repertuvarlar', index: '‹ Ana Sayfa' };
+    backBtn.textContent = labels[src] || '‹ Geri Dön';
+    backBtn.style.display = '';
+  }
+
   const autoId=localStorage.getItem('stageRepId');
   if(autoId){localStorage.removeItem('stageRepId');const f=reps.find(r=>r.id===autoId);if(f){pickRep(autoId);setTimeout(()=>startStage(),100);}}
 })();
