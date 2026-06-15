@@ -629,7 +629,7 @@ function loadSideWork(id) {
   const src = localStorage.getItem('stageSource');
   const backBtn = document.getElementById('btnGoBack');
   if (backBtn && src) {
-    const labels = { eserler: '‹ Eserler', repertoires: '‹ Repertuvarlar', index: '‹ Ana Sayfa' };
+    const labels = { eserler: '‹ Eserler', repertoires: '‹ Repertuvarlar', index: '‹ Ana Sayfa', artiesten: '‹ Solistler', uyeler: '‹ Üyeler', ayarlar: '‹ Ayarlar' };
     backBtn.textContent = labels[src] || '‹ Geri Dön';
     backBtn.style.display = '';
   }
