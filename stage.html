@@ -216,11 +216,10 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 
 <div class="screen hidden" id="stageScreen" onclick="nextWork()">
   <div class="stb">
-    <div class="stage-nav">
-      <a href="#" id="btnGoBack" style="display:none;background:none;border:none;color:#a78bfa;font-size:13px;font-weight:600;text-decoration:none;padding:4px 0;">‹ <span id="btnGoBackLabel">Geri Dön</span></a>
-      <button class="bex" id="btnToggleView" onclick="toggleChordView()">🎼 Güfte</button>
-      <a href="repertoires.html" id="btnActiveRep" onclick="goToActiveRep(event)">📋 Repertuvar</a>
-      <button class="bex bex-exit" onclick="exitStage(event)">✕ Çık</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:4px;">
+      <a href="#" id="btnGoBack" style="display:none;color:#a78bfa;font-size:14px;font-weight:600;text-decoration:none;font-family:'DM Sans',sans-serif;">‹ Geri Dön</a>
+      <div style="flex:1;"></div>
+      <button onclick="exitStage(event)" style="background:none;border:none;color:var(--text3);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:0;">✕ Çık</button>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div class="strn" id="strn">—</div>
@@ -244,7 +243,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <button onclick="setLyricsAlign('center')" id="alignCenter" title="Ortala" style="background:rgba(88,166,255,.15);border:1px solid var(--accent);border-radius:6px;color:var(--accent);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☰</button>
       <button onclick="setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
       <button onclick="toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☀️</button>
-      <button onclick="toggleChordView()" id="btnToggleView" title="Güfte/Akor" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);height:32px;padding:0 10px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;">🎼 Güfte</button>
+      <button onclick="toggleChordView()" id="btnToggleView" title="Güfte/Akor" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);height:32px;padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;">🎼 Güfte</button>
     </div>
     <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
