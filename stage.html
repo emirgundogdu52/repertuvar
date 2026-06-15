@@ -216,7 +216,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="stc" id="stc">1/1</div>
     </div>
     <div class="stage-nav">
-      <a href="#" id="btnGoBack" onclick="goBack(event)" style="display:none;">‹ Geri Dön</a>
+      <a href="#" id="btnGoBack" style="display:none;">‹ Geri Dön</a>
       <button class="bex" id="btnToggleView" onclick="toggleChordView()" title="Güfte/Akor geçişi">🎼 Güfte</button>
       <a href="repertoires.html" id="btnActiveRep" onclick="goToActiveRep(event)">📋 Repertuvar</a>
       <button class="bex" onclick="exitStage(event)">✕ Çık</button>
@@ -431,13 +431,25 @@ function prevWork(){
 
 
 function initBackBtn() {
-  const src = localStorage.getItem('stageSource');
+  // Nereden gelindiğini referrer'dan otomatik tespit et
+  const ref = document.referrer;
+  let src = null, label = null, href = null;
+  if      (ref.includes('eserler'))      { src='eserler';      label='‹ Eserler';      href='eserler.html'; }
+  else if (ref.includes('repertoires'))  { src='repertoires';  label='‹ Repertuvarlar'; href='repertoires.html'; }
+  else if (ref.includes('index') || ref.endsWith('/') || ref.endsWith('repertuvar/') || ref.endsWith('.app/')) 
+                                          { src='index';        label='‹ Ana Sayfa';    href='index.html'; }
+  else if (ref.includes('artiesten'))    { src='artiesten';    label='‹ Solistler';    href='artiesten.html'; }
+  else if (ref.includes('uyeler'))       { src='uyeler';       label='‹ Üyeler';       href='uyeler.html'; }
+  else if (ref.includes('ayarlar'))      { src='ayarlar';      label='‹ Ayarlar';      href='ayarlar.html'; }
+  else if (ref.includes('onerilerim'))   { src='onerilerim';   label='‹ Önerilerim';   href='onerilerim.html'; }
+
   const backBtn = document.getElementById('btnGoBack');
   if (backBtn && src) {
-    const labels = { eserler: '‹ Eserler', repertoires: '‹ Repertuvarlar', index: '‹ Ana Sayfa', artiesten: '‹ Solistler', uyeler: '‹ Üyeler', ayarlar: '‹ Ayarlar' };
-    backBtn.textContent = labels[src] || '‹ Geri Dön';
+    backBtn.textContent = label;
+    backBtn.href = href;
     backBtn.style.display = '';
   }
+
   const toggleBtn = document.getElementById('btnToggleView');
   if (toggleBtn) {
     const chordsOn = localStorage.getItem('stageShowChords') === '1';
@@ -457,12 +469,7 @@ function toggleChordView() {
 }
 
 function goBack(e) {
-  if (e) e.preventDefault();
-  const src = localStorage.getItem('stageSource');
-  if (src === 'eserler') window.location.href = 'eserler.html';
-  else if (src === 'repertoires') window.location.href = 'repertoires.html';
-  else if (src === 'index') window.location.href = 'index.html';
-  else window.location.href = 'index.html';
+  // href zaten initBackBtn tarafından set edildi, normal link davranışı yeterli
 }
 
 function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){applyTheme('picker');backToPicker();}}
