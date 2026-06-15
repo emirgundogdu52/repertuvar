@@ -508,7 +508,7 @@ function renderDetail(){
       <div style="margin-bottom:6px;">
         <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:6px;">${rep.name}</div>
         <div class="da" style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;">
-          <a href="stage.html" class="bi bstage" style="white-space:nowrap;font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires')"><i class="ti ti-microphone" style="font-size:14px;" aria-hidden="true"></i> Sahneye Çık</a>
+          <a href="stage.html" class="bi bstage" style="white-space:nowrap;font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:14px;" aria-hidden="true"></i> Sahneye Çık</a>
           ${rep.isOwner ? `
           <button class="bi" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="openEdit('${rep.id}')"><i class="ti ti-edit" style="font-size:14px;" aria-hidden="true"></i> Düzenle</button>
           <button class="bi bshare" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="shareRep('${rep.id}')"><i class="ti ti-share" style="font-size:14px;" aria-hidden="true"></i> Paylaş</button>

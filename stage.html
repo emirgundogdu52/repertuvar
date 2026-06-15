@@ -217,6 +217,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     </div>
     <div class="stage-nav">
       <a href="#" id="btnGoBack" onclick="goBack(event)" style="display:none;">‹ Geri Dön</a>
+      <button class="bex" id="btnToggleView" onclick="toggleChordView()" title="Güfte/Akor geçişi">🎼 Güfte</button>
       <a href="repertoires.html" id="btnActiveRep" onclick="goToActiveRep(event)">📋 Repertuvar</a>
       <button class="bex" onclick="exitStage(event)">✕ Çık</button>
     </div>
@@ -427,6 +428,18 @@ function prevWork(){
   sideNavPrev();
 }
 
+
+function toggleChordView() {
+  const current = localStorage.getItem('stageShowChords') === '1';
+  const next = current ? '0' : '1';
+  localStorage.setItem('stageShowChords', next);
+  const btn = document.getElementById('btnToggleView');
+  if (btn) btn.textContent = next === '1' ? '🎸 Akor' : '🎼 Güfte';
+  // Mevcut eseri yeniden render et
+  const w = works[curIdx];
+  if (w) showWork(w);
+}
+
 function goBack(e) {
   if (e) e.preventDefault();
   const src = localStorage.getItem('stageSource');
@@ -625,6 +638,12 @@ function loadSideWork(id) {
   reps=await loadReps();
   renderPicker();
   setTheme(localStorage.getItem('stageTheme')||'night');
+  // Toggle buton başlangıç durumu
+  const toggleBtn = document.getElementById('btnToggleView');
+  if (toggleBtn) {
+    const chordsOn = localStorage.getItem('stageShowChords') === '1';
+    toggleBtn.textContent = chordsOn ? '🎸 Akor' : '🎼 Güfte';
+  }
   // Geri dön butonu
   const src = localStorage.getItem('stageSource');
   const backBtn = document.getElementById('btnGoBack');
