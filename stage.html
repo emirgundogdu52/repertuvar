@@ -36,7 +36,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .bback:hover{color:var(--text2);}
 .loading{text-align:center;color:var(--text2);padding:24px;font-size:13px;}
 
-.stb{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:8px;}
+.stb{display:flex;flex-direction:column;padding:8px 16px 6px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:4px;}
 .strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
 .stp{display:flex;align-items:center;gap:10px;}
 .pds{display:flex;gap:5px;align-items:center;}
@@ -87,7 +87,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 @keyframes ff{to{opacity:0}}
 
 .stage-nav{display:flex;gap:8px;align-items:center;}
-.stage-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;} .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+.stage-nav{display:flex;align-items:center;gap:16px;width:100%;padding:2px 0;}
+.stage-nav a{background:none;border:none;color:var(--accent3,#c4b5fd);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;padding:4px 0;transition:opacity .15s;white-space:nowrap;}
+.stage-nav a:hover{opacity:.7;}
+.stage-nav .bex{background:none;border:none;color:var(--accent3,#c4b5fd);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:4px 0;transition:opacity .15s;white-space:nowrap;}
+.stage-nav .bex:hover{opacity:.7;color:var(--accent3,#c4b5fd);}
+.stage-nav .bex-exit{color:var(--text3,#5e5c8a);margin-left:auto;}
+.stage-nav .bex-exit:hover{color:var(--red,#f87171);opacity:1;}
 .stage-nav a:hover{border-color:var(--accent);color:var(--accent);}
 
 .side-nav-btn {
@@ -210,16 +216,18 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 
 <div class="screen hidden" id="stageScreen" onclick="nextWork()">
   <div class="stb">
-    <div class="strn" id="strn">—</div>
-    <div class="stp">
-      <div class="pds" id="pds"></div>
-      <div class="stc" id="stc">1/1</div>
-    </div>
     <div class="stage-nav">
-      <a href="#" id="btnGoBack" style="display:none;">‹ Geri Dön</a>
-      <button class="bex" id="btnToggleView" onclick="toggleChordView()" title="Güfte/Akor geçişi">🎼 Güfte</button>
+      <a href="#" id="btnGoBack" style="display:none;background:none;border:none;color:#a78bfa;font-size:13px;font-weight:600;text-decoration:none;padding:4px 0;">‹ <span id="btnGoBackLabel">Geri Dön</span></a>
+      <button class="bex" id="btnToggleView" onclick="toggleChordView()">🎼 Güfte</button>
       <a href="repertoires.html" id="btnActiveRep" onclick="goToActiveRep(event)">📋 Repertuvar</a>
-      <button class="bex" onclick="exitStage(event)">✕ Çık</button>
+      <button class="bex bex-exit" onclick="exitStage(event)">✕ Çık</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <div class="strn" id="strn">—</div>
+      <div class="stp">
+        <div class="pds" id="pds"></div>
+        <div class="stc" id="stc">1/1</div>
+      </div>
     </div>
   </div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><span class="snb-arrow">‹</span><span class="snb-label">Önceki</span></button>
@@ -236,6 +244,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <button onclick="setLyricsAlign('center')" id="alignCenter" title="Ortala" style="background:rgba(88,166,255,.15);border:1px solid var(--accent);border-radius:6px;color:var(--accent);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☰</button>
       <button onclick="setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
       <button onclick="toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☀️</button>
+      <button onclick="toggleChordView()" id="btnToggleView" title="Güfte/Akor" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);height:32px;padding:0 10px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;">🎼 Güfte</button>
     </div>
     <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
