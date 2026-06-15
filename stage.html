@@ -662,6 +662,7 @@ function loadSideWork(id) {
   }
 
   reps=await loadReps();
+  showScreen('pickerScreen');
   renderPicker();
   setTheme(localStorage.getItem('stageTheme')||'night');
   initBackBtn();
