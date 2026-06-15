@@ -15,7 +15,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 
 #pickerScreen{background:var(--bg);align-items:center;justify-content:center;padding:32px 24px;}
 .pi{width:100%;max-width:520px;}
-.plogo{display:flex;align-items:center;gap:10px;margin-bottom:36px;justify-content:center;}
+.plogo{display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center;}
 .plogo span{font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);}
 .plogo small{color:var(--text2);font-size:12px;letter-spacing:.1em;text-transform:uppercase;}
 .ptitle{font-family:'Playfair Display',serif;font-size:28px;color:var(--text);margin-bottom:8px;text-align:center;}
@@ -36,7 +36,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .bback:hover{color:var(--text2);}
 .loading{text-align:center;color:var(--text2);padding:24px;font-size:13px;}
 
-.stb{display:flex;flex-direction:column;padding:8px 16px 6px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:4px;}
+.stb{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:8px;}
 .strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
 .stp{display:flex;align-items:center;gap:10px;}
 .pds{display:flex;gap:5px;align-items:center;}
@@ -87,13 +87,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 @keyframes ff{to{opacity:0}}
 
 .stage-nav{display:flex;gap:8px;align-items:center;}
-.stage-nav{display:flex;align-items:center;gap:16px;width:100%;padding:2px 0;}
-.stage-nav a{background:none;border:none;color:var(--accent3,#c4b5fd);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;padding:4px 0;transition:opacity .15s;white-space:nowrap;}
-.stage-nav a:hover{opacity:.7;}
-.stage-nav .bex{background:none;border:none;color:var(--accent3,#c4b5fd);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:4px 0;transition:opacity .15s;white-space:nowrap;}
-.stage-nav .bex:hover{opacity:.7;color:var(--accent3,#c4b5fd);}
-.stage-nav .bex-exit{color:var(--text3,#5e5c8a);margin-left:auto;}
-.stage-nav .bex-exit:hover{color:var(--red,#f87171);opacity:1;}
+.stage-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;} .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
 .stage-nav a:hover{border-color:var(--accent);color:var(--accent);}
 
 .side-nav-btn {
@@ -201,8 +195,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 
 <div class="screen" id="pickerScreen" style="overflow-y:auto;-webkit-overflow-scrolling:touch;">
   <div class="pi" style="padding-top:72px;padding-bottom:88px;">
-    <div class="plogo"><svg width="188" height="34" viewBox="0 0 188 34" role="img" style="display:block;flex-shrink:0;"><title>repertuvar.app</title><text x="0" y="26" font-family="Inter,Arial,sans-serif" font-size="26" font-weight="600" fill="white">repertuvar<tspan fill="#a78bfa">.app</tspan></text></svg>
-    <div style="font-size:11px;color:#9d9bc4;line-height:1.5;margin-top:5px;text-align:center;width:100%;">Modern Müzisyen İçin Akıllı<br>Sahne ve Repertuvar Yönetimi</div></div>
+    <div class="plogo"><img src="Repertuvar_logo_slogan.png" alt="repertuvar.app" style="width:180px;display:block;"></div>
     <h1 class="ptitle">Sahne Moduna Hoş Geldiniz</h1>
     <p class="psub">Hangi repertuvar ile sahneye çıkıyorsunuz?</p>
     <div class="rsl" id="rsl"><div class="loading">Yükleniyor...</div></div>
@@ -216,17 +209,16 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 
 <div class="screen hidden" id="stageScreen" onclick="nextWork()">
   <div class="stb">
-    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:4px;">
-      <a href="#" id="btnGoBack" style="display:none;color:#a78bfa;font-size:14px;font-weight:600;text-decoration:none;font-family:'DM Sans',sans-serif;">‹ Geri Dön</a>
-      <div style="flex:1;"></div>
-      <button onclick="exitStage(event)" style="background:none;border:none;color:var(--text3);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:0;">✕ Çık</button>
+    <div class="strn" id="strn">—</div>
+    <div class="stp">
+      <div class="pds" id="pds"></div>
+      <div class="stc" id="stc">1/1</div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-      <div class="strn" id="strn">—</div>
-      <div class="stp">
-        <div class="pds" id="pds"></div>
-        <div class="stc" id="stc">1/1</div>
-      </div>
+    <div class="stage-nav">
+      <a href="#" id="btnGoBack" onclick="goBack(event)" style="display:none;">‹ Geri Dön</a>
+      <button class="bex" id="btnToggleView" onclick="toggleChordView()" title="Güfte/Akor geçişi">🎼 Güfte</button>
+      <a href="repertoires.html" id="btnActiveRep" onclick="goToActiveRep(event)">📋 Repertuvar</a>
+      <button class="bex" onclick="exitStage(event)">✕ Çık</button>
     </div>
   </div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><span class="snb-arrow">‹</span><span class="snb-label">Önceki</span></button>
@@ -243,7 +235,6 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <button onclick="setLyricsAlign('center')" id="alignCenter" title="Ortala" style="background:rgba(88,166,255,.15);border:1px solid var(--accent);border-radius:6px;color:var(--accent);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☰</button>
       <button onclick="setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
       <button onclick="toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☀️</button>
-      <button onclick="toggleChordView()" id="btnToggleView" title="Güfte/Akor" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);height:32px;padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;">🎼 Güfte</button>
     </div>
     <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
@@ -439,25 +430,13 @@ function prevWork(){
 
 
 function initBackBtn() {
-  // Nereden gelindiğini referrer'dan otomatik tespit et
-  const ref = document.referrer;
-  let src = null, label = null, href = null;
-  if      (ref.includes('eserler'))      { src='eserler';      label='‹ Eserler';      href='eserler.html'; }
-  else if (ref.includes('repertoires'))  { src='repertoires';  label='‹ Repertuvarlar'; href='repertoires.html'; }
-  else if (ref.includes('index') || ref.endsWith('/') || ref.endsWith('repertuvar/') || ref.endsWith('.app/')) 
-                                          { src='index';        label='‹ Ana Sayfa';    href='index.html'; }
-  else if (ref.includes('artiesten'))    { src='artiesten';    label='‹ Solistler';    href='artiesten.html'; }
-  else if (ref.includes('uyeler'))       { src='uyeler';       label='‹ Üyeler';       href='uyeler.html'; }
-  else if (ref.includes('ayarlar'))      { src='ayarlar';      label='‹ Ayarlar';      href='ayarlar.html'; }
-  else if (ref.includes('onerilerim'))   { src='onerilerim';   label='‹ Önerilerim';   href='onerilerim.html'; }
-
+  const src = localStorage.getItem('stageSource');
   const backBtn = document.getElementById('btnGoBack');
   if (backBtn && src) {
-    backBtn.textContent = label;
-    backBtn.href = href;
+    const labels = { eserler: '‹ Eserler', repertoires: '‹ Repertuvarlar', index: '‹ Ana Sayfa', artiesten: '‹ Solistler', uyeler: '‹ Üyeler', ayarlar: '‹ Ayarlar' };
+    backBtn.textContent = labels[src] || '‹ Geri Dön';
     backBtn.style.display = '';
   }
-
   const toggleBtn = document.getElementById('btnToggleView');
   if (toggleBtn) {
     const chordsOn = localStorage.getItem('stageShowChords') === '1';
@@ -477,7 +456,12 @@ function toggleChordView() {
 }
 
 function goBack(e) {
-  // href zaten initBackBtn tarafından set edildi, normal link davranışı yeterli
+  if (e) e.preventDefault();
+  const src = localStorage.getItem('stageSource');
+  if (src === 'eserler') window.location.href = 'eserler.html';
+  else if (src === 'repertoires') window.location.href = 'repertoires.html';
+  else if (src === 'index') window.location.href = 'index.html';
+  else window.location.href = 'index.html';
 }
 
 function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){applyTheme('picker');backToPicker();}}
@@ -503,8 +487,7 @@ function backToPicker(){
     const pi = document.getElementById('pi');
     if (pi) {
       pi.innerHTML = `
-        <div class="plogo"><svg width="188" height="34" viewBox="0 0 188 34" role="img" style="display:block;flex-shrink:0;"><title>repertuvar.app</title><text x="0" y="26" font-family="Inter,Arial,sans-serif" font-size="26" font-weight="600" fill="white">repertuvar<tspan fill="#a78bfa">.app</tspan></text></svg>
-    <div style="font-size:11px;color:#9d9bc4;line-height:1.5;margin-top:5px;text-align:center;width:100%;">Modern Müzisyen İçin Akıllı<br>Sahne ve Repertuvar Yönetimi</div></div>
+        <div class="plogo"><img src="Repertuvar_logo_slogan.png" alt="repertuvar.app" style="width:180px;display:block;"></div>
         <h1 class="ptitle">Paylaşılan Repertuvar</h1>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;margin-top:16px;"
           onclick="startSharedRep()">
