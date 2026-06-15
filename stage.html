@@ -189,7 +189,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
 <body>
-<div id="r-topnav-container"></div>
+<div id="r-topnav-container" style="display:none;"></div>
 <script src="topnav.js"></script>
 
 
@@ -513,6 +513,7 @@ function startSharedRep() {
 function showScreen(id){
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
   const tnav=document.getElementById('v2StageTopnav');if(tnav)tnav.classList.toggle('hidden',id!=='pickerScreen');
+  const tnavc=document.getElementById('r-topnav-container');if(tnavc)tnavc.style.display=id==='pickerScreen'?'':'none';
   const bnav=document.getElementById('v2StageBotNav');if(bnav)bnav.style.display=id==='pickerScreen'?'flex':'none';
 }
 
