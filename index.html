@@ -492,12 +492,7 @@ body {
 <!-- ══ DESKTOP: Sol Sidebar ══ -->
 <aside class="sidebar">
   <div class="sb-brand">
-    <svg width="210" height="54" viewBox="0 0 210 54" role="img" style="display:block;flex-shrink:0;"><title>repertuvar.app</title>
-<text x="0" y="26" font-family="Inter,Arial,sans-serif" font-size="26" font-weight="600" fill="white">repertuvar<tspan fill="#a78bfa">.app</tspan></text>
-<rect x="0" y="33" width="124" height="4" rx="2" fill="#a78bfa"/>
-<rect x="136" y="33" width="46" height="4" rx="2" fill="white"/>
-</svg>
-    <div style="font-size:13px;color:#9d9bc4;line-height:1.5;text-align:center;width:100%;margin-top:-10px;">Modern Müzisyen İçin Akıllı<br>Sahne ve Repertuvar Yönetimi</div>
+    <img src="Repertuvar_logo_slogan.png" alt="repertuvar.app" style="width:100%;max-width:188px;display:block;">
   </div>
   <nav class="sb-nav">
     <div class="sb-label">Menü</div>
@@ -579,7 +574,7 @@ body {
         <div class="sb-sub">Büyük ekran, hızlı eser geçişi.<br>Gece ve gündüz tema seçeneğiyle.</div>
       </div>
       <div class="sb-right">
-        <a href="stage.html" class="stage-go-btn" onclick="">🎭 Sahneye Çık</a>
+        <a href="stage.html" class="stage-go-btn" onclick="localStorage.setItem('stageSource','index')">🎭 Sahneye Çık</a>
         <div class="theme-chips">
           <div class="tc active" id="tc-day">☀️ Gündüz</div>
           <div class="tc" id="tc-night">🌙 Gece</div>
@@ -603,7 +598,7 @@ body {
     <a href="repertoires.html" class="bn-item">
       <i class="ti ti-book" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="bn-label">Repertuvarlar</span>
     </a>
-    <a href="stage.html" class="bn-item bn-stage" onclick="">
+    <a href="stage.html" class="bn-item bn-stage" onclick="localStorage.setItem('stageSource','index')">
       <i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="bn-label">Sahne Modu</span>
     </a>
     <a href="ayarlar.html" class="bn-item">

@@ -14,7 +14,7 @@
       gap: 12px;
     }
     .r-topnav img.r-logo {
-      height: 75px; width: auto; flex-shrink: 0;
+      height: 40px; width: auto; flex-shrink: 0;
     }
     .r-topnav .r-tn-right {
       margin-left: auto;
@@ -104,7 +104,7 @@
     if (!container) return;
     container.innerHTML = `
       <header class="r-topnav">
-        <img src="logo2.png" alt="repertuvar.app" class="r-logo">
+        <img src="repertuvar_logoNew.png" alt="repertuvar.app" class="r-logo">
         <div class="r-tn-right">
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar">—</div>
