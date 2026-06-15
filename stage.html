@@ -171,6 +171,14 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
     .sb { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
   }
 
+
+/* Stage Bottom Nav */
+#v2StageBotNav { position:fixed; bottom:0; left:0; right:0; height:68px; background:rgba(7,7,26,0.97); backdrop-filter:blur(24px); border-top:1px solid rgba(120,100,255,0.18); display:none; align-items:center; z-index:400; padding-bottom:env(safe-area-inset-bottom); }
+#v2StageBotNav .v2-bn-items { display:flex; width:100%; padding:0 4px; }
+#v2StageBotNav .v2-bn-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:7px 2px; text-decoration:none; color:#5e5c8a; border-radius:10px; transition:all .15s; }
+#v2StageBotNav .v2-bn-item.active { color:#7c6fff; }
+#v2StageBotNav .v2-bn-label { font-size:9px; font-weight:600; }
+#v2StageBotNav .v2-bn-stage { background:linear-gradient(135deg,rgba(124,111,255,0.18),rgba(167,139,250,0.08)); border:1px solid rgba(124,111,255,0.25); color:#a78bfa !important; margin:5px 2px; border-radius:11px; cursor:pointer; }
 </style>
 <script src="auth.js"></script>
 <style id="v2-stage-nav">
