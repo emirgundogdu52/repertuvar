@@ -813,7 +813,7 @@ function switchDetailTab(tabId) {
   if (content) content.classList.add('active');
 }
 
-document.getElementById('searchInput').addEventListener('input', applyFilters);
+// searchInput listener — DOMContentLoaded'da ekleniyor (aşağıda)
 
 
 // ── YENİ ESER FONKSİYONLARI ──
@@ -1089,6 +1089,8 @@ async function deleteWork(id) {
 
 // Modal overlay click to close
 document.addEventListener('DOMContentLoaded', function() {
+  const searchEl = document.getElementById('searchInput');
+  if (searchEl) searchEl.addEventListener('input', applyFilters);
   const overlay = document.getElementById('newEserModal');
   if (overlay) {
     overlay.addEventListener('click', function(e) {
@@ -1107,13 +1109,10 @@ document.addEventListener('keydown', function(e) {
   
   if (isAdmin()) {
     document.querySelectorAll('.admin-only').forEach(el => { el.classList.remove('admin-only'); el.style.display = ''; });
-    // Desktop topbar butonları
     const adminNewBtn = document.getElementById('btnAdminNewEser');
     if (adminNewBtn) adminNewBtn.style.display = 'flex';
-    // Mobil toolbar butonu
     const mobileNewBtn = document.getElementById('btnMobileNewEser');
     if (mobileNewBtn) { mobileNewBtn.classList.remove('admin-only'); mobileNewBtn.style.display = 'flex'; }
-    // Öner butonlarını gizle
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
     const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
@@ -1122,13 +1121,10 @@ document.addEventListener('keydown', function(e) {
     if (onerilerimBtn) onerilerimBtn.style.display = 'none';
     updatePendingCount();
   } else if (isEditor()) {
-    // Desktop topbar butonu
     const adminNewBtn = document.getElementById('btnAdminNewEser');
     if (adminNewBtn) { adminNewBtn.classList.remove('admin-only'); adminNewBtn.style.display = 'flex'; }
-    // Mobil toolbar butonu
     const mobileNewBtn = document.getElementById('btnMobileNewEser');
     if (mobileNewBtn) { mobileNewBtn.classList.remove('admin-only'); mobileNewBtn.style.display = 'flex'; }
-    // Öner butonlarını gizle
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
     const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
@@ -1137,7 +1133,6 @@ document.addEventListener('keydown', function(e) {
     if (onerilerimBtn) onerilerimBtn.style.display = 'none';
     updatePendingCount();
   } else {
-    // Normal üye — Öner butonlarını göster
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = '';
     const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
