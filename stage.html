@@ -429,6 +429,22 @@ function prevWork(){
 }
 
 
+
+function initBackBtn() {
+  const src = localStorage.getItem('stageSource');
+  const backBtn = document.getElementById('btnGoBack');
+  if (backBtn && src) {
+    const labels = { eserler: '‹ Eserler', repertoires: '‹ Repertuvarlar', index: '‹ Ana Sayfa', artiesten: '‹ Solistler', uyeler: '‹ Üyeler', ayarlar: '‹ Ayarlar' };
+    backBtn.textContent = labels[src] || '‹ Geri Dön';
+    backBtn.style.display = '';
+  }
+  const toggleBtn = document.getElementById('btnToggleView');
+  if (toggleBtn) {
+    const chordsOn = localStorage.getItem('stageShowChords') === '1';
+    toggleBtn.textContent = chordsOn ? '🎸 Akor' : '🎼 Güfte';
+  }
+}
+
 function toggleChordView() {
   const current = localStorage.getItem('stageShowChords') === '1';
   const next = current ? '0' : '1';
@@ -611,6 +627,7 @@ function loadSideWork(id) {
         sideList = [];
         sideIdx = -1;
         updateSideButtons();
+        initBackBtn();
         return;
       }
     } catch(e) { console.error('Share token error:', e); }
@@ -631,6 +648,7 @@ function loadSideWork(id) {
       document.getElementById('strn').textContent = w.name || '';
       renderStage();
       sideNavInit(normalizedId);
+      initBackBtn();
       return;
     }
   }
@@ -638,23 +656,10 @@ function loadSideWork(id) {
   reps=await loadReps();
   renderPicker();
   setTheme(localStorage.getItem('stageTheme')||'night');
-  // Toggle buton başlangıç durumu
-  const toggleBtn = document.getElementById('btnToggleView');
-  if (toggleBtn) {
-    const chordsOn = localStorage.getItem('stageShowChords') === '1';
-    toggleBtn.textContent = chordsOn ? '🎸 Akor' : '🎼 Güfte';
-  }
-  // Geri dön butonu
-  const src = localStorage.getItem('stageSource');
-  const backBtn = document.getElementById('btnGoBack');
-  if (backBtn && src) {
-    const labels = { eserler: '‹ Eserler', repertoires: '‹ Repertuvarlar', index: '‹ Ana Sayfa', artiesten: '‹ Solistler', uyeler: '‹ Üyeler', ayarlar: '‹ Ayarlar' };
-    backBtn.textContent = labels[src] || '‹ Geri Dön';
-    backBtn.style.display = '';
-  }
+  initBackBtn();
 
   const autoId=localStorage.getItem('stageRepId');
-  if(autoId){localStorage.removeItem('stageRepId');const f=reps.find(r=>r.id===autoId);if(f){pickRep(autoId);setTimeout(()=>startStage(),100);}}
+  if(autoId){localStorage.removeItem('stageRepId');const f=reps.find(r=>r.id===autoId);if(f){pickRep(autoId);setTimeout(()=>{startStage();initBackBtn();},100);}}
 })();
 
 // ── MOBİL SWIPE DESTEĞİ ──
