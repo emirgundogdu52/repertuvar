@@ -19,7 +19,7 @@
     .r-topnav .r-tn-right {
       margin-left: auto;
       display: flex; flex-direction: row; align-items: flex-start; gap: 8px;
-      padding-top: 10px;
+      padding-top: 0;
     }
     .r-tn-user {
       display: flex; align-items: center; gap: 6px;

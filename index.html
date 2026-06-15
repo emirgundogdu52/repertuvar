@@ -520,6 +520,29 @@ body {
 <div class="main-wrap">
 <div id="r-topnav-container"></div>
 <script src="topnav.js"></script>
+<script>
+// Index'te logo+slogan versiyonunu kullan
+(function() {
+  function applyIndexLogo() {
+    const logo = document.querySelector('.r-topnav .r-logo');
+    if (logo) {
+      logo.src = 'Repertuvar_logo_slogan.png';
+      logo.style.height = '64px';
+    }
+    // Üye adını logo üst sınırına hizala
+    const right = document.querySelector('.r-tn-right');
+    if (right) right.style.paddingTop = '0';
+    const user = document.querySelector('.r-tn-user');
+    if (user) user.style.alignSelf = 'flex-start';
+  }
+  // topnav.js render ettikten sonra çalıştır
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(applyIndexLogo, 100));
+  } else {
+    setTimeout(applyIndexLogo, 100);
+  }
+})();
+</script>
 
   <!-- Tablet + Mobil: Üst Bar -->
   
