@@ -520,7 +520,7 @@ function startSharedRep() {
 function showScreen(id){
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
   const tnav=document.getElementById('v2StageTopnav');if(tnav)tnav.classList.toggle('hidden',id!=='pickerScreen');
-  const tnavc=document.getElementById('r-topnav-container');if(tnavc)tnavc.style.display=id==='pickerScreen'?'':'none';
+  // r-topnav-container stage'de her zaman gizli
   const bnav=document.getElementById('v2StageBotNav');if(bnav)bnav.style.display=id==='pickerScreen'?'flex':'none';
 }
 
