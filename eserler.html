@@ -1361,7 +1361,7 @@ async function updatePendingCount() {
   const countEl = document.getElementById('pendingCount');
   if (btn) {
     btn.classList.remove('admin-only');
-    btn.style.display = cnt > 0 ? '' : 'none';
+    btn.style.display = cnt > 0 ? 'flex' : 'none';
   }
   if (countEl) countEl.textContent = cnt;
   // Desktop topbar butonu
@@ -1524,7 +1524,7 @@ function openSuggestModal() {
   // Role-based nav items
   function _v2RoleInit(){
     if(typeof isAdmin!=='function') return;
-    if(isAdmin()||isEditor()){document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('admin-only'));}
+    if(isAdmin()||isEditor()){document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('admin-only')); if(typeof updatePendingCount==='function') updatePendingCount();}
     const roleEl=document.getElementById('sbUserRole');
     if(roleEl){
       if(typeof isAdmin==='function'&&isAdmin()) roleEl.textContent='Admin';
