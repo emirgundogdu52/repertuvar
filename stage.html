@@ -38,7 +38,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .loading{text-align:center;color:var(--text2);padding:24px;font-size:13px;}
 
 .stb{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:8px;}
-.strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+#v2StageBotNav .v2-bn-exit { color: #c05444 !important; }
+#v2StageBotNav .v2-bn-exit:hover { color: #e06655 !important; }
+.strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;}
 .stp{display:flex;align-items:center;gap:10px;}
 .pds{display:flex;gap:5px;align-items:center;}
 .pd{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;flex-shrink:0;}
@@ -50,9 +52,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 
 .sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 40px 80px;position:relative;overflow-y:auto;cursor:pointer;}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
-.wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;opacity:0;animation:si .4s ease forwards;}
-.wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:24px;opacity:0;animation:si .4s ease .07s forwards;}
-.wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;opacity:0;animation:si .4s ease .14s forwards;}
+.wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
+.wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
+.wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;opacity:0;animation:si .4s ease .14s forwards;}
+.wcr:empty{display:none;margin:0;}
 .wch{padding:5px 14px;border-radius:20px;font-size:13px;border:1px solid var(--border);color:var(--text2);background:var(--surface);}
 .wch.m{border-color:#3a3060;color:#9b8fd4;background:#1a1828;}
 .wch.n{border-color:#3d2a1a;color:var(--accent);background:#1e1208;}
@@ -61,7 +64,44 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .wlyrics{font-size:clamp(18px,2.8vw,28px);color:var(--text);text-align:center;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-.sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;} @media(min-width:1024px){.th{display:none!important;} .sb{justify-content:center;padding:0 32px 32px;}}
+.sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;}
+
+#stageHintToast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  background:rgba(20,10,40,.82);backdrop-filter:blur(8px);
+  border:1px solid rgba(168,85,247,.3);border-radius:12px;
+  padding:10px 20px;display:flex;gap:20px;align-items:center;
+  color:rgba(255,255,255,.75);font-size:13px;font-weight:500;
+  pointer-events:none;z-index:200;
+  opacity:0;transition:opacity .4s;
+  white-space:nowrap;
+}
+#stageHintToast.show{opacity:1;}
+#stageHintToast span{display:flex;align-items:center;gap:5px;}
+#stageHintToast i{font-size:15px;}
+#v2StageBotNav{
+  position:fixed;bottom:0;left:0;right:0;
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+  will-change:transform;
+  z-index:100;
+}
+#v2StageBotNav.stage-hidden{transform:translateY(100%);}
+
+/* Swipe handle — sahne modunda görünür */
+#stageSwipeHandle{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:60px;height:22px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:101;
+  opacity:0;transition:opacity .3s;
+  pointer-events:none;
+}
+#stageSwipeHandle.visible{opacity:1;pointer-events:auto;}
+#stageSwipeHandle::after{
+  content:'';display:block;
+  width:36px;height:4px;border-radius:2px;
+  background:rgba(168,85,247,0.45);
+}
 .np{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;flex:1;max-width:400px;opacity:0;animation:fi .5s ease .4s forwards;}
 .nl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
 .nn{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -87,7 +127,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 @keyframes pls{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 @keyframes ff{to{opacity:0}}
 
-.stage-nav{display:flex;gap:8px;align-items:center;}
+.align-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:36px;height:36px;font-size:18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.align-btn:hover{border-color:var(--accent);color:var(--accent);}
+.align-btn.active{background:rgba(168,85,247,.15);border-color:var(--accent);color:var(--accent);}
 .stage-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;} .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
 .stage-nav a:hover{border-color:var(--accent);color:var(--accent);}
 
@@ -223,12 +265,6 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="pds" id="pds"></div>
       <div class="stc" id="stc">1/1</div>
     </div>
-    <div class="stage-nav">
-      <a href="#" id="btnGoBack" onclick="goBack(event)" style="display:none;">‹ Geri Dön</a>
-      <button class="bex" id="btnToggleView" onclick="toggleChordView()" title="Güfte/Akor geçişi">🎼 Güfte</button>
-      <a href="repertoires.html" id="btnActiveRep" onclick="goToActiveRep(event)">📋 Repertuvar</a>
-      <button class="bex" onclick="exitStage(event)">✕ Çık</button>
-    </div>
   </div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><span class="snb-arrow">‹</span><span class="snb-label">Önceki</span></button>
   <div class="sm" id="sm"></div>
@@ -240,12 +276,12 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="nm" id="nm">—</div>
     </div>
     <div style="display:flex;gap:6px;align-items:center;">
-      <button onclick="setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
-      <button onclick="setLyricsAlign('center')" id="alignCenter" title="Ortala" style="background:rgba(88,166,255,.15);border:1px solid var(--accent);border-radius:6px;color:var(--accent);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☰</button>
-      <button onclick="setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
-      <button onclick="toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☀️</button>
+      <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
+      <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
+      <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>
+      <button onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz" class="align-btn"><i class="ti ti-sun"></i></button>
     </div>
-    <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
+    <div class="th" style="display:none;">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
 </div>
 
@@ -294,7 +330,6 @@ async function loadWL() {
     } catch(e) {}
   } catch(e) { console.error('WL yüklenemedi:', e); }
 }let reps=[], selId=null, curRep=null, curIdx=0;
-let txStart=0;
 
 async function loadReps(){
   try{
@@ -325,15 +360,7 @@ function setLyricsAlign(align) {
   ['left','center','right'].forEach(a => {
     const btn = document.getElementById('align' + a.charAt(0).toUpperCase() + a.slice(1));
     if (!btn) return;
-    if (a === align) {
-      btn.style.background = 'rgba(88,166,255,.15)';
-      btn.style.borderColor = 'var(--accent)';
-      btn.style.color = 'var(--accent)';
-    } else {
-      btn.style.background = 'none';
-      btn.style.borderColor = 'var(--border)';
-      btn.style.color = 'var(--text3)';
-    }
+    btn.classList.toggle('active', a === align);
   });
 }
 
@@ -359,15 +386,17 @@ function toggleStageTheme(){
   const next = t==='night' ? 'day' : 'night';
   setTheme(next);
   applyTheme('stage');
-  const btn = document.getElementById('stageThemeBtn');
-  if(btn) btn.textContent = next==='day' ? '🌙' : '☀️';
 }
 
 function applyTheme(screen){
   const t=localStorage.getItem('stageTheme')||'night';
   document.body.classList.toggle('day-theme', screen==='stage' && t==='day');
   const btn=document.getElementById('stageThemeBtn');
-  if(btn) btn.textContent = t==='day' ? '🌙' : '☀️';
+  if(btn){
+    const icon=btn.querySelector('i');
+    if(icon) icon.className = t==='day' ? 'ti ti-moon' : 'ti ti-sun';
+    btn.classList.toggle('active', t==='day');
+  }
 }
 function setTheme(t){
   localStorage.setItem('stageTheme',t);
@@ -410,7 +439,7 @@ function renderStage(){
   ].filter(Boolean).join('');
   const showChords = localStorage.getItem('stageShowChords') === '1';
   const lyricsHtml = (showChords && w.chords)
-    ? `<div class="wlyrics" style="text-align:left;">${renderStageChords(w.chords)}</div>`
+    ? `<div class="wlyrics">${renderStageChords(w.chords)}</div>`
     : (w.lyrics ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>` : '');
   document.getElementById('sm').innerHTML=`
     <div class="wnum">Eser ${curIdx+1} / ${total}</div>
@@ -420,7 +449,7 @@ function renderStage(){
     ${lyricsHtml}`; 
   // Kaydedilmiş hizalamayı uygula
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
-  setLyricsAlign(savedAlign);
+  requestAnimationFrame(() => setLyricsAlign(savedAlign));
   const next=items[curIdx+1];
   const np=document.getElementById('np');
   if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
@@ -442,14 +471,14 @@ function initBackBtn() {
   const src = localStorage.getItem('stageSource');
   const backBtn = document.getElementById('btnGoBack');
   if (backBtn && src) {
-    const labels = { eserler: '‹ Eserler', repertoires: '‹ Repertuvarlar', index: '‹ Ana Sayfa', artiesten: '‹ Solistler', uyeler: '‹ Üyeler', ayarlar: '‹ Ayarlar' };
-    backBtn.textContent = labels[src] || '‹ Geri Dön';
-    backBtn.style.display = '';
+    const labels = { eserler: 'Eserler', repertoires: 'Repertuvarlar', index: 'Ana Sayfa', artiesten: 'Solistler', uyeler: 'Üyeler', ayarlar: 'Ayarlar' };
+    const lbl = backBtn.querySelector('.v2-bn-label');
+    if (lbl) lbl.textContent = labels[src] || 'Geri Dön';
   }
-  const toggleBtn = document.getElementById('btnToggleView');
-  if (toggleBtn) {
+  const lbl = document.getElementById('toggleViewLabel');
+  if (lbl) {
     const chordsOn = localStorage.getItem('stageShowChords') === '1';
-    toggleBtn.textContent = chordsOn ? '🎸 Akor' : '🎼 Güfte';
+    lbl.textContent = chordsOn ? 'Akor' : 'Güfte';
   }
 }
 
@@ -457,8 +486,10 @@ function toggleChordView() {
   const current = localStorage.getItem('stageShowChords') === '1';
   const next = current ? '0' : '1';
   localStorage.setItem('stageShowChords', next);
-  const btn = document.getElementById('btnToggleView');
-  if (btn) btn.textContent = next === '1' ? '🎸 Akor' : '🎼 Güfte';
+  const lbl = document.getElementById('toggleViewLabel');
+  if (lbl) lbl.textContent = next === '1' ? 'Akor' : 'Güfte';
+  const icon = document.querySelector('#btnToggleView .ti');
+  if (icon) { icon.className = next === '1' ? 'ti ti-guitar-pick' : 'ti ti-music'; icon.style.cssText='font-size:20px;line-height:1;'; }
   // Mevcut eseri yeniden render et
   const w = works[curIdx];
   if (w) showWork(w);
@@ -520,8 +551,29 @@ function startSharedRep() {
 function showScreen(id){
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
   const tnav=document.getElementById('v2StageTopnav');if(tnav)tnav.classList.toggle('hidden',id!=='pickerScreen');
-  // r-topnav-container stage'de her zaman gizli
-  const bnav=document.getElementById('v2StageBotNav');if(bnav){const isDesktop=window.innerWidth>=1024;bnav.style.display=(id==='pickerScreen'||(isDesktop&&id==='stageScreen'))?'flex':'none';}
+  const bnav=document.getElementById('v2StageBotNav');
+  const pickerNav=document.getElementById('stageNavPicker');
+  const stageNav=document.getElementById('stageNavStage');
+  const handle=document.getElementById('stageSwipeHandle');
+  if(bnav){
+    if(id==='stageScreen'){
+      bnav.style.display='flex';
+      bnav.classList.add('stage-hidden'); // sahne modunda başta gizli
+      if(pickerNav)pickerNav.style.display='none';
+      if(stageNav)stageNav.style.display='flex';
+      if(handle)handle.classList.add('visible');
+      showStageHint();
+    } else if(id==='pickerScreen'){
+      bnav.style.display='flex';
+      bnav.classList.remove('stage-hidden');
+      if(pickerNav)pickerNav.style.display='flex';
+      if(stageNav)stageNav.style.display='none';
+      if(handle)handle.classList.remove('visible');
+    } else {
+      bnav.style.display='none';
+      if(handle)handle.classList.remove('visible');
+    }
+  }
 }
 
 document.addEventListener('keydown',e=>{
@@ -530,8 +582,45 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prevWork();}
   if(e.key==='Escape')exitStage({stopPropagation:()=>{}});
 });
-document.getElementById('stageScreen').addEventListener('touchstart',e=>{txStart=e.touches[0].clientX;},{passive:true});
-document.getElementById('stageScreen').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-txStart;if(Math.abs(dx)>60){dx<0?nextWork():prevWork();}},{passive:true});
+
+// Yatay swipe → eser geçişi | Swipe up → bottom nav aç (4sn sonra kapan)
+let txStart=0, tyStart=0;
+let _navTimer=null;
+function showStageHint(){
+  if(localStorage.getItem('stageHintSeen')) return;
+  localStorage.setItem('stageHintSeen','1');
+  const t=document.getElementById('stageHintToast');
+  if(!t)return;
+  setTimeout(()=>t.classList.add('show'),400);
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+function openStageNav(){
+  const bnav=document.getElementById('v2StageBotNav');
+  if(!bnav)return;
+  bnav.classList.remove('stage-hidden');
+  if(_navTimer)clearTimeout(_navTimer);
+  _navTimer=setTimeout(()=>bnav.classList.add('stage-hidden'),4000);
+}
+document.addEventListener('touchstart',e=>{
+  if(document.getElementById('stageScreen').classList.contains('hidden'))return;
+  txStart=e.touches[0].clientX;
+  tyStart=e.touches[0].clientY;
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(document.getElementById('stageScreen').classList.contains('hidden'))return;
+  const dx=e.changedTouches[0].clientX-txStart;
+  const dy=e.changedTouches[0].clientY-tyStart;
+  if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>50){
+    if(dy<0) openStageNav(); // swipe up → aç
+  } else if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){
+    dx<0?nextWork():prevWork();
+  }
+},{passive:true});
+
+// Handle tıklama → aç (timer ile)
+const _sh=document.getElementById('stageSwipeHandle');
+if(_sh)_sh.addEventListener('click',e=>{e.stopPropagation();openStageNav();});
 
 // ── NAVİGASYON ──
 let sideList = [];
@@ -698,13 +787,21 @@ function loadSideWork(id) {
 
 </script>
 
-<nav class="v2-bottom-nav" id="v2StageBotNav">
-  <div class="v2-bn-items">
+<nav id="v2StageBotNav">
+  <!-- Picker screen: genel nav -->
+  <div class="v2-bn-items" id="stageNavPicker">
     <a href="index.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-home" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Ana Sayfa</span></a>
     <a href="eserler.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-playlist" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Eserler</span></a>
     <a href="repertoires.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-book" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Repertuvarlar</span></a>
     <a onclick="showScreen('pickerScreen')" class="v2-bn-item v2-bn-stage" style="cursor:pointer;"><i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Sahne Modu</span></a>
     <a href="ayarlar.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-settings" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Ayarlar</span></a>
+  </div>
+  <!-- Stage screen: sahneye özel nav -->
+  <div class="v2-bn-items" id="stageNavStage" style="display:none;">
+    <a href="#" class="v2-bn-item" id="btnGoBack" onclick="goBack(event)"><i class="ti ti-arrow-left" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Geri Dön</span></a>
+    <button class="v2-bn-item" id="btnToggleView" onclick="event.stopPropagation();toggleChordView()" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" id="toggleViewLabel">Güfte</span></button>
+    <a href="repertoires.html" class="v2-bn-item" id="btnActiveRep" onclick="goToActiveRep(event)"><i class="ti ti-book" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Repertuvar</span></a>
+    <button class="v2-bn-item v2-bn-exit" onclick="event.stopPropagation();exitStage(event)" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-x" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Çık</span></button>
   </div>
 </nav>
 <script>
@@ -720,5 +817,11 @@ function loadSideWork(id) {
   }
 })();
 </script>
+<div id="stageHintToast">
+  <span><i class="ti ti-arrow-left"></i><i class="ti ti-arrow-right"></i> Eser geçişi</span>
+  <span><i class="ti ti-arrow-up"></i> Menü</span>
+</div>
+
+<div id="stageSwipeHandle"></div>
 </body>
 </html>
