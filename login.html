@@ -190,9 +190,40 @@ async function doRegister() {
 async function doReset() {
   const email = document.getElementById('loginEmail').value.trim();
   if(!email) { showMsg('err','Önce e-posta adresinizi girin.'); return; }
-  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: 'https://repertuvar.app/reset-password.html'});
-  if(error) showMsg('err', error.message);
-  else showMsg('ok','Şifre sıfırlama bağlantısı gönderildi.');
+  const {error} = await sb.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: false }
+  });
+  if(error) { showMsg('err', error.message); return; }
+  showMsg('ok','6 haneli kod e-postanıza gönderildi.');
+  // OTP giriş formunu göster
+  document.getElementById('loginForm').innerHTML = `
+    <div class="field">
+      <label>E-posta</label>
+      <input type="email" id="otpEmail" value="${email}" readonly style="opacity:.6;">
+    </div>
+    <div class="field">
+      <label>E-postanıza gelen 6 haneli kod</label>
+      <input type="text" id="otpCode" placeholder="000000" maxlength="6" autocomplete="one-time-code"
+        style="letter-spacing:.3em;font-size:20px;text-align:center;"
+        onkeydown="if(event.key==='Enter') verifyOtp()">
+    </div>
+    <button class="btn-primary" onclick="verifyOtp()">Kodu Doğrula</button>
+    <button class="forgot" onclick="location.reload()">← Geri dön</button>
+  `;
+}
+
+async function verifyOtp() {
+  const email = document.getElementById('otpEmail').value.trim();
+  const token = document.getElementById('otpCode').value.trim();
+  if(!token || token.length < 6) { showMsg('err','6 haneli kodu girin.'); return; }
+  const {data, error} = await sb.auth.verifyOtp({ email, token, type: 'email' });
+  if(error) { showMsg('err', 'Kod hatalı veya süresi dolmuş.'); return; }
+  if(data.session) {
+    localStorage.setItem('sb_token', data.session.access_token);
+    localStorage.setItem('sb_refresh', data.session.refresh_token);
+    window.location.href = 'reset-password.html';
+  }
 }
 
 async function loginGoogle() {
