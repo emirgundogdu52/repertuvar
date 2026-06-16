@@ -195,7 +195,7 @@ async function doReset() {
     options: { shouldCreateUser: false }
   });
   if(error) { showMsg('err', error.message); return; }
-  showMsg('ok','6 haneli kod e-postanıza gönderildi.');
+  showMsg('ok','8 haneli kod e-postanıza gönderildi.');
   // OTP giriş formunu göster
   document.getElementById('loginForm').innerHTML = `
     <div class="field">
@@ -203,8 +203,8 @@ async function doReset() {
       <input type="email" id="otpEmail" value="${email}" readonly style="opacity:.6;">
     </div>
     <div class="field">
-      <label>E-postanıza gelen 6 haneli kod</label>
-      <input type="text" id="otpCode" placeholder="000000" maxlength="6" autocomplete="one-time-code"
+      <label>E-postanıza gelen 8 haneli kod</label>
+      <input type="text" id="otpCode" placeholder="00000000" maxlength="8" autocomplete="one-time-code"
         style="letter-spacing:.3em;font-size:20px;text-align:center;"
         onkeydown="if(event.key==='Enter') verifyOtp()">
     </div>
@@ -216,7 +216,7 @@ async function doReset() {
 async function verifyOtp() {
   const email = document.getElementById('otpEmail').value.trim();
   const token = document.getElementById('otpCode').value.trim();
-  if(!token || token.length < 6) { showMsg('err','6 haneli kodu girin.'); return; }
+  if(!token || token.length < 8) { showMsg('err','8 haneli kodu girin.'); return; }
   const {data, error} = await sb.auth.verifyOtp({ email, token, type: 'email' });
   if(error) { showMsg('err', 'Kod hatalı veya süresi dolmuş.'); return; }
   if(data.session) {
