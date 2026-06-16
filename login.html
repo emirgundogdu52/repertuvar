@@ -190,7 +190,7 @@ async function doRegister() {
 async function doReset() {
   const email = document.getElementById('loginEmail').value.trim();
   if(!email) { showMsg('err','Önce e-posta adresinizi girin.'); return; }
-  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: 'https://www.repertuvar.app/reset-password.html'});
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: 'https://repertuvar.app/reset-password.html'});
   if(error) showMsg('err', error.message);
   else showMsg('ok','Şifre sıfırlama bağlantısı gönderildi.');
 }
