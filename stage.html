@@ -38,7 +38,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .loading{text-align:center;color:var(--text2);padding:24px;font-size:13px;}
 
 .stb{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:8px;}
-.strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+#v2StageBotNav .v2-bn-exit { color: #c05444 !important; }
+#v2StageBotNav .v2-bn-exit:hover { color: #e06655 !important; }
+.strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;}
 .stp{display:flex;align-items:center;gap:10px;}
 .pds{display:flex;gap:5px;align-items:center;}
 .pd{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;flex-shrink:0;}
@@ -222,12 +224,6 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     <div class="stp">
       <div class="pds" id="pds"></div>
       <div class="stc" id="stc">1/1</div>
-    </div>
-    <div class="stage-nav">
-      <a href="#" id="btnGoBack" onclick="goBack(event)" style="display:none;">‹ Geri Dön</a>
-      <button class="bex" id="btnToggleView" onclick="toggleChordView()" title="Güfte/Akor geçişi">🎼 Güfte</button>
-      <a href="repertoires.html" id="btnActiveRep" onclick="goToActiveRep(event)">📋 Repertuvar</a>
-      <button class="bex" onclick="exitStage(event)">✕ Çık</button>
     </div>
   </div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><span class="snb-arrow">‹</span><span class="snb-label">Önceki</span></button>
@@ -442,14 +438,14 @@ function initBackBtn() {
   const src = localStorage.getItem('stageSource');
   const backBtn = document.getElementById('btnGoBack');
   if (backBtn && src) {
-    const labels = { eserler: '‹ Eserler', repertoires: '‹ Repertuvarlar', index: '‹ Ana Sayfa', artiesten: '‹ Solistler', uyeler: '‹ Üyeler', ayarlar: '‹ Ayarlar' };
-    backBtn.textContent = labels[src] || '‹ Geri Dön';
-    backBtn.style.display = '';
+    const labels = { eserler: 'Eserler', repertoires: 'Repertuvarlar', index: 'Ana Sayfa', artiesten: 'Solistler', uyeler: 'Üyeler', ayarlar: 'Ayarlar' };
+    const lbl = backBtn.querySelector('.v2-bn-label');
+    if (lbl) lbl.textContent = labels[src] || 'Geri Dön';
   }
-  const toggleBtn = document.getElementById('btnToggleView');
-  if (toggleBtn) {
+  const lbl = document.getElementById('toggleViewLabel');
+  if (lbl) {
     const chordsOn = localStorage.getItem('stageShowChords') === '1';
-    toggleBtn.textContent = chordsOn ? '🎸 Akor' : '🎼 Güfte';
+    lbl.textContent = chordsOn ? 'Akor' : 'Güfte';
   }
 }
 
@@ -457,8 +453,10 @@ function toggleChordView() {
   const current = localStorage.getItem('stageShowChords') === '1';
   const next = current ? '0' : '1';
   localStorage.setItem('stageShowChords', next);
-  const btn = document.getElementById('btnToggleView');
-  if (btn) btn.textContent = next === '1' ? '🎸 Akor' : '🎼 Güfte';
+  const lbl = document.getElementById('toggleViewLabel');
+  if (lbl) lbl.textContent = next === '1' ? 'Akor' : 'Güfte';
+  const icon = document.querySelector('#btnToggleView .ti');
+  if (icon) { icon.className = next === '1' ? 'ti ti-guitar-pick' : 'ti ti-music'; icon.style.cssText='font-size:20px;line-height:1;'; }
   // Mevcut eseri yeniden render et
   const w = works[curIdx];
   if (w) showWork(w);
@@ -520,8 +518,23 @@ function startSharedRep() {
 function showScreen(id){
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
   const tnav=document.getElementById('v2StageTopnav');if(tnav)tnav.classList.toggle('hidden',id!=='pickerScreen');
-  // r-topnav-container stage'de her zaman gizli
-  const bnav=document.getElementById('v2StageBotNav');if(bnav)bnav.style.display=id==='pickerScreen'?'flex':'none';
+  // Bottom nav: picker modunda genel nav, sahne modunda sahne nav
+  const bnav=document.getElementById('v2StageBotNav');
+  const pickerNav=document.getElementById('stageNavPicker');
+  const stageNav=document.getElementById('stageNavStage');
+  if(bnav){
+    if(id==='stageScreen'){
+      bnav.style.display='flex';
+      if(pickerNav)pickerNav.style.display='none';
+      if(stageNav)stageNav.style.display='flex';
+    } else if(id==='pickerScreen'){
+      bnav.style.display='flex';
+      if(pickerNav)pickerNav.style.display='flex';
+      if(stageNav)stageNav.style.display='none';
+    } else {
+      bnav.style.display='none';
+    }
+  }
 }
 
 document.addEventListener('keydown',e=>{
@@ -698,13 +711,21 @@ function loadSideWork(id) {
 
 </script>
 
-<nav class="v2-bottom-nav" id="v2StageBotNav">
-  <div class="v2-bn-items">
+<nav id="v2StageBotNav">
+  <!-- Picker screen: genel nav -->
+  <div class="v2-bn-items" id="stageNavPicker">
     <a href="index.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-home" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Ana Sayfa</span></a>
     <a href="eserler.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-playlist" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Eserler</span></a>
     <a href="repertoires.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-book" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Repertuvarlar</span></a>
     <a onclick="showScreen('pickerScreen')" class="v2-bn-item v2-bn-stage" style="cursor:pointer;"><i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Sahne Modu</span></a>
     <a href="ayarlar.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-settings" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Ayarlar</span></a>
+  </div>
+  <!-- Stage screen: sahneye özel nav -->
+  <div class="v2-bn-items" id="stageNavStage" style="display:none;">
+    <a href="#" class="v2-bn-item" id="btnGoBack" onclick="goBack(event)"><i class="ti ti-arrow-left" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Geri Dön</span></a>
+    <button class="v2-bn-item" id="btnToggleView" onclick="event.stopPropagation();toggleChordView()" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" id="toggleViewLabel">Güfte</span></button>
+    <a href="repertoires.html" class="v2-bn-item" id="btnActiveRep" onclick="goToActiveRep(event)"><i class="ti ti-book" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Repertuvar</span></a>
+    <button class="v2-bn-item v2-bn-exit" onclick="event.stopPropagation();exitStage(event)" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-x" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Çık</span></button>
   </div>
 </nav>
 <script>
