@@ -576,15 +576,16 @@ document.addEventListener('keydown',e=>{
 
 // Yatay swipe → eser geçişi | Dikey swipe → bottom nav aç/kapat
 let txStart=0, tyStart=0;
-document.getElementById('stageScreen').addEventListener('touchstart',e=>{
+document.addEventListener('touchstart',e=>{
+  if(document.getElementById('stageScreen').classList.contains('hidden'))return;
   txStart=e.touches[0].clientX;
   tyStart=e.touches[0].clientY;
 },{passive:true});
-document.getElementById('stageScreen').addEventListener('touchend',e=>{
+document.addEventListener('touchend',e=>{
+  if(document.getElementById('stageScreen').classList.contains('hidden'))return;
   const dx=e.changedTouches[0].clientX-txStart;
   const dy=e.changedTouches[0].clientY-tyStart;
   if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>50){
-    // Dikey swipe
     const bnav=document.getElementById('v2StageBotNav');
     if(!bnav)return;
     if(dy<0){bnav.classList.remove('stage-hidden');}  // swipe up → aç
