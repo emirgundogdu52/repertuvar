@@ -1118,8 +1118,8 @@ async function deleteWork(id) {
   if (idx > -1) DATA.splice(idx, 1);
   buildFilters();
   applyFilters();
-  // Admin için pending sayısını göster
-  if (isAdmin()) {
+  // Admin ve editör için pending sayısını göster
+  if (isAdmin() || isEditor()) {
     const pendingWorks = DATA.filter(w => w.status === 'pending');
     const pendingBtn = document.getElementById('btnPendingReview');
     const pendingCount = document.getElementById('pendingCount');
@@ -1171,6 +1171,10 @@ document.addEventListener('keydown', function(e) {
     if (adminNewBtn) { adminNewBtn.classList.remove('admin-only'); adminNewBtn.style.display = 'flex'; }
     const mobileNewBtn = document.getElementById('btnMobileNewEser');
     if (mobileNewBtn) { mobileNewBtn.classList.remove('admin-only'); mobileNewBtn.style.display = 'flex'; }
+    const pendingBtnM = document.getElementById('btnPendingReview');
+    if (pendingBtnM) pendingBtnM.classList.remove('admin-only');
+    const pendingBtnD = document.getElementById('btnPendingReviewDesktop');
+    if (pendingBtnD) { pendingBtnD.classList.remove('admin-only'); pendingBtnD.style.display = 'flex'; }
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
     const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
