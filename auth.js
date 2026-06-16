@@ -91,7 +91,6 @@ async function ensureProfile(user) {
       },
       body: JSON.stringify({
         id: user.id,
-        role: 'member',
         display_name: user.email,
         email: user.email
       })
