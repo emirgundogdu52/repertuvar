@@ -559,10 +559,10 @@ function showScreen(id){
   if(bnav){
     if(id==='stageScreen'){
       bnav.style.display='flex';
-      bnav.classList.add('stage-hidden'); // sahne modunda başta gizli
+      if(window.innerWidth<1024) bnav.classList.add('stage-hidden'); // mobilde başta gizli
       if(pickerNav)pickerNav.style.display='none';
       if(stageNav)stageNav.style.display='flex';
-      if(handle)handle.classList.add('visible');
+      if(window.innerWidth<1024 && handle) handle.classList.add('visible');
       showStageHint();
     } else if(id==='pickerScreen'){
       bnav.style.display='flex';
