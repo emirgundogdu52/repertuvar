@@ -574,8 +574,16 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape')exitStage({stopPropagation:()=>{}});
 });
 
-// Yatay swipe → eser geçişi | Dikey swipe → bottom nav aç/kapat
+// Yatay swipe → eser geçişi | Swipe up → bottom nav aç (4sn sonra kapan)
 let txStart=0, tyStart=0;
+let _navTimer=null;
+function openStageNav(){
+  const bnav=document.getElementById('v2StageBotNav');
+  if(!bnav)return;
+  bnav.classList.remove('stage-hidden');
+  if(_navTimer)clearTimeout(_navTimer);
+  _navTimer=setTimeout(()=>bnav.classList.add('stage-hidden'),4000);
+}
 document.addEventListener('touchstart',e=>{
   if(document.getElementById('stageScreen').classList.contains('hidden'))return;
   txStart=e.touches[0].clientX;
@@ -586,22 +594,15 @@ document.addEventListener('touchend',e=>{
   const dx=e.changedTouches[0].clientX-txStart;
   const dy=e.changedTouches[0].clientY-tyStart;
   if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>50){
-    const bnav=document.getElementById('v2StageBotNav');
-    if(!bnav)return;
-    if(dy<0){bnav.classList.remove('stage-hidden');}  // swipe up → aç
-    else{bnav.classList.add('stage-hidden');}          // swipe down → kapat
+    if(dy<0) openStageNav(); // swipe up → aç
   } else if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){
     dx<0?nextWork():prevWork();
   }
 },{passive:true});
 
-// Handle tıklama → aç/kapat
+// Handle tıklama → aç (timer ile)
 const _sh=document.getElementById('stageSwipeHandle');
-if(_sh)_sh.addEventListener('click',e=>{
-  e.stopPropagation();
-  const bnav=document.getElementById('v2StageBotNav');
-  if(bnav)bnav.classList.toggle('stage-hidden');
-});
+if(_sh)_sh.addEventListener('click',e=>{e.stopPropagation();openStageNav();});
 
 // ── NAVİGASYON ──
 let sideList = [];
