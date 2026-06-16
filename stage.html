@@ -217,6 +217,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 
 /* Stage Bottom Nav */
 #v2StageBotNav { position:fixed; bottom:0; left:0; right:0; height:68px; background:rgba(7,7,26,0.97); backdrop-filter:blur(24px); border-top:1px solid rgba(120,100,255,0.18); display:none; align-items:center; z-index:400; padding-bottom:env(safe-area-inset-bottom); }
+@media(min-width:1024px){ #v2StageBotNav { position:static; width:100%; height:auto; padding:8px 0; background:rgba(7,7,26,0.6); backdrop-filter:none; } }
 #v2StageBotNav .v2-bn-items { display:flex; width:100%; padding:0 4px; }
 #v2StageBotNav .v2-bn-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:7px 2px; text-decoration:none; color:#5e5c8a; border-radius:10px; transition:all .15s; }
 #v2StageBotNav .v2-bn-item.active { color:#7c6fff; }
