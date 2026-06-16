@@ -219,7 +219,7 @@ function filterMembers() {
 async function loadMembers() {
   try {
     var token = localStorage.getItem('sb_token') || SUPA_KEY;
-    var r = await fetch(SUPA_URL + '/rest/v1/profiles?select=id,role,email,display_name,created_at&order=role', {
+    var r = await fetch(SUPA_URL + '/rest/v1/profiles?select=id,role,email,display_name,created_at&order=created_at.desc', {
       headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
     });
     if (!r.ok) throw new Error(await r.text());
