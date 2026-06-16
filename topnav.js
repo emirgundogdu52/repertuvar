@@ -14,12 +14,12 @@
       gap: 12px;
     }
     .r-topnav img.r-logo {
-      height: 32px; width: auto; flex-shrink: 0;
+      height: 75px; width: auto; flex-shrink: 0;
     }
     .r-topnav .r-tn-right {
       margin-left: auto;
       display: flex; flex-direction: row; align-items: flex-start; gap: 8px;
-      padding-top: 0;
+      padding-top: 10px;
     }
     .r-tn-user {
       display: flex; align-items: center; gap: 6px;
@@ -39,7 +39,7 @@
     }
     .r-tn-user { cursor: pointer; position: relative; }
     .r-tn-dropdown {
-      display: none; position: absolute; top: calc(100% + 6px); right: 0;
+      display: none; position: fixed; top: 60px; right: 12px;
       background: #12123a; border: 1px solid rgba(120,100,255,0.25);
       border-radius: 10px; padding: 6px; min-width: 140px; z-index: 9999;
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
@@ -104,7 +104,7 @@
     if (!container) return;
     container.innerHTML = `
       <header class="r-topnav">
-        <img src="repertuvar_logoNew.png" alt="repertuvar.app" class="r-logo">
+        <img src="logo2.png" alt="repertuvar.app" class="r-logo">
         <div class="r-tn-right">
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar">—</div>
