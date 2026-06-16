@@ -673,6 +673,8 @@ function pickW(id){
   selWId=id;
   const w=WL[id];
   if(!w) return filterW();
+  // Eser adını arama kutusuna yaz
+  document.getElementById('ws').value = w.name;
   // Kapanış notasını doldur (boşsa)
   if(w.closingNote && !document.getElementById('fCN').value)
     document.getElementById('fCN').value = w.closingNote;
