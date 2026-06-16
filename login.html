@@ -140,7 +140,7 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // Zaten giriş yaptıysa yönlendir
 // Sadece localStorage token kontrolü - SDK session cache değil
-if(!window.location.search.includes('logout=1')) {
+if(!window.location.search.includes('logout=1') && !window.location.hash.includes('type=recovery')) {
   const token = localStorage.getItem('sb_token');
   if(token) window.location.href = 'index.html';
 }
