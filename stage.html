@@ -427,7 +427,7 @@ function renderStage(){
   ].filter(Boolean).join('');
   const showChords = localStorage.getItem('stageShowChords') === '1';
   const lyricsHtml = (showChords && w.chords)
-    ? `<div class="wlyrics" style="text-align:left;">${renderStageChords(w.chords)}</div>`
+    ? `<div class="wlyrics">${renderStageChords(w.chords)}</div>`
     : (w.lyrics ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>` : '');
   document.getElementById('sm').innerHTML=`
     <div class="wnum">Eser ${curIdx+1} / ${total}</div>
@@ -437,7 +437,7 @@ function renderStage(){
     ${lyricsHtml}`; 
   // Kaydedilmiş hizalamayı uygula
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
-  setLyricsAlign(savedAlign);
+  requestAnimationFrame(() => setLyricsAlign(savedAlign));
   const next=items[curIdx+1];
   const np=document.getElementById('np');
   if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
