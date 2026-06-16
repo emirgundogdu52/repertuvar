@@ -126,9 +126,8 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
         localStorage.setItem('sb_token', data.session.access_token);
         localStorage.setItem('sb_refresh', data.session.refresh_token);
         if (type === 'recovery') {
-          // Şifre sıfırlama — sayfada kal, yeni şifre formu göster
-          showMsg('ok', 'Kimlik doğrulandı. Yeni şifrenizi girin.');
-          // TODO: şifre sıfırlama formu
+          window.location.href = 'reset-password.html' + window.location.hash;
+          return;
         } else {
           showMsg('ok', 'E-posta doğrulandı! Yönlendiriliyorsunuz...');
           setTimeout(() => window.location.href = 'index.html', 1500);
@@ -193,7 +192,7 @@ async function doRegister() {
 async function doReset() {
   const email = document.getElementById('loginEmail').value.trim();
   if(!email) { showMsg('err','Önce e-posta adresinizi girin.'); return; }
-  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: 'https://emirgundogdu52.github.io/repertuvar/login.html'});
+  const {error} = await sb.auth.resetPasswordForEmail(email, {redirectTo: 'https://www.repertuvar.app/reset-password.html'});
   if(error) showMsg('err', error.message);
   else showMsg('ok','Şifre sıfırlama bağlantısı gönderildi.');
 }
@@ -201,7 +200,7 @@ async function doReset() {
 async function loginGoogle() {
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: {redirectTo: 'https://emirgundogdu52.github.io/repertuvar/login.html'}
+    options: {redirectTo: 'https://www.repertuvar.app/reset-password.html'}
   });
 }
 </script>
