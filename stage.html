@@ -52,9 +52,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 
 .sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 40px 80px;position:relative;overflow-y:auto;cursor:pointer;}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
-.wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;opacity:0;animation:si .4s ease forwards;}
-.wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:24px;opacity:0;animation:si .4s ease .07s forwards;}
-.wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;opacity:0;animation:si .4s ease .14s forwards;}
+.wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
+.wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
+.wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;opacity:0;animation:si .4s ease .14s forwards;}
+.wcr:empty{display:none;margin:0;}
 .wch{padding:5px 14px;border-radius:20px;font-size:13px;border:1px solid var(--border);color:var(--text2);background:var(--surface);}
 .wch.m{border-color:#3a3060;color:#9b8fd4;background:#1a1828;}
 .wch.n{border-color:#3d2a1a;color:var(--accent);background:#1e1208;}
@@ -64,6 +65,31 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
 .sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;}
+
+/* Stage bottom nav: swipe gizle/göster */
+#v2StageBotNav{
+  position:fixed;bottom:0;left:0;right:0;
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+  will-change:transform;
+  z-index:100;
+}
+#v2StageBotNav.stage-hidden{transform:translateY(100%);}
+
+/* Swipe handle — sahne modunda görünür */
+#stageSwipeHandle{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:60px;height:22px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:101;
+  opacity:0;transition:opacity .3s;
+  pointer-events:none;
+}
+#stageSwipeHandle.visible{opacity:1;pointer-events:auto;}
+#stageSwipeHandle::after{
+  content:'';display:block;
+  width:36px;height:4px;border-radius:2px;
+  background:rgba(168,85,247,0.45);
+}
 .np{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;flex:1;max-width:400px;opacity:0;animation:fi .5s ease .4s forwards;}
 .nl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
 .nn{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -290,7 +316,6 @@ async function loadWL() {
     } catch(e) {}
   } catch(e) { console.error('WL yüklenemedi:', e); }
 }let reps=[], selId=null, curRep=null, curIdx=0;
-let txStart=0;
 
 async function loadReps(){
   try{
@@ -518,21 +543,26 @@ function startSharedRep() {
 function showScreen(id){
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
   const tnav=document.getElementById('v2StageTopnav');if(tnav)tnav.classList.toggle('hidden',id!=='pickerScreen');
-  // Bottom nav: picker modunda genel nav, sahne modunda sahne nav
   const bnav=document.getElementById('v2StageBotNav');
   const pickerNav=document.getElementById('stageNavPicker');
   const stageNav=document.getElementById('stageNavStage');
+  const handle=document.getElementById('stageSwipeHandle');
   if(bnav){
     if(id==='stageScreen'){
       bnav.style.display='flex';
+      bnav.classList.add('stage-hidden'); // sahne modunda başta gizli
       if(pickerNav)pickerNav.style.display='none';
       if(stageNav)stageNav.style.display='flex';
+      if(handle)handle.classList.add('visible');
     } else if(id==='pickerScreen'){
       bnav.style.display='flex';
+      bnav.classList.remove('stage-hidden');
       if(pickerNav)pickerNav.style.display='flex';
       if(stageNav)stageNav.style.display='none';
+      if(handle)handle.classList.remove('visible');
     } else {
       bnav.style.display='none';
+      if(handle)handle.classList.remove('visible');
     }
   }
 }
@@ -543,8 +573,34 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prevWork();}
   if(e.key==='Escape')exitStage({stopPropagation:()=>{}});
 });
-document.getElementById('stageScreen').addEventListener('touchstart',e=>{txStart=e.touches[0].clientX;},{passive:true});
-document.getElementById('stageScreen').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-txStart;if(Math.abs(dx)>60){dx<0?nextWork():prevWork();}},{passive:true});
+
+// Yatay swipe → eser geçişi | Dikey swipe → bottom nav aç/kapat
+let txStart=0, tyStart=0;
+document.getElementById('stageScreen').addEventListener('touchstart',e=>{
+  txStart=e.touches[0].clientX;
+  tyStart=e.touches[0].clientY;
+},{passive:true});
+document.getElementById('stageScreen').addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-txStart;
+  const dy=e.changedTouches[0].clientY-tyStart;
+  if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>50){
+    // Dikey swipe
+    const bnav=document.getElementById('v2StageBotNav');
+    if(!bnav)return;
+    if(dy<0){bnav.classList.remove('stage-hidden');}  // swipe up → aç
+    else{bnav.classList.add('stage-hidden');}          // swipe down → kapat
+  } else if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){
+    dx<0?nextWork():prevWork();
+  }
+},{passive:true});
+
+// Handle tıklama → aç/kapat
+const _sh=document.getElementById('stageSwipeHandle');
+if(_sh)_sh.addEventListener('click',e=>{
+  e.stopPropagation();
+  const bnav=document.getElementById('v2StageBotNav');
+  if(bnav)bnav.classList.toggle('stage-hidden');
+});
 
 // ── NAVİGASYON ──
 let sideList = [];
@@ -741,5 +797,6 @@ function loadSideWork(id) {
   }
 })();
 </script>
+<div id="stageSwipeHandle"></div>
 </body>
 </html>
