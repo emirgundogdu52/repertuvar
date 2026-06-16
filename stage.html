@@ -115,7 +115,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 @keyframes pls{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 @keyframes ff{to{opacity:0}}
 
-.stage-nav{display:flex;gap:8px;align-items:center;}
+.align-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:36px;height:36px;font-size:18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.align-btn:hover{border-color:var(--accent);color:var(--accent);}
+.align-btn.active{background:rgba(168,85,247,.15);border-color:var(--accent);color:var(--accent);}
 .stage-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;} .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
 .stage-nav a:hover{border-color:var(--accent);color:var(--accent);}
 
@@ -262,10 +264,10 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="nm" id="nm">—</div>
     </div>
     <div style="display:flex;gap:6px;align-items:center;">
-      <button onclick="setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
-      <button onclick="setLyricsAlign('center')" id="alignCenter" title="Ortala" style="background:rgba(88,166,255,.15);border:1px solid var(--accent);border-radius:6px;color:var(--accent);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☰</button>
-      <button onclick="setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">≡</button>
-      <button onclick="toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:32px;height:32px;font-size:14px;cursor:pointer;transition:all .15s;">☀️</button>
+      <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
+      <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
+      <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>
+      <button onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz" class="align-btn"><i class="ti ti-sun"></i></button>
     </div>
     <div class="th">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
@@ -346,15 +348,7 @@ function setLyricsAlign(align) {
   ['left','center','right'].forEach(a => {
     const btn = document.getElementById('align' + a.charAt(0).toUpperCase() + a.slice(1));
     if (!btn) return;
-    if (a === align) {
-      btn.style.background = 'rgba(88,166,255,.15)';
-      btn.style.borderColor = 'var(--accent)';
-      btn.style.color = 'var(--accent)';
-    } else {
-      btn.style.background = 'none';
-      btn.style.borderColor = 'var(--border)';
-      btn.style.color = 'var(--text3)';
-    }
+    btn.classList.toggle('active', a === align);
   });
 }
 
@@ -380,15 +374,17 @@ function toggleStageTheme(){
   const next = t==='night' ? 'day' : 'night';
   setTheme(next);
   applyTheme('stage');
-  const btn = document.getElementById('stageThemeBtn');
-  if(btn) btn.textContent = next==='day' ? '🌙' : '☀️';
 }
 
 function applyTheme(screen){
   const t=localStorage.getItem('stageTheme')||'night';
   document.body.classList.toggle('day-theme', screen==='stage' && t==='day');
   const btn=document.getElementById('stageThemeBtn');
-  if(btn) btn.textContent = t==='day' ? '🌙' : '☀️';
+  if(btn){
+    const icon=btn.querySelector('i');
+    if(icon) icon.className = t==='day' ? 'ti ti-moon' : 'ti ti-sun';
+    btn.classList.toggle('active', t==='day');
+  }
 }
 function setTheme(t){
   localStorage.setItem('stageTheme',t);
