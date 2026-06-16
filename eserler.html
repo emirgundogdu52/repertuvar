@@ -100,11 +100,11 @@
   .video-btn:hover { background:rgba(88,166,255,.2); }
 
   /* TOOLBAR */
-  .toolbar { padding:10px 20px; display:flex; gap:8px; align-items:center; border-bottom:1px solid var(--border); background:var(--bg); }
+  .toolbar { padding:10px 20px; display:flex; gap:8px; align-items:center; border-bottom:1px solid var(--border); background:var(--bg); flex-wrap:wrap; }
   .sort-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
   .sort-btn:hover { border-color:var(--border2); color:var(--text); }
   .sort-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,.08); }
-  .clear-btn { margin-left:auto; background:none; border:1px solid var(--border); border-radius:6px; padding:4px 7px; color:var(--text3); font-size:10px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
+  .clear-btn { background:none; border:1px solid var(--border); border-radius:6px; padding:4px 7px; color:var(--text3); font-size:10px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
   .clear-btn:hover { color:var(--text2); border-color:var(--border2); }
 
   /* SORT DROPDOWN */
@@ -368,6 +368,8 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
         </div>
       </div>
       <button class="clear-btn" onclick="clearFilters()">Filtreleri Temizle</button>
+      <div style="flex:1;"></div>
+      <button id="btnPendingReview" class="admin-only" onclick="showPendingWorks()" style="display:none;align-items:center;gap:5px;background:rgba(249,160,74,.1);border:1px solid rgba(249,160,74,.35);border-radius:7px;padding:6px 10px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);">⏳ Onay Bekleyen <span id="pendingCount" style="background:rgba(249,160,74,.25);border-radius:10px;padding:1px 6px;">0</span></button>
       <button id="btnMobileNewEser" class="admin-only" onclick="openNewEserModal()" style="display:none;align-items:center;gap:5px;background:var(--accent);border:none;border-radius:7px;padding:6px 10px;font-size:10.5px;color:#fff;font-weight:600;cursor:pointer;font-family:var(--font);white-space:normal;text-align:center;line-height:1.3;max-width:56px;">Yeni<br>Eser</button>
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);">🎵 Öner</button>
     </div>
@@ -1117,8 +1119,8 @@ async function deleteWork(id) {
   if (idx > -1) DATA.splice(idx, 1);
   buildFilters();
   applyFilters();
-  // Admin için pending sayısını göster
-  if (isAdmin()) {
+  // Admin ve editör için pending sayısını göster
+  if (isAdmin() || isEditor()) {
     const pendingWorks = DATA.filter(w => w.status === 'pending');
     const pendingBtn = document.getElementById('btnPendingReview');
     const pendingCount = document.getElementById('pendingCount');
@@ -1170,6 +1172,10 @@ document.addEventListener('keydown', function(e) {
     if (adminNewBtn) { adminNewBtn.classList.remove('admin-only'); adminNewBtn.style.display = 'flex'; }
     const mobileNewBtn = document.getElementById('btnMobileNewEser');
     if (mobileNewBtn) { mobileNewBtn.classList.remove('admin-only'); mobileNewBtn.style.display = 'flex'; }
+    const pendingBtnM = document.getElementById('btnPendingReview');
+    if (pendingBtnM) pendingBtnM.classList.remove('admin-only');
+    const pendingBtnD = document.getElementById('btnPendingReviewDesktop');
+    if (pendingBtnD) { pendingBtnD.classList.remove('admin-only'); pendingBtnD.style.display = 'flex'; }
     const suggestBtn = document.getElementById('btnUserSuggest');
     if (suggestBtn) suggestBtn.style.display = 'none';
     const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
@@ -1356,7 +1362,7 @@ async function updatePendingCount() {
   const countEl = document.getElementById('pendingCount');
   if (btn) {
     btn.classList.remove('admin-only');
-    btn.style.display = cnt > 0 ? '' : 'none';
+    btn.style.display = cnt > 0 ? 'flex' : 'none';
   }
   if (countEl) countEl.textContent = cnt;
   // Desktop topbar butonu
@@ -1519,7 +1525,7 @@ function openSuggestModal() {
   // Role-based nav items
   function _v2RoleInit(){
     if(typeof isAdmin!=='function') return;
-    if(isAdmin()||isEditor()){document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('admin-only'));}
+    if(isAdmin()||isEditor()){document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('admin-only')); if(typeof updatePendingCount==='function') updatePendingCount(); const ms=document.getElementById('btnMobileUserSuggest'); if(ms) ms.style.display='none';}
     const roleEl=document.getElementById('sbUserRole');
     if(roleEl){
       if(typeof isAdmin==='function'&&isAdmin()) roleEl.textContent='Admin';
