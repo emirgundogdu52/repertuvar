@@ -687,11 +687,19 @@ function loadSideWork(id) {
 }
 // Init
 (async()=>{
+  const urlParams = new URLSearchParams(window.location.search);
+  const _shareToken = urlParams.get('share');
+
+  // Paylaşım modu: login gerekmez
+  if (!_shareToken) {
+    if (typeof requireAuth === 'function') {
+      const ok = await requireAuth();
+      if (!ok) return;
+    }
+  }
+
   // Önce Supabase'den WL'yi yükle
   await loadWL();
-
-  // Tek eser modu: ?work=ID parametresi varsa direkt sahne modunda aç
-  const urlParams = new URLSearchParams(window.location.search);
 
   // Paylaşım linki: ?share=token → token'dan rep ID çöz, Supabase'den yükle
   const shareToken = urlParams.get('share');
@@ -807,7 +815,8 @@ function loadSideWork(id) {
 </nav>
 <script>
 (function(){
-  if(typeof requireAuth==='function'){
+  const _sp=new URLSearchParams(window.location.search).get('share');
+  if(!_sp && typeof requireAuth==='function'){
     requireAuth().then(()=>{
       const u=getUser&&getUser();if(!u)return;
       const name=u?.user_metadata?.full_name||u?.email?.split('@')[0]||'—';
