@@ -29,7 +29,6 @@ async function requireAuth() {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
     });
     if (!r.ok) {
-      // Token expired - try refresh
       const refresh = localStorage.getItem('sb_refresh');
       if (refresh) {
         const r2 = await fetch(SUPA_URL+'/auth/v1/token?grant_type=refresh_token', {
@@ -52,15 +51,27 @@ async function requireAuth() {
     localStorage.setItem('sb_user', JSON.stringify(user));
     await ensureProfile(user);
     await loadUserRole();
+
+    // Hesap askıya alınmış veya silinme talep edilmişse engelle
+    const status = localStorage.getItem('user_status');
+    if (status === 'suspended') {
+      logoutSilent();
+      window.location.href = 'login.html?suspended=1';
+      return false;
+    }
+    if (status === 'deletion_requested') {
+      logoutSilent();
+      window.location.href = 'login.html?deletion_requested=1';
+      return false;
+    }
+
     return true;
   } catch(e) {
-    // network error - check cached user
     const cachedUser = getUser();
     if (!cachedUser) { window.location.href = 'login.html'; return false; }
     return true;
   }
 }
-
 
 const ADMIN_USER_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
 function isAdmin() {
@@ -80,7 +91,6 @@ async function ensureProfile(user) {
   if (!user?.id) return;
   if (user.id === ADMIN_USER_ID) return;
   try {
-    // Profil yoksa oluştur
     await fetch(SUPA_URL + '/rest/v1/profiles', {
       method: 'POST',
       headers: {
@@ -103,25 +113,19 @@ async function loadUserRole() {
   if (!uid) return;
   if (isAdmin()) { localStorage.setItem('user_role', 'admin'); return; }
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=role', {
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=role,status', {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) }
     });
     if (r.ok) {
       const data = await r.json();
-      console.log('[auth] profiles data:', data);
-      if (data[0]?.role) {
-        localStorage.setItem('user_role', data[0].role);
-        console.log('[auth] role set to:', data[0].role);
-      } else {
-        console.log('[auth] no role found in profiles');
-      }
-    } else {
-      console.log('[auth] profiles fetch failed:', r.status);
+      if (data[0]?.role) localStorage.setItem('user_role', data[0].role);
+      if (data[0]?.status) localStorage.setItem('user_status', data[0].status);
     }
   } catch(e) { console.log('[auth] loadUserRole error:', e); }
 }
 
-function logout() {
+// Sayfa yönlendirmesi olmadan sadece localStorage temizler
+function logoutSilent() {
   const token = getToken();
   if (token) {
     fetch(SUPA_URL+'/auth/v1/logout', {
@@ -133,6 +137,11 @@ function logout() {
   localStorage.removeItem('sb_refresh');
   localStorage.removeItem('sb_user');
   localStorage.removeItem('user_role');
+  localStorage.removeItem('user_status');
+}
+
+function logout() {
+  logoutSilent();
   window.location.href = 'login.html?logout=1';
 }
 
