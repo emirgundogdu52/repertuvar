@@ -600,7 +600,14 @@ async function changePassword() {
     });
     if (r.ok) {
       closePasswordModal();
-      toast('Şifre güncellendi ✓');
+      toast('Şifre güncellendi. Çıkış yapılıyor...');
+      setTimeout(() => {
+        localStorage.removeItem('sb_token');
+        localStorage.removeItem('sb_refresh');
+        localStorage.removeItem('sb_user');
+        localStorage.removeItem('user_role');
+        window.location.href = 'login.html?logout=1';
+      }, 1500);
     } else {
       const err = await r.json();
       toast(err.message || 'Hata oluştu', 'err');
