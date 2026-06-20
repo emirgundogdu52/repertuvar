@@ -73,7 +73,7 @@ async function davetGonder() {
       document.getElementById('davetEmail').value = '';
     } else {
       // Admin API yoksa manuel mail aç
-      const konu = encodeURIComponent('Repertuvar'a Davet');
+      const konu = encodeURIComponent("Repertuvar'a Davet");
       const icerik = encodeURIComponent('Merhaba,\n\nSeni Repertuvar uygulamasına davet ediyorum. Türk müziği sahne yönetimi için çok işlevsel bir araç.\n\nKayıt olmak için: ' + DAVET_URL + '\n\nİyi müzikler!');
       window.open('mailto:' + email + '?subject=' + konu + '&body=' + icerik);
       msg.style.display = 'block';
@@ -81,7 +81,7 @@ async function davetGonder() {
       msg.textContent = '✓ Mail uygulaması açıldı.';
     }
   } catch(e) {
-    const konu = encodeURIComponent('Repertuvar'a Davet');
+    const konu = encodeURIComponent("Repertuvar'a Davet");
     const icerik = encodeURIComponent('Merhaba,\n\nSeni Repertuvar uygulamasına davet ediyorum.\n\nKayıt olmak için: ' + DAVET_URL);
     window.open('mailto:' + email + '?subject=' + konu + '&body=' + icerik);
     msg.style.display = 'block';
