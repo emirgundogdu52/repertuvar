@@ -152,11 +152,17 @@ if(window.location.search.includes('suspended=1')) {
   ), 100);
 }
 if(window.location.search.includes('deletion_requested=1')) {
-  setTimeout(() => showMsg('err', 'Hesabınız silme sürecindedir ve erişiminiz kısıtlanmıştır.<br>Talebinizi geri almak için:<br><br>' +
-    '<a href="mailto:info@repertuvar.app?subject=Silme%20Talebi%20%C4%B0ptali" style="color:var(--red);text-decoration:underline;">✉️ info@repertuvar.app</a>' +
-    '&nbsp;&nbsp;&nbsp;' +
-    '<a href="https://wa.me/NUMARABURAYA?text=Merhaba%2C%20hesap%20silme%20talebimi%20geri%20almak%20istiyorum." target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
-  ), 100);
+  setTimeout(() => {
+    const emailParam = new URLSearchParams(window.location.search).get('email') || '';
+    const waText = encodeURIComponent('Merhaba, hesap silme talebimi geri almak istiyorum. E-posta: ' + emailParam);
+    const mailSubject = encodeURIComponent('Silme Talebi İptali');
+    const mailBody = encodeURIComponent('Merhaba,\n\nHesap silme talebimi geri almak istiyorum.\nE-posta: ' + emailParam);
+    showMsg('err', 'Hesabınız silme sürecindedir ve erişiminiz kısıtlanmıştır.<br>Talebinizi geri almak için:<br><br>' +
+      '<a href="mailto:info@repertuvar.app?subject=' + mailSubject + '&body=' + mailBody + '" style="color:var(--red);text-decoration:underline;">✉️ info@repertuvar.app</a>' +
+      '&nbsp;&nbsp;&nbsp;' +
+      '<a href="https://wa.me/NUMARABURAYA?text=' + waText + '" target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
+    );
+  }, 100);
 }
 if(!window.location.search.includes('logout=1') && !window.location.hash.includes('type=recovery')) {
   const token = localStorage.getItem('sb_token');

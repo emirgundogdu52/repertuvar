@@ -61,7 +61,7 @@ async function requireAuth() {
     }
     if (status === 'deletion_requested') {
       logoutSilent();
-      window.location.href = 'login.html?deletion_requested=1';
+      window.location.href = 'login.html?deletion_requested=1&email=' + encodeURIComponent(user.email || '');
       return false;
     }
 
