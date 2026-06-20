@@ -44,25 +44,23 @@ async function hesapSil() {
   if (email !== user?.email) { hata.style.display='block'; hata.textContent='E-posta adresi eşleşmiyor.'; return; }
 
   const btn = document.getElementById('silOnayla');
-  btn.disabled = true; btn.textContent = 'Siliniyor...';
+  btn.disabled = true; btn.textContent = 'İşleniyor...';
 
   try {
-    const token = getToken();
-    // 1. profiles tablosundan sil
+    // profiles tablosuna silme talebi yaz
     await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + user.id, {
-      method: 'DELETE',
-      headers: authHeaders()
-    });
-    // 2. Auth kullanıcısını sil
-    await fetch(SUPA_URL + '/auth/v1/user', {
-      method: 'DELETE',
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token }
+      method: 'PATCH',
+      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ deletion_requested_at: new Date().toISOString() })
     });
   } catch(e) {}
 
+  // Bilgi e-postası gönder (opsiyonel — mail uygulaması aç)
+  // window.location.href = 'mailto:info@repertuvar.app?subject=Hesap Silme Talebi&body=E-posta: ' + email;
+
   // Logout
   localStorage.clear();
-  window.location.href = 'login.html?logout=1';
+  window.location.href = 'login.html?msg=silme-talebi';
 }
 
 </script>
@@ -536,13 +534,14 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
     <div class="modal-title" style="color:var(--red);">⚠️ Hesabı Sil</div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:8px;">Bu işlem <strong>geri alınamaz</strong>. Tüm hesap bilgileriniz kalıcı olarak silinecek.</p>
     <p id="silRepUyari" style="font-size:13px;color:var(--red);font-weight:600;margin-bottom:8px;display:none;"></p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:8px;">Talebiniz alındıktan sonra <strong>30 gün içinde</strong> tüm verileriniz silinecek ve size bilgi verilecektir.</p>
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Onaylamak için e-posta adresinizi yazın:</p>
     <input type="email" id="silOnayEmail" placeholder="e-posta adresiniz"
       style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;margin-bottom:16px;">
     <div id="silHataMsg" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px;"></div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="hesapSilKapat()">İptal</button>
-      <button class="modal-btn danger" id="silOnayla" onclick="hesapSil()">Hesabımı Kalıcı Olarak Sil</button>
+      <button class="modal-btn danger" id="silOnayla" onclick="hesapSil()">Silme Talebini Gönder</button>
     </div>
   </div>
 </div>

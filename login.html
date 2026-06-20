@@ -140,6 +140,10 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // Zaten giriş yaptıysa yönlendir
 // Sadece localStorage token kontrolü - SDK session cache değil
+// Silme talebi mesajı
+if(window.location.search.includes('msg=silme-talebi')) {
+  setTimeout(() => showMsg('ok', 'Hesap silme talebiniz alındı. 30 gün içinde tüm verileriniz silinecek ve e-posta ile bilgilendirileceksiniz.'), 100);
+}
 if(!window.location.search.includes('logout=1') && !window.location.hash.includes('type=recovery')) {
   const token = localStorage.getItem('sb_token');
   if(token) window.location.href = 'index.html';
