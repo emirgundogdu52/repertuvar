@@ -244,8 +244,8 @@ function renderDeletionRequests(members) {
         '<div class="member-meta">Talep: ' + new Date(m.deletion_requested_at).toLocaleDateString('tr-TR') + ' · ' + (kalan > 0 ? kalan + ' gün kaldı' : 'Süre doldu!') + '</div>' +
       '</div>' +
       '<div class="member-actions">' +
-        '<button class="role-btn" style="background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);color:var(--red);" onclick="hesabiSil('' + m.id + '', '' + (m.email||'') + '')">Hesabı Sil</button>' +
-        '<button class="role-btn" onclick="silmeyiIptal('' + m.id + '', '' + (m.email||'') + '')">İptal Et</button>' +
+        '<button class="role-btn" style="background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);color:var(--red);" onclick="hesabiSil(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)">Hesabı Sil</button>' +
+        '<button class="role-btn" onclick="silmeyiIptal(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)">İptal Et</button>' +
       '</div>' +
     '</div>';
   }).join('');
