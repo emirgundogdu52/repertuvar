@@ -51,7 +51,7 @@ async function hesapSil() {
     await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + user.id, {
       method: 'PATCH',
       headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ deletion_requested_at: new Date().toISOString() })
+      body: JSON.stringify({ deletion_requested_at: new Date().toISOString(), status: 'deletion_requested' })
     });
   } catch(e) {}
 
