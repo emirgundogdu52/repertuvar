@@ -589,8 +589,6 @@ async function changePassword() {
   if (!p1 || p1.length < 6) { toast('En az 6 karakter gerekli', 'err'); return; }
   if (p1 !== p2) { toast('Şifreler eşleşmiyor', 'err'); return; }
   try {
-    const { createClient } = supabase;
-    // auth.js'deki sb client'ı kullan
     const r = await fetch(SUPA_URL + '/auth/v1/user', {
       method: 'PUT',
       headers: {
