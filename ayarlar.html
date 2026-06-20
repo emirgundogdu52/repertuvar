@@ -5,7 +5,93 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repertuvar — Ayarlar</title>
 <link rel="icon" href="Repertuvar_logo.png">
-<script src="auth.js"></script>
+<script src="auth.js">
+const DAVET_URL = 'https://repertuvar.app/login.html';
+const DAVET_MESAJ = 'Merhaba! Türk müziği repertuvar yönetimi için harika bir uygulama keşfettim. Sahne modunda eserler arası geçiş çok kolay. Bir bak: ';
+
+function linkKopyala() {
+  navigator.clipboard.writeText(DAVET_URL).then(() => {
+    const btn = document.getElementById('kopyalaBtn');
+    btn.textContent = '✓ Kopyalandı';
+    setTimeout(() => btn.textContent = '📋 Kopyala', 2000);
+  });
+}
+
+function paylasBilesen(tip) {
+  const mesaj = encodeURIComponent(DAVET_MESAJ + DAVET_URL);
+  const konu = encodeURIComponent('Repertuvar — Sahne Müzisyenleri için');
+  if (tip === 'whatsapp') {
+    window.open('https://wa.me/?text=' + mesaj, '_blank');
+  } else if (tip === 'email') {
+    window.open('mailto:?subject=' + konu + '&body=' + mesaj);
+  } else if (tip === 'sms') {
+    window.open('sms:?body=' + mesaj);
+  } else if (tip === 'native') {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Repertuvar.app',
+        text: DAVET_MESAJ,
+        url: DAVET_URL
+      });
+    } else {
+      linkKopyala();
+    }
+  }
+}
+
+async function davetGonder() {
+  const email = document.getElementById('davetEmail').value.trim();
+  const msg = document.getElementById('davetMsg');
+  if (!email) { 
+    msg.style.display = 'block';
+    msg.style.color = '#f87171';
+    msg.textContent = 'E-posta adresi girin.';
+    return; 
+  }
+  const btn = document.getElementById('davetBtn');
+  btn.disabled = true; btn.textContent = 'Gönderiliyor...';
+  
+  // Supabase ile davet e-postası gönder
+  const SUPA_URL_L = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+  const SUPA_KEY_L = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+  
+  try {
+    const r = await fetch(SUPA_URL_L + '/auth/v1/admin/invite', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY_L,
+        'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY_L),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, data: { invited: true } })
+    });
+    if (r.ok) {
+      msg.style.display = 'block';
+      msg.style.color = '#4ade80';
+      msg.textContent = '✓ Davet gönderildi!';
+      document.getElementById('davetEmail').value = '';
+    } else {
+      // Admin API yoksa manuel mail aç
+      const konu = encodeURIComponent('Repertuvar'a Davet');
+      const icerik = encodeURIComponent('Merhaba,\n\nSeni Repertuvar uygulamasına davet ediyorum. Türk müziği sahne yönetimi için çok işlevsel bir araç.\n\nKayıt olmak için: ' + DAVET_URL + '\n\nİyi müzikler!');
+      window.open('mailto:' + email + '?subject=' + konu + '&body=' + icerik);
+      msg.style.display = 'block';
+      msg.style.color = '#4ade80';
+      msg.textContent = '✓ Mail uygulaması açıldı.';
+    }
+  } catch(e) {
+    const konu = encodeURIComponent('Repertuvar'a Davet');
+    const icerik = encodeURIComponent('Merhaba,\n\nSeni Repertuvar uygulamasına davet ediyorum.\n\nKayıt olmak için: ' + DAVET_URL);
+    window.open('mailto:' + email + '?subject=' + konu + '&body=' + icerik);
+    msg.style.display = 'block';
+    msg.style.color = '#4ade80';
+    msg.textContent = '✓ Mail uygulaması açıldı.';
+  }
+  
+  btn.disabled = false; btn.textContent = 'Gönder';
+}
+
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -298,6 +384,59 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
     </div>
 
     <!-- 4. HAKKINDA -->
+
+    <!-- DAVET ET -->
+    <div class="settings-section">
+      <div class="section-header">
+        <span class="section-icon">🎵</span>
+        <div>
+          <div class="section-title">Arkadaşını Davet Et</div>
+          <div class="section-subtitle" style="font-size:11px;color:var(--text3);margin-top:2px;">Repertuvar'ı müzisyen arkadaşlarınla paylaş</div>
+        </div>
+      </div>
+
+      <!-- Link kopyala -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Davet Linki</div>
+          <div class="setting-desc" id="davetLink" style="font-size:11px;color:var(--text3);word-break:break-all;">repertuvar.app/login.html</div>
+        </div>
+        <button class="setting-btn" onclick="linkKopyala()" id="kopyalaBtn">📋 Kopyala</button>
+      </div>
+
+      <!-- Paylaş -->
+      <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:12px;">
+        <div class="setting-label">Paylaş</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;width:100%;">
+          <button onclick="paylasBilesen('whatsapp')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(37,211,102,.1);color:#25D366;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.335-1.508A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.359-.214-3.721.976.994-3.634-.234-.374A9.818 9.818 0 1112 21.818z"/></svg>
+            WhatsApp
+          </button>
+          <button onclick="paylasBilesen('email')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(124,111,255,.1);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
+            <i class="ti ti-mail" style="font-size:14px;"></i> E-posta
+          </button>
+          <button onclick="paylasBilesen('sms')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(74,222,128,.1);color:#4ade80;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
+            <i class="ti ti-message" style="font-size:14px;"></i> SMS
+          </button>
+          <button onclick="paylasBilesen('native')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(167,139,250,.1);color:var(--accent2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
+            <i class="ti ti-share" style="font-size:14px;"></i> Diğer
+          </button>
+        </div>
+      </div>
+
+      <!-- E-posta ile davet -->
+      <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div class="setting-label">E-posta ile Davet Gönder</div>
+        <div style="display:flex;gap:8px;width:100%;">
+          <input type="email" id="davetEmail" placeholder="arkadas@mail.com" 
+            style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;"
+            onkeydown="if(event.key==='Enter') davetGonder()">
+          <button onclick="davetGonder()" id="davetBtn" style="background:var(--accent);border:none;border-radius:8px;padding:8px 16px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap;">Gönder</button>
+        </div>
+        <div id="davetMsg" style="font-size:12px;display:none;"></div>
+      </div>
+    </div>
+
     <div class="settings-section">
       <div class="section-header">
         <span class="section-icon">ℹ️</span>
