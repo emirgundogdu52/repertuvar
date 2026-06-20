@@ -145,10 +145,18 @@ if(window.location.search.includes('msg=silme-talebi')) {
   setTimeout(() => showMsg('ok', 'Hesap silme talebiniz alındı. 30 gün içinde tüm verileriniz silinecek ve e-posta ile bilgilendirileceksiniz.'), 100);
 }
 if(window.location.search.includes('suspended=1')) {
-  setTimeout(() => showMsg('err', 'Hesabınız askıya alınmıştır. Daha fazla bilgi için bizimle iletişime geçin.'), 100);
+  setTimeout(() => showMsg('err', 'Hesabınız askıya alınmıştır.<br><br>' +
+    '<a href="mailto:info@repertuvar.app?subject=Hesap%20Ask%C4%B1ya%20Alma" style="color:var(--red);text-decoration:underline;">✉️ info@repertuvar.app</a>' +
+    '&nbsp;&nbsp;&nbsp;' +
+    '<a href="https://wa.me/NUMARABURAYA?text=Merhaba%2C%20hesab%C4%B1m%20ask%C4%B1ya%20al%C4%B1nd%C4%B1." target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
+  ), 100);
 }
 if(window.location.search.includes('deletion_requested=1')) {
-  setTimeout(() => showMsg('err', 'Hesabınız silme sürecindedir ve erişiminiz kısıtlanmıştır. Talebinizi geri almak için bizimle iletişime geçin.'), 100);
+  setTimeout(() => showMsg('err', 'Hesabınız silme sürecindedir ve erişiminiz kısıtlanmıştır.<br>Talebinizi geri almak için:<br><br>' +
+    '<a href="mailto:info@repertuvar.app?subject=Silme%20Talebi%20%C4%B0ptali" style="color:var(--red);text-decoration:underline;">✉️ info@repertuvar.app</a>' +
+    '&nbsp;&nbsp;&nbsp;' +
+    '<a href="https://wa.me/NUMARABURAYA?text=Merhaba%2C%20hesap%20silme%20talebimi%20geri%20almak%20istiyorum." target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
+  ), 100);
 }
 if(!window.location.search.includes('logout=1') && !window.location.hash.includes('type=recovery')) {
   const token = localStorage.getItem('sb_token');
@@ -165,7 +173,7 @@ function switchTab(t) {
 function showMsg(type, text) {
   const el = document.getElementById('msg');
   el.className = 'msg' + (type ? ' '+type : '');
-  el.textContent = text;
+  el.innerHTML = text;
   el.style.display = text ? 'block' : 'none';
 }
 
