@@ -5,7 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repertuvar — Ayarlar</title>
 <link rel="icon" href="Repertuvar_logo.png">
-<script src="auth.js"></script>
+<script src="auth.js">
+function hesapSilOnay() {
+  document.getElementById('silOnayEmail').value = '';
+  document.getElementById('silHataMsg').style.display = 'none';
+  document.getElementById('hesapSilModal').classList.add('open');
+}
+
+function hesapSilKapat() {
+  document.getElementById('hesapSilModal').classList.remove('open');
+}
+
+async function hesapSil() {
+  const email = document.getElementById('silOnayEmail').value.trim();
+  const user = getUser();
+  const hata = document.getElementById('silHataMsg');
+  
+  if (!email) { hata.style.display='block'; hata.textContent='E-posta adresinizi girin.'; return; }
+  if (email !== user?.email) { hata.style.display='block'; hata.textContent='E-posta adresi eşleşmiyor.'; return; }
+
+  const btn = document.getElementById('silOnayla');
+  btn.disabled = true; btn.textContent = 'Siliniyor...';
+
+  try {
+    const token = getToken();
+    // 1. profiles tablosundan sil
+    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + user.id, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    // 2. Auth kullanıcısını sil
+    await fetch(SUPA_URL + '/auth/v1/user', {
+      method: 'DELETE',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token }
+    });
+  } catch(e) {}
+
+  // Logout
+  localStorage.clear();
+  window.location.href = 'login.html?logout=1';
+}
+
+</script>
 <script>
 const DAVET_URL = 'https://repertuvar.app/login.html';
 const DAVET_MESAJ = 'Merhaba! Türk müziği repertuvar yönetimi için harika bir uygulama keşfettim. Sahne modunda eserler arası geçiş çok kolay. Bir bak: ';
@@ -314,6 +355,13 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
         </div>
         <button class="setting-btn danger" onclick="logout()">Çıkış Yap</button>
       </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label" style="color:var(--red);">Hesabımı Sil</div>
+          <div class="setting-desc">Tüm verileriniz kalıcı olarak silinir (GDPR)</div>
+        </div>
+        <button class="setting-btn danger" onclick="hesapSilOnay()">Sil</button>
+      </div>
     </div>
 
     <!-- 2. SAHNE MODU TERCİHLERİ -->
@@ -461,6 +509,23 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 
   </div><!-- /page -->
 </div><!-- /main-wrap -->
+
+
+<!-- Hesap Sil Modal -->
+<div class="modal-overlay" id="hesapSilModal">
+  <div class="modal-card">
+    <div class="modal-title" style="color:var(--red);">⚠️ Hesabı Sil</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Bu işlem <strong>geri alınamaz</strong>. Tüm repertuvarlarınız, eser listeniz ve hesap bilgileriniz kalıcı olarak silinecek.</p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Onaylamak için e-posta adresinizi yazın:</p>
+    <input type="email" id="silOnayEmail" placeholder="e-posta adresiniz"
+      style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;margin-bottom:16px;">
+    <div id="silHataMsg" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px;"></div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="hesapSilKapat()">İptal</button>
+      <button class="modal-btn danger" id="silOnayla" onclick="hesapSil()">Hesabımı Kalıcı Olarak Sil</button>
+    </div>
+  </div>
+</div>
 
 <!-- Alt Bar -->
 <nav class="v2-bottom-nav">
