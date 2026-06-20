@@ -21,11 +21,11 @@ function paylasBilesen(tip) {
   const mesaj = encodeURIComponent(DAVET_MESAJ + DAVET_URL);
   const konu = encodeURIComponent('Repertuvar — Sahne Müzisyenleri için');
   if (tip === 'whatsapp') {
-    window.open('https://wa.me/?text=' + mesaj, '_blank');
+    window.location.href = 'whatsapp://send?text=' + mesaj;
   } else if (tip === 'email') {
-    window.open('mailto:?subject=' + konu + '&body=' + mesaj);
+    window.location.href = 'mailto:?subject=' + konu + '&body=' + mesaj;
   } else if (tip === 'sms') {
-    window.open('sms:?body=' + mesaj);
+    window.location.href = 'sms:?body=' + mesaj;
   } else if (tip === 'native') {
     if (navigator.share) {
       navigator.share({
@@ -74,7 +74,7 @@ async function davetGonder() {
       // Admin API yoksa manuel mail aç
       const konu = encodeURIComponent('Repertuvar'a Davet');
       const icerik = encodeURIComponent('Merhaba,\n\nSeni Repertuvar uygulamasına davet ediyorum. Türk müziği sahne yönetimi için çok işlevsel bir araç.\n\nKayıt olmak için: ' + DAVET_URL + '\n\nİyi müzikler!');
-      window.open('mailto:' + email + '?subject=' + konu + '&body=' + icerik);
+      window.location.href = 'mailto:' + email + '?subject=' + konu + '&body=' + icerik;
       msg.style.display = 'block';
       msg.style.color = '#4ade80';
       msg.textContent = '✓ Mail uygulaması açıldı.';
@@ -82,7 +82,7 @@ async function davetGonder() {
   } catch(e) {
     const konu = encodeURIComponent('Repertuvar'a Davet');
     const icerik = encodeURIComponent('Merhaba,\n\nSeni Repertuvar uygulamasına davet ediyorum.\n\nKayıt olmak için: ' + DAVET_URL);
-    window.open('mailto:' + email + '?subject=' + konu + '&body=' + icerik);
+    window.location.href = 'mailto:' + email + '?subject=' + konu + '&body=' + icerik;
     msg.style.display = 'block';
     msg.style.color = '#4ade80';
     msg.textContent = '✓ Mail uygulaması açıldı.';
