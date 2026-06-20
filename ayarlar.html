@@ -14,7 +14,7 @@ async function hesapSilOnay() {
   // Repertuvar sayısını çek
   try {
     const uid = getUserId();
-    const r = await fetch(SUPA_URL + '/rest/v1/repertoires?user_id=eq.' + uid + '&select=id', {
+    const r = await fetch(SUPA_URL + '/rest/v1/repertoires?owner_id=eq.' + uid + '&select=id', {
       headers: authHeaders()
     });
     const reps = r.ok ? await r.json() : [];
