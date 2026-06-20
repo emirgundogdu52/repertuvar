@@ -5,10 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repertuvar — Ayarlar</title>
 <link rel="icon" href="Repertuvar_logo.png">
-<script src="auth.js">
-function hesapSilOnay() {
+<script src="auth.js"></script>
+<script>
+async function hesapSilOnay() {
   document.getElementById('silOnayEmail').value = '';
   document.getElementById('silHataMsg').style.display = 'none';
+
+  // Repertuvar sayısını çek
+  try {
+    const uid = getUserId();
+    const r = await fetch(SUPA_URL + '/rest/v1/repertoires?user_id=eq.' + uid + '&select=id', {
+      headers: authHeaders()
+    });
+    const reps = r.ok ? await r.json() : [];
+    const repSayisi = reps.length;
+    const uyariEl = document.getElementById('silRepUyari');
+    if (uyariEl) {
+      uyariEl.textContent = repSayisi > 0
+        ? repSayisi + ' repertuvarınız kalıcı olarak silinecek.'
+        : 'Kayıtlı repertuvarınız bulunmuyor.';
+      uyariEl.style.display = 'block';
+    }
+  } catch(e) {}
+
   document.getElementById('hesapSilModal').classList.add('open');
 }
 
@@ -515,7 +534,8 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 <div class="modal-overlay" id="hesapSilModal">
   <div class="modal-card">
     <div class="modal-title" style="color:var(--red);">⚠️ Hesabı Sil</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Bu işlem <strong>geri alınamaz</strong>. Tüm repertuvarlarınız, eser listeniz ve hesap bilgileriniz kalıcı olarak silinecek.</p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:8px;">Bu işlem <strong>geri alınamaz</strong>. Tüm hesap bilgileriniz kalıcı olarak silinecek.</p>
+    <p id="silRepUyari" style="font-size:13px;color:var(--red);font-weight:600;margin-bottom:8px;display:none;"></p>
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Onaylamak için e-posta adresinizi yazın:</p>
     <input type="email" id="silOnayEmail" placeholder="e-posta adresiniz"
       style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;margin-bottom:16px;">
