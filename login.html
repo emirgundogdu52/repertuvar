@@ -144,6 +144,12 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 if(window.location.search.includes('msg=silme-talebi')) {
   setTimeout(() => showMsg('ok', 'Hesap silme talebiniz alındı. 30 gün içinde tüm verileriniz silinecek ve e-posta ile bilgilendirileceksiniz.'), 100);
 }
+if(window.location.search.includes('suspended=1')) {
+  setTimeout(() => showMsg('err', 'Hesabınız askıya alınmıştır. Daha fazla bilgi için bizimle iletişime geçin.'), 100);
+}
+if(window.location.search.includes('deletion_requested=1')) {
+  setTimeout(() => showMsg('err', 'Hesabınız silme sürecindedir ve erişiminiz kısıtlanmıştır. Talebinizi geri almak için bizimle iletişime geçin.'), 100);
+}
 if(!window.location.search.includes('logout=1') && !window.location.hash.includes('type=recovery')) {
   const token = localStorage.getItem('sb_token');
   if(token) window.location.href = 'index.html';
