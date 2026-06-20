@@ -280,7 +280,7 @@ async function hesabiAktifYap(userId, email) {
       var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'PATCH',
         headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-        body: JSON.stringify({ status: 'deletion_requested' })
+        body: JSON.stringify({ status: 'active' })
       });
       if (!r.ok) throw new Error(await r.text());
       toast('Hesap yeniden aktif edildi ✓');
@@ -321,7 +321,7 @@ async function silmeyiIptal(userId, email) {
       await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'PATCH',
         headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-        body: JSON.stringify({ deletion_requested_at: null })
+        body: JSON.stringify({ deletion_requested_at: null, status: 'active' })
       });
       toast('Silme talebi iptal edildi ✓');
       await loadMembers();
