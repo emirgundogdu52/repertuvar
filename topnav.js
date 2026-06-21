@@ -264,9 +264,11 @@
   function render() {
     const container = document.getElementById('r-topnav-container');
     if (!container) return;
+    const _theme = localStorage.getItem('r_theme') || 'dark';
+    const _logo = _theme === 'light' ? 'logo_slogan_light.png' : 'logo_slogan_dark.png';
     container.innerHTML = `
       <header class="r-topnav">
-        <img src="logo_slogan_dark.png" alt="repertuvar.app" class="r-logo" id="rNavLogo">
+        <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
         <div class="r-tn-right">
           <button class="r-theme-toggle" id="rThemeToggle" title="Tema değiştir">🌙</button>
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
