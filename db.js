@@ -90,15 +90,17 @@ window.syncOfflineData = async function() {
     const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token };
 
     // Eserleri çek ve kaydet
-    const [worksRes, repsRes, solRes] = await Promise.all([
+    const [worksRes, repsRes, solRes, itemsRes] = await Promise.all([
       fetch(SUPA_URL + '/rest/v1/works?select=*&order=name.asc&limit=1000', { headers }),
       fetch(SUPA_URL + '/rest/v1/repertoires?select=*&order=created_at.desc', { headers }),
       fetch(SUPA_URL + '/rest/v1/solistler?select=*&order=name.asc', { headers }),
+      fetch(SUPA_URL + '/rest/v1/repertoire_items?select=*&order=seq.asc', { headers }),
     ]);
 
     if (worksRes.ok) await db.works.saveAll(await worksRes.json());
     if (repsRes.ok) await db.repertoires.saveAll(await repsRes.json());
     if (solRes.ok) await db.solistler.saveAll(await solRes.json());
+    if (itemsRes.ok) await db.repertoire_items.saveAll(await itemsRes.json());
 
     await db.meta.set('lastSync', new Date().toISOString());
     console.log('[db] Offline sync tamamlandı:', new Date().toLocaleTimeString('tr-TR'));
