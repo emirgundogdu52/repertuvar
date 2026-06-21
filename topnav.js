@@ -339,11 +339,15 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { render(); attachToggle(); setTimeout(fillUser, 400); });
+    document.addEventListener('DOMContentLoaded', () => {
+      render();
+      attachToggle();
+      setTimeout(() => { fillUser(); applyTheme(localStorage.getItem('r_theme') || 'dark'); }, 400);
+    });
   } else {
     render();
     attachToggle();
-    setTimeout(fillUser, 400);
+    setTimeout(() => { fillUser(); applyTheme(localStorage.getItem('r_theme') || 'dark'); }, 400);
   }
   window.toggleTnDropdown = function(e) {
     e.stopPropagation();
