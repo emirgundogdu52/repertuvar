@@ -654,7 +654,7 @@ async function changePassword() {
     else {
       // auth.js'de fonksiyon yoksa Supabase'den çek
       const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) };
-      const rp = await fetch(SUPA_URL + '/rest/v1/profiles?select=role&user_id=eq.' + u.id, { headers: H });
+      const rp = await fetch(SUPA_URL + '/rest/v1/profiles?select=role&id=eq.' + u.id, { headers: H });
       const pd = await rp.json();
       role = pd?.[0]?.role || 'member';
     }
