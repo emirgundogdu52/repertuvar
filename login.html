@@ -148,7 +148,7 @@ if(window.location.search.includes('suspended=1')) {
   setTimeout(() => showMsg('err', 'Hesabınız askıya alınmıştır.<br><br>' +
     '<a href="mailto:info@repertuvar.app?subject=Hesap%20Ask%C4%B1ya%20Alma" style="color:var(--red);text-decoration:underline;">✉️ info@repertuvar.app</a>' +
     '&nbsp;&nbsp;&nbsp;' +
-    '<a href="https://wa.me/NUMARABURAYA?text=Merhaba%2C%20hesab%C4%B1m%20ask%C4%B1ya%20al%C4%B1nd%C4%B1." target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
+    '<a href="https://wa.me/31621301222?text=Merhaba%2C%20hesab%C4%B1m%20ask%C4%B1ya%20al%C4%B1nd%C4%B1." target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
   ), 100);
 }
 if(window.location.search.includes('deletion_requested=1')) {
@@ -160,7 +160,7 @@ if(window.location.search.includes('deletion_requested=1')) {
     showMsg('err', 'Hesabınız silme sürecindedir ve erişiminiz kısıtlanmıştır.<br>Talebinizi geri almak için:<br><br>' +
       '<a href="mailto:info@repertuvar.app?subject=' + mailSubject + '&body=' + mailBody + '" style="color:var(--red);text-decoration:underline;">✉️ info@repertuvar.app</a>' +
       '&nbsp;&nbsp;&nbsp;' +
-      '<a href="https://wa.me/NUMARABURAYA?text=' + waText + '" target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
+      '<a href="https://wa.me/31621301222?text=' + waText + '" target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
     );
   }, 100);
 }
@@ -253,7 +253,7 @@ async function verifyOtp() {
 async function loginGoogle() {
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: {redirectTo: 'https://www.repertuvar.app/reset-password.html'}
+    options: {redirectTo: 'https://www.repertuvar.app/login.html'}
   });
 }
 </script>
