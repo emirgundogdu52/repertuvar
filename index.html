@@ -675,7 +675,8 @@ if (localStorage.getItem('stageTheme') === 'night') {
     if (!testR.ok) throw new Error('offline');
     for (const [tbl, elId] of statCfg) {
       try {
-        const r = await fetch(SUPA_URL+'/rest/v1/'+tbl+'?select=id&limit=1', {headers:H});
+        const url = tbl === 'works' ? SUPA_URL+'/rest/v1/works?select=id&status=eq.approved&limit=1' : SUPA_URL+'/rest/v1/'+tbl+'?select=id&limit=1';
+        const r = await fetch(url, {headers:H});
         const cnt = r.headers.get('content-range')?.split('/')[1];
         if (cnt) {
           const el=document.getElementById(elId); if(el) el.textContent=cnt;
