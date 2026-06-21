@@ -662,9 +662,12 @@ if (localStorage.getItem('stageTheme') === 'night') {
     'Prefer': 'count=exact'
   };
 
-  // İstatistikler — online: Supabase, offline: IndexedDB
+  // İstatistikler — önce Supabase, hata alınca IndexedDB
   const statCfg = [['works','statWorks'],['repertoires','statReps'],['solistler','statSol']];
-  if (navigator.onLine) {
+  let onlineFailed = false;
+  try {
+    const testR = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1', {headers:H, signal: AbortSignal.timeout(3000)});
+    if (!testR.ok) throw new Error('offline');
     for (const [tbl, elId] of statCfg) {
       try {
         const r = await fetch(SUPA_URL+'/rest/v1/'+tbl+'?select=id&limit=1', {headers:H});
@@ -678,7 +681,8 @@ if (localStorage.getItem('stageTheme') === 'night') {
         }
       } catch(e) {}
     }
-  } else {
+  } catch(e) {
+    onlineFailed = true;
     // Offline — IndexedDB'den say
     try {
       const [ws, rs, ss] = await Promise.all([
@@ -692,13 +696,13 @@ if (localStorage.getItem('stageTheme') === 'night') {
           const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=counts.works||'—';
         }
       }
-    } catch(e) {}
+    } catch(e2) {}
   }
 
-  // Son eklenen eserler — online: Supabase, offline: IndexedDB
+  // Son eklenen eserler — önce Supabase, hata alınca IndexedDB
   try {
     let data = [];
-    if (navigator.onLine) {
+    if (!onlineFailed) {
       const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,makam,tuning&order=id.desc&limit=6', {headers:H});
       data = await r.json();
     } else {
