@@ -86,8 +86,8 @@
     [data-theme="light"] .r-tn-dd-item { color: #4a4570; }
     [data-theme="light"] .r-tn-dd-item:hover { color: #1a1733; }
     [data-theme="light"] .sidebar,
-    [data-theme="light"] aside.sidebar { background: #ffffff !important; border-right-color: rgba(124,111,255,0.15) !important; }
-    [data-theme="light"] .sidebar * { --bg: #f5f4fb; --bg2: #ede9fb; --surface: #ffffff; --surface2: #f0eeff; --border: rgba(124,111,255,0.18); --text: #1a1733; --text2: #4a4570; --text3: #9390b0; --accent: #6c5ce7; --accent2: #8b7af0; --accent3: #5541d7; }
+    [data-theme="light"] aside.sidebar,
+    [data-theme="light"] .v2-sidebar { background: #ffffff !important; border-right-color: rgba(124,111,255,0.15) !important; }
     [data-theme="light"] .sb-item { color: #4a4570 !important; }
     [data-theme="light"] .sb-item:hover { background: rgba(124,111,255,0.08) !important; color: #1a1733 !important; }
     [data-theme="light"] .sb-item.active { background: rgba(124,111,255,0.1) !important; color: #6c5ce7 !important; }
@@ -352,6 +352,21 @@
     if (mb) mb.innerHTML = icon;
     const db = document.getElementById('dtThemeToggle');
     if (db) db.innerHTML = icon;
+
+    // Logo değiştir
+    const isLight = theme === 'light';
+    document.querySelectorAll('img').forEach(img => {
+      const src = img.src || '';
+      if (src.includes('logo_slogan')) {
+        img.src = isLight ? 'logo_slogan_light.png' : 'logo_slogan_dark.png';
+      } else if (src.includes('logo_dark') || src.includes('logo_light')) {
+        img.src = isLight ? 'logo_light.png' : 'logo_dark.png';
+      } else if (src.includes('Repertuvar_logo_slogan')) {
+        img.src = isLight ? 'logo_slogan_light.png' : 'logo_slogan_dark.png';
+      } else if (src.includes('Repertuvar_logo')) {
+        img.src = isLight ? 'logo_light.png' : 'logo_dark.png';
+      }
+    });
 
 
   }
