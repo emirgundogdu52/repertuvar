@@ -268,6 +268,7 @@
       <header class="r-topnav">
         <img src="logo_slogan_dark.png" alt="repertuvar.app" class="r-logo" id="rNavLogo">
         <div class="r-tn-right">
+          <button class="r-theme-toggle" id="rThemeToggle" title="Tema değiştir">🌙</button>
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar">—</div>
             <span class="r-tn-uname" id="rTnUserName">—</span>
@@ -332,10 +333,16 @@
     injectDesktopBadge(name, ini);
   }
 
+  function attachToggle() {
+    const btn = document.getElementById('rThemeToggle');
+    if (btn) btn.addEventListener('click', function(e) { e.stopPropagation(); window.toggleTheme(e); });
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { render(); setTimeout(fillUser, 400); });
+    document.addEventListener('DOMContentLoaded', () => { render(); attachToggle(); setTimeout(fillUser, 400); });
   } else {
     render();
+    attachToggle();
     setTimeout(fillUser, 400);
   }
   window.toggleTnDropdown = function(e) {
