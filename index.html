@@ -754,5 +754,17 @@ if (localStorage.getItem('stageTheme') === 'night') {
   } catch(e) {}
 })();
 </script>
+<script>
+window.toggleSbDropdown = function() {
+  const dd = document.getElementById('sbUserDropdown');
+  if (dd) dd.classList.toggle('open');
+};
+document.addEventListener('click', function(e) {
+  const btn = document.getElementById('sbUserBtn');
+  const dd = document.getElementById('sbUserDropdown');
+  if (dd && btn && !btn.contains(e.target)) dd.classList.remove('open');
+});
+</script>
+
 </body>
 </html>

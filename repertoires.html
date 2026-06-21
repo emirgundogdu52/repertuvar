@@ -903,17 +903,7 @@ function printR(repId){
 
 
 
-window.toggleSbDropdown = function() {
-  const dd = document.getElementById('sbUserDropdown');
-  if (dd) dd.classList.toggle('open');
-};
-document.addEventListener('click', function(e) {
-  const btn = document.getElementById('sbUserBtn');
-  const dd = document.getElementById('sbUserDropdown');
-  if (dd && btn && !btn.contains(e.target)) dd.classList.remove('open');
-});
-
-</body></html>`);
+</body></html>\`);
   win.document.close();
 }
 
@@ -1190,6 +1180,7 @@ window.addEventListener('orientationchange', () => setTimeout(fixMobileHeight, 3
 </div>
 
 
+<script>
 window.toggleSbDropdown = function() {
   const dd = document.getElementById('sbUserDropdown');
   if (dd) dd.classList.toggle('open');
@@ -1199,6 +1190,7 @@ document.addEventListener('click', function(e) {
   const dd = document.getElementById('sbUserDropdown');
   if (dd && btn && !btn.contains(e.target)) dd.classList.remove('open');
 });
+</script>
 
 </body>
 </html>
