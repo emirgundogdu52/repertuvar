@@ -266,7 +266,7 @@
     if (!container) return;
     container.innerHTML = `
       <header class="r-topnav">
-        <img src="logo2.png" alt="repertuvar.app" class="r-logo">
+        <img src="logo_slogan_dark.png" alt="repertuvar.app" class="r-logo" id="rNavLogo">
         <div class="r-tn-right">
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar">—</div>
@@ -356,14 +356,10 @@
     // Logo değiştir
     const isLight = theme === 'light';
     document.querySelectorAll('img').forEach(img => {
-      const src = img.src || '';
-      if (src.includes('logo_slogan')) {
+      const src = img.getAttribute('src') || '';
+      if (src.includes('logo_slogan') || src.includes('Repertuvar_logo_slogan') || src.includes('logo2')) {
         img.src = isLight ? 'logo_slogan_light.png' : 'logo_slogan_dark.png';
-      } else if (src.includes('logo_dark') || src.includes('logo_light')) {
-        img.src = isLight ? 'logo_light.png' : 'logo_dark.png';
-      } else if (src.includes('Repertuvar_logo_slogan')) {
-        img.src = isLight ? 'logo_slogan_light.png' : 'logo_slogan_dark.png';
-      } else if (src.includes('Repertuvar_logo')) {
+      } else if (src.includes('logo_dark') || src.includes('logo_light') || src.includes('Repertuvar_logo')) {
         img.src = isLight ? 'logo_light.png' : 'logo_dark.png';
       }
     });
