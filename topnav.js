@@ -84,13 +84,28 @@
     [data-theme="light"] .r-tn-dropdown { background: #ffffff; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
     [data-theme="light"] .r-tn-dd-item { color: #4a4570; }
     [data-theme="light"] .r-tn-dd-item:hover { color: #1a1733; }
-    [data-theme="light"] .sidebar { background: rgba(255,255,255,0.97) !important; }
-    [data-theme="light"] .desktop-topbar { background: rgba(245,244,251,0.95) !important; }
+    [data-theme="light"] .sidebar { background: rgba(255,255,255,0.97) !important; border-right-color: rgba(124,111,255,0.15) !important; }
+    [data-theme="light"] .sb-item { color: #4a4570 !important; }
+    [data-theme="light"] .sb-item:hover { background: rgba(124,111,255,0.08) !important; color: #1a1733 !important; }
+    [data-theme="light"] .sb-item.active { background: rgba(124,111,255,0.1) !important; color: #6c5ce7 !important; }
+    [data-theme="light"] .sb-label { color: #9390b0 !important; }
+    [data-theme="light"] .sb-appname { color: #1a1733 !important; }
+    [data-theme="light"] .sb-domain { color: #9390b0 !important; }
+    [data-theme="light"] .sb-divider { background: rgba(124,111,255,0.15) !important; }
+    [data-theme="light"] .sb-user-x { background: #f0eeff !important; border-color: rgba(124,111,255,0.2) !important; }
+    [data-theme="light"] .sb-uname { color: #1a1733 !important; }
+    [data-theme="light"] .sb-urole { color: #9390b0 !important; }
+    [data-theme="light"] .desktop-topbar { background: rgba(245,244,251,0.95) !important; border-bottom-color: rgba(124,111,255,0.15) !important; }
+    [data-theme="light"] .dt-crumb { color: #4a4570 !important; }
+    [data-theme="light"] .dt-search { background: #ffffff !important; color: #9390b0 !important; }
     [data-theme="light"] .dt-user-dropdown { background: #ffffff; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
     [data-theme="light"] .dt-user-name { color: #1a1733; }
+    [data-theme="light"] .dt-user-badge { background: rgba(124,111,255,0.08) !important; }
     [data-theme="light"] .dt-user-dd-item { color: #4a4570; }
     [data-theme="light"] .dt-user-dd-item:hover { color: #1a1733; }
-    [data-theme="light"] .bottom-nav { background: rgba(245,244,251,0.97) !important; }
+    [data-theme="light"] .bottom-nav { background: rgba(245,244,251,0.97) !important; border-top-color: rgba(124,111,255,0.15) !important; }
+    [data-theme="light"] .bn-item { color: #9390b0 !important; }
+    [data-theme="light"] .bn-item.active { color: #6c5ce7 !important; }
 
     /* ── Theme Toggle Button ── */
     .r-theme-toggle {
