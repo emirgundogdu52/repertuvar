@@ -329,14 +329,60 @@
     if (!u) return;
     const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
     const ini = name.charAt(0).toUpperCase();
-    // Mobile topnav
     const av = document.getElementById('rTnAvatar');
     const un = document.getElementById('rTnUserName');
     if (av) av.textContent = ini;
     if (un) un.textContent = name;
-    // Desktop topbar
     injectDesktopBadge(name, ini);
+    setTimeout(loadUnreadBadge, 600);
   }
+
+  async function loadUnreadBadge() {
+    if (typeof SUPA_URL === 'undefined' || typeof SUPA_KEY === 'undefined') return;
+    if (typeof getUser !== 'function') return;
+    const u = getUser();
+    if (!u) return;
+    const ADMIN_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
+    const isAdm = typeof isAdmin === 'function' ? isAdmin() : u.id === ADMIN_ID;
+    try {
+      let url;
+      if (isAdm) {
+        url = SUPA_URL + '/rest/v1/messages?read_at=is.null&from_id=neq.' + ADMIN_ID + '&select=id';
+      } else {
+        url = SUPA_URL + '/rest/v1/messages?read_at=is.null&admin_reply=not.is.null&from_id=eq.' + u.id + '&select=id';
+      }
+      const r = await fetch(url, {
+        headers: {
+          'apikey': SUPA_KEY,
+          'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY)
+        }
+      });
+      if (!r.ok) return;
+      const data = await r.json();
+      const count = Array.isArray(data) ? data.length : 0;
+      renderUnreadBadge(count);
+    } catch(e) {}
+  }
+
+  function renderUnreadBadge(count) {
+    document.querySelectorAll('a[href="mesajlar.html"]').forEach(function(el) {
+      let badge = el.querySelector('.msg-badge');
+      if (count > 0) {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'msg-badge';
+          badge.style.cssText = 'position:absolute;top:4px;right:6px;background:#f87171;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:14px;text-align:center;line-height:14px;';
+          el.style.position = 'relative';
+          el.appendChild(badge);
+        }
+        badge.textContent = count > 9 ? '9+' : count;
+      } else if (badge) {
+        badge.remove();
+      }
+    });
+  }
+
+  window._loadUnreadBadge = loadUnreadBadge;
 
   function attachToggle() {
     const btn = document.getElementById('rThemeToggle');

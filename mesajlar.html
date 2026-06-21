@@ -265,6 +265,19 @@ async function sendMessage() {
 }
 
 // ── Mesajları yükle ──
+async function markRead(ids) {
+  if (!ids || !ids.length) return;
+  // Her mesajı read_at ile güncelle
+  await Promise.all(ids.map(id =>
+    fetch(SUPA_URL + '/rest/v1/messages?id=eq.' + id, {
+      method: 'PATCH',
+      headers: { ...H(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ read_at: new Date().toISOString() })
+    })
+  ));
+  if (window._loadUnreadBadge) window._loadUnreadBadge();
+}
+
 async function loadMessages() {
   const panel = document.getElementById('messagesPanel');
   try {
@@ -276,6 +289,13 @@ async function loadMessages() {
       panel.innerHTML = '<div class="empty">Henüz mesaj yok.<br>Admin\'e mesaj göndererek başlayabilirsiniz.</div>';
       return;
     }
+    // Okunmamışları işaretle
+    const ADMIN_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
+    const unread = data.filter(m => !m.read_at && (
+      isAdmin() ? m.from_id !== ADMIN_ID : m.admin_reply
+    )).map(m => m.id);
+    if (unread.length) setTimeout(() => markRead(unread), 1000);
+
     panel.innerHTML = data.map(m => `
       <div class="msg-card" id="msg-${m.id}">
         <div class="msg-header">
