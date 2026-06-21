@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repertuvar — Mesajlar</title>
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="manifest" href="manifest.json">
+<script src="auth.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#07071a;--bg2:#0f0f2e;--surface:#12123a;--surface2:#1a1a4a;--border:rgba(140,120,255,0.38);--border2:rgba(140,120,255,0.58);--accent:#7c6fff;--accent2:#a78bfa;--accent3:#c4b5fd;--text:#e2e0ff;--text2:#9d9bc4;--text3:#5e5c8a;--green:#4ade80;--red:#f87171;--sidebar-w:220px;--bottom-h:68px;--font:'Plus Jakarta Sans',sans-serif;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── Sidebar ── */
+@media(min-width:1024px){
+  body{display:flex;}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--bg);backdrop-filter:blur(24px);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:300;padding-bottom:20px;}
+  .sb-brand{padding:20px 16px 16px;border-bottom:1px solid var(--border);margin-bottom:10px;}
+  .sb-brand img{width:100%;max-width:188px;display:block;}
+  .sb-nav{flex:1;padding:0 10px;display:flex;flex-direction:column;gap:2px;}
+  .sb-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:8px 12px 4px;}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;color:var(--text2);text-decoration:none;transition:all .15s;}
+  .sb-item:hover{background:var(--surface);color:var(--text);}
+  .sb-item.active{background:rgba(124,111,255,0.12);color:var(--accent3);border:1px solid rgba(124,111,255,0.2);}
+  .sb-divider{height:1px;background:var(--border);margin:8px 10px;}
+  .sb-user{margin:10px 10px 0;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:10px;}
+  .sb-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
+  .sb-uname{font-size:12px;font-weight:600;color:var(--text);}
+  .sb-urole{font-size:10px;color:var(--text3);}
+  .sb-logout{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px;}
+  .main-wrap{margin-left:var(--sidebar-w);flex:1;min-width:0;}
+  .desktop-topbar{display:flex;align-items:center;padding:14px 32px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100;}
+  .dt-crumb{font-size:13px;color:var(--text2);}
+  .dt-crumb span{color:var(--text);font-weight:600;}
+  .v2-topnav,.v2-bottom-nav{display:none!important;}
+}
+@media(max-width:1023px){
+  .sidebar{display:none;}
+  .desktop-topbar{display:none;}
+  body{padding-bottom:var(--bottom-h);}
+  .main-wrap{display:contents;}
+  .v2-bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;height:var(--bottom-h);background:var(--bg);backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;align-items:center;}
+  .v2-bn-items{display:flex;width:100%;padding:0 4px;}
+  .v2-bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:7px 2px;text-decoration:none;color:var(--text3);border-radius:10px;transition:all .15s;}
+  .v2-bn-item.active{color:var(--accent);}
+  .v2-bn-icon{font-size:19px;line-height:1;}
+  .v2-bn-label{font-size:9px;font-weight:600;}
+}
+
+/* ── Page ── */
+.page{padding:24px;max-width:800px;margin:0 auto;}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:8px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:0;}
+.tab-btn{padding:10px 20px;border:none;background:none;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* ── Message card ── */
+.msg-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
+.msg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.msg-from{font-size:13px;font-weight:600;color:var(--accent2);}
+.msg-date{font-size:11px;color:var(--text3);}
+.msg-content{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px;}
+.msg-reply{background:var(--bg2);border-left:3px solid var(--accent);padding:10px 14px;border-radius:6px;font-size:12px;color:var(--text2);margin-top:8px;}
+.msg-reply-label{font-size:10px;font-weight:700;color:var(--accent);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;}
+.unread-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+
+/* ── Compose ── */
+.compose-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:24px;}
+.compose-box h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text);}
+.compose-box textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;resize:vertical;min-height:100px;transition:border-color .15s;}
+.compose-box textarea:focus{border-color:var(--accent);}
+.compose-box input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;margin-bottom:10px;transition:border-color .15s;}
+.compose-box input:focus{border-color:var(--accent);}
+.btn-send{padding:10px 24px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:10px;transition:opacity .15s;}
+.btn-send:hover{opacity:.85;}
+.btn-send:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ── Reply ── */
+.btn-reply{padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font);transition:all .15s;}
+.btn-reply:hover{border-color:var(--accent);color:var(--accent);}
+.reply-form{margin-top:12px;display:none;}
+.reply-form textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:12px;font-family:var(--font);outline:none;resize:vertical;min-height:70px;}
+.reply-form textarea:focus{border-color:var(--accent);}
+
+/* ── Announcement ── */
+.ann-card{background:rgba(124,111,255,0.08);border:1px solid rgba(124,111,255,0.25);border-radius:12px;padding:16px;margin-bottom:12px;}
+.ann-title{font-size:14px;font-weight:700;color:var(--accent3);margin-bottom:6px;}
+.ann-content{font-size:13px;color:var(--text);line-height:1.6;}
+.ann-date{font-size:11px;color:var(--text3);margin-top:8px;}
+
+/* ── Empty ── */
+.empty{text-align:center;padding:48px 16px;color:var(--text3);font-size:13px;}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:13px;color:var(--text);z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.toast.ok{border-color:rgba(74,222,128,.4);color:var(--green);}
+.toast.er{border-color:rgba(248,113,113,.4);color:var(--red);}
+
+.admin-only{display:none;}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <img src="logo_slogan_dark.png" alt="repertuvar.app">
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-label">Menü</div>
+    <a href="index.html" class="sb-item"><i class="ti ti-home" style="font-size:16px;width:20px;text-align:center;"></i>Ana Sayfa</a>
+    <a href="eserler.html" class="sb-item"><i class="ti ti-book" style="font-size:16px;width:20px;text-align:center;"></i>Eserler</a>
+    <a href="repertoires.html" class="sb-item"><i class="ti ti-playlist" style="font-size:16px;width:20px;text-align:center;"></i>Repertuvarlar</a>
+    <a href="artiesten.html" class="sb-item"><i class="ti ti-microphone" style="font-size:16px;width:20px;text-align:center;"></i>Solistler</a>
+    <div class="sb-divider"></div>
+    <div class="sb-label">Araçlar</div>
+    <a href="mesajlar.html" class="sb-item active"><i class="ti ti-message" style="font-size:16px;width:20px;text-align:center;"></i>Mesajlar</a>
+    <a href="uyeler.html" class="sb-item admin-only"><i class="ti ti-users-group" style="font-size:16px;width:20px;text-align:center;"></i>Üyeler</a>
+    <a href="ayarlar.html" class="sb-item"><i class="ti ti-settings" style="font-size:16px;width:20px;text-align:center;"></i>Ayarlar</a>
+  </nav>
+  <div style="flex:1"></div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sbAvatar">—</div>
+    <div style="flex:1;min-width:0;">
+      <div class="sb-uname" id="sbUserName">—</div>
+      <div class="sb-urole" id="sbUserRole">Üye</div>
+    </div>
+    <button class="sb-logout" onclick="logout()" title="Çıkış"><i class="ti ti-logout" style="font-size:14px;"></i></button>
+  </div>
+</aside>
+
+<div class="main-wrap">
+<div id="r-topnav-container"></div>
+<script src="topnav.js"></script>
+
+<div class="desktop-topbar">
+  <div class="dt-crumb">repertuvar / <span>Mesajlar</span></div>
+</div>
+
+<div class="page">
+
+  <!-- Üye: Mesaj gönder -->
+  <div id="composeSection" class="compose-box" style="display:none;">
+    <h3>✉️ Admin'e Mesaj Gönder</h3>
+    <textarea id="composeText" placeholder="Sorunuz veya talebinizi yazın..."></textarea>
+    <button class="btn-send" onclick="sendMessage()" id="sendBtn">Gönder</button>
+  </div>
+
+  <!-- Admin: Duyuru yaz -->
+  <div id="announceSection" class="compose-box admin-only" style="display:none;">
+    <h3>📢 Toplu Duyuru Gönder</h3>
+    <input type="text" id="annTitle" placeholder="Duyuru başlığı">
+    <textarea id="annContent" placeholder="Duyuru içeriği..."></textarea>
+    <button class="btn-send" onclick="sendAnnouncement()" id="annBtn">Duyuruyu Yayınla</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('messages')" id="tabMessages">
+      <i class="ti ti-message"></i> Mesajlar
+    </button>
+    <button class="tab-btn" onclick="switchTab('announcements')" id="tabAnnouncements">
+      <i class="ti ti-speakerphone"></i> Duyurular
+    </button>
+  </div>
+
+  <!-- Mesajlar -->
+  <div id="messagesPanel">
+    <div class="empty">Yükleniyor...</div>
+  </div>
+
+  <!-- Duyurular -->
+  <div id="announcementsPanel" style="display:none;">
+    <div class="empty">Yükleniyor...</div>
+  </div>
+
+</div><!-- /page -->
+</div><!-- /main-wrap -->
+
+<!-- Bottom nav -->
+<nav class="v2-bottom-nav">
+  <div class="v2-bn-items">
+    <a href="index.html" class="v2-bn-item"><div class="v2-bn-icon">🏠</div><div class="v2-bn-label">Ana Sayfa</div></a>
+    <a href="eserler.html" class="v2-bn-item"><div class="v2-bn-icon">🎵</div><div class="v2-bn-label">Eserler</div></a>
+    <a href="repertoires.html" class="v2-bn-item"><div class="v2-bn-icon">📋</div><div class="v2-bn-label">Repertuvarlar</div></a>
+    <a href="stage.html" class="v2-bn-item"><div class="v2-bn-icon">🎭</div><div class="v2-bn-label">Sahne Modu</div></a>
+    <a href="ayarlar.html" class="v2-bn-item"><div class="v2-bn-icon">⚙️</div><div class="v2-bn-label">Ayarlar</div></a>
+  </div>
+</nav>
+
+<script>
+const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+
+function H() {
+  return {
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
+    'Content-Type': 'application/json'
+  };
+}
+
+function toast(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr);
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'Az önce';
+  if (m < 60) return m + ' dk önce';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + ' sa önce';
+  return Math.floor(h / 24) + ' gün önce';
+}
+
+function switchTab(tab) {
+  document.getElementById('tabMessages').classList.toggle('active', tab === 'messages');
+  document.getElementById('tabAnnouncements').classList.toggle('active', tab === 'announcements');
+  document.getElementById('messagesPanel').style.display = tab === 'messages' ? '' : 'none';
+  document.getElementById('announcementsPanel').style.display = tab === 'announcements' ? '' : 'none';
+}
+
+// ── Mesaj gönder (üye) ──
+async function sendMessage() {
+  const content = document.getElementById('composeText').value.trim();
+  if (!content) { toast('Mesaj boş olamaz', 'er'); return; }
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true; btn.textContent = 'Gönderiliyor...';
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/messages', {
+      method: 'POST',
+      headers: { ...H(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        from_id: getUserId(),
+        from_email: getUser()?.email || '',
+        content
+      })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    document.getElementById('composeText').value = '';
+    toast('Mesajınız gönderildi ✓');
+    loadMessages();
+  } catch(e) { toast('Hata: ' + e.message, 'er'); }
+  btn.disabled = false; btn.textContent = 'Gönder';
+}
+
+// ── Mesajları yükle ──
+async function loadMessages() {
+  const panel = document.getElementById('messagesPanel');
+  try {
+    let url = SUPA_URL + '/rest/v1/messages?order=created_at.desc';
+    if (!isAdmin()) url += '&from_id=eq.' + getUserId();
+    const r = await fetch(url, { headers: H() });
+    const data = await r.json();
+    if (!data.length) {
+      panel.innerHTML = '<div class="empty">Henüz mesaj yok.<br>Admin\'e mesaj göndererek başlayabilirsiniz.</div>';
+      return;
+    }
+    panel.innerHTML = data.map(m => `
+      <div class="msg-card" id="msg-${m.id}">
+        <div class="msg-header">
+          <span class="msg-from">${isAdmin() ? (m.from_email || 'Üye') : 'Siz'}</span>
+          <span class="msg-date">${timeAgo(m.created_at)}</span>
+        </div>
+        <div class="msg-content">${m.content}</div>
+        ${m.admin_reply ? `
+          <div class="msg-reply">
+            <div class="msg-reply-label">Admin Yanıtı · ${timeAgo(m.replied_at)}</div>
+            ${m.admin_reply}
+          </div>` : ''}
+        ${isAdmin() && !m.admin_reply ? `
+          <button class="btn-reply" onclick="toggleReply('${m.id}')">Yanıtla</button>
+          <div class="reply-form" id="reply-${m.id}">
+            <textarea placeholder="Yanıtınızı yazın..." id="replyText-${m.id}"></textarea>
+            <button class="btn-send" style="margin-top:8px;padding:7px 16px;font-size:12px;" onclick="sendReply('${m.id}')">Gönder</button>
+          </div>` : ''}
+      </div>`).join('');
+  } catch(e) {
+    panel.innerHTML = '<div class="empty">Mesajlar yüklenemedi.</div>';
+  }
+}
+
+function toggleReply(id) {
+  const form = document.getElementById('reply-' + id);
+  form.style.display = form.style.display === 'none' || !form.style.display ? 'block' : 'none';
+}
+
+async function sendReply(msgId) {
+  const text = document.getElementById('replyText-' + msgId).value.trim();
+  if (!text) return;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/messages?id=eq.' + msgId, {
+      method: 'PATCH',
+      headers: { ...H(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ admin_reply: text, replied_at: new Date().toISOString() })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Yanıt gönderildi ✓');
+    loadMessages();
+  } catch(e) { toast('Hata: ' + e.message, 'er'); }
+}
+
+// ── Duyuru gönder (admin) ──
+async function sendAnnouncement() {
+  const title = document.getElementById('annTitle').value.trim();
+  const content = document.getElementById('annContent').value.trim();
+  if (!title || !content) { toast('Başlık ve içerik gerekli', 'er'); return; }
+  const btn = document.getElementById('annBtn');
+  btn.disabled = true; btn.textContent = 'Yayınlanıyor...';
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/announcements', {
+      method: 'POST',
+      headers: { ...H(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ admin_id: getUserId(), title, content })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    document.getElementById('annTitle').value = '';
+    document.getElementById('annContent').value = '';
+    toast('Duyuru yayınlandı ✓');
+    loadAnnouncements();
+  } catch(e) { toast('Hata: ' + e.message, 'er'); }
+  btn.disabled = false; btn.textContent = 'Duyuruyu Yayınla';
+}
+
+// ── Duyuruları yükle ──
+async function loadAnnouncements() {
+  const panel = document.getElementById('announcementsPanel');
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/announcements?order=created_at.desc', { headers: H() });
+    const data = await r.json();
+    if (!data.length) {
+      panel.innerHTML = '<div class="empty">Henüz duyuru yok.</div>';
+      return;
+    }
+    panel.innerHTML = data.map(a => `
+      <div class="ann-card">
+        <div class="ann-title">📢 ${a.title}</div>
+        <div class="ann-content">${a.content}</div>
+        <div class="ann-date">${timeAgo(a.created_at)}</div>
+      </div>`).join('');
+  } catch(e) {
+    panel.innerHTML = '<div class="empty">Duyurular yüklenemedi.</div>';
+  }
+}
+
+// ── Init ──
+(async function() {
+  const ok = await requireAuth(); if (!ok) return;
+  const u = getUser();
+  const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
+  const ini = name.charAt(0).toUpperCase();
+  const av = document.getElementById('sbAvatar'); if(av) av.textContent = ini;
+  const un = document.getElementById('sbUserName'); if(un) un.textContent = name;
+
+  if (isAdmin()) {
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
+    document.getElementById('announceSection').style.display = 'block';
+    document.getElementById('sbUserRole').textContent = 'Admin';
+  } else {
+    document.getElementById('composeSection').style.display = 'block';
+    document.getElementById('sbUserRole').textContent = getUserRole() === 'editor' ? 'Editör' : 'Üye';
+  }
+
+  loadMessages();
+  loadAnnouncements();
+})();
+</script>
+</body>
+</html>
