@@ -648,6 +648,7 @@ if (localStorage.getItem('stageTheme') === 'night') {
 
 (async function() {
   const ok = await requireAuth(); if (!ok) return;
+  syncOfflineData(); // Arka planda offline veri güncelle
   const u = getUser();
   const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
   const initial = name.charAt(0).toUpperCase();
