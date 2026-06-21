@@ -1067,6 +1067,7 @@ function shareViaWhatsApp() {
 (async function() {
   const ok = await requireAuth();
   if(!ok) return;
+  if (window.syncOfflineData) syncOfflineData();
   await loadWorksData();
   load();
 })();
