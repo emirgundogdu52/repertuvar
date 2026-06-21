@@ -353,27 +353,13 @@
     const db = document.getElementById('dtThemeToggle');
     if (db) db.innerHTML = icon;
 
-    // Hardcoded dark renkleri JS ile override et
-    const isLight = theme === 'light';
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar) sidebar.style.background = isLight ? '#ffffff' : '';
-    const bottomNav = document.querySelector('.bottom-nav');
-    if (bottomNav) bottomNav.style.background = isLight ? 'rgba(245,244,251,0.97)' : '';
-    const topnav = document.querySelector('.topnav');
-    if (topnav) topnav.style.background = isLight ? 'rgba(245,244,251,0.95)' : '';
-    const desktopTopbar = document.querySelector('.desktop-topbar');
-    if (desktopTopbar) desktopTopbar.style.background = isLight ? 'rgba(245,244,251,0.95)' : '';
-    document.querySelectorAll('.r-tn-dropdown, .dt-user-dropdown').forEach(el => {
-      el.style.background = isLight ? '#ffffff' : '';
-    });
+
   }
 
   // Sayfa yüklenince uygula
   const savedTheme = localStorage.getItem('r_theme') || 'dark';
   applyTheme(savedTheme);
-  // DOM hazır olduktan sonra tekrar uygula (hardcoded elementler için)
-  setTimeout(() => applyTheme(savedTheme), 50);
-  setTimeout(() => applyTheme(savedTheme), 300);
+
 
   window.toggleTheme = function(e) {
     if (e) e.stopPropagation();
