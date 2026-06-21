@@ -1,5 +1,5 @@
 // Repertuvar Service Worker — offline cache
-const CACHE_NAME = 'repertuvar-v2';
+const CACHE_NAME = 'repertuvar-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -45,35 +45,43 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// Fetch — önce network, hata olursa cache
+// Fetch stratejisi
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  // Supabase API isteklerini cache'leme
+  // Supabase API isteklerini cache'leme — direkt network
   if (url.hostname.includes('supabase.co')) return;
 
-  // GET isteklerini cache'le
+  // Sadece GET
   if (e.request.method !== 'GET') return;
 
+  // HTML sayfaları: cache-first (offline için)
+  if (e.request.headers.get('accept')?.includes('text/html')) {
+    e.respondWith(
+      caches.match(e.request).then((cached) => {
+        const networkFetch = fetch(e.request).then((response) => {
+          if (response && response.status === 200) {
+            const cloned = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, cloned));
+          }
+          return response;
+        }).catch(() => cached);
+        return cached || networkFetch;
+      })
+    );
+    return;
+  }
+
+  // Diğer statik dosyalar: network-first, cache fallback
   e.respondWith(
     fetch(e.request)
       .then((response) => {
-        // Başarılı response'u cache'e yaz
         if (response && response.status === 200) {
           const cloned = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(e.request, cloned));
         }
         return response;
       })
-      .catch(() => {
-        // Network yok — cache'den sun
-        return caches.match(e.request).then((cached) => {
-          if (cached) return cached;
-          // HTML sayfası isteniyorsa index'e yönlendir
-          if (e.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/index.html');
-          }
-        });
-      })
+      .catch(() => caches.match(e.request))
   );
 });
