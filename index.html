@@ -509,13 +509,17 @@ body {
     <a href="ayarlar.html" class="sb-item"><i class="ti ti-settings" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Ayarlar</a>
   </nav>
   <div style="flex:1"></div>
-  <div class="sb-user">
+  <div class="sb-user sb-user-x" id="sbUserBtn" onclick="toggleSbDropdown()" style="cursor:pointer;">
+    <div class="sb-user-dropdown" id="sbUserDropdown">
+      <a href="ayarlar.html" class="sb-dd-item"><i class="ti ti-settings" style="font-size:14px;"></i>Ayarlar</a>
+      <button class="sb-dd-item danger" onclick="logout()"><i class="ti ti-logout" style="font-size:14px;"></i>Çıkış Yap</button>
+    </div>
     <div class="sb-avatar" id="sbAvatar">—</div>
     <div style="flex:1;min-width:0">
       <div class="sb-uname" id="sbUserName">—</div>
       <div class="sb-urole" id="sbUserRole">Üye</div>
     </div>
-    <button class="sb-logout" onclick="logout()" title="Çıkış"><i class="ti ti-logout" style="font-size:14px;" aria-hidden="true"></i></button>
+    <i class="ti ti-chevron-up" style="font-size:12px;color:var(--text3);"></i>
   </div>
 </aside>
 
@@ -627,8 +631,8 @@ body {
     <a href="stage.html" class="bn-item bn-stage" onclick="localStorage.setItem('stageSource','index')">
       <i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="bn-label">Sahne Modu</span>
     </a>
-    <a href="ayarlar.html" class="bn-item">
-      <i class="ti ti-settings" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="bn-label">Ayarlar</span>
+    <a href="mesajlar.html" class="bn-item">
+      <i class="ti ti-message" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="bn-label">Mesajlar</span>
     </a>
   </div>
 </nav>

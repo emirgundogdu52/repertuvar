@@ -208,6 +208,19 @@ tr:hover .ra{opacity:1;}
   .share-close { float:right;background:none;border:none;color:var(--text2);
     font-size:20px;cursor:pointer;line-height:1; }
 
+
+  .sb-user-x { position:relative; }
+  .sb-user-dropdown { display:none; position:absolute; bottom:calc(100% + 8px); left:0; right:0;
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:4px; z-index:999; box-shadow:0 -4px 20px rgba(0,0,0,.3); }
+  .sb-user-dropdown.open { display:block; }
+  .sb-dd-item { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:7px;
+    font-size:12px; font-weight:600; color:var(--text2); text-decoration:none; cursor:pointer;
+    transition:all .15s; background:none; border:none; width:100%; font-family:inherit; }
+  .sb-dd-item:hover { background:rgba(124,111,255,0.12); color:var(--text); }
+  .sb-dd-item.danger { color:var(--red); }
+  .sb-dd-item.danger:hover { background:rgba(248,113,113,0.1); }
+
 </style>
 <script src="auth.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -231,10 +244,14 @@ tr:hover .ra{opacity:1;}
     <a href="ayarlar.html" class="v2-sb-item"><i class="ti ti-settings" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Ayarlar</a>
   </nav>
   <div style="flex:1"></div>
-  <div class="v2-sb-user">
+  <div class="v2-sb-user sb-user-x" id="sbUserBtn" onclick="toggleSbDropdown()" style="cursor:pointer;">
+    <div class="sb-user-dropdown" id="sbUserDropdown">
+      <a href="ayarlar.html" class="sb-dd-item"><i class="ti ti-settings" style="font-size:14px;"></i>Ayarlar</a>
+      <button class="sb-dd-item danger" onclick="logout()"><i class="ti ti-logout" style="font-size:14px;"></i>Çıkış Yap</button>
+    </div>
     <div class="v2-sb-avatar" id="sbAvatar">—</div>
     <div style="flex:1;min-width:0"><div class="v2-sb-uname" id="sbUserName">—</div><div class="v2-sb-urole" id="sbUserRole">Üye</div></div>
-    <button class="v2-sb-logout" onclick="logout()"><i class="ti ti-logout" style="font-size:14px;" aria-hidden="true"></i></button>
+    <i class="ti ti-chevron-up" style="font-size:12px;color:var(--text3);"></i>
   </div>
 </aside>
 <div class="v2-main-wrap">
@@ -885,6 +902,17 @@ function printR(repId){
 
 
 
+
+window.toggleSbDropdown = function() {
+  const dd = document.getElementById('sbUserDropdown');
+  if (dd) dd.classList.toggle('open');
+};
+document.addEventListener('click', function(e) {
+  const btn = document.getElementById('sbUserBtn');
+  const dd = document.getElementById('sbUserDropdown');
+  if (dd && btn && !btn.contains(e.target)) dd.classList.remove('open');
+});
+
 </body></html>`);
   win.document.close();
 }
@@ -1080,7 +1108,7 @@ function shareViaWhatsApp() {
     <a href="eserler.html" class="v2-bn-item"><i class="ti ti-playlist" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Eserler</span></a>
     <a href="repertoires.html" class="v2-bn-item active"><i class="ti ti-book" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Repertuvarlar</span><div class="v2-bn-dot"></div></a>
     <a href="stage.html" class="v2-bn-item v2-bn-stage" onclick="localStorage.setItem('stageSource','repertoires')"><i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Sahne Modu</span></a>
-    <a href="ayarlar.html" class="v2-bn-item"><i class="ti ti-settings" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Ayarlar</span></a>
+    <a href="mesajlar.html" class="v2-bn-item"><i class="ti ti-message" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Mesajlar</span></a>
   </div>
 </nav>
 <script>
@@ -1160,6 +1188,17 @@ window.addEventListener('orientationchange', () => setTimeout(fixMobileHeight, 3
     </div>
   </div>
 </div>
+
+
+window.toggleSbDropdown = function() {
+  const dd = document.getElementById('sbUserDropdown');
+  if (dd) dd.classList.toggle('open');
+};
+document.addEventListener('click', function(e) {
+  const btn = document.getElementById('sbUserBtn');
+  const dd = document.getElementById('sbUserDropdown');
+  if (dd && btn && !btn.contains(e.target)) dd.classList.remove('open');
+});
 
 </body>
 </html>
