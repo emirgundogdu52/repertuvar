@@ -102,9 +102,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 .admin-only{display:none;}
   .sb-user-x { position:relative; }
-  .sb-user-dropdown { display:none; position:absolute; bottom:calc(100% + 8px); left:0; right:0;
+  .sb-user-dropdown { display:none; position:fixed; bottom:90px; left:10px; right:10px;
     background:var(--surface); border:1px solid var(--border); border-radius:10px;
-    padding:4px; z-index:999; box-shadow:0 -4px 20px rgba(0,0,0,.3); }
+    padding:4px; z-index:9999; box-shadow:0 -4px 20px rgba(0,0,0,.5); }
   .sb-user-dropdown.open { display:block; }
   .sb-dd-item { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:7px;
     font-size:12px; font-weight:600; color:var(--text2); text-decoration:none; cursor:pointer;
