@@ -56,6 +56,65 @@
     .r-tn-dd-item.danger { color: #f87171; }
     .r-tn-dd-item.danger:hover { background: rgba(248,113,113,0.1); }
     .r-tn-logout { display: none; }
+
+    /* ── Light Theme ── */
+    [data-theme="light"] {
+      --bg:       #f5f4fb;
+      --bg2:      #ede9fb;
+      --surface:  #ffffff;
+      --surface2: #f0eeff;
+      --border:   rgba(124,111,255,0.18);
+      --border2:  rgba(124,111,255,0.32);
+      --accent:   #6c5ce7;
+      --accent2:  #8b7af0;
+      --accent3:  #5541d7;
+      --text:     #1a1733;
+      --text2:    #4a4570;
+      --text3:    #9390b0;
+      --green:    #00b894;
+    }
+    [data-theme="light"] body,
+    [data-theme="light"] { background: var(--bg); color: var(--text); }
+    [data-theme="light"] .r-topnav {
+      background: rgba(245,244,251,0.95);
+      border-bottom-color: rgba(124,111,255,0.15);
+    }
+    [data-theme="light"] .r-tn-user { background: rgba(124,111,255,0.08); }
+    [data-theme="light"] .r-tn-uname { color: #1a1733; }
+    [data-theme="light"] .r-tn-dropdown { background: #ffffff; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    [data-theme="light"] .r-tn-dd-item { color: #4a4570; }
+    [data-theme="light"] .r-tn-dd-item:hover { color: #1a1733; }
+    [data-theme="light"] .sidebar { background: rgba(255,255,255,0.97) !important; }
+    [data-theme="light"] .desktop-topbar { background: rgba(245,244,251,0.95) !important; }
+    [data-theme="light"] .dt-user-dropdown { background: #ffffff; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    [data-theme="light"] .dt-user-name { color: #1a1733; }
+    [data-theme="light"] .dt-user-dd-item { color: #4a4570; }
+    [data-theme="light"] .dt-user-dd-item:hover { color: #1a1733; }
+    [data-theme="light"] .bottom-nav { background: rgba(245,244,251,0.97) !important; }
+
+    /* ── Theme Toggle Button ── */
+    .r-theme-toggle {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1px solid rgba(124,111,255,0.25);
+      background: rgba(124,111,255,0.1);
+      color: #a78bfa; font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .r-theme-toggle:hover { background: rgba(124,111,255,0.2); }
+    [data-theme="light"] .r-theme-toggle { color: #6c5ce7; background: rgba(124,111,255,0.08); }
+
+    .dt-theme-toggle {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1px solid rgba(124,111,255,0.25);
+      background: rgba(124,111,255,0.08);
+      color: #a78bfa; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .2s; flex-shrink: 0; margin-right: 4px;
+    }
+    .dt-theme-toggle:hover { background: rgba(124,111,255,0.18); }
+    [data-theme="light"] .dt-theme-toggle { color: #6c5ce7; }
+    
     @media (min-width: 1024px) { .r-topnav { display: none !important; } }
     @media (min-width: 1024px) {
       .v2-sb-user { display: none !important; }
@@ -141,6 +200,16 @@
       const dd = document.getElementById('dtUserDropdown');
       if (dd) dd.classList.toggle('open');
     });
+    // Tema toggle desktop
+    if (!topbar.querySelector('.dt-theme-toggle')) {
+      const themeBtn = document.createElement('button');
+      themeBtn.className = 'dt-theme-toggle';
+      themeBtn.id = 'dtThemeToggle';
+      themeBtn.title = 'Tema değiştir';
+      themeBtn.innerHTML = document.documentElement.getAttribute('data-theme') === 'light' ? '🌙' : '☀️';
+      themeBtn.addEventListener('click', function(e) { toggleTheme(e); });
+      topbar.insertBefore(themeBtn, topbar.firstChild.nextSibling || badge);
+    }
     topbar.appendChild(badge);
   }
 
@@ -171,6 +240,27 @@
     const dd = document.getElementById('rTnDropdown');
     if (dd) dd.classList.toggle('open');
   };
+  // Theme logic
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('r_theme', theme);
+    const icon = theme === 'light' ? '🌙' : '☀️';
+    const mb = document.getElementById('rThemeToggle');
+    if (mb) mb.innerHTML = icon;
+    const db = document.getElementById('dtThemeToggle');
+    if (db) db.innerHTML = icon;
+  }
+
+  // Sayfa yüklenince uygula
+  const savedTheme = localStorage.getItem('r_theme') || 'dark';
+  applyTheme(savedTheme);
+
+  window.toggleTheme = function(e) {
+    if (e) e.stopPropagation();
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  };
+
   document.addEventListener('click', function() {
     const dd = document.getElementById('rTnDropdown');
     if (dd) dd.classList.remove('open');
