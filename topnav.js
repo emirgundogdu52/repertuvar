@@ -360,8 +360,23 @@
     const db = document.getElementById('dtThemeToggle');
     if (db) db.innerHTML = icon;
 
-    // Logo değiştir
+    // CSS variable'ları JS ile override et (sayfa CSS'ini geçersiz kılar)
     const isLight = theme === 'light';
+    const el = document.documentElement;
+    el.style.setProperty('--bg',      isLight ? '#f5f4fb' : '#07071a');
+    el.style.setProperty('--bg2',     isLight ? '#ede9fb' : '#0f0f2e');
+    el.style.setProperty('--surface', isLight ? '#ffffff' : '#12123a');
+    el.style.setProperty('--surface2',isLight ? '#f0eeff' : '#1a1a4a');
+    el.style.setProperty('--text',    isLight ? '#1a1733' : '#e2e0ff');
+    el.style.setProperty('--text2',   isLight ? '#4a4570' : '#9d9bc4');
+    el.style.setProperty('--text3',   isLight ? '#9390b0' : '#5e5c8a');
+    el.style.setProperty('--border',  isLight ? 'rgba(124,111,255,0.18)' : 'rgba(140,120,255,0.38)');
+    el.style.setProperty('--border2', isLight ? 'rgba(124,111,255,0.32)' : 'rgba(140,120,255,0.58)');
+    el.style.setProperty('--accent',  isLight ? '#6c5ce7' : '#7c6fff');
+    el.style.setProperty('--accent2', isLight ? '#8b7af0' : '#a78bfa');
+    el.style.setProperty('--accent3', isLight ? '#5541d7' : '#c4b5fd');
+
+    // Logo değiştir
     document.querySelectorAll('img').forEach(img => {
       const src = img.getAttribute('src') || '';
       if (src.includes('logo_slogan') || src.includes('Repertuvar_logo_slogan') || src.includes('logo2')) {
