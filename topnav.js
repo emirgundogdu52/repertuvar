@@ -275,6 +275,9 @@
             <div class="r-tn-avatar" id="rTnAvatar">—</div>
             <span class="r-tn-uname" id="rTnUserName">—</span>
             <div class="r-tn-dropdown" id="rTnDropdown">
+              <a href="ayarlar.html" class="r-tn-dd-item">
+                <i class="ti ti-settings" style="font-size:15px;" aria-hidden="true"></i> Ayarlar
+              </a>
               <button class="r-tn-dd-item danger" onclick="logout()">
                 <i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> Çıkış Yap
               </button>
