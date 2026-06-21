@@ -724,6 +724,9 @@ function loadSideWork(id) {
     }
   }
 
+  // Arka planda sync yap (online ise IndexedDB'yi güncelle)
+  if (window.syncOfflineData) syncOfflineData();
+
   // Önce Supabase'den WL'yi yükle
   await loadWL();
 
