@@ -303,11 +303,13 @@ async function hesabiSil(userId, email) {
         method: 'DELETE',
         headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
       });
-      // Auth sil
-      await fetch(SUPA_URL + '/auth/v1/admin/users/' + userId, {
-        method: 'DELETE',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
+      // Auth sil (Edge Function ile)
+      var delRes = await fetch(SUPA_URL + '/functions/v1/delete-user', {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId })
       });
+      if (!delRes.ok) { var err = await delRes.json(); throw new Error(err.error || 'Auth silme hatası'); }
       toast('Hesap kalıcı olarak silindi ✓');
       await loadMembers();
     } catch(e) { toast('Hata: ' + e.message, 'er'); }
