@@ -662,25 +662,49 @@ if (localStorage.getItem('stageTheme') === 'night') {
     'Prefer': 'count=exact'
   };
 
+  // İstatistikler — online: Supabase, offline: IndexedDB
   const statCfg = [['works','statWorks'],['repertoires','statReps'],['solistler','statSol']];
-  for (const [tbl, elId] of statCfg) {
+  if (navigator.onLine) {
+    for (const [tbl, elId] of statCfg) {
+      try {
+        const r = await fetch(SUPA_URL+'/rest/v1/'+tbl+'?select=id&limit=1', {headers:H});
+        const cnt = r.headers.get('content-range')?.split('/')[1];
+        if (cnt) {
+          const el=document.getElementById(elId); if(el) el.textContent=cnt;
+          if (tbl==='works') {
+            const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=cnt;
+            const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=cnt;
+          }
+        }
+      } catch(e) {}
+    }
+  } else {
+    // Offline — IndexedDB'den say
     try {
-      const r = await fetch(SUPA_URL+'/rest/v1/'+tbl+'?select=id&limit=1', {headers:H});
-      const cnt = r.headers.get('content-range')?.split('/')[1];
-      if (cnt) {
-        const el=document.getElementById(elId); if(el) el.textContent=cnt;
+      const [ws, rs, ss] = await Promise.all([
+        db.works.getAll(), db.repertoires.getAll(), db.solistler.getAll()
+      ]);
+      const counts = {works: ws.length, repertoires: rs.length, solistler: ss.length};
+      for (const [tbl, elId] of statCfg) {
+        const el=document.getElementById(elId); if(el) el.textContent=counts[tbl]||'—';
         if (tbl==='works') {
-          const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=cnt;
-          const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=cnt;
+          const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=counts.works||'—';
+          const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=counts.works||'—';
         }
       }
     } catch(e) {}
   }
 
-  // Son eklenen eserler — kolon adları: name, composer, makam, tuning
+  // Son eklenen eserler — online: Supabase, offline: IndexedDB
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,makam,tuning&order=id.desc&limit=6', {headers:H});
-    const data = await r.json();
+    let data = [];
+    if (navigator.onLine) {
+      const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,makam,tuning&order=id.desc&limit=6', {headers:H});
+      data = await r.json();
+    } else {
+      const all = await db.works.getAll();
+      data = all.slice(-6).reverse();
+    }
     const container = document.getElementById('recentWorks');
     if (container && Array.isArray(data) && data.length) {
       container.innerHTML = data.map((w,i) => `
