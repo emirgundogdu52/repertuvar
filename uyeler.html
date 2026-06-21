@@ -304,7 +304,7 @@ async function hesabiSil(userId, email) {
         headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
       });
       // Auth sil (Edge Function ile)
-      var delRes = await fetch(SUPA_URL + '/functions/v1/delete-user', {
+      var delRes = await fetch(SUPA_URL + '/functions/v1/clever-handler', {
         method: 'POST',
         headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId })
