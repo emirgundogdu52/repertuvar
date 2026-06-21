@@ -1103,6 +1103,10 @@ function saveNewEser() {
       buildFilters();
       applyFilters();
       if (status === 'pending') {
+        addSystemNotification(
+          'Yeni Eser Önerisi',
+          (getUser()?.email || 'Bir üye') + ' tarafından yeni eser önerisi: ' + (saveFields.name || '')
+        );
         alert('Eser öneriniz iletildi! Admin onayından sonra yayınlanacak.');
       } else {
         alert('Eser kaydedildi.');
@@ -1338,6 +1342,26 @@ function closePendingModal() {
   document.getElementById('pendingModal').style.display = 'none';
 }
 
+async function addSystemNotification(title, notifContent) {
+  try {
+    await fetch(SUPA_URL + '/rest/v1/announcements', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        admin_id: '4f965624-e524-4cb0-a351-3368f1297d28',
+        title: title,
+        content: notifContent,
+        type: 'system'
+      })
+    });
+  } catch(e) {}
+}
+
 async function approveWork(id) {
   const btn = document.querySelector(`#pm-item-${id} .pm-approve`);
   if (btn) { btn.disabled = true; btn.textContent = '...'; }
@@ -1348,7 +1372,13 @@ async function approveWork(id) {
   });
   if (r.ok || r.status === 204) {
     const w = DATA.find(x => x.id === id);
-    if (w) w.status = 'approved';
+    if (w) {
+      addSystemNotification(
+        'Eser Onaylandı',
+        (w.name || 'Bir eser') + ' admin tarafından onaylandı.'
+      );
+      w.status = 'approved';
+    }
     const item = document.getElementById('pm-item-'+id);
     if (item) { item.style.opacity = '.4'; item.innerHTML = '<div style="padding:8px;color:#3FB950;font-size:13px;">✓ Onaylandı</div>'; }
     updatePendingCount();
@@ -1366,7 +1396,14 @@ async function rejectWork(id) {
   });
   if (r.ok || r.status === 204) {
     const idx = DATA.findIndex(x => x.id === id);
-    if (idx > -1) DATA.splice(idx, 1);
+    const w = idx > -1 ? DATA[idx] : null;
+    if (w) {
+      addSystemNotification(
+        'Eser Reddedildi',
+        (w.name || 'Bir eser') + ' admin tarafından reddedildi.'
+      );
+      DATA.splice(idx, 1);
+    }
     const item = document.getElementById('pm-item-'+id);
     if (item) { item.remove(); }
     updatePendingCount();
