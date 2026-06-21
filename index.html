@@ -11,10 +11,10 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:         var(--bg);
-  --bg2:        var(--bg2);
-  --surface:    var(--surface);
-  --surface2:   var(--surface2);
+  --bg:         #07071a;
+  --bg2:        #0f0f2e;
+  --surface:    #12123a;
+  --surface2:   #1a1a4a;
   --border:     rgba(140,120,255,0.38);
   --border2:    rgba(140,120,255,0.58);
   --accent:     #7c6fff;
@@ -63,7 +63,7 @@ body {
   .sidebar {
     position: fixed; top: 0; left: 0; bottom: 0;
     width: var(--sidebar-w);
-    background: var(--bg);
+    background: rgba(9,9,28,0.96);
     backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     border-right: 1px solid var(--border);
     display: flex; flex-direction: column;
@@ -149,7 +149,7 @@ body {
   .desktop-topbar {
     display: flex; align-items: center; justify-content: space-between;
     padding: 14px 32px; border-bottom: 1px solid var(--border);
-    background: var(--bg); backdrop-filter: blur(12px);
+    background: rgba(7,7,26,0.6); backdrop-filter: blur(12px);
     position: sticky; top: 0; z-index: 100;
   }
   .dt-crumb { font-size: 13px; color: var(--text2); }
@@ -192,7 +192,7 @@ body {
     position: sticky; top: 0; z-index: 200;
     height: auto;
     min-height: var(--topnav-h);
-    background: var(--bg);
+    background: rgba(7,7,26,0.92);
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; padding: 8px 20px;
@@ -248,7 +248,7 @@ body {
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
     height: var(--bottom-h);
-    background: var(--bg);
+    background: rgba(7,7,26,0.95);
     backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     border-top: 1px solid var(--border);
     display: flex; align-items: center;
@@ -293,7 +293,7 @@ body {
   .topnav {
     position: sticky; top: 0; z-index: 200;
     height: var(--topnav-h);
-    background: var(--bg);
+    background: rgba(7,7,26,0.92);
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; padding: 0 16px; gap: 10px;
@@ -324,7 +324,7 @@ body {
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
     height: var(--bottom-h);
-    background: var(--bg);
+    background: rgba(7,7,26,0.95);
     backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     border-top: 1px solid var(--border);
     display: flex; align-items: center;
@@ -485,6 +485,8 @@ body {
 .admin-only { display: none; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="manifest" href="manifest.json">
+  <script src="db.js"></script>
 </head>
 <body>
 <div class="bg-glow"></div>
