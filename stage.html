@@ -358,7 +358,9 @@ async function loadReps(){
     } catch(fetchErr) {
       console.warn('[stage] loadReps offline, IndexedDB kullanılıyor');
       if (window.db) {
-        r = await db.repertoires.getAll();
+        const uid = getUserId();
+        const allReps = await db.repertoires.getAll();
+        r = allReps.filter(x => x.owner_id === uid || x.user_id === uid || x.is_public === true);
         items = await db.repertoire_items.getAll();
       } else { r=[]; items=[]; }
     }
