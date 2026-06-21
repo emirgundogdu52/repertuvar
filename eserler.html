@@ -282,6 +282,8 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 .v2-tn-slogan{font-size:9px;color:#9d9bc4;line-height:1.3;text-align:center;width:100%;}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="manifest" href="manifest.json">
+  <script src="db.js"></script>
 </head>
 <body>
 
@@ -392,11 +394,29 @@ async function loadWorksFromSupabase() {
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
     // Admin ve editör tüm eserleri görür, üye sadece onaylananları
     const statusFilter = (isAdmin() || isEditor()) ? '' : '&status=eq.approved';
-    const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=name&limit=2000'+statusFilter, {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
-    });
-    if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
-    const rows = await r.json();
+    let rows;
+    try {
+      const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=name&limit=2000'+statusFilter, {
+        headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token},
+        signal: AbortSignal.timeout(4000)
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      rows = await r.json();
+      if (!Array.isArray(rows)) throw new Error('Unexpected response');
+      // Online'dan geldi — IndexedDB'yi güncelle
+      if (window.db) await db.works.saveAll(rows);
+    } catch(fetchErr) {
+      console.warn('[eserler] Supabase ulaşılamadı, IndexedDB kullanılıyor:', fetchErr.message);
+      if (window.db) {
+        rows = await db.works.getAll();
+        if (!rows.length) { console.error('IndexedDB boş'); return false; }
+        // Offline banner göster
+        const banner = document.createElement('div');
+        banner.style.cssText = 'background:rgba(124,111,255,0.1);border:1px solid rgba(124,111,255,0.3);color:var(--accent2);padding:8px 16px;font-size:12px;text-align:center;';
+        banner.textContent = '📵 Çevrimdışı mod — son senkronizasyondan veriler gösteriliyor';
+        document.body.insertBefore(banner, document.body.firstChild);
+      } else { return false; }
+    }
     if (!Array.isArray(rows)) { console.error('Supabase unexpected response:', rows); return false; }
     DATA = rows.map(w => ({
       id: w.id,
@@ -1192,6 +1212,7 @@ document.addEventListener('keydown', function(e) {
   // Yükleniyor göstergesi
   const _lp = document.getElementById('listPanel'); if(_lp) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">Eserler yükleniyor...</div>';
   
+  syncOfflineData && syncOfflineData();
   await loadWorksFromSupabase();
   
   // URL'den id parametresi varsa o eseri seç

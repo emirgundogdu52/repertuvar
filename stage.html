@@ -239,6 +239,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;--accent:#7c6fff;--accent2:#a78bfa;--text:#1a1825;--text2:#5a5670;--text3:#9d9aae;}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="manifest" href="manifest.json">
+  <script src="db.js"></script>
 </head>
 <body>
 <div id="r-topnav-container" style="display:none;"></div>
@@ -305,10 +307,19 @@ let WL = {}; // Supabase'den yüklenecek
 
 async function loadWL() {
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=id&limit=2000', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY)}
-    });
-    const rows = await r.json();
+    let rows = [];
+    try {
+      const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=id&limit=2000', {
+        headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY)},
+        signal: AbortSignal.timeout(4000)
+      });
+      rows = await r.json();
+      // Online'dan geldi — IndexedDB'yi güncelle
+      if (window.db) await db.works.saveAll(rows);
+    } catch(fetchErr) {
+      console.warn('[stage] Supabase ulaşılamadı, IndexedDB kullanılıyor');
+      if (window.db) rows = await db.works.getAll();
+    }
     rows.forEach(w => {
       WL[String(w.id)] = {
         name: w.name || '',
