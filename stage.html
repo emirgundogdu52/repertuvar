@@ -348,7 +348,7 @@ async function loadReps(){
     let r, items;
     try {
       [r, items] = await Promise.all([
-        fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at',{headers:H, signal:AbortSignal.timeout(4000)}).then(r=>r.json()),
+        fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at&or=(owner_id.eq.'+getUserId()+',is_public.eq.true)',{headers:H, signal:AbortSignal.timeout(4000)}).then(r=>r.json()),
         fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H, signal:AbortSignal.timeout(4000)}).then(r=>r.json())
       ]);
       if (window.db) {
