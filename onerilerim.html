@@ -52,6 +52,20 @@ h1 { font-size:18px; font-weight:600; margin-bottom:6px; }
 .em-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
 .btn-save { padding:8px 20px; border-radius:8px; background:var(--accent); border:none; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
 .btn-cancel { padding:8px 16px; border-radius:8px; background:none; border:1px solid var(--border); color:var(--text2); font-size:13px; cursor:pointer; font-family:inherit; }
+
+  .sb-user-x { position:relative; }
+  .sb-user-dropdown { display:none; position:fixed; bottom:20px; left:10px; width:200px;
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:4px; z-index:9999; box-shadow:0 -4px 20px rgba(0,0,0,.5); }
+  .sb-user-dropdown.open { display:block; }
+  .sb-dd-item { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:7px;
+    font-size:12px; font-weight:600; color:var(--text2); text-decoration:none; cursor:pointer;
+    transition:all .15s; background:none; border:none; width:100%; font-family:inherit; }
+  .sb-dd-item:hover { background:rgba(124,111,255,0.12); color:var(--text); }
+  .sb-dd-item.danger { color:var(--red); }
+  .sb-dd-item.danger:hover { background:rgba(248,113,113,0.1); }
+  .member-only { display:none; }
+
 </style>
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -72,5 +86,5 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 <!-- ══ DESKTOP SIDEBAR ══ -->
 <aside class="v2-sidebar">
   <div class="v2-sb-brand">
-    <img src="logo_slogan_dark.png" alt="repertuvar.app" style="width:100%;max-width:188px;display:block;">
+    <img src="logo_dark.png" alt="repertuvar.app" style="height:38px;width:auto;display:block;">
   html>
