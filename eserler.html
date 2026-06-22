@@ -1006,9 +1006,10 @@ function saveNewEser() {
     .catch(err => alert('Bağlantı hatası: ' + err.message));
   } else {
     // Yeni eser - Supabase'e kaydet
-    const status = (isAdmin() || isEditor()) ? 'approved' : 'pending';
     const visEl = document.querySelector('input[name="ne_visibility"]:checked');
     const visibility = (isAdmin() || isEditor()) ? 'public' : (visEl?.value || 'public');
+    // Gizli eser admin onayı gerektirmez, direkt approved
+    const status = (isAdmin() || isEditor() || visibility === 'private') ? 'approved' : 'pending';
     const saveFields = {
       name: fields.name,
       composer: fields.composer,
@@ -1046,7 +1047,10 @@ function saveNewEser() {
       closeNewEserModal();
       buildFilters();
       applyFilters();
-      if (status === 'pending') {
+      if (visibility === 'private') {
+        alert('Eser kaydedildi. Sadece siz görebilirsiniz.');
+      } else if (status === 'pending') {
+        addSystemNotification('Yeni Eser Önerisi', (getUser()?.email || 'Bir üye') + ' tarafından yeni eser önerisi: ' + (saveFields.name || ''));
         alert('Eser öneriniz iletildi! Admin onayından sonra yayınlanacak.');
       } else {
         alert('Eser kaydedildi.');
