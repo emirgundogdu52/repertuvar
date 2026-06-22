@@ -201,12 +201,13 @@
 
     /* ── Theme Toggle Button ── */
     .r-theme-toggle {
-      width: 32px; height: 32px; border-radius: 50%;
+      width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 50%;
       border: 1px solid rgba(124,111,255,0.25);
       background: rgba(124,111,255,0.1);
-      color: #a78bfa; font-size: 15px;
-      display: flex; align-items: center; justify-content: center;
+      color: #a78bfa; font-size: 16px; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all .2s; flex-shrink: 0;
+      padding: 0; box-sizing: border-box;
     }
     .r-theme-toggle:hover { background: rgba(124,111,255,0.2); }
     [data-theme="light"] .r-theme-toggle { color: #6c5ce7; background: rgba(124,111,255,0.08); }
