@@ -264,6 +264,7 @@ tr:hover .ra{opacity:1;}
   <aside class="lp">
     <div class="lph"><h2>Mevcut Repertuvarlar</h2><button class="bn" onclick="openNew()" title="+ Yeni Repertuvar Oluştur">+ Yeni</button></div>
     <div class="ls" id="list"></div>
+    <div id="debugPanel" style="padding:10px;font-size:11px;color:#f87171;background:#1a0a0a;border-top:1px solid #333;display:block;"></div>
   </aside>
   <div class="dp" id="dp">
     <div class="es" id="es">
@@ -396,6 +397,8 @@ async function loadWorksData() {
 }
 let reps=[], selId=null, editId=null, selWId=null, addRepId=null, activeItemIdx=null, activeItemRepId=null;
 
+function dbg(msg){const p=document.getElementById('debugPanel');if(p)p.innerHTML+=msg+'<br>';}
+
 function sync(s,t){const d=document.getElementById('dot');const sl=document.getElementById('sl');if(d)d.className='dot '+s;if(sl)sl.textContent=t;}
 function toast(m,t='ok'){const e=document.createElement('div');e.className='toast '+t;e.textContent=m;document.body.appendChild(e);setTimeout(()=>e.remove(),2500);}
 
@@ -403,29 +406,34 @@ let SOLISTLER = []; // sanatçı listesi
 
 async function load(){
   sync('spin','Yükleniyor...');
+  dbg('load() başladı');
   try{
     let r, i, s;
     try {
       const uid2 = getUserId();
+      dbg('getUserId: '+uid2);
       const repQuery = uid2
         ? 'order=created_at&limit=100&or=(owner_id.eq.'+uid2+',is_public.eq.true)'
         : 'order=created_at&limit=100&is_public=eq.true';
+      dbg('repQuery: '+repQuery);
       [r,i,s] = await Promise.all([
         dbGet('repertoires', repQuery),
         dbGet('repertoire_items','order=seq'),
         dbGet('solistler','order=name')
       ]);
+      dbg('rep sayısı: '+(r||[]).length+' | items: '+(i||[]).length);
       if (window.db) {
         await db.repertoires.saveAll(r||[]);
         await db.solistler.saveAll(s||[]);
       }
     } catch(fetchErr) {
-      console.warn('[repertoires] Offline, IndexedDB kullanılıyor');
+      dbg('FETCH HATA: '+fetchErr.message);
       if (window.db) {
         r = await db.repertoires.getAll();
         i = await db.repertoire_items.getAll();
         s = await db.solistler.getAll();
-      } else { r=[]; i=[]; s=[]; }
+        dbg('IndexedDB: rep='+r.length+' items='+i.length);
+      } else { r=[]; i=[]; s=[]; dbg('db yok, boş liste'); }
       toast('📵 Çevrimdışı mod', 'ok');
     }
     SOLISTLER = (s||[]).map(x=>x.name).filter(Boolean);
