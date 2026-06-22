@@ -504,7 +504,11 @@ function clearFilters() {
 function applyFilters() {
   const q = document.getElementById('searchInput').value.toLowerCase().trim();
   filteredData = DATA.filter(w => {
-    if (activeFilters.form && w.form !== activeFilters.form) return false;
+       if (w.status === 'pending') {
+      const uid = getUserId();
+      if (!isAdmin() && !isEditor() && w.submitted_by !== uid) return false;
+    }
+     if (activeFilters.form && w.form !== activeFilters.form) return false;
     if (activeFilters.tuning && w.tuning !== activeFilters.tuning) return false;
     if (activeFilters.region && w.region !== activeFilters.region) return false;
     if (activeFilters.makam && w.makam !== activeFilters.makam) return false;
