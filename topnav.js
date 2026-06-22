@@ -13,7 +13,7 @@
       gap: 10px;
     }
     .r-topnav img.r-logo {
-      height: 32px; width: auto; flex-shrink: 0;
+      height: 36px; width: auto; flex-shrink: 0;
       display: block; margin: auto 0;
     }
     .r-topnav .r-tn-right {
@@ -221,12 +221,13 @@
 
     /* ── Theme Toggle Button ── */
     .r-theme-toggle {
-      width: 32px; height: 32px; border-radius: 50%;
+      width: 30px; height: 30px; border-radius: 50%;
       border: 1px solid rgba(124,111,255,0.25);
       background: rgba(124,111,255,0.1);
-      color: #a78bfa; font-size: 15px;
+      color: #a78bfa; font-size: 14px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; transition: all .2s; flex-shrink: 0;
+      line-height: 1; padding: 0;
     }
     .r-theme-toggle:hover { background: rgba(124,111,255,0.2); }
     [data-theme="light"] .r-theme-toggle { color: #6c5ce7; background: rgba(124,111,255,0.08); }
