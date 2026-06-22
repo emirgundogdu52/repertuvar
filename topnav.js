@@ -288,7 +288,7 @@
     const container = document.getElementById('r-topnav-container');
     if (!container) return;
     const _theme = localStorage.getItem('r_theme') || 'dark';
-    const _logo = _theme === 'light' ? 'logo_slogan_light.png' : 'logo_slogan_dark.png';
+    const _logo = _theme === 'light' ? 'logo_light.png' : 'logo_dark.png';
     container.innerHTML = `
       <header class="r-topnav">
         <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
