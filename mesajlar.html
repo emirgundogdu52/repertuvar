@@ -589,8 +589,9 @@ async function loadAnnouncements() {
   const un = document.getElementById('sbUserName'); if(un) un.textContent = name;
 
   if (isAdmin()) {
-    document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
+    document.querySelectorAll('.admin-only').forEach(el => { el.classList.remove('admin-only'); el.style.display = ''; });
     document.getElementById('announceSection').style.display = 'block';
+    document.getElementById('newMsgBtnWrap').style.display = 'block';
     document.getElementById('sbUserRole').textContent = 'Admin';
   } else {
     document.getElementById('composeSection').style.display = 'block';
