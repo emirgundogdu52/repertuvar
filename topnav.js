@@ -8,24 +8,24 @@
       background: rgba(7,7,26,0.92);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(120,100,255,0.18);
-      display: flex; flex-direction: row; align-items: flex-start;
-      padding: 8px 20px;
-      padding-top: max(8px, env(safe-area-inset-top));
+      display: flex; flex-direction: row; align-items: center;
+      padding: 0 16px;
+      height: 56px;
+      padding-top: env(safe-area-inset-top);
       gap: 12px;
     }
     .r-topnav img.r-logo {
-      height: 32px; width: auto; flex-shrink: 0;
+      height: 38px; width: auto; flex-shrink: 0;
     }
     .r-topnav .r-tn-right {
       margin-left: auto;
-      display: flex; flex-direction: row; align-items: flex-start; gap: 8px;
-      padding-top: 10px;
+      display: flex; flex-direction: row; align-items: center; gap: 8px;
     }
     .r-tn-user {
       display: flex; align-items: center; gap: 6px;
       background: rgba(124,111,255,0.12);
       border: 1px solid rgba(124,111,255,0.2);
-      border-radius: 20px; padding: 4px 12px 4px 6px;
+      border-radius: 50%; padding: 2px; width: 34px; height: 34px; justify-content: center;
     }
     .r-tn-avatar {
       width: 26px; height: 26px; border-radius: 50%;
@@ -277,8 +277,10 @@
           <button class="r-theme-toggle" id="rThemeToggle" title="Tema değiştir">🌙</button>
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar">—</div>
-            <span class="r-tn-uname" id="rTnUserName">—</span>
             <div class="r-tn-dropdown" id="rTnDropdown">
+              <div style="padding:8px 12px 6px;border-bottom:1px solid rgba(120,100,255,0.15);margin-bottom:4px;">
+                <div id="rTnUserNameDisplay" style="font-size:12px;font-weight:600;color:#e2e0ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">—</div>
+              </div>
               <a href="ayarlar.html" class="r-tn-dd-item">
                 <i class="ti ti-settings" style="font-size:15px;" aria-hidden="true"></i> Ayarlar
               </a>
@@ -338,6 +340,8 @@
     const un = document.getElementById('rTnUserName');
     if (av) av.textContent = ini;
     if (un) un.textContent = name;
+    const dn = document.getElementById('rTnUserNameDisplay');
+    if (dn) dn.textContent = name;
     // Desktop topbar
     injectDesktopBadge(name, ini);
   }
