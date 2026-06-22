@@ -489,6 +489,11 @@
 
     // Logo değiştir
     document.querySelectorAll('img').forEach(img => {
+      if (img.id === 'rNavLogo') {
+        // Topnav logosu: her zaman slogansız
+        img.src = (isLight ? 'logo_light.png' : 'logo_dark.png');
+        return;
+      }
       const src = (img.getAttribute('src') || '') + (img.src || '');
       if (src.includes('logo_slogan') || src.includes('Repertuvar_logo_slogan') || src.includes('logo2')) {
         img.src = (isLight ? 'logo_slogan_light.png' : 'logo_slogan_dark.png');
