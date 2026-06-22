@@ -130,6 +130,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .thread-actions { display:flex; gap:6px; margin-top:8px; }
 .btn-delete-msg { padding:5px 12px; border-radius:7px; border:1px solid rgba(248,113,113,.3); background:rgba(248,113,113,.08); color:var(--red); font-size:11px; cursor:pointer; font-family:var(--font); transition:all .15s; }
 .btn-delete-msg:hover { background:rgba(248,113,113,.18); }
+/* ── Yeni Mesaj Modal ── */
+.nm-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:2000; align-items:center; justify-content:center; padding:20px; }
+.nm-modal.open { display:flex; }
+.nm-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; width:min(480px,96vw); padding:24px; }
+.nm-title { font-size:15px; font-weight:700; margin-bottom:16px; color:var(--text); }
+.nm-field { margin-bottom:12px; }
+.nm-field label { display:block; font-size:11px; font-weight:700; color:var(--text3); margin-bottom:5px; text-transform:uppercase; letter-spacing:.05em; }
+.nm-select { width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-size:13px; font-family:var(--font); outline:none; }
+.nm-select:focus { border-color:var(--accent); }
+.nm-textarea { width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-size:13px; font-family:var(--font); outline:none; resize:vertical; min-height:100px; }
+.nm-textarea:focus { border-color:var(--accent); }
+.nm-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+.btn-nm-send { padding:8px 20px; border-radius:8px; border:none; background:var(--accent); color:#fff; font-size:13px; font-weight:700; cursor:pointer; font-family:var(--font); }
+.btn-nm-cancel { padding:8px 16px; border-radius:8px; border:1px solid var(--border); background:none; color:var(--text2); font-size:13px; cursor:pointer; font-family:var(--font); }
+.btn-new-msg { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--accent); font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font); margin-left:auto; transition:all .15s; }
+.btn-new-msg:hover { border-color:var(--accent); background:rgba(124,111,255,0.08); }
+
 
   .sb-user-x { position:relative; }
   .sb-user-dropdown { display:none; position:fixed; bottom:90px; left:10px; right:10px;
@@ -194,6 +211,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <button class="btn-send" onclick="sendMessage()" id="sendBtn">Gönder</button>
   </div>
 
+  <!-- Admin: Yeni Mesaj butonu -->
+  <div id="newMsgBtnWrap" class="admin-only" style="display:none;margin-bottom:16px;">
+    <button class="btn-new-msg" onclick="openNewMsgModal()"><i class="ti ti-edit" style="font-size:14px;"></i> Yeni Mesaj</button>
+  </div>
+
   <!-- Admin: Duyuru yaz -->
   <div id="announceSection" class="compose-box admin-only" style="display:none;">
     <h3>📢 Toplu Duyuru Gönder</h3>
@@ -224,6 +246,27 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 </div><!-- /page -->
 </div><!-- /main-wrap -->
+
+<!-- Yeni Mesaj Modal -->
+<div class="nm-modal" id="newMsgModal">
+  <div class="nm-card">
+    <div class="nm-title">✉️ Üyeye Mesaj Gönder</div>
+    <div class="nm-field">
+      <label>Üye Seç</label>
+      <select class="nm-select" id="nmMemberSelect">
+        <option value="">Yükleniyor...</option>
+      </select>
+    </div>
+    <div class="nm-field">
+      <label>Mesaj</label>
+      <textarea class="nm-textarea" id="nmText" placeholder="Mesajınızı yazın..."></textarea>
+    </div>
+    <div class="nm-actions">
+      <button class="btn-nm-cancel" onclick="closeNewMsgModal()">İptal</button>
+      <button class="btn-nm-send" onclick="sendNewMessage()" id="nmSendBtn">Gönder</button>
+    </div>
+  </div>
+</div>
 
 <!-- Bottom nav -->
 <nav class="v2-bottom-nav">
@@ -416,6 +459,60 @@ async function deleteMessage(id) {
       toast('Hata: ' + await r.text(), 'er');
     }
   } catch(e) { toast('Hata: ' + e.message, 'er'); }
+}
+
+
+async function openNewMsgModal() {
+  document.getElementById('newMsgModal').classList.add('open');
+  document.getElementById('nmText').value = '';
+  // Üye listesini yükle
+  const sel = document.getElementById('nmMemberSelect');
+  sel.innerHTML = '<option value="">Yükleniyor...</option>';
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?select=id,email,display_name&order=email', { headers: H() });
+    const data = await r.json();
+    sel.innerHTML = '<option value="">— Üye seçin —</option>' +
+      data.map(p => `<option value="${p.id}" data-email="${p.email || p.display_name || p.id}">${p.email || p.display_name || p.id}</option>`).join('');
+  } catch(e) {
+    sel.innerHTML = '<option value="">Üyeler yüklenemedi</option>';
+  }
+}
+
+function closeNewMsgModal() {
+  document.getElementById('newMsgModal').classList.remove('open');
+}
+
+async function sendNewMessage() {
+  const sel = document.getElementById('nmMemberSelect');
+  const toId = sel.value;
+  const toEmail = sel.options[sel.selectedIndex]?.dataset?.email || '';
+  const text = document.getElementById('nmText').value.trim();
+  if (!toId) { toast('Lütfen bir üye seçin', 'er'); return; }
+  if (!text) { toast('Mesaj boş olamaz', 'er'); return; }
+  const btn = document.getElementById('nmSendBtn');
+  btn.disabled = true; btn.textContent = 'Gönderiliyor...';
+  try {
+    // Admin adına mesaj oluştur — from_id admin, receiver_id üye
+    // Ama mevcut tablo yapısında from_id gönderen. Admin mesajı için admin_reply gibi davranmalı.
+    // Yeni bir satır oluşturuyoruz: from_id = üye, admin_reply = mesaj (admin başlattı)
+    const r = await fetch(SUPA_URL + '/rest/v1/messages', {
+      method: 'POST',
+      headers: { ...H(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        from_id: toId,
+        from_email: toEmail,
+        content: '(Admin tarafından başlatılan konuşma)',
+        admin_reply: text,
+        replied_at: new Date().toISOString(),
+        read_at: new Date().toISOString() // admin oluşturdu, okunmuş say
+      })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Mesaj gönderildi ✓');
+    closeNewMsgModal();
+    loadMessages();
+  } catch(e) { toast('Hata: ' + e.message, 'er'); }
+  btn.disabled = false; btn.textContent = 'Gönder';
 }
 
 function toggleReply(id) {
