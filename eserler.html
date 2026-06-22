@@ -291,13 +291,19 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     <a href="artiesten.html" class="v2-sb-item"><i class="ti ti-microphone" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Solistler</a>
     <div class="v2-sb-divider"></div>
     <div class="v2-sb-label">Araçlar</div>
-    <a href="ayarlar.html" class="v2-sb-item"><i class="ti ti-settings" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Ayarlar</a>
+    <a href="mesajlar.html" class="v2-sb-item"><i class="ti ti-message" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Mesajlar</a>
+    <a href="uyeler.html" class="v2-sb-item admin-only"><i class="ti ti-users-group" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Üyeler</a>
+    <a href="onerilerim.html" class="v2-sb-item member-only" style="display:none;"><i class="ti ti-bulb" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Önerilerim</a>
   </nav>
   <div style="flex:1"></div>
-  <div class="v2-sb-user">
+  <div class="v2-sb-user sb-user-x" id="sbUserBtn" onclick="toggleSbDropdown()" style="cursor:pointer;">
+    <div class="sb-user-dropdown" id="sbUserDropdown">
+      <a href="ayarlar.html" class="sb-dd-item"><i class="ti ti-settings" style="font-size:14px;"></i>Ayarlar</a>
+      <button class="sb-dd-item danger" onclick="logout()"><i class="ti ti-logout" style="font-size:14px;"></i>Çıkış Yap</button>
+    </div>
     <div class="v2-sb-avatar" id="sbAvatar">—</div>
     <div style="flex:1;min-width:0"><div class="v2-sb-uname" id="sbUserName">—</div><div class="v2-sb-urole" id="sbUserRole">Üye</div></div>
-    <button class="v2-sb-logout" onclick="logout()" title="Çıkış"><i class="ti ti-logout" style="font-size:14px;" aria-hidden="true"></i></button>
+    <i class="ti ti-chevron-up" style="font-size:12px;color:var(--text3);"></i>
   </div>
 </aside>
 <!-- ══ MAIN WRAP ══ -->
@@ -1147,6 +1153,8 @@ document.addEventListener('keydown', function(e) {
     if (mobileSuggestBtn) mobileSuggestBtn.style.display = 'flex';
     const onerilerimBtn = document.getElementById('btnOnerilerim');
     if (onerilerimBtn) onerilerimBtn.style.display = '';
+    // Sidebar Önerilerim linkini göster
+    document.querySelectorAll('.member-only').forEach(el => { el.style.display = ''; });
   }
   // Yükleniyor göstergesi
   const _lp = document.getElementById('listPanel'); if(_lp) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">Eserler yükleniyor...</div>';
@@ -1477,7 +1485,7 @@ function openSuggestModal() {
       <div class="v2-bn-dot"></div></a>
     <a href="repertoires.html" class="v2-bn-item"><i class="ti ti-book" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Repertuvarlar</span></a>
     <a href="stage.html" class="v2-bn-item v2-bn-stage"><i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Sahne Modu</span></a>
-    <a href="ayarlar.html" class="v2-bn-item"><i class="ti ti-settings" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Ayarlar</span></a>
+    <a href="mesajlar.html" class="v2-bn-item"><i class="ti ti-message" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Mesajlar</span></a>
   </div>
 </nav>
 <script>
