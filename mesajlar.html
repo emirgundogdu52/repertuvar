@@ -144,6 +144,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .nm-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
 .btn-nm-send { padding:8px 20px; border-radius:8px; border:none; background:var(--accent); color:#fff; font-size:13px; font-weight:700; cursor:pointer; font-family:var(--font); }
 .btn-nm-cancel { padding:8px 16px; border-radius:8px; border:1px solid var(--border); background:none; color:var(--text2); font-size:13px; cursor:pointer; font-family:var(--font); }
+.nm-member-item { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:7px; cursor:pointer; transition:background .12s; }
+.nm-member-item:hover { background:rgba(124,111,255,0.1); }
+.nm-member-item input[type=checkbox] { accent-color:var(--accent); width:15px; height:15px; flex-shrink:0; cursor:pointer; }
+.nm-member-item label { font-size:13px; color:var(--text); cursor:pointer; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
 .btn-new-msg { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--accent); font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font); margin-left:auto; transition:all .15s; }
 .btn-new-msg:hover { border-color:var(--accent); background:rgba(124,111,255,0.08); }
 
@@ -252,10 +257,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="nm-card">
     <div class="nm-title">✉️ Üyeye Mesaj Gönder</div>
     <div class="nm-field">
-      <label>Üye Seç</label>
-      <select class="nm-select" id="nmMemberSelect">
-        <option value="">Yükleniyor...</option>
-      </select>
+      <label>Üye Seç <span id="nmSelectedCount" style="color:var(--accent);font-weight:700;"></span></label>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input type="text" id="nmSearch" class="nm-textarea" style="min-height:unset;padding:8px 12px;font-size:12px;" placeholder="Ara...">
+        <button onclick="toggleSelectAll()" id="nmSelectAllBtn" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">Tümü</button>
+      </div>
+      <div id="nmMemberList" style="max-height:200px;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:4px;">
+        <div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;">Yükleniyor...</div>
+      </div>
     </div>
     <div class="nm-field">
       <label>Mesaj</label>
@@ -462,20 +471,59 @@ async function deleteMessage(id) {
 }
 
 
+let nmAllMembers = [];
+
 async function openNewMsgModal() {
   document.getElementById('newMsgModal').classList.add('open');
   document.getElementById('nmText').value = '';
-  // Üye listesini yükle
-  const sel = document.getElementById('nmMemberSelect');
-  sel.innerHTML = '<option value="">Yükleniyor...</option>';
+  document.getElementById('nmSearch').value = '';
+  updateNmCount();
+  const list = document.getElementById('nmMemberList');
+  if (nmAllMembers.length) { renderNmList(nmAllMembers); return; }
+  list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;">Yükleniyor...</div>';
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/profiles?select=id,email,display_name&order=email', { headers: H() });
-    const data = await r.json();
-    sel.innerHTML = '<option value="">— Üye seçin —</option>' +
-      data.map(p => `<option value="${p.id}" data-email="${p.email || p.display_name || p.id}">${p.email || p.display_name || p.id}</option>`).join('');
+    nmAllMembers = await r.json();
+    renderNmList(nmAllMembers);
   } catch(e) {
-    sel.innerHTML = '<option value="">Üyeler yüklenemedi</option>';
+    list.innerHTML = '<div style="padding:12px;color:var(--red);font-size:12px;">Yüklenemedi</div>';
   }
+}
+
+function renderNmList(members) {
+  const q = (document.getElementById('nmSearch').value || '').toLowerCase();
+  const filtered = q ? members.filter(p => (p.email || p.display_name || '').toLowerCase().includes(q)) : members;
+  const list = document.getElementById('nmMemberList');
+  if (!filtered.length) { list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;">Sonuç yok</div>'; return; }
+  list.innerHTML = filtered.map(p => {
+    const label = p.email || p.display_name || p.id;
+    return `<div class="nm-member-item" onclick="toggleNmCheck('${p.id}')">
+      <input type="checkbox" id="nmchk-${p.id}" value="${p.id}" data-email="${label}" onclick="event.stopPropagation();updateNmCount()">
+      <label for="nmchk-${p.id}">${label}</label>
+    </div>`;
+  }).join('');
+}
+
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'nmSearch') renderNmList(nmAllMembers);
+});
+
+function toggleNmCheck(id) {
+  const chk = document.getElementById('nmchk-' + id);
+  if (chk) { chk.checked = !chk.checked; updateNmCount(); }
+}
+
+function updateNmCount() {
+  const checked = document.querySelectorAll('#nmMemberList input[type=checkbox]:checked');
+  const el = document.getElementById('nmSelectedCount');
+  if (el) el.textContent = checked.length ? '(' + checked.length + ' seçili)' : '';
+}
+
+function toggleSelectAll() {
+  const boxes = document.querySelectorAll('#nmMemberList input[type=checkbox]');
+  const allChecked = Array.from(boxes).every(b => b.checked);
+  boxes.forEach(b => b.checked = !allChecked);
+  updateNmCount();
 }
 
 function closeNewMsgModal() {
@@ -483,32 +531,28 @@ function closeNewMsgModal() {
 }
 
 async function sendNewMessage() {
-  const sel = document.getElementById('nmMemberSelect');
-  const toId = sel.value;
-  const toEmail = sel.options[sel.selectedIndex]?.dataset?.email || '';
+  const checked = Array.from(document.querySelectorAll('#nmMemberList input[type=checkbox]:checked'));
   const text = document.getElementById('nmText').value.trim();
-  if (!toId) { toast('Lütfen bir üye seçin', 'er'); return; }
+  if (!checked.length) { toast('En az bir üye seçin', 'er'); return; }
   if (!text) { toast('Mesaj boş olamaz', 'er'); return; }
   const btn = document.getElementById('nmSendBtn');
   btn.disabled = true; btn.textContent = 'Gönderiliyor...';
   try {
-    // Admin adına mesaj oluştur — from_id admin, receiver_id üye
-    // Ama mevcut tablo yapısında from_id gönderen. Admin mesajı için admin_reply gibi davranmalı.
-    // Yeni bir satır oluşturuyoruz: from_id = üye, admin_reply = mesaj (admin başlattı)
-    const r = await fetch(SUPA_URL + '/rest/v1/messages', {
-      method: 'POST',
-      headers: { ...H(), 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        from_id: toId,
-        from_email: toEmail,
-        content: '(Admin tarafından başlatılan konuşma)',
-        admin_reply: text,
-        replied_at: new Date().toISOString(),
-        read_at: new Date().toISOString() // admin oluşturdu, okunmuş say
+    await Promise.all(checked.map(chk =>
+      fetch(SUPA_URL + '/rest/v1/messages', {
+        method: 'POST',
+        headers: { ...H(), 'Prefer': 'return=minimal' },
+        body: JSON.stringify({
+          from_id: chk.value,
+          from_email: chk.dataset.email || '',
+          content: '(Admin tarafından başlatılan konuşma)',
+          admin_reply: text,
+          replied_at: new Date().toISOString(),
+          read_at: new Date().toISOString()
+        })
       })
-    });
-    if (!r.ok) throw new Error(await r.text());
-    toast('Mesaj gönderildi ✓');
+    ));
+    toast(checked.length + ' üyeye mesaj gönderildi ✓');
     closeNewMsgModal();
     loadMessages();
   } catch(e) { toast('Hata: ' + e.message, 'er'); }
