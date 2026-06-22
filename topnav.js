@@ -269,7 +269,7 @@
     const container = document.getElementById('r-topnav-container');
     if (!container) return;
     const _theme = localStorage.getItem('r_theme') || 'dark';
-    const _logo = _theme === 'light' ? 'logo_slogan_light.png' : 'logo_slogan_dark.png';
+    const _logo = _theme === 'light' ? 'logo_light.png' : 'logo_dark.png';
     container.innerHTML = `
       <header class="r-topnav">
         <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
@@ -279,6 +279,9 @@
             <div class="r-tn-avatar" id="rTnAvatar">—</div>
             <span class="r-tn-uname" id="rTnUserName">—</span>
             <div class="r-tn-dropdown" id="rTnDropdown">
+              <a href="ayarlar.html" class="r-tn-dd-item">
+                <i class="ti ti-settings" style="font-size:15px;" aria-hidden="true"></i> Ayarlar
+              </a>
               <button class="r-tn-dd-item danger" onclick="logout()">
                 <i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> Çıkış Yap
               </button>
@@ -390,7 +393,7 @@
     document.querySelectorAll('img').forEach(img => {
       const src = (img.getAttribute('src') || '') + (img.src || '');
       if (src.includes('logo_slogan') || src.includes('Repertuvar_logo_slogan') || src.includes('logo2')) {
-        img.src = (isLight ? 'logo_slogan_light.png' : 'logo_slogan_dark.png');
+        img.src = (isLight ? 'logo_light.png' : 'logo_dark.png');
       } else if (src.includes('logo_dark') || src.includes('logo_light') || src.includes('Repertuvar_logo')) {
         img.src = (isLight ? 'logo_light.png' : 'logo_dark.png');
       }

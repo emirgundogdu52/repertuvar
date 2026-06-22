@@ -1,5 +1,5 @@
 // Repertuvar Service Worker — offline cache
-const CACHE_NAME = 'repertuvar-v5';
+const CACHE_NAME = 'repertuvar-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -55,16 +55,19 @@ self.addEventListener('fetch', (e) => {
   // Sadece GET
   if (e.request.method !== 'GET') return;
 
-  // HTML sayfaları: network-first, cache fallback (offline için)
+  // HTML sayfaları: cache-first (offline için)
   if (e.request.headers.get('accept')?.includes('text/html')) {
     e.respondWith(
-      fetch(e.request).then((response) => {
-        if (response && response.status === 200) {
-          const cloned = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, cloned));
-        }
-        return response;
-      }).catch(() => caches.match(e.request))
+      caches.match(e.request).then((cached) => {
+        const networkFetch = fetch(e.request).then((response) => {
+          if (response && response.status === 200) {
+            const cloned = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, cloned));
+          }
+          return response;
+        }).catch(() => cached);
+        return cached || networkFetch;
+      })
     );
     return;
   }
