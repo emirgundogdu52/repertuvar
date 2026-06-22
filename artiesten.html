@@ -36,7 +36,7 @@
   .sync-dot.err{background:var(--red);}
   .sync-dot.loading{background:var(--accent);animation:pulse .8s ease infinite;}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-  .layout{display:flex;height:calc(100vh - 49px);}
+  .layout{display:flex;height:calc(100vh - 57px);}
   .artist-list-panel{width:280px;min-width:280px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;}
   .panel-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
   .panel-header h2{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}
@@ -438,6 +438,7 @@ loadAll();
     <a href="mesajlar.html" class="v2-bn-item"><i class="ti ti-message" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Mesajlar</span></a>
   </div>
 </nav>
+<script>
 
 
 
@@ -453,5 +454,6 @@ document.addEventListener('click', function(e) {
   if (dd && btn && !btn.contains(e.target)) dd.classList.remove('open');
 });
 
+</script>
 </body>
 </html>
