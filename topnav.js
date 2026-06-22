@@ -14,7 +14,7 @@
       gap: 12px;
     }
     .r-topnav img.r-logo {
-      height: 75px; width: auto; flex-shrink: 0;
+      height: 32px; width: auto; flex-shrink: 0;
     }
     .r-topnav .r-tn-right {
       margin-left: auto;
