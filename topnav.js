@@ -4,58 +4,81 @@
   style.textContent = `
     .r-topnav {
       position: sticky; top: 0; z-index: 200;
-      height: auto; min-height: 56px;
-      background: rgba(7,7,26,0.92);
+      height: 48px; min-height: 48px;
+      background: rgba(7,7,26,0.95);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(120,100,255,0.18);
-      display: flex; flex-direction: row; align-items: flex-start;
-      padding: 8px 20px;
-      padding-top: max(8px, env(safe-area-inset-top));
-      gap: 12px;
+      display: flex; flex-direction: row; align-items: center;
+      padding: 0 16px;
+      gap: 10px;
     }
     .r-topnav img.r-logo {
-      height: 75px; width: auto; flex-shrink: 0;
+      height: 28px; width: auto; flex-shrink: 0;
     }
     .r-topnav .r-tn-right {
       margin-left: auto;
-      display: flex; flex-direction: row; align-items: flex-start; gap: 8px;
-      padding-top: 10px;
+      display: flex; flex-direction: row; align-items: center; gap: 8px;
     }
     .r-tn-user {
-      display: flex; align-items: center; gap: 6px;
-      background: rgba(124,111,255,0.12);
-      border: 1px solid rgba(124,111,255,0.2);
-      border-radius: 20px; padding: 4px 12px 4px 6px;
+      display: flex; align-items: center;
+      cursor: pointer;
     }
     .r-tn-avatar {
-      width: 26px; height: 26px; border-radius: 50%;
+      width: 30px; height: 30px; border-radius: 50%;
       background: linear-gradient(135deg, #7c6fff, #a78bfa);
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+      font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+      border: 1.5px solid rgba(124,111,255,0.4);
     }
-    .r-tn-uname {
-      font-size: 13px; font-weight: 600; color: #e2e0ff;
-      max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+    .r-tn-uname { display: none; }
     .r-tn-user { cursor: pointer; position: relative; }
-    .r-tn-dropdown {
-      display: none; position: fixed; top: 60px; right: 12px;
-      background: #12123a; border: 1px solid rgba(120,100,255,0.25);
-      border-radius: 10px; padding: 6px; min-width: 140px; z-index: 9999;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    }
-    .r-tn-dropdown.open { display: block; }
+    .r-tn-dropdown { display: none; }
     .r-tn-dd-item {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 12px; border-radius: 7px;
-      font-size: 13px; color: #9d9bc4; cursor: pointer;
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 20px; border-radius: 0;
+      font-size: 15px; color: #e2e0ff; cursor: pointer;
       font-family: inherit; background: none; border: none; width: 100%;
-      text-align: left; transition: all .15s;
+      text-align: left; transition: background .12s;
+      border-bottom: 1px solid rgba(120,100,255,0.1);
     }
-    .r-tn-dd-item:hover { background: rgba(124,111,255,0.12); color: #e2e0ff; }
+    .r-tn-dd-item:last-child { border-bottom: none; }
+    .r-tn-dd-item:hover { background: rgba(124,111,255,0.1); }
     .r-tn-dd-item.danger { color: #f87171; }
-    .r-tn-dd-item.danger:hover { background: rgba(248,113,113,0.1); }
     .r-tn-logout { display: none; }
+
+    /* Bottom Sheet */
+    .r-bottom-sheet-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9998;
+      background: rgba(0,0,0,0.5);
+    }
+    .r-bottom-sheet-overlay.open { display: block; }
+    .r-bottom-sheet {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+      background: #12123a;
+      border-top: 1px solid rgba(120,100,255,0.25);
+      border-radius: 18px 18px 0 0;
+      padding-bottom: env(safe-area-inset-bottom, 16px);
+      transform: translateY(100%);
+      transition: transform .25s cubic-bezier(.4,0,.2,1);
+    }
+    .r-bottom-sheet.open { transform: translateY(0); }
+    .r-bs-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.2); margin: 12px auto 4px;
+    }
+    .r-bs-user {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 20px 12px;
+      border-bottom: 1px solid rgba(120,100,255,0.15);
+    }
+    .r-bs-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, #7c6fff, #a78bfa);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .r-bs-name { font-size: 14px; font-weight: 600; color: #e2e0ff; }
+    .r-bs-role { font-size: 11px; color: #9d9bc4; margin-top: 2px; }
 
     /* ── Light Theme ── */
     :root[data-theme="light"],
@@ -271,20 +294,31 @@
         <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
         <div class="r-tn-right">
           <button class="r-theme-toggle" id="rThemeToggle" title="Tema değiştir">🌙</button>
-          <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
+          <div class="r-tn-user" onclick="openBottomSheet()" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar">—</div>
-            <span class="r-tn-uname" id="rTnUserName">—</span>
-            <div class="r-tn-dropdown" id="rTnDropdown">
-              <a href="ayarlar.html" class="r-tn-dd-item">
-                <i class="ti ti-settings" style="font-size:15px;" aria-hidden="true"></i> Ayarlar
-              </a>
-              <button class="r-tn-dd-item danger" onclick="logout()">
-                <i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> Çıkış Yap
-              </button>
-            </div>
           </div>
         </div>
       </header>
+      <div class="r-bottom-sheet-overlay" id="rBsOverlay" onclick="closeBottomSheet()"></div>
+      <div class="r-bottom-sheet" id="rBottomSheet">
+        <div class="r-bs-handle"></div>
+        <div class="r-bs-user">
+          <div class="r-bs-avatar" id="rBsAvatar">—</div>
+          <div>
+            <div class="r-bs-name" id="rBsName">—</div>
+            <div class="r-bs-role" id="rBsRole">Üye</div>
+          </div>
+        </div>
+        <button class="r-tn-dd-item" onclick="closeBottomSheet();toggleTheme()">
+          <i class="ti ti-sun" style="font-size:18px;color:#a78bfa;" aria-hidden="true"></i> Tema Değiştir
+        </button>
+        <a href="ayarlar.html" class="r-tn-dd-item" onclick="closeBottomSheet()">
+          <i class="ti ti-settings" style="font-size:18px;color:#a78bfa;" aria-hidden="true"></i> Ayarlar
+        </a>
+        <button class="r-tn-dd-item danger" onclick="logout()">
+          <i class="ti ti-logout" style="font-size:18px;" aria-hidden="true"></i> Çıkış Yap
+        </button>
+      </div>
     `;
   }
 
@@ -330,9 +364,17 @@
     const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
     const ini = name.charAt(0).toUpperCase();
     const av = document.getElementById('rTnAvatar');
-    const un = document.getElementById('rTnUserName');
     if (av) av.textContent = ini;
-    if (un) un.textContent = name;
+    // Bottom sheet
+    const bsAv = document.getElementById('rBsAvatar');
+    const bsName = document.getElementById('rBsName');
+    const bsRole = document.getElementById('rBsRole');
+    if (bsAv) bsAv.textContent = ini;
+    if (bsName) bsName.textContent = name;
+    if (bsRole) {
+      const role = localStorage.getItem('user_role') || 'member';
+      bsRole.textContent = role === 'admin' ? 'Admin' : role === 'editor' ? 'Editör' : 'Üye';
+    }
     injectDesktopBadge(name, ini);
     setTimeout(loadUnreadBadge, 600);
   }
@@ -404,6 +446,20 @@
     e.stopPropagation();
     const dd = document.getElementById('rTnDropdown');
     if (dd) dd.classList.toggle('open');
+  };
+
+  window.openBottomSheet = function() {
+    const overlay = document.getElementById('rBsOverlay');
+    const sheet = document.getElementById('rBottomSheet');
+    if (overlay) overlay.classList.add('open');
+    if (sheet) requestAnimationFrame(() => sheet.classList.add('open'));
+  };
+
+  window.closeBottomSheet = function() {
+    const overlay = document.getElementById('rBsOverlay');
+    const sheet = document.getElementById('rBottomSheet');
+    if (sheet) sheet.classList.remove('open');
+    if (overlay) setTimeout(() => overlay.classList.remove('open'), 250);
   };
   // Theme logic
   function applyTheme(theme) {
