@@ -533,14 +533,10 @@ body {
   function applyIndexLogo() {
     const logo = document.querySelector('.r-topnav .r-logo');
     if (logo) {
-      logo.src = 'logo_slogan_dark.png';
-      logo.style.height = '64px';
+      const theme = localStorage.getItem('r_theme') || 'dark';
+      logo.src = theme === 'light' ? 'logo_slogan_light.png' : 'logo_slogan_dark.png';
+      logo.style.height = '36px';
     }
-    // Üye adını logo üst sınırına hizala
-    const right = document.querySelector('.r-tn-right');
-    if (right) right.style.paddingTop = '0';
-    const user = document.querySelector('.r-tn-user');
-    if (user) user.style.alignSelf = 'flex-start';
   }
   // topnav.js render ettikten sonra çalıştır
   if (document.readyState === 'loading') {
