@@ -406,8 +406,12 @@ async function load(){
   try{
     let r, i, s;
     try {
+      const uid2 = getUserId();
+      const repQuery = uid2
+        ? 'order=created_at&limit=100&or=(owner_id.eq.'+uid2+',is_public.eq.true)'
+        : 'order=created_at&limit=100&is_public=eq.true';
       [r,i,s] = await Promise.all([
-        dbGet('repertoires','order=created_at&limit=100&or=(owner_id.eq.'+getUserId()+',is_public.eq.true)'),
+        dbGet('repertoires', repQuery),
         dbGet('repertoire_items','order=seq'),
         dbGet('solistler','order=name')
       ]);
@@ -425,7 +429,7 @@ async function load(){
       toast('📵 Çevrimdışı mod', 'ok');
     }
     SOLISTLER = (s||[]).map(x=>x.name).filter(Boolean);
-    const uid = getUserId();
+    const uid = getUserId() || '';
     reps = r.map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||''}))}));
     sync('ok','Senkronize');
     renderList();
