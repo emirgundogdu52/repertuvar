@@ -470,6 +470,20 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
     <!-- 4. HAKKINDA -->
 
     <!-- DAVET ET -->
+    <div class="settings-section member-only" style="display:none;">
+      <div class="section-header">
+        <span class="section-icon">📋</span>
+        <div>
+          <div class="section-title">Önerilerim</div>
+          <div class="section-subtitle" style="font-size:11px;color:var(--text3);margin-top:2px;">Gönderdiğiniz eser önerileri ve onay durumları</div>
+        </div>
+      </div>
+      <a href="onerilerim.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;text-decoration:none;margin-top:12px;">
+        <span style="font-size:13px;color:var(--text);">Önerilerimi Görüntüle</span>
+        <i class="ti ti-chevron-right" style="color:var(--text3);font-size:16px;"></i>
+      </a>
+    </div>
+
     <div class="settings-section">
       <div class="section-header">
         <span class="section-icon">🎵</span>
@@ -680,6 +694,8 @@ async function changePassword() {
     ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=roleLabel; });
     if (role === 'admin' || role === 'editor') {
       document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
+    } else {
+      document.querySelectorAll('.member-only').forEach(el => { el.style.display = ''; });
     }
     // Gecikme ile tekrar dene - auth.js bazen async yüklenir
     if (role === 'member') {
