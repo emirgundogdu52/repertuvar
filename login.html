@@ -6,7 +6,50 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repertuvar — Giriş</title>
 <link rel="icon" href="Repertuvar_logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Inter:wght@500;900&display=swap" rel="stylesheet">
+<style>
+body { overflow: hidden; }
+#splash-overlay {
+  position:fixed;inset:0;z-index:9999;
+  background:#ffffff;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity 0.8s ease;
+}
+#splash-overlay.fade-out { opacity:0; pointer-events:none; }
+.sp-logo-wrap { display:flex;flex-direction:column;align-items:center; }
+.sp-logo-row  { display:flex;align-items:baseline;line-height:1; }
+#sp-rep {
+  font-family:'Inter',sans-serif;font-weight:900;
+  font-size:clamp(36px,8vw,68px);color:#1A1733;
+  letter-spacing:-2px;opacity:0;transform:translateX(-80px);
+}
+#sp-dot {
+  font-family:'Inter',sans-serif;font-weight:900;
+  font-size:clamp(36px,8vw,68px);color:#1A1733;
+  letter-spacing:-2px;opacity:0;transform:translateY(-120px);display:inline-block;
+}
+#sp-app {
+  font-family:'Inter',sans-serif;font-weight:900;
+  font-size:clamp(36px,8vw,68px);color:#3522C9;
+  letter-spacing:-2px;opacity:0;transform:translateX(80px);
+}
+.sp-lines { display:flex;margin-top:10px; }
+#sp-line-blue {
+  height:8px;background:#3522C9;border-radius:4px;
+  opacity:0;transform:translateY(24px);
+}
+#sp-line-dark {
+  height:8px;background:#1A1733;border-radius:4px;
+  opacity:0;transform:translateY(24px);margin-left:12px;
+}
+#sp-slogan {
+  font-family:'Inter',sans-serif;font-weight:500;
+  font-size:clamp(13px,2.5vw,21px);color:#3522C9;
+  margin-top:1rem;min-height:2.8em;
+  letter-spacing:0.01em;text-align:center;
+  line-height:1.6;white-space:pre-line;
+}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -55,8 +98,22 @@ body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-he
 </head>
 <body>
 
+<!-- Splash Overlay -->
+<div id="splash-overlay">
+  <div class="sp-logo-wrap">
+    <div class="sp-logo-row">
+      <span id="sp-rep">repertuvar</span><span id="sp-dot">.</span><span id="sp-app">app</span>
+    </div>
+    <div class="sp-lines">
+      <div id="sp-line-blue"></div>
+      <div id="sp-line-dark"></div>
+    </div>
+    <div id="sp-slogan"></div>
+  </div>
+</div>
+
 <div class="logo-wrap">
-  <img src="Repertuvar_logo_slogan.png" alt="repertuvar.app">
+  <img src="logo_slogan_dark.png" alt="repertuvar.app">
 </div>
 
 <div class="card">
@@ -256,6 +313,65 @@ async function loginGoogle() {
     options: {redirectTo: 'https://www.repertuvar.app/login.html'}
   });
 }
+</script>
+<script>
+(async function() {
+  const rep      = document.getElementById('sp-rep');
+  const dot      = document.getElementById('sp-dot');
+  const app      = document.getElementById('sp-app');
+  const lineBlue = document.getElementById('sp-line-blue');
+  const lineDark = document.getElementById('sp-line-dark');
+  const slogan   = document.getElementById('sp-slogan');
+  const overlay  = document.getElementById('splash-overlay');
+
+  function anim(el, props, duration, delay, easing) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        el.style.transition = `all ${duration}ms ${easing || 'cubic-bezier(0.22,1,0.36,1)'}`;
+        Object.assign(el.style, props);
+        setTimeout(resolve, duration);
+      }, delay);
+    });
+  }
+
+  await document.fonts.ready;
+  await new Promise(r => setTimeout(r, 500));
+
+  lineBlue.style.width = rep.offsetWidth + 'px';
+  lineDark.style.width = app.offsetWidth + 'px';
+
+  await anim(dot, { opacity:'1', transform:'translateY(0)' }, 900, 0, 'cubic-bezier(0.34,1.3,0.64,1)');
+  await new Promise(r => setTimeout(r, 300));
+
+  anim(rep, { opacity:'1', transform:'translateX(0)' }, 900, 0);
+  await anim(app, { opacity:'1', transform:'translateX(0)' }, 900, 0);
+  await new Promise(r => setTimeout(r, 300));
+
+  anim(lineBlue, { opacity:'1', transform:'translateY(0)' }, 700, 0, 'cubic-bezier(0.34,1.3,0.64,1)');
+  await anim(lineDark, { opacity:'1', transform:'translateY(0)' }, 700, 150, 'cubic-bezier(0.34,1.3,0.64,1)');
+  await new Promise(r => setTimeout(r, 400));
+
+  const full = 'Modern Müzisyenler İçin\nAkıllı Sahne ve Repertuvar Yönetimi';
+  let i = 0;
+  await new Promise(resolve => {
+    function typeChar() {
+      if (i <= full.length) {
+        slogan.textContent = full.slice(0, i) + (i < full.length ? '|' : '');
+        i++;
+        setTimeout(typeChar, 55);
+      } else { resolve(); }
+    }
+    typeChar();
+  });
+
+  // 1.5 sn bekle sonra fade out
+  await new Promise(r => setTimeout(r, 1500));
+  overlay.classList.add('fade-out');
+  setTimeout(() => {
+    overlay.remove();
+    document.body.style.overflow = '';
+  }, 800);
+})();
 </script>
 </body>
 </html>
