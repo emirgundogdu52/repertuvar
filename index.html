@@ -414,13 +414,14 @@ body {
 .active-arrow { font-size: 18px; color: var(--text3); transition: color .15s; }
 .active-card:hover .active-arrow { color: var(--accent); }
 
-.work-list { display: flex; flex-direction: column; }
+.work-list { display: flex; flex-direction: column; margin: 0 -14px; }
+.work-row { padding-left: 24px !important; padding-right: 14px !important; }
 .work-row {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 10px; border-bottom: 1px solid var(--border);
   text-decoration: none; color: var(--text); transition: background .15s; cursor: pointer;
 }
-.work-row.zebra { background: var(--surface); }
+.work-row.zebra { background: var(--surface2); }
 .work-row:hover { background: var(--surface2); }
 .work-num { width: 18px; font-size: 11px; color: var(--text3); font-weight: 600; flex-shrink: 0; text-align: left; }
 .work-thumb { display: none; }
