@@ -156,32 +156,32 @@
   }
   .stage-open-btn:hover { background: rgba(88,166,255,0.2); border-color: rgba(88,166,255,0.6); }
 
-  .actions-wrap { position: relative; display: inline-block; }
-  .actions-main-btn {
-    display: inline-flex; align-items: center; gap: 6px;
+  .actions-wrap { display:none; }
+
+  .tab-dropdown-wrap { position:relative; padding:8px 16px; border-bottom:1px solid var(--border); background:var(--surface); }
+  .tab-main-btn {
+    display: inline-flex; align-items: center; gap: 8px;
     padding: 7px 14px; border-radius: 8px;
     background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text2); font-size: 13px; font-weight: 500;
-    cursor: pointer; transition: all .15s; font-family: inherit;
+    color: var(--text); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all .15s; width: 100%;
   }
-  .actions-main-btn:hover { border-color: var(--accent); color: var(--text); }
-  .actions-dropdown {
-    display: none; position: absolute; top: calc(100% + 4px); right: 0;
+  .tab-main-btn:hover { border-color: var(--accent); }
+  .tab-dropdown {
+    display: none; position: absolute; top: calc(100% - 4px); left: 16px; right: 16px;
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; min-width: 180px; z-index: 600;
+    border-radius: 8px; z-index: 600;
     box-shadow: 0 4px 16px rgba(0,0,0,.3); overflow: hidden;
   }
-  .actions-dropdown.open { display: block; }
-  .actions-dd-item {
+  .tab-dropdown.open { display: block; }
+  .tab-dd-item {
     display: flex; align-items: center; gap: 8px;
-    width: 100%; padding: 10px 14px; font-size: 13px;
+    width: 100%; padding: 11px 16px; font-size: 13px;
     color: var(--text2); background: none; border: none;
-    font-family: inherit; cursor: pointer; transition: background .12s;
-    text-decoration: none;
+    font-family: inherit; cursor: pointer; transition: background .12s; text-align: left;
   }
-  .actions-dd-item:hover { background: var(--surface2); color: var(--text); }
-  .actions-dd-item.danger { color: #e07060; }
-  .actions-dd-item.danger:hover { background: rgba(192,84,68,0.12); }
+  .tab-dd-item:hover { background: var(--surface2); color: var(--text); }
+  .tab-dd-item.active { color: var(--accent); font-weight: 600; background: rgba(88,166,255,.05); }
 
   .confirm-bar {
     display: none; margin-top: 10px; padding: 12px 14px;
@@ -518,20 +518,6 @@ function applyFilters() {
   if (countBadgeEl) countBadgeEl.textContent = filteredData.length + ' eser';
 }
 
-function toggleActionsDropdown(id) {
-  const dd = document.getElementById('actionsDD-' + id);
-  if (dd) dd.classList.toggle('open');
-}
-function closeActionsDropdown(id) {
-  const dd = document.getElementById('actionsDD-' + id);
-  if (dd) dd.classList.remove('open');
-}
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.actions-wrap')) {
-    document.querySelectorAll('.actions-dropdown').forEach(d => d.classList.remove('open'));
-  }
-});
-
 function toggleSortDropdown() {
   const dd = document.getElementById('sortDropdown');
   dd.classList.toggle('open');
@@ -635,14 +621,9 @@ function selectWork(id) {
       <div class="detail-title">${w.name||'(isimsiz)'}</div>
       <div class="detail-chips">${chips}</div>
       <div class="detail-stage-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
-        <div class="actions-wrap">
-          <button class="actions-main-btn" onclick="toggleActionsDropdown(${w.id})">⚙️ İşlemler ▾</button>
-          <div class="actions-dropdown" id="actionsDD-${w.id}">
-            <a href="stage.html?work=${stageId}" class="actions-dd-item" onclick="openStageFromDetail('${stageId}');return false;">🎭 Sahne Modunda Aç</a>
-            <button class="actions-dd-item" onclick="openEditEserModal(${w.id});closeActionsDropdown(${w.id})">✏️ Düzenle</button>
-            <button class="actions-dd-item danger" onclick="showDeleteConfirm(${w.id});closeActionsDropdown(${w.id})">🗑 Sil</button>
-          </div>
-        </div>
+        ${stageBtn}
+        <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}">✏️ Düzenle</button>
+        <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}">🗑 Sil</button>
       </div>
       <div class="confirm-bar" id="confirm-${w.id}">
         <span>Bu eseri silmek istediğinize emin misiniz?</span>
@@ -651,12 +632,17 @@ function selectWork(id) {
       </div>
     </div>
 
-    <div class="detail-tabs">
-      <div class="detail-tab${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</div>
-      <div class="detail-tab${lastTab==='akorlar'?' active':''}" onclick="switchDetailTab('akorlar')">🎸 Akorlar</div>
-      <div class="detail-tab${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">📋 Bilgiler</div>
-      <div class="detail-tab${lastTab==='nota'?' active':''}" onclick="switchDetailTab('nota')">🎼 Nota</div>
-      <div class="detail-tab${lastTab==='hikaye'?' active':''}" onclick="switchDetailTab('hikaye')">📖 Hikaye</div>
+    <div class="tab-dropdown-wrap">
+      <button class="tab-main-btn" id="tabMainBtn" onclick="toggleTabDropdown()">
+        <span id="tabMainLabel">${{gufte:'🎵 Güfte',akorlar:'🎸 Akorlar',bilgiler:'📋 Bilgiler',nota:'🎼 Nota',hikaye:'📖 Hikaye'}[lastTab]||'🎵 Güfte'}</span> ▾
+      </button>
+      <div class="tab-dropdown" id="tabDropdown">
+        <button class="tab-dd-item${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</button>
+        <button class="tab-dd-item${lastTab==='akorlar'?' active':''}" onclick="switchDetailTab('akorlar')">🎸 Akorlar</button>
+        <button class="tab-dd-item${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">📋 Bilgiler</button>
+        <button class="tab-dd-item${lastTab==='nota'?' active':''}" onclick="switchDetailTab('nota')">🎼 Nota</button>
+        <button class="tab-dd-item${lastTab==='hikaye'?' active':''}" onclick="switchDetailTab('hikaye')">📖 Hikaye</button>
+      </div>
     </div>
 
     <div id="tab-gufte" class="detail-tab-content detail-body${lastTab==='gufte'?' active':''}">
@@ -883,16 +869,32 @@ function openStageFromDetail(stageId) {
   window.location.href = url;
 }
 
+const TAB_LABELS = {gufte:'🎵 Güfte', akorlar:'🎸 Akorlar', bilgiler:'📋 Bilgiler', nota:'🎼 Nota', hikaye:'📖 Hikaye'};
+
+function toggleTabDropdown() {
+  const dd = document.getElementById('tabDropdown');
+  if (dd) dd.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.tab-dropdown-wrap')) {
+    const dd = document.getElementById('tabDropdown');
+    if (dd) dd.classList.remove('open');
+  }
+});
+
 function switchDetailTab(tabId) {
   localStorage.setItem('detailActiveTab', tabId);
-  document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.detail-tab-content').forEach(t => t.classList.remove('active'));
-  // Activate clicked tab button
-  document.querySelectorAll('.detail-tab').forEach(t => {
+  document.querySelectorAll('.tab-dd-item').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-dd-item').forEach(t => {
     if (t.getAttribute('onclick') === `switchDetailTab('${tabId}')`) t.classList.add('active');
   });
   const content = document.getElementById('tab-'+tabId);
   if (content) content.classList.add('active');
+  const lbl = document.getElementById('tabMainLabel');
+  if (lbl) lbl.textContent = TAB_LABELS[tabId] || tabId;
+  const dd = document.getElementById('tabDropdown');
+  if (dd) dd.classList.remove('open');
 }
 
 // searchInput listener — DOMContentLoaded'da ekleniyor (aşağıda)
