@@ -657,7 +657,7 @@ function selectWork(id) {
 
     <div class="tab-dropdown-wrap">
       <button class="tab-main-btn" id="tabMainBtn" onclick="toggleTabDropdown()">
-        <span id="tabMainLabel">${{gufte:'🎵 Güfte',akorlar:'🎸 Akorlar',bilgiler:'📋 Bilgiler',nota:'🎼 Nota',hikaye:'📖 Hikaye'}[lastTab]||'🎵 Güfte'}</span> <span style="font-size:10px;opacity:.6;margin-left:1px;">▼</span>
+        <span id="tabMainLabel">${{gufte:'🎵 Güfte',akorlar:'🎸 Akorlar',bilgiler:'📋 Bilgiler',nota:'🎼 Nota',hikaye:'📖 Hikaye'}[lastTab]||'🎵 Güfte'}</span> <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;opacity:.7;"><path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <div class="tab-dropdown" id="tabDropdown">
         <button class="tab-dd-item${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</button>
