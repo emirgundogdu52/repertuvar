@@ -2,6 +2,7 @@
   // CSS inject
   const style = document.createElement('style');
   style.textContent = `
+    html, body { overflow-x: hidden !important; max-width: 100% !important; }
     .r-topnav {
       position: sticky; top: 0; z-index: 200;
       height: auto; min-height: 56px;
@@ -10,9 +11,9 @@
       border-bottom: 1px solid rgba(120,100,255,0.18);
       display: flex; flex-direction: row; align-items: center;
       padding: 0 16px;
-      height: 56px;
       padding-top: env(safe-area-inset-top);
       gap: 12px;
+      width: 100%; box-sizing: border-box; max-width: 100vw; overflow: hidden;
     }
     .r-topnav img.r-logo {
       height: 38px; width: auto; flex-shrink: 0;
