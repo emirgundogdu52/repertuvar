@@ -661,7 +661,11 @@ function selectWork(id) {
 
     <div class="tab-dropdown-wrap">
       <button class="tab-main-btn" id="tabMainBtn" onclick="toggleTabDropdown()">
-        <span style="font-size:22px;line-height:1;">≡</span>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="4" cy="10" r="2" fill="currentColor"/>
+          <circle cx="10" cy="10" r="2" fill="currentColor"/>
+          <circle cx="16" cy="10" r="2" fill="currentColor"/>
+        </svg>
       </button>
       <div class="tab-dropdown" id="tabDropdown">
         <button class="tab-dd-item${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</button>
