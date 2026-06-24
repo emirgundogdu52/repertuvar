@@ -281,14 +281,14 @@
           <button class="r-theme-toggle" id="rThemeToggle" title="Tema değiştir">🌙</button>
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar">—</div>
-            <div class="r-tn-dropdown" id="rTnDropdown">
+            <div class="r-tn-dropdown" id="rTnDropdown" onclick="event.stopPropagation()">
               <div style="padding:8px 12px 6px;border-bottom:1px solid rgba(120,100,255,0.15);margin-bottom:4px;">
                 <div id="rTnUserName" style="font-size:12px;font-weight:600;color:#e2e0ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">—</div>
               </div>
-              <a href="ayarlar.html" class="r-tn-dd-item">
+              <a href="ayarlar.html" class="r-tn-dd-item" onclick="event.stopPropagation()">
                 <i class="ti ti-settings" style="font-size:15px;" aria-hidden="true"></i> Ayarlar
               </a>
-              <button class="r-tn-dd-item danger" onclick="logout()">
+              <button class="r-tn-dd-item danger" onclick="event.stopPropagation();logout()">
                 <i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> Çıkış Yap
               </button>
             </div>
