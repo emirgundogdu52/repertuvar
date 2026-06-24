@@ -25,6 +25,7 @@
     --tag-text: #b8b4ac;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { overflow-x: hidden; max-width: 100%; }
   body { background:var(--bg); color:var(--text); font-family:'Sora', sans-serif; font-size:14px; min-height:100vh; }
 
   /* HEADER */
@@ -765,12 +766,23 @@ function selectWork(id) {
   function setDetailTop() {
     const tn = document.querySelector('.v2-topnav') || document.querySelector('.r-topnav');
     const detail = document.querySelector('.detail.mobile-visible');
-    if (tn && detail) detail.style.top = tn.offsetHeight + 'px';
+    if (!detail) return;
+    if (tn && tn.offsetHeight > 0) {
+      detail.style.top = tn.offsetHeight + 'px';
+    } else {
+      const h = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topnav-h')) || 56;
+      detail.style.top = h + 'px';
+      requestAnimationFrame(() => {
+        const tn2 = document.querySelector('.v2-topnav') || document.querySelector('.r-topnav');
+        if (tn2 && tn2.offsetHeight > 0) detail.style.top = tn2.offsetHeight + 'px';
+      });
+    }
   }
 
   // Mobile: show detail panel
   document.getElementById('detailPanel').classList.add('mobile-visible');
   setDetailTop();
+  setTimeout(setDetailTop, 200);
   // Mobile: liste kolonunu gizle
   if (window.innerWidth <= 768) {
     const lc = document.getElementById('listCol');
