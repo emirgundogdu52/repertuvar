@@ -78,7 +78,7 @@
   .tag.tuning { border-color:#3d2a1a; color:#c8904a; background:#271a0d; }
 
   /* DETAIL PANEL */
-  .detail { width:520px; min-width:520px; background:var(--surface); border-left:1px solid var(--border); overflow-y:auto; }
+  .detail { width:520px; min-width:520px; max-width:100vw; background:var(--surface); border-left:1px solid var(--border); overflow-y:auto; overflow-x:hidden; }
   .detail::-webkit-scrollbar { width:4px; }
   .detail::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
   .detail-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text3); gap:12px; }
@@ -124,12 +124,13 @@
 
   @media (max-width: 768px) {
     .sidebar { display:none; }
-    .detail { display:none; }
+    .detail { display:none; width:100vw !important; min-width:0 !important; }
     .detail.mobile-visible {
       display:block; position:fixed;
       top:var(--topnav-h, 56px); left:0; right:0; bottom:var(--bottom-h, 68px);
       z-index:150; overflow-y:auto; overflow-x:hidden; scrollbar-width:none;
       box-sizing:border-box; max-width:100vw; width:100vw;
+      min-width:0 !important;
       background:var(--bg);
     }
     .detail.mobile-visible * { max-width:100%; box-sizing:border-box; }
