@@ -60,7 +60,9 @@
   .list-panel::-webkit-scrollbar { width:5px; }
   .list-panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
   .work-item { display:flex; align-items:flex-start; gap:12px; padding:14px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .12s; }
-  .work-item:nth-child(even) { background:var(--surface); }
+  .work-item.zebra { background:var(--surface); }
+  [data-theme="light"] .work-item.zebra { background: #f0eeff; }
+  [data-theme="light"] .work-item { background: #ffffff; }
   .work-item:hover { background:var(--surface2); }
   .work-item.selected { background:var(--surface2); border-left:3px solid var(--accent); padding-left:17px; }
   .work-num { display:none; }
@@ -495,7 +497,7 @@ function renderList() {
     panel.innerHTML = '<div class="empty-list">Eser bulunamadı</div>';
     return;
   }
-  panel.innerHTML = filteredData.map(w => {
+  panel.innerHTML = filteredData.map((w, _zi) => {
     const tags = [
       w.makam ? `<span class="tag makam">Makam: ${w.makam}</span>` : '',
       w.form ? `<span class="tag form">Form: ${w.form}</span>` : '',
@@ -506,7 +508,7 @@ function renderList() {
       w.composer ? `<span>🎼 ${w.composer}</span>` : '',
       w.region ? `<span>📍 Bölge: ${w.region}</span>` : '',
     ].filter(Boolean).join('');
-    return `<div class="work-item${selectedId===w.id?' selected':''}" onclick="selectWork(${w.id})" data-id="${w.id}">
+    return `<div class="work-item${selectedId===w.id?' selected':_zi%2===1?' zebra':''}" onclick="selectWork(${w.id})" data-id="${w.id}">
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
         <div class="work-name">${w.name||'(isimsiz)'}</div>
