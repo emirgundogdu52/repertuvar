@@ -636,7 +636,7 @@ function selectWork(id) {
 
   const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video İzle</a>` : '';
   const stageId = String(parseInt(w.id));
-  const lastTab = localStorage.getItem('detailActiveTab') || 'gufte';
+  const lastTab = 'gufte';  // Her eser açılışında güfteden başla
   const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="openStageFromDetail('${stageId}');return false;">🎭 Sahne Modunda Aç</a>`;
 
   dc.innerHTML = `
@@ -646,6 +646,7 @@ function selectWork(id) {
       <div class="detail-chips">${chips}</div>
       <div class="detail-stage-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;width:100%;">
         ${stageBtn}
+        ${videoBtn}
         <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}">✏️ Düzenle</button>
         <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}">🗑 Sil</button>
       </div>
@@ -715,7 +716,7 @@ function selectWork(id) {
         ${row2('Kaynak Kişi', w.sourcePerson)}
         ${row2('Kapanış Notası', w.closingNote)}
       </div>
-      ${videoBtn ? `<div class="detail-row" style="margin-top:8px;">${videoBtn}</div>` : ''}
+
     </div>
 
     <div id="tab-nota" class="detail-tab-content detail-body${lastTab==='nota'?' active':''}">
