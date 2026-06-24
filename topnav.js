@@ -129,6 +129,7 @@
     [data-theme="light"] .stage-banner { background: #ffffff !important; border-color: rgba(124,111,255,0.18) !important; }
 
     [data-theme="light"] .work-row:hover, [data-theme="light"] .eser-row:hover { background: #f0eeff !important; }
+    [data-theme="light"] .work-row.zebra { background: #f0eeff !important; }
 
     /* Input, textarea, select */
     [data-theme="light"] input, [data-theme="light"] textarea, [data-theme="light"] select {
