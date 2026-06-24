@@ -65,10 +65,12 @@ async function requireAuth() {
       return false;
     }
 
+    window.dispatchEvent(new CustomEvent('authReady'));
     return true;
   } catch(e) {
     const cachedUser = getUser();
     if (!cachedUser) { window.location.href = 'login.html'; return false; }
+    window.dispatchEvent(new CustomEvent('authReady'));
     return true;
   }
 }
