@@ -183,11 +183,10 @@
   .tab-dropdown-wrap { position:relative; padding:8px 16px; border-bottom:1px solid var(--border); background:var(--surface); }
   .tab-main-btn {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 10px; border-radius: 7px;
+    padding: 5px 10px; border-radius: 7px;
     background: var(--surface2); border: 1px solid var(--accent);
     color: var(--text); font-size: 12px; font-weight: 600;
     cursor: pointer; font-family: inherit; transition: all .15s;
-    width: auto;
   }
   .tab-main-btn:hover { background: rgba(88,166,255,.1); }
   .tab-dropdown {
@@ -658,7 +657,7 @@ function selectWork(id) {
 
     <div class="tab-dropdown-wrap">
       <button class="tab-main-btn" id="tabMainBtn" onclick="toggleTabDropdown()">
-        <span id="tabMainLabel">${{gufte:'🎵 Güfte',akorlar:'🎸 Akorlar',bilgiler:'📋 Bilgiler',nota:'🎼 Nota',hikaye:'📖 Hikaye'}[lastTab]||'🎵 Güfte'}</span> <span style="font-size:14px;opacity:.8;letter-spacing:-1px;">≡</span>
+        <span style="font-size:20px;line-height:1;opacity:.9;">≡</span>
       </button>
       <div class="tab-dropdown" id="tabDropdown">
         <button class="tab-dd-item${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</button>
