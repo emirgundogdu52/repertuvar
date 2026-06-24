@@ -124,9 +124,10 @@
     [data-theme="light"] .work-card, [data-theme="light"] .rep-card,
     [data-theme="light"] .sol-card, [data-theme="light"] .settings-card,
     [data-theme="light"] .panel, [data-theme="light"] .detail-panel,
-    [data-theme="light"] .stat-pill, [data-theme="light"] .active-card,
+    [data-theme="light"] .stat-pill,
     [data-theme="light"] .work-row, [data-theme="light"] .eser-row,
     [data-theme="light"] .stage-banner { background: #ffffff !important; border-color: rgba(124,111,255,0.18) !important; }
+    [data-theme="light"] .active-card { background: #ffffff !important; border: none !important; }
 
     [data-theme="light"] .work-row:hover, [data-theme="light"] .eser-row:hover { background: #f0eeff !important; }
     [data-theme="light"] .work-row.zebra { background: #f0eeff !important; }
