@@ -82,7 +82,7 @@
   .detail::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
   .detail-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text3); gap:12px; }
   .detail-empty svg { opacity:.3; }
-  .detail-header { padding:20px 20px 16px; border-bottom:1px solid var(--border); background:var(--surface); }
+  .detail-header { padding:20px 20px 16px; border-bottom:1px solid var(--border); background:var(--surface); overflow:hidden; }
   .detail-id { font-size:11px; color:var(--text3); letter-spacing:.05em; margin-bottom:6px; }
   .detail-title { font-family:'Sora', sans-serif; font-size:20px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:12px; }
   .detail-chips { display:flex; gap:6px; flex-wrap:wrap; }
@@ -148,8 +148,8 @@
   .delete-btn:hover { background: rgba(192,84,68,0.22); border-color: rgba(192,84,68,0.6); }
 
   .stage-open-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content:center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px; flex:1; min-width:140px;
     background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.35);
     color: var(--accent); font-size: 13px; font-weight: 500;
     text-decoration: none; transition: all .15s;
@@ -620,10 +620,10 @@ function selectWork(id) {
     <div class="detail-header">
       <div class="detail-title">${w.name||'(isimsiz)'}</div>
       <div class="detail-chips">${chips}</div>
-      <div class="detail-stage-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
+      <div class="detail-stage-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;">
         ${stageBtn}
-        <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}">✏️ Düzenle</button>
-        <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}">🗑 Sil</button>
+        <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}" style="flex:1;min-width:90px;justify-content:center;">✏️ Düzenle</button>
+        <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}" style="flex:1;min-width:60px;justify-content:center;">🗑 Sil</button>
       </div>
       <div class="confirm-bar" id="confirm-${w.id}">
         <span>Bu eseri silmek istediğinize emin misiniz?</span>
