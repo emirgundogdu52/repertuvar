@@ -716,14 +716,8 @@ if (localStorage.getItem('stageTheme') === 'night') {
       container.innerHTML = data.map((w,i) => `
         <a href="eserler.html?id=${w.id}" class="work-row${i%2===1?' zebra':''}"
           <div class="work-num">${i+1}</div>
-          <div class="work-thumb">🎵</div>
           <div class="work-info">
             <div class="work-name">${w.name||'—'}</div>
-            <div class="work-sub">${w.composer||'—'}</div>
-          </div>
-          <div class="work-badges">
-            ${w.makam?`<span class="wb">${w.makam}</span>`:''}
-            ${w.tuning?`<span class="wb wb-key">${w.tuning}</span>`:''}
           </div>
           <div class="wc-play">▶</div>
         </a>`).join('');
