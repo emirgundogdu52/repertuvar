@@ -420,7 +420,7 @@ body {
   padding: 9px 10px; border-bottom: 1px solid var(--border);
   text-decoration: none; color: var(--text); transition: background .15s; cursor: pointer;
 }
-.work-row:nth-child(even) { background: var(--surface); }
+.work-row.zebra { background: var(--surface); }
 .work-row:hover { background: var(--surface2); }
 .work-num { width: 18px; font-size: 11px; color: var(--text3); font-weight: 600; flex-shrink: 0; text-align: left; }
 .work-thumb { display: none; }
@@ -711,7 +711,7 @@ if (localStorage.getItem('stageTheme') === 'night') {
     const container = document.getElementById('recentWorks');
     if (container && Array.isArray(data) && data.length) {
       container.innerHTML = data.map((w,i) => `
-        <a href="eserler.html?id=${w.id}" class="work-row">
+        <a href="eserler.html?id=${w.id}" class="work-row${i%2===1?' zebra':''}"
           <div class="work-num">${i+1}</div>
           <div class="work-thumb">🎵</div>
           <div class="work-info">
