@@ -24,6 +24,8 @@ function authHeaders() {
 async function requireAuth() {
   const token = getToken();
   if (!token) { window.location.href = 'login.html'; return false; }
+  // Cached user varsa hemen authReady — UI beklemez
+  if (getUser()) window.dispatchEvent(new CustomEvent('authReady'));
   try {
     const r = await fetch(SUPA_URL+'/auth/v1/user', {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
