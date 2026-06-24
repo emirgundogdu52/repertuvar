@@ -26,10 +26,10 @@
       display: flex; align-items: center; gap: 6px;
       background: rgba(124,111,255,0.12);
       border: 1px solid rgba(124,111,255,0.2);
-      border-radius: 50%; padding: 2px; width: 34px; height: 34px; justify-content: center;
+      border-radius: 50%; padding: 2px; width: 38px; height: 38px; justify-content: center;
     }
     .r-tn-avatar {
-      width: 26px; height: 26px; border-radius: 50%;
+      width: 30px; height: 30px; border-radius: 50%;
       background: linear-gradient(135deg, #7c6fff, #a78bfa);
       display: flex; align-items: center; justify-content: center;
       font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
@@ -204,7 +204,7 @@
 
     /* ── Theme Toggle Button ── */
     .r-theme-toggle {
-      width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 50%;
+      width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 50%;
       border: 1px solid rgba(124,111,255,0.25);
       background: rgba(124,111,255,0.1);
       color: #a78bfa; font-size: 16px; line-height: 1;
