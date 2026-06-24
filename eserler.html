@@ -156,6 +156,33 @@
   }
   .stage-open-btn:hover { background: rgba(88,166,255,0.2); border-color: rgba(88,166,255,0.6); }
 
+  .actions-wrap { position: relative; display: inline-block; }
+  .actions-main-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .15s; font-family: inherit;
+  }
+  .actions-main-btn:hover { border-color: var(--accent); color: var(--text); }
+  .actions-dropdown {
+    display: none; position: absolute; top: calc(100% + 4px); right: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; min-width: 180px; z-index: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,.3); overflow: hidden;
+  }
+  .actions-dropdown.open { display: block; }
+  .actions-dd-item {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 10px 14px; font-size: 13px;
+    color: var(--text2); background: none; border: none;
+    font-family: inherit; cursor: pointer; transition: background .12s;
+    text-decoration: none;
+  }
+  .actions-dd-item:hover { background: var(--surface2); color: var(--text); }
+  .actions-dd-item.danger { color: #e07060; }
+  .actions-dd-item.danger:hover { background: rgba(192,84,68,0.12); }
+
   .confirm-bar {
     display: none; margin-top: 10px; padding: 12px 14px;
     background: rgba(192,84,68,0.08); border: 1px solid rgba(192,84,68,0.3);
@@ -491,6 +518,20 @@ function applyFilters() {
   if (countBadgeEl) countBadgeEl.textContent = filteredData.length + ' eser';
 }
 
+function toggleActionsDropdown(id) {
+  const dd = document.getElementById('actionsDD-' + id);
+  if (dd) dd.classList.toggle('open');
+}
+function closeActionsDropdown(id) {
+  const dd = document.getElementById('actionsDD-' + id);
+  if (dd) dd.classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.actions-wrap')) {
+    document.querySelectorAll('.actions-dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+
 function toggleSortDropdown() {
   const dd = document.getElementById('sortDropdown');
   dd.classList.toggle('open');
@@ -594,9 +635,14 @@ function selectWork(id) {
       <div class="detail-title">${w.name||'(isimsiz)'}</div>
       <div class="detail-chips">${chips}</div>
       <div class="detail-stage-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
-        ${stageBtn}
-        <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}">✏️ Düzenle</button>
-        <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}">🗑 Sil</button>
+        <div class="actions-wrap">
+          <button class="actions-main-btn" onclick="toggleActionsDropdown(${w.id})">⚙️ İşlemler ▾</button>
+          <div class="actions-dropdown" id="actionsDD-${w.id}">
+            <a href="stage.html?work=${stageId}" class="actions-dd-item" onclick="openStageFromDetail('${stageId}');return false;">🎭 Sahne Modunda Aç</a>
+            <button class="actions-dd-item" onclick="openEditEserModal(${w.id});closeActionsDropdown(${w.id})">✏️ Düzenle</button>
+            <button class="actions-dd-item danger" onclick="showDeleteConfirm(${w.id});closeActionsDropdown(${w.id})">🗑 Sil</button>
+          </div>
+        </div>
       </div>
       <div class="confirm-bar" id="confirm-${w.id}">
         <span>Bu eseri silmek istediğinize emin misiniz?</span>
