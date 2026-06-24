@@ -104,6 +104,14 @@
 
   /* TOOLBAR */
   .toolbar { padding:6px 20px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; border-bottom:1px solid var(--border); background:var(--bg); }
+  .sort-dropdown-wrap { position:relative; }
+  .sort-main-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
+  .sort-main-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,.08); }
+  .sort-dropdown { display:none; position:absolute; top:calc(100% + 4px); left:0; background:var(--surface); border:1px solid var(--border); border-radius:8px; min-width:160px; z-index:500; box-shadow:0 4px 16px rgba(0,0,0,.3); overflow:hidden; }
+  .sort-dropdown.open { display:block; }
+  .sort-dd-item { display:block; width:100%; text-align:left; padding:8px 14px; font-size:13px; color:var(--text2); background:none; border:none; font-family:'Sora', sans-serif; cursor:pointer; transition:background .12s; }
+  .sort-dd-item:hover { background:var(--surface2); color:var(--text); }
+  .sort-dd-item.active { color:var(--accent); font-weight:600; }
   .sort-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:'Sora', sans-serif; cursor:pointer; transition:all .15s; }
   .sort-btn:hover { border-color:var(--border2); color:var(--text); }
   .sort-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,.08); }
@@ -346,9 +354,16 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
       </div>
     </div>
     <div class="toolbar">
-      <span style="font-size:12px;color:var(--text3);margin-right:4px;">Sırala:</span>
-      <button class="sort-btn active" id="sortName" onclick="setSort('name')">Ada Göre</button>
-      <button class="sort-btn" id="sortComposer" onclick="setSort('composer')">Besteciye Göre</button>
+      <div class="sort-dropdown-wrap">
+        <button class="sort-main-btn" id="sortMainBtn" onclick="toggleSortDropdown()">Sırala ▾</button>
+        <div class="sort-dropdown" id="sortDropdown">
+          <button class="sort-dd-item active" onclick="setSort('name')">Ada Göre</button>
+          <button class="sort-dd-item" onclick="setSort('composer')">Besteciye Göre</button>
+          <button class="sort-dd-item" onclick="setSort('makam')">Makama Göre</button>
+          <button class="sort-dd-item" onclick="setSort('form')">Forma Göre</button>
+          <button class="sort-dd-item" onclick="setSort('region')">Yöreye Göre</button>
+        </div>
+      </div>
       <button class="clear-btn" onclick="clearFilters()">Filtreleri Temizle</button>
       <button id="btnMobileNewEser" class="admin-only" onclick="openNewEserModal()" style="margin-left:auto;display:none;align-items:center;gap:5px;background:var(--accent);border:none;border-radius:7px;padding:6px 13px;font-size:12px;color:#fff;font-weight:600;cursor:pointer;font-family:var(--font);">+ Yeni Eser</button>
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;margin-left:auto;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);">🎵 Öner</button>
@@ -476,18 +491,37 @@ function applyFilters() {
   if (countBadgeEl) countBadgeEl.textContent = filteredData.length + ' eser';
 }
 
+function toggleSortDropdown() {
+  const dd = document.getElementById('sortDropdown');
+  dd.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.sort-dropdown-wrap')) {
+    const dd = document.getElementById('sortDropdown');
+    if (dd) dd.classList.remove('open');
+  }
+});
+
+const SORT_LABELS = { name:'Ada Göre', composer:'Besteciye Göre', makam:'Makama Göre', form:'Forma Göre', region:'Yöreye Göre' };
+
 function setSort(mode) {
   sortMode = mode;
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('sort' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+  document.querySelectorAll('.sort-dd-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.sort-dd-item').forEach(b => { if(b.textContent.trim() === SORT_LABELS[mode]) b.classList.add('active'); });
+  const btn = document.getElementById('sortMainBtn');
+  if (btn) btn.textContent = (SORT_LABELS[mode] || 'Sırala') + ' ▾';
+  const dd = document.getElementById('sortDropdown');
+  if (dd) dd.classList.remove('open');
   sortData();
   renderList();
 }
 
 function sortData() {
   if (sortMode === 'name') filteredData.sort((a,b) => (a.name||'').localeCompare(b.name||'','tr'));
-  else if (sortMode === 'id') filteredData.sort((a,b) => (a.id||9999)-(b.id||9999));
   else if (sortMode === 'composer') filteredData.sort((a,b) => (a.composer||'zzz').localeCompare(b.composer||'zzz','tr'));
+  else if (sortMode === 'makam') filteredData.sort((a,b) => (a.makam||'zzz').localeCompare(b.makam||'zzz','tr'));
+  else if (sortMode === 'form') filteredData.sort((a,b) => (a.form||'zzz').localeCompare(b.form||'zzz','tr'));
+  else if (sortMode === 'region') filteredData.sort((a,b) => (a.region||'zzz').localeCompare(b.region||'zzz','tr'));
 }
 
 function renderList() {
