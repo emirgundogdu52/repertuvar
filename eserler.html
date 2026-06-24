@@ -82,11 +82,11 @@
   .detail::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
   .detail-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text3); gap:12px; }
   .detail-empty svg { opacity:.3; }
-  .detail-header { padding:14px 16px 12px; border-bottom:1px solid var(--border); background:var(--surface); }
+  .detail-header { padding:14px 16px 12px; border-bottom:1px solid var(--border); background:var(--surface); box-sizing:border-box; width:100%; }
   .detail-id { font-size:11px; color:var(--text3); letter-spacing:.05em; margin-bottom:6px; }
   .detail-title { font-family:'Sora', sans-serif; font-size:18px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:10px; word-break:break-word; }
-  .detail-chips { display:flex; gap:5px; flex-wrap:wrap; overflow:visible; }
-  .chip { padding:3px 10px; border-radius:20px; font-size:12px; font-weight:500; }
+  .detail-chips { display:flex; gap:5px; flex-wrap:wrap; max-width:100%; }
+  .chip { padding:3px 8px; border-radius:20px; font-size:11px; font-weight:500; white-space:nowrap; }
   .chip.makam { background:#1e1b2e; color:#9b8fd4; border:1px solid #3a3060; }
   .chip.form  { background:#1a271a; color:#7ab87a; border:1px solid #2a3d2a; }
   .chip.tuning{ background:#271a0d; color:#c8904a; border:1px solid #3d2a1a; }
@@ -124,7 +124,7 @@
   @media (max-width: 768px) {
     .sidebar { display:none; }
     .detail { display:none; }
-    .detail.mobile-visible { display:block; position:fixed; top:0; left:0; right:0; bottom:var(--bottom-h, 68px); z-index:150; width:100%; overflow-y:auto; }
+    .detail.mobile-visible { display:block; position:fixed; top:0; left:0; right:0; bottom:var(--bottom-h, 68px); z-index:150; width:100%; overflow-y:auto; overflow-x:hidden; box-sizing:border-box; }
     .back-btn { display:flex; align-items:center; gap:6px; padding:12px 20px; color:var(--accent); font-size:14px; cursor:pointer; border-bottom:1px solid var(--border); }
     .sort-bar { padding:8px 12px; gap:6px; }
     .sort-btn { font-size:11px; padding:4px 10px; }
