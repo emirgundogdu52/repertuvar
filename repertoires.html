@@ -30,7 +30,7 @@ nav.v2-bottom-nav{background:var(--bg)!important;border-top:1px solid var(--bord
 .ls{overflow-y:auto;flex:1;}
 .ls::-webkit-scrollbar{width:4px;}.ls::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 .ri{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
-.ri:nth-child(even){background:var(--surface2);}
+.ri.zebra{background:var(--surface);}
 .ri:hover{background:rgba(124,111,255,0.1);}
 .ri.active{background:var(--surface2);border-left:3px solid var(--accent);padding-left:13px;}
 .rn{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;}
@@ -62,7 +62,7 @@ nav.v2-bottom-nav{background:var(--bg)!important;border-top:1px solid var(--bord
 table{width:100%;border-collapse:collapse;}
 th{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);}
 td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);vertical-align:middle;}
-tr:nth-child(even) td{background:var(--surface2);}tr:hover td{background:rgba(124,111,255,0.1);}tr.drag-over td{background:rgba(124,111,255,0.15);border-top:2px solid var(--accent);}
+tr:nth-child(even) td{background:var(--surface);}tr.zebra-tr td{background:var(--surface);}tr:hover td{background:rgba(124,111,255,0.1);}tr.drag-over td{background:rgba(124,111,255,0.15);border-top:2px solid var(--accent);}
 .sq{width:28px;}
 .col-kapanis{width:80px;}
 .col-not{width:60px;}
@@ -469,8 +469,8 @@ function renderList(){
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
   const mine = reps.filter(r=>r.isOwner);
   const pub  = reps.filter(r=>!r.isOwner && r.is_public);
-  function repCard(r){
-    return `<div class="ri${selId===r.id?' active':''}" onclick="sel('${r.id}')">
+  function repCard(r, _zi){
+    return `<div class="ri${selId===r.id?' active':_zi%2===1?' zebra':''}" onclick="sel('${r.id}')">
       <div class="rn">${r.name}${r.is_public&&r.isOwner?' <span style="font-size:10px;color:#4ade80;font-weight:600;">🌐</span>':''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${r.date?'<span>'+r.date+'</span>':''}<span>${(r.items||[]).length} eser</span></div>
     </div>`;
@@ -524,7 +524,7 @@ function renderDetail(){
     const w=WL[it.workId]||{};
     const cn=it.closingNote||w.closingNote||'';
     const pf = it.performer || '';
-    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" style="touch-action:pan-y;">
+    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" style="touch-action:pan-y;"${idx%2===1?' class="zebra-tr"':''}>
       <td class="sq" style="text-align:center;user-select:none;padding:0 2px;vertical-align:middle;width:48px;">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
           <span style="color:var(--text3);font-size:11px;font-weight:600;min-width:14px;">${idx+1}</span>
