@@ -760,11 +760,16 @@ function selectWork(id) {
       }
     </div>`;
 
-  // Admin butonlarını göster/gizle
-  const editBtn = document.getElementById('editBtn-'+w.id);
-  const deleteBtn = document.getElementById('deleteBtn-'+w.id);
-  if (editBtn) editBtn.style.display = (isAdmin() || isEditor()) ? '' : 'none';
-  if (deleteBtn) deleteBtn.style.display = isAdmin() ? '' : 'none';
+  // Admin butonlarını göster/gizle — auth yüklenmesi için bekle
+  function applyAdminButtons() {
+    const editBtn = document.getElementById('editBtn-'+w.id);
+    const deleteBtn = document.getElementById('deleteBtn-'+w.id);
+    if (editBtn) editBtn.style.display = (isAdmin() || isEditor()) ? '' : 'none';
+    if (deleteBtn) deleteBtn.style.display = isAdmin() ? '' : 'none';
+  }
+  applyAdminButtons();
+  setTimeout(applyAdminButtons, 300);
+  setTimeout(applyAdminButtons, 800);
 
   // Mobile: detail panel top offset
   function setDetailTop() {
