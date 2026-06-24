@@ -281,17 +281,6 @@
           <button class="r-theme-toggle" id="rThemeToggle" title="Tema değiştir">🌙</button>
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar">—</div>
-            <div class="r-tn-dropdown" id="rTnDropdown" onclick="event.stopPropagation()">
-              <div style="padding:8px 12px 6px;border-bottom:1px solid rgba(120,100,255,0.15);margin-bottom:4px;">
-                <div id="rTnUserName" style="font-size:12px;font-weight:600;color:#e2e0ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">—</div>
-              </div>
-              <a href="ayarlar.html" class="r-tn-dd-item" onclick="event.stopPropagation()">
-                <i class="ti ti-settings" style="font-size:15px;" aria-hidden="true"></i> Ayarlar
-              </a>
-              <button class="r-tn-dd-item danger" onclick="event.stopPropagation();logout()">
-                <i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> Çıkış Yap
-              </button>
-            </div>
           </div>
         </div>
       </header>
@@ -368,8 +357,39 @@
   }
   window.toggleTnDropdown = function(e) {
     e.stopPropagation();
-    const dd = document.getElementById('rTnDropdown');
-    if (dd) dd.classList.toggle('open');
+    let dd = document.getElementById('rTnDropdown');
+    if (!dd) {
+      dd = document.createElement('div');
+      dd.id = 'rTnDropdown';
+      dd.className = 'r-tn-dropdown';
+      dd.innerHTML = `
+        <div style="padding:8px 12px 6px;border-bottom:1px solid rgba(120,100,255,0.15);margin-bottom:4px;">
+          <div id="rTnUserName" style="font-size:12px;font-weight:600;color:#e2e0ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">—</div>
+        </div>
+        <a href="ayarlar.html" class="r-tn-dd-item">
+          <i class="ti ti-settings" style="font-size:15px;"></i> Ayarlar
+        </a>
+        <button class="r-tn-dd-item danger" onclick="logout()">
+          <i class="ti ti-logout" style="font-size:15px;"></i> Çıkış Yap
+        </button>`;
+      document.body.appendChild(dd);
+      // Dışarı tıklayınca kapat
+      document.addEventListener('click', function() { dd.classList.remove('open'); });
+    }
+    // Pozisyonu avatar'a göre ayarla
+    const user = document.getElementById('rTnUser');
+    if (user) {
+      const rect = user.getBoundingClientRect();
+      dd.style.top = (rect.bottom + 6) + 'px';
+      dd.style.right = (window.innerWidth - rect.right) + 'px';
+    }
+    dd.classList.toggle('open');
+    // User adını güncelle
+    const un = document.getElementById('rTnUserName');
+    if (un && typeof getUser === 'function') {
+      const u = getUser();
+      if (u) un.textContent = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
+    }
   };
   // Theme logic
   function applyTheme(theme) {
