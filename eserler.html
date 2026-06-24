@@ -82,10 +82,10 @@
   .detail::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
   .detail-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text3); gap:12px; }
   .detail-empty svg { opacity:.3; }
-  .detail-header { padding:20px 20px 16px; border-bottom:1px solid var(--border); background:var(--surface); overflow:hidden; }
+  .detail-header { padding:14px 16px 12px; border-bottom:1px solid var(--border); background:var(--surface); }
   .detail-id { font-size:11px; color:var(--text3); letter-spacing:.05em; margin-bottom:6px; }
-  .detail-title { font-family:'Sora', sans-serif; font-size:20px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:12px; }
-  .detail-chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .detail-title { font-family:'Sora', sans-serif; font-size:18px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:10px; word-break:break-word; }
+  .detail-chips { display:flex; gap:5px; flex-wrap:wrap; overflow:visible; }
   .chip { padding:3px 10px; border-radius:20px; font-size:12px; font-weight:500; }
   .chip.makam { background:#1e1b2e; color:#9b8fd4; border:1px solid #3a3060; }
   .chip.form  { background:#1a271a; color:#7ab87a; border:1px solid #2a3d2a; }
@@ -139,20 +139,20 @@
 
   /* ── SİL BUTONU & ONAY ── */
   .delete-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: 8px;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 10px; border-radius: 8px;
     background: rgba(192,84,68,0.1); border: 1px solid rgba(192,84,68,0.35);
-    color: #e07060; font-size: 13px; font-weight: 500; cursor: pointer;
-    transition: all .15s; font-family: inherit;
+    color: #e07060; font-size: 12px; font-weight: 500; cursor: pointer;
+    transition: all .15s; font-family: inherit; white-space:nowrap;
   }
   .delete-btn:hover { background: rgba(192,84,68,0.22); border-color: rgba(192,84,68,0.6); }
 
   .stage-open-btn {
-    display: inline-flex; align-items: center; justify-content:center; gap: 6px;
-    padding: 7px 14px; border-radius: 8px; flex:1; min-width:140px;
+    display: inline-flex; align-items: center; justify-content:center; gap: 5px;
+    padding: 6px 10px; border-radius: 8px;
     background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.35);
-    color: var(--accent); font-size: 13px; font-weight: 500;
-    text-decoration: none; transition: all .15s;
+    color: var(--accent); font-size: 12px; font-weight: 500;
+    text-decoration: none; transition: all .15s; white-space:nowrap;
   }
   .stage-open-btn:hover { background: rgba(88,166,255,0.2); border-color: rgba(88,166,255,0.6); }
 
@@ -205,11 +205,11 @@
 
 
   .edit-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: 8px;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 10px; border-radius: 8px;
     background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.35);
-    color: #60a5fa; font-size: 13px; font-weight: 500;
-    cursor: pointer; transition: all .15s; font-family: inherit;
+    color: #60a5fa; font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: all .15s; font-family: inherit; white-space:nowrap;
   }
   .edit-btn:hover { background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.6); }
 
@@ -620,10 +620,10 @@ function selectWork(id) {
     <div class="detail-header">
       <div class="detail-title">${w.name||'(isimsiz)'}</div>
       <div class="detail-chips">${chips}</div>
-      <div class="detail-stage-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;">
+      <div class="detail-stage-row" style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;margin-top:10px;width:100%;">
         ${stageBtn}
-        <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}" style="flex:1;min-width:90px;justify-content:center;">✏️ Düzenle</button>
-        <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}" style="flex:1;min-width:60px;justify-content:center;">🗑 Sil</button>
+        <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}">✏️ Düzenle</button>
+        <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}">🗑 Sil</button>
       </div>
       <div class="confirm-bar" id="confirm-${w.id}">
         <span>Bu eseri silmek istediğinize emin misiniz?</span>
