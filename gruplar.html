@@ -219,7 +219,22 @@ async function createGroup() {
 }
 
 async function loadPage() {
-  const gid = getGroupId();
+  // Önce localStorage'dan dene, yoksa DB'den çek
+  let gid = getGroupId();
+  if (!gid) {
+    try {
+      const uid = getUserId();
+      const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=group_id', {
+        headers: authHeaders()
+      });
+      const data = await r.json();
+      if (data[0]?.group_id) {
+        gid = data[0].group_id;
+        localStorage.setItem('user_group_id', gid);
+      }
+    } catch(e) {}
+  }
+
   document.getElementById('loadingState').style.display = 'none';
 
   if (!gid) {
