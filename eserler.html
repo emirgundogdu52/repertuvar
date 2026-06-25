@@ -439,8 +439,10 @@ async function loadWorksFromSupabase() {
   try {
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
     // Admin ve editör tüm eserleri görür, üye sadece onaylananları
+    const groupId = getGroupId();
+    const groupFilter = groupId ? '&group_id=eq.'+groupId : '';
     const statusFilter = (isAdmin() || isEditor()) ? '' : '&status=eq.approved';
-    const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=name&limit=2000'+statusFilter, {
+    const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=name&limit=2000'+groupFilter+statusFilter, {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
     });
     if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
@@ -1159,7 +1161,8 @@ function saveNewEser() {
       status,
       submitted_by: getUserId(),
       submitter_email: getUser()?.email || '',
-      submitted_at: new Date().toISOString()
+      submitted_at: new Date().toISOString(),
+      group_id: getGroupId()
     };
 
     fetch(SUPA_URL + '/rest/v1/works', {
