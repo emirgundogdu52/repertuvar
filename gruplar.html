@@ -361,6 +361,11 @@ async function removeMember(userId) {
   if (sbName) sbName.textContent = name;
   if (sbRole) sbRole.textContent = isAdmin() ? 'Admin' : (getUserRole() === 'editor' ? 'Editör' : 'Üye');
 
+  // Show admin-only elements
+  if (isAdmin() || getUserRole() === 'editor') {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+  }
+
   await loadPage();
 })();
 </script>
