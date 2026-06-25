@@ -363,7 +363,7 @@ async function removeMember(userId) {
 
   // Show admin-only elements
   if (isAdmin() || getUserRole() === 'editor') {
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+    document.querySelectorAll('.admin-only').forEach(el => { el.style.display = 'flex'; el.style.visibility = 'visible'; });
   }
 
   await loadPage();
