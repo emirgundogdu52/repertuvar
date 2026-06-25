@@ -209,6 +209,17 @@ tr:hover .ra{opacity:1;}
   .share-close { float:right;background:none;border:none;color:var(--text2);
     font-size:20px;cursor:pointer;line-height:1; }
 
+  /* Görünürlük seçici */
+  #visPublicLabel:has(input:checked),
+  #visPrivateLabel:has(input:checked) {
+    border-color: var(--accent);
+    background: rgba(124,111,255,0.1);
+  }
+  #visPublicLabel:has(input:checked) span,
+  #visPrivateLabel:has(input:checked) span {
+    color: var(--text);
+  }
+
 
   .sb-user-x { position:relative; }
   .sb-user-dropdown { display:none; position:fixed; bottom:90px; left:10px; right:10px;
@@ -291,6 +302,19 @@ tr:hover .ra{opacity:1;}
       </select>
     </div>
     <div class="fr"><label class="fl">Notlar</label><textarea class="fi" id="fNo" rows="3"></textarea></div>
+    <div class="fr">
+      <label class="fl">Görünürlük</label>
+      <div style="display:flex;gap:10px;margin-top:2px;">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);flex:1;transition:all .15s;" id="visPublicLabel">
+          <input type="radio" name="fVisibility" id="fVisPublic" value="public" checked style="accent-color:var(--accent);width:15px;height:15px;">
+          <span style="font-size:13px;color:var(--text2);">🌐 <strong>Public</strong> — Herkes görebilir</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);flex:1;transition:all .15s;" id="visPrivateLabel">
+          <input type="radio" name="fVisibility" id="fVisPrivate" value="private" style="accent-color:var(--accent);width:15px;height:15px;">
+          <span style="font-size:13px;color:var(--text2);">🔒 <strong>Private</strong> — Sadece sen</span>
+        </label>
+      </div>
+    </div>
     <div class="fa"><button class="bc" onclick="closeRM()">İptal</button><button class="bs" onclick="saveRep()">Kaydet</button></div>
   </div>
 </div>
@@ -619,14 +643,15 @@ async function copyRep(repId){
   }catch(e){sync('err','Hata');toast(e.message,'er');}
 }
 
-function openNew(){editId=null;document.getElementById('rmt').textContent='Yeni Repertuvar';['fN','fD','fV','fNo'].forEach(x=>document.getElementById(x).value='');document.getElementById('fS').value='concept';document.getElementById('rm').style.display='flex';setTimeout(()=>document.getElementById('fN').focus(),50);}
-function openEdit(id){const r=getRep(id);if(!r)return;editId=id;document.getElementById('rmt').textContent='Düzenle';document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';document.getElementById('rm').style.display='flex';}
+function openNew(){editId=null;document.getElementById('rmt').textContent='Yeni Repertuvar';['fN','fD','fV','fNo'].forEach(x=>document.getElementById(x).value='');document.getElementById('fS').value='concept';document.getElementById('fVisPublic').checked=true;document.getElementById('rm').style.display='flex';setTimeout(()=>document.getElementById('fN').focus(),50);}
+function openEdit(id){const r=getRep(id);if(!r)return;editId=id;document.getElementById('rmt').textContent='Düzenle';document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';if(r.is_public){document.getElementById('fVisPublic').checked=true;}else{document.getElementById('fVisPrivate').checked=true;}document.getElementById('rm').style.display='flex';}
 function closeRM(){document.getElementById('rm').style.display='none';}
 
 async function saveRep(){
   const name=document.getElementById('fN').value.trim();
   if(!name){document.getElementById('fN').focus();return;}
-  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,user_id:getUserId()||undefined,owner_id:editId?undefined:(getUserId()||undefined)};
+  const isPublic=document.getElementById('fVisPublic').checked;
+  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,is_public:isPublic,user_id:getUserId()||undefined,owner_id:editId?undefined:(getUserId()||undefined)};
   sync('spin','Kaydediliyor...');
   try{
     if(editId){await dbPatch('repertoires',editId,data);}
