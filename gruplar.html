@@ -54,6 +54,9 @@ body { background:#07071a; color:#e2e0ff; font-family:'Plus Jakarta Sans',sans-s
 .no-group { text-align: center; padding: 40px 20px; color: var(--text3); }
 .no-group svg { opacity: .3; margin-bottom: 16px; }
 .no-group p { margin-bottom: 20px; font-size: 15px; }
+.member-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; color: var(--text3); margin-top: 2px; }
+.member-meta span { display: flex; align-items: center; gap: 3px; }
+.member-instrument { font-size: 11px; color: var(--accent2); margin-top: 3px; display: flex; align-items: center; gap: 3px; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 </head>
@@ -256,10 +259,17 @@ async function loadPage() {
     }
 
     // Üyeleri yükle
-    const mr = await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + gid + '&select=*', {
+    const mr = await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + gid + '&select=*,profiles(display_name,email,phone,instrument)', {
       headers: authHeaders()
     });
-    currentMembers = await mr.json();
+    const rawMembers = await mr.json();
+    currentMembers = rawMembers.map(m => ({
+      ...m,
+      display_name: m.profiles?.display_name || m.display_name,
+      email: m.profiles?.email || m.email,
+      phone: m.profiles?.phone || '',
+      instrument: m.profiles?.instrument || ''
+    }));
 
     // Kendi rolü
     const me = currentMembers.find(m => m.user_id === getUserId());
@@ -292,14 +302,30 @@ function renderGroup() {
   const uid = getUserId();
 
   document.getElementById('membersList').innerHTML = currentMembers.map(m => `
-    <div class="member-item">
+    <div class="member-item" id="mi-${m.user_id}">
       <div class="member-avatar">${(m.display_name || m.user_id || '?').charAt(0).toUpperCase()}</div>
       <div class="member-info">
         <div class="member-name">${m.display_name || m.email || m.user_id}</div>
-        <div class="member-email">${m.email || ''}</div>
+        <div class="member-meta">
+          ${m.email ? `<span><i class="ti ti-mail" style="font-size:11px;"></i> ${m.email}</span>` : ''}
+          ${m.phone ? `<span><i class="ti ti-phone" style="font-size:11px;"></i> ${m.phone}</span>` : ''}
+        </div>
+        <div class="member-instrument" id="instr-display-${m.user_id}">
+          ${m.instrument ? `<i class="ti ti-guitar-pick" style="font-size:11px;"></i> ${m.instrument}` : '<span style="color:var(--text3);font-style:italic;">Enstrüman belirtilmemiş</span>'}
+        </div>
+        <div id="instr-edit-${m.user_id}" style="display:none;margin-top:6px;display:none;">
+          <input class="fi" style="font-size:12px;padding:5px 8px;" id="instr-input-${m.user_id}" value="${m.instrument||''}" placeholder="Enstrüman...">
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button class="btn btn-primary" style="padding:4px 12px;font-size:11px;" onclick="saveInstrument('${m.user_id}')">Kaydet</button>
+            <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="cancelInstrument('${m.user_id}')">İptal</button>
+          </div>
+        </div>
       </div>
-      <span class="role-badge ${roleClass[m.role]||'role-member'}">${roleLabels[m.role]||'Üye'}</span>
-      ${(userRole==='owner' && m.user_id !== uid) ? `<button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="removeMember('${m.user_id}')">Çıkar</button>` : ''}
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+        <span class="role-badge ${roleClass[m.role]||'role-member'}">${roleLabels[m.role]||'Üye'}</span>
+        ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="editInstrument('${m.user_id}')"><i class="ti ti-pencil" style="font-size:11px;"></i></button>` : ''}
+        ${(userRole==='owner' && m.user_id !== uid) ? `<button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="removeMember('${m.user_id}')">Çıkar</button>` : ''}
+      </div>
     </div>`).join('') || '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Henüz üye yok.</div>';
 }
 
@@ -331,6 +357,30 @@ function shareViaWhatsApp() {
   if (!currentInviteLink) return;
   const text = '🎵 ' + (currentGroup?.name || 'Repertuvar') + ' grubuna davetlisiniz!\n\n' + currentInviteLink;
   window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+}
+
+function editInstrument(userId) {
+  document.getElementById('instr-display-' + userId).style.display = 'none';
+  document.getElementById('instr-edit-' + userId).style.display = 'block';
+}
+
+function cancelInstrument(userId) {
+  document.getElementById('instr-display-' + userId).style.display = '';
+  document.getElementById('instr-edit-' + userId).style.display = 'none';
+}
+
+async function saveInstrument(userId) {
+  const val = document.getElementById('instr-input-' + userId).value.trim();
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
+      method: 'PATCH',
+      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ instrument: val || null })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Enstrüman kaydedildi ✓');
+    await loadPage();
+  } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
 
 async function removeMember(userId) {
