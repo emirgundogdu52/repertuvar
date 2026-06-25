@@ -122,12 +122,32 @@ body { background:#07071a; color:#e2e0ff; font-family:'Plus Jakarta Sans',sans-s
     <div class="section">
       <div class="group-header">
         <div class="group-avatar" id="groupAvatarEl">G</div>
-        <div>
+        <div style="flex:1;min-width:0;">
           <div class="group-name" id="groupNameEl">—</div>
           <div class="group-meta" id="groupMetaEl">—</div>
         </div>
+        <div id="groupEditBtns" style="display:none;flex-shrink:0;display:none;gap:6px;">
+          <button class="btn btn-secondary" style="padding:5px 10px;font-size:12px;" onclick="showEditGroup()"><i class="ti ti-pencil" style="font-size:13px;"></i> Düzenle</button>
+          <button class="btn btn-danger" style="padding:5px 10px;font-size:12px;" onclick="deleteGroup()"><i class="ti ti-trash" style="font-size:13px;"></i></button>
+        </div>
       </div>
       <div id="groupDescEl" style="font-size:13px;color:var(--text2);margin-bottom:16px;"></div>
+
+      <!-- Grup düzenleme formu -->
+      <div id="editGroupForm" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
+        <div style="margin-bottom:12px;">
+          <label class="fl">Grup Adı</label>
+          <input class="fi" id="editGroupName" placeholder="Grup adı...">
+        </div>
+        <div style="margin-bottom:14px;">
+          <label class="fl">Açıklama</label>
+          <input class="fi" id="editGroupDesc" placeholder="Açıklama...">
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" style="font-size:12px;" onclick="saveGroupEdit()">Kaydet</button>
+          <button class="btn btn-secondary" style="font-size:12px;" onclick="hideEditGroup()">İptal</button>
+        </div>
+      </div>
 
       <!-- Davet Linki — sadece owner/admin görür -->
       <div id="inviteSection" style="display:none;">
@@ -150,7 +170,13 @@ body { background:#07071a; color:#e2e0ff; font-family:'Plus Jakarta Sans',sans-s
 
     <!-- Üyeler -->
     <div class="section">
-      <div class="section-title">Grup Üyeleri</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="section-title" style="margin-bottom:0;">Grup Üyeleri</div>
+      </div>
+      <div style="position:relative;margin-bottom:12px;">
+        <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text3);"></i>
+        <input class="fi" id="memberSearch" style="padding-left:32px;font-size:12px;" placeholder="Üye ara..." oninput="filterMembers(this.value)">
+      </div>
       <div id="membersList"></div>
     </div>
   </div>
@@ -306,6 +332,12 @@ function renderGroup() {
     inviteSection.style.display = '';
   }
 
+  // Düzenle/sil butonları sadece owner/admin'e
+  const editBtns = document.getElementById('groupEditBtns');
+  if (editBtns && (isAdmin() || userRole === 'owner')) {
+    editBtns.style.display = 'flex';
+  }
+
   // Üyeler listesi
   const roleLabels = { owner: 'Kurucu', admin: 'Admin', member: 'Üye' };
   const roleClass = { owner: 'role-owner', admin: 'role-admin', member: 'role-member' };
@@ -334,7 +366,13 @@ function renderGroup() {
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
         <span class="role-badge ${roleClass[m.role]||'role-member'}">${roleLabels[m.role]||'Üye'}</span>
         ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="editInstrument('${m.user_id}')"><i class="ti ti-pencil" style="font-size:11px;"></i></button>` : ''}
-        ${(userRole==='owner' && m.user_id !== uid) ? `<button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="removeMember('${m.user_id}')">Çıkar</button>` : ''}
+        ${(isAdmin() || userRole==='owner') && m.user_id !== uid ? `
+          <select class="fi" style="padding:3px 6px;font-size:10px;width:auto;" onchange="changeRole('${m.user_id}', this.value)">
+            <option value="member" ${m.role==='member'?'selected':''}>Üye</option>
+            <option value="admin" ${m.role==='admin'?'selected':''}>Admin</option>
+            <option value="owner" ${m.role==='owner'?'selected':''}>Kurucu</option>
+          </select>
+          <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="removeMember('${m.user_id}')">Çıkar</button>` : ''}
       </div>
     </div>`).join('') || '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Henüz üye yok.</div>';
 }
@@ -367,6 +405,72 @@ function shareViaWhatsApp() {
   if (!currentInviteLink) return;
   const text = '🎵 ' + (currentGroup?.name || 'Repertuvar') + ' grubuna davetlisiniz!\n\n' + currentInviteLink;
   window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+}
+
+// Grup düzenleme
+function showEditGroup() {
+  document.getElementById('editGroupName').value = currentGroup.name || '';
+  document.getElementById('editGroupDesc').value = currentGroup.description || '';
+  document.getElementById('editGroupForm').style.display = 'block';
+}
+function hideEditGroup() {
+  document.getElementById('editGroupForm').style.display = 'none';
+}
+async function saveGroupEdit() {
+  const name = document.getElementById('editGroupName').value.trim();
+  if (!name) return;
+  const desc = document.getElementById('editGroupDesc').value.trim();
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/groups?id=eq.' + currentGroup.id, {
+      method: 'PATCH',
+      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ name, description: desc || null })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Grup güncellendi ✓');
+    hideEditGroup();
+    await loadPage();
+  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+}
+async function deleteGroup() {
+  if (!confirm('Grubu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) return;
+  try {
+    await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + currentGroup.id, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    await fetch(SUPA_URL + '/rest/v1/groups?id=eq.' + currentGroup.id, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    await fetch(SUPA_URL + '/rest/v1/profiles?group_id=eq.' + currentGroup.id, {
+      method: 'PATCH', headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ group_id: null })
+    });
+    localStorage.removeItem('user_group_id');
+    toast('Grup silindi');
+    await loadPage();
+  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+}
+
+// Üye arama
+function filterMembers(q) {
+  const items = document.querySelectorAll('#membersList .member-item');
+  items.forEach(el => {
+    const text = el.textContent.toLowerCase();
+    el.style.display = text.includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+// Rol değiştirme
+async function changeRole(userId, newRole) {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + currentGroup.id + '&user_id=eq.' + userId, {
+      method: 'PATCH',
+      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ role: newRole })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Rol güncellendi ✓');
+  } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
 
 function editInstrument(userId) {
