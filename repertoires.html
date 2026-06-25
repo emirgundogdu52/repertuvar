@@ -436,13 +436,17 @@ async function load(){
     let r, i, s;
     try {
       const uid2 = getUserId();
-      const repQuery = uid2
-        ? 'order=created_at&limit=100&or=(owner_id.eq.'+uid2+',is_public.eq.true)'
-        : 'order=created_at&limit=100&is_public=eq.true';
+      const gid = getGroupId();
+      const repQuery = gid
+        ? 'order=created_at&limit=100&group_id=eq.'+gid
+        : (uid2
+          ? 'order=created_at&limit=100&or=(owner_id.eq.'+uid2+',is_public.eq.true)'
+          : 'order=created_at&limit=100&is_public=eq.true');
+      const solQuery = gid ? 'order=name&group_id=eq.'+gid : 'order=name';
       [r,i,s] = await Promise.all([
         dbGet('repertoires', repQuery),
         dbGet('repertoire_items','order=seq'),
-        dbGet('solistler','order=name')
+        dbGet('solistler', solQuery)
       ]);
       dbg('rep sayısı: '+(r||[]).length+' | items: '+(i||[]).length);
       if (window.db) {
@@ -651,7 +655,7 @@ async function saveRep(){
   const name=document.getElementById('fN').value.trim();
   if(!name){document.getElementById('fN').focus();return;}
   const isPublic=document.getElementById('fVisPublic').checked;
-  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,is_public:isPublic,user_id:getUserId()||undefined,owner_id:editId?undefined:(getUserId()||undefined)};
+  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,is_public:isPublic,user_id:getUserId()||undefined,owner_id:editId?undefined:(getUserId()||undefined),group_id:editId?undefined:(getGroupId()||undefined)};
   sync('spin','Kaydediliyor...');
   try{
     if(editId){await dbPatch('repertoires',editId,data);}
