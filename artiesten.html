@@ -237,7 +237,8 @@ function initials(name) {
 async function loadAll() {
   setSyncStatus('loading', 'Yükleniyor...');
   try {
-    const { data, error } = await sb.from('solistler').select('*').order('name');
+    const uid = getUserId();
+    const { data, error } = await sb.from('solistler').select('*').eq('user_id', uid).order('name');
     if (error) throw error;
     artists = data;
     setSyncStatus('ok', 'Senkronize');
@@ -343,7 +344,7 @@ async function saveArtist() {
       const { error } = await sb.from('solistler').update(data).eq('id', editingId);
       if (error) throw error;
     } else {
-      const { data: newA, error } = await sb.from('solistler').insert({...data, works:[]}).select().single();
+      const { data: newA, error } = await sb.from('solistler').insert({...data, works:[], user_id: getUserId()}).select().single();
       if (error) throw error;
       selectedId = newA.id;
     }
