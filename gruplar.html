@@ -339,11 +339,14 @@ function renderGroup() {
   }
 
   // Üyeler listesi
+  renderMembersList(currentMembers);
+}
+
+function renderMembersList(members) {
+  const uid = getUserId();
   const roleLabels = { owner: 'Kurucu', admin: 'Admin', member: 'Üye' };
   const roleClass = { owner: 'role-owner', admin: 'role-admin', member: 'role-member' };
-  const uid = getUserId();
-
-  document.getElementById('membersList').innerHTML = currentMembers.map(m => `
+  document.getElementById('membersList').innerHTML = members.map(m => `
     <div class="member-item" id="mi-${m.user_id}">
       <div class="member-avatar">${(m.display_name || m.user_id || '?').charAt(0).toUpperCase()}</div>
       <div class="member-info">
@@ -453,11 +456,14 @@ async function deleteGroup() {
 
 // Üye arama
 function filterMembers(q) {
-  const items = document.querySelectorAll('#membersList .member-item');
-  items.forEach(el => {
-    const text = el.textContent.toLowerCase();
-    el.style.display = text.includes(q.toLowerCase()) ? '' : 'none';
-  });
+  const lq = q.toLowerCase();
+  const filtered = lq ? currentMembers.filter(m =>
+    (m.display_name||'').toLowerCase().includes(lq) ||
+    (m.email||'').toLowerCase().includes(lq) ||
+    (m.instrument||'').toLowerCase().includes(lq) ||
+    (m.phone||'').toLowerCase().includes(lq)
+  ) : currentMembers;
+  renderMembersList(filtered);
 }
 
 // Rol değiştirme
