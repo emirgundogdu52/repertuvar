@@ -527,6 +527,7 @@ function clearFilters() {
 function applyFilters() {
   const q = document.getElementById('searchInput').value.toLowerCase().trim();
   filteredData = DATA.filter(w => {
+    if (w.status === 'pending') return false; // Onay bekleyen eserler listede görünmez
     if (activeFilters.form && w.form !== activeFilters.form) return false;
     if (activeFilters.tuning && w.tuning !== activeFilters.tuning) return false;
     if (activeFilters.region && w.region !== activeFilters.region) return false;
