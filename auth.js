@@ -11,6 +11,9 @@ function getUserName() {
   const u = getUser();
   return u?.user_metadata?.full_name || u?.email?.split('@')[0] || 'Kullanıcı';
 }
+function getGroupId() {
+  return localStorage.getItem('user_group_id') || null;
+}
 
 function authHeaders() {
   const token = getToken();
@@ -115,15 +118,28 @@ async function ensureProfile(user) {
 async function loadUserRole() {
   const uid = getUserId();
   if (!uid) return;
-  if (isAdmin()) { localStorage.setItem('user_role', 'admin'); return; }
+  if (isAdmin()) {
+    localStorage.setItem('user_role', 'admin');
+    try {
+      const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=group_id', {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) }
+      });
+      if (r.ok) {
+        const data = await r.json();
+        if (data[0]?.group_id) localStorage.setItem('user_group_id', data[0].group_id);
+      }
+    } catch(e) {}
+    return;
+  }
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=role,status', {
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=role,status,group_id', {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) }
     });
     if (r.ok) {
       const data = await r.json();
       if (data[0]?.role) localStorage.setItem('user_role', data[0].role);
       if (data[0]?.status) localStorage.setItem('user_status', data[0].status);
+      if (data[0]?.group_id) localStorage.setItem('user_group_id', data[0].group_id);
     }
   } catch(e) { console.log('[auth] loadUserRole error:', e); }
 }
@@ -142,6 +158,7 @@ function logoutSilent() {
   localStorage.removeItem('sb_user');
   localStorage.removeItem('user_role');
   localStorage.removeItem('user_status');
+  localStorage.removeItem('user_group_id');
 }
 
 function logout() {
