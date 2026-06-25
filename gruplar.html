@@ -463,7 +463,11 @@ function filterMembers(q) {
     (m.instrument||'').toLowerCase().includes(lq) ||
     (m.phone||'').toLowerCase().includes(lq)
   ) : currentMembers;
-  renderMembersList(filtered);
+  if (lq && filtered.length === 0) {
+    document.getElementById('membersList').innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Sonuç bulunamadı.</div>';
+  } else {
+    renderMembersList(filtered);
+  }
 }
 
 // Rol değiştirme
