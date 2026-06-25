@@ -89,6 +89,13 @@
     [data-theme="light"] .sidebar,
     [data-theme="light"] aside.sidebar,
     [data-theme="light"] .v2-sidebar { background: #ffffff !important; border-right-color: rgba(124,111,255,0.15) !important; }
+    [data-theme="light"] .v2-sb-divider { background: rgba(124,111,255,0.25) !important; }
+    [data-theme="light"] .v2-sb-item { color: #4a4570 !important; }
+    [data-theme="light"] .v2-sb-item:hover { background: rgba(124,111,255,0.08) !important; color: #1a1733 !important; }
+    [data-theme="light"] .v2-sb-item.active { background: rgba(124,111,255,0.1) !important; color: #6c5ce7 !important; }
+    [data-theme="light"] .v2-sb-label { color: #9390b0 !important; }
+    [data-theme="light"] .v2-sb-uname { color: #1a1733 !important; }
+    [data-theme="light"] .v2-sb-urole { color: #9390b0 !important; }
     [data-theme="light"] .sb-item { color: #4a4570 !important; }
     [data-theme="light"] .sb-item:hover { background: rgba(124,111,255,0.08) !important; color: #1a1733 !important; }
     [data-theme="light"] .sb-item.active { background: rgba(124,111,255,0.1) !important; color: #6c5ce7 !important; }
