@@ -107,6 +107,7 @@
     [data-theme="light"] .sb-uname { color: #1a1733 !important; }
     [data-theme="light"] .sb-urole { color: #9390b0 !important; }
     [data-theme="light"] .desktop-topbar { background: rgba(245,244,251,0.95) !important; border-bottom-color: rgba(124,111,255,0.15) !important; }
+    [data-theme="light"] .v2-desktop-topbar { background: rgba(245,244,251,0.95) !important; border-bottom-color: rgba(124,111,255,0.15) !important; }
     [data-theme="light"] .dt-crumb { color: #4a4570 !important; }
     [data-theme="light"] .dt-search { background: #ffffff !important; color: #9390b0 !important; }
     [data-theme="light"] .dt-user-dropdown { background: #ffffff; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
