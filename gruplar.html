@@ -259,16 +259,26 @@ async function loadPage() {
     }
 
     // Üyeleri yükle
-    const mr = await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + gid + '&select=*,profiles(display_name,email,phone,instrument)', {
+    const mr = await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + gid + '&select=*', {
       headers: authHeaders()
     });
     const rawMembers = await mr.json();
+
+    // Profilleri ayrı sorgula
+    const userIds = rawMembers.map(m => m.user_id).join(',');
+    const pr = await fetch(SUPA_URL + '/rest/v1/profiles?id=in.(' + userIds + ')&select=id,display_name,email,phone,instrument', {
+      headers: authHeaders()
+    });
+    const profiles = await pr.json();
+    const profileMap = {};
+    profiles.forEach(p => profileMap[p.id] = p);
+
     currentMembers = rawMembers.map(m => ({
       ...m,
-      display_name: m.profiles?.display_name || m.display_name,
-      email: m.profiles?.email || m.email,
-      phone: m.profiles?.phone || '',
-      instrument: m.profiles?.instrument || ''
+      display_name: profileMap[m.user_id]?.display_name || m.display_name,
+      email: profileMap[m.user_id]?.email || m.email,
+      phone: profileMap[m.user_id]?.phone || '',
+      instrument: profileMap[m.user_id]?.instrument || ''
     }));
 
     // Kendi rolü
