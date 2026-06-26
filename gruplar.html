@@ -168,6 +168,20 @@ body { background:#07071a; color:#e2e0ff; font-family:'Plus Jakarta Sans',sans-s
       </div>
     </div>
 
+    <!-- Kullanıcı Ara & Gruba Ekle (sadece owner/admin) -->
+    <div class="section" id="addUserSection" style="display:none;">
+      <div class="section-title">Kullanıcı Ara &amp; Gruba Ekle</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Sisteme kayıtlı kullanıcıları e-posta veya isimle arayarak gruba ekleyin.</p>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <div style="position:relative;flex:1;">
+          <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text3);"></i>
+          <input class="fi" id="userSearchInput" style="padding-left:32px;font-size:13px;" placeholder="E-posta veya isim..." oninput="onUserSearchInput(this.value)">
+        </div>
+        <button class="btn btn-primary" onclick="searchUsers()"><i class="ti ti-search" style="font-size:14px;"></i> Ara</button>
+      </div>
+      <div id="userSearchResults"></div>
+    </div>
+
     <!-- Üyeler -->
     <div class="section">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -175,7 +189,7 @@ body { background:#07071a; color:#e2e0ff; font-family:'Plus Jakarta Sans',sans-s
       </div>
       <div style="position:relative;margin-bottom:12px;">
         <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text3);"></i>
-        <input class="fi" id="memberSearch" style="padding-left:32px;font-size:12px;" placeholder="Üye ara..." oninput="filterMembers(this.value)">
+        <input class="fi" id="memberSearch" style="padding-left:32px;font-size:12px;" placeholder="Mevcut üyelerde ara..." oninput="filterMembers(this.value)">
       </div>
       <div id="membersList"></div>
     </div>
@@ -330,6 +344,12 @@ function renderGroup() {
   const inviteSection = document.getElementById('inviteSection');
   if (userRole === 'owner' || userRole === 'admin') {
     inviteSection.style.display = '';
+  }
+
+  // Kullanıcı ekleme bölümü sadece owner/admin'e
+  const addUserSection = document.getElementById('addUserSection');
+  if (addUserSection && (isAdmin() || userRole === 'owner' || userRole === 'admin')) {
+    addUserSection.style.display = '';
   }
 
   // Düzenle/sil butonları sadece owner/admin'e
@@ -516,6 +536,82 @@ async function removeMember(userId) {
       headers: authHeaders()
     });
     toast('Üye çıkarıldı');
+    await loadPage();
+  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+}
+
+// Kullanıcı arama (tüm profiles tablosunda)
+let searchDebounce = null;
+function onUserSearchInput(val) {
+  clearTimeout(searchDebounce);
+  if (val.trim().length < 2) {
+    document.getElementById('userSearchResults').innerHTML = '';
+    return;
+  }
+  searchDebounce = setTimeout(() => searchUsers(), 400);
+}
+
+async function searchUsers() {
+  const q = document.getElementById('userSearchInput').value.trim();
+  if (q.length < 2) { toast('En az 2 karakter girin', 'err'); return; }
+  const resultsEl = document.getElementById('userSearchResults');
+  resultsEl.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Aranıyor...</div>';
+
+  try {
+    // email veya display_name ile ara
+    const r = await fetch(
+      SUPA_URL + '/rest/v1/profiles?or=(email.ilike.*' + encodeURIComponent(q) + '*,display_name.ilike.*' + encodeURIComponent(q) + '*)&select=id,email,display_name,instrument&limit=10',
+      { headers: authHeaders() }
+    );
+    if (!r.ok) throw new Error(await r.text());
+    const users = await r.json();
+
+    // Zaten grupta olanları çıkar
+    const memberIds = new Set(currentMembers.map(m => m.user_id));
+    const filtered = users.filter(u => !memberIds.has(u.id));
+
+    if (filtered.length === 0) {
+      resultsEl.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Kayıtlı kullanıcı bulunamadı veya tümü zaten grupta.</div>';
+      return;
+    }
+
+    resultsEl.innerHTML = filtered.map(u => `
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+        <div class="member-avatar">${(u.display_name || u.email || '?').charAt(0).toUpperCase()}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${u.display_name || '—'}</div>
+          <div style="font-size:11px;color:var(--text3);">${u.email || ''}</div>
+          ${u.instrument ? `<div style="font-size:11px;color:var(--accent2);"><i class="ti ti-guitar-pick" style="font-size:11px;"></i> ${u.instrument}</div>` : ''}
+        </div>
+        <button class="btn btn-primary" style="padding:5px 12px;font-size:12px;flex-shrink:0;" onclick="addUserToGroup('${u.id}', '${(u.display_name||u.email||'').replace(/'/g,"\\'")}')">
+          <i class="ti ti-user-plus" style="font-size:13px;"></i> Ekle
+        </button>
+      </div>
+    `).join('');
+  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+}
+
+async function addUserToGroup(userId, displayName) {
+  const gid = getGroupId();
+  try {
+    // group_members'a ekle
+    const r = await fetch(SUPA_URL + '/rest/v1/group_members', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ group_id: gid, user_id: userId, role: 'member', status: 'active' })
+    });
+    if (!r.ok) throw new Error(await r.text());
+
+    // profiles.group_id güncelle
+    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
+      method: 'PATCH',
+      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ group_id: gid })
+    });
+
+    toast((displayName || 'Kullanıcı') + ' gruba eklendi ✓');
+    document.getElementById('userSearchInput').value = '';
+    document.getElementById('userSearchResults').innerHTML = '';
     await loadPage();
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
