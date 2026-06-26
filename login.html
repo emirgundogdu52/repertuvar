@@ -313,7 +313,7 @@ async function doRegister() {
   if(pass.length < 6) { showMsg('err','Şifre en az 6 karakter olmalı.'); return; }
   const btn = document.getElementById('regBtn');
   btn.disabled = true; btn.textContent = 'Kaydediliyor...';
-  const {data, error} = await sb.auth.signUp({email, password: pass});
+  const {data, error} = await sb.auth.signUp({email, password: pass, options: { data: { full_name: fullName } }});
   if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent='Kayıt Ol'; return; }
 
   // display_name'i profiles tablosuna yaz

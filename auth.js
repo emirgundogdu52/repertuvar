@@ -98,6 +98,20 @@ async function ensureProfile(user) {
   if (!user?.id) return;
   if (user.id === ADMIN_USER_ID) return;
   try {
+    // Mevcut profili kontrol et — display_name email dışında bir şeyse koru
+    const check = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + user.id + '&select=display_name', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) }
+    });
+    const existing = check.ok ? await check.json() : [];
+    const currentName = existing[0]?.display_name || '';
+    const hasRealName = currentName && currentName !== user.email;
+
+    // user_metadata.full_name: kayıt sırasında signUp'a yazıldı
+    const metaName = user.user_metadata?.full_name || '';
+
+    // Öncelik: metadata > mevcut gerçek isim > email
+    const display_name = metaName || (hasRealName ? currentName : user.email);
+
     await fetch(SUPA_URL + '/rest/v1/profiles', {
       method: 'POST',
       headers: {
@@ -108,7 +122,7 @@ async function ensureProfile(user) {
       },
       body: JSON.stringify({
         id: user.id,
-        display_name: user.email,
+        display_name,
         email: user.email
       })
     });
