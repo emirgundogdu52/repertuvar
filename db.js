@@ -89,11 +89,19 @@ window.syncOfflineData = async function() {
     const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
     const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token };
 
+    // group_id veya owner_id'ye göre repertuvar filtresi
+    const gid = localStorage.getItem('user_group_id');
+    const uid = localStorage.getItem('sb_user') ? JSON.parse(localStorage.getItem('sb_user')).id : null;
+    const repFilter = gid
+      ? '/rest/v1/repertoires?select=*&order=created_at.desc&group_id=eq.' + gid
+      : (uid ? '/rest/v1/repertoires?select=*&order=created_at.desc&or=(owner_id.eq.' + uid + ',is_public.eq.true)' : '/rest/v1/repertoires?select=*&order=created_at.desc&is_public=eq.true');
+    const solFilter = gid ? '/rest/v1/solistler?select=*&order=name.asc&group_id=eq.' + gid : '/rest/v1/solistler?select=*&order=name.asc';
+
     // Eserleri çek ve kaydet
     const [worksRes, repsRes, solRes, itemsRes] = await Promise.all([
       fetch(SUPA_URL + '/rest/v1/works?select=*&order=name.asc&limit=1000', { headers }),
-      fetch(SUPA_URL + '/rest/v1/repertoires?select=*&order=created_at.desc', { headers }),
-      fetch(SUPA_URL + '/rest/v1/solistler?select=*&order=name.asc', { headers }),
+      fetch(SUPA_URL + repFilter, { headers }),
+      fetch(SUPA_URL + solFilter, { headers }),
       fetch(SUPA_URL + '/rest/v1/repertoire_items?select=*&order=seq.asc', { headers }),
     ]);
 
