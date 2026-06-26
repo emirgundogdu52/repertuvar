@@ -148,6 +148,11 @@ body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-he
   <!-- Register form -->
   <div id="registerForm" style="display:none;">
     <div class="field">
+      <label>Ad Soyad *</label>
+      <input type="text" id="regName" placeholder="Adınız ve soyadınız" autocomplete="name"
+        onkeydown="if(event.key==='Enter') doRegister()">
+    </div>
+    <div class="field">
       <label>E-posta</label>
       <input type="email" id="regEmail" placeholder="ornek@mail.com" autocomplete="email">
     </div>
@@ -221,9 +226,52 @@ if(window.location.search.includes('deletion_requested=1')) {
     );
   }, 100);
 }
+// Davet token'ını sakla
+const _inviteToken = new URLSearchParams(window.location.search).get('invite');
+if (_inviteToken) localStorage.setItem('pending_invite', _inviteToken);
+
 if(!window.location.search.includes('logout=1') && !window.location.hash.includes('type=recovery')) {
   const token = localStorage.getItem('sb_token');
   if(token) window.location.href = 'index.html';
+}
+
+async function handlePendingInvite(userId) {
+  const inviteToken = localStorage.getItem('pending_invite');
+  if (!inviteToken) return;
+  try {
+    // Token ile daveti bul
+    const r = await fetch(SUPA_URL + '/rest/v1/group_invites?token=eq.' + inviteToken + '&select=*', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
+    });
+    const invites = await r.json();
+    const invite = invites[0];
+    if (!invite) { localStorage.removeItem('pending_invite'); return; }
+    if (invite.used_by) { localStorage.removeItem('pending_invite'); return; } // zaten kullanılmış
+    if (new Date(invite.expires_at) < new Date()) { localStorage.removeItem('pending_invite'); showMsg('err', 'Davet linki süresi dolmuş.'); return; }
+
+    // Kullanıcıyı gruba ekle
+    await fetch(SUPA_URL + '/rest/v1/group_members', {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'resolution=ignore-duplicates' },
+      body: JSON.stringify({ group_id: invite.group_id, user_id: userId, role: 'member', status: 'active' })
+    });
+
+    // Profili güncelle
+    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ group_id: invite.group_id })
+    });
+
+    // Daveti kullanıldı olarak işaretle
+    await fetch(SUPA_URL + '/rest/v1/group_invites?token=eq.' + inviteToken, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ used_by: userId, used_at: new Date().toISOString() })
+    });
+
+    localStorage.removeItem('pending_invite');
+  } catch(e) { console.error('Invite error:', e); }
 }
 
 function switchTab(t) {
@@ -251,20 +299,40 @@ async function doLogin() {
   if(data.session) {
     localStorage.setItem('sb_token', data.session.access_token);
     localStorage.setItem('sb_refresh', data.session.refresh_token);
+    await handlePendingInvite(data.session.user.id);
     window.location.href = 'index.html';
   }
 }
 
 async function doRegister() {
+  const fullName = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const pass  = document.getElementById('regPass').value;
+  if(!fullName) { showMsg('err','Ad Soyad zorunludur.'); document.getElementById('regName').focus(); return; }
   if(!email || !pass) { showMsg('err','E-posta ve şifre gerekli.'); return; }
   if(pass.length < 6) { showMsg('err','Şifre en az 6 karakter olmalı.'); return; }
   const btn = document.getElementById('regBtn');
   btn.disabled = true; btn.textContent = 'Kaydediliyor...';
-  const {error} = await sb.auth.signUp({email, password: pass});
+  const {data, error} = await sb.auth.signUp({email, password: pass});
   if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent='Kayıt Ol'; return; }
-  showMsg('ok','Kayıt başarılı! E-postanızı doğrulayın.');
+
+  // display_name'i profiles tablosuna yaz
+  if (data?.user?.id) {
+    try {
+      await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + data.user.id, {
+        method: 'PATCH',
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (data.session?.access_token || ''), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ display_name: fullName })
+      });
+    } catch(e) { console.error('display_name yazma hatası:', e); }
+  }
+
+  const hasPendingInvite = !!localStorage.getItem('pending_invite');
+  if (hasPendingInvite) {
+    showMsg('ok','Kayıt başarılı! E-postanızı doğrulayıp giriş yaptıktan sonra gruba otomatik ekleneceksiniz.');
+  } else {
+    showMsg('ok','Kayıt başarılı! E-postanızı doğrulayın.');
+  }
   btn.disabled=false; btn.textContent='Kayıt Ol';
 }
 
