@@ -597,23 +597,6 @@ body {
 <div class="main-wrap">
 <div id="r-topnav-container"></div>
 <script src="topnav.js"></script>
-<script>
-// Index'te logo+slogan versiyonunu kullan
-(function() {
-  function applyIndexLogo() {
-    const logo = document.querySelector('.r-topnav .r-logo');
-    if (logo) {
-      const theme = localStorage.getItem('r_theme') || 'dark';
-      logo.src = theme === 'light' ? 'logo_slogan_light.png' : 'logo_slogan_dark.png';
-      logo.style.height = '36px';
-    }
-  }
-  // topnav render olur olmaz uygula, timeout olmadan
-  applyIndexLogo();
-  document.addEventListener('DOMContentLoaded', applyIndexLogo);
-  window.addEventListener('authReady', applyIndexLogo);
-})();
-</script>
 
   <!-- Tablet + Mobil: Üst Bar -->
   

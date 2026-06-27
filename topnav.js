@@ -22,8 +22,8 @@
       }
       .sb-nav { flex: 1; padding: 0 10px; display: flex; flex-direction: column; gap: 2px; }
       .sb-item {
-        display: flex; align-items: center; justify-content: flex-start; gap: 10px;
-        padding: 10px 12px; border-radius: 10px; width: 100%; box-sizing: border-box;
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px; border-radius: 10px;
         font-size: 13px; font-weight: 600; color: var(--text2, #9d9bc4);
         text-decoration: none; transition: all .15s; position: relative;
       }
@@ -542,9 +542,7 @@
     // Logo değiştir
     document.querySelectorAll('img').forEach(img => {
       const src = (img.getAttribute('src') || '') + (img.src || '');
-      if (src.includes('logo_slogan') || src.includes('Repertuvar_logo_slogan') || src.includes('logo2')) {
-        img.src = (isLight ? 'logo_light.png' : 'logo_dark.png');
-      } else if (src.includes('logo_dark') || src.includes('logo_light') || src.includes('Repertuvar_logo')) {
+      if (src.includes('logo_dark') || src.includes('logo_light') || src.includes('logo_slogan') || src.includes('Repertuvar_logo')) {
         img.src = (isLight ? 'logo_light.png' : 'logo_dark.png');
       }
     });
