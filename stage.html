@@ -254,9 +254,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .sip-row{display:flex;align-items:center;gap:8px;font-size:13px;}
 .sip-label{color:var(--text3);font-size:11px;min-width:60px;}
 .sip-val{color:var(--text);font-weight:600;}
-
-body[data-stage-theme="night"]{--bg:#080810!important;--surface:#0f0f1a!important;--surface2:#161625!important;--border:#484860!important;--text:#f1f0ff!important;--text2:#8b8aa8!important;--text3:#3d3d58!important;}
-body[data-stage-theme="day"]{--bg:#f5f4f0!important;--surface:#fff!important;--surface2:#f0eeea!important;--border:#d8d4cc!important;--text:#1a1825!important;--text2:#5a5670!important;--text3:#9d9aae!important;}
 </style>
 <script src="auth.js"></script>
 <style id="v2-stage-nav">
@@ -303,7 +300,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="stc" id="stc">1/1</div>
     </div>
     <div style="display:flex;align-items:center;gap:6px;">
-      <button class="stage-info-btn" onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz"><i class="ti ti-sun" style="font-size:16px;"></i></button>
+      <button class="stage-info-btn" onclick="event.stopPropagation();toggleTheme(event)" id="stageThemeBtn" title="Dark/Light"><i class="ti ti-sun" style="font-size:16px;"></i></button>
       <button class="stage-info-btn" onclick="event.stopPropagation();toggleStageInfo()" id="stageInfoBtn" title="Eser bilgileri"><i class="ti ti-info-circle" style="font-size:16px;"></i></button>
       <div id="stnAvatar" onclick="event.stopPropagation();" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;cursor:default;">—</div>
     </div>
@@ -482,8 +479,6 @@ function toggleStageTheme(){
 function applyStageTheme(screen){
   const t=localStorage.getItem('stageTheme')||'night';
   document.body.classList.toggle('day-theme', screen==='stage' && t==='day');
-  if(screen==='stage') document.body.setAttribute('data-stage-theme', t);
-  else document.body.removeAttribute('data-stage-theme');
   const btn=document.getElementById('stageThemeBtn');
   const btn2=document.getElementById('stageThemeBtn2');
   if(btn){
