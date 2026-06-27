@@ -46,7 +46,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .pd{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;flex-shrink:0;}
 .pd.done{background:var(--text3);}
 .pd.cur{background:var(--accent);transform:scale(1.4);}
-.stc{font-size:12px;color:var(--text2);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.stc{display:none;}
 .bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
 .bex:hover{color:var(--red);border-color:var(--red);}
 
@@ -246,6 +246,14 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
   /* Sahne aktifken sidebar gizle, picker tam genişlik */
   body.stage-active .sidebar { display: none !important; }
 }
+
+.stage-info-btn{background:none;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text3);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.stage-info-btn:hover{border-color:var(--accent);color:var(--accent);}
+.stage-info-panel{position:fixed;top:56px;right:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;z-index:200;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;flex-direction:column;gap:8px;}
+.stage-info-panel.open{display:flex;}
+.sip-row{display:flex;align-items:center;gap:8px;font-size:13px;}
+.sip-label{color:var(--text3);font-size:11px;min-width:60px;}
+.sip-val{color:var(--text);font-weight:600;}
 </style>
 <script src="auth.js"></script>
 <style id="v2-stage-nav">
@@ -291,7 +299,9 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="pds" id="pds"></div>
       <div class="stc" id="stc">1/1</div>
     </div>
+    <button class="stage-info-btn" onclick="event.stopPropagation();toggleStageInfo()" id="stageInfoBtn" title="Eser bilgileri"><i class="ti ti-info-circle" style="font-size:16px;"></i></button>
   </div>
+  <div class="stage-info-panel" id="stageInfoPanel"></div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
   <div class="sm" id="sm"></div>
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
@@ -352,9 +362,14 @@ async function loadWL() {
       WL[String(w.id)] = {
         name: w.name || '',
         composer: w.composer || '',
+        lyricWriter: w.lyric_writer || '',
         makam: w.makam || '',
         instrument: w.instrument || '',
         closingNote: w.closing_note || '',
+        tuning: w.tuning || '',
+        form: w.form || '',
+        measurement: w.measurement || '',
+        region: w.region || '',
         lyrics: w.lyrics || '',
         chords: w.chords || ''
       };
@@ -505,19 +520,32 @@ function renderStage(){
   const pds=document.getElementById('pds');
   if(total<=20){pds.innerHTML=items.map((_,i)=>`<div class="pd ${i<curIdx?'done':i===curIdx?'cur':''}"></div>`).join('');}
   else pds.innerHTML='';
-  const chips=[
-    w.makam?`<span class="wch m">${w.makam}</span>`:'',
-    (item.closingNote||w.closingNote)?`<span class="wch n">Kapanış: ${item.closingNote||w.closingNote}</span>`:'',
-    w.instrument?`<span class="wch i">${w.instrument}</span>`:''
-  ].filter(Boolean).join('');
+  // Info paneli güncelle
+  const panel = document.getElementById('stageInfoPanel');
+  if (panel) {
+    const rows = [
+      w.makam ? `<div class="sip-row"><span class="sip-label">Makam</span><span class="sip-val">${w.makam}</span></div>` : '',
+      (item.closingNote||w.closingNote) ? `<div class="sip-row"><span class="sip-label">Kapanış</span><span class="sip-val">${item.closingNote||w.closingNote}</span></div>` : '',
+      w.tuning ? `<div class="sip-row"><span class="sip-label">Akort</span><span class="sip-val">${w.tuning}</span></div>` : '',
+      w.form ? `<div class="sip-row"><span class="sip-label">Form</span><span class="sip-val">${w.form}</span></div>` : '',
+      w.measurement ? `<div class="sip-row"><span class="sip-label">Usul</span><span class="sip-val">${w.measurement}</span></div>` : '',
+      w.region ? `<div class="sip-row"><span class="sip-label">Bölge</span><span class="sip-val">${w.region}</span></div>` : '',
+      w.composer ? `<div class="sip-row"><span class="sip-label">Besteci</span><span class="sip-val">${w.composer}</span></div>` : '',
+      w.lyricWriter ? `<div class="sip-row"><span class="sip-label">Güfte</span><span class="sip-val">${w.lyricWriter}</span></div>` : '',
+      w.instrument ? `<div class="sip-row"><span class="sip-label">Enstrüman</span><span class="sip-val">${w.instrument}</span></div>` : '',
+    ].filter(Boolean).join('');
+    panel.innerHTML = rows || '<div style="color:var(--text3);font-size:12px;">Bilgi yok</div>';
+    // Info butonu sadece bilgi varsa görünsün
+    const infoBtn = document.getElementById('stageInfoBtn');
+    if (infoBtn) infoBtn.style.display = rows ? 'flex' : 'none';
+  }
   const showChords = localStorage.getItem('stageShowChords') === '1';
   const lyricsHtml = (showChords && w.chords)
     ? `<div class="wlyrics">${renderStageChords(w.chords)}</div>`
     : (w.lyrics ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>` : '');
   document.getElementById('sm').innerHTML=`
-    <div class="wnum">Eser ${curIdx+1} / ${total}</div>
+    <div class="wnum"></div>
     <div class="wtitle">${w.name||item.workId}</div>
-    ${chips?`<div class="wcr">${chips}</div>`:''}
     ${(item.note||w.composer)?`<div class="wnote">${item.note||(w.composer?'— '+w.composer:'')}</div>`:''}
     ${lyricsHtml}`; 
   // Kaydedilmiş hizalamayı uygula
@@ -575,6 +603,18 @@ function goBack(e) {
   else if (src === 'repertoires') window.location.href = 'repertoires.html';
   else if (src === 'index') window.location.href = 'index.html';
   else window.location.href = 'index.html';
+}
+
+function toggleStageInfo() {
+  const panel = document.getElementById('stageInfoPanel');
+  if (panel) panel.classList.toggle('open');
+  // Dışarı tıklayınca kapat
+  setTimeout(() => {
+    document.addEventListener('click', function closeInfo() {
+      if (panel) panel.classList.remove('open');
+      document.removeEventListener('click', closeInfo);
+    });
+  }, 10);
 }
 
 function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){applyTheme('picker');backToPicker();}}
