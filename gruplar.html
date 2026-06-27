@@ -184,10 +184,10 @@ body { background:#07071a; color:#e2e0ff; font-family:'Plus Jakarta Sans',sans-s
 <nav class="v2-bottom-nav">
   <div class="v2-bn-items">
     <a href="index.html" class="v2-bn-item"><i class="ti ti-home" style="font-size:20px;line-height:1;"></i><span class="v2-bn-label">Ana Sayfa</span></a>
-    <a href="eserler.html" class="v2-bn-item"><i class="ti ti-book" style="font-size:20px;line-height:1;"></i><span class="v2-bn-label">Eserler</span></a>
-    <a href="repertoires.html" class="v2-bn-item"><i class="ti ti-playlist" style="font-size:20px;line-height:1;"></i><span class="v2-bn-label">Repertuvarlar</span></a>
+    <a href="eserler.html" class="v2-bn-item"><i class="ti ti-playlist" style="font-size:20px;line-height:1;"></i><span class="v2-bn-label">Eserler</span></a>
+    <a href="repertoires.html" class="v2-bn-item"><i class="ti ti-book" style="font-size:20px;line-height:1;"></i><span class="v2-bn-label">Repertuvarlar</span></a>
     <a href="stage.html" class="v2-bn-item"><i class="ti ti-music" style="font-size:20px;line-height:1;"></i><span class="v2-bn-label">Sahne</span></a>
-    <a href="mesajlar.html" class="v2-bn-item"><i class="ti ti-message" style="font-size:20px;line-height:1;"></i><span class="v2-bn-label">Mesajlar</span></a>
+    <a href="ayarlar.html" class="v2-bn-item"><i class="ti ti-settings" style="font-size:20px;line-height:1;"></i><span class="v2-bn-label">Ayarlar</span></a>
   </div>
 </nav>
 
@@ -520,10 +520,20 @@ async function removeMember(userId) {
   if (!confirm('Bu üyeyi gruptan çıkarmak istediğinize emin misiniz?')) return;
   const gid = getGroupId();
   try {
+    // group_members'dan sil
     await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + gid + '&user_id=eq.' + userId, {
       method: 'DELETE',
       headers: authHeaders()
     });
+    // profiles.group_id'yi null yap
+    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
+      method: 'PATCH',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ group_id: null })
+    });
+    // Eğer çıkarılan kullanıcı kendisiyse localStorage'ı temizle
+    const me = typeof getUser === 'function' && getUser();
+    if (me && me.id === userId) localStorage.removeItem('user_group_id');
     toast('Üye çıkarıldı');
     await loadPage();
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
