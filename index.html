@@ -536,7 +536,7 @@ body {
 .hero-btn-secondary:hover { border-color: var(--accent2); color: var(--text); }
 
 /* ── Özellik kartları ── */
-.feat-scroll-wrap { position: relative; }
+.feat-scroll-wrap { position: relative; overflow: hidden; }
 .feat-grid {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
 }
@@ -545,10 +545,13 @@ body {
     display: flex; gap: 10px;
     overflow-x: auto; scroll-snap-type: x mandatory;
     scrollbar-width: none; -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
+    padding-bottom: 4px; padding-right: 16px;
   }
   .feat-grid::-webkit-scrollbar { display: none; }
-  .feat-card { min-width: 70vw; scroll-snap-align: start; flex-shrink: 0; }
+  .feat-card { min-width: calc(85vw - 32px); max-width: calc(85vw - 32px); scroll-snap-align: start; flex-shrink: 0; box-sizing: border-box; }
+}
+@media (max-width: 480px) {
+  .feat-card { min-width: calc(90vw - 28px); max-width: calc(90vw - 28px); }
 }
 @media (min-width: 1280px) { .feat-grid { grid-template-columns: repeat(3, 1fr); } }
 .feat-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
