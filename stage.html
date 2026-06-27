@@ -254,6 +254,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .sip-row{display:flex;align-items:center;gap:8px;font-size:13px;}
 .sip-label{color:var(--text3);font-size:11px;min-width:60px;}
 .sip-val{color:var(--text);font-weight:600;}
+
+body[data-stage-theme="night"]{
+  --bg:#080810!important;--surface:#0f0f1a!important;--surface2:#161625!important;
+  --border:#484860!important;--text:#f1f0ff!important;--text2:#8b8aa8!important;--text3:#3d3d58!important;
+}
+body[data-stage-theme="day"]{
+  --bg:#f5f4f0!important;--surface:#fff!important;--surface2:#f0eeea!important;
+  --border:#d8d4cc!important;--text:#1a1825!important;--text2:#5a5670!important;--text3:#9d9aae!important;
+}
+
+body[data-stage-theme="night"]{--bg:#080810!important;--surface:#0f0f1a!important;--surface2:#161625!important;--border:#484860!important;--text:#f1f0ff!important;--text2:#8b8aa8!important;--text3:#3d3d58!important;}
+body[data-stage-theme="day"]{--bg:#f5f4f0!important;--surface:#fff!important;--surface2:#f0eeea!important;--border:#d8d4cc!important;--text:#1a1825!important;--text2:#5a5670!important;--text3:#9d9aae!important;}
 </style>
 <script src="auth.js"></script>
 <style id="v2-stage-nav">
@@ -473,32 +485,30 @@ function toggleStageTheme(){
   const t = localStorage.getItem('stageTheme')||'night';
   const next = t==='night' ? 'day' : 'night';
   setTheme(next);
-  // topnav.js'in applyTheme'ini geçici olarak devre dışı bırak
-  const saved = window.applyTheme;
-  window.applyTheme = function(){};
   applyStageTheme('stage');
-  setTimeout(() => { if(saved) window.applyTheme = saved; }, 100);
 }
 
 function applyStageTheme(screen){
   const t=localStorage.getItem('stageTheme')||'night';
-  document.body.classList.toggle('day-theme', screen==='stage' && t==='day');
+  const isDay = screen==='stage' && t==='day';
+  document.body.classList.toggle('day-theme', isDay);
+  if(screen==='stage'){
+    document.body.setAttribute('data-stage-theme', t);
+  } else {
+    document.body.removeAttribute('data-stage-theme');
+  }
   const btn=document.getElementById('stageThemeBtn');
   const btn2=document.getElementById('stageThemeBtn2');
   if(btn){
     const icon=btn.querySelector('i');
     if(icon) icon.className = t==='day' ? 'ti ti-moon' : 'ti ti-sun';
-    btn.classList.toggle('active', t==='day');
+    btn.classList.toggle('active', isDay);
   }
   if(btn2){
     const icon2=btn2.querySelector('i');
     if(icon2) icon2.className = t==='day' ? 'ti ti-moon' : 'ti ti-sun';
-    btn2.classList.toggle('active', t==='day');
+    btn2.classList.toggle('active', isDay);
   }
-  // Logo güncelle
-  document.querySelectorAll('img[data-logo]').forEach(img => {
-    img.src = t === 'day' ? 'logo_light.png' : 'logo_dark.png';
-  });
 }
 function setTheme(t){
   localStorage.setItem('stageTheme',t);
@@ -682,13 +692,6 @@ function showScreen(id){
   // topnav.js header'ını sahne modunda gizle
   const rTopnav=document.querySelector('.r-topnav');
   if(rTopnav)rTopnav.style.display=id==='stageScreen'?'none':'';
-  // Sahne modunda topnav.js'in applyTheme'ini engelle
-  if(id==='stageScreen'){
-    window._savedToggleTheme = window.toggleTheme;
-    window.toggleTheme = function(){};
-  } else if(window._savedToggleTheme){
-    window.toggleTheme = window._savedToggleTheme;
-  }
   const bnav=document.getElementById('v2StageBotNav');
   const pickerNav=document.getElementById('stageNavPicker');
   const stageNav=document.getElementById('stageNavStage');
