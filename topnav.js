@@ -22,7 +22,7 @@
       }
       .sb-nav { flex: 1; padding: 0 10px; display: flex; flex-direction: column; gap: 2px; }
       .sb-item {
-        display: flex; align-items: center; gap: 10px;
+        display: flex; align-items: center; justify-content: flex-start; gap: 10px;
         padding: 10px 12px; border-radius: 10px;
         font-size: 13px; font-weight: 600; color: var(--text2, #9d9bc4);
         text-decoration: none; transition: all .15s; position: relative;
@@ -456,6 +456,7 @@
 
   // ── Sidebar render — tüm sayfalarda otomatik ──
   function renderSidebar() {
+    if (window._disableSidebarRender) return;
     if (window.innerWidth < 1024) return;
     if (document.getElementById('r-sidebar')) return;
 
