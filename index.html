@@ -817,7 +817,7 @@ body {
     });
     grid.addEventListener('scroll', () => {
       const dots = dotsEl.querySelectorAll('.feat-dot');
-      const idx = Math.round(grid.scrollLeft / grid.offsetWidth * (cards.length / 2));
+      const idx = Math.round(grid.scrollLeft / (grid.scrollWidth / cards.length));
       dots.forEach((d, i) => d.classList.toggle('active', i === Math.min(idx, dots.length-1)));
     });
   })();
