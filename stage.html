@@ -710,6 +710,8 @@ function updateSideButtons() {
   const l = document.getElementById('sideLeft');
   const r = document.getElementById('sideRight');
   if (!l || !r) return;
+  const onStage = document.getElementById('stageScreen') && !document.getElementById('stageScreen').classList.contains('hidden');
+  if (!onStage) { l.style.display = r.style.display = 'none'; return; }
   const isRepMode = curRep && curRep.items && curRep.items.length > 1;
   const total = isRepMode ? curRep.items.length : sideList.length;
   const cur   = isRepMode ? curIdx : sideIdx;
@@ -906,7 +908,7 @@ function loadSideWork(id) {
 </div>
 
 <div id="stageSwipeHandle"></div>
-<button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
-<button class="side-nav-btn side-nav-right" id="sideRight" onclick="sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
+<button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="sideNavPrev()" style="display:none;"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
+<button class="side-nav-btn side-nav-right" id="sideRight" onclick="sideNavNext()" style="display:none;"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
 </body>
 </html>
