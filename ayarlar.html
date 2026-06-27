@@ -447,7 +447,7 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
       <div class="section-header">
         <span class="section-icon">📋</span>
         <div>
-          <div class="section-title">Önerilerim</div>
+          <div class="section-title">Önerilerim <span id="pendingCountBadge" style="display:none;background:rgba(249,160,74,.2);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:11px;font-weight:700;border-radius:10px;padding:1px 8px;margin-left:4px;"></span></div>
           <div class="section-subtitle" style="font-size:11px;color:var(--text3);margin-top:2px;">Gönderdiğiniz eser önerileri ve onay durumları</div>
         </div>
       </div>
@@ -685,6 +685,24 @@ async function changePassword() {
   } catch(e) {}
 
   loadSettings();
+
+  // Pending öneri sayısını göster
+  try {
+    const uid = getUserId();
+    if (uid) {
+      const rp = await fetch(SUPA_URL + '/rest/v1/works?submitted_by=eq.' + uid + '&status=eq.pending&select=id', {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) }
+      });
+      if (rp.ok) {
+        const pending = await rp.json();
+        const badge = document.getElementById('pendingCountBadge');
+        if (badge && pending.length > 0) {
+          badge.textContent = pending.length + ' bekliyor';
+          badge.style.display = 'inline';
+        }
+      }
+    }
+  } catch(e) {}
 })();
 
 // Modal dışına tıklayınca kapat
