@@ -228,12 +228,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 #v2StageBotNav .v2-bn-label { font-size:9px; font-weight:600; }
 #v2StageBotNav .v2-bn-stage { background:linear-gradient(135deg,rgba(124,111,255,0.18),rgba(167,139,250,0.08)); border:1px solid rgba(124,111,255,0.25); color:#a78bfa !important; margin:5px 2px; border-radius:11px; cursor:pointer; }
 
-/* Desktop: picker ekranında standart sidebar layout */
+/* Desktop: picker ekranında sidebar layout */
 @media (min-width: 1024px) {
   #pickerScreen {
-    position: static !important;
-    margin-left: 220px;
-    min-height: 100vh;
+    position: fixed !important;
+    top: 0; left: 220px; right: 0; bottom: 0;
     overflow-y: auto;
     display: flex;
     align-items: flex-start;
@@ -241,9 +240,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
     padding-top: 48px;
   }
   #pickerScreen.hidden { display: none !important; }
-  /* Sahne aktifken topnav gizle */
-  #stageScreen ~ #r-topnav-container,
-  body.stage-active #r-topnav-container { display: none !important; }
+  /* Alt nav desktop'ta gizle */
+  #v2StageBotNav { display: none !important; }
+  /* Sahne aktifken sidebar gizle, picker tam genişlik */
+  body.stage-active .sidebar { display: none !important; }
 }
 </style>
 <script src="auth.js"></script>
