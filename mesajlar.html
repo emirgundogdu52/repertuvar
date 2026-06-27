@@ -387,7 +387,7 @@ async function loadMessages() {
         if (!m.read_at) groups[key].unread++;
       });
       panel.innerHTML = '<div class="conv-list">' +
-        Object.entries(groups).map(([key, g]) => {
+        Object.entries(groups).sort((a,b) => new Date(b[1].messages[0].created_at) - new Date(a[1].messages[0].created_at)).map(([key, g]) => {
           const last = g.messages[0];
           const ini = (g.email || '?')[0].toUpperCase();
           return `<div class="conv-item ${g.unread ? 'unread' : ''}" onclick="openThread('${key}', '${g.email.replace(/'/g,"\\'")}')">
