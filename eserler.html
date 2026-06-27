@@ -317,6 +317,7 @@
   .pm-empty { text-align:center; color:var(--text3); padding:32px; font-size:14px; }
 </style>
 <script src="auth.js"></script>
+<script src="db.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style id="v2-nav-css">
@@ -407,6 +408,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 <script>
 let DATA = []; // Supabase'den yüklenecek
 
+
 function parseWorksRows(rows) {
   DATA = rows.map(w => ({
     id: w.id, name: w.name || '', composer: w.composer || '',
@@ -424,7 +426,6 @@ function parseWorksRows(rows) {
   buildFilters();
   applyFilters();
 }
-
 async function loadWorksFromSupabase() {
   try {
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
@@ -467,7 +468,7 @@ async function loadWorksFromSupabase() {
     }));
     return true;
   } catch(e) {
-    console.warn('[eserler] Supabase hatası, IndexedDB deneniyor:', e.message);
+    console.warn('[eserler] Supabase hatasi, IndexedDB deneniyor:', e.message);
     try {
       if (typeof db !== 'undefined') {
         const cached = await db.works.getAll();
@@ -477,7 +478,7 @@ async function loadWorksFromSupabase() {
           return true;
         }
       }
-    } catch(e2) { console.warn('[eserler] IndexedDB hatası:', e2); }
+    } catch(e2) { console.warn('[eserler] IndexedDB hatasi:', e2); }
     return false;
   }
 }
