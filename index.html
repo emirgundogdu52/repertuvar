@@ -478,7 +478,28 @@ body {
 }
 .tc.active { border-color: var(--accent2); color: var(--accent3); background: rgba(167,139,250,0.1); }
 
-.admin-only { display: none; }
+.coming-soon-card {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--surface); border: 1px dashed var(--border2);
+  border-radius: 14px; padding: 16px 20px;
+  position: relative; overflow: hidden;
+}
+.coming-soon-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(124,111,255,0.05), rgba(167,139,250,0.02));
+  pointer-events: none;
+}
+.cs-icon { font-size: 28px; flex-shrink: 0; }
+.cs-content { flex: 1; min-width: 0; }
+.cs-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.cs-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.cs-badge {
+  flex-shrink: 0; padding: 4px 12px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; letter-spacing: .05em;
+  background: rgba(124,111,255,0.12); border: 1px solid rgba(124,111,255,0.25);
+  color: var(--accent2);
+}
+
 
 /* ── Hero ── */
 .hero-section {
@@ -638,6 +659,19 @@ body {
           </a>
         </div>
         <div class="feat-dots" id="featDots"></div>
+      </div>
+    </div>
+
+    <!-- YAKINDA -->
+    <div class="section">
+      <div class="sec-header"><span class="sec-title">🚀 Yakında</span></div>
+      <div class="coming-soon-card">
+        <div class="cs-icon">📅</div>
+        <div class="cs-content">
+          <div class="cs-title">Konser Ajandası</div>
+          <div class="cs-desc">Konserlerinizin tarih, mekan, organizatör bilgileri; karşılama, transfer ve konaklama detayları — tüm konser lojistiğinizi tek ekrandan Repertuvarlarınızla ilişkilendirilmiş şekilde yönetebileceksiniz!...</div>
+        </div>
+        <div class="cs-badge">Yakında</div>
       </div>
     </div>
 
