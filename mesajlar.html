@@ -425,7 +425,7 @@ async function loadMessages() {
 
 function openThread(fromId, email) {
   const panel = document.getElementById('messagesPanel');
-  fetch(SUPA_URL + '/rest/v1/messages?from_id=eq.' + fromId + '&order=created_at.asc', { headers: H() })
+  fetch(SUPA_URL + '/rest/v1/messages?from_id=eq.' + fromId + '&order=created_at.desc', { headers: H() })
     .then(r => r.json())
     .then(data => {
       const unread = data.filter(m => !m.read_at).map(m => m.id);
@@ -451,6 +451,7 @@ function openThread(fromId, email) {
               <button class="btn-send" style="margin-top:8px;padding:7px 16px;font-size:12px;" onclick="sendReply('${m.id}','${fromId}','${email.replace(/'/g,"\\'")}')">Gönder</button>
             </div>
           </div>`).join('');
+      setTimeout(() => { panel.scrollTop = panel.scrollHeight; }, 50);
     });
 }
 
