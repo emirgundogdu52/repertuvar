@@ -638,11 +638,51 @@
     });
   }
 
+  // Silme talebi badge'i — sadece admin
+  async function loadDeletionBadge() {
+    const token = localStorage.getItem('sb_token');
+    const uid = localStorage.getItem('sb_user') ? JSON.parse(localStorage.getItem('sb_user')).id : null;
+    const ADMIN_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
+    if (!token || uid !== ADMIN_ID) return;
+    const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+    const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+    try {
+      const r = await fetch(SUPA_URL + '/rest/v1/profiles?status=eq.deletion_requested&select=id', {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token }
+      });
+      if (!r.ok) return;
+      const data = await r.json();
+      const count = data.length;
+      const badgeStyle = `
+        display:inline-flex;align-items:center;justify-content:center;
+        min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+        background:#f87171;color:#fff;font-size:10px;font-weight:700;
+        margin-left:auto;flex-shrink:0;
+      `;
+      document.querySelectorAll('.v2-sb-item, .sb-item').forEach(el => {
+        if (el.href && el.href.includes('uyeler')) {
+          let badge = el.querySelector('.del-badge');
+          if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'del-badge';
+            badge.style.cssText = badgeStyle;
+            el.appendChild(badge);
+          }
+          badge.textContent = count > 0 ? count : '';
+          badge.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+      });
+    } catch(e) {}
+  }
+
   // Sayfa yüklenince ve authReady'de çalıştır
   window.addEventListener('authReady', () => setTimeout(loadMsgBadge, 300));
+  window.addEventListener('authReady', () => setTimeout(loadDeletionBadge, 500));
   window.addEventListener('load', () => setTimeout(loadMsgBadge, 800));
+  window.addEventListener('load', () => setTimeout(loadDeletionBadge, 1000));
   // Her 60 saniyede bir yenile
   setInterval(loadMsgBadge, 60000);
+  setInterval(loadDeletionBadge, 60000);
 
   // Offline sync - authReady'de, 30 dakikada bir
   window.addEventListener('authReady', () => {
