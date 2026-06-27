@@ -455,4 +455,73 @@
     const dtdd = document.getElementById('dtUserDropdown');
     if (dtdd) dtdd.classList.remove('open');
   });
+
+  // Okunmamış mesaj badge'i — tüm sayfalarda sidebar + bottom nav
+  async function loadMsgBadge() {
+    const token = localStorage.getItem('sb_token');
+    const uid = localStorage.getItem('sb_user') ? JSON.parse(localStorage.getItem('sb_user')).id : null;
+    if (!token || !uid) return;
+    const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+    const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+    try {
+      const r = await fetch(
+        SUPA_URL + '/rest/v1/messages?recipient_id=eq.' + uid + '&is_read=eq.false&select=id',
+        { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token } }
+      );
+      if (!r.ok) return;
+      const msgs = await r.json();
+      const count = msgs.length;
+      applyMsgBadge(count);
+    } catch(e) {}
+  }
+
+  function applyMsgBadge(count) {
+    const badgeStyle = `
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+      background:#7c6fff;color:#fff;font-size:10px;font-weight:700;
+      margin-left:auto;flex-shrink:0;
+    `;
+    // Sidebar: .v2-sb-item veya .sb-item içinde Mesajlar linki
+    document.querySelectorAll('.v2-sb-item, .sb-item').forEach(el => {
+      if (el.href && el.href.includes('mesajlar')) {
+        let badge = el.querySelector('.msg-badge');
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'msg-badge';
+          badge.style.cssText = badgeStyle;
+          el.appendChild(badge);
+        }
+        badge.textContent = count > 0 ? (count > 99 ? '99+' : count) : '';
+        badge.style.display = count > 0 ? 'inline-flex' : 'none';
+      }
+    });
+    // Mobile bottom nav
+    document.querySelectorAll('.v2-bn-item, .bn-item').forEach(el => {
+      if (el.href && el.href.includes('mesajlar')) {
+        let dot = el.querySelector('.msg-badge-dot');
+        if (!dot) {
+          dot = document.createElement('span');
+          dot.className = 'msg-badge-dot';
+          dot.style.cssText = `
+            position:absolute;top:4px;right:calc(50% - 14px);
+            min-width:16px;height:16px;padding:0 4px;border-radius:8px;
+            background:#7c6fff;color:#fff;font-size:9px;font-weight:700;
+            display:flex;align-items:center;justify-content:center;
+          `;
+          el.style.position = 'relative';
+          el.appendChild(dot);
+        }
+        dot.textContent = count > 0 ? (count > 99 ? '99+' : count) : '';
+        dot.style.display = count > 0 ? 'flex' : 'none';
+      }
+    });
+  }
+
+  // Sayfa yüklenince ve authReady'de çalıştır
+  window.addEventListener('authReady', () => setTimeout(loadMsgBadge, 300));
+  window.addEventListener('load', () => setTimeout(loadMsgBadge, 800));
+  // Her 60 saniyede bir yenile
+  setInterval(loadMsgBadge, 60000);
+
 })();
