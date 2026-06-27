@@ -227,6 +227,24 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 #v2StageBotNav .v2-bn-item.active { color:#7c6fff; }
 #v2StageBotNav .v2-bn-label { font-size:9px; font-weight:600; }
 #v2StageBotNav .v2-bn-stage { background:linear-gradient(135deg,rgba(124,111,255,0.18),rgba(167,139,250,0.08)); border:1px solid rgba(124,111,255,0.25); color:#a78bfa !important; margin:5px 2px; border-radius:11px; cursor:pointer; }
+
+/* Desktop: picker ekranında standart sidebar layout */
+@media (min-width: 1024px) {
+  #pickerScreen {
+    position: static !important;
+    margin-left: 220px;
+    min-height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 48px;
+  }
+  #pickerScreen.hidden { display: none !important; }
+  /* Sahne aktifken topnav gizle */
+  #stageScreen ~ #r-topnav-container,
+  body.stage-active #r-topnav-container { display: none !important; }
+}
 </style>
 <script src="auth.js"></script>
 <style id="v2-stage-nav">
@@ -247,7 +265,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   <script src="db.js"></script>
 </head>
 <body>
-<div id="r-topnav-container" style="display:none;"></div>
+<div id="r-topnav-container"></div>
 <script src="topnav.js"></script>
 
 
