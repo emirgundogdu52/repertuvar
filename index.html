@@ -479,6 +479,72 @@ body {
 .tc.active { border-color: var(--accent2); color: var(--accent3); background: rgba(167,139,250,0.1); }
 
 .admin-only { display: none; }
+
+/* ── Hero ── */
+.hero-section {
+  padding: 36px 32px 28px;
+  position: relative; z-index: 1;
+}
+@media (max-width: 1023px) {
+  .hero-section { padding: 28px 16px 20px; }
+}
+.hero-greeting { font-size: 13px; font-weight: 600; color: var(--accent2); margin-bottom: 10px; }
+.hero-title {
+  font-size: clamp(22px, 3.5vw, 34px); font-weight: 800;
+  color: var(--text); line-height: 1.25; letter-spacing: -.02em;
+  margin-bottom: 10px;
+}
+.hero-sub { font-size: 14px; color: var(--text2); line-height: 1.65; margin-bottom: 22px; }
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.hero-btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; border-radius: 12px; padding: 12px 22px;
+  font-size: 14px; font-weight: 700; text-decoration: none;
+  box-shadow: 0 4px 18px rgba(124,111,255,0.35); transition: opacity .15s;
+}
+.hero-btn-primary:hover { opacity: .88; }
+.hero-btn-secondary {
+  display: inline-flex; align-items: center;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); border-radius: 12px; padding: 12px 20px;
+  font-size: 14px; font-weight: 600; text-decoration: none; transition: all .15s;
+}
+.hero-btn-secondary:hover { border-color: var(--accent2); color: var(--text); }
+
+/* ── Özellik kartları ── */
+.feat-scroll-wrap { position: relative; }
+.feat-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+@media (max-width: 1023px) {
+  .feat-grid {
+    display: flex; gap: 10px;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  .feat-grid::-webkit-scrollbar { display: none; }
+  .feat-card { min-width: 72vw; scroll-snap-align: start; flex-shrink: 0; }
+}
+@media (min-width: 1280px) { .feat-grid { grid-template-columns: repeat(3, 1fr); } }
+.feat-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+.feat-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border2); transition: background .2s; cursor: pointer; }
+.feat-dot.active { background: var(--accent); width: 18px; border-radius: 3px; }
+@media (min-width: 1024px) { .feat-dots { display: none; } }
+.feat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 18px 16px;
+  transition: all .18s; cursor: pointer;
+}
+.feat-card:hover { border-color: var(--accent2); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124,111,255,0.15); }
+.feat-card-accent {
+  background: linear-gradient(135deg, rgba(124,111,255,0.13), rgba(167,139,250,0.06));
+  border-color: var(--accent);
+}
+.feat-icon { font-size: 26px; margin-bottom: 10px; }
+.feat-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.feat-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <link rel="manifest" href="manifest.json">
@@ -544,51 +610,61 @@ body {
   <!-- İçerik -->
   <div class="page" style="position:relative;z-index:1;">
 
-
-
-    <div class="section">
-      <div class="sec-header"><span class="sec-title">Arşiv</span></div>
-      <a href="eserler.html" class="active-card" style="text-decoration:none;">
-        <div class="active-thumb">🎼</div>
-        <div class="active-info">
-          <div class="active-name">Sistemde kayıtlı eser sayısı: <span id="activeListCount" style="color:var(--accent2);">—</span></div>
-          <div class="active-meta"><span style="color:var(--text3);font-size:11px;">Tümünü görüntülemek için tıklayın</span></div>
-        </div>
-        <div class="active-arrow">›</div>
-      </a>
+    <!-- HERO -->
+    <div class="hero-section">
+      <div class="hero-greeting" id="heroGreeting">Hoş geldin 👋</div>
+      <div class="hero-title">"Ne çalalım?" sorusuna<br>bir daha takılma.</div>
+      <div class="hero-sub">Sevdiğin eserleri bir kez düzenle — telefonda, tablette, laptopta,<br>internet olsun olmasın her zaman yanında.</div>
+      <div class="hero-actions">
+        <a href="repertoires.html" class="hero-btn-primary">Repertuvarıma Bak →</a>
+        <a href="eserler.html?new=1" class="hero-btn-secondary">+ Eser Ekle</a>
+      </div>
     </div>
 
+    <!-- ÖZELLİKLER -->
+    <div class="section">
+      <div class="feat-scroll-wrap">
+        <div class="feat-grid">
+          <a href="eserler.html" class="feat-card" style="text-decoration:none;">
+            <div class="feat-icon">🎵</div>
+            <div class="feat-title">Eser Arşivi</div>
+            <div class="feat-desc">Makam, usul, güfte, akor — hepsini bir kez gir, her yerden eriş. <span id="activeListCount" style="color:var(--accent2);font-weight:700;">—</span> eser kayıtlı.</div>
+          </a>
+          <a href="repertoires.html" class="feat-card" style="text-decoration:none;">
+            <div class="feat-icon">📋</div>
+            <div class="feat-title">Hazır Listeler</div>
+            <div class="feat-desc">Her ortam için ayrı liste — akşam misafiri, prova, konser. Hazır, bekliyor.</div>
+          </a>
+          <a href="repertoires.html" class="feat-card" style="text-decoration:none;">
+            <div class="feat-icon">🔒</div>
+            <div class="feat-title">Özel & Paylaşımlı</div>
+            <div class="feat-desc">Kişisel notların sende kalır, istediğini grubunla aç. Kontrol sende.</div>
+          </a>
+          <a href="gruplar.html" class="feat-card" style="text-decoration:none;">
+            <div class="feat-icon">👥</div>
+            <div class="feat-title">Grup & Koro</div>
+            <div class="feat-desc">Aynı repertuvarla gelin: herkes hazır, sürpriz yok.</div>
+          </a>
+          <a href="stage.html" class="feat-card" onclick="localStorage.setItem('stageSource','index')" style="text-decoration:none;">
+            <div class="feat-icon">📶</div>
+            <div class="feat-title">Online & Offline</div>
+            <div class="feat-desc">Sahne arkasında sinyal yok mu? Fark etmez, liste hâlâ orada.</div>
+          </a>
+          <a href="stage.html" class="feat-card feat-card-accent" onclick="localStorage.setItem('stageSource','index')" style="text-decoration:none;">
+            <div class="feat-icon">🦶</div>
+            <div class="feat-title">Bluetooth Pedal</div>
+            <div class="feat-desc">Enstrüman elinde, gözler notada — sahnenize ve performansınıza odaklanın, telefona tablete dokunmadan eser geçişlerini kablosuz pedal ile halledin.</div>
+          </a>
+        </div>
+        <div class="feat-dots" id="featDots"></div>
+      </div>
+    </div>
+
+    <!-- SON EKLENEN ESERLER -->
     <div class="section">
       <div class="sec-header"><span class="sec-title">Son Eklenen Eserler</span><a href="eserler.html" class="sec-action">Tümü →</a></div>
       <div class="work-list" id="recentWorks">
-        <div class="work-row"><div class="work-num">1</div><div class="work-thumb">🎵</div><div class="work-info"><div class="work-name">Yükleniyor…</div><div class="work-sub">—</div></div></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="sec-header"><span class="sec-title">Arşiv</span></div>
-      <div class="stats-row">
-        <div class="stat-pill"><div class="sp-n" id="statWorks">—</div><div class="sp-l">Eser</div><div class="sp-t" id="statTrend">—</div></div>
-        <div class="stat-pill"><div class="sp-n" id="statReps">—</div><div class="sp-l">Repertuvar</div><div class="sp-t">Liste</div></div>
-        <div class="stat-pill"><div class="sp-n" id="statSol">—</div><div class="sp-l">Solist</div><div class="sp-t">Aktif</div></div>
-        <a href="eserler.html?new=1" class="stat-pill" style="text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;border-color:rgba(124,111,255,0.32);background:rgba(124,111,255,0.06);cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(124,111,255,0.14)'" onmouseout="this.style.background='rgba(124,111,255,0.06)'">
-          <div style="font-size:24px;color:var(--accent2);">＋</div>
-          <div class="sp-l" style="color:var(--accent3);margin-top:3px;">Yeni Eser</div>
-        </a>
-      </div>
-    </div>
-
-    <div class="stage-banner">
-      <div class="sb-left">
-        <div class="sb-title">Sahne Modu<br><span>hazır mısınız?</span></div>
-        <div class="sb-sub">Büyük ekran, hızlı eser geçişi.<br>Gece ve gündüz tema seçeneğiyle.</div>
-      </div>
-      <div class="sb-right">
-        <a href="stage.html" class="stage-go-btn" onclick="localStorage.setItem('stageSource','index')">🎭 Sahneye Çık</a>
-        <div class="theme-chips">
-          <div class="tc active" id="tc-day">☀️ Gündüz</div>
-          <div class="tc" id="tc-night">🌙 Gece</div>
-        </div>
+        <div class="work-row"><div class="work-num">1</div><div class="work-info"><div class="work-name">Yükleniyor…</div></div></div>
       </div>
     </div>
 
@@ -726,6 +802,26 @@ if (localStorage.getItem('stageTheme') === 'night') {
       document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
     }
   } catch(e) {}
+
+  // Feat dots
+  (function() {
+    const grid = document.querySelector('.feat-grid');
+    const dotsEl = document.getElementById('featDots');
+    if (!grid || !dotsEl) return;
+    const cards = grid.querySelectorAll('.feat-card');
+    if (window.innerWidth >= 1024) return;
+    cards.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'feat-dot' + (i === 0 ? ' active' : '');
+      d.onclick = () => { cards[i].scrollIntoView({behavior:'smooth', block:'nearest', inline:'start'}); };
+      dotsEl.appendChild(d);
+    });
+    grid.addEventListener('scroll', () => {
+      const dots = dotsEl.querySelectorAll('.feat-dot');
+      const idx = Math.round(grid.scrollLeft / grid.offsetWidth * (cards.length / 2));
+      dots.forEach((d, i) => d.classList.toggle('active', i === Math.min(idx, dots.length-1)));
+    });
+  })();
 })();
 </script>
 <script>
