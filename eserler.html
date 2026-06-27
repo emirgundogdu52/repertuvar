@@ -317,6 +317,7 @@
   .pm-empty { text-align:center; color:var(--text3); padding:32px; font-size:14px; }
 </style>
 <script src="auth.js"></script>
+<script src="db.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style id="v2-nav-css">
@@ -407,49 +408,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 <script>
 let DATA = []; // Supabase'den yüklenecek
 
-function parseWorksRows(rows) {
-  DATA = rows.map(w => ({
-    id: w.id,
-    name: w.name || '',
-    composer: w.composer || '',
-    lyricWriter: w.lyric_writer || '',
-    makam: w.makam || '',
-    form: w.form || '',
-    measurement: w.measurement || '',
-    metronom: '',
-    genre: '',
-    instrument: w.instrument || '',
-    tuning: w.tuning || '',
-    closingNote: w.closing_note || '',
-    area: '',
-    region: w.region || '',
-    sourcePerson: w.source_person || '',
-    videoLink: w.video_link || '',
-    lyrics: w.lyrics || '',
-    chords: w.chords || '',
-    status: w.status || 'approved',
-    submittedBy: w.submitted_by || '',
-    group_id: w.group_id || null,
-  }));
-  filteredData = [...DATA];
-  buildFilters();
-  applyFilters();
-}
-
 async function loadWorksFromSupabase() {
-  // Offline fallback — IndexedDB'den yükle
-  if (!navigator.onLine) {
-    try {
-      const cached = await db.works.getAll();
-      if (cached && cached.length > 0) {
-        const rows = cached;
-        console.log('[eserler] Offline mod — IndexedDB\u2019den', rows.length, 'eser yuklendi');
-        parseWorksRows(rows);
-        return true;
-      }
-    } catch(e) { console.warn('[eserler] IndexedDB okuma hatası:', e); }
-    return false;
-  }
   try {
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
     // Admin ve editör tüm eserleri görür, üye sadece onaylananları
@@ -463,8 +422,6 @@ async function loadWorksFromSupabase() {
     if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
     const rows = await r.json();
     if (!Array.isArray(rows)) { console.error('Supabase unexpected response:', rows); return false; }
-    // Online'da cache'le
-    if (typeof db !== 'undefined') db.works.saveAll(rows).catch(()=>{});
     DATA = rows.map(w => ({
       id: w.id,
       name: w.name || '',
