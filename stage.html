@@ -299,7 +299,11 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="pds" id="pds"></div>
       <div class="stc" id="stc">1/1</div>
     </div>
-    <button class="stage-info-btn" onclick="event.stopPropagation();toggleStageInfo()" id="stageInfoBtn" title="Eser bilgileri"><i class="ti ti-info-circle" style="font-size:16px;"></i></button>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="stage-info-btn" onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz"><i class="ti ti-sun" style="font-size:16px;"></i></button>
+      <div id="stnAvatar" onclick="event.stopPropagation();" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;cursor:default;">—</div>
+      <button class="stage-info-btn" onclick="event.stopPropagation();toggleStageInfo()" id="stageInfoBtn" title="Eser bilgileri"><i class="ti ti-info-circle" style="font-size:16px;"></i></button>
+    </div>
   </div>
   <div class="stage-info-panel" id="stageInfoPanel"></div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
@@ -535,9 +539,8 @@ function renderStage(){
       w.instrument ? `<div class="sip-row"><span class="sip-label">Enstrüman</span><span class="sip-val">${w.instrument}</span></div>` : '',
     ].filter(Boolean).join('');
     panel.innerHTML = rows || '<div style="color:var(--text3);font-size:12px;">Bilgi yok</div>';
-    // Info butonu sadece bilgi varsa görünsün
     const infoBtn = document.getElementById('stageInfoBtn');
-    if (infoBtn) infoBtn.style.display = rows ? 'flex' : 'none';
+    if (infoBtn) infoBtn.style.display = 'flex';
   }
   const showChords = localStorage.getItem('stageShowChords') === '1';
   const lyricsHtml = (showChords && w.chords)
@@ -664,6 +667,9 @@ function startSharedRep() {
 function showScreen(id){
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
   const tnav=document.getElementById('v2StageTopnav');if(tnav)tnav.classList.toggle('hidden',id!=='pickerScreen');
+  // topnav.js header'ını sahne modunda gizle
+  const rTopnav=document.querySelector('.r-topnav');
+  if(rTopnav)rTopnav.style.display=id==='stageScreen'?'none':'';
   const bnav=document.getElementById('v2StageBotNav');
   const pickerNav=document.getElementById('stageNavPicker');
   const stageNav=document.getElementById('stageNavStage');
