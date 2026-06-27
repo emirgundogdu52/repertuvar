@@ -50,7 +50,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
 .bex:hover{color:var(--red);border-color:var(--red);}
 
-.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 56px 80px;position:relative;overflow-y:auto;cursor:pointer;}
+.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 56px 80px;position:relative;overflow-y:auto;cursor:pointer;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
 .wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
@@ -292,7 +292,9 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="stc" id="stc">1/1</div>
     </div>
   </div>
+  <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
   <div class="sm" id="sm"></div>
+  <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
     <div class="np" id="np" style="display:none;">
       <div class="nl">Sıradaki</div>
@@ -710,8 +712,6 @@ function updateSideButtons() {
   const l = document.getElementById('sideLeft');
   const r = document.getElementById('sideRight');
   if (!l || !r) return;
-  const onStage = document.getElementById('stageScreen') && !document.getElementById('stageScreen').classList.contains('hidden');
-  if (!onStage) { l.style.display = r.style.display = 'none'; return; }
   const isRepMode = curRep && curRep.items && curRep.items.length > 1;
   const total = isRepMode ? curRep.items.length : sideList.length;
   const cur   = isRepMode ? curIdx : sideIdx;
@@ -908,7 +908,5 @@ function loadSideWork(id) {
 </div>
 
 <div id="stageSwipeHandle"></div>
-<button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="sideNavPrev()" style="display:none;"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
-<button class="side-nav-btn side-nav-right" id="sideRight" onclick="sideNavNext()" style="display:none;"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
 </body>
 </html>
