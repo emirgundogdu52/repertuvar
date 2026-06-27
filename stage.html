@@ -292,9 +292,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="stc" id="stc">1/1</div>
     </div>
   </div>
-  <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
   <div class="sm" id="sm"></div>
-  <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
     <div class="np" id="np" style="display:none;">
       <div class="nl">Sıradaki</div>
@@ -908,5 +906,7 @@ function loadSideWork(id) {
 </div>
 
 <div id="stageSwipeHandle"></div>
+<button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
+<button class="side-nav-btn side-nav-right" id="sideRight" onclick="sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
 </body>
 </html>
