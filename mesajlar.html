@@ -613,10 +613,10 @@ async function loadAnnouncements() {
     document.querySelectorAll('.admin-only').forEach(el => { el.classList.remove('admin-only'); el.style.display = ''; });
     document.getElementById('announceSection').style.display = 'block';
     document.getElementById('newMsgBtnWrap').style.display = 'block';
-    document.getElementById('sbUserRole').textContent = 'Admin';
+    const r1 = document.getElementById('sbUserRole'); if(r1) r1.textContent = 'Admin';
   } else {
     document.getElementById('composeSection').style.display = 'block';
-    document.getElementById('sbUserRole').textContent = getUserRole() === 'editor' ? 'Editör' : 'Üye';
+    const r2 = document.getElementById('sbUserRole'); if(r2) r2.textContent = getUserRole() === 'editor' ? 'Editör' : 'Üye';
   }
 
   loadMessages();
