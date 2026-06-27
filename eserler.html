@@ -44,7 +44,7 @@
   @media (min-width:1024px) { .layout { height:calc(100vh - 49px); } } /* desktop topbar height */
 
   /* SIDEBAR FILTERS */
-  .sidebar { display:none; }
+  .sidebar:not(#r-sidebar) { display:none; }
   .sidebar::-webkit-scrollbar { width:4px; }
   .sidebar::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
   .filter-section { padding:0 16px 16px; border-bottom:1px solid var(--border); margin-bottom:0; }
@@ -338,7 +338,6 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 <!-- ══ MAIN WRAP ══ -->
 <div class="v2-main-wrap">
 <div id="r-topnav-container"></div>
-<script>window._disableSidebarRender = true;</script>
 <script src="topnav.js"></script>
 
 <div class="v2-desktop-topbar" style="gap:12px;">
