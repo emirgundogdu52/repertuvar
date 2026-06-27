@@ -3,6 +3,60 @@
   const style = document.createElement('style');
   style.textContent = `
     html, body { overflow-x: hidden !important; max-width: 100% !important; }
+    /* ── Sidebar (desktop ≥1024px) ── */
+    @media (min-width: 1024px) {
+      body { display: flex; }
+      .sidebar {
+        position: fixed; top: 0; left: 0; bottom: 0; width: 220px;
+        background: rgba(9,9,28,0.96);
+        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        border-right: 1px solid var(--border, rgba(140,120,255,0.38));
+        display: flex; flex-direction: column;
+        z-index: 300; padding-bottom: 20px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+      .sb-brand {
+        padding: 18px 16px 14px;
+        border-bottom: 1px solid var(--border, rgba(140,120,255,0.38));
+        margin-bottom: 10px;
+      }
+      .sb-nav { flex: 1; padding: 0 10px; display: flex; flex-direction: column; gap: 2px; }
+      .sb-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px; border-radius: 10px;
+        font-size: 13px; font-weight: 600; color: var(--text2, #9d9bc4);
+        text-decoration: none; transition: all .15s; position: relative;
+      }
+      .sb-item:hover { background: var(--surface, #12123a); color: var(--text, #e2e0ff); }
+      .sb-item.active {
+        background: rgba(124,111,255,0.12); color: var(--accent3, #c4b5fd);
+        border: 1px solid rgba(124,111,255,0.2);
+      }
+      .sb-item.active::before {
+        content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
+        width: 3px; border-radius: 0 3px 3px 0;
+        background: linear-gradient(to bottom, var(--accent, #7c6fff), var(--accent2, #a78bfa));
+      }
+      .sb-divider { height: 1px; background: var(--border, rgba(140,120,255,0.38)); margin: 8px 10px; }
+      .sb-stage {
+        margin: 6px 10px 0;
+        display: flex; align-items: center; gap: 10px;
+        padding: 11px 14px; border-radius: 12px;
+        font-size: 13px; font-weight: 700; color: #fff;
+        text-decoration: none;
+        background: linear-gradient(135deg, var(--accent, #7c6fff), var(--accent2, #a78bfa));
+        box-shadow: 0 4px 16px rgba(124,111,255,0.3);
+        transition: opacity .15s;
+      }
+      .sb-stage:hover { opacity: .9; }
+      .admin-only { display: none; }
+      /* main-wrap'i sidebar genişliği kadar it */
+      .main-wrap { margin-left: 220px; flex: 1; min-width: 0; }
+    }
+    @media (max-width: 1023px) {
+      .sidebar { display: none !important; }
+    }
+
     .r-topnav {
       position: sticky; top: 0; z-index: 200;
       height: auto; min-height: 56px;
