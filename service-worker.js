@@ -1,5 +1,5 @@
 // Repertuvar Service Worker — offline cache
-const CACHE_NAME = 'repertuvar-v7';
+const CACHE_NAME = 'repertuvar-v8';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
