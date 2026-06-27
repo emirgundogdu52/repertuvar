@@ -534,7 +534,7 @@ body {
 @media (min-width: 1024px) { .feat-dots { display: none; } }
 .feat-card {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 16px; padding: 18px 16px;
+  border-radius: 14px; padding: 16px 14px;
   transition: all .18s; cursor: pointer;
 }
 .feat-card:hover { border-color: var(--accent2); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124,111,255,0.15); }
@@ -542,9 +542,9 @@ body {
   background: linear-gradient(135deg, rgba(124,111,255,0.13), rgba(167,139,250,0.06));
   border-color: var(--accent);
 }
-.feat-icon { font-size: 26px; margin-bottom: 10px; }
-.feat-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-.feat-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.feat-icon { font-size: 22px; margin-bottom: 8px; }
+.feat-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+.feat-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <link rel="manifest" href="manifest.json">
@@ -694,18 +694,7 @@ body {
 </nav>
 
 <script>
-document.getElementById('tc-day').addEventListener('click', function() {
-  document.querySelectorAll('.tc').forEach(x => x.classList.remove('active'));
-  this.classList.add('active'); localStorage.setItem('stageTheme','day');
-});
-document.getElementById('tc-night').addEventListener('click', function() {
-  document.querySelectorAll('.tc').forEach(x => x.classList.remove('active'));
-  this.classList.add('active'); localStorage.setItem('stageTheme','night');
-});
-if (localStorage.getItem('stageTheme') === 'night') {
-  document.getElementById('tc-day').classList.remove('active');
-  document.getElementById('tc-night').classList.add('active');
-}
+// theme chips removed from index, handled in stage.html
 
 (async function() {
   const ok = await requireAuth(); if (!ok) return;
@@ -724,40 +713,23 @@ if (localStorage.getItem('stageTheme') === 'night') {
   };
 
   // İstatistikler — önce Supabase, hata alınca IndexedDB
-  const statCfg = [['works','statWorks'],['repertoires','statReps'],['solistler','statSol']];
+  // Eser sayısı
   let onlineFailed = false;
   try {
     const testR = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1', {headers:H, signal: AbortSignal.timeout(3000)});
     if (!testR.ok) throw new Error('offline');
-    for (const [tbl, elId] of statCfg) {
-      try {
-        const url = tbl === 'works' ? SUPA_URL+'/rest/v1/works?select=id&status=eq.approved&limit=1' : SUPA_URL+'/rest/v1/'+tbl+'?select=id&limit=1';
-        const r = await fetch(url, {headers:H});
-        const cnt = r.headers.get('content-range')?.split('/')[1];
-        if (cnt) {
-          const el=document.getElementById(elId); if(el) el.textContent=cnt;
-          if (tbl==='works') {
-            const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=cnt;
-            const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=cnt;
-          }
-        }
-      } catch(e) {}
+    const wR = await fetch(SUPA_URL+'/rest/v1/works?select=id&status=eq.approved&limit=1', {headers:H});
+    const cnt = wR.headers.get('content-range')?.split('/')[1];
+    if (cnt) {
+      const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=cnt;
+      const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=cnt;
     }
   } catch(e) {
     onlineFailed = true;
-    // Offline — IndexedDB'den say
     try {
-      const [ws, rs, ss] = await Promise.all([
-        db.works.getAll(), db.repertoires.getAll(), db.solistler.getAll()
-      ]);
-      const counts = {works: ws.length, repertoires: rs.length, solistler: ss.length};
-      for (const [tbl, elId] of statCfg) {
-        const el=document.getElementById(elId); if(el) el.textContent=counts[tbl]||'—';
-        if (tbl==='works') {
-          const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=counts.works||'—';
-          const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=counts.works||'—';
-        }
-      }
+      const ws = await db.works.getAll();
+      const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=ws.length||'—';
+      const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=ws.length||'—';
     } catch(e2) {}
   }
 
