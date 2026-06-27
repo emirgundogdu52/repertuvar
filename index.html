@@ -564,7 +564,10 @@ body {
   background: linear-gradient(135deg, rgba(124,111,255,0.13), rgba(167,139,250,0.06));
   border-color: var(--accent);
 }
-.feat-icon { font-size: 22px; margin-bottom: 8px; }
+.feat-icon { font-size: 22px; margin-bottom: 8px; color: var(--accent2); }
+.feat-icon i { font-size: 22px; }
+.cs-icon { font-size: 26px; flex-shrink: 0; color: var(--accent2); }
+.cs-icon i { font-size: 26px; }
 .feat-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
 .feat-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
 </style>
@@ -628,32 +631,32 @@ body {
       <div class="feat-scroll-wrap">
         <div class="feat-grid">
           <a href="eserler.html" class="feat-card" style="text-decoration:none;">
-            <div class="feat-icon">🎵</div>
+            <div class="feat-icon"><i class="ti ti-music"></i></div>
             <div class="feat-title">Eser Arşivi</div>
             <div class="feat-desc">Makam, usul, güfte, akor — hepsini bir kez gir, her yerden ulaş. Sistemde şu an <span id="activeListCount" style="color:var(--accent2);font-weight:700;">—</span> eser kayıtlı.</div>
           </a>
           <a href="repertoires.html" class="feat-card" style="text-decoration:none;">
-            <div class="feat-icon">📋</div>
+            <div class="feat-icon"><i class="ti ti-playlist"></i></div>
             <div class="feat-title">Hazır Listeler</div>
             <div class="feat-desc">Her ortam için ayrı liste — akşam misafir ortamında, provalarda, konserlerde. Repertuvar listeleriniz hazır, bekliyor olacak.</div>
           </a>
           <a href="repertoires.html" class="feat-card" style="text-decoration:none;">
-            <div class="feat-icon">🔒</div>
+            <div class="feat-icon"><i class="ti ti-lock"></i></div>
             <div class="feat-title">Özel & Paylaşımlı</div>
             <div class="feat-desc">Kişisel notlarını, henüz paylaşmak istemediğin eserleri istersen paylaşır istersen sana özel Gizli yaparsın. Kontrol tamamen sende.</div>
           </a>
           <a href="gruplar.html" class="feat-card" style="text-decoration:none;">
-            <div class="feat-icon">👥</div>
+            <div class="feat-icon"><i class="ti ti-users-group"></i></div>
             <div class="feat-title">Grup & Koro</div>
             <div class="feat-desc">Ekibinle ortak Repertuvar listelerini paylaş. Sahnede; "sırada ne var, hangi makamdan çalıyoruz, hangi usulden?" gibi soruları unut!.. — Her şey herkesin kendi ekranında!..</div>
           </a>
           <a href="stage.html" class="feat-card" onclick="localStorage.setItem('stageSource','index')" style="text-decoration:none;">
-            <div class="feat-icon">📶</div>
+            <div class="feat-icon"><i class="ti ti-wifi-off"></i></div>
             <div class="feat-title">Online & Offline</div>
             <div class="feat-desc">Sahne arkasında veya bulunduğunuz yerde sinyal mi yok? Fark etmez, Repertuvar Listelerinize ve Eserler'e yine de ulaşabilirsiniz.</div>
           </a>
           <a href="stage.html" class="feat-card feat-card-accent" onclick="localStorage.setItem('stageSource','index')" style="text-decoration:none;">
-            <div class="feat-icon">🦶</div>
+            <div class="feat-icon"><i class="ti ti-device-gamepad"></i></div>
             <div class="feat-title">Bluetooth Pedal</div>
             <div class="feat-desc">Enstrüman elinde, gözlerin notalarda — Siz sahnenize ve performansınıza odaklanın!.. Telefona / tablete dokunmadan eser geçişlerini kablosuz pedal ile halledin.</div>
           </a>
@@ -666,7 +669,7 @@ body {
     <div class="section">
       <div class="sec-header"><span class="sec-title">🚀 Yakında</span></div>
       <div class="coming-soon-card">
-        <div class="cs-icon">📅</div>
+        <div class="cs-icon"><i class="ti ti-calendar-event"></i></div>
         <div class="cs-content">
           <div class="cs-title">Konser Ajandası</div>
           <div class="cs-desc">Konserlerinizin tarih, mekan, organizatör bilgileri; karşılama, transfer ve konaklama detayları — tüm konser lojistiğinizi tek ekrandan Repertuvarlarınızla ilişkilendirilmiş şekilde yönetebileceksiniz!...</div>
