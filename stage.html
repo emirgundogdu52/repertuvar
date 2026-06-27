@@ -155,8 +155,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .side-nav-btn:hover { background: rgba(168,85,247,0.25); border-color: rgba(168,85,247,0.6); transform: translateY(-50%) scale(1.06); }
 .side-nav-btn:active { transform: translateY(-50%) scale(0.96); }
 .side-nav-btn.disabled { opacity: 0.15; pointer-events: none; }
-.side-nav-left  { left: 8px; border-radius: 12px; }
-.side-nav-right { right: 8px; border-radius: 12px; }
+.side-nav-left  { left: 12px; border-radius: 12px; width: 44px; overflow: hidden; }
+.side-nav-right { right: 12px; border-radius: 12px; width: 44px; overflow: hidden; }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
@@ -166,8 +166,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
     .stage-nav { gap:4px; }
     .sm { padding:20px 60px 100px; }
     .sb { padding:0 12px 16px; flex-wrap:wrap; gap:8px; }
-    .side-nav-left { left:8px; border-radius:12px; }
-    .side-nav-right { right:8px; border-radius:12px; }
+    .side-nav-left { left:12px; border-radius:12px; width:44px; overflow:hidden; }
+    .side-nav-right { right:12px; border-radius:12px; width:44px; overflow:hidden; }
     .side-nav-btn { width:44px; height:44px; }
     /* Picker */
     .pi { max-width:100%; padding:20px 16px; }
@@ -182,8 +182,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
     .wtitle { font-size:clamp(18px,5vw,26px); }
     .wlyrics { font-size:clamp(14px,4.2vw,20px); line-height:1.8; padding:0 4px 80px; }
     .side-nav-btn { width:40px !important; height:40px !important; }
-    .side-nav-left { left:6px !important; border-radius:10px !important; }
-    .side-nav-right { right:6px !important; border-radius:10px !important; }
+    .side-nav-left { left:12px !important; border-radius:10px !important; width:40px !important; overflow:hidden !important; }
+    .side-nav-right { right:12px !important; border-radius:10px !important; width:40px !important; overflow:hidden !important; }
     .snb-label { display:none; }
     .sb { padding:0 8px 12px; gap:8px; flex-wrap:wrap; }
     .th { font-size:10px; }
