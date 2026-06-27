@@ -473,10 +473,10 @@ function toggleStageTheme(){
   const t = localStorage.getItem('stageTheme')||'night';
   const next = t==='night' ? 'day' : 'night';
   setTheme(next);
-  applyTheme('stage');
+  applyStageTheme('stage');
 }
 
-function applyTheme(screen){
+function applyStageTheme(screen){
   const t=localStorage.getItem('stageTheme')||'night';
   document.body.classList.toggle('day-theme', screen==='stage' && t==='day');
   const btn=document.getElementById('stageThemeBtn');
@@ -514,9 +514,11 @@ function startStage(){
   curRep=reps.find(r=>r.id===selId);
   if(!curRep||(curRep.items||[]).length===0)return;
   curIdx=0;
-  applyTheme('stage');
+  applyStageTheme('stage');
   showScreen('stageScreen');
   document.getElementById('strn').textContent=curRep.name;
+  // Avatar doldur
+  if(typeof getUser==='function'){const u=getUser();if(u){const name=u?.user_metadata?.full_name||u?.email?.split('@')[0]||'—';const av=document.getElementById('stnAvatar');if(av)av.textContent=name.charAt(0).toUpperCase();}}
   renderStage();
 }
 
@@ -626,9 +628,9 @@ function toggleStageInfo() {
   }, 10);
 }
 
-function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){applyTheme('picker');backToPicker();}}
+function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){applyStageTheme('picker');backToPicker();}}
 function showEndScreen(){
-  applyTheme('picker');
+  applyStageTheme('picker');
   showScreen('endScreen');
   document.getElementById('ern').textContent = curRep.name || '';
   document.getElementById('erc').textContent = (curRep.items||[]).length + ' eser seslendirdiniz';
