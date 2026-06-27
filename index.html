@@ -167,7 +167,7 @@ body {
 
   .page { padding: 28px 32px; }
   .quick-bar { padding: 0 0 4px; }
-  .section { padding: 24px 0 0; }
+  .section { padding: 12px 0 0; }
   .stage-banner { margin: 24px 0 0; }
 }
 
@@ -482,19 +482,20 @@ body {
 
 /* ── Hero ── */
 .hero-section {
-  padding: 36px 32px 28px;
+  padding: 16px 32px 20px;
   position: relative; z-index: 1;
 }
 @media (max-width: 1023px) {
-  .hero-section { padding: 28px 16px 20px; }
+  .hero-section { padding: 20px 16px 16px; }
 }
-.hero-greeting { font-size: 13px; font-weight: 600; color: var(--accent2); margin-bottom: 10px; }
+.hero-greeting { font-size: 13px; font-weight: 600; color: var(--accent2); margin-bottom: 8px; }
 .hero-title {
   font-size: clamp(22px, 3.5vw, 34px); font-weight: 800;
   color: var(--text); line-height: 1.25; letter-spacing: -.02em;
-  margin-bottom: 10px;
+  margin-bottom: 10px; white-space: nowrap;
 }
-.hero-sub { font-size: 14px; color: var(--text2); line-height: 1.65; margin-bottom: 22px; }
+@media (max-width: 1023px) { .hero-title { white-space: normal; } }
+.hero-sub { font-size: 14px; color: var(--text2); line-height: 1.65; margin-bottom: 16px; }
 .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .hero-btn-primary {
   display: inline-flex; align-items: center; gap: 6px;
