@@ -399,6 +399,66 @@
       if (u) un.textContent = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
     }
   };
+
+  // ── Sidebar render — tüm sayfalarda otomatik ──
+  function renderSidebar() {
+    if (window.innerWidth < 1024) return;
+    if (document.getElementById('r-sidebar')) return;
+
+    const page = window.location.pathname.split('/').pop() || 'index.html';
+    const theme = localStorage.getItem('r_theme') || 'dark';
+    const logo = theme === 'light' ? 'logo_light.png' : 'logo_dark.png';
+
+    const navItems = [
+      { href: 'index.html',       icon: 'ti-home',        label: 'Ana Sayfa' },
+      { href: 'eserler.html',     icon: 'ti-book',        label: 'Eserler' },
+      { href: 'repertoires.html', icon: 'ti-playlist',    label: 'Repertuvarlar' },
+      { href: 'artiesten.html',   icon: 'ti-microphone',  label: 'Solistler' },
+      { href: 'gruplar.html',     icon: 'ti-users-group', label: 'Grup / Koro' },
+      { divider: true },
+      { href: 'mesajlar.html',    icon: 'ti-message',     label: 'Mesajlar' },
+      { href: 'uyeler.html',      icon: 'ti-users',       label: 'Üyeler', adminOnly: true },
+      { href: 'ayarlar.html',     icon: 'ti-settings',    label: 'Ayarlar' },
+      { divider: true },
+      { href: 'stage.html',       icon: 'ti-music',       label: 'Sahne Modu', stage: true },
+    ];
+
+    const navHtml = navItems.map(item => {
+      if (item.divider) return '<div class="sb-divider"></div>';
+      const isActive = page === item.href;
+      const adminCls = item.adminOnly ? ' admin-only' : '';
+      if (item.stage) {
+        return `<a href="${item.href}" class="sb-stage${adminCls}"><i class="ti ${item.icon}" style="font-size:16px;width:20px;text-align:center;"></i>${item.label}</a>`;
+      }
+      return `<a href="${item.href}" class="sb-item${isActive ? ' active' : ''}${adminCls}"><i class="ti ${item.icon}" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>${item.label}</a>`;
+    }).join('');
+
+    const aside = document.createElement('aside');
+    aside.id = 'r-sidebar';
+    aside.className = 'sidebar';
+    aside.innerHTML = `
+      <div class="sb-brand">
+        <img src="${logo}" alt="repertuvar.app" style="height:38px;width:auto;display:block;" data-logo="true">
+      </div>
+      <nav class="sb-nav">${navHtml}</nav>
+      <div style="flex:1"></div>
+    `;
+    document.body.insertBefore(aside, document.body.firstChild);
+
+    // Tema değişiminde logoyu güncelle
+    new MutationObserver(() => {
+      const t = document.documentElement.getAttribute('data-theme') || 'dark';
+      const img = document.querySelector('#r-sidebar img[data-logo]');
+      if (img) img.src = t === 'light' ? 'logo_light.png' : 'logo_dark.png';
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderSidebar);
+  } else {
+    renderSidebar();
+  }
+
   // Theme logic
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
@@ -491,7 +551,7 @@
       margin-left:auto;flex-shrink:0;
     `;
     // Sidebar: .v2-sb-item veya .sb-item içinde Mesajlar linki
-    document.querySelectorAll('.v2-sb-item, .sb-item').forEach(el => {
+    document.querySelectorAll('.v2-sb-item, .sb-item, #r-sidebar .sb-item').forEach(el => {
       if (el.href && el.href.includes('mesajlar')) {
         let badge = el.querySelector('.msg-badge');
         if (!badge) {

@@ -335,27 +335,6 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 
 
 <!-- ══ DESKTOP SIDEBAR ══ -->
-<aside class="v2-sidebar">
-  <div class="v2-sb-brand"><img src="logo_dark.png" alt="repertuvar.app" style="height:38px;width:auto;display:block;"></div>
-  </div>
-  <nav class="v2-sb-nav">
-    <a href="index.html" class="v2-sb-item"><i class="ti ti-home" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Ana Sayfa</a>
-    <a href="eserler.html" class="v2-sb-item active"><i class="ti ti-book" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Eserler</a>
-    <a href="repertoires.html" class="v2-sb-item"><i class="ti ti-playlist" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Repertuvarlar</a>
-    <a href="artiesten.html" class="v2-sb-item"><i class="ti ti-microphone" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Solistler</a>
-    <a href="gruplar.html" class="v2-sb-item"><i class="ti ti-users-group" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Grup / Koro</a>
-    <div class="v2-sb-divider"></div>
-    <a href="mesajlar.html" class="v2-sb-item"><i class="ti ti-message" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Mesajlar</a>
-    <a href="uyeler.html" class="v2-sb-item admin-only"><i class="ti ti-users-group" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Üyeler</a>
-    <a href="ayarlar.html" class="v2-sb-item"><i class="ti ti-settings" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>Ayarlar</a>
-  </nav>
-  <div style="flex:1"></div>
-  <div class="v2-sb-user">
-    <div class="v2-sb-avatar" id="sbAvatar">—</div>
-    <div style="flex:1;min-width:0"><div class="v2-sb-uname" id="sbUserName">—</div><div class="v2-sb-urole" id="sbUserRole">Üye</div></div>
-    <button class="v2-sb-logout" onclick="logout()" title="Çıkış"><i class="ti ti-logout" style="font-size:14px;" aria-hidden="true"></i></button>
-  </div>
-</aside>
 <!-- ══ MAIN WRAP ══ -->
 <div class="v2-main-wrap">
 <div id="r-topnav-container"></div>
@@ -370,25 +349,6 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 </div>
 
 <div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="filter-section">
-      <span class="filter-label">Tür / Form</span>
-      <div id="formFilters"></div>
-    </div>
-    <div class="filter-section">
-      <span class="filter-label">Akort</span>
-      <div id="tuningFilters"></div>
-    </div>
-    <div class="filter-section">
-      <span class="filter-label">Bölge</span>
-      <div id="regionFilters"></div>
-    </div>
-    <div class="filter-section">
-      <span class="filter-label">Makam</span>
-      <div id="makamFilters"></div>
-    </div>
-  </aside>
-
   <div id="listCol" style="flex:1;display:flex;flex-direction:column;min-width:0;">
     <div style="padding:10px 16px 0;background:var(--bg);">
       <div style="position:relative;">
@@ -416,14 +376,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     <div class="list-panel" id="listPanel"></div>
   </div>
 
-  <aside class="detail" id="detailPanel">
-    <div class="detail-empty" id="detailEmpty">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-      <p>Bir eser seçin</p>
-    </div>
-    <div id="detailContent" style="display:none;"></div>
-  </aside>
-</div>
+  </div>
 
 <script>
 let DATA = []; // Supabase'den yüklenecek
