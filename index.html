@@ -479,9 +479,9 @@ body {
 .tc.active { border-color: var(--accent2); color: var(--accent3); background: rgba(167,139,250,0.1); }
 
 .coming-soon-card {
-  display: flex; align-items: center; gap: 16px;
+  display: flex; flex-direction: column; gap: 8px;
   background: var(--surface); border: 1px dashed var(--border2);
-  border-radius: 14px; padding: 16px 20px;
+  border-radius: 14px; padding: 18px 20px;
   position: relative; overflow: hidden;
 }
 .coming-soon-card::before {
@@ -489,16 +489,15 @@ body {
   background: linear-gradient(135deg, rgba(124,111,255,0.05), rgba(167,139,250,0.02));
   pointer-events: none;
 }
-.cs-icon { font-size: 28px; flex-shrink: 0; }
-.cs-content { flex: 1; min-width: 0; }
-.cs-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-.cs-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
-.cs-badge {
-  flex-shrink: 0; padding: 4px 12px; border-radius: 20px;
-  font-size: 11px; font-weight: 700; letter-spacing: .05em;
-  background: rgba(124,111,255,0.12); border: 1px solid rgba(124,111,255,0.25);
-  color: var(--accent2);
+.cs-soon {
+  position: absolute; top: 14px; right: 16px;
+  font-size: 12px; font-style: italic; color: var(--accent2);
+  font-weight: 600; letter-spacing: .03em;
 }
+.cs-icon { font-size: 26px; color: var(--accent2); line-height: 1; }
+.cs-icon i { font-size: 26px; }
+.cs-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.cs-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
 
 
 /* ── Hero ── */
@@ -672,12 +671,10 @@ body {
     <div class="section">
       <div class="sec-header"><span class="sec-title">🚀 Yakında</span></div>
       <div class="coming-soon-card">
+        <div class="cs-soon">✨ <em>yakında</em></div>
         <div class="cs-icon"><i class="ti ti-calendar-event"></i></div>
-        <div class="cs-content">
-          <div class="cs-title">Konser Ajandası</div>
-          <div class="cs-desc">Konserlerinizin tarih, mekan, organizatör bilgileri; karşılama, transfer ve konaklama detayları — tüm konser lojistiğinizi tek ekrandan Repertuvarlarınızla ilişkilendirilmiş şekilde yönetebileceksiniz!...</div>
-        </div>
-        <div class="cs-badge">Yakında</div>
+        <div class="cs-title">Konser Ajandası</div>
+        <div class="cs-desc">Konserlerinizin tarih, mekan, organizatör bilgileri; karşılama, transfer ve konaklama detayları — tüm konser lojistiğinizi tek ekrandan Repertuvarlarınızla ilişkilendirilmiş şekilde yönetebileceksiniz!...</div>
       </div>
     </div>
 
