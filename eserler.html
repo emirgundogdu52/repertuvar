@@ -443,7 +443,7 @@ async function loadWorksFromSupabase() {
       const cached = await db.works.getAll();
       if (cached && cached.length > 0) {
         const rows = cached;
-        console.log('[eserler] Offline mod — IndexedDB'den', rows.length, 'eser yüklendi');
+        console.log('[eserler] Offline mod — IndexedDB\u2019den', rows.length, 'eser yuklendi');
         parseWorksRows(rows);
         return true;
       }
