@@ -644,4 +644,18 @@
   // Her 60 saniyede bir yenile
   setInterval(loadMsgBadge, 60000);
 
+  // Offline sync - authReady'de, 30 dakikada bir
+  window.addEventListener('authReady', () => {
+    const SYNC_INTERVAL = 30 * 60 * 1000; // 30 dakika
+    const lastSync = parseInt(localStorage.getItem('lastSyncTime') || '0');
+    const now = Date.now();
+    if (now - lastSync > SYNC_INTERVAL) {
+      if (typeof syncOfflineData === 'function') {
+        syncOfflineData().then(() => {
+          localStorage.setItem('lastSyncTime', String(now));
+        }).catch(e => console.warn('Sync hatası:', e));
+      }
+    }
+  });
+
 })();
