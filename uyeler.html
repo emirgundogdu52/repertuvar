@@ -184,13 +184,14 @@ function renderMembers(list) {
     var m = list[i];
     var uid = m.id || '';
     var email = m.email || '—';
+    var name = m.display_name || '';
     var date = m.created_at ? new Date(m.created_at).toLocaleDateString('tr-TR') : '';
     var roleBtn = m.role !== 'admin' ? '<button class="btn-sm promote" data-uid="' + uid + '" data-role="' + m.role + '" data-email="' + email + '">' + (m.role === 'editor' ? '↓ Üye Yap' : '↑ Editör Yap') + '</button>' : '';
     var delBtn = m.role !== 'admin' ? '<button class="btn-sm danger" data-uid="' + uid + '" data-email="' + email + '">Kaldır</button>' : '';
     html += '<div class="member-card">' +
-      '<div class="member-avatar">' + initials(email) + '</div>' +
-      '<div class="member-info"><div class="member-email">' + email + '</div>' +
-      '<div class="member-meta">' + uid.slice(0,8) + ' · ' + date + '</div></div>' +
+      '<div class="member-avatar">' + (name || email).charAt(0).toUpperCase() + '</div>' +
+      '<div class="member-info"><div class="member-email" onclick="editName(this,\'' + uid + '\')" title="İsim düzenle">' + (name || email) + '</div>' +
+      '<div class="member-meta">' + (name ? email + ' · ' : '') + date + '</div></div>' +
       roleBadge(m.role) +
       '<div class="member-actions">' + roleBtn + delBtn + '</div></div>';
   }
