@@ -473,32 +473,16 @@ function toggleStageTheme(){
   const t = localStorage.getItem('stageTheme')||'night';
   const next = t==='night' ? 'day' : 'night';
   setTheme(next);
+  // topnav.js'in applyTheme'ini geçici olarak devre dışı bırak
+  const saved = window.applyTheme;
+  window.applyTheme = function(){};
   applyStageTheme('stage');
+  setTimeout(() => { if(saved) window.applyTheme = saved; }, 100);
 }
 
 function applyStageTheme(screen){
   const t=localStorage.getItem('stageTheme')||'night';
-  const isDay = screen==='stage' && t==='day';
-  document.body.classList.toggle('day-theme', isDay);
-  // topnav.js inline style override'larını ezip doğru renkleri yaz
-  const el = document.documentElement;
-  if(isDay){
-    el.style.setProperty('--bg','#f5f4f0');
-    el.style.setProperty('--surface','#fff');
-    el.style.setProperty('--surface2','#f0eeea');
-    el.style.setProperty('--border','#d8d4cc');
-    el.style.setProperty('--text','#1a1825');
-    el.style.setProperty('--text2','#5a5670');
-    el.style.setProperty('--text3','#9d9aae');
-  } else {
-    el.style.setProperty('--bg','#080810');
-    el.style.setProperty('--surface','#0f0f1a');
-    el.style.setProperty('--surface2','#161625');
-    el.style.setProperty('--border','#484860');
-    el.style.setProperty('--text','#f1f0ff');
-    el.style.setProperty('--text2','#8b8aa8');
-    el.style.setProperty('--text3','#3d3d58');
-  }
+  document.body.classList.toggle('day-theme', screen==='stage' && t==='day');
   const btn=document.getElementById('stageThemeBtn');
   const btn2=document.getElementById('stageThemeBtn2');
   if(btn){
@@ -511,6 +495,10 @@ function applyStageTheme(screen){
     if(icon2) icon2.className = t==='day' ? 'ti ti-moon' : 'ti ti-sun';
     btn2.classList.toggle('active', t==='day');
   }
+  // Logo güncelle
+  document.querySelectorAll('img[data-logo]').forEach(img => {
+    img.src = t === 'day' ? 'logo_light.png' : 'logo_dark.png';
+  });
 }
 function setTheme(t){
   localStorage.setItem('stageTheme',t);
@@ -694,6 +682,13 @@ function showScreen(id){
   // topnav.js header'ını sahne modunda gizle
   const rTopnav=document.querySelector('.r-topnav');
   if(rTopnav)rTopnav.style.display=id==='stageScreen'?'none':'';
+  // Sahne modunda topnav.js'in applyTheme'ini engelle
+  if(id==='stageScreen'){
+    window._savedToggleTheme = window.toggleTheme;
+    window.toggleTheme = function(){};
+  } else if(window._savedToggleTheme){
+    window.toggleTheme = window._savedToggleTheme;
+  }
   const bnav=document.getElementById('v2StageBotNav');
   const pickerNav=document.getElementById('stageNavPicker');
   const stageNav=document.getElementById('stageNavStage');
