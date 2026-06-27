@@ -126,6 +126,11 @@
 
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+<style>
+#r-sidebar .sb-item { justify-content: flex-start !important; text-align: left !important; }
+#r-sidebar .sb-nav { align-items: stretch !important; }
+</style>
 </head>
 <body>
 <div class="v2-main-wrap">
@@ -134,13 +139,6 @@
 
 <div class="v2-desktop-topbar"><div class="v2-crumb">repertuvar / <span>Solistler</span></div></div>
 <div class="layout">
-  <aside class="artist-list-panel">
-    <div class="panel-header">
-      <h2>Solistler</h2>
-      <button class="btn-new" onclick="openNewModal()">+ Yeni</button>
-    </div>
-    <div class="list-scroll" id="artistListScroll"></div>
-  </aside>
   <div class="detail-panel" id="detailPanel">
     <div class="empty-state" id="emptyState">
       <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
