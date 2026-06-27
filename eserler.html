@@ -317,7 +317,6 @@
   .pm-empty { text-align:center; color:var(--text3); padding:32px; font-size:14px; }
 </style>
 <script src="auth.js"></script>
-<script src="db.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style id="v2-nav-css">
@@ -408,6 +407,24 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 <script>
 let DATA = []; // Supabase'den yüklenecek
 
+function parseWorksRows(rows) {
+  DATA = rows.map(w => ({
+    id: w.id, name: w.name || '', composer: w.composer || '',
+    lyricWriter: w.lyric_writer || '', makam: w.makam || '',
+    form: w.form || '', measurement: w.measurement || '',
+    metronom: '', genre: '', instrument: w.instrument || '',
+    tuning: w.tuning || '', closingNote: w.closing_note || '',
+    area: '', region: w.region || '', sourcePerson: w.source_person || '',
+    videoLink: w.video_link || '', lyrics: w.lyrics || '',
+    chords: w.chords || '', notaUrl: w.nota_url || '',
+    status: w.status || 'approved', submitted_by: w.submitted_by || '',
+    submitter_email: w.submitter_email || '', submitted_at: w.submitted_at || ''
+  }));
+  filteredData = [...DATA];
+  buildFilters();
+  applyFilters();
+}
+
 async function loadWorksFromSupabase() {
   try {
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
@@ -419,9 +436,10 @@ async function loadWorksFromSupabase() {
     const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=name&limit=2000'+groupFilter+statusFilter, {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
     });
-    if (!r.ok) { console.error('Supabase HTTP error:', r.status, await r.text()); return false; }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     const rows = await r.json();
-    if (!Array.isArray(rows)) { console.error('Supabase unexpected response:', rows); return false; }
+    if (!Array.isArray(rows)) throw new Error('Unexpected response');
+    if (typeof db !== 'undefined') db.works.saveAll(rows).catch(()=>{});
     DATA = rows.map(w => ({
       id: w.id,
       name: w.name || '',
@@ -449,7 +467,17 @@ async function loadWorksFromSupabase() {
     }));
     return true;
   } catch(e) {
-    console.error('Supabase yüklenemedi:', e);
+    console.warn('[eserler] Supabase hatası, IndexedDB deneniyor:', e.message);
+    try {
+      if (typeof db !== 'undefined') {
+        const cached = await db.works.getAll();
+        if (cached && cached.length > 0) {
+          console.log('[eserler] IndexedDB fallback:', cached.length, 'eser');
+          parseWorksRows(cached);
+          return true;
+        }
+      }
+    } catch(e2) { console.warn('[eserler] IndexedDB hatası:', e2); }
     return false;
   }
 }
