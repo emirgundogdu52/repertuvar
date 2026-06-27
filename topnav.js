@@ -464,10 +464,18 @@
     const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
     const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
     try {
-      const r = await fetch(
-        SUPA_URL + '/rest/v1/messages?recipient_id=eq.' + uid + '&is_read=eq.false&select=id',
-        { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token } }
-      );
+      // Admin: kendisine gelen okunmamış mesajlar (read_at IS NULL, from_id != kendisi)
+      // Üye: admin_reply dolu ama read_at null olan mesajlar (kendi gönderdiği, cevaplandı ama okumadı)
+      const ADMIN_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
+      let countUrl;
+      if (uid === ADMIN_ID) {
+        // Admin: read_at null olan TÜM mesajlar (üyelerden gelen)
+        countUrl = SUPA_URL + '/rest/v1/messages?read_at=is.null&select=id';
+      } else {
+        // Üye: kendi gönderdiği, admin cevapladı ama üye okumadı
+        countUrl = SUPA_URL + '/rest/v1/messages?from_id=eq.' + uid + '&admin_reply=not.is.null&read_at=is.null&select=id';
+      }
+      const r = await fetch(countUrl, { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token } });
       if (!r.ok) return;
       const msgs = await r.json();
       const count = msgs.length;
