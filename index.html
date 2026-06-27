@@ -490,11 +490,15 @@ body {
   pointer-events: none;
 }
 .cs-soon-header {
-  font-size: 15px; font-weight: 800; color: #f59e0b;
-  letter-spacing: .04em; margin-bottom: 10px;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 13px; font-weight: 800; color: #f59e0b;
+  letter-spacing: .04em; margin-bottom: 12px;
   text-shadow: 0 0 12px rgba(245,158,11,0.5);
+  border: 1px solid rgba(245,158,11,0.35);
+  border-radius: 20px; padding: 4px 12px;
+  background: rgba(245,158,11,0.06);
 }
-.cs-soon-header em { font-style: italic; color: var(--accent2); font-size: 14px; }
+.cs-soon-header em { font-style: italic; color: var(--accent2); font-size: 13px; font-weight: 700; }
 .cs-soon {
   position: absolute; top: 14px; right: 16px;
   font-size: 12px; font-style: italic; color: var(--accent2);
