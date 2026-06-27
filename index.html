@@ -482,19 +482,19 @@ body {
 
 /* ── Hero ── */
 .hero-section {
-  padding: 16px 32px 20px;
+  padding: 8px 32px 20px;
   position: relative; z-index: 1;
 }
 @media (max-width: 1023px) {
-  .hero-section { padding: 20px 16px 16px; }
+  .hero-section { padding: 12px 16px 16px; }
 }
 .hero-greeting { font-size: 13px; font-weight: 600; color: var(--accent2); margin-bottom: 8px; }
 .hero-title {
-  font-size: 28px; font-weight: 800;
+  font-size: 24px; font-weight: 800;
   color: var(--text); line-height: 1.25; letter-spacing: -.02em;
-  margin-bottom: 10px; white-space: nowrap;
+  margin-bottom: 10px;
 }
-@media (max-width: 1023px) { .hero-title { white-space: normal; font-size: clamp(22px, 5vw, 28px); } }
+@media (max-width: 1023px) { .hero-title { font-size: clamp(20px, 5vw, 24px); } }
 .hero-sub { font-size: 14px; color: var(--text2); line-height: 1.65; margin-bottom: 16px; }
 .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .hero-btn-primary {
@@ -614,8 +614,8 @@ body {
     <!-- HERO -->
     <div class="hero-section">
       <div class="hero-greeting" id="heroGreeting">Hoş geldin 👋</div>
-      <div class="hero-title">"Ne çalalım?" sorusuna<br>bir daha takılma.</div>
-      <div class="hero-sub">Sevdiğin eserleri bir kez düzenle — telefonda, tablette, laptopta,<br>internet olsun olmasın her zaman yanında.</div>
+      <div class="hero-title">"Ne çalalım?" sorusuna bir daha takılma.</div>
+      <div class="hero-sub">Sevdiğin eserleri bir kez düzenle — telefonda, tablette, laptopta, internet olsun olmasın her zaman yanında.</div>
       <div class="hero-actions">
         <a href="repertoires.html" class="hero-btn-primary">Repertuvarıma Bak →</a>
         <a href="eserler.html?new=1" class="hero-btn-secondary">+ Eser Ekle</a>
