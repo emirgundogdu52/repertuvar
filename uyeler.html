@@ -5,7 +5,14 @@
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Repertuvar — Üyeler</title>
-<script src="auth.js"></script>
+<script src="auth.js">function showToast(msg) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(124,111,255,.9);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:9999;pointer-events:none;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 2000);
+}
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style id="v2-nav-css">
@@ -22,7 +29,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 .member-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .member-avatar{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--accent);flex-shrink:0;}
 .member-info{flex:1;min-width:0;}
-.member-email{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.member-email{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}.member-email:hover{color:var(--accent);}.name-input{background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:3px 8px;font-size:13px;font-weight:500;color:var(--text);font-family:var(--font);width:180px;outline:none;}
 .member-meta{font-size:11px;color:var(--text3);margin-top:2px;}
 .role-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
 .role-badge.admin{background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.3);color:#F85149;}
@@ -188,6 +195,37 @@ function renderMembers(list) {
       '<div class="member-actions">' + roleBtn + delBtn + '</div></div>';
   }
   el.innerHTML = html;
+}
+
+function editName(el, uid) {
+  var current = el.textContent.trim();
+  var input = document.createElement('input');
+  input.className = 'name-input';
+  input.value = current;
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+  async function save() {
+    var newName = input.value.trim();
+    if (!newName || newName === current) { location.reload(); return; }
+    var token = localStorage.getItem('sb_token') || SUPA_KEY;
+    var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
+      method: 'PATCH',
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ display_name: newName })
+    });
+    if (r.ok) {
+      var span = document.createElement('div');
+      span.className = 'member-email';
+      span.textContent = newName;
+      span.onclick = function(){ editName(span, uid); };
+      span.title = 'İsim düzenle';
+      input.replaceWith(span);
+      showToast('✓ İsim güncellendi');
+    } else { alert('Hata!'); location.reload(); }
+  }
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', function(e){ if(e.key==='Enter') input.blur(); if(e.key==='Escape') location.reload(); });
 }
 
 function handleRoleChange(btn) {
