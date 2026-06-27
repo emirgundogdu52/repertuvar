@@ -608,12 +608,10 @@ body {
       logo.style.height = '36px';
     }
   }
-  // topnav.js render ettikten sonra çalıştır
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(applyIndexLogo, 100));
-  } else {
-    setTimeout(applyIndexLogo, 100);
-  }
+  // topnav render olur olmaz uygula, timeout olmadan
+  applyIndexLogo();
+  document.addEventListener('DOMContentLoaded', applyIndexLogo);
+  window.addEventListener('authReady', applyIndexLogo);
 })();
 </script>
 
