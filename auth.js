@@ -141,6 +141,7 @@ async function loadUserRole() {
       if (r.ok) {
         const data = await r.json();
         if (data[0]?.group_id) localStorage.setItem('user_group_id', data[0].group_id);
+        else localStorage.removeItem('user_group_id');
       }
     } catch(e) {}
     return;
@@ -154,6 +155,7 @@ async function loadUserRole() {
       if (data[0]?.role) localStorage.setItem('user_role', data[0].role);
       if (data[0]?.status) localStorage.setItem('user_status', data[0].status);
       if (data[0]?.group_id) localStorage.setItem('user_group_id', data[0].group_id);
+      else localStorage.removeItem('user_group_id');
     }
   } catch(e) { console.log('[auth] loadUserRole error:', e); }
 }
