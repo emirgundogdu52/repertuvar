@@ -291,20 +291,25 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="stc" id="stc">1/1</div>
     </div>
   </div>
-  <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><span class="snb-arrow">‹</span><span class="snb-label">Önceki</span></button>
+  <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
   <div class="sm" id="sm"></div>
-  <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><span class="snb-label">Sonraki</span><span class="snb-arrow">›</span></button>
+  <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
     <div class="np" id="np" style="display:none;">
       <div class="nl">Sıradaki</div>
       <div class="nn" id="nn">—</div>
       <div class="nm" id="nm">—</div>
     </div>
-    <div style="display:flex;gap:6px;align-items:center;">
-      <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
-      <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
-      <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>
-      <button onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz" class="align-btn"><i class="ti ti-sun"></i></button>
+    <div style="position:relative;">
+      <button class="align-btn" onclick="event.stopPropagation();toggleStageTools()" id="stageToolsToggle" title="Ayarlar"><i class="ti ti-settings"></i></button>
+      <div id="stageToolsPanel" style="display:none;position:absolute;bottom:44px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;display:none;flex-direction:column;gap:8px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.5);">
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
+          <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
+          <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>
+          <button onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz" class="align-btn"><i class="ti ti-sun"></i></button>
+        </div>
+      </div>
     </div>
     <div class="th" style="display:none;">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
@@ -430,6 +435,15 @@ function renderStageChords(text) {
 }
 
 
+function toggleStageTools() {
+  const panel = document.getElementById('stageToolsPanel');
+  const isOpen = panel.style.display === 'flex';
+  panel.style.display = isOpen ? 'none' : 'flex';
+}
+document.addEventListener('click', function() {
+  const panel = document.getElementById('stageToolsPanel');
+  if (panel) panel.style.display = 'none';
+});
 function toggleStageTheme(){
   const t = localStorage.getItem('stageTheme')||'night';
   const next = t==='night' ? 'day' : 'night';
