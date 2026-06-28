@@ -97,6 +97,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
   pointer-events:none;
 }
 #stageSwipeHandle.visible{opacity:1;pointer-events:auto;}
+@media(hover:hover){#stageSwipeHandle{opacity:0.5!important;pointer-events:auto!important;}}
 #stageSwipeHandle::after{
   content:'';display:block;
   width:36px;height:4px;border-radius:2px;
@@ -481,11 +482,10 @@ function applyStageTheme(screen){
   const isStageDay = screen==='stage' && t==='day';
   const isStageNight = screen==='stage' && t==='night';
   document.body.classList.toggle('day-theme', isStageDay);
-
-  function applyVars(){
+  
+  // topnav.js inline style'ı ezmek için setTimeout ile sonra çalıştır
+  setTimeout(()=>{
     const el=document.documentElement;
-    // data-theme attribute'unu kaldır — topnav CSS kurallarını engelle
-    if(screen==='stage') el.removeAttribute('data-theme');
     if(isStageNight){
       el.style.setProperty('--bg','#080810');
       el.style.setProperty('--surface','#0f0f1a');
@@ -503,10 +503,7 @@ function applyStageTheme(screen){
       el.style.setProperty('--text2','#5a5670');
       el.style.setProperty('--text3','#9d9aae');
     }
-  }
-  applyVars();
-  setTimeout(applyVars, 100);
-  setTimeout(applyVars, 500);
+  }, 50);
 
   const btn=document.getElementById('stageThemeBtn2');
   const btn2=document.getElementById('stageThemeBtn2');
