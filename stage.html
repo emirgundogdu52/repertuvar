@@ -302,7 +302,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     <div style="display:flex;align-items:center;gap:6px;">
       <button class="stage-info-btn" onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz"><i class="ti ti-sun" style="font-size:16px;"></i></button>
       <button class="stage-info-btn" onclick="event.stopPropagation();toggleStageInfo()" id="stageInfoBtn" title="Eser bilgileri"><i class="ti ti-info-circle" style="font-size:16px;"></i></button>
-      <button class="stage-info-btn" onclick="event.stopPropagation();openStageNav()" title="Menü"><i class="ti ti-menu-2" style="font-size:16px;"></i></button>
+      <button class="stage-info-btn" id="stagMenuBtn" title="Menü"><i class="ti ti-menu-2" style="font-size:16px;"></i></button>
       <div id="stnAvatar" onclick="event.stopPropagation();" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;cursor:default;">—</div>
     </div>
   </div>
@@ -767,6 +767,8 @@ document.addEventListener('touchend',e=>{
 // Handle tıklama → aç (timer ile)
 const _sh=document.getElementById('stageSwipeHandle');
 if(_sh)_sh.addEventListener('click',e=>{e.stopPropagation();openStageNav();});
+const _mb=document.getElementById('stagMenuBtn');
+if(_mb)_mb.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();openStageNav();},true);
 
 // ── NAVİGASYON ──
 let sideList = [];
