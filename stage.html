@@ -534,6 +534,7 @@ function startStage(){
   if(!localStorage.getItem('stageTheme')) localStorage.setItem('stageTheme','night');
   window._stageActive = true;
   applyStageTheme('stage');
+  setTimeout(() => applyStageTheme('stage'), 300);
   showScreen('stageScreen');
   document.getElementById('strn').textContent=curRep.name;
   // Avatar doldur

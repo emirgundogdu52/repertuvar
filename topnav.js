@@ -516,7 +516,7 @@
   // Theme logic
   window._applyNavTheme = function(theme) { window._stageActive = false; applyTheme(theme); };
   function applyTheme(theme) {
-    if (window._stageActive) return;
+    if (window._stageActive) return; // Stage modunda topnav tema uygulamasını engelle
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('r_theme', theme);
     const icon = theme === 'light' ? '🌙' : '☀️';
