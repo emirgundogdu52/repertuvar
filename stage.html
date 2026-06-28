@@ -89,14 +89,15 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 
 /* Swipe handle — sahne modunda görünür */
 #stageSwipeHandle{
-  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
-  width:60px;height:22px;
+  position:fixed;bottom:0;left:0;right:0;
+  height:36px;
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;z-index:101;
-  opacity:0;transition:opacity .3s;
-  pointer-events:none;
+  cursor:pointer;z-index:500;
+  pointer-events:auto;
+  opacity:0.4;
 }
-#stageSwipeHandle.visible{opacity:1;pointer-events:auto;}
+#stageSwipeHandle.visible{opacity:0.8;}
+@media(hover:hover){#stageSwipeHandle{opacity:0.6;}}
 #stageSwipeHandle::after{
   content:'';display:block;
   width:36px;height:4px;border-radius:2px;
