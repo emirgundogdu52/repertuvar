@@ -250,13 +250,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 
 .stage-info-btn{background:none;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text3);cursor:pointer;transition:all .15s;flex-shrink:0;}
 .stage-info-btn:hover{border-color:var(--accent);color:var(--accent);}
-.stage-info-panel{position:fixed;top:56px;right:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;z-index:200;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;flex-direction:column;gap:8px;}
+.stage-info-panel{position:fixed;top:56px;right:12px;background:#1a1a2e;border:1px solid rgba(120,100,255,0.35);border-radius:12px;padding:12px 16px;z-index:200;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.6);display:none;flex-direction:column;gap:8px;}
 .stage-info-panel.open{display:flex;}
 .sip-row{display:flex;align-items:center;gap:8px;font-size:13px;}
-.sip-label{color:var(--text3);font-size:11px;min-width:60px;}
-.sip-val{color:var(--text);font-weight:600;}
-.stb-menu-item{display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--text);font-size:13px;cursor:pointer;padding:7px 10px;border-radius:8px;width:100%;font-family:inherit;text-align:left;transition:background .1s;}
-.stb-menu-item:hover{background:var(--surface2);}
+.sip-label{color:rgba(255,255,255,0.5);font-size:11px;min-width:60px;}
+.sip-val{color:#fff;font-weight:600;}
+.stb-menu-item{display:flex;align-items:center;gap:8px;background:none;border:none;color:#e2e0ff;font-size:13px;cursor:pointer;padding:7px 10px;border-radius:8px;width:100%;font-family:inherit;text-align:left;transition:background .1s;}
+.stb-menu-item:hover{background:rgba(120,100,255,0.15);}
 </style>
 <script src="auth.js"></script>
 <style id="v2-stage-nav">
@@ -303,10 +303,12 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="stc" id="stc">1/1</div>
     </div>
     <div style="display:flex;align-items:center;gap:6px;">
-      <div id="stnAvatar" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">—</div>
       <div style="position:relative;">
-        <button class="stage-info-btn" onclick="event.stopPropagation();toggleStbMenu()" title="Seçenekler"><i class="ti ti-dots-vertical" style="font-size:16px;"></i></button>
-        <div id="stbMenuPanel" style="display:none;position:absolute;top:38px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:6px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:170px;flex-direction:column;gap:2px;">
+        <button class="stage-info-btn" onclick="event.stopPropagation();toggleStbMenu()" title="Seçenekler" style="display:flex;align-items:center;gap:5px;padding:3px 8px 3px 3px;">
+          <div id="stnAvatar" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">—</div>
+          <i class="ti ti-chevron-down" style="font-size:12px;"></i>
+        </button>
+        <div id="stbMenuPanel" style="display:none;position:absolute;top:40px;right:0;background:#1a1a2e;border:1px solid rgba(120,100,255,0.35);border-radius:12px;padding:6px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.6);min-width:170px;flex-direction:column;gap:2px;">
           <button onclick="event.stopPropagation();toggleStageTheme();toggleStbMenu()" class="stb-menu-item"><i class="ti ti-moon" id="stageThemeBtn"></i> Sahne Gece / Gündüz</button>
           <button onclick="event.stopPropagation();toggleStageInfo();toggleStbMenu()" class="stb-menu-item" id="stageInfoBtn"><i class="ti ti-info-circle"></i> Eser Bilgileri</button>
         </div>
