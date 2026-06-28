@@ -303,13 +303,10 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="stc" id="stc">1/1</div>
     </div>
     <div style="display:flex;align-items:center;gap:6px;">
+      <div id="stnAvatar" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">—</div>
       <div style="position:relative;">
-        <button class="stage-info-btn" onclick="event.stopPropagation();toggleStbMenu()" title="Seçenekler" style="display:flex;align-items:center;gap:4px;">
-          <div id="stnAvatar" style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;">—</div>
-          <i class="ti ti-dots-vertical" style="font-size:14px;"></i>
-        </button>
+        <button class="stage-info-btn" onclick="event.stopPropagation();toggleStbMenu()" title="Seçenekler"><i class="ti ti-dots-vertical" style="font-size:16px;"></i></button>
         <div id="stbMenuPanel" style="display:none;position:absolute;top:38px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:6px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:170px;flex-direction:column;gap:2px;">
-          <button onclick="event.stopPropagation();window.toggleTheme&&toggleTheme(event);toggleStbMenu()" class="stb-menu-item"><i class="ti ti-sun"></i> Dark / Light Mod</button>
           <button onclick="event.stopPropagation();toggleStageTheme();toggleStbMenu()" class="stb-menu-item"><i class="ti ti-moon" id="stageThemeBtn"></i> Sahne Gece / Gündüz</button>
           <button onclick="event.stopPropagation();toggleStageInfo();toggleStbMenu()" class="stb-menu-item" id="stageInfoBtn"><i class="ti ti-info-circle"></i> Eser Bilgileri</button>
         </div>
