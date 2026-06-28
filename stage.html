@@ -255,6 +255,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .sip-row{display:flex;align-items:center;gap:8px;font-size:13px;}
 .sip-label{color:var(--text3);font-size:11px;min-width:60px;}
 .sip-val{color:var(--text);font-weight:600;}
+.stb-menu-item{display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--text);font-size:13px;cursor:pointer;padding:7px 10px;border-radius:8px;width:100%;font-family:inherit;text-align:left;transition:background .1s;}
+.stb-menu-item:hover{background:var(--surface2);}
 </style>
 <script src="auth.js"></script>
 <style id="v2-stage-nav">
@@ -301,9 +303,17 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="stc" id="stc">1/1</div>
     </div>
     <div style="display:flex;align-items:center;gap:6px;">
-      <button class="stage-info-btn" onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn" title="Gece/Gündüz"><i class="ti ti-sun" style="font-size:16px;"></i></button>
-      <button class="stage-info-btn" onclick="event.stopPropagation();toggleStageInfo()" id="stageInfoBtn" title="Eser bilgileri"><i class="ti ti-info-circle" style="font-size:16px;"></i></button>
-      <div id="stnAvatar" onclick="event.stopPropagation();" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;cursor:default;">—</div>
+      <div style="position:relative;">
+        <button class="stage-info-btn" onclick="event.stopPropagation();toggleStbMenu()" title="Seçenekler" style="display:flex;align-items:center;gap:4px;">
+          <div id="stnAvatar" style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;">—</div>
+          <i class="ti ti-dots-vertical" style="font-size:14px;"></i>
+        </button>
+        <div id="stbMenuPanel" style="display:none;position:absolute;top:38px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:6px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:170px;flex-direction:column;gap:2px;">
+          <button onclick="event.stopPropagation();window.toggleTheme&&toggleTheme(event);toggleStbMenu()" class="stb-menu-item"><i class="ti ti-sun"></i> Dark / Light Mod</button>
+          <button onclick="event.stopPropagation();toggleStageTheme();toggleStbMenu()" class="stb-menu-item"><i class="ti ti-moon" id="stageThemeBtn"></i> Sahne Gece / Gündüz</button>
+          <button onclick="event.stopPropagation();toggleStageInfo();toggleStbMenu()" class="stb-menu-item" id="stageInfoBtn"><i class="ti ti-info-circle"></i> Eser Bilgileri</button>
+        </div>
+      </div>
     </div>
   </div>
   <div class="stage-info-panel" id="stageInfoPanel"></div>
@@ -636,6 +646,21 @@ function goBack(e) {
   else if (src === 'repertoires') window.location.href = 'repertoires.html';
   else if (src === 'index') window.location.href = 'index.html';
   else window.location.href = 'index.html';
+}
+
+function toggleStbMenu(){
+  const p = document.getElementById('stbMenuPanel');
+  if(!p) return;
+  const open = p.style.display === 'flex';
+  p.style.display = open ? 'none' : 'flex';
+  if(!open){
+    setTimeout(()=>{
+      document.addEventListener('click', function close(){
+        p.style.display='none';
+        document.removeEventListener('click', close);
+      });
+    }, 10);
+  }
 }
 
 function toggleStageInfo() {
