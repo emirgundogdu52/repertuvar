@@ -478,39 +478,41 @@ function toggleStageTheme(){
 }
 
 function applyStageTheme(screen){
-  const t=localStorage.getItem('stageTheme')||'night';
-  const isStageDay = screen==='stage' && t==='day';
-  const isStageNight = screen==='stage' && t==='night';
+  const t = localStorage.getItem('stageTheme') || 'night';
+  const isStageDay   = screen === 'stage' && t === 'day';
+  const isStageNight = screen === 'stage' && t === 'night';
   document.body.classList.toggle('day-theme', isStageDay);
-  
-  // topnav.js inline style'ı ezmek için setTimeout ile sonra çalıştır
-  setTimeout(()=>{
-    const el=document.documentElement;
-    if(isStageNight){
-      el.style.setProperty('--bg','#080810');
-      el.style.setProperty('--surface','#0f0f1a');
-      el.style.setProperty('--surface2','#161625');
-      el.style.setProperty('--border','#484860');
-      el.style.setProperty('--text','#f1f0ff');
-      el.style.setProperty('--text2','#8b8aa8');
-      el.style.setProperty('--text3','#3d3d58');
-    } else if(isStageDay){
-      el.style.setProperty('--bg','#f5f4f0');
-      el.style.setProperty('--surface','#fff');
-      el.style.setProperty('--surface2','#f0eeea');
-      el.style.setProperty('--border','#d8d4cc');
-      el.style.setProperty('--text','#1a1825');
-      el.style.setProperty('--text2','#5a5670');
-      el.style.setProperty('--text3','#9d9aae');
-    }
-  }, 50);
 
-  const btn=document.getElementById('stageThemeBtn2');
-  const btn2=document.getElementById('stageThemeBtn2');
+  function applyVars(){
+    const el = document.documentElement;
+    if(screen === 'stage') el.removeAttribute('data-theme');
+    if(isStageNight){
+      el.style.setProperty('--bg',      '#080810');
+      el.style.setProperty('--surface', '#0f0f1a');
+      el.style.setProperty('--surface2','#161625');
+      el.style.setProperty('--border',  '#484860');
+      el.style.setProperty('--text',    '#f1f0ff');
+      el.style.setProperty('--text2',   '#8b8aa8');
+      el.style.setProperty('--text3',   '#3d3d58');
+    } else if(isStageDay){
+      el.style.setProperty('--bg',      '#f5f4f0');
+      el.style.setProperty('--surface', '#fff');
+      el.style.setProperty('--surface2','#f0eeea');
+      el.style.setProperty('--border',  '#d8d4cc');
+      el.style.setProperty('--text',    '#1a1825');
+      el.style.setProperty('--text2',   '#5a5670');
+      el.style.setProperty('--text3',   '#9d9aae');
+    }
+  }
+  applyVars();
+  setTimeout(applyVars, 100);
+  setTimeout(applyVars, 500);
+
+  const btn = document.getElementById('stageThemeBtn2');
   if(btn){
-    const icon=btn.querySelector('i');
-    if(icon) icon.className = t==='day' ? 'ti ti-moon' : 'ti ti-sun';
-    btn.classList.toggle('active', t==='day');
+    const icon = btn.querySelector('i');
+    if(icon) icon.className = t === 'day' ? 'ti ti-moon' : 'ti ti-sun';
+    btn.classList.toggle('active', t === 'day');
   }
 }
 function setTheme(t){
@@ -531,8 +533,8 @@ function startStage(){
   curRep=reps.find(r=>r.id===selId);
   if(!curRep||(curRep.items||[]).length===0)return;
   curIdx=0;
-  // stageTheme set edilmemişse varsayılan night
   if(!localStorage.getItem('stageTheme')) localStorage.setItem('stageTheme','night');
+  window._stageActive = true;
   applyStageTheme('stage');
   showScreen('stageScreen');
   document.getElementById('strn').textContent=curRep.name;
@@ -647,7 +649,7 @@ function toggleStageInfo() {
   }, 10);
 }
 
-function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){applyStageTheme('picker');backToPicker();}}
+function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){window._stageActive=false;applyStageTheme('picker');backToPicker();}}
 function showEndScreen(){
   applyStageTheme('picker');
   showScreen('endScreen');
@@ -767,6 +769,8 @@ document.addEventListener('touchend',e=>{
 // Handle tıklama → aç (timer ile)
 const _sh=document.getElementById('stageSwipeHandle');
 if(_sh)_sh.addEventListener('click',e=>{e.stopPropagation();openStageNav();});
+const _mb=document.getElementById('stagMenuBtn');
+if(_mb)_mb.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();openStageNav();},true);
 const _mb=document.getElementById('stagMenuBtn');
 if(_mb)_mb.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();openStageNav();},true);
 
