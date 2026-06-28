@@ -476,58 +476,44 @@ function toggleStageTheme(){
   applyStageTheme('stage');
 }
 
-let _stageThemeInterval = null;
-
-function _setStageVars(t) {
-  const el = document.documentElement;
-  if (t === 'night') {
-    el.style.setProperty('--bg',      '#080810');
-    el.style.setProperty('--surface', '#0f0f1a');
-    el.style.setProperty('--surface2','#161625');
-    el.style.setProperty('--border',  '#484860');
-    el.style.setProperty('--text',    '#f1f0ff');
-    el.style.setProperty('--text2',   '#8b8aa8');
-    el.style.setProperty('--text3',   '#3d3d58');
-  } else {
-    el.style.setProperty('--bg',      '#f5f4f0');
-    el.style.setProperty('--surface', '#fff');
-    el.style.setProperty('--surface2','#f0eeea');
-    el.style.setProperty('--border',  '#d8d4cc');
-    el.style.setProperty('--text',    '#1a1825');
-    el.style.setProperty('--text2',   '#5a5670');
-    el.style.setProperty('--text3',   '#9d9aae');
-  }
-}
-
 function applyStageTheme(screen){
-  const t = localStorage.getItem('stageTheme') || 'night';
-  const isDay = screen === 'stage' && t === 'day';
-  document.body.classList.toggle('day-theme', isDay);
+  const t=localStorage.getItem('stageTheme')||'night';
+  const isStageDay = screen==='stage' && t==='day';
+  const isStageNight = screen==='stage' && t==='night';
+  document.body.classList.toggle('day-theme', isStageDay);
 
-  // Önceki interval'i temizle
-  if (_stageThemeInterval) { clearInterval(_stageThemeInterval); _stageThemeInterval = null; }
-
-  if (screen === 'stage') {
-    // Hemen uygula
-    _setStageVars(t);
-    // topnav sonradan ezebilir, 1 saniyeliğine her 100ms kontrol et
-    let count = 0;
-    _stageThemeInterval = setInterval(() => {
-      _setStageVars(t);
-      count++;
-      if (count >= 10) { clearInterval(_stageThemeInterval); _stageThemeInterval = null; }
-    }, 100);
-  } else {
-    // Picker'a dönünce interval yoksa topnav kendi temasını uygulasın
-    const rTheme = localStorage.getItem('r_theme') || 'dark';
-    if (typeof window._applyNavTheme === 'function') window._applyNavTheme(rTheme);
+  function applyVars(){
+    const el=document.documentElement;
+    // data-theme attribute'unu kaldır — topnav CSS kurallarını engelle
+    if(screen==='stage') el.removeAttribute('data-theme');
+    if(isStageNight){
+      el.style.setProperty('--bg','#080810');
+      el.style.setProperty('--surface','#0f0f1a');
+      el.style.setProperty('--surface2','#161625');
+      el.style.setProperty('--border','#484860');
+      el.style.setProperty('--text','#f1f0ff');
+      el.style.setProperty('--text2','#8b8aa8');
+      el.style.setProperty('--text3','#3d3d58');
+    } else if(isStageDay){
+      el.style.setProperty('--bg','#f5f4f0');
+      el.style.setProperty('--surface','#fff');
+      el.style.setProperty('--surface2','#f0eeea');
+      el.style.setProperty('--border','#d8d4cc');
+      el.style.setProperty('--text','#1a1825');
+      el.style.setProperty('--text2','#5a5670');
+      el.style.setProperty('--text3','#9d9aae');
+    }
   }
+  applyVars();
+  setTimeout(applyVars, 100);
+  setTimeout(applyVars, 500);
 
-  const btn = document.getElementById('stageThemeBtn2');
-  if (btn) {
-    const icon = btn.querySelector('i');
-    if (icon) icon.className = t === 'day' ? 'ti ti-moon' : 'ti ti-sun';
-    btn.classList.toggle('active', t === 'day');
+  const btn=document.getElementById('stageThemeBtn2');
+  const btn2=document.getElementById('stageThemeBtn2');
+  if(btn){
+    const icon=btn.querySelector('i');
+    if(icon) icon.className = t==='day' ? 'ti ti-moon' : 'ti ti-sun';
+    btn.classList.toggle('active', t==='day');
   }
 }
 function setTheme(t){
