@@ -26,6 +26,7 @@
         padding: 10px 12px; border-radius: 10px;
         font-size: 13px; font-weight: 600; color: var(--text2, #9d9bc4);
         text-decoration: none; transition: all .15s; position: relative;
+        width: 100%; box-sizing: border-box;
       }
       .sb-item:hover { background: var(--surface, #12123a); color: var(--text, #e2e0ff); }
       .sb-item.active {
@@ -51,7 +52,7 @@
       .sb-stage:hover { opacity: .9; }
       .admin-only { display: none; }
       /* main-wrap'i sidebar genişliği kadar it */
-      .main-wrap { margin-left: 220px; flex: 1; min-width: 0; }
+      .main-wrap, .v2-main-wrap { margin-left: 220px; flex: 1; min-width: 0; }
     }
     @media (max-width: 1023px) {
       .sidebar { display: none !important; }
@@ -180,7 +181,7 @@
 
     /* ── Genel sayfa elemanları ── */
     [data-theme="light"] body { background: #f5f4fb !important; color: #1a1733 !important; }
-    [data-theme="light"] .page, [data-theme="light"] .main-wrap { background: #f5f4fb; }
+    [data-theme="light"] .page, [data-theme="light"] .main-wrap, [data-theme="light"] .v2-main-wrap { background: #f5f4fb; }
 
     /* Kartlar ve yüzeyler */
     [data-theme="light"] .card, [data-theme="light"] .member-card,
