@@ -514,6 +514,7 @@
   }
 
   // Theme logic
+  window._applyNavTheme = function(theme) { applyTheme(theme); };
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('r_theme', theme);
