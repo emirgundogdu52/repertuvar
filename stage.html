@@ -304,10 +304,10 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     </div>
     <div style="display:flex;align-items:center;gap:6px;">
       <div style="position:relative;">
-        <button class="stage-info-btn" onclick="event.stopPropagation();toggleStbMenu()" title="Seçenekler">
+        <button class="stage-info-btn" onclick="toggleStbMenu()" title="Seçenekler">
           <i class="ti ti-dots" style="font-size:16px;"></i>
         </button>
-        <div id="stbMenuPanel" style="display:none;position:absolute;top:40px;right:0;background:#1a1a2e;border:1px solid rgba(120,100,255,0.35);border-radius:12px;padding:6px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.6);min-width:170px;flex-direction:column;gap:2px;">
+        <div id="stbMenuPanel" style="display:none;position:fixed;top:52px;right:12px;background:#1a1a2e;border:1px solid rgba(120,100,255,0.35);border-radius:12px;padding:6px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.6);min-width:170px;flex-direction:column;gap:2px;">
           <button onclick="event.stopPropagation();toggleStageTheme();toggleStbMenu()" class="stb-menu-item"><i class="ti ti-moon" id="stageThemeBtn"></i> Sahne Gece / Gündüz</button>
           <button onclick="event.stopPropagation();toggleStageInfo();toggleStbMenu()" class="stb-menu-item" id="stageInfoBtn"><i class="ti ti-info-circle"></i> Eser Bilgileri</button>
         </div>
@@ -651,15 +651,12 @@ function toggleStbMenu(){
   if(!p) return;
   const open = p.style.display === 'flex';
   p.style.display = open ? 'none' : 'flex';
-  if(!open){
-    setTimeout(()=>{
-      document.addEventListener('click', function close(){
-        p.style.display='none';
-        document.removeEventListener('click', close);
-      });
-    }, 10);
-  }
 }
+document.addEventListener('click', function(e){
+  const p = document.getElementById('stbMenuPanel');
+  const btn = e.target.closest('.stage-info-btn');
+  if(p && !btn && p.style.display === 'flex') p.style.display = 'none';
+});
 
 function toggleStageInfo() {
   const panel = document.getElementById('stageInfoPanel');
