@@ -475,7 +475,6 @@
       { href: 'uyeler.html',      icon: 'ti-users',       label: 'Üyeler', adminOnly: true },
       { href: 'ayarlar.html',     icon: 'ti-settings',    label: 'Ayarlar' },
       { divider: true },
-      { href: 'stage.html',       icon: 'ti-music',       label: 'Sahne Modu', stage: true },
     ];
 
     const navHtml = navItems.map(item => {
