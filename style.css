@@ -577,3 +577,16 @@ body {
 .feat-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
 .feat-desc { font-size: 13px; color: var(--text2); line-height: 1.55; }
 </style>
+
+/* ── v2-desktop-topbar (eski sayfa yapısı) ── */
+@media(min-width:1024px) {
+  .v2-main-wrap { margin-left: 220px; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .v2-desktop-topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 32px; border-bottom:1px solid var(--border); background:var(--bg); backdrop-filter:blur(12px); position:sticky; top:0; z-index:100; }
+  .v2-crumb { font-size:13px; color:var(--text2); }
+  .v2-crumb span { color:var(--text); font-weight:600; }
+  .v2-main-wrap .r-topnav { display:none !important; }
+}
+@media(max-width:1023px) {
+  .v2-desktop-topbar { display:none; }
+  .v2-main-wrap { display:contents; }
+}
