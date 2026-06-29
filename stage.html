@@ -37,7 +37,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .bback:hover{color:var(--text2);}
 .loading{text-align:center;color:var(--text2);padding:24px;font-size:13px;}
 
-.stb{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:8px;}
+.stb{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:8px;position:relative;z-index:10;}
 #v2StageBotNav .v2-bn-exit { color: #c05444 !important; }
 #v2StageBotNav .v2-bn-exit:hover { color: #e06655 !important; }
 .strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;}
@@ -64,7 +64,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .wlyrics{font-size:clamp(18px,2.8vw,28px);color:var(--text);text-align:center;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-.sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;}
+.sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;position:relative;z-index:10;}
 
 #stageHintToast{
   position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
@@ -296,7 +296,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   </div>
 </div>
 
-<div class="screen hidden" id="stageScreen" onclick="nextWork()">
+<div class="screen hidden" id="stageScreen">
   <div class="stb">
     <div class="strn" id="strn">—</div>
     <div class="stp">
@@ -317,7 +317,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   </div>
   <div class="stage-info-panel" id="stageInfoPanel"></div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
-  <div class="sm" id="sm"></div>
+  <div class="sm" id="sm" onclick="nextWork()"></div>
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
     <div class="np" id="np" style="display:none;">
