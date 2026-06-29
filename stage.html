@@ -46,7 +46,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .pd{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;flex-shrink:0;}
 .pd.done{background:var(--text3);}
 .pd.cur{background:var(--accent);transform:scale(1.4);}
-.stc{display:none;}
+.stc{display:inline;font-size:11px;font-weight:600;color:var(--text2);margin-left:6px;}
 .bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
 .bex:hover{color:var(--red);border-color:var(--red);}
 
@@ -545,6 +545,7 @@ function startStage(){
   curIdx=0;
   if(!localStorage.getItem('stageTheme')) localStorage.setItem('stageTheme','night');
   window._stageActive = true;
+  window.dispatchEvent(new Event('stageEnter'));
   applyStageTheme('stage');
   showScreen('stageScreen');
   document.getElementById('strn').textContent=curRep.name;
@@ -588,7 +589,7 @@ function renderStage(){
   document.getElementById('sm').innerHTML=`
     <div class="wnum"></div>
     <div class="wtitle">${w.name||item.workId}</div>
-    ${(item.note||w.composer)?`<div class="wnote">${item.note||(w.composer?'— '+w.composer:'')}</div>`:''}
+    ${item.note?`<div class="wnote">${item.note}</div>`:''}
     ${lyricsHtml}`; 
   // Kaydedilmiş hizalamayı uygula
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
@@ -671,7 +672,7 @@ function toggleStageInfo() {
   }, 10);
 }
 
-function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){window._stageActive=false;applyStageTheme('picker');backToPicker();}}
+function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){window._stageActive=false;window.dispatchEvent(new Event('stageExit'));applyStageTheme('picker');backToPicker();}}
 function showEndScreen(){
   applyStageTheme('picker');
   showScreen('endScreen');

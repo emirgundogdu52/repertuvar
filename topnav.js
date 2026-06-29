@@ -570,6 +570,11 @@
     nav.className = 'bottom-nav';
     nav.innerHTML = `<div class="bn-items">${bnHtml}</div>`;
     document.body.appendChild(nav);
+
+    // Stage modunda gizle
+    if (window._stageActive) nav.style.display = 'none';
+    window.addEventListener('stageEnter', () => { nav.style.display = 'none'; });
+    window.addEventListener('stageExit', () => { nav.style.display = ''; });
   }
 
   if (document.readyState === 'loading') {
