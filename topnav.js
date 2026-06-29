@@ -474,7 +474,6 @@
       { href: 'mesajlar.html',    icon: 'ti-message',     label: 'Mesajlar' },
       { href: 'uyeler.html',      icon: 'ti-users',       label: 'Üyeler', adminOnly: true },
       { href: 'ayarlar.html',     icon: 'ti-settings',    label: 'Ayarlar' },
-      { divider: true },
     ];
 
     const navHtml = navItems.map(item => {
@@ -496,6 +495,9 @@
       </div>
       <nav class="sb-nav">${navHtml}</nav>
       <div style="flex:1"></div>
+      <div style="padding:10px;">
+        <a href="stage.html" class="sb-stage"><i class="ti ti-music" style="font-size:16px;width:20px;text-align:center;"></i>Sahne Modu</a>
+      </div>
     `;
     document.body.insertBefore(aside, document.body.firstChild);
 
@@ -682,6 +684,15 @@
   window.addEventListener('authReady', () => setTimeout(loadDeletionBadge, 500));
   window.addEventListener('load', () => setTimeout(loadMsgBadge, 800));
   window.addEventListener('load', () => setTimeout(loadDeletionBadge, 1000));
+
+  // authReady'de admin-only sidebar öğelerini göster
+  window.addEventListener('authReady', () => {
+    if (typeof isAdmin === 'function' && (isAdmin() || (typeof isEditor === 'function' && isEditor()))) {
+      document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = '';
+      });
+    }
+  });
   // Her 60 saniyede bir yenile
   setInterval(loadMsgBadge, 60000);
   setInterval(loadDeletionBadge, 60000);
