@@ -539,7 +539,7 @@ body {
 .hero-btn-secondary:hover { border-color: var(--accent2); color: var(--text); }
 
 /* ── Özellik kartları ── */
-.feat-section-title { font-size: 13px; font-weight: 700; color: var(--text3); letter-spacing: .04em; margin-bottom: 14px; padding-bottom: 4px; }
+.feat-section-title { font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: .04em; margin-bottom: 14px; padding-bottom: 4px; }
 .feat-scroll-wrap { position: relative; padding-top: 4px; }
 .feat-grid {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
