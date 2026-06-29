@@ -326,7 +326,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="nm" id="nm">—</div>
     </div>
     <div style="position:relative;">
-      <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Ayarlar" style="background:none;border:none;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.7);cursor:pointer;transition:all .15s;flex-shrink:0;"><i class="ti ti-dots-vertical" style="font-size:24px;"></i></button>
+      <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Ayarlar" style="background:none;border:none;width:56px;height:56px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.7);cursor:pointer;transition:color .15s;flex-shrink:0;padding:0;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'"><i class="ti ti-dots-vertical" style="font-size:24px;"></i></button>
       <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;gap:8px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
         <div style="display:flex;gap:6px;align-items:center;">
           <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
