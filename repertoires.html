@@ -243,8 +243,6 @@ tr:hover .ra{opacity:1;}
 <div id="r-topnav-container"></div>
 
 <div class="main-wrap">
-</div>
-
 <div class="layout">
   <aside class="lp">
     <div class="lph"><h2>Mevcut Repertuvarlar</h2><button class="bn" onclick="openNew()" title="+ Yeni Repertuvar Oluştur">+ Yeni</button></div>
@@ -1102,96 +1100,6 @@ function shareViaWhatsApp() {
 })();
 </script>
 </div><!-- /main-wrap -->
-<script>
-(function(){
-  function _v2(){if(typeof getUser!=='function')return;const u=getUser();if(!u)return;const name=u?.user_metadata?.full_name||u?.email?.split('@')[0]||'—';const ini=name.charAt(0).toUpperCase();['sbUserName','tnUserName'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=name;});['sbAvatar','tnAvatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=ini;});}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_v2);else _v2();
-  setTimeout(()=>{if(typeof isAdmin!=='function')return;if(isAdmin()||isEditor())document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('admin-only'));const r=document.getElementById('sbUserRole');if(r)r.textContent=isAdmin()?'Admin':isEditor()?'Editör':'Üye';},300);
-})();
-window.addEventListener('resize', () => { if(typeof fixMobileHeight==='function') fixMobileHeight(); });
-window.addEventListener('orientationchange', () => setTimeout(() => { if(typeof fixMobileHeight==='function') fixMobileHeight(); }, 300));
-</script>
-
-
-<!-- ══ ITEM EDIT MODAL ══ -->
-<div id="iem" class="mo" style="display:none;" onclick="if(event.target===this)closeIEM()">
-  <div class="md" style="width:460px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <h3 style="font-size:15px;font-weight:600;color:var(--text);">✏️ Eser Düzenle</h3>
-      <button onclick="closeIEM()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;">✕</button>
-    </div>
-    <div style="margin-bottom:16px;padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
-      <div id="iemWorkName" style="font-size:14px;font-weight:600;color:var(--text);"></div>
-      <div id="iemWorkInfo" style="font-size:12px;color:var(--text2);margin-top:2px;"></div>
-    </div>
-    <div style="display:grid;gap:12px;">
-      <div>
-        <label style="font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;display:block;margin-bottom:5px;">Makam</label>
-        <input id="iemMK" class="fi" readonly style="background:var(--surface2);color:var(--text3);cursor:default;">
-      </div>
-      <div>
-        <label style="font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;display:block;margin-bottom:5px;">Kapanış Notu</label>
-        <input id="iemCN" class="fi" placeholder="Örn: La, Si, Do#...">
-      </div>
-      <div>
-        <label style="font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;display:block;margin-bottom:5px;">Not</label>
-        <input id="iemNote" class="fi" placeholder="Sahne notu...">
-      </div>
-      <div>
-        <label style="font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;display:block;margin-bottom:5px;">İcracılar</label>
-        <div style="position:relative;">
-          <div id="iemPfTags" class="fi" style="display:flex;flex-wrap:wrap;gap:4px;min-height:38px;height:auto;align-items:center;cursor:text;" onclick="document.getElementById('iemPfInput').focus()">
-            <input id="iemPfInput" type="text" placeholder="İcracı ekle..." autocomplete="off"
-              style="border:none;background:none;outline:none;color:var(--text);font-size:13px;font-family:inherit;flex:1;min-width:80px;"
-              oninput="iemPfSuggest(this.value)"
-              onkeydown="iemPfKeydown(event)">
-          </div>
-          <div id="iemPfDropdown" style="display:none;position:absolute;z-index:100;background:var(--surface);border:1px solid var(--border);border-radius:7px;max-height:160px;overflow-y:auto;width:100%;margin-top:2px;"></div>
-        </div>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-      <button onclick="closeIEM()" class="bc">İptal</button>
-      <button onclick="saveIEM()" class="bs">Kaydet</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ SHARE MODAL ══ -->
-<div id="shareModal" class="share-modal" onclick="if(event.target===this)closeShare()">
-  <div class="share-box">
-    <button class="share-close" onclick="closeShare()">✕</button>
-    <div class="share-title">🔗 Repertuvar Paylaş</div>
-    <div class="share-desc">
-      <strong id="shareRepName"></strong> repertuvarını sahne modunda görüntülemek için bu bağlantıyı paylaşın.
-    </div>
-    <div class="share-link-box">
-      <span id="shareLink"></span>
-      <button id="copyBtn" onclick="copyShareLink()" style="padding:6px 14px;border-radius:7px;background:var(--accent);border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;">Kopyala</button>
-    </div>
-    <div class="share-note">
-      Bu bağlantıyı alan herkes repertuvarınızı giriş yapmadan sahne modunda görebilir.
-    </div>
-    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
-      <button onclick="shareViaWhatsApp()" style="padding:7px 14px;border-radius:7px;background:#25D366;border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📱 WhatsApp</button>
-      <button onclick="shareViaEmail()" style="padding:7px 14px;border-radius:7px;background:#4A90D9;border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">✉️ E-posta</button>
-      <button onclick="closeShare()" style="padding:7px 14px;border-radius:7px;background:none;border:1px solid var(--border);color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;">Kapat</button>
-    </div>
-  </div>
-</div>
-
-
-<script>
-window.toggleSbDropdown = function() {
-  const dd = document.getElementById('sbUserDropdown');
-  if (dd) dd.classList.toggle('open');
-};
-document.addEventListener('click', function(e) {
-  const btn = document.getElementById('sbUserBtn');
-  const dd = document.getElementById('sbUserDropdown');
-  if (dd && btn && !btn.contains(e.target)) dd.classList.remove('open');
-});
-</script>
-
+<script src="topnav.js"></script>
 </body>
 </html>
