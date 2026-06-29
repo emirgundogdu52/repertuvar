@@ -5,56 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repertuvar — Mesajlar</title>
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="manifest" href="manifest.json">
 <script src="auth.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-:root{--bg:#07071a;--bg2:#0f0f2e;--surface:#12123a;--surface2:#1a1a4a;--border:rgba(140,120,255,0.38);--border2:rgba(140,120,255,0.58);--accent:#7c6fff;--accent2:#a78bfa;--accent3:#c4b5fd;--text:#e2e0ff;--text2:#9d9bc4;--text3:#5e5c8a;--green:#4ade80;--red:#f87171;--sidebar-w:220px;--bottom-h:68px;--font:'Plus Jakarta Sans',sans-serif;}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
 
-/* ── Sidebar ── */
-@media(min-width:1024px){
-  body{display:flex;}
-  .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--bg);backdrop-filter:blur(24px);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:300;padding-bottom:20px;}
-  .sb-brand{padding:20px 16px 16px;border-bottom:1px solid var(--border);margin-bottom:10px;}
-  .sb-brand img{width:100%;max-width:188px;display:block;}
-  .sb-nav{flex:1;padding:0 10px;display:flex;flex-direction:column;gap:2px;}
-  .sb-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:8px 12px 4px;}
-  .sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;color:var(--text2);text-decoration:none;transition:all .15s;}
-  .sb-item:hover{background:var(--surface);color:var(--text);}
-  .sb-item.active{background:rgba(124,111,255,0.12);color:var(--accent3);border:1px solid rgba(124,111,255,0.2);}
-  /* v2-sb alias */
-  .v2-sb-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:8px 12px 4px;}
-  .v2-sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;color:var(--text2);text-decoration:none;transition:all .15s;}
-  .v2-sb-item:hover{background:var(--surface);color:var(--text);}
-  .v2-sb-item.active{background:rgba(124,111,255,0.12);color:var(--accent3);border:1px solid rgba(124,111,255,0.2);}
-  .v2-sb-divider{height:1px;background:var(--border);margin:8px 10px;}
-  .sb-divider{height:1px;background:var(--border);margin:8px 10px;}
-  .sb-user{margin:10px 10px 0;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:10px;}
-  .sb-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
-  .sb-uname{font-size:12px;font-weight:600;color:var(--text);}
-  .sb-urole{font-size:10px;color:var(--text3);}
-  .sb-logout{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px;}
-  .main-wrap{margin-left:var(--sidebar-w);flex:1;min-width:0;}
-  .desktop-topbar{display:flex;align-items:center;padding:14px 32px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100;}
-  .dt-crumb{font-size:13px;color:var(--text2);}
-  .dt-crumb span{color:var(--text);font-weight:600;}
-  .v2-topnav,.v2-bottom-nav{display:none!important;}
-}
-@media(max-width:1023px){
-  .sidebar{display:none;}
-  .desktop-topbar{display:none;}
-  body{padding-bottom:var(--bottom-h);}
-  .main-wrap{display:contents;}
-  .v2-bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;height:var(--bottom-h);background:var(--bg);backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;align-items:center;}
-  .v2-bn-items{display:flex;width:100%;padding:0 4px;}
-  .v2-bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:7px 2px;text-decoration:none;color:var(--text3);border-radius:10px;transition:all .15s;}
-  .v2-bn-item.active{color:var(--accent);}
-  .v2-bn-icon{font-size:19px;line-height:1;}
-  .v2-bn-label{font-size:9px;font-weight:600;}
-}
+
 
 /* ── Page ── */
 .page{padding:24px;max-width:800px;margin:0 auto;}
@@ -178,9 +136,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="main-wrap">
 <div id="r-topnav-container"></div>
 <script src="topnav.js"></script>
-
-<div class="desktop-topbar">
-  <div class="dt-crumb">repertuvar / <span>Mesajlar</span></div>
 </div>
 
 <div class="page">
@@ -254,15 +209,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 </div>
 
 <!-- Bottom nav -->
-<nav class="v2-bottom-nav">
-  <div class="v2-bn-items">
-    <a href="index.html" class="v2-bn-item"><i class="ti ti-home" style="font-size:19px;line-height:1;"></i><span class="v2-bn-label">Ana Sayfa</span></a>
-    <a href="eserler.html" class="v2-bn-item"><i class="ti ti-playlist" style="font-size:19px;line-height:1;"></i><span class="v2-bn-label">Eserler</span></a>
-    <a href="repertoires.html" class="v2-bn-item"><i class="ti ti-book" style="font-size:19px;line-height:1;"></i><span class="v2-bn-label">Repertuvarlar</span></a>
-    <a href="stage.html" class="v2-bn-item"><i class="ti ti-music" style="font-size:19px;line-height:1;"></i><span class="v2-bn-label">Sahne Modu</span></a>
-    <a href="mesajlar.html" class="v2-bn-item active"><i class="ti ti-message" style="font-size:19px;line-height:1;"></i><span class="v2-bn-label">Mesajlar</span></a>
-  </div>
-</nav>
 
 <script>
 function H() {
