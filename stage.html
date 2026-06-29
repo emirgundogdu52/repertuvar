@@ -248,8 +248,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
   body.stage-active .sidebar { display: none !important; }
 }
 
-.stage-info-btn{background:none;border:1px solid var(--border);border-radius:8px;min-width:32px;min-height:36px;display:flex;align-items:center;justify-content:center;color:var(--text3);cursor:pointer;transition:all .15s;flex-shrink:0;}
-.stage-info-btn:hover{border-color:var(--accent);color:var(--accent);}
+.stage-info-btn{background:none;border:none;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.7);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.stage-info-btn:hover{color:#fff;}
 .stage-info-panel{position:fixed;top:56px;right:12px;background:#1a1a2e;border:1px solid rgba(120,100,255,0.35);border-radius:12px;padding:12px 16px;z-index:200;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.6);display:none;flex-direction:column;gap:8px;}
 .stage-info-panel.open{display:flex;}
 .sip-row{display:flex;align-items:center;gap:8px;font-size:13px;}
@@ -306,7 +306,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     <div style="display:flex;align-items:center;gap:6px;">
       <div style="position:relative;">
         <button class="stage-info-btn" onclick="toggleStbMenu()" title="Seçenekler">
-          <i class="ti ti-dots" style="font-size:16px;"></i>
+          <i class="ti ti-dots" style="font-size:24px;"></i>
         </button>
         <div id="stbMenuPanel" style="display:none;position:fixed;top:52px;right:12px;background:#1a1a2e;border:1px solid rgba(120,100,255,0.35);border-radius:12px;padding:6px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.6);min-width:170px;flex-direction:column;gap:2px;">
           <button onclick="event.stopPropagation();toggleStageTheme();toggleStbMenu()" class="stb-menu-item"><i class="ti ti-moon" id="stageThemeBtn"></i> Sahne Gece / Gündüz</button>
@@ -326,7 +326,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="nm" id="nm">—</div>
     </div>
     <div style="position:relative;">
-      <button class="align-btn" onclick="toggleStageTools(event)" id="stageToolsToggle" title="Ayarlar"><i class="ti ti-settings"></i></button>
+      <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Ayarlar" style="background:none;border:none;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.7);cursor:pointer;transition:all .15s;flex-shrink:0;"><i class="ti ti-dots-vertical" style="font-size:24px;"></i></button>
       <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;gap:8px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
         <div style="display:flex;gap:6px;align-items:center;">
           <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
