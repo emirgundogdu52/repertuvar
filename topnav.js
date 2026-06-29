@@ -464,6 +464,13 @@
     const theme = localStorage.getItem('r_theme') || 'dark';
     const logo = theme === 'light' ? 'logo_light.png' : 'logo_dark.png';
 
+    // localStorage'dan role kontrolü — network beklemeden
+    const ADMIN_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
+    const savedUser = (() => { try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; } })();
+    const savedRole = localStorage.getItem('user_role') || '';
+    const isAdminNow = savedUser?.id === ADMIN_ID || savedRole === 'admin';
+    const isEditorNow = isAdminNow || savedRole === 'editor';
+
     const navItems = [
       { href: 'index.html',       icon: 'ti-home',        label: 'Ana Sayfa' },
       { href: 'eserler.html',     icon: 'ti-book',        label: 'Eserler' },
@@ -479,11 +486,9 @@
     const navHtml = navItems.map(item => {
       if (item.divider) return '<div class="sb-divider"></div>';
       const isActive = page === item.href;
-      const adminCls = item.adminOnly ? ' admin-only' : '';
-      if (item.stage) {
-        return `<a href="${item.href}" class="sb-stage${adminCls}"><i class="ti ${item.icon}" style="font-size:16px;width:20px;text-align:center;"></i>${item.label}</a>`;
-      }
-      return `<a href="${item.href}" class="sb-item${isActive ? ' active' : ''}${adminCls}"><i class="ti ${item.icon}" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>${item.label}</a>`;
+      // adminOnly ise localStorage'a göre anında göster/gizle
+      if (item.adminOnly && !isAdminNow) return '';
+      return `<a href="${item.href}" class="sb-item${isActive ? ' active' : ''}"><i class="ti ${item.icon}" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>${item.label}</a>`;
     }).join('');
 
     const aside = document.createElement('aside');
