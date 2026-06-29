@@ -56,6 +56,32 @@
     }
     @media (max-width: 1023px) {
       .sidebar { display: none !important; }
+      body { padding-bottom: 68px; }
+    }
+
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      height: 68px;
+      background: var(--bg, #07071a);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid var(--border, rgba(140,120,255,0.38));
+      display: flex; align-items: center;
+    }
+    @media (min-width: 1024px) { .bottom-nav { display: none !important; } }
+    .bn-items { display: flex; width: 100%; padding: 0 4px; }
+    .bn-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 3px; padding: 7px 2px;
+      text-decoration: none; color: var(--text3, #5e5c8a);
+      border-radius: 10px; transition: all .15s; position: relative;
+    }
+    .bn-item.active { color: var(--accent, #7c6fff); }
+    .bn-label { font-size: 9px; font-weight: 600; }
+    .bn-stage {
+      background: linear-gradient(135deg,rgba(124,111,255,0.18),rgba(167,139,250,0.08));
+      border: 1px solid rgba(124,111,255,0.25);
+      color: var(--accent2, #a78bfa) !important;
+      margin: 5px 2px; border-radius: 11px;
     }
 
     .r-topnav {
@@ -511,10 +537,46 @@
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   }
 
+  // ── Bottom nav render — mobilde otomatik ──
+  function renderBottomNav() {
+    if (window.innerWidth >= 1024) return;
+    if (document.getElementById('r-bottom-nav')) return;
+
+    const page = window.location.pathname.split('/').pop() || 'index.html';
+    const ADMIN_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
+    const savedUser = (() => { try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; } })();
+    const savedRole = localStorage.getItem('user_role') || '';
+    const isAdminNow = savedUser?.id === ADMIN_ID || savedRole === 'admin';
+
+    const bnItems = [
+      { href: 'index.html',       icon: 'ti-home',     label: 'Ana Sayfa' },
+      { href: 'eserler.html',     icon: 'ti-book',     label: 'Eserler' },
+      { href: 'repertoires.html', icon: 'ti-playlist', label: 'Repertuvarlar' },
+      { href: 'stage.html',       icon: 'ti-music',    label: 'Sahne Modu', stage: true },
+      { href: 'mesajlar.html',    icon: 'ti-message',  label: 'Mesajlar' },
+    ];
+
+    const bnHtml = bnItems.map(item => {
+      const isActive = page === item.href;
+      const stageCls = item.stage ? ' bn-stage' : '';
+      return `<a href="${item.href}" class="bn-item${isActive ? ' active' : ''}${stageCls}">
+        <i class="ti ${item.icon}" style="font-size:20px;line-height:1;"></i>
+        <span class="bn-label">${item.label}</span>
+      </a>`;
+    }).join('');
+
+    const nav = document.createElement('nav');
+    nav.id = 'r-bottom-nav';
+    nav.className = 'bottom-nav';
+    nav.innerHTML = `<div class="bn-items">${bnHtml}</div>`;
+    document.body.appendChild(nav);
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', renderSidebar);
+    document.addEventListener('DOMContentLoaded', () => { renderSidebar(); renderBottomNav(); });
   } else {
     renderSidebar();
+    renderBottomNav();
   }
 
   // Theme logic
