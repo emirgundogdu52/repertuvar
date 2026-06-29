@@ -511,7 +511,7 @@ body {
 .hero-greeting { font-size: 12px; font-weight: 600; color: var(--accent2); margin-bottom: 6px; }
 .hero-title em.hero-title-sub {
   font-size: 0.72em; font-weight: 600; font-style: italic;
-  color: #1A1733; display: block; margin-top: 2px;
+  color: var(--text2); display: block; margin-top: 2px;
 }
 .hero-title {
   font-size: 22px; font-weight: 800;
