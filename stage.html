@@ -577,6 +577,7 @@ function renderStage(){
       w.composer ? `<div class="sip-row"><span class="sip-label">Besteci</span><span class="sip-val">${w.composer}</span></div>` : '',
       w.lyricWriter ? `<div class="sip-row"><span class="sip-label">Güfte</span><span class="sip-val">${w.lyricWriter}</span></div>` : '',
       w.instrument ? `<div class="sip-row"><span class="sip-label">Enstrüman</span><span class="sip-val">${w.instrument}</span></div>` : '',
+      item.note ? `<div class="sip-row"><span class="sip-label">Not</span><span class="sip-val">${item.note}</span></div>` : '',
     ].filter(Boolean).join('');
     panel.innerHTML = rows || '<div style="color:var(--text3);font-size:12px;">Bilgi yok</div>';
     const infoBtn = document.getElementById('stageInfoBtn');
@@ -589,7 +590,6 @@ function renderStage(){
   document.getElementById('sm').innerHTML=`
     <div class="wnum"></div>
     <div class="wtitle">${w.name||item.workId}</div>
-    ${item.note?`<div class="wnote">${item.note}</div>`:''}
     ${lyricsHtml}`; 
   // Kaydedilmiş hizalamayı uygula
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
