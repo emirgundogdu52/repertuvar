@@ -500,9 +500,6 @@
       </div>
       <nav class="sb-nav">${navHtml}</nav>
       <div style="flex:1"></div>
-      <div style="padding:10px;">
-        <a href="stage.html" class="sb-stage"><i class="ti ti-music" style="font-size:16px;width:20px;text-align:center;"></i>Sahne Modu</a>
-      </div>
     `;
     document.body.insertBefore(aside, document.body.firstChild);
 
