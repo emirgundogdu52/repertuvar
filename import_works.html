@@ -2,7 +2,9 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Works Import</title>
+<link rel="stylesheet" href="style.css">
 <style>
 h1{color:#a855f7;}
 #log{background:#0f0f1a;border:1px solid #2a2a3e;border-radius:8px;padding:16px;height:300px;overflow-y:auto;font-size:13px;font-family:monospace;}
@@ -12,6 +14,8 @@ button:disabled{opacity:.4;cursor:not-allowed;}
 </style>
 </head>
 <body>
+<div id="r-topnav-container"></div>
+<div class="main-wrap" style="padding:32px;">
 <h1>🎵 Works Import</h1>
 <p>399 eser Supabase'e yüklenecek.</p>
 <button id="btn" onclick="startImport()">▶ Import Başlat</button>
@@ -64,6 +68,7 @@ async function startImport() {
   btn.textContent = 'Tamamlandı';
 }
 </script>
+</div><!-- /main-wrap -->
 <script src="topnav.js"></script>
 </body>
 </html>
