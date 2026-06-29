@@ -183,13 +183,13 @@
   .tab-dropdown-wrap { position:relative; padding:8px 16px; }
   .tab-main-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    padding: 5px 14px; border-radius: 8px;
-    background: transparent; border: 1.5px solid var(--accent);
-    color: var(--accent); font-size: 12px; font-weight: 600;
-    cursor: pointer; font-family: inherit; transition: all .15s;
-    width: auto;
+    padding: 0; border-radius: 8px;
+    background: transparent; border: none;
+    color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: color .15s;
+    width: 44px; height: 44px;
   }
-  .tab-main-btn:hover { background: rgba(53,34,201,.12); }
+  .tab-main-btn:hover { color: #fff; background: transparent; }
   .tab-dropdown {
     display: none; position: absolute; top: calc(100% - 4px); left: 16px; right: 16px;
     background: var(--surface); border: 1px solid var(--border);
@@ -663,10 +663,10 @@ function selectWork(id) {
 
     <div class="tab-dropdown-wrap">
       <button class="tab-main-btn" id="tabMainBtn" onclick="toggleTabDropdown()">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="4" cy="10" r="2" fill="currentColor"/>
-          <circle cx="10" cy="10" r="2" fill="currentColor"/>
-          <circle cx="16" cy="10" r="2" fill="currentColor"/>
+        <svg width="24" height="24" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="4" cy="10" r="2.5" fill="currentColor"/>
+          <circle cx="10" cy="10" r="2.5" fill="currentColor"/>
+          <circle cx="16" cy="10" r="2.5" fill="currentColor"/>
         </svg>
       </button>
       <div class="tab-dropdown" id="tabDropdown">
