@@ -18,3 +18,4 @@ android/
 www/
 node_modules/
 repertuvar/
+client_secret*.json
