@@ -521,19 +521,25 @@
     aside.id = 'r-sidebar';
     aside.className = 'sidebar';
     aside.innerHTML = `
-      <div class="sb-brand">
+      <div class="sb-brand" style="display:flex;align-items:center;justify-content:space-between;">
         <img src="${logo}" alt="repertuvar.app" style="height:38px;width:auto;display:block;" data-logo="true">
+        <button id="sbThemeToggle" title="Tema değiştir" style="background:none;border:1px solid var(--border,rgba(140,120,255,0.38));border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;flex-shrink:0;">${theme === 'light' ? '🌙' : '☀️'}</button>
       </div>
       <nav class="sb-nav">${navHtml}</nav>
       <div style="flex:1"></div>
     `;
     document.body.insertBefore(aside, document.body.firstChild);
 
-    // Tema değişiminde logoyu güncelle
+    const sbThemeBtn = document.getElementById('sbThemeToggle');
+    if (sbThemeBtn) sbThemeBtn.addEventListener('click', function(e) { toggleTheme(e); });
+
+    // Tema değişiminde logoyu ve buton ikonunu güncelle
     new MutationObserver(() => {
       const t = document.documentElement.getAttribute('data-theme') || 'dark';
       const img = document.querySelector('#r-sidebar img[data-logo]');
       if (img) img.src = t === 'light' ? 'logo_light.png' : 'logo_dark.png';
+      const btn = document.getElementById('sbThemeToggle');
+      if (btn) btn.textContent = t === 'light' ? '🌙' : '☀️';
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   }
 
