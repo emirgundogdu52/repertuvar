@@ -101,19 +101,20 @@
     }
     .r-topnav .r-tn-right {
       margin-left: auto;
-      display: flex; flex-direction: row; align-items: center; gap: 8px;
+      display: flex; flex-direction: row; align-items: center; gap: 10px;
     }
     .r-tn-user {
-      display: flex; align-items: center; gap: 6px;
+      display: flex; align-items: center;
       background: rgba(124,111,255,0.12);
       border: 1px solid rgba(124,111,255,0.2);
-      border-radius: 50%; padding: 2px; width: 38px; height: 38px; justify-content: center;
+      border-radius: 50%; width: 38px; height: 38px; justify-content: center;
+      flex-shrink: 0;
     }
     .r-tn-avatar {
       width: 30px; height: 30px; border-radius: 50%;
       background: linear-gradient(135deg, #7c6fff, #a78bfa);
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
     }
     .r-tn-uname {
       font-size: 13px; font-weight: 600; color: #e2e0ff;
@@ -291,18 +292,22 @@
     [data-theme="light"] ::-webkit-scrollbar-track { background: #f5f4fb !important; }
     [data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(124,111,255,0.2) !important; }
 
-    /* ── Theme Toggle Button ── */
+    /* ── Theme Toggle Switch ── */
     .r-theme-toggle {
-      width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 50%;
-      border: 1px solid rgba(124,111,255,0.25);
-      background: rgba(124,111,255,0.1);
-      color: #a78bfa; font-size: 16px; line-height: 1;
-      display: inline-flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all .2s; flex-shrink: 0;
-      padding: 0; box-sizing: border-box;
+      position: relative; border: none; border-radius: 20px;
+      width: 46px; height: 24px; cursor: pointer; flex-shrink: 0;
+      padding: 2px; transition: background .2s;
+      background: rgba(255,255,255,0.1);
     }
-    .r-theme-toggle:hover { background: rgba(124,111,255,0.2); }
-    [data-theme="light"] .r-theme-toggle { color: #6c5ce7; background: rgba(124,111,255,0.08); }
+    [data-theme="light"] .r-theme-toggle { background: rgba(0,0,0,0.08); }
+    .r-theme-toggle .toggle-knob {
+      position: absolute; top: 2px; left: 2px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent, #7c6fff), var(--accent2, #a78bfa));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; transition: left .2s;
+    }
+    [data-theme="light"] .r-theme-toggle .toggle-knob { left: 24px; }
 
     .dt-theme-toggle {
       width: 30px; height: 30px; border-radius: 50%;
@@ -367,8 +372,8 @@
       <header class="r-topnav">
         <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
         <div class="r-tn-right">
-          <button id="rThemeToggle" title="Tema değiştir" style="position:relative;background:${_theme === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)'};border:none;border-radius:20px;width:46px;height:24px;cursor:pointer;flex-shrink:0;padding:2px;transition:background .2s;">
-            <span style="position:absolute;top:2px;left:${_theme === 'light' ? '24px' : '2px'};width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent,#7c6fff),var(--accent2,#a78bfa));display:flex;align-items:center;justify-content:center;font-size:11px;transition:left .2s;">${_theme === 'light' ? '☀️' : '🌙'}</span>
+          <button id="rThemeToggle" class="r-theme-toggle" title="Tema değiştir">
+            <span class="toggle-knob">${_theme === 'light' ? '☀️' : '🌙'}</span>
           </button>
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar"><i class="ti ti-user" style="font-size:16px;"></i></div>
@@ -528,8 +533,8 @@
       </div>
       <nav class="sb-nav">${navHtml}</nav>
       <div style="padding:8px 12px 4px;">
-        <button id="sbThemeToggle" title="Tema değiştir" style="position:relative;background:${theme === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)'};border:none;border-radius:20px;width:46px;height:24px;cursor:pointer;flex-shrink:0;padding:2px;transition:background .2s;">
-          <span style="position:absolute;top:2px;left:${theme === 'light' ? '24px' : '2px'};width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent,#7c6fff),var(--accent2,#a78bfa));display:flex;align-items:center;justify-content:center;font-size:11px;transition:left .2s;">${theme === 'light' ? '☀️' : '🌙'}</span>
+        <button id="sbThemeToggle" class="r-theme-toggle" title="Tema değiştir">
+          <span class="toggle-knob">${theme === 'light' ? '☀️' : '🌙'}</span>
         </button>
       </div>
       <div style="flex:1"></div>
@@ -546,12 +551,8 @@
       if (img) img.src = t === 'light' ? 'logo_light.png' : 'logo_dark.png';
       const btn = document.getElementById('sbThemeToggle');
       if (btn) {
-        btn.style.background = t === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)';
-        const knob = btn.querySelector('span');
-        if (knob) {
-          knob.style.left = t === 'light' ? '24px' : '2px';
-          knob.textContent = t === 'light' ? '☀️' : '🌙';
-        }
+        const knob = btn.querySelector('.toggle-knob');
+        if (knob) knob.textContent = t === 'light' ? '☀️' : '🌙';
       }
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   }
@@ -611,12 +612,11 @@
     localStorage.setItem('r_theme', theme);
     const icon = theme === 'light' ? '☀️' : '🌙';
     const isLight = theme === 'light';
-    // Mobil switch güncelle
+    // Mobil switch güncelle - CSS data-theme ile otomatik, sadece knob ikonu güncelle
     const mb = document.getElementById('rThemeToggle');
     if (mb) {
-      mb.style.background = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)';
-      const knob = mb.querySelector('span');
-      if (knob) { knob.style.left = isLight ? '24px' : '2px'; knob.textContent = icon; }
+      const knob = mb.querySelector('.toggle-knob');
+      if (knob) knob.textContent = isLight ? '☀️' : '🌙';
     }
 
     // CSS variable'ları JS ile override et (sayfa CSS'ini geçersiz kılar)
