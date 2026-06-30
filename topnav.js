@@ -294,20 +294,20 @@
 
     /* ── Theme Toggle Switch ── */
     .r-theme-toggle {
-      position: relative; border: none; border-radius: 20px;
-      width: 46px; height: 24px; cursor: pointer; flex-shrink: 0;
+      position: relative; border: none; border-radius: 16px;
+      width: 38px; height: 20px; cursor: pointer; flex-shrink: 0;
       padding: 2px; transition: background .2s;
       background: rgba(255,255,255,0.1);
     }
     [data-theme="light"] .r-theme-toggle { background: rgba(0,0,0,0.08); }
     .r-theme-toggle .toggle-knob {
       position: absolute; top: 2px; left: 2px;
-      width: 20px; height: 20px; border-radius: 50%;
+      width: 16px; height: 16px; border-radius: 50%;
       background: linear-gradient(135deg, var(--accent, #7c6fff), var(--accent2, #a78bfa));
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; transition: left .2s;
+      font-size: 9px; transition: left .2s;
     }
-    [data-theme="light"] .r-theme-toggle .toggle-knob { left: 24px; }
+    [data-theme="light"] .r-theme-toggle .toggle-knob { left: 20px; }
 
     .dt-theme-toggle {
       width: 30px; height: 30px; border-radius: 50%;
