@@ -1,5 +1,8 @@
 // Repertuvar Service Worker — offline cache
-const CACHE_NAME = 'repertuvar-v8';
+// NOT: Her önemli deploy'da CACHE_NAME'i artır (v8 → v9 → v10...) — bu, eski Service Worker'ı
+// zorla devre dışı bırakıp yenisini aktive eder. Aksi halde kullanıcıların tarayıcısında
+// haftalarca eski Service Worker aktif kalabilir ve yeni dosyaları hiç görmeyebilirler.
+const CACHE_NAME = 'repertuvar-v9';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -56,9 +59,10 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
 
   // HTML sayfaları: network-first (her zaman taze, offline fallback)
+  // cache:'no-store' → tarayıcının kendi HTTP cache'ini de atlar, gerçekten sunucudan ister
   if (e.request.headers.get('accept')?.includes('text/html')) {
     e.respondWith(
-      fetch(e.request).then((response) => {
+      fetch(e.request, { cache: 'no-store' }).then((response) => {
         if (response && response.status === 200) {
           const cloned = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(e.request, cloned));
@@ -70,8 +74,9 @@ self.addEventListener('fetch', (e) => {
   }
 
   // Diğer statik dosyalar: network-first, cache fallback
+  // cache:'no-store' → tarayıcının kendi HTTP cache'ini de atlar, gerçekten sunucudan ister
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-store' })
       .then((response) => {
         if (response && response.status === 200) {
           const cloned = response.clone();
