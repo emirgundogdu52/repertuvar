@@ -422,7 +422,7 @@
     // Mobile topnav
     const av = document.getElementById('rTnAvatar');
     const un = document.getElementById('rTnUserName');
-    if (av) av.textContent = ini;
+    // Avatar ikonu sabit kalır, sadece dropdown'daki ismi güncelle
     if (un) un.textContent = name;
     const dn = document.getElementById('rTnUserNameDisplay');
     if (dn) dn.textContent = name;
