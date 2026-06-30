@@ -180,24 +180,57 @@
     }
   } catch(e) {}
 
-  // Feat dots
+  // Feat slideshow
   (function() {
     const grid = document.querySelector('.feat-grid');
     const dotsEl = document.getElementById('featDots');
     if (!grid || !dotsEl) return;
     const cards = grid.querySelectorAll('.feat-card');
     if (window.innerWidth >= 1024) return;
+
+    let curIdx = 0;
+    let autoTimer = null;
+    let paused = false;
+
+    // Dots oluştur
     cards.forEach((_, i) => {
       const d = document.createElement('div');
       d.className = 'feat-dot' + (i === 0 ? ' active' : '');
-      d.onclick = () => { cards[i].scrollIntoView({behavior:'smooth', block:'nearest', inline:'start'}); };
+      d.onclick = () => { goTo(i); pauseFor(8000); };
       dotsEl.appendChild(d);
     });
+
+    function goTo(i) {
+      curIdx = (i + cards.length) % cards.length;
+      grid.scrollTo({ left: curIdx * grid.offsetWidth, behavior: 'smooth' });
+      dotsEl.querySelectorAll('.feat-dot').forEach((d, j) => d.classList.toggle('active', j === curIdx));
+    }
+
+    function next() { goTo(curIdx + 1); }
+
+    function startAuto() {
+      clearInterval(autoTimer);
+      autoTimer = setInterval(next, 4000);
+    }
+
+    function pauseFor(ms) {
+      clearInterval(autoTimer);
+      setTimeout(startAuto, ms);
+    }
+
+    startAuto();
+
+    // Scroll ile dot güncelle
     grid.addEventListener('scroll', () => {
-      const dots = dotsEl.querySelectorAll('.feat-dot');
-      const idx = Math.round(grid.scrollLeft / (grid.scrollWidth / cards.length));
-      dots.forEach((d, i) => d.classList.toggle('active', i === Math.min(idx, dots.length-1)));
+      const idx = Math.round(grid.scrollLeft / grid.offsetWidth);
+      if (idx !== curIdx) { curIdx = idx; dotsEl.querySelectorAll('.feat-dot').forEach((d, j) => d.classList.toggle('active', j === curIdx)); }
     });
+
+    // Swipe başlayınca duraklat
+    grid.addEventListener('touchstart', () => pauseFor(8000), { passive: true });
+
+    // Karta tıklayınca duraklat
+    cards.forEach(c => c.addEventListener('click', () => pauseFor(8000)));
   })();
 })();
 </script>
