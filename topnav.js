@@ -1,3 +1,4 @@
+/* topnav.js — v2026-06-30-switch-unified — sbThemeToggle/rThemeToggle/dtThemeToggle hepsi tek .r-theme-toggle markup'ı kullanır */
 (function() {
   // CSS inject
   const style = document.createElement('style');
