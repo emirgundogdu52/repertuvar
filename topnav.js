@@ -620,7 +620,6 @@
     }
 
     // CSS variable'ları JS ile override et (sayfa CSS'ini geçersiz kılar)
-    const isLight = theme === 'light';
     const el = document.documentElement;
     el.style.setProperty('--bg',      isLight ? '#f5f4fb' : '#07071a');
     el.style.setProperty('--bg2',     isLight ? '#ede9fb' : '#0f0f2e');
