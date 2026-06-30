@@ -524,14 +524,13 @@
       <div class="sb-brand">
         <img src="${logo}" alt="repertuvar.app" style="height:38px;width:auto;display:block;" data-logo="true">
       </div>
-      <nav class="sb-nav">${navHtml}
-        <div style="padding:10px 12px 4px;">
-          <button id="sbThemeToggle" title="Tema değiştir" style="position:relative;background:${theme === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)'};border:none;border-radius:20px;width:46px;height:24px;cursor:pointer;flex-shrink:0;padding:2px;transition:background .2s;">
-            <span style="position:absolute;top:2px;left:${theme === 'light' ? '24px' : '2px'};width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent,#7c6fff),var(--accent2,#a78bfa));display:flex;align-items:center;justify-content:center;font-size:11px;transition:left .2s;">${theme === 'light' ? '☀️' : '🌙'}</span>
-          </button>
-        </div>
-      </nav>
+      <nav class="sb-nav">${navHtml}</nav>
       <div style="flex:1"></div>
+      <div style="padding:0 14px 14px;">
+        <button id="sbThemeToggle" title="Tema değiştir" style="position:relative;background:${theme === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)'};border:none;border-radius:20px;width:46px;height:24px;cursor:pointer;flex-shrink:0;padding:2px;transition:background .2s;">
+          <span style="position:absolute;top:2px;left:${theme === 'light' ? '24px' : '2px'};width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent,#7c6fff),var(--accent2,#a78bfa));display:flex;align-items:center;justify-content:center;font-size:11px;transition:left .2s;">${theme === 'light' ? '☀️' : '🌙'}</span>
+        </button>
+      </div>
     `;
     document.body.insertBefore(aside, document.body.firstChild);
 
