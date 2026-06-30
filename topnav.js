@@ -367,9 +367,11 @@
       <header class="r-topnav">
         <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
         <div class="r-tn-right">
-          <button class="r-theme-toggle" id="rThemeToggle" title="Tema değiştir">🌙</button>
+          <button id="rThemeToggle" title="Tema değiştir" style="position:relative;background:${_theme === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)'};border:none;border-radius:20px;width:46px;height:24px;cursor:pointer;flex-shrink:0;padding:2px;transition:background .2s;">
+            <span style="position:absolute;top:2px;left:${_theme === 'light' ? '24px' : '2px'};width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent,#7c6fff),var(--accent2,#a78bfa));display:flex;align-items:center;justify-content:center;font-size:11px;transition:left .2s;">${_theme === 'light' ? '☀️' : '🌙'}</span>
+          </button>
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
-            <div class="r-tn-avatar" id="rTnAvatar">—</div>
+            <div class="r-tn-avatar" id="rTnAvatar"><i class="ti ti-user" style="font-size:16px;"></i></div>
           </div>
         </div>
       </header>
@@ -607,11 +609,15 @@
     if (window._stageActive) return;
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('r_theme', theme);
-    const icon = theme === 'light' ? '🌙' : '☀️';
+    const icon = theme === 'light' ? '☀️' : '🌙';
+    const isLight = theme === 'light';
+    // Mobil switch güncelle
     const mb = document.getElementById('rThemeToggle');
-    if (mb) mb.innerHTML = icon;
-    const db = document.getElementById('dtThemeToggle');
-    if (db) db.innerHTML = icon;
+    if (mb) {
+      mb.style.background = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)';
+      const knob = mb.querySelector('span');
+      if (knob) { knob.style.left = isLight ? '24px' : '2px'; knob.textContent = icon; }
+    }
 
     // CSS variable'ları JS ile override et (sayfa CSS'ini geçersiz kılar)
     const isLight = theme === 'light';
