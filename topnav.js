@@ -296,8 +296,9 @@
 
     /* ── Theme Toggle Switch ── */
     .r-theme-toggle {
-      position: relative; border: none; border-radius: 16px;
-      width: 38px; height: 20px; cursor: pointer; flex-shrink: 0;
+      position: relative; border: none; border-radius: 16px !important;
+      width: 38px !important; height: 20px !important; min-height: 0 !important;
+      cursor: pointer; flex-shrink: 0;
       padding: 2px; transition: background .2s;
       background: rgba(255,255,255,0.1);
     }

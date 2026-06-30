@@ -235,7 +235,7 @@
   /* ── MOBILE GLOBAL ── */
   @media (max-width: 768px) {
     body { overflow-x: hidden; max-width: 100vw; -webkit-text-size-adjust: 100%; }
-    button, a { min-height: 36px; }
+    button:not(.r-theme-toggle), a:not(.r-theme-toggle) { min-height: 36px; }
     input, select, textarea { font-size: 16px !important; } /* prevent iOS zoom */
   }
   @supports (padding: env(safe-area-inset-bottom)) {
