@@ -309,16 +309,8 @@
     }
     [data-theme="light"] .r-theme-toggle .toggle-knob { left: 20px; }
 
-    .dt-theme-toggle {
-      width: 30px; height: 30px; border-radius: 50%;
-      border: 1px solid rgba(124,111,255,0.25);
-      background: rgba(124,111,255,0.08);
-      color: #a78bfa; font-size: 14px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all .2s; flex-shrink: 0; margin-right: 4px;
-    }
-    .dt-theme-toggle:hover { background: rgba(124,111,255,0.18); }
-    [data-theme="light"] .dt-theme-toggle { color: #6c5ce7; }
+    /* Desktop topbar'daki switch'e küçük sağ boşluk */
+    .v2-desktop-topbar .r-theme-toggle { margin-right: 4px; }
     
     @media (min-width: 1024px) { .r-topnav { display: none !important; } }
     @media (min-width: 1024px) {
@@ -362,6 +354,20 @@
   `;
   document.head.appendChild(style);
 
+  // ── Theme Toggle: tek standart kaynak ──
+  // Tüm sayfalarda (sidebar, mobil header, eski desktop topbar) aynı switch.
+  function themeToggleMarkup(id, theme) {
+    return `<button id="${id}" class="r-theme-toggle" title="Tema değiştir"><span class="toggle-knob">${theme === 'light' ? '☀️' : '🌙'}</span></button>`;
+  }
+  function bindThemeToggle(id) {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', function(e) { e.stopPropagation(); window.toggleTheme(e); });
+  }
+  function syncThemeToggles(theme) {
+    const icon = theme === 'light' ? '☀️' : '🌙';
+    document.querySelectorAll('.r-theme-toggle .toggle-knob').forEach(knob => { knob.textContent = icon; });
+  }
+
   // HTML inject
   function render() {
     const container = document.getElementById('r-topnav-container');
@@ -372,9 +378,7 @@
       <header class="r-topnav">
         <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
         <div class="r-tn-right">
-          <button id="rThemeToggle" class="r-theme-toggle" title="Tema değiştir">
-            <span class="toggle-knob">${_theme === 'light' ? '☀️' : '🌙'}</span>
-          </button>
+          ${themeToggleMarkup('rThemeToggle', _theme)}
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar"><i class="ti ti-user" style="font-size:16px;"></i></div>
           </div>
@@ -404,15 +408,11 @@
       const dd = document.getElementById('dtUserDropdown');
       if (dd) dd.classList.toggle('open');
     });
-    // Tema toggle desktop
-    if (!topbar.querySelector('.dt-theme-toggle')) {
-      const themeBtn = document.createElement('button');
-      themeBtn.className = 'dt-theme-toggle';
-      themeBtn.id = 'dtThemeToggle';
-      themeBtn.title = 'Tema değiştir';
-      themeBtn.innerHTML = document.documentElement.getAttribute('data-theme') === 'light' ? '🌙' : '☀️';
-      themeBtn.addEventListener('click', function(e) { toggleTheme(e); });
-      topbar.appendChild(themeBtn);
+    // Tema toggle desktop — standart switch
+    if (!topbar.querySelector('.r-theme-toggle')) {
+      const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+      topbar.insertAdjacentHTML('beforeend', themeToggleMarkup('dtThemeToggle', theme));
+      bindThemeToggle('dtThemeToggle');
     }
     topbar.appendChild(badge);
   }
@@ -436,8 +436,7 @@
   }
 
   function attachToggle() {
-    const btn = document.getElementById('rThemeToggle');
-    if (btn) btn.addEventListener('click', function(e) { e.stopPropagation(); window.toggleTheme(e); });
+    bindThemeToggle('rThemeToggle');
   }
 
   if (document.readyState === 'loading') {
@@ -533,28 +532,15 @@
       </div>
       <nav class="sb-nav">${navHtml}</nav>
       <div style="padding:8px 12px 4px;">
-        <button id="sbThemeToggle" class="r-theme-toggle" title="Tema değiştir">
-          <span class="toggle-knob">${theme === 'light' ? '☀️' : '🌙'}</span>
-        </button>
+        ${themeToggleMarkup('sbThemeToggle', theme)}
       </div>
       <div style="flex:1"></div>
     `;
     document.body.insertBefore(aside, document.body.firstChild);
 
-    const sbThemeBtn = document.getElementById('sbThemeToggle');
-    if (sbThemeBtn) sbThemeBtn.addEventListener('click', function(e) { toggleTheme(e); });
+    bindThemeToggle('sbThemeToggle');
 
-    // Tema değişiminde logoyu ve buton ikonunu güncelle
-    new MutationObserver(() => {
-      const t = document.documentElement.getAttribute('data-theme') || 'dark';
-      const img = document.querySelector('#r-sidebar img[data-logo]');
-      if (img) img.src = t === 'light' ? 'logo_light.png' : 'logo_dark.png';
-      const btn = document.getElementById('sbThemeToggle');
-      if (btn) {
-        const knob = btn.querySelector('.toggle-knob');
-        if (knob) knob.textContent = t === 'light' ? '☀️' : '🌙';
-      }
-    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    // Logo, tema değişiminde otomatik güncellenir (bkz. applyTheme)
   }
 
   // ── Bottom nav render — mobilde otomatik ──
@@ -610,14 +596,9 @@
     if (window._stageActive) return;
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('r_theme', theme);
-    const icon = theme === 'light' ? '☀️' : '🌙';
     const isLight = theme === 'light';
-    // Mobil switch güncelle - CSS data-theme ile otomatik, sadece knob ikonu güncelle
-    const mb = document.getElementById('rThemeToggle');
-    if (mb) {
-      const knob = mb.querySelector('.toggle-knob');
-      if (knob) knob.textContent = isLight ? '☀️' : '🌙';
-    }
+    // DOM'daki TÜM toggle switch'leri (sidebar, mobil header, eski desktop topbar) tek noktadan güncelle
+    syncThemeToggles(theme);
 
     // CSS variable'ları JS ile override et (sayfa CSS'ini geçersiz kılar)
     const el = document.documentElement;
