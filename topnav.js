@@ -3,6 +3,8 @@
   const style = document.createElement('style');
   style.textContent = `
     html, body { overflow-x: hidden !important; max-width: 100% !important; }
+    /* Yetki sistemi: TEK kaynak — her sayfada, her genişlikte geçerli. authReady'de admin/editör ise gösterilir. */
+    .admin-only { display: none; }
     /* ── Sidebar (desktop ≥1024px) ── */
     @media (min-width: 1024px) {
       body { display: flex; }
@@ -50,7 +52,6 @@
         transition: opacity .15s;
       }
       .sb-stage:hover { opacity: .9; }
-      .admin-only { display: none; }
       /* main-wrap'i sidebar genişliği kadar it */
       .main-wrap, .v2-main-wrap { margin-left: 220px; flex: 1; min-width: 0; }
     }
