@@ -20,6 +20,25 @@
   --bottom-h:   72px;
 }
 
+/* ── Açık tema fallback (saf CSS) ──
+   topnav.js normalde bu değişkenleri JS ile de set eder (el.style.setProperty),
+   ama JS herhangi bir sebeple gecikirse/başarısız olursa diye burada da tanımlı —
+   böylece açık tema hiçbir zaman "yarım" kalmaz. */
+[data-theme="light"] {
+  --bg:       #f5f4fb;
+  --bg2:      #ede9fb;
+  --surface:  #ffffff;
+  --surface2: #f0eeff;
+  --text:     #1a1733;
+  --text2:    #4a4570;
+  --text3:    #9390b0;
+  --border:   rgba(124,111,255,0.18);
+  --border2:  rgba(124,111,255,0.32);
+  --accent:   #6c5ce7;
+  --accent2:  #8b7af0;
+  --accent3:  #5541d7;
+}
+
 body {
   background: var(--bg);
   font-family: 'Plus Jakarta Sans', sans-serif;
