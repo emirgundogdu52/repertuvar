@@ -427,7 +427,7 @@ body {
   position: relative; z-index: 1;
 }
 @media (max-width: 1023px) {
-  .hero-section { padding: 10px 16px 10px; }
+  .hero-section { padding: 20px 16px 10px; }
 }
 .hero-greeting { font-size: 12px; font-weight: 600; color: var(--accent2); margin-bottom: 6px; }
 .hero-title em.hero-title-sub {
