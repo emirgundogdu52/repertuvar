@@ -419,6 +419,10 @@ async function addWork(){
   if(!selWId){alert('Lütfen bir eser seçin.');return;}
   const rep=getRep(addRepId);if(!rep)return;
   const items=rep.items||[];
+  if(items.some(i=>String(i.workId)===String(selWId))){
+    toast('Bu eser zaten bu repertuvarda mevcut','er');
+    return;
+  }
   const nextSeq=items.length?Math.max(...items.map(i=>i.seq))+1:1;
   sync('spin','Ekleniyor...');
   try{
