@@ -119,8 +119,10 @@ window.syncOfflineData = async function() {
 
 // Sayfa yüklenince service worker kaydet ve sync yap
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js').then(() => {
+  navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' }).then((reg) => {
     console.log('[SW] Kayıtlı');
+    // Sayfa her açıldığında yeni bir sürüm var mı diye zorla kontrol et
+    reg.update();
   }).catch((e) => console.warn('[SW] Kayıt hatası:', e));
 }
 
