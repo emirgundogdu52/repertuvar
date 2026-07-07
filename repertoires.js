@@ -312,7 +312,7 @@ async function delRep(id){
   try{await dbDel('repertoires',id);if(selId===id)selId=null;toast('Silindi');await load();}catch(e){toast(e.message,'er');}
 }
 
-function openWM(repId){addRepId=repId;selWId=null;document.getElementById('ws').value='';document.getElementById('fCN').value='';document.getElementById('fIN').value='';document.getElementById('wpl').style.maxHeight='';filterW();document.getElementById('wm').style.display='flex';setTimeout(()=>document.getElementById('ws').focus(),50);}
+function openWM(repId){addRepId=repId;selWId=null;document.getElementById('ws').value='';document.getElementById('fCN').value='';document.getElementById('fIN').value='';document.getElementById('wpl').style.maxHeight='';const dw=document.getElementById('wDupWarn');if(dw)dw.style.display='none';filterW();document.getElementById('wm').style.display='flex';setTimeout(()=>document.getElementById('ws').focus(),50);}
 
 // ── İCRACILAR TAG UI ──
 let pfSelected = []; // seçili sanatçılar
@@ -395,6 +395,7 @@ function filterW(){
 }
 function pickW(id){
   selWId=id;
+  const dw=document.getElementById('wDupWarn');if(dw)dw.style.display='none';
   const w=WL[id];
   if(!w) return filterW();
   // Eser adını arama kutusuna yaz
@@ -420,7 +421,8 @@ async function addWork(){
   const rep=getRep(addRepId);if(!rep)return;
   const items=rep.items||[];
   if(items.some(i=>String(i.workId)===String(selWId))){
-    toast('Bu eser zaten bu repertuvarda mevcut','er');
+    const dw=document.getElementById('wDupWarn');
+    if(dw)dw.style.display='block';
     return;
   }
   const nextSeq=items.length?Math.max(...items.map(i=>i.seq))+1:1;
