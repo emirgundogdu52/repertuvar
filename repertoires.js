@@ -225,6 +225,7 @@ function renderDetail(){
       <div class="mobile-back-btn" onclick="goBackToList()" style="display:none;margin:-10px -14px 8px;padding:8px 14px;" id="mobileBackBtn">← Repertuvar Listesi</div>
       <div style="margin-bottom:6px;">
         <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:6px;">${rep.name}</div>
+        <div class="da-wrap">
         <div class="da" style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;">
           <a href="stage.html" class="bi bstage" style="white-space:nowrap;font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:14px;" aria-hidden="true"></i> Sahneye Çık</a>
           ${rep.isOwner ? `
@@ -236,6 +237,8 @@ function renderDetail(){
           ` : `
           <button class="baw" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="copyRep('${rep.id}')"><i class="ti ti-copy" style="font-size:14px;" aria-hidden="true"></i> Kopyala</button>
           `}
+        </div>
+        <div class="da-fade" aria-hidden="true"></div>
         </div>
       </div>
       <div class="dmr" style="gap:8px;padding-bottom:4px;flex-wrap:nowrap;overflow-x:auto;">

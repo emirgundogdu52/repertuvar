@@ -44,6 +44,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .did{font-size:11px;color:var(--text3);margin-bottom:4px;}
 .dn{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;color:var(--text);}
 .da{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;}
+.da-wrap{position:relative;}
+.da-fade{position:absolute;top:0;right:0;bottom:0;width:26px;pointer-events:none;background:linear-gradient(to right,transparent,var(--surface) 75%);border-radius:0 6px 6px 0;display:none;}
+@media (max-width:1023px){.da-fade{display:block;}}
 .bi{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;text-decoration:none;display:inline-block;}
 .bi:hover{border-color:var(--border2);color:var(--text);}
 .bd{border-color:rgba(192,84,68,.3);color:var(--red);}
