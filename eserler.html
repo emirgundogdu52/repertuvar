@@ -961,6 +961,18 @@ function saveCustomWorks(arr) {
 
 let editingWorkId = null;
 
+function switchNeTab(name) {
+  ['lyrics','details','basic'].forEach(t => {
+    const panel = document.getElementById('neTabPanel_' + t);
+    const btn = document.querySelector('.ne-tab-btn[data-tab="' + t + '"]');
+    if (panel) panel.style.display = (t === name) ? 'grid' : 'none';
+    if (btn) {
+      if (t === name) { btn.style.borderBottomColor = 'var(--accent)'; btn.style.color = 'var(--text)'; }
+      else { btn.style.borderBottomColor = 'transparent'; btn.style.color = 'var(--text2)'; }
+    }
+  });
+}
+
 function openNewEserModal() {
   editingWorkId = null;
   document.getElementById('modalTitle').textContent = '+ Yeni Eser Ekle';
@@ -968,6 +980,8 @@ function openNewEserModal() {
    'ne_tuning','ne_instrument','ne_region','ne_sourcePerson','ne_videoLink','ne_lyrics','ne_chords']
     .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   setLyricsValue('');
+  document.getElementById('ne_visPublic').checked = true;
+  switchNeTab('lyrics');
   document.getElementById('newEserModal').style.display = 'flex';
 }
 
@@ -988,6 +1002,9 @@ function openEditEserModal(id) {
     if (el) el.value = val || '';
   });
   setLyricsValue(w.lyrics || '');
+  if (w.is_public === false) document.getElementById('ne_visPrivate').checked = true;
+  else document.getElementById('ne_visPublic').checked = true;
+  switchNeTab('lyrics');
   document.getElementById('newEserModal').style.display = 'flex';
 }
 function closeNewEserModal() {
@@ -1062,7 +1079,8 @@ function lyricsInsert(text) {
 
 function saveNewEser() {
   const name = document.getElementById('ne_name').value.trim();
-  if (!name) { alert('Eser adı zorunludur.'); return; }
+  if (!name) { switchNeTab('lyrics'); alert('Eser adı zorunludur.'); return; }
+  const isPublic = document.getElementById('ne_visPublic').checked;
 
   const fields = {
     name,
@@ -1078,6 +1096,7 @@ function saveNewEser() {
     videoLink:    document.getElementById('ne_videoLink').value.trim(),
     lyrics:       getLyricsValue().trim(),
     chords:       (document.getElementById('ne_chords')?.value || '').trim(),
+    isPublic,
     metronom: '', area: '', closingNote: '', genre: '', _custom: true
   };
 
@@ -1096,7 +1115,8 @@ function saveNewEser() {
       source_person: fields.sourcePerson,
       video_link: fields.videoLink,
       lyrics: fields.lyrics,
-      chords: fields.chords
+      chords: fields.chords,
+      is_public: fields.isPublic
     };
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
     fetch(SUPA_URL + '/rest/v1/works?id=eq.' + editingWorkId, {
@@ -1113,7 +1133,7 @@ function saveNewEser() {
       if (r.ok || r.status === 204) {
         // DATA'yı güncelle
         const idx = DATA.findIndex(x => x.id === editingWorkId);
-        if (idx > -1) Object.assign(DATA[idx], fields);
+        if (idx > -1) Object.assign(DATA[idx], fields, { is_public: fields.isPublic });
         closeNewEserModal();
         buildFilters();
         applyFilters();
@@ -1142,6 +1162,8 @@ function saveNewEser() {
       source_person: fields.sourcePerson,
       video_link: fields.videoLink,
       lyrics: fields.lyrics,
+      chords: fields.chords,
+      is_public: fields.isPublic,
       status,
       submitted_by: getUserId(),
       submitter_email: getUser()?.email || '',
@@ -1513,23 +1535,29 @@ function openSuggestModal() {
       <h2 id="modalTitle" style="font-size:16px;font-weight:600;color:var(--text);">+ Yeni Eser Ekle</h2>
       <button onclick="closeNewEserModal()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;">✕</button>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div style="grid-column:1/-1;"><label style="font-size:12px;color:var(--text2);">Eser Adı *</label><input id="ne_name" placeholder="Eser adı..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Besteci</label><input id="ne_composer" placeholder="Besteci..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Güftekâr</label><input id="ne_lyricWriter" placeholder="Güftekâr..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Makam</label><input id="ne_makam" placeholder="Makam..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Usul</label><input id="ne_measurement" placeholder="Usul..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Form</label><input id="ne_form" placeholder="Form..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Akort</label><input id="ne_tuning" placeholder="Akort..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Enstrüman</label><input id="ne_instrument" placeholder="Enstrüman..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Yöre/Bölge</label><input id="ne_region" placeholder="Yöre..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Kaynak Kişi</label><input id="ne_sourcePerson" placeholder="Kaynak..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div style="grid-column:1/-1;"><label style="font-size:12px;color:var(--text2);">Video Linki</label><input id="ne_videoLink" placeholder="https://..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div style="grid-column:1/-1;">
-        <label style="font-size:12px;color:var(--text2);">Akorlar <span style="color:var(--text3);font-weight:300;">(opsiyonel — %% ile başlayan satırlar akor satırı)</span></label>
-        <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="%%Am  Dm&#10;Sabahtan kalktım yıkadım yüzüm" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:100px;resize:vertical;"></textarea>
-      </div>
-      <div style="grid-column:1/-1;">
+    <div>
+    <div style="display:flex;gap:10px;margin-bottom:18px;">
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);flex:1;transition:all .15s;" id="ne_visPublicLabel">
+        <input type="radio" name="ne_visibility" id="ne_visPublic" value="public" checked style="accent-color:var(--accent);width:15px;height:15px;">
+        <span style="font-size:13px;color:var(--text2);">🌐 <strong>Public</strong> — Herkes görebilir</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);flex:1;transition:all .15s;" id="ne_visPrivateLabel">
+        <input type="radio" name="ne_visibility" id="ne_visPrivate" value="private" style="accent-color:var(--accent);width:15px;height:15px;">
+        <span style="font-size:13px;color:var(--text2);">🔒 <strong>Private</strong> — Sadece sen</span>
+      </label>
+    </div>
+
+    <!-- SEKMELER -->
+    <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;">
+      <button type="button" class="ne-tab-btn" data-tab="lyrics" onclick="switchNeTab('lyrics')" style="padding:9px 14px;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">Güfte</button>
+      <button type="button" class="ne-tab-btn" data-tab="details" onclick="switchNeTab('details')" style="padding:9px 14px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;">İcra Detayları</button>
+      <button type="button" class="ne-tab-btn" data-tab="basic" onclick="switchNeTab('basic')" style="padding:9px 14px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;">Temel Bilgiler</button>
+    </div>
+
+    <!-- TAB 1 (gösterim sırası): GÜFTE -->
+    <div id="neTabPanel_lyrics" class="ne-tab-panel" style="display:grid;grid-template-columns:1fr;gap:12px;">
+      <div><label style="font-size:12px;color:var(--text2);">Eser Adı *</label><input id="ne_name" placeholder="Eser adı..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
+      <div>
       <label style="font-size:12px;color:var(--text2);">Güfte</label>
       <div style="margin-top:6px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
         <!-- Toolbar -->
@@ -1565,10 +1593,33 @@ function openSuggestModal() {
         </div>
         <!-- Editable area -->
         <div id="ne_lyrics_editor" contenteditable="true" placeholder="Güfte metni..." 
-          style="min-height:200px;max-height:400px;overflow-y:auto;padding:12px;background:var(--surface2);color:var(--text);font-size:14px;line-height:1.8;font-family:'Sora',sans-serif;outline:none;white-space:pre-wrap;">
+          style="min-height:280px;max-height:480px;overflow-y:auto;padding:12px;background:var(--surface2);color:var(--text);font-size:14px;line-height:1.8;font-family:'Sora',sans-serif;outline:none;white-space:pre-wrap;">
         </div>
       </div>
       <input type="hidden" id="ne_lyrics">
+      </div>
+    </div>
+
+    <!-- TAB 2 (gösterim sırası): İCRA DETAYLARI -->
+    <div id="neTabPanel_details" class="ne-tab-panel" style="display:none;grid-template-columns:1fr 1fr;gap:12px;">
+      <div><label style="font-size:12px;color:var(--text2);">Akort</label><input id="ne_tuning" placeholder="Akort..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
+      <div><label style="font-size:12px;color:var(--text2);">Enstrüman</label><input id="ne_instrument" placeholder="Enstrüman..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
+      <div style="grid-column:1/-1;"><label style="font-size:12px;color:var(--text2);">Video Linki</label><input id="ne_videoLink" placeholder="https://..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
+      <div style="grid-column:1/-1;">
+        <label style="font-size:12px;color:var(--text2);">Akorlar <span style="color:var(--text3);font-weight:300;">(opsiyonel — %% ile başlayan satırlar akor satırı)</span></label>
+        <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="%%Am  Dm&#10;Sabahtan kalktım yıkadım yüzüm" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:100px;resize:vertical;"></textarea>
+      </div>
+    </div>
+
+    <!-- TAB 3 (gösterim sırası): TEMEL BİLGİLER -->
+    <div id="neTabPanel_basic" class="ne-tab-panel" style="display:none;grid-template-columns:1fr 1fr;gap:12px;">
+      <div><label style="font-size:12px;color:var(--text2);">Besteci</label><input id="ne_composer" placeholder="Besteci..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
+      <div><label style="font-size:12px;color:var(--text2);">Güftekâr</label><input id="ne_lyricWriter" placeholder="Güftekâr..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
+      <div><label style="font-size:12px;color:var(--text2);">Makam</label><input id="ne_makam" placeholder="Makam..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
+      <div><label style="font-size:12px;color:var(--text2);">Usul</label><input id="ne_measurement" placeholder="Usul..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
+      <div><label style="font-size:12px;color:var(--text2);">Form</label><input id="ne_form" placeholder="Form..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
+      <div><label style="font-size:12px;color:var(--text2);">Yöre/Bölge</label><input id="ne_region" placeholder="Yöre..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
+      <div style="grid-column:1/-1;"><label style="font-size:12px;color:var(--text2);">Kaynak Kişi</label><input id="ne_sourcePerson" placeholder="Kaynak..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
     </div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
