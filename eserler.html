@@ -1547,7 +1547,7 @@ function openSuggestModal() {
 </div>
 
 <!-- YENİ ESER MODAL -->
-<div id="newEserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:flex-start;">
+<div id="newEserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:flex-start;justify-content:center;padding-top:6vh;overflow-y:auto;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;width:min(560px,92vw);max-height:85vh;overflow-y:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
       <h2 id="modalTitle" style="font-size:16px;font-weight:600;color:var(--text);">+ Yeni Eser Ekle</h2>
@@ -1573,7 +1573,7 @@ function openSuggestModal() {
     </div>
 
     <!-- TAB 1 (gösterim sırası): GÜFTE -->
-    <div id="neTabPanel_lyrics" class="ne-tab-panel" style="display:grid;grid-template-columns:1fr;gap:12px;">
+    <div id="neTabPanel_lyrics" class="ne-tab-panel" style="display:grid;grid-template-columns:1fr;gap:12px;min-height:460px;align-content:start;">
       <div><label style="font-size:12px;color:var(--text2);">Eser Adı *</label><input id="ne_name" placeholder="Eser adı..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
       <div>
       <label style="font-size:12px;color:var(--text2);">Güfte</label>
@@ -1602,9 +1602,12 @@ function openSuggestModal() {
           <button type="button" onclick="lyricsInsert('❗ ')" title="İmleci satır başına koyup tıklayın — o satır dikkat çekecek şekilde vurgulanır" style="padding:0 8px;height:28px;border-radius:5px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;" onmouseover="this.style.background='rgba(239,68,68,.16)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">❗ Önemli Satır</button>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
           <span style="font-size:11px;color:var(--text3);margin-right:4px;font-weight:600;letter-spacing:.05em;">ÖZEL</span>
-          <button type="button" onclick="lyricsInsert('[]')"   title="Köşeli parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">[ ]</button>
-          <button type="button" onclick="lyricsInsert('{ }')"   title="Süslü parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">{ }</button>
-          <button type="button" onclick="lyricsInsert('( )')"   title="Parantez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">( )</button>
+          <button type="button" onclick="lyricsInsert('[')"   title="Köşeli parantez aç" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">[</button>
+          <button type="button" onclick="lyricsInsert(']')"   title="Köşeli parantez kapa" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">]</button>
+          <button type="button" onclick="lyricsInsert('{')"   title="Süslü parantez aç" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">{</button>
+          <button type="button" onclick="lyricsInsert('}')"   title="Süslü parantez kapa" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">}</button>
+          <button type="button" onclick="lyricsInsert('(')"   title="Parantez aç" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">(</button>
+          <button type="button" onclick="lyricsInsert(')')"   title="Parantez kapa" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">)</button>
           <button type="button" onclick="lyricsInsert('>>')"    title="Çift ok" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">>></button>
           <button type="button" onclick="lyricsInsert('2X')"    title="2 kez tekrar" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">2X</button>
           <button type="button" onclick="lyricsInsert('3X')"    title="3 kez tekrar" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">3X</button>
@@ -1621,7 +1624,7 @@ function openSuggestModal() {
     </div>
 
     <!-- TAB 2 (gösterim sırası): İCRA DETAYLARI -->
-    <div id="neTabPanel_details" class="ne-tab-panel" style="display:none;grid-template-columns:1fr 1fr;gap:12px;">
+    <div id="neTabPanel_details" class="ne-tab-panel" style="display:none;grid-template-columns:1fr 1fr;gap:12px;min-height:460px;align-content:start;">
       <div><label style="font-size:12px;color:var(--text2);">Akort</label><input id="ne_tuning" placeholder="Akort..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
       <div><label style="font-size:12px;color:var(--text2);">Enstrüman</label><input id="ne_instrument" placeholder="Enstrüman..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
       <div style="grid-column:1/-1;"><label style="font-size:12px;color:var(--text2);">Video Linki</label><input id="ne_videoLink" placeholder="https://..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
@@ -1632,7 +1635,7 @@ function openSuggestModal() {
     </div>
 
     <!-- TAB 3 (gösterim sırası): TEMEL BİLGİLER -->
-    <div id="neTabPanel_basic" class="ne-tab-panel" style="display:none;grid-template-columns:1fr 1fr;gap:12px;">
+    <div id="neTabPanel_basic" class="ne-tab-panel" style="display:none;grid-template-columns:1fr 1fr;gap:12px;min-height:460px;align-content:start;">
       <div><label style="font-size:12px;color:var(--text2);">Besteci</label><input id="ne_composer" placeholder="Besteci..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
       <div><label style="font-size:12px;color:var(--text2);">Güftekâr</label><input id="ne_lyricWriter" placeholder="Güftekâr..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
       <div><label style="font-size:12px;color:var(--text2);">Makam</label><input id="ne_makam" placeholder="Makam..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
