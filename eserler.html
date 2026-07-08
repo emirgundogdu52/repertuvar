@@ -253,9 +253,14 @@
     #newEserModal > div > div[style*="grid-template-columns"] {
       grid-template-columns: 1fr !important;
     }
-    .ne-tab-panel { min-height: 400px !important; }
-    #ne_lyrics_editor { min-height: 380px !important; max-height: 380px !important; }
-    #ne_chords { height: 380px !important; }
+    .ne-tab-panel { min-height: 380px !important; }
+    #ne_lyrics_editor { min-height: 420px !important; max-height: 420px !important; }
+    #ne_chords { height: 420px !important; }
+    /* Toolbar'daki "FORMAT"/"ÖZEL" gibi grup etiketlerini gizle — yer kazanıp
+       satır sayısını azaltır, böylece Güfte sekmesi gereksiz uzamaz */
+    #lyricsToolbar > span { display: none !important; }
+    #lyricsToolbar { padding: 4px 6px !important; gap: 1px !important; }
+    #lyricsToolbar button { height: 24px !important; }
   }
 
 
