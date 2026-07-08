@@ -261,7 +261,7 @@
     #newEserModal > div > div[style*="grid-template-columns"] {
       grid-template-columns: 1fr !important;
     }
-    #neTabPanelsWrap { height: 470px !important; overflow-y: auto !important; }
+    #neTabPanelsWrap { height: 500px !important; overflow-y: auto !important; }
     .ne-tab-panel { min-height: 0 !important; gap: 8px !important; align-content: start !important; }
     #ne_lyrics_editor { min-height: 300px !important; max-height: 300px !important; }
     #ne_chords { height: 300px !important; }
@@ -987,8 +987,19 @@ function switchNeTab(name) {
     const btn = document.querySelector('.ne-tab-btn[data-tab="' + t + '"]');
     if (panel) panel.style.display = (t === name) ? 'grid' : 'none';
     if (btn) {
-      if (t === name) { btn.style.borderBottomColor = 'var(--accent)'; btn.style.color = 'var(--text)'; }
-      else { btn.style.borderBottomColor = 'transparent'; btn.style.color = 'var(--text2)'; }
+      if (t === name) {
+        btn.style.background = 'var(--surface)';
+        btn.style.color = 'var(--text)';
+        btn.style.fontWeight = '700';
+        btn.style.borderBottom = '1px solid var(--surface)';
+        btn.style.top = '1px';
+      } else {
+        btn.style.background = 'var(--surface2)';
+        btn.style.color = 'var(--text2)';
+        btn.style.fontWeight = '600';
+        btn.style.borderBottom = 'none';
+        btn.style.top = '0';
+      }
     }
   });
 }
@@ -1586,10 +1597,10 @@ function openSuggestModal() {
     </div>
 
     <!-- SEKMELER -->
-    <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;">
-      <button type="button" class="ne-tab-btn" data-tab="lyrics" onclick="switchNeTab('lyrics')" style="padding:9px 14px;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">Güfte</button>
-      <button type="button" class="ne-tab-btn" data-tab="details" onclick="switchNeTab('details')" style="padding:9px 14px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;">İcra Detayları</button>
-      <button type="button" class="ne-tab-btn" data-tab="basic" onclick="switchNeTab('basic')" style="padding:9px 14px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;">Temel Bilgiler</button>
+    <div style="display:flex;gap:3px;border-bottom:1px solid var(--border);margin-bottom:16px;">
+      <button type="button" class="ne-tab-btn" data-tab="lyrics" onclick="switchNeTab('lyrics')" style="padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-bottom:1px solid var(--surface);border-radius:10px 10px 0 0;color:var(--text);font-size:13px;font-weight:700;cursor:pointer;position:relative;top:1px;">Güfte</button>
+      <button type="button" class="ne-tab-btn" data-tab="details" onclick="switchNeTab('details')" style="padding:10px 16px;background:var(--surface2);border:1px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;position:relative;top:0;">İcra Detayları</button>
+      <button type="button" class="ne-tab-btn" data-tab="basic" onclick="switchNeTab('basic')" style="padding:10px 16px;background:var(--surface2);border:1px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;position:relative;top:0;">Temel Bilgiler</button>
     </div>
 
     <div id="neTabPanelsWrap">
