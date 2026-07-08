@@ -4,9 +4,19 @@
 const DB_NAME = 'RepertuvarDB';
 const DB_VERSION = 1;
 
+// Bazı ortamlarda (Safari Isolatiemodus/Lockdown Mode, bazı private-mod durumları,
+// eski tarayıcılar) indexedDB global nesnesi hiç mevcut olmayabilir.
+// Bu durumda offline önbellekleme sessizce devre dışı kalır, ama site online
+// modda (Supabase fetch) çalışmaya devam eder — hiçbir yerde hata fırlatılmaz.
+const HAS_IDB = (typeof indexedDB !== 'undefined');
+if (!HAS_IDB) {
+  console.warn('[db] IndexedDB bu ortamda kullanılamıyor — offline önbellekleme devre dışı, site online modda çalışmaya devam edecek.');
+}
+
 let _db = null;
 
 function openDB() {
+  if (!HAS_IDB) return Promise.reject(new Error('IndexedDB yok'));
   if (_db) return Promise.resolve(_db);
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -45,25 +55,41 @@ function storeOp(storeName, mode, fn) {
 
 function makeStore(storeName) {
   return {
-    getAll: () => storeOp(storeName, 'readonly', (s) => s.getAll()),
-    get: (id) => storeOp(storeName, 'readonly', (s) => s.get(id)),
-    save: (item) => storeOp(storeName, 'readwrite', (s) => s.put(item)),
-    saveAll: (items) => openDB().then((db) => new Promise((resolve, reject) => {
-      const tx = db.transaction(storeName, 'readwrite');
-      const store = tx.objectStore(storeName);
-      items.forEach((item) => store.put(item));
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    })),
-    delete: (id) => storeOp(storeName, 'readwrite', (s) => s.delete(id)),
-    clear: () => storeOp(storeName, 'readwrite', (s) => s.clear()),
+    getAll: () => HAS_IDB
+      ? storeOp(storeName, 'readonly', (s) => s.getAll()).catch((e) => { console.warn('[db] getAll hatası:', e); return []; })
+      : Promise.resolve([]),
+    get: (id) => HAS_IDB
+      ? storeOp(storeName, 'readonly', (s) => s.get(id)).catch((e) => { console.warn('[db] get hatası:', e); return undefined; })
+      : Promise.resolve(undefined),
+    save: (item) => HAS_IDB
+      ? storeOp(storeName, 'readwrite', (s) => s.put(item)).catch((e) => { console.warn('[db] save hatası:', e); })
+      : Promise.resolve(),
+    saveAll: (items) => HAS_IDB
+      ? openDB().then((db) => new Promise((resolve, reject) => {
+          const tx = db.transaction(storeName, 'readwrite');
+          const store = tx.objectStore(storeName);
+          items.forEach((item) => store.put(item));
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        })).catch((e) => { console.warn('[db] saveAll hatası:', e); })
+      : Promise.resolve(),
+    delete: (id) => HAS_IDB
+      ? storeOp(storeName, 'readwrite', (s) => s.delete(id)).catch((e) => { console.warn('[db] delete hatası:', e); })
+      : Promise.resolve(),
+    clear: () => HAS_IDB
+      ? storeOp(storeName, 'readwrite', (s) => s.clear()).catch((e) => { console.warn('[db] clear hatası:', e); })
+      : Promise.resolve(),
   };
 }
 
 // Meta store — son sync zamanı vb.
 const meta = {
-  get: (key) => storeOp('meta', 'readonly', (s) => s.get(key)).then((r) => r?.value),
-  set: (key, value) => storeOp('meta', 'readwrite', (s) => s.put({ key, value })),
+  get: (key) => HAS_IDB
+    ? storeOp('meta', 'readonly', (s) => s.get(key)).then((r) => r?.value).catch(() => undefined)
+    : Promise.resolve(undefined),
+  set: (key, value) => HAS_IDB
+    ? storeOp('meta', 'readwrite', (s) => s.put({ key, value })).catch((e) => { console.warn('[db] meta.set hatası:', e); })
+    : Promise.resolve(),
 };
 
 // Ana export
