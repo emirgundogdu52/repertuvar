@@ -12,6 +12,70 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <link rel="manifest" href="manifest.json">
   <script src="db.js"></script>
+  <style>
+    /* ═══ index.html'e özgü altın/lacivert/neon tema — style.css'e dokunmuyor ═══ */
+    :root {
+      --bg:        #0b1020;
+      --bg2:       #090d19;
+      --surface:   #151c35;
+      --surface2:  #202943;
+      --border:    rgba(255,204,51,0.14);
+      --accent:    #ffcc33;   /* altın sarısı — ana renk */
+      --accent2:   #8B7CFF;   /* neon mor/mavi — ikincil detay */
+      --accent3:   #B9A6FF;
+      --text:      #ffffff;
+      --text2:     #b8bfd3;
+      --text3:     #7d84a3;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif;
+    }
+    .hero-title, .hero-btn-primary { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif; }
+    .hero-title-sub { color: var(--accent); font-style: normal; }
+    .hero-btn-primary {
+      background: var(--accent);
+      color: #111;
+      border-radius: 30px;
+      box-shadow: 0 10px 30px rgba(255,204,51,0.25);
+    }
+    .hero-btn-secondary { border-color: var(--accent2); color: var(--accent2); }
+
+    /* Hafif giriş animasyonları */
+    @keyframes heroFadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    .hero-greeting, .hero-title, .hero-sub, .hero-actions { animation: heroFadeUp .7s ease both; }
+    .hero-title  { animation-delay: .05s; }
+    .hero-sub    { animation-delay: .12s; }
+    .hero-actions{ animation-delay: .18s; }
+
+    /* ═══ İki kolonlu hero: metin solda, uygulama önizlemesi sağda ═══ */
+    .hero-section {
+      display: flex; align-items: center; gap: 50px; flex-wrap: wrap;
+    }
+    .hero-text { flex: 1 1 320px; }
+    @media (max-width: 900px) { .hero-section { flex-direction: column; } }
+
+    @keyframes previewFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes glowPulse { 0%,100% { opacity:.5; transform:scale(1); } 50% { opacity:.8; transform:scale(1.05); } }
+
+    .hero-preview-wrap { flex: 1 1 320px; position: relative; animation: heroFadeUp .8s ease .22s both; }
+    .hero-preview-glow {
+      position:absolute; inset:-25px; border-radius:32px;
+      background: radial-gradient(circle, rgba(255,204,51,.28), rgba(139,124,255,.2) 55%, transparent 75%);
+      filter: blur(28px); animation: glowPulse 4.5s ease-in-out infinite; z-index:0;
+    }
+    .hero-preview {
+      position:relative; z-index:1; background:var(--surface); border-radius:25px; padding:22px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.5); animation: previewFloat 6s ease-in-out infinite;
+    }
+    .hero-preview-screen { background:var(--bg2); border-radius:15px; padding:20px; }
+    .hero-preview-screen h4 { font-size:14px; font-weight:700; color:var(--text); margin-bottom:14px; }
+    .hero-preview-song {
+      background:var(--surface2); margin:10px 0; padding:12px 14px; border-radius:10px;
+      display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--text2);
+    }
+    .hero-preview-song b { color:var(--text); font-weight:600; }
+    .hero-preview-song span { color:var(--accent); font-weight:700; font-size:12px; }
+  </style>
 </head>
 <body>
 <div class="bg-glow"></div>
@@ -26,12 +90,28 @@
 
     <!-- HERO -->
     <div class="hero-section">
+      <div class="hero-text">
       <div class="hero-greeting" id="heroGreeting">Hoşgeldiniz 👋</div>
       <div class="hero-title">Neyi okuyalım, ne çalalım?<br><em class="hero-title-sub">sorusuna bir daha takılmayın!..</em></div>
       <div class="hero-sub">Sevdiğiniz eserleri bir kez düzenleyip kaydedin... Sonra bilgisayardan, tabletten veya telefondan her zaman her yerde ulaşın... <strong>İnternet bağlantınız kopsa bile sistem çalışmaya devam eder!… <i class="ti ti-wifi-off" style="color:var(--text2);font-size:1.2em;vertical-align:-2px;"></i></strong></div>
       <div class="hero-actions">
         <a href="repertoires.html" class="hero-btn-primary">Repertuvarlara Bak →</a>
         <a href="eserler.html?new=1" class="hero-btn-secondary">+ Eser Ekle</a>
+      </div>
+      </div>
+
+      <!-- UYGULAMA ÖNİZLEME PANELİ -->
+      <div class="hero-preview-wrap">
+        <div class="hero-preview-glow"></div>
+        <div class="hero-preview">
+          <div class="hero-preview-screen">
+            <h4>🎵 Konser Repertuvarı</h4>
+            <div class="hero-preview-song"><b>1. Uzun İnce Bir Yoldayım</b><span>Am</span></div>
+            <div class="hero-preview-song"><b>2. Çökertme</b><span>Dm</span></div>
+            <div class="hero-preview-song"><b>3. Fidayda</b><span>Gm</span></div>
+            <div class="hero-preview-song"><b>4. Sen Ağlama</b><span>C</span></div>
+          </div>
+        </div>
       </div>
     </div>
 
