@@ -13,30 +13,16 @@
   <link rel="manifest" href="manifest.json">
   <script src="db.js"></script>
   <style>
-    /* ═══ index.html'e özgü altın/lacivert/neon tema — style.css'e dokunmuyor ═══ */
-    :root {
-      --bg:        #0b1020;
-      --bg2:       #090d19;
-      --surface:   #151c35;
-      --surface2:  #202943;
-      --border:    rgba(255,204,51,0.14);
-      --accent:    #ffcc33;   /* altın sarısı — ana renk */
-      --accent2:   #8B7CFF;   /* neon mor/mavi — ikincil detay */
-      --accent3:   #B9A6FF;
-      --text:      #ffffff;
-      --text2:     #b8bfd3;
-      --text3:     #7d84a3;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif;
-    }
-    .hero-title, .hero-btn-primary { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif; }
+    /* ═══ index.html'e özgü hero yerleşimi ve animasyonları ═══
+       Renkler artık merkezi style.css'teki :root değişkenlerinden geliyor,
+       burada ayrı bir renk paleti tanımlanmıyor. */
+    body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif; }
     .hero-title-sub { color: var(--accent); font-style: normal; }
     .hero-btn-primary {
       background: var(--accent);
       color: #111;
       border-radius: 30px;
-      box-shadow: 0 10px 30px rgba(255,204,51,0.25);
+      box-shadow: 0 10px 30px rgba(255,200,61,0.25);
     }
     .hero-btn-secondary { border-color: var(--accent2); color: var(--accent2); }
 
@@ -60,7 +46,7 @@
     .hero-preview-wrap { flex: 1 1 320px; position: relative; animation: heroFadeUp .8s ease .22s both; }
     .hero-preview-glow {
       position:absolute; inset:-25px; border-radius:32px;
-      background: radial-gradient(circle, rgba(255,204,51,.28), rgba(139,124,255,.2) 55%, transparent 75%);
+      background: radial-gradient(circle, rgba(255,200,61,.28), rgba(168,121,255,.2) 55%, transparent 75%);
       filter: blur(28px); animation: glowPulse 4.5s ease-in-out infinite; z-index:0;
     }
     .hero-preview {
