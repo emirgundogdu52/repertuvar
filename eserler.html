@@ -734,8 +734,8 @@ function selectWork(id) {
       <div class="detail-stage-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;width:100%;">
         ${stageBtn}
         ${videoBtn}
-        <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}" style="display:none">✏️ Düzenle</button>
-        <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}" style="display:none">🗑 Sil</button>
+        <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}" style="display:${(isAdmin() || isEditor()) ? '' : 'none'}">✏️ Düzenle</button>
+        <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}" style="display:${isAdmin() ? '' : 'none'}">🗑 Sil</button>
       </div>
       <div class="confirm-bar" id="confirm-${w.id}">
         <span>Bu eseri silmek istediğinize emin misiniz?</span>
@@ -851,18 +851,9 @@ function selectWork(id) {
       }
     </div>`;
 
-  // Admin butonlarını göster/gizle — auth yüklenmesi için bekle
-  // Butonlar varsayılan GİZLİ — authReady sonrası admin/editor'e göster
-  function applyAdminButtons() {
-    if (typeof isAdmin !== 'function') return;
-    const editBtn = document.getElementById('editBtn-'+w.id);
-    const deleteBtn = document.getElementById('deleteBtn-'+w.id);
-    if (editBtn) editBtn.style.display = (isAdmin() || isEditor()) ? '' : 'none';
-    if (deleteBtn) deleteBtn.style.display = isAdmin() ? '' : 'none';
-  }
-  // authReady event ile + fallback timeout
-  window.addEventListener('authReady', applyAdminButtons, { once: true });
-  setTimeout(applyAdminButtons, 1500);
+  // Not: Düzenle/Sil butonları artık yukarıda template içinde doğrudan
+  // isAdmin()/isEditor() ile senkron olarak doğru görünürlükte render ediliyor —
+  // ayrı bir "authReady bekle" adımına gerek yok (o gecikme hissi buradan geliyordu).
 
   // Mobile: detail panel top offset
   function setDetailTop() {
