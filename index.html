@@ -23,8 +23,9 @@
       color: #111;
       border-radius: 30px;
       box-shadow: 0 10px 30px rgba(255,200,61,0.25);
+      display:inline-flex; align-items:center; gap:8px;
     }
-    .hero-btn-secondary { border-color: var(--accent2); color: var(--accent2); }
+    .hero-btn-secondary { border-color: var(--border2); color: var(--text); display:inline-flex; align-items:center; gap:8px; }
 
     /* Hafif giriş animasyonları */
     @keyframes heroFadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
@@ -39,22 +40,17 @@
     @media (max-width: 900px) { .hero-section { flex-direction: column; } }
 
     .hero-bullets { list-style:none; margin:18px 0 26px; padding:0; }
-    .hero-bullets li {
-      display:flex; align-items:center; gap:10px; font-size:15px; color:var(--text2);
-      padding:5px 0;
-    }
-    .hero-bullets li::before {
-      content:'✓'; display:flex; align-items:center; justify-content:center;
-      width:20px; height:20px; border-radius:50%; flex-shrink:0;
-      background: rgba(255,200,61,0.15); color: var(--accent); font-size:12px; font-weight:700;
-    }
+    .hero-bullets li { font-size:15px; line-height:1.6; color:var(--text2); padding:4px 0; }
 
     @keyframes previewFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(.4deg); } }
     @keyframes glowPulse { 0%,100% { opacity:.5; transform:scale(1); } 50% { opacity:.8; transform:scale(1.05); } }
     @keyframes dragBob { 0%,100% { transform: translateY(0) scale(1.03); } 50% { transform: translateY(-5px) scale(1.03); } }
+    @keyframes arrowBob { 0%,100% { transform: translateY(0); opacity:.6; } 50% { transform: translateY(-4px); opacity:1; } }
     @keyframes pedalPulse { 0%,100% { box-shadow:0 0 0 0 rgba(52,199,89,.5); } 70% { box-shadow:0 0 0 8px rgba(52,199,89,0); } }
 
-    .hero-preview-wrap { flex: 1 1 340px; position: relative; animation: heroFadeUp .8s ease .22s both; }
+    /* iPad + pedal'ı yan yana taşıyan geniş kapsayıcı */
+    .hero-visual-row { display:flex; align-items:center; gap:28px; flex:1 1 420px; }
+    .hero-preview-wrap { position: relative; flex:1 1 320px; animation: heroFadeUp .8s ease .22s both; }
     .hero-preview-glow {
       position:absolute; inset:-25px; border-radius:32px;
       background: radial-gradient(circle, rgba(255,200,61,.28), rgba(77,163,255,.2) 55%, transparent 75%);
@@ -62,46 +58,91 @@
     }
     /* iPad çerçevesi */
     .hero-ipad {
-      position:relative; z-index:1; max-width:360px; margin:0 auto;
+      position:relative; z-index:1; max-width:400px; margin:0 auto;
       background: linear-gradient(160deg, var(--surface), var(--bg2));
-      border:1px solid rgba(255,200,61,.2); border-radius:28px; padding:16px;
+      border:1px solid rgba(255,200,61,.2); border-radius:28px; padding:14px;
       box-shadow: 0 30px 60px rgba(0,0,0,.5), inset 0 0 0 5px #000;
       animation: previewFloat 6s ease-in-out infinite;
     }
-    .hero-ipad-screen { background:var(--bg2); border-radius:14px; padding:18px; }
-    .hero-ipad-screen h4 { font-size:14px; font-weight:700; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+    .hero-ipad-topbar { display:flex; align-items:center; justify-content:space-between; padding:4px 6px 12px; color:var(--text2); }
+    .hero-ipad-topbar .title { font-size:15px; font-weight:700; color:var(--text); }
+    .hero-ipad-topbar .icons { display:flex; align-items:center; gap:14px; font-size:16px; }
+    .hero-ipad-screen { background:var(--bg2); border-radius:14px; padding:14px; }
     .hero-song-row {
       display:flex; align-items:center; gap:10px; background:var(--surface2);
-      margin:8px 0; padding:11px 12px; border-radius:10px; font-size:13px; color:var(--text2);
+      margin:7px 0; padding:11px 12px; border-radius:10px; font-size:13px; color:var(--text2);
       border:1px solid transparent; transition: border-color .2s;
     }
+    .hero-song-row .num { color:var(--text3); font-size:12px; width:14px; flex-shrink:0; }
     .hero-song-row .grip { color:var(--text3); font-size:14px; letter-spacing:1px; }
     .hero-song-row b { flex:1; color:var(--text); font-weight:600; }
     .hero-song-row span { color:var(--accent); font-weight:700; font-size:12px; }
     .hero-song-row.dragging {
-      background: var(--surface); border-color: rgba(255,200,61,.4);
+      background: var(--surface); border-color: rgba(255,200,61,.5);
       box-shadow: 0 12px 24px rgba(0,0,0,.4);
       animation: dragBob 2.2s ease-in-out infinite;
     }
-
-    .hero-pedal-badge {
-      display:flex; align-items:center; gap:8px; margin-top:16px; padding:9px 14px;
-      background:var(--surface2); border:1px solid var(--border); border-radius:20px;
-      font-size:12px; color:var(--text2); width:fit-content; margin-left:auto; margin-right:auto;
+    .hero-drop-slot {
+      border:1.5px dashed var(--border2); border-radius:10px; height:38px; margin:7px 0;
+      display:flex; align-items:center; justify-content:center; color:var(--accent);
+      animation: arrowBob 1.6s ease-in-out infinite; font-size:14px;
     }
-    .hero-pedal-dot { width:8px; height:8px; border-radius:50%; background:var(--ready-color, #34C759); animation: pedalPulse 2s infinite; }
+    .hero-ipad-tabbar { display:flex; justify-content:space-around; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+    .hero-ipad-tabbar .tab { display:flex; flex-direction:column; align-items:center; gap:3px; font-size:9px; color:var(--text3); }
+    .hero-ipad-tabbar .tab.active { color:var(--accent); }
+    .hero-ipad-tabbar .tab i { font-size:15px; }
 
-    /* Özellik şeridi */
+    /* Bluetooth pedal — stilize temsil (gerçek fotoğraf değil) */
+    .hero-pedal-col { flex:0 0 150px; display:flex; flex-direction:column; align-items:center; gap:14px; animation: heroFadeUp .8s ease .3s both; }
+    .hero-pedal-badge {
+      display:flex; align-items:center; gap:9px; padding:10px 14px;
+      background:var(--surface2); border:1px solid var(--border); border-radius:14px; font-size:12px;
+    }
+    .hero-pedal-badge .bticon {
+      width:26px; height:26px; border-radius:50%; background:var(--accent2);
+      display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; flex-shrink:0;
+    }
+    .hero-pedal-badge b { display:block; color:var(--text); }
+    .hero-pedal-badge .status { color:var(--ready-color, #34C759); font-weight:600; display:flex; align-items:center; gap:5px; }
+    .hero-pedal-dot { width:7px; height:7px; border-radius:50%; background:var(--ready-color, #34C759); animation: pedalPulse 2s infinite; }
+    .hero-pedal-device {
+      width:120px; height:70px; border-radius:16px;
+      background: linear-gradient(160deg, #23262f, #101216);
+      border:1px solid rgba(255,255,255,.08); position:relative;
+      box-shadow: 0 16px 34px rgba(0,0,0,.5);
+    }
+    .hero-pedal-device::before, .hero-pedal-device::after {
+      content:''; position:absolute; bottom:8px; width:44%; height:44px; border-radius:10px;
+      background: linear-gradient(160deg, #2c2f3a, #15171c); border:1px solid rgba(255,255,255,.06);
+    }
+    .hero-pedal-device::before { left:6px; }
+    .hero-pedal-device::after  { right:6px; }
+    .hero-pedal-device .led { position:absolute; top:10px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:var(--ready-color,#34C759); animation: pedalPulse 2s infinite; z-index:2; }
+
+    /* Özellik şeridi — ikon + başlık + açıklama */
     .hero-feature-strip {
-      display:flex; flex-wrap:wrap; gap:12px; justify-content:center;
-      margin-top:48px; padding-top:28px; border-top:1px solid var(--border);
+      display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+      margin-top:48px; padding-top:0;
       animation: heroFadeUp .7s ease .3s both;
     }
-    .hero-feature-strip span {
-      display:flex; align-items:center; gap:7px; font-size:13px; color:var(--text2);
-      background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:8px 16px;
+    @media (max-width:900px) { .hero-feature-strip { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:560px) { .hero-feature-strip { grid-template-columns:1fr; } }
+    .hero-feature-card {
+      background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px;
+      display:flex; gap:12px; align-items:flex-start;
     }
-    .hero-feature-strip span::before { content:'✓'; color:var(--ready-color, #34C759); font-weight:700; }
+    .hero-feature-card .ic {
+      width:38px; height:38px; border-radius:10px; flex-shrink:0;
+      background: rgba(255,200,61,0.12); color:var(--accent);
+      display:flex; align-items:center; justify-content:center; font-size:18px; position:relative;
+    }
+    .hero-feature-card .ic .chk {
+      position:absolute; bottom:-4px; right:-4px; width:15px; height:15px; border-radius:50%;
+      background:var(--ready-color,#34C759); color:#fff; font-size:9px; font-weight:700;
+      display:flex; align-items:center; justify-content:center; border:2px solid var(--surface);
+    }
+    .hero-feature-card h5 { font-size:14px; font-weight:700; color:var(--text); margin-bottom:4px; }
+    .hero-feature-card p { font-size:12px; color:var(--text3); line-height:1.5; margin:0; }
   </style>
 </head>
 <body>
@@ -122,37 +163,74 @@
       <div class="hero-title">Sahnede En Büyük<br><em class="hero-title-sub">Yardımcın.</em></div>
       <ul class="hero-bullets">
         <li>Repertuvarını oluştur.</li>
-        <li>Sürükle bırak ile sırala.</li>
-        <li>Bluetooth pedal ile yönet.</li>
+        <li>Sürükle bırak ile saniyeler içinde düzenle.</li>
+        <li>Bluetooth pedal ile ellerini enstrümandan ayırmadan yönet.</li>
+        <li>İnternet bağlantın kopsa bile performansın devam etsin.</li>
       </ul>
       <div class="hero-actions">
-        <a href="repertoires.html" class="hero-btn-primary">Repertuvarlara Bak →</a>
-        <a href="stage.html" class="hero-btn-secondary">Demo İzle</a>
+        <a href="repertoires.html" class="hero-btn-primary"><i class="ti ti-music"></i> Repertuvarlara Bak →</a>
+        <a href="stage.html" class="hero-btn-secondary"><i class="ti ti-player-play"></i> Demo İzle</a>
       </div>
       </div>
 
-      <!-- iPad ÖNİZLEME PANELİ -->
-      <div class="hero-preview-wrap">
-        <div class="hero-preview-glow"></div>
-        <div class="hero-ipad">
-          <div class="hero-ipad-screen">
-            <h4>🎵 Repertuvar</h4>
-            <div class="hero-song-row dragging"><span class="grip">☰</span><b>Hekimoğlu</b><span>Bm</span></div>
-            <div class="hero-song-row"><span class="grip">☰</span><b>Çökertme</b><span>Dm</span></div>
-            <div class="hero-song-row"><span class="grip">☰</span><b>Fidayda</b><span>Gm</span></div>
-            <div class="hero-song-row"><span class="grip">☰</span><b>Uzun İnce Yol</b><span>Am</span></div>
+      <!-- iPad + PEDAL ÖNİZLEME -->
+      <div class="hero-visual-row">
+        <div class="hero-preview-wrap">
+          <div class="hero-preview-glow"></div>
+          <div class="hero-ipad">
+            <div class="hero-ipad-topbar">
+              <i class="ti ti-menu-2"></i>
+              <span class="title">Repertuvar</span>
+              <div class="icons"><i class="ti ti-search"></i><i class="ti ti-plus"></i><i class="ti ti-dots-vertical"></i></div>
+            </div>
+            <div class="hero-ipad-screen">
+              <div class="hero-song-row dragging"><span class="grip">☰</span><b>Hekimoğlu</b><span>Bm</span></div>
+              <div class="hero-drop-slot">↑</div>
+              <div class="hero-song-row"><span class="num">2</span><b>Çökertme</b><span>Dm</span></div>
+              <div class="hero-song-row"><span class="num">3</span><b>Fidayda</b><span>Gm</span></div>
+              <div class="hero-song-row"><span class="num">4</span><b>Uzun İnce Yol</b><span>Am</span></div>
+              <div class="hero-song-row"><span class="num">5</span><b>Sen Ağlama</b><span>C</span></div>
+              <div class="hero-song-row"><span class="num">6</span><b>Gül Yüzlü Sevdiğim</b><span>Em</span></div>
+              <div class="hero-ipad-tabbar">
+                <div class="tab active"><i class="ti ti-music"></i>Repertuvar</div>
+                <div class="tab"><i class="ti ti-book"></i>Eserler</div>
+                <div class="tab"><i class="ti ti-microphone"></i>Solistler</div>
+                <div class="tab"><i class="ti ti-users-group"></i>Grup</div>
+                <div class="tab"><i class="ti ti-settings"></i>Ayarlar</div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="hero-pedal-badge"><span class="hero-pedal-dot"></span> Bluetooth Pedal Bağlandı 🦶</div>
+
+        <!-- BLUETOOTH PEDAL -->
+        <div class="hero-pedal-col">
+          <div class="hero-pedal-badge">
+            <span class="bticon"><i class="ti ti-bluetooth"></i></span>
+            <div><b>Bluetooth Pedal</b><span class="status"><span class="hero-pedal-dot"></span>Bağlandı</span></div>
+          </div>
+          <div class="hero-pedal-device"><span class="led"></span></div>
+        </div>
       </div>
     </div>
 
     <!-- ÖZELLİK ŞERİDİ -->
     <div class="hero-feature-strip">
-      <span>Offline çalışır</span>
-      <span>Pedal desteği</span>
-      <span>Grup senkronizasyonu</span>
-      <span>PDF &amp; Nota</span>
+      <div class="hero-feature-card">
+        <span class="ic"><i class="ti ti-wifi-off"></i><span class="chk">✓</span></span>
+        <div><h5>Offline çalışır</h5><p>İnternet bağlantınız kopsa bile çalışmaya devam eder.</p></div>
+      </div>
+      <div class="hero-feature-card">
+        <span class="ic"><i class="ti ti-shoe"></i><span class="chk">✓</span></span>
+        <div><h5>Pedal desteği</h5><p>Bluetooth pedal ile eller serbest şarkı geçişi yapın.</p></div>
+      </div>
+      <div class="hero-feature-card">
+        <span class="ic"><i class="ti ti-users-group"></i><span class="chk">✓</span></span>
+        <div><h5>Grup senkronizasyonu</h5><p>Tüm değişiklikler grup üyelerinizle anında senkronize olur.</p></div>
+      </div>
+      <div class="hero-feature-card">
+        <span class="ic"><i class="ti ti-file-music"></i><span class="chk">✓</span></span>
+        <div><h5>PDF &amp; Nota</h5><p>PDF, akor, not ve sözleri tek yerden görüntüleyin.</p></div>
+      </div>
     </div>
 
     <!-- ÖZELLİKLER -->
