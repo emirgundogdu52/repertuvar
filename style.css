@@ -436,7 +436,7 @@ body {
 @media (max-width: 1023px) {
   .hero-section { padding: 20px 16px 10px; }
 }
-.hero-greeting { font-size: 12px; font-weight: 600; color: var(--accent2); margin-bottom: 6px; }
+.hero-greeting { font-size: 14px; font-weight: 600; color: var(--accent2); margin-bottom: 6px; letter-spacing: .02em; }
 .hero-title em.hero-title-sub {
   font-size: 0.72em; font-weight: 600; font-style: italic;
   color: var(--text2); display: block; margin-top: 2px;
