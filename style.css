@@ -8,8 +8,8 @@
   --border:     rgba(48,58,85,0.6);
   --border2:    rgba(48,58,85,0.85);
   --accent:     #FFC83D;
-  --accent2:    #A879FF;
-  --accent3:    #FFD970;
+  --accent2:    #4DA3FF;
+  --accent3:    #8CC5FF;
   --text:       #FFFFFF;
   --text2:      #B8BFD2;
   --text3:      #78829A;
@@ -17,7 +17,7 @@
   /* Müzisyen odaklı özel renkler */
   --key-color:      #FFC83D; /* Ton bilgisi */
   --tempo-color:    #4DA3FF; /* Tempo/BPM */
-  --chord-color:    #A879FF; /* Akor bilgisi */
+  --chord-color:    #4DA3FF; /* Akor bilgisi */
   --favorite-color: #FF5A5F; /* Favori eser */
   --ready-color:    #34C759; /* Hazır eser */
   --warning-color:  #FF9500; /* Uyarı */
@@ -42,13 +42,13 @@
   --border:   #E5E7EB;
   --border2:  #D0D3DA;
   --accent:   #E5A900;
-  --accent2:  #7C5CD9;
-  --accent3:  #FFD970;
+  --accent2:  #0B6FDE;
+  --accent3:  #8CC5FF;
 }
 
 body {
   background: var(--bg);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   color: var(--text);
   min-height: 100vh;
 }
@@ -66,7 +66,7 @@ body {
 .bg-glow::after {
   content: ''; position: absolute; bottom: 10%; right: 5%;
   width: 350px; height: 350px;
-  background: radial-gradient(circle, rgba(168,121,255,0.07) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(77,163,255,0.07) 0%, transparent 70%);
   border-radius: 50%;
 }
 
@@ -213,7 +213,7 @@ body {
   .bn-label { font-size: 10px; font-weight: 600; }
   .bn-dot { position: absolute; bottom: 2px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
   .bn-stage {
-    background: linear-gradient(135deg, rgba(255,200,61,0.18), rgba(168,121,255,0.08));
+    background: linear-gradient(135deg, rgba(255,200,61,0.18), rgba(77,163,255,0.08));
     border: 1px solid rgba(255,200,61,0.25);
     color: var(--accent2) !important;
     margin: 4px 2px; border-radius: 12px;
@@ -260,7 +260,7 @@ body {
   .bn-label { font-size: 10px; font-weight: 600; }
   .bn-dot { position: absolute; bottom: 2px; width: 3px; height: 3px; border-radius: 50%; background: var(--accent); }
   .bn-stage {
-    background: linear-gradient(135deg, rgba(255,200,61,0.18), rgba(168,121,255,0.08));
+    background: linear-gradient(135deg, rgba(255,200,61,0.18), rgba(77,163,255,0.08));
     border: 1px solid rgba(255,200,61,0.25);
     color: var(--accent2) !important;
     margin: 5px 2px; border-radius: 11px;
@@ -292,7 +292,7 @@ body {
 .qb-item:hover .qb-icon { border-color: var(--accent); background: var(--surface2); box-shadow: 0 0 12px rgba(255,200,61,0.2); }
 .qb-label { font-size: 10px; color: var(--text2); text-align: center; white-space: nowrap; }
 .qb-stage .qb-icon {
-  background: linear-gradient(135deg, rgba(255,200,61,0.22), rgba(168,121,255,0.12));
+  background: linear-gradient(135deg, rgba(255,200,61,0.22), rgba(77,163,255,0.12));
   border-color: var(--accent); box-shadow: 0 0 14px rgba(255,200,61,0.18);
 }
 .qb-stage .qb-label { color: var(--accent3); font-weight: 600; }
@@ -366,7 +366,7 @@ body {
 .sp-t { font-size: 10px; color: var(--green); margin-top: 5px; font-weight: 500; }
 
 .stage-banner {
-  background: linear-gradient(135deg, rgba(255,200,61,0.13) 0%, rgba(168,121,255,0.06) 100%);
+  background: linear-gradient(135deg, rgba(255,200,61,0.13) 0%, rgba(77,163,255,0.06) 100%);
   border: 1px solid var(--accent); border-radius: 16px;
   padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
   position: relative; overflow: hidden;
@@ -394,7 +394,7 @@ body {
   padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 600;
   border: 1px solid var(--border); color: var(--text3); cursor: pointer; transition: all .15s;
 }
-.tc.active { border-color: var(--accent2); color: var(--accent3); background: rgba(168,121,255,0.1); }
+.tc.active { border-color: var(--accent2); color: var(--accent3); background: rgba(77,163,255,0.1); }
 
 .coming-soon-card {
   display: flex; flex-direction: column; gap: 8px;
@@ -404,7 +404,7 @@ body {
 }
 .coming-soon-card::before {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(255,200,61,0.05), rgba(168,121,255,0.02));
+  background: linear-gradient(135deg, rgba(255,200,61,0.05), rgba(77,163,255,0.02));
   pointer-events: none;
 }
 .cs-soon-header {
@@ -495,7 +495,7 @@ body {
 }
 .feat-card:hover { border-color: var(--accent2); background: var(--surface2); box-shadow: 0 6px 20px rgba(255,200,61,0.15); }
 .feat-card-accent {
-  background: linear-gradient(135deg, rgba(255,200,61,0.13), rgba(168,121,255,0.06));
+  background: linear-gradient(135deg, rgba(255,200,61,0.13), rgba(77,163,255,0.06));
   border-color: var(--accent);
 }
 .feat-icon { font-size: 20px; margin-bottom: 6px; color: var(--accent2); }
