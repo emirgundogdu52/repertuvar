@@ -68,7 +68,8 @@
   .list-panel { flex:1; overflow-y:auto; }
   .list-panel::-webkit-scrollbar { width:5px; }
   .list-panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-  .work-item { display:flex; align-items:flex-start; gap:12px; padding:8px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .12s; }
+  .work-item { display:flex; align-items:flex-start; gap:12px; padding:8px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .12s, transform .15s ease, box-shadow .15s ease; position:relative; }
+  .work-item:active { transform:scale(1.012); box-shadow:0 6px 18px rgba(0,0,0,.28); z-index:2; }
   .work-item.zebra { background:var(--surface); }
   [data-theme="light"] .work-item.zebra { background: #f0eeff; }
   [data-theme="light"] .work-item { background: #ffffff; }
@@ -697,6 +698,7 @@ function saveStageList(currentId) {
 }
 function selectWork(id) {
   selectedId = id;
+  try { if (navigator.vibrate) navigator.vibrate(6); } catch(e) {}
   const w = DATA.find(x => x.id === id);
   document.querySelectorAll('.work-item').forEach(el => el.classList.toggle('selected', parseInt(el.dataset.id)===id));
   if (!w) return;
