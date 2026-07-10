@@ -9,20 +9,20 @@
 <title>Repertuar — Eserler</title>
 <style>
   :root {
-    --bg: #0D1117;
-    --surface: #161B22;
-    --surface2: #21262D;
-    --border: #30363D;
-    --border2: #38384f;
-    --accent: #58A6FF;
-    --accent2: #BC8CFF;
-    --text: #E6EDF3;
-    --text2: #8B949E;
-    --text3: #6E7681;
-    --red: #c05444;
-    --green: #4a9462;
-    --tag-bg: #2a2a3e;
-    --tag-text: #b8b4ac;
+    --bg: #070B18;
+    --surface: #19233F;
+    --surface2: #222B45;
+    --border: rgba(48,58,85,0.6);
+    --border2: rgba(48,58,85,0.85);
+    --accent: #FFC83D;
+    --accent2: #4DA3FF;
+    --text: #FFFFFF;
+    --text2: #B8BFD2;
+    --text3: #78829A;
+    --red: #FF5A5F;
+    --green: #34C759;
+    --tag-bg: #222B45;
+    --tag-text: #B8BFD2;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { overflow-x: hidden; max-width: 100%; }
@@ -36,6 +36,25 @@
   .sidebar:not(#r-sidebar) { display:none; }
   .sidebar::-webkit-scrollbar { width:4px; }
   .sidebar::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+  /* FILTER SHEET (Sırala + Filtreler tek yerde) */
+  .filter-sheet-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:900; }
+  .filter-sheet-overlay.open { display:block; }
+  #sidebar.filter-sheet {
+    display:block !important; position:fixed !important; z-index:901; background:var(--surface);
+    border:1px solid var(--border); transition:transform .25s ease; overflow-y:auto;
+  }
+  #sidebar.filter-sheet { left:0; right:0; bottom:0; top:auto; max-height:78vh;
+    border-radius:16px 16px 0 0; transform:translateY(105%); padding:16px 16px 28px; }
+  #sidebar.filter-sheet.open { transform:translateY(0); }
+  @media (min-width:769px) {
+    #sidebar.filter-sheet { left:auto; top:0; right:0; bottom:0; width:300px; max-height:100vh;
+      border-radius:0; transform:translateX(105%); padding:20px; }
+    #sidebar.filter-sheet.open { transform:translateX(0); }
+  }
+  .filter-sheet-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  .filter-sheet-header h3 { font-size:15px; font-weight:700; color:var(--text); margin:0; }
+  .filter-sheet-close { background:none; border:none; color:var(--text2); font-size:18px; cursor:pointer; line-height:1; }
   .filter-section { padding:0 16px 16px; border-bottom:1px solid var(--border); margin-bottom:0; }
   .filter-section:last-child { border-bottom:none; }
   .filter-label { font-size:10px; font-weight:500; letter-spacing:0.1em; color:var(--text3); text-transform:uppercase; margin-bottom:8px; padding-top:16px; display:block; }
@@ -61,6 +80,11 @@
   .work-sub { font-size:12px; color:var(--text2); display:flex; gap:8px; flex-wrap:wrap; }
   .work-sub span { display:flex; align-items:center; gap:3px; }
   .work-tags { display:flex; gap:4px; margin-top:5px; flex-wrap:wrap; }
+  .work-rep-count { font-size:11px; color:var(--text3); margin-top:4px; }
+  .work-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; align-self:center; }
+  .work-fav { background:none; border:none; font-size:18px; line-height:1; color:var(--text3); cursor:pointer; padding:2px; }
+  .work-fav.active { color:var(--accent); }
+  .work-chevron { color:var(--text3); font-size:18px; line-height:1; }
   .tag { background:var(--tag-bg); color:var(--tag-text); border-radius:4px; padding:1px 6px; font-size:11px; border:1px solid var(--border); }
   .tag.makam { border-color:#3a3060; color:#9b8fd4; background:#1e1b2e; }
   .tag.form { border-color:#2a3d2a; color:#7ab87a; background:#1a271a; }
@@ -329,7 +353,7 @@
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style id="v2-nav-css">
-:root{--bg:#07071a;--bg2:#0f0f2e;--surface:#12123a;--surface2:#1a1a4a;--border:rgba(120,100,255,0.18);--border2:rgba(120,100,255,0.32);--accent:#7c6fff;--accent2:#a78bfa;--accent3:#c4b5fd;--text:#e2e0ff;--text2:#9d9bc4;--text3:#5e5c8a;--green:#4ade80;--red:#f87171;--sidebar-w:220px;--topnav-h:56px;--bottom-h:68px;--font:'Plus Jakarta Sans',sans-serif;}
+:root{--bg:#070B18;--bg2:#10172C;--surface:#19233F;--surface2:#222B45;--border:rgba(48,58,85,0.6);--border2:rgba(48,58,85,0.85);--accent:#FFC83D;--accent2:#4DA3FF;--accent3:#8CC5FF;--text:#FFFFFF;--text2:#B8BFD2;--text3:#78829A;--green:#34C759;--red:#FF5A5F;--sidebar-w:220px;--topnav-h:56px;--bottom-h:68px;--font:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;}
 body{font-family:var(--font)!important;background:var(--bg)!important;color:var(--text)!important;}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -345,7 +369,22 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 <div class="main-wrap">
 
 <div class="layout">
-  <aside class="sidebar" id="sidebar">
+  <div class="filter-sheet-overlay" id="filterSheetOverlay" onclick="toggleFilterSheet(false)"></div>
+  <aside class="sidebar filter-sheet" id="sidebar">
+    <div class="filter-sheet-header">
+      <h3>⚙️ Filtre &amp; Sıralama</h3>
+      <button class="filter-sheet-close" onclick="toggleFilterSheet(false)">✕</button>
+    </div>
+    <div class="filter-section">
+      <span class="filter-label">Sırala</span>
+      <div class="sort-dropdown" id="sortDropdown" style="position:static;display:flex;flex-wrap:wrap;gap:6px;box-shadow:none;border:none;padding:0;background:none;">
+        <button class="sort-dd-item active" onclick="setSort('name')">Ada Göre</button>
+        <button class="sort-dd-item" onclick="setSort('composer')">Besteciye Göre</button>
+        <button class="sort-dd-item" onclick="setSort('makam')">Makama Göre</button>
+        <button class="sort-dd-item" onclick="setSort('form')">Forma Göre</button>
+        <button class="sort-dd-item" onclick="setSort('region')">Yöreye Göre</button>
+      </div>
+    </div>
     <div class="filter-section">
       <span class="filter-label">Tür / Form</span>
       <div id="formFilters"></div>
@@ -362,29 +401,20 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
       <span class="filter-label">Makam</span>
       <div id="makamFilters"></div>
     </div>
+    <button class="clear-btn" onclick="clearFilters()" style="width:100%;margin-top:10px;justify-content:center;">Filtreleri Temizle</button>
   </aside>
 
   <div id="listCol" style="flex:1;display:flex;flex-direction:column;min-width:0;">
     <div style="padding:10px 16px 0;background:var(--bg);">
       <div style="position:relative;">
         <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none;">&#9906;</span>
-        <input type="text" id="searchInput" placeholder="Aradığınız eserin adını veya sözlerinden bir bölümünü, bestecisi ya da yöresi gibi arama kriterini giriniz..." autocomplete="off"
+        <input type="text" id="searchInput" placeholder="Eser adı veya söz ara..." autocomplete="off"
           style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 36px;color:var(--text);font-size:14px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;outline:none;transition:border-color .2s;"
           oninput="applyFilters();">
       </div>
     </div>
     <div class="toolbar">
-      <div class="sort-dropdown-wrap">
-        <button class="sort-main-btn" id="sortMainBtn" onclick="toggleSortDropdown()">Sırala ▾</button>
-        <div class="sort-dropdown" id="sortDropdown">
-          <button class="sort-dd-item active" onclick="setSort('name')">Ada Göre</button>
-          <button class="sort-dd-item" onclick="setSort('composer')">Besteciye Göre</button>
-          <button class="sort-dd-item" onclick="setSort('makam')">Makama Göre</button>
-          <button class="sort-dd-item" onclick="setSort('form')">Forma Göre</button>
-          <button class="sort-dd-item" onclick="setSort('region')">Yöreye Göre</button>
-        </div>
-      </div>
-      <button class="clear-btn" onclick="clearFilters()">Filtreleri Temizle</button>
+      <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;">⚙️ Filtre<span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
       <button id="btnAdminNewEser" class="admin-only" onclick="openNewEserModal()" style="margin-left:auto;display:flex;align-items:center;gap:5px;background:var(--accent);border:none;border-radius:7px;padding:6px 13px;font-size:12px;color:#fff;font-weight:600;cursor:pointer;font-family:var(--font);">+ Yeni Eser</button>
       <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 13px;font-size:12px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);">⏳ Onay Bekleyen <span id="pendingCountDesktop" style="background:rgba(249,160,74,.25);border-radius:10px;padding:1px 7px;">0</span></button>
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;margin-left:auto;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);">🎵 Öner</button>
@@ -547,6 +577,47 @@ function applyFilters() {
   if (countBadgeEl) countBadgeEl.textContent = filteredData.length + ' eser';
 }
 
+// ── Favoriler (localStorage, kullanıcıya özel) ──
+function getFavKey() {
+  const uid = (typeof getUserId === 'function') ? getUserId() : null;
+  return 'repertuvar_favs_' + (uid || 'anon');
+}
+function getFavs() {
+  try { return new Set(JSON.parse(localStorage.getItem(getFavKey()) || '[]').map(Number)); }
+  catch(e) { return new Set(); }
+}
+function toggleFavorite(id, ev) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  const favs = getFavs();
+  if (favs.has(id)) favs.delete(id); else favs.add(id);
+  localStorage.setItem(getFavKey(), JSON.stringify([...favs]));
+  renderList();
+}
+
+// ── Her eserin kaç repertuvarda kullanıldığı (Supabase repertoire_items) ──
+async function loadRepertoireCounts() {
+  try {
+    const token = localStorage.getItem('sb_token') || SUPA_KEY;
+    const r = await fetch(SUPA_URL + '/rest/v1/repertoire_items?select=work_id', {
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token}
+    });
+    if (!r.ok) return;
+    const rows = await r.json();
+    const counts = {};
+    rows.forEach(row => { counts[row.work_id] = (counts[row.work_id] || 0) + 1; });
+    window.WORK_REP_COUNTS = counts;
+    renderList();
+  } catch(e) { console.warn('[eserler] Repertuvar sayımı alınamadı:', e.message); }
+}
+
+function toggleFilterSheet(show) {
+  const overlay = document.getElementById('filterSheetOverlay');
+  const sheet = document.getElementById('sidebar');
+  if (!overlay || !sheet) return;
+  overlay.classList.toggle('open', show);
+  sheet.classList.toggle('open', show);
+}
+
 function toggleSortDropdown() {
   const dd = document.getElementById('sortDropdown');
   dd.classList.toggle('open');
@@ -586,6 +657,7 @@ function renderList() {
     panel.innerHTML = '<div class="empty-list">Eser bulunamadı</div>';
     return;
   }
+  const favs = getFavs();
   panel.innerHTML = filteredData.map((w, _zi) => {
     const tags = [
       w.makam ? `<span class="tag makam">Makam: ${w.makam}</span>` : '',
@@ -597,12 +669,20 @@ function renderList() {
       w.composer ? `<span>🎼 ${w.composer}</span>` : '',
       w.region ? `<span>📍 Bölge: ${w.region}</span>` : '',
     ].filter(Boolean).join('');
+    const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
+    const repLine = repCount > 0 ? `<div class="work-rep-count">🎵 ${repCount} repertuvarda kullanılıyor</div>` : '';
+    const isFav = favs.has(w.id);
     return `<div class="work-item${selectedId===w.id?' selected':_zi%2===1?' zebra':''}" onclick="selectWork(${w.id})" data-id="${w.id}">
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
         <div class="work-name">${w.name||'(isimsiz)'}</div>
         <div class="work-sub">${sub}</div>
         ${tags ? `<div class="work-tags">${tags}</div>` : ''}
+        ${repLine}
+      </div>
+      <div class="work-actions">
+        <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori">${isFav ? '★' : '☆'}</button>
+        <span class="work-chevron">›</span>
       </div>
     </div>`;
   }).join('');
@@ -1336,6 +1416,7 @@ document.addEventListener('keydown', function(e) {
   const _lp = document.getElementById('listPanel'); if(_lp) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">Eserler yükleniyor...</div>';
   
   await loadWorksFromSupabase();
+  loadRepertoireCounts(); // arka planda, listeyi bloklamadan
   
   // URL'den id parametresi varsa o eseri seç
   const urlId = new URLSearchParams(window.location.search).get('id');
@@ -1546,7 +1627,7 @@ function openSuggestModal() {
       <div style="font-size:12px;color:var(--text3);margin-bottom:8px;font-weight:600;letter-spacing:.05em;">YENİ EDİTÖR ATA</div>
       <div style="display:flex;gap:8px;">
         <input id="editorEmailInput" type="email" placeholder="kullanici@email.com" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;">
-        <button onclick="assignEditor()" style="padding:8px 16px;border-radius:8px;background:#BC8CFF;border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Ata</button>
+        <button onclick="assignEditor()" style="padding:8px 16px;border-radius:8px;background:#4DA3FF;border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Ata</button>
       </div>
       <div id="editorMsg" style="font-size:12px;margin-top:8px;display:none;"></div>
     </div>
@@ -1630,8 +1711,8 @@ function openSuggestModal() {
           <button type="button" onclick="lyricsInsert('>>')"    title="Çift ok" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">>></button>
           <button type="button" onclick="lyricsInsert('2X')"    title="2 kez tekrar" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">2X</button>
           <button type="button" onclick="lyricsInsert('3X')"    title="3 kez tekrar" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">3X</button>
-          <button type="button" onclick="lyricsInsert('\n— Nakarat —\n')" title="Nakarat bölümü" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#BC8CFF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">Nakarat</button>
-          <button type="button" onclick="lyricsInsert('\n— Bağlantı —\n')" title="Bağlantı bölümü" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#BC8CFF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">Bağlantı</button>
+          <button type="button" onclick="lyricsInsert('\n— Nakarat —\n')" title="Nakarat bölümü" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#4DA3FF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">Nakarat</button>
+          <button type="button" onclick="lyricsInsert('\n— Bağlantı —\n')" title="Bağlantı bölümü" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#4DA3FF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">Bağlantı</button>
         </div>
         <!-- Editable area -->
         <div id="ne_lyrics_editor" contenteditable="true" placeholder="Güfte metni..." 
