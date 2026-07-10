@@ -68,14 +68,19 @@
   .list-panel { flex:1; overflow-y:auto; }
   .list-panel::-webkit-scrollbar { width:5px; }
   .list-panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-  .work-item { display:flex; align-items:flex-start; gap:12px; padding:8px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .12s, transform .15s ease, box-shadow .15s ease; position:relative; }
-  .work-item:active { transform:scale(1.012); box-shadow:0 6px 18px rgba(0,0,0,.28); z-index:2; }
-  .work-item.zebra { background:var(--surface); }
-  [data-theme="light"] .work-item.zebra { background: #f0eeff; }
-  [data-theme="light"] .work-item { background: #ffffff; }
+  .work-item { display:flex; align-items:flex-start; gap:12px; padding:10px 16px; margin:6px 12px; border-radius:8px; background:var(--surface); box-shadow:0 1px 3px rgba(0,0,0,.18); cursor:pointer; transition:background .12s, transform .15s ease, box-shadow .15s ease; position:relative; }
+  .work-item:active { transform:scale(1.012); box-shadow:0 6px 18px rgba(0,0,0,.32); z-index:2; }
+  .work-item.zebra { background:var(--surface2); }
+  [data-theme="light"] .work-item.zebra { background: #f5f4fb; }
+  [data-theme="light"] .work-item { background: #ffffff; box-shadow:0 1px 3px rgba(0,0,0,.08); }
   .work-item:hover { background:var(--surface2); }
-  .work-item.selected { background:var(--surface2); border-left:3px solid var(--accent); padding-left:17px; }
+  .work-item.selected { background:var(--surface2); border-left:3px solid var(--accent); padding-left:13px; box-shadow:0 2px 12px rgba(255,200,61,.18); }
   .work-num { display:none; }
+  .work-icon {
+    width:34px; height:34px; border-radius:8px; flex-shrink:0; align-self:center;
+    background:rgba(255,200,61,.12); color:var(--accent);
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
   .work-info { flex:1; min-width:0; }
   .work-name { font-size:14px; font-weight:500; color:var(--text); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .work-sub { font-size:12px; color:var(--text2); display:flex; gap:8px; flex-wrap:wrap; }
@@ -83,13 +88,21 @@
   .work-tags { display:flex; gap:4px; margin-top:5px; flex-wrap:wrap; }
   .work-rep-count { font-size:11px; color:var(--text3); margin-top:4px; }
   .work-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; align-self:center; }
+  .work-count-badge {
+    display:flex; align-items:center; justify-content:center;
+    min-width:20px; height:20px; padding:0 5px; border-radius:10px;
+    background:rgba(255,200,61,.15); color:var(--accent); font-size:11px; font-weight:700;
+  }
   .work-fav { background:none; border:none; font-size:20px; line-height:1; color:var(--text2); cursor:pointer; padding:4px; }
   .work-fav.active { color:var(--accent); }
+  @keyframes favPop { 0%{transform:scale(1);} 45%{transform:scale(1.55);} 100%{transform:scale(1);} }
+  .work-fav.fav-pop { animation: favPop .35s cubic-bezier(.34,1.56,.64,1); }
   .work-chevron { color:var(--text3); font-size:18px; line-height:1; }
   .tag { background:var(--tag-bg); color:var(--tag-text); border-radius:4px; padding:1px 6px; font-size:11px; border:1px solid var(--border); }
-  .tag.makam { border-color:#3a3060; color:#9b8fd4; background:#1e1b2e; }
-  .tag.form { border-color:#2a3d2a; color:#7ab87a; background:#1a271a; }
-  .tag.tuning { border-color:#3d2a1a; color:#c8904a; background:#271a0d; }
+  .tag.makam { border-color:rgba(168,121,255,.35); color:#c4aeff; background:rgba(168,121,255,.1); }
+  .tag.form { border-color:rgba(52,199,89,.35); color:#6fd98a; background:rgba(52,199,89,.1); }
+  .tag.tuning { border-color:rgba(255,200,61,.4); color:var(--accent); background:rgba(255,200,61,.1); }
+  .tag.measurement { border-color:rgba(77,163,255,.4); color:#7cbaff; background:rgba(77,163,255,.1); }
 
   /* DETAIL PANEL */
   .detail { width:520px; min-width:520px; max-width:100vw; background:var(--surface); border-left:1px solid var(--border); overflow-y:auto; overflow-x:hidden; }
@@ -118,7 +131,7 @@
   .video-btn:hover { background:rgba(88,166,255,.2); }
 
   /* TOOLBAR */
-  .toolbar { padding:6px 20px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; border-bottom:1px solid var(--border); background:var(--bg); }
+  .toolbar { padding:4px 20px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; border-bottom:1px solid var(--border); background:var(--bg); }
   .sort-dropdown-wrap { position:relative; }
   .sort-main-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; cursor:pointer; transition:all .15s; }
   .sort-main-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,.08); }
@@ -135,6 +148,13 @@
 
   /* EMPTY STATE */
   .empty-list { padding:60px 20px; text-align:center; color:var(--text3); }
+
+  /* Mikro animasyonlar */
+  @keyframes fabPop { 0%{transform:scale(0) rotate(-30deg); opacity:0;} 65%{transform:scale(1.15) rotate(4deg); opacity:1;} 100%{transform:scale(1) rotate(0);} }
+  .fab-new-eser { animation: fabPop .55s cubic-bezier(.34,1.56,.64,1) .1s both; }
+  #searchInput:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(255,200,61,.16); }
+  #sidebar.filter-sheet { transition: transform .32s cubic-bezier(.32,.72,0,1) !important; }
+  #listPanel, #listCol { -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
 
   @media (max-width: 768px) {
     .sidebar { display:none; }
@@ -407,7 +427,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
   </aside>
 
   <div id="listCol" style="flex:1;display:flex;flex-direction:column;min-width:0;">
-    <div style="padding:10px 16px 0;background:var(--bg);">
+    <div style="padding:6px 16px 0;background:var(--bg);">
       <div style="position:relative;">
         <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none;">&#9906;</span>
         <input type="text" id="searchInput" placeholder="Eser adı veya söz ara..." autocomplete="off"
@@ -418,7 +438,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     <div class="toolbar">
       <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;">⚙️ Filtreler<span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
       <button id="btnAdminNewEser" class="admin-only fab-new-eser" onclick="openNewEserModal()" title="Yeni Eser Ekle" style="position:fixed;right:20px;bottom:24px;width:56px;height:56px;border-radius:50%;background:var(--accent);border:none;box-shadow:0 8px 24px rgba(255,200,61,0.4);display:flex;align-items:center;justify-content:center;font-size:26px;line-height:1;color:#111;font-weight:600;cursor:pointer;z-index:500;">+</button>
-      <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 13px;font-size:12px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);">⏳ Onay Bekleyen <span id="pendingCountDesktop" style="background:rgba(249,160,74,.25);border-radius:10px;padding:1px 7px;">0</span></button>
+      <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:flex;align-items:center;gap:5px;background:rgba(249,160,74,.12);border:1px solid rgba(249,160,74,.3);border-radius:20px;padding:4px 10px 4px 8px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);">⏳ Bekleyen <span id="pendingCountDesktop" style="background:#F9A04A;color:#1a1000;border-radius:10px;padding:1px 7px;font-size:10px;">0</span></button>
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;margin-left:auto;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);">🎵 Öner</button>
       <button id="btnUserSuggest" onclick="openSuggestModal()" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">🎵 Eser Öner</button>
       <button id="btnOnerilerim" onclick="window.location.href='onerilerim.html'" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">📋 Önerilerim</button>
@@ -591,25 +611,47 @@ function getFavs() {
 function toggleFavorite(id, ev) {
   if (ev) { ev.stopPropagation(); ev.preventDefault(); }
   const favs = getFavs();
-  if (favs.has(id)) favs.delete(id); else favs.add(id);
+  const nowFav = !favs.has(id);
+  if (nowFav) favs.add(id); else favs.delete(id);
   localStorage.setItem(getFavKey(), JSON.stringify([...favs]));
   renderList();
+  if (nowFav) {
+    const btn = document.querySelector('.work-item[data-id="'+id+'"] .work-fav');
+    if (btn) { btn.classList.add('fav-pop'); btn.addEventListener('animationend', () => btn.classList.remove('fav-pop'), { once:true }); }
+  }
 }
 
 // ── Her eserin kaç repertuvarda kullanıldığı (Supabase repertoire_items) ──
 async function loadRepertoireCounts() {
   try {
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
-    const r = await fetch(SUPA_URL + '/rest/v1/repertoire_items?select=work_id', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token}
-    });
-    if (!r.ok) return;
-    const rows = await r.json();
+    const headers = {'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token};
+    const [itemsRes, repsRes] = await Promise.all([
+      fetch(SUPA_URL + '/rest/v1/repertoire_items?select=work_id,repertoire_id', { headers }),
+      fetch(SUPA_URL + '/rest/v1/repertoires?select=id,group_id', { headers }),
+    ]);
+    if (!itemsRes.ok) return;
+    const itemRows = await itemsRes.json();
+    const repRows = repsRes.ok ? await repsRes.json() : [];
+    const repToGroup = {};
+    repRows.forEach(r => { repToGroup[r.id] = r.group_id || null; });
+
     const counts = {};
-    rows.forEach(row => { counts[row.work_id] = (counts[row.work_id] || 0) + 1; });
+    const groupSets = {};
+    itemRows.forEach(row => {
+      counts[row.work_id] = (counts[row.work_id] || 0) + 1;
+      const gid = repToGroup[row.repertoire_id];
+      if (gid) {
+        (groupSets[row.work_id] = groupSets[row.work_id] || new Set()).add(gid);
+      }
+    });
+    const groupCounts = {};
+    Object.keys(groupSets).forEach(wid => { groupCounts[wid] = groupSets[wid].size; });
+
     window.WORK_REP_COUNTS = counts;
+    window.WORK_GROUP_COUNTS = groupCounts;
     renderList();
-  } catch(e) { console.warn('[eserler] Repertuvar sayımı alınamadı:', e.message); }
+  } catch(e) { console.warn('[eserler] Repertuvar/grup sayımı alınamadı:', e.message); }
 }
 
 function toggleFilterSheet(show) {
@@ -662,19 +704,27 @@ function renderList() {
   const favs = getFavs();
   panel.innerHTML = filteredData.map((w, _zi) => {
     const tags = [
-      w.makam ? `<span class="tag makam">Makam: ${w.makam}</span>` : '',
-      w.form ? `<span class="tag form">Form: ${w.form}</span>` : '',
-      w.tuning ? `<span class="tag tuning">Akort: ${w.tuning}</span>` : '',
-      w.measurement ? `<span class="tag" style="border-color:#1f3050;color:#6a9fd4;background:#1a1e27;">Usul: ${w.measurement}</span>` : '',
+      w.makam ? `<span class="tag makam">🎼 ${w.makam}</span>` : '',
+      w.measurement ? `<span class="tag measurement">♩ ${w.measurement}</span>` : '',
+      w.form ? `<span class="tag form">📋 ${w.form}</span>` : '',
+      w.tuning ? `<span class="tag tuning">🎸 ${w.tuning}</span>` : '',
     ].filter(Boolean).join('');
     const sub = [
       w.composer ? `<span>🎼 ${w.composer}</span>` : '',
       w.region ? `<span>📍 Bölge: ${w.region}</span>` : '',
     ].filter(Boolean).join('');
     const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
-    const repLine = repCount > 0 ? `<div class="work-rep-count">🎵 ${repCount} repertuvarda kullanılıyor</div>` : '';
+    const groupCount = (window.WORK_GROUP_COUNTS && window.WORK_GROUP_COUNTS[w.id]) || 0;
+    const statusBits = [
+      repCount > 0 ? `📋 ${repCount} repertuvarda` : '',
+      groupCount > 0 ? `👥 ${groupCount} grup kullanıyor` : '',
+      `🟢 Offline hazır`,
+    ].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
+    const repLine = `<div class="work-rep-count">${statusBits}</div>`;
+    const countBadge = repCount > 0 ? `<span class="work-count-badge" title="${repCount} repertuvarda kullanılıyor">${repCount}</span>` : '';
     const isFav = favs.has(w.id);
     return `<div class="work-item${selectedId===w.id?' selected':_zi%2===1?' zebra':''}" onclick="selectWork(${w.id})" data-id="${w.id}">
+      <div class="work-icon">🎵</div>
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
         <div class="work-name">${w.name||'(isimsiz)'}</div>
@@ -683,6 +733,7 @@ function renderList() {
         ${repLine}
       </div>
       <div class="work-actions">
+        ${countBadge}
         <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori">${isFav ? '★' : '☆'}</button>
         <span class="work-chevron">›</span>
       </div>
