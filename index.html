@@ -44,12 +44,13 @@
       position: relative;
     }
     .hero-live-badge {
-      position: absolute; top: 18px; right: 20px;
-      display: flex; align-items: center; gap: 6px;
-      font-size: 11px; font-weight: 600; color: var(--text3);
+      position: absolute; top: 26px; right: 20px;
+      display: flex; align-items: center; gap: 7px;
+      font-size: 13px; font-weight: 600; color: var(--text2);
     }
-    .hero-live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ready-color,#34C759); animation: pedalPulse 2s infinite; }
-    @media (max-width: 560px) { .hero-live-badge { font-size: 10px; top: 14px; right: 16px; } }
+    .hero-live-badge i { color: var(--accent2); font-size: 14px; animation: btBlink 2.4s ease-in-out infinite; }
+    .hero-live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ready-color,#34C759); box-shadow: 0 0 6px rgba(48,201,90,.45); animation: pedalPulse 2s infinite; }
+    @media (max-width: 560px) { .hero-live-badge { font-size: 12px; top: 24px; right: 16px; } }
     [data-theme="light"] .hero-section {
       background: linear-gradient(135deg, #EEF3FF, #E5ECFA);
       border-color: #E6EBF5;
@@ -207,7 +208,7 @@
 
     <!-- HERO -->
     <div class="hero-section">
-      <div class="hero-live-badge"><span class="hero-live-dot"></span> Pedal Bağlı</div>
+      <div class="hero-live-badge"><i class="ti ti-bluetooth"></i> Bluetooth Pedal Bağlı <span class="hero-live-dot"></span></div>
       <div class="hero-text">
       <div class="hero-greeting" id="heroGreeting">Hoşgeldiniz 👋</div>
       <div class="hero-title">Sahnedeki<br><em class="hero-title-sub">En Büyük Yardımcın.</em></div>
