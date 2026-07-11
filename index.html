@@ -41,7 +41,15 @@
       border: 1px solid var(--border); border-radius: 20px;
       padding: 28px 24px;
       max-width: 980px; margin: 0 auto;
+      position: relative;
     }
+    .hero-live-badge {
+      position: absolute; top: 18px; right: 20px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 600; color: var(--text3);
+    }
+    .hero-live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ready-color,#34C759); animation: pedalPulse 2s infinite; }
+    @media (max-width: 560px) { .hero-live-badge { position: static; margin-bottom: 8px; } }
     [data-theme="light"] .hero-section {
       background: linear-gradient(135deg, #EEF3FF, #E5ECFA);
       border-color: #E6EBF5;
@@ -72,7 +80,7 @@
     @keyframes pedalPulse { 0%,100% { box-shadow:0 0 0 0 rgba(52,199,89,.5); } 70% { box-shadow:0 0 0 8px rgba(52,199,89,0); } }
 
     /* iPad + pedal'ı yan yana taşıyan geniş kapsayıcı */
-    .hero-visual-row { display:flex; flex-direction:column; align-items:center; gap:14px; flex:0 1 380px; }
+    .hero-visual-row { display:flex; flex-direction:column; align-items:center; gap:16px; flex:0 1 380px; }
     .hero-preview-wrap { position: relative; width:100%; max-width:380px; margin-left:-9px; animation: heroFadeUp .8s ease .22s both; }
     .hero-preview-glow {
       position:absolute; inset:-25px; border-radius:32px;
@@ -159,6 +167,8 @@
     .hero-visual-stats .hero-stat span { font-size:22px; font-weight:800; color:var(--accent); display:block; }
     .hero-visual-stats .hero-stat label { font-size:10px; color:var(--text3); display:block; margin-top:1px; }
     .hero-visual-stats .hero-stat { text-align:center; }
+    .hero-visual-tagline { font-size:12px; color:var(--text3); text-align:center; margin-top:10px; font-style:italic; }
+    .hero-offline-note { display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; color:var(--text3); margin-top:16px; }
     .hero-feature-strip {
       display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
       margin-top:24px; padding-top:0;
@@ -197,6 +207,7 @@
 
     <!-- HERO -->
     <div class="hero-section">
+      <div class="hero-live-badge"><span class="hero-live-dot"></span> Pedal Bağlı</div>
       <div class="hero-text">
       <div class="hero-greeting" id="heroGreeting">Hoşgeldiniz 👋</div>
       <div class="hero-title">Sahnedeki<br><em class="hero-title-sub">En Büyük Yardımcın.</em></div>
@@ -208,7 +219,7 @@
       </ul>
       <div class="hero-actions">
         <a href="repertoires.html" class="hero-btn-primary"><i class="ti ti-music"></i> Repertuvarlara Bak →</a>
-        <a href="stage.html" class="hero-btn-secondary"><i class="ti ti-player-play"></i> Demo İzle</a>
+        <a href="stage.html" class="hero-btn-secondary">Demo</a>
       </div>
       </div>
 
@@ -255,8 +266,11 @@
           <div class="hero-stat"><span id="heroStatReps">—</span><label>Repertuvar</label></div>
           <div class="hero-stat"><span id="heroStatGroups">—</span><label>Grup</label></div>
         </div>
+        <div class="hero-visual-tagline">Müziğe odaklan. Gerisini Repertuvar.app halletsin.</div>
       </div>
     </div>
+
+    <div class="hero-offline-note"><i class="ti ti-wifi-off"></i> İnternet bağlantınız kopsa bile çalışmaya devam eder.</div>
 
     <!-- ÖZELLİK ŞERİDİ -->
     <div class="hero-feature-strip">
@@ -489,7 +503,7 @@
     }
 
     setTimeout(rotate, 2500);
-    setInterval(rotate, 6000);
+    setInterval(rotate, 3200);
   })();
 
   // Feat slideshow
