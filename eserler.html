@@ -697,7 +697,7 @@ function openRepAddSheet(workId) {
         return;
       }
       list.innerHTML = reps.map(r => `
-        <button class="more-sheet-item" onclick="pickRepertoireForAdd(${r.id}, '${(r.name||'').replace(/'/g,"\\'")}')">
+        <button class="more-sheet-item" onclick="pickRepertoireForAdd('${r.id}', '${(r.name||'').replace(/'/g,"\\'")}')">
           <i class="ti ti-playlist"></i> ${r.name || '(isimsiz)'}
         </button>`).join('');
     })
