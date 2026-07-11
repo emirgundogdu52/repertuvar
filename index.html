@@ -49,9 +49,12 @@
     .hero-text { flex: 0 1 400px; }
     @media (max-width: 900px) {
       .hero-section { flex-direction: column; gap: 0; }
-      .hero-text { flex: 0 1 auto; }
+      .hero-text { flex: 0 1 auto; width: 100%; }
+      .hero-bullets { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; row-gap: 0; }
       .hero-actions { margin-bottom: 24px; }
-      .hero-visual-row { flex: 0 1 auto; }
+      .hero-visual-row { flex: 0 1 auto; width: 100%; }
+      .hero-preview-wrap { max-width: 100%; margin-left: 0; }
+      .hero-ipad { max-width: 100%; }
     }
 
     .hero-bullets { list-style:none; margin:0 0 20px; padding:0; }
@@ -198,8 +201,9 @@
       <div class="hero-greeting" id="heroGreeting">Hoşgeldiniz 👋</div>
       <div class="hero-title">Sahnedeki<br><em class="hero-title-sub">En Büyük Yardımcın.</em></div>
       <ul class="hero-bullets">
-        <li><i class="ti ti-music"></i> Repertuvarını oluştur</li>
-        <li><i class="ti ti-arrows-sort"></i> Sürükle bırak ile düzenle</li>
+        <li><i class="ti ti-check"></i> Eseri seç / kaydet</li>
+        <li><i class="ti ti-music"></i> Repertuvarı oluştur</li>
+        <li><i class="ti ti-arrows-sort"></i> Sürükle bırak ile sırala</li>
         <li><i class="ti ti-shoe"></i> Bluetooth pedal ile yönet</li>
       </ul>
       <div class="hero-actions">
