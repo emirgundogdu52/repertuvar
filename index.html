@@ -35,7 +35,11 @@
     .hero-actions { animation-delay: .18s; }
 
     /* ═══ İki kolonlu hero: metin solda, iPad önizlemesi sağda ═══ */
-    .hero-section { display: flex; align-items: center; gap: 50px; flex-wrap: wrap; }
+    .hero-section {
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+      padding: 28px 24px;
+    }
     .hero-text { flex: 1 1 320px; }
     @media (max-width: 900px) { .hero-section { flex-direction: column; } }
 
@@ -121,15 +125,13 @@
 
     /* Özellik şeridi — ikon + başlık + açıklama */
     .cs-mini-icons { display:flex; gap:14px; margin-top:10px; font-size:17px; opacity:.85; }
-    .hero-stats { display:flex; align-items:center; justify-content:center; gap:28px; margin-top:32px; animation: heroFadeUp .7s ease .26s both; }
-    .hero-stat { text-align:center; }
-    .hero-stat span { display:block; font-size:24px; font-weight:800; color:var(--accent); }
-    .hero-stat label { display:block; font-size:11px; color:var(--text3); margin-top:2px; }
-    .hero-stat-div { width:1px; height:28px; background:var(--border); }
-    @media (max-width:560px) { .hero-stats { gap:20px; } .hero-stat span { font-size:20px; } }
+    .hero-ipad-stats { display:flex; justify-content:space-around; padding-top:12px; margin-top:12px; border-top:1px solid var(--border); }
+    .hero-ipad-stats .hero-stat span { font-size:20px; font-weight:800; color:var(--accent); display:block; }
+    .hero-ipad-stats .hero-stat label { font-size:10px; color:var(--text3); display:block; margin-top:1px; }
+    .hero-ipad-stats .hero-stat { text-align:center; }
     .hero-feature-strip {
       display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
-      margin-top:48px; padding-top:0;
+      margin-top:24px; padding-top:0;
       animation: heroFadeUp .7s ease .3s both;
     }
     @media (max-width:900px) { .hero-feature-strip { grid-template-columns:repeat(2,1fr); } }
@@ -170,9 +172,8 @@
       <div class="hero-title">Sahnede En Büyük<br><em class="hero-title-sub">Yardımcın.</em></div>
       <ul class="hero-bullets">
         <li>Repertuvarını oluştur.</li>
-        <li>Sürükle bırak ile saniyeler içinde düzenle.</li>
+        <li>Sürükle bırak ile düzenle.</li>
         <li>Bluetooth pedal ile yönet.</li>
-        <li>İnternet olmasa bile çalışmaya devam et.</li>
       </ul>
       <div class="hero-actions">
         <a href="repertoires.html" class="hero-btn-primary"><i class="ti ti-music"></i> Repertuvarlara Bak →</a>
@@ -205,6 +206,11 @@
                 <div class="tab"><i class="ti ti-users-group"></i>Grup</div>
                 <div class="tab"><i class="ti ti-settings"></i>Ayarlar</div>
               </div>
+              <div class="hero-ipad-stats">
+                <div class="hero-stat"><span id="heroStatWorks">—</span><label>Eser</label></div>
+                <div class="hero-stat"><span id="heroStatReps">—</span><label>Repertuvar</label></div>
+                <div class="hero-stat"><span id="heroStatGroups">—</span><label>Grup</label></div>
+              </div>
             </div>
           </div>
         </div>
@@ -218,15 +224,6 @@
           <div class="hero-pedal-device"><span class="led"></span></div>
         </div>
       </div>
-    </div>
-
-    <!-- HERO İSTATİSTİK -->
-    <div class="hero-stats">
-      <div class="hero-stat"><span id="heroStatWorks">—</span><label>Eser</label></div>
-      <div class="hero-stat-div"></div>
-      <div class="hero-stat"><span id="heroStatReps">—</span><label>Repertuvar</label></div>
-      <div class="hero-stat-div"></div>
-      <div class="hero-stat"><span id="heroStatGroups">—</span><label>Grup</label></div>
     </div>
 
     <!-- ÖZELLİK ŞERİDİ -->
@@ -254,6 +251,11 @@
       <div class="feat-section-title">Neler Yapabilirsiniz?</div>
       <div class="feat-scroll-wrap">
         <div class="feat-grid">
+          <a href="stage.html" class="feat-card" onclick="localStorage.setItem('stageSource','index')" style="text-decoration:none;">
+            <div class="feat-icon"><i class="ti ti-wifi-off"></i></div>
+            <div class="feat-title">Online & Offline</div>
+            <div class="feat-desc">Sahne arkasında veya bulunduğunuz yerde sinyal mi yok? Fark etmez, Repertuvar Listelerinize ve Eserler'e yine de ulaşabilirsiniz. Sistem çevrimdışı da çalışmaya devam eder!<span class="feat-detay">Detay →</span></div>
+          </a>
           <a href="eserler.html" class="feat-card" style="text-decoration:none;">
             <div class="feat-icon"><i class="ti ti-music"></i></div>
             <div class="feat-title">Eser Arşivi</div>
@@ -273,11 +275,6 @@
             <div class="feat-icon"><i class="ti ti-users-group"></i></div>
             <div class="feat-title">Grup & Koro</div>
             <div class="feat-desc">Ekibinizle ortak Repertuvar listelerini paylaşın. Sahnede; "sırada ne var, hangi makamdan çalıyoruz, hangi usulden?" gibi soruları unutun!.. — Her şey anında herkesin kendi ekranında!..<span class="feat-detay">Detay →</span></div>
-          </a>
-          <a href="stage.html" class="feat-card" onclick="localStorage.setItem('stageSource','index')" style="text-decoration:none;">
-            <div class="feat-icon"><i class="ti ti-wifi-off"></i></div>
-            <div class="feat-title">Online & Offline</div>
-            <div class="feat-desc">Sahne arkasında veya bulunduğunuz yerde sinyal mi yok? Fark etmez, Repertuvar Listelerinize ve Eserler'e yine de ulaşabilirsiniz. Sistem çevrimdışı da çalışmaya devam eder!<span class="feat-detay">Detay →</span></div>
           </a>
           <a href="stage.html" class="feat-card" onclick="localStorage.setItem('stageSource','index')" style="text-decoration:none;">
             <div class="feat-icon"><i class="ti ti-device-gamepad"></i></div>
