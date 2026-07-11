@@ -432,6 +432,12 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 <!-- ══ MAIN WRAP ══ -->
 <div id="r-topnav-container"></div>
 
+<!-- Diğer İşlemler ve Repertuvara Ekle sheet'leri — sabit, sayfa kökünde (detay panelinin iç içe/scroll yapısından bağımsız) -->
+<div class="more-sheet-overlay" id="moreSheetOverlay" onclick="toggleMoreSheet(false)"></div>
+<div class="more-sheet" id="moreSheet"></div>
+<div class="more-sheet-overlay" id="repAddSheetOverlay" onclick="closeRepAddSheet()"></div>
+<div class="more-sheet" id="repAddSheet"></div>
+
 
 <div class="main-wrap">
 
@@ -660,11 +666,16 @@ function openRepAddSheet(workId) {
   repAddWorkId = workId;
   const overlay = document.getElementById('repAddSheetOverlay');
   const sheet = document.getElementById('repAddSheet');
+  if (!overlay || !sheet) return;
+  sheet.innerHTML = `
+    <div class="more-sheet-title">Repertuvara Ekle</div>
+    <div id="repAddList" style="max-height:50vh;overflow-y:auto;">
+      <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Yükleniyor...</div>
+    </div>
+    <div id="repAddMsg" style="padding:10px 20px 4px;font-size:12px;color:var(--text3);display:none;"></div>
+  `;
   const list = document.getElementById('repAddList');
   const msg = document.getElementById('repAddMsg');
-  if (!overlay || !sheet) return;
-  msg.style.display = 'none';
-  list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Yükleniyor...</div>';
   overlay.classList.add('open');
   sheet.classList.add('open');
 
@@ -740,6 +751,19 @@ function toggleMoreSheet(show, id) {
   const overlay = document.getElementById('moreSheetOverlay');
   const sheet = document.getElementById('moreSheet');
   if (!overlay || !sheet) return;
+  if (show && id != null) {
+    const w = DATA.find(x => x.id === id);
+    const isFavNow = getFavs().has(id);
+    sheet.innerHTML = `
+      <div class="more-sheet-title">Diğer İşlemler</div>
+      <button class="more-sheet-item" onclick="toggleMoreSheet(false);openRepAddSheet(${id})"><i class="ti ti-playlist-add"></i> Repertuvara Ekle</button>
+      <button class="more-sheet-item" onclick="shareWork(${id})"><i class="ti ti-share"></i> Paylaş</button>
+      <button class="more-sheet-item" onclick="toggleFavoriteFromMore(${id})"><i class="ti ti-star${isFavNow?'-filled fav-star':''}"></i> ${isFavNow?'Favoriden Çıkar':'Favoriye Ekle'}</button>
+      <button class="more-sheet-item" onclick="stubAction('PDF / Nota görüntüleme')"><i class="ti ti-file-music"></i> PDF / Nota</button>
+      <button class="more-sheet-item" onclick="toggleMoreSheet(false);openEditEserModal(${id})" style="display:${(isAdmin() || isEditor()) ? 'flex' : 'none'}"><i class="ti ti-edit"></i> Düzenle</button>
+      <button class="more-sheet-item danger" onclick="toggleMoreSheet(false);showDeleteConfirm(${id})" style="display:${isAdmin() ? 'flex' : 'none'}"><i class="ti ti-trash"></i> Sil</button>
+    `;
+  }
   overlay.classList.toggle('open', show);
   sheet.classList.toggle('open', show);
 }
@@ -937,27 +961,6 @@ function selectWork(id) {
         ${stageBtn}
         ${videoBtn}
         ${moreBtn}
-      </div>
-      <!-- Diğer İşlemler sheet'i her zaman gizli render edilir, gerekince açılır -->
-      <div class="more-sheet-overlay" id="moreSheetOverlay" onclick="toggleMoreSheet(false)"></div>
-      <div class="more-sheet" id="moreSheet">
-        <div class="more-sheet-title">Diğer İşlemler</div>
-        <button class="more-sheet-item" onclick="toggleMoreSheet(false);openRepAddSheet(${w.id})"><i class="ti ti-playlist-add"></i> Repertuvara Ekle</button>
-        <button class="more-sheet-item" onclick="shareWork(${w.id})"><i class="ti ti-share"></i> Paylaş</button>
-        <button class="more-sheet-item" id="moreFavBtn" onclick="toggleFavoriteFromMore(${w.id})"><i class="ti ti-star${isFavNow?'-filled fav-star':''}"></i> ${isFavNow?'Favoriden Çıkar':'Favoriye Ekle'}</button>
-        <button class="more-sheet-item" onclick="stubAction('PDF / Nota görüntüleme')"><i class="ti ti-file-music"></i> PDF / Nota</button>
-        <button class="more-sheet-item" onclick="toggleMoreSheet(false);openEditEserModal(${w.id})" style="display:${(isAdmin() || isEditor()) ? 'flex' : 'none'}"><i class="ti ti-edit"></i> Düzenle</button>
-        <button class="more-sheet-item danger" onclick="toggleMoreSheet(false);showDeleteConfirm(${w.id})" style="display:${isAdmin() ? 'flex' : 'none'}"><i class="ti ti-trash"></i> Sil</button>
-      </div>
-
-      <!-- REPERTUVARA EKLE sheet'i -->
-      <div class="more-sheet-overlay" id="repAddSheetOverlay" onclick="closeRepAddSheet()"></div>
-      <div class="more-sheet" id="repAddSheet">
-        <div class="more-sheet-title">Repertuvara Ekle</div>
-        <div id="repAddList" style="max-height:50vh;overflow-y:auto;">
-          <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Yükleniyor...</div>
-        </div>
-        <div id="repAddMsg" style="padding:10px 20px 4px;font-size:12px;color:var(--text3);display:none;"></div>
       </div>
       <div class="confirm-bar" id="confirm-${w.id}">
         <span>Bu eseri silmek istediğinize emin misiniz?</span>
