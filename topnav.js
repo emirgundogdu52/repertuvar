@@ -88,7 +88,7 @@
 
     .r-topnav {
       position: sticky; top: 0; z-index: 200;
-      height: auto; min-height: 56px;
+      height: auto; min-height: 62px;
       background: rgba(7,7,26,0.92);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(120,100,255,0.18);
@@ -99,7 +99,7 @@
       width: 100%; box-sizing: border-box; max-width: 100vw; overflow: hidden;
     }
     .r-topnav img.r-logo {
-      height: 38px; width: auto; flex-shrink: 0;
+      height: 45px; width: auto; flex-shrink: 0;
     }
     .r-topnav .r-tn-right {
       margin-left: auto;
@@ -531,7 +531,7 @@
     aside.className = 'sidebar';
     aside.innerHTML = `
       <div class="sb-brand">
-        <img src="${logo}" alt="repertuvar.app" style="height:38px;width:auto;display:block;" data-logo="true">
+        <img src="${logo}" alt="repertuvar.app" style="height:45px;width:auto;display:block;" data-logo="true">
       </div>
       <nav class="sb-nav">${navHtml}</nav>
       <div style="padding:8px 12px 4px;">
