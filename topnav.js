@@ -88,7 +88,7 @@
 
     .r-topnav {
       position: sticky; top: 0; z-index: 200;
-      height: auto; min-height: 72px;
+      height: auto; min-height: 66px;
       background: rgba(7,11,24,0.92);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(255,200,61,0.16);

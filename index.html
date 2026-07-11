@@ -41,6 +41,10 @@
       border: 1px solid var(--border); border-radius: 20px;
       padding: 28px 24px;
     }
+    [data-theme="light"] .hero-section {
+      background: linear-gradient(135deg, #EEF3FF, #E5ECFA);
+      border-color: #E6EBF5;
+    }
     .hero-text { flex: 1 1 320px; }
     @media (max-width: 900px) {
       .hero-section { flex-direction: column; gap: 24px; }
@@ -84,9 +88,10 @@
     @keyframes btBlink { 0%,100% { opacity:.6; } 50% { opacity:1; } }
     .hero-ipad-toast {
       position:absolute; top:8px; left:50%; transform:translateX(-50%) translateY(-8px);
-      background: var(--ready-color,#34C759); color:#06210e; font-size:11px; font-weight:700;
+      background: #30C95A; color:#06210e; font-size:11px; font-weight:700;
       padding:6px 12px; border-radius:20px; white-space:nowrap; z-index:5;
       display:flex; align-items:center; gap:5px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.35);
       opacity:0; pointer-events:none; transition: opacity .3s ease, transform .3s ease;
     }
     .hero-ipad-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -103,7 +108,6 @@
     .hero-song-row.dragging {
       background: var(--surface2); border-color: rgba(255,200,61,.5);
       box-shadow: 0 12px 24px rgba(0,0,0,.4);
-      animation: dragSlide .9s cubic-bezier(.34,1.56,.64,1) both;
       position: relative; z-index: 2;
     }
     .hero-drop-slot {
@@ -213,10 +217,9 @@
               <div class="icons"><i class="ti ti-bluetooth-connected hero-ipad-bt"></i><i class="ti ti-search"></i><i class="ti ti-plus"></i><i class="ti ti-dots-vertical"></i></div>
             </div>
             <div class="hero-ipad-screen">
-              <div class="hero-song-row dragging" id="heroRow1"><span class="grip">☰</span><b>Hekimoğlu</b><span>Bm</span></div>
-              <div class="hero-drop-slot" id="heroDropSlot">↑</div>
-              <div class="hero-song-row" id="heroRow2"><span class="num">2</span><b>Çökertme</b><span>Dm</span></div>
-              <div class="hero-song-row" id="heroRow3"><span class="num">3</span><b>Fidayda</b><span>Gm</span></div>
+              <div class="hero-song-row dragging hero-rotatable" id="heroRow1"><span class="grip">☰</span><b>Hekimoğlu</b><span>Bm</span></div>
+              <div class="hero-song-row hero-rotatable" id="heroRow2"><span class="num">2</span><b>Çökertme</b><span>Dm</span></div>
+              <div class="hero-song-row hero-rotatable" id="heroRow3"><span class="num">3</span><b>Fidayda</b><span>Gm</span></div>
               <div class="hero-song-row"><span class="num">4</span><b>Uzun İnce Yol</b><span>Am</span></div>
               <div class="hero-song-row"><span class="num">5</span><b>Sen Ağlama</b><span>C</span></div>
               <div class="hero-song-row"><span class="num">6</span><b>Gül Yüzlü Sevdiğim</b><span>Em</span></div>
@@ -428,24 +431,53 @@
     }
   } catch(e) {}
 
-  // Hero: "sürükleniyor" satırını sırayla değiştir (Hekimoğlu → Çökertme → Fidayda)
+  // Hero: iPad'deki eser satırları gerçekten yer değiştirir (FLIP animasyonu)
+  // Hekimoğlu yukarıdan aşağı doğru sürüklenip 3. sıraya iner, diğerleri yumuşakça yukarı kayar.
   (function() {
-    const rows = [document.getElementById('heroRow1'), document.getElementById('heroRow2'), document.getElementById('heroRow3')];
-    const dropSlot = document.getElementById('heroDropSlot');
+    const screen = document.querySelector('.hero-ipad-screen');
     const toast = document.getElementById('heroToast');
-    if (!rows[0] || !rows[1] || !rows[2]) return;
-    let idx = 0;
-    setInterval(() => {
-      rows[idx].classList.remove('dragging');
-      idx = (idx + 1) % rows.length;
-      rows[idx].classList.add('dragging');
-      if (dropSlot) rows[idx].insertAdjacentElement('afterend', dropSlot);
-      // Sürükleme tamamlanınca kısa bir onay toast'ı göster
-      if (toast) {
-        setTimeout(() => toast.classList.add('show'), 700);
-        setTimeout(() => toast.classList.remove('show'), 1900);
-      }
-    }, 2400);
+    if (!screen) return;
+
+    function rotate() {
+      const rows = Array.from(screen.querySelectorAll('.hero-rotatable'));
+      if (rows.length < 2) return;
+      const first = rows[0];
+      const rest = rows.slice(1);
+
+      // 1) Eski konumları kaydet (First)
+      const firstOld = first.getBoundingClientRect();
+      const restOld = rest.map(r => r.getBoundingClientRect());
+
+      first.classList.add('dragging');
+
+      // 2) DOM'da first'i en sona taşı (Last)
+      rest[rest.length - 1].insertAdjacentElement('afterend', first);
+
+      // 3) Yeni konumlarla farkı hesapla (Invert) — animasyonsuz anlık ters kaydırma
+      const firstNew = first.getBoundingClientRect();
+      first.style.transition = 'none';
+      first.style.transform = `translateY(${firstOld.top - firstNew.top}px)`;
+      rest.forEach((r, i) => {
+        const newRect = r.getBoundingClientRect();
+        r.style.transition = 'none';
+        r.style.transform = `translateY(${restOld[i].top - newRect.top}px)`;
+      });
+
+      // 4) Play — bir sonraki frame'de gerçek pozisyona doğru yumuşakça animasyonla dön
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          first.style.transition = 'transform .65s cubic-bezier(.34,1.15,.4,1)';
+          first.style.transform = '';
+          rest.forEach(r => { r.style.transition = 'transform .65s cubic-bezier(.34,1.15,.4,1)'; r.style.transform = ''; });
+          setTimeout(() => first.classList.remove('dragging'), 650);
+          setTimeout(() => { if (toast) toast.classList.add('show'); }, 750);
+          setTimeout(() => { if (toast) toast.classList.remove('show'); }, 1950);
+        });
+      });
+    }
+
+    setTimeout(rotate, 2500);
+    setInterval(rotate, 6000);
   })();
 
   // Feat slideshow
