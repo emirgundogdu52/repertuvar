@@ -724,7 +724,7 @@ async function pickRepertoireForAdd(repId, repName) {
     // Mükerrer kontrolü — repertoires.js'deki aynı mantık
     const existingR = await fetch(SUPA_URL + '/rest/v1/repertoire_items?select=id,seq,work_id&repertoire_id=eq.' + repId, { headers });
     const existing = await existingR.json();
-    if (existing.some(it => it.work_id === repAddWorkId)) {
+    if (existing.some(it => Number(it.work_id) === Number(repAddWorkId))) {
       msg.style.color = '#e07060';
       msg.textContent = 'Bu eser zaten "' + repName + '" içinde.';
       return;
