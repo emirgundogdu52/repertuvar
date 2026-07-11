@@ -444,7 +444,7 @@ body {
 .hero-title {
   font-size: 22px; font-weight: 800;
   color: var(--text); line-height: 1.25; letter-spacing: -.02em;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 @media (max-width: 1023px) { .hero-title { font-size: clamp(19px, 5vw, 22px); } }
 @media (max-width: 480px) { .hero-title { font-size: 20px; } }

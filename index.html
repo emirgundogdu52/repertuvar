@@ -36,15 +36,18 @@
 
     /* ═══ İki kolonlu hero: metin solda, iPad önizlemesi sağda ═══ */
     .hero-section {
-      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
       background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
       padding: 28px 24px;
     }
     .hero-text { flex: 1 1 320px; }
-    @media (max-width: 900px) { .hero-section { flex-direction: column; gap: 10px; } }
+    @media (max-width: 900px) {
+      .hero-section { flex-direction: column; gap: 24px; }
+      .hero-visual-row { margin-top: -40px; }
+    }
 
-    .hero-bullets { list-style:none; margin:18px 0 26px; padding:0; }
-    .hero-bullets li { font-size:15px; line-height:1.6; color:var(--text2); padding:4px 0; }
+    .hero-bullets { list-style:none; margin:0 0 20px; padding:0; }
+    .hero-bullets li { font-size:15px; line-height:1.5; color:var(--text2); padding:6px 0; display:flex; align-items:center; gap:8px; }
 
     @keyframes previewFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(.4deg); } }
     @keyframes glowPulse { 0%,100% { opacity:.5; transform:scale(1); } 50% { opacity:.8; transform:scale(1.05); } }
@@ -54,7 +57,7 @@
 
     /* iPad + pedal'ı yan yana taşıyan geniş kapsayıcı */
     .hero-visual-row { display:flex; flex-direction:column; align-items:center; gap:14px; flex:1 1 340px; }
-    .hero-preview-wrap { position: relative; width:100%; max-width:380px; animation: heroFadeUp .8s ease .22s both; }
+    .hero-preview-wrap { position: relative; width:100%; max-width:380px; margin-left:-9px; animation: heroFadeUp .8s ease .22s both; }
     .hero-preview-glow {
       position:absolute; inset:-25px; border-radius:32px;
       background: radial-gradient(circle, rgba(255,200,61,.28), rgba(77,163,255,.2) 55%, transparent 75%);
@@ -173,9 +176,9 @@
       <div class="hero-greeting" id="heroGreeting">Hoşgeldiniz 👋</div>
       <div class="hero-title">Sahnede En Büyük<br><em class="hero-title-sub">Yardımcın.</em></div>
       <ul class="hero-bullets">
-        <li>Repertuvarını oluştur.</li>
-        <li>Sürükle bırak ile düzenle.</li>
-        <li>Bluetooth pedal ile yönet.</li>
+        <li>🎵 Repertuvarını oluştur</li>
+        <li>↕️ Sürükle bırak ile düzenle</li>
+        <li>🦶 Bluetooth pedal ile yönet</li>
       </ul>
       <div class="hero-actions">
         <a href="repertoires.html" class="hero-btn-primary"><i class="ti ti-music"></i> Repertuvarlara Bak →</a>
