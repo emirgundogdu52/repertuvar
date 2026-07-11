@@ -215,7 +215,7 @@ function renderDetail(){
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
         <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
-        <button class="br dl" onclick="rmItem('${rep.id}','${it.id}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
+        <button class="br dl" onclick="rmItem('${rep.id}','${it.id}','${(w.name||'Bu eser').replace(/'/g,"\\'")}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
       </div></td>
     </tr>`;
   }).join(''):`<tr><td colspan="5" class="ei">Henüz eser eklenmedi.</td></tr>`;
@@ -436,7 +436,8 @@ async function addWork(){
   }catch(e){toast(e.message,'er');}
 }
 
-async function rmItem(repId,itemId){
+async function rmItem(repId,itemId,workName){
+  if(!confirm((workName||'Bu eser')+' repertuvardan çıkarılsın mı?'))return;
   try{await dbDel('repertoire_items',itemId);toast('Silindi');await load();}catch(e){toast(e.message,'er');}
 }
 
