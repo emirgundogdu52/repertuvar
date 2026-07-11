@@ -112,6 +112,10 @@
 
   /* DETAIL PANEL */
   .detail { width:520px; min-width:520px; max-width:100vw; background:var(--surface); border-left:1px solid var(--border); overflow-y:auto; overflow-x:hidden; }
+  /* iPad genişliği (1024-1366px): detay paneli daralt, listeye alan aç (liste ~%35 genişler) */
+  @media (min-width:1024px) and (max-width:1366px) {
+    .detail { width:380px; min-width:380px; }
+  }
   .detail::-webkit-scrollbar { width:4px; }
   .detail::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
   .detail-empty { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; height:100%; color:var(--text3); gap:12px; }
