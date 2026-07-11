@@ -531,7 +531,7 @@
     aside.className = 'sidebar';
     aside.innerHTML = `
       <div class="sb-brand">
-        <img src="${logo}" alt="repertuvar.app" style="height:55px;width:auto;max-width:298px;display:block;" data-logo="true">
+        <img src="${logo}" alt="repertuvar.app" style="height:50px;width:auto;max-width:270px;display:block;" data-logo="true">
       </div>
       <nav class="sb-nav">${navHtml}</nav>
       <div style="padding:8px 12px 4px;">
