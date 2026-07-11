@@ -62,6 +62,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .wch.i{border-color:#1a2d1a;color:#7ab87a;background:#0f1a0f;}
 .wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:600px;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
 .wlyrics{font-size:clamp(18px,2.8vw,28px);color:var(--text);text-align:center;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;}
+.wnota{display:flex;justify-content:center;align-items:center;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;width:100%;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
 .sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;position:relative;z-index:10;}
@@ -573,14 +574,20 @@ function renderStage(){
     const infoBtn = document.getElementById('stageInfoBtn');
     if (infoBtn) infoBtn.style.display = 'flex';
   }
-  const showChords = localStorage.getItem('stageShowChords') === '1';
-  const lyricsHtml = (showChords && w.chords)
-    ? `<div class="wlyrics">${renderStageChords(w.chords)}</div>`
-    : (w.lyrics ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>` : '');
+  const viewMode = getStageViewMode(w);
+  let bodyHtml = '';
+  if (viewMode === 'nota' && w.notaUrl) {
+    bodyHtml = `<div class="wnota"><img src="${w.notaUrl}" alt="Nota" style="max-width:100%;max-height:70vh;border-radius:8px;"></div>`;
+  } else if (viewMode === 'chords' && w.chords) {
+    bodyHtml = `<div class="wlyrics">${renderStageChords(w.chords)}</div>`;
+  } else {
+    bodyHtml = w.lyrics ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>` : '';
+  }
   document.getElementById('sm').innerHTML=`
     <div class="wnum"></div>
     <div class="wtitle">${w.name||item.workId}</div>
-    ${lyricsHtml}`; 
+    ${bodyHtml}`;
+  updateViewToggleUI(w);
   // Kaydedilmiş hizalamayı uygula
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
   requestAnimationFrame(() => setLyricsAlign(savedAlign));
@@ -609,24 +616,50 @@ function initBackBtn() {
     const lbl = backBtn.querySelector('.v2-bn-label');
     if (lbl) lbl.textContent = labels[src] || 'Geri Dön';
   }
-  const lbl = document.getElementById('toggleViewLabel');
-  if (lbl) {
-    const chordsOn = localStorage.getItem('stageShowChords') === '1';
-    lbl.textContent = chordsOn ? 'Akor' : 'Güfte';
-  }
+  // Not: görünüm etiketi artık her showWork() çağrısında updateViewToggleUI() ile güncelleniyor
 }
 
-function toggleChordView() {
-  const current = localStorage.getItem('stageShowChords') === '1';
-  const next = current ? '0' : '1';
-  localStorage.setItem('stageShowChords', next);
+// ── Görünüm modu: Söz / Akor / Nota — eserde hangi veriler varsa döngüye o kadarı girer ──
+function getStageViewMode(w) {
+  let mode = localStorage.getItem('stageViewMode') || 'lyrics';
+  // Eserde o modun verisi yoksa güvenli şekilde söze düş
+  if (mode === 'chords' && !w.chords) mode = 'lyrics';
+  if (mode === 'nota' && !w.notaUrl) mode = 'lyrics';
+  return mode;
+}
+
+function cycleViewMode() {
+  const item = items[curIdx];
+  const w = item ? (WL[item.workId] || {}) : null;
+  if (!w) return;
+  const available = ['lyrics'];
+  if (w.chords) available.push('chords');
+  if (w.notaUrl) available.push('nota');
+  const current = getStageViewMode(w);
+  const idx = available.indexOf(current);
+  const next = available[(idx + 1) % available.length];
+  localStorage.setItem('stageViewMode', next);
+  showWork(w);
+}
+
+function updateViewToggleUI(w) {
   const lbl = document.getElementById('toggleViewLabel');
-  if (lbl) lbl.textContent = next === '1' ? 'Akor' : 'Güfte';
   const icon = document.querySelector('#btnToggleView .ti');
-  if (icon) { icon.className = next === '1' ? 'ti ti-guitar-pick' : 'ti ti-music'; icon.style.cssText='font-size:20px;line-height:1;'; }
-  // Mevcut eseri yeniden render et
-  const w = works[curIdx];
-  if (w) showWork(w);
+  const btn = document.getElementById('btnToggleView');
+  if (!lbl || !btn) return;
+  const mode = getStageViewMode(w);
+  const meta = {
+    lyrics: { label: 'Güfte', icon: 'ti-music' },
+    chords: { label: 'Akor',  icon: 'ti-guitar-pick' },
+    nota:   { label: 'Nota',  icon: 'ti-file-music' },
+  }[mode];
+  lbl.textContent = meta.label;
+  if (icon) { icon.className = 'ti ' + meta.icon; icon.style.cssText = 'font-size:20px;line-height:1;'; }
+  // Bu eserde tek mod varsa (geçecek bir şey yoksa) butonu soluklaştır
+  const available = ['lyrics'];
+  if (w.chords) available.push('chords');
+  if (w.notaUrl) available.push('nota');
+  btn.style.opacity = available.length > 1 ? '1' : '.4';
 }
 
 function goBack(e) {
@@ -973,7 +1006,7 @@ function loadSideWork(id) {
   <!-- Stage screen: sahneye özel nav -->
   <div class="v2-bn-items" id="stageNavStage" style="display:none;">
     <a href="#" class="v2-bn-item" id="btnGoBack" onclick="goBack(event)"><i class="ti ti-arrow-left" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Geri Dön</span></a>
-    <button class="v2-bn-item" id="btnToggleView" onclick="event.stopPropagation();toggleChordView()" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" id="toggleViewLabel">Güfte</span></button>
+    <button class="v2-bn-item" id="btnToggleView" onclick="event.stopPropagation();cycleViewMode()" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" id="toggleViewLabel">Güfte</span></button>
     <a href="repertoires.html" class="v2-bn-item" id="btnActiveRep" onclick="goToActiveRep(event)"><i class="ti ti-book" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Repertuvar</span></a>
     <button class="v2-bn-item v2-bn-exit" onclick="event.stopPropagation();exitStage(event)" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-x" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Çık</span></button>
   </div>
