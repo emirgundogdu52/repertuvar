@@ -123,10 +123,11 @@
   .detail-header { padding:14px 16px 12px; border-bottom:1px solid var(--border); background:var(--surface); box-sizing:border-box; width:100%; }
   .detail-id { font-size:11px; color:var(--text3); letter-spacing:.05em; margin-bottom:6px; }
   .detail-title { font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size:18px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:10px; word-break:break-word; }
+  .detail-subtitle { font-size:12px; color:var(--text3); margin-top:-6px; margin-bottom:10px; }
   .detail-chips { display:flex; gap:8px; flex-wrap:wrap; max-width:100%; }
   .chip { padding:6px 14px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
   .chip i { font-size:13px; }
-  .chip.makam { background:#5D4AA5; color:#FFFFFF; border:none; font-size:14.8px; padding:7px 16px; font-weight:700; }
+  .chip.makam { background:#5D4AA5; color:#FFFFFF; border:none; font-size:14.8px; padding:8px 18px; font-weight:700; }
   .chip.makam i { font-size:14.8px; }
   .chip.form  { background:#2E8B57; color:#FFFFFF; border:none; }
   .chip.tuning{ background:#D68A00; color:#FFFFFF; border:none; }
@@ -218,9 +219,9 @@
 
   .stage-open-btn {
     display: inline-flex; align-items: center; justify-content:center; gap: 6px;
-    padding: 9px 16px; border-radius: 8px;
+    padding: 0 20px; height: 48px; border-radius: 10px;
     background: var(--accent); border: none;
-    color: #1a1200; font-size: 13px; font-weight: 700;
+    color: #1a1200; font-size: 14px; font-weight: 700;
     text-decoration: none; transition: all .15s; white-space:nowrap;
     box-shadow: 0 4px 14px rgba(255,200,61,.3);
   }
@@ -760,6 +761,7 @@ function toggleMoreSheet(show, id) {
       <button class="more-sheet-item" onclick="shareWork(${id})"><i class="ti ti-share"></i> Paylaş</button>
       <button class="more-sheet-item" onclick="toggleFavoriteFromMore(${id})"><i class="ti ti-star${isFavNow?'-filled fav-star':''}"></i> ${isFavNow?'Favoriden Çıkar':'Favoriye Ekle'}</button>
       <button class="more-sheet-item" onclick="stubAction('PDF / Nota görüntüleme')"><i class="ti ti-file-music"></i> PDF / Nota</button>
+      <button class="more-sheet-item" onclick="stubAction('Kopyasını oluşturma')"><i class="ti ti-copy"></i> Kopyasını Oluştur</button>
       <button class="more-sheet-item" onclick="toggleMoreSheet(false);openEditEserModal(${id})" style="display:${(isAdmin() || isEditor()) ? 'flex' : 'none'}"><i class="ti ti-edit"></i> Düzenle</button>
       <button class="more-sheet-item danger" onclick="toggleMoreSheet(false);showDeleteConfirm(${id})" style="display:${isAdmin() ? 'flex' : 'none'}"><i class="ti ti-trash"></i> Sil</button>
     `;
@@ -835,6 +837,15 @@ async function loadRepertoireCounts() {
     window.WORK_GROUP_COUNTS = groupCounts;
     renderList();
   } catch(e) { console.warn('[eserler] Repertuvar/grup sayımı alınamadı:', e.message); }
+}
+
+// ── Şarkı sözü yazı boyutu (Aa+ / Aa-) ──
+let lyricsFontStep = 0; // -2..+4 arası, adım başına 1px
+function adjustLyricsFontSize(delta) {
+  const box = document.getElementById('lyricsBoxDisplay');
+  if (!box) return;
+  lyricsFontStep = Math.max(-2, Math.min(6, lyricsFontStep + delta));
+  box.style.fontSize = (13 + lyricsFontStep) + 'px';
 }
 
 function toggleFilterSheet(show) {
@@ -956,6 +967,7 @@ function selectWork(id) {
     <div class="back-btn" onclick="backFromDetail()">← Listeye Dön</div>
     <div class="detail-header">
       <div class="detail-title">${w.name||'(isimsiz)'}</div>
+      ${(w.region || w.sourcePerson || w.composer) ? `<div class="detail-subtitle">${[w.region ? `📍 ${w.region}` : '', (w.sourcePerson||w.composer) ? `👤 ${w.sourcePerson||w.composer}` : ''].filter(Boolean).join(' &nbsp;·&nbsp; ')}</div>` : ''}
       <div class="detail-chips">${chips}</div>
       <div class="detail-stage-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px;width:100%;">
         ${stageBtn}
@@ -991,14 +1003,22 @@ function selectWork(id) {
         const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
         const groupCount = (window.WORK_GROUP_COUNTS && window.WORK_GROUP_COUNTS[w.id]) || 0;
         const bits = [
-          repCount > 0 ? `📂 ${repCount} repertuvarda` : '',
-          groupCount > 0 ? `👥 ${groupCount} grup kullanıyor` : '',
-          `🟢 Offline hazır`,
+          repCount > 0 ? `📂 ${repCount} Repertuvar` : '',
+          groupCount > 0 ? `👥 ${groupCount} Grup` : '',
+          `🟢 Offline`,
         ].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
         return `<div style="font-size:11px;font-weight:500;color:var(--text3);margin-bottom:12px;">${bits}</div>`;
       })()}
+      ${w.lyrics ? `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.06em;">SÖZLER</span>
+        <div style="display:flex;gap:4px;">
+          <button onclick="adjustLyricsFontSize(-1)" title="Küçült" style="width:26px;height:26px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:11px;cursor:pointer;">Aa−</button>
+          <button onclick="adjustLyricsFontSize(1)" title="Büyüt" style="width:26px;height:26px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:13px;cursor:pointer;">Aa+</button>
+        </div>
+      </div>` : ''}
       ${w.lyrics
-        ? `<div class="lyrics-box">${renderLyricsHtml(w.lyrics)}</div>`
+        ? `<div class="lyrics-box" id="lyricsBoxDisplay">${renderLyricsHtml(w.lyrics)}</div>`
         : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">Bu eser için güfte eklenmemiş.</div>`
       }
     </div>
