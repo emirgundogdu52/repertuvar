@@ -653,6 +653,88 @@ function getFavs() {
   try { return new Set(JSON.parse(localStorage.getItem(getFavKey()) || '[]').map(Number)); }
   catch(e) { return new Set(); }
 }
+// ── Repertuvara Ekle sheet'i ──
+let repAddWorkId = null;
+
+function openRepAddSheet(workId) {
+  repAddWorkId = workId;
+  const overlay = document.getElementById('repAddSheetOverlay');
+  const sheet = document.getElementById('repAddSheet');
+  const list = document.getElementById('repAddList');
+  const msg = document.getElementById('repAddMsg');
+  if (!overlay || !sheet) return;
+  msg.style.display = 'none';
+  list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Yükleniyor...</div>';
+  overlay.classList.add('open');
+  sheet.classList.add('open');
+
+  const token = localStorage.getItem('sb_token') || SUPA_KEY;
+  const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token };
+  const gid = localStorage.getItem('user_group_id');
+  const savedUser = (() => { try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; } })();
+  const uid = savedUser?.id;
+  const filter = gid
+    ? '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&group_id=eq.' + gid
+    : (uid ? '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&or=(owner_id.eq.' + uid + ',is_public.eq.true)'
+           : '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&is_public=eq.true');
+
+  fetch(SUPA_URL + filter, { headers })
+    .then(r => r.json())
+    .then(reps => {
+      if (!Array.isArray(reps) || !reps.length) {
+        list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Henüz bir repertuvarın yok.</div>';
+        return;
+      }
+      list.innerHTML = reps.map(r => `
+        <button class="more-sheet-item" onclick="pickRepertoireForAdd(${r.id}, '${(r.name||'').replace(/'/g,"\\'")}')">
+          <i class="ti ti-playlist"></i> ${r.name || '(isimsiz)'}
+        </button>`).join('');
+    })
+    .catch(() => {
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:#e07060;font-size:13px;">Repertuvarlar yüklenemedi.</div>';
+    });
+}
+
+function closeRepAddSheet() {
+  const overlay = document.getElementById('repAddSheetOverlay');
+  const sheet = document.getElementById('repAddSheet');
+  if (overlay) overlay.classList.remove('open');
+  if (sheet) sheet.classList.remove('open');
+}
+
+async function pickRepertoireForAdd(repId, repName) {
+  const msg = document.getElementById('repAddMsg');
+  const token = localStorage.getItem('sb_token') || SUPA_KEY;
+  const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=representation' };
+  msg.style.display = 'block';
+  msg.style.color = 'var(--text3)';
+  msg.textContent = 'Ekleniyor...';
+  try {
+    // Mükerrer kontrolü — repertoires.js'deki aynı mantık
+    const existingR = await fetch(SUPA_URL + '/rest/v1/repertoire_items?select=id,seq,work_id&repertoire_id=eq.' + repId, { headers });
+    const existing = await existingR.json();
+    if (existing.some(it => it.work_id === repAddWorkId)) {
+      msg.style.color = '#e07060';
+      msg.textContent = 'Bu eser zaten "' + repName + '" içinde.';
+      return;
+    }
+    const nextSeq = existing.length ? Math.max(...existing.map(it => it.seq || 0)) + 1 : 1;
+    const insRes = await fetch(SUPA_URL + '/rest/v1/repertoire_items', {
+      method: 'POST', headers,
+      body: JSON.stringify({ repertoire_id: repId, work_id: repAddWorkId, seq: nextSeq })
+    });
+    if (!insRes.ok) throw new Error('insert failed');
+    msg.style.color = 'var(--ready-color,#34C759)';
+    msg.textContent = '✓ "' + repName + '" içine eklendi.';
+    // Yerel repertuvar/grup sayaçlarını da tazele
+    if (typeof loadRepertoireCounts === 'function') loadRepertoireCounts();
+    setTimeout(closeRepAddSheet, 900);
+  } catch (e) {
+    msg.style.color = '#e07060';
+    msg.textContent = 'Eklenirken bir hata oluştu.';
+  }
+}
+
 // ── Diğer İşlemler (•••) sheet'i ──
 function toggleMoreSheet(show, id) {
   const overlay = document.getElementById('moreSheetOverlay');
@@ -860,12 +942,22 @@ function selectWork(id) {
       <div class="more-sheet-overlay" id="moreSheetOverlay" onclick="toggleMoreSheet(false)"></div>
       <div class="more-sheet" id="moreSheet">
         <div class="more-sheet-title">Diğer İşlemler</div>
-        <button class="more-sheet-item" onclick="stubAction('Repertuvara ekleme')"><i class="ti ti-playlist-add"></i> Repertuvara Ekle</button>
+        <button class="more-sheet-item" onclick="toggleMoreSheet(false);openRepAddSheet(${w.id})"><i class="ti ti-playlist-add"></i> Repertuvara Ekle</button>
         <button class="more-sheet-item" onclick="shareWork(${w.id})"><i class="ti ti-share"></i> Paylaş</button>
         <button class="more-sheet-item" id="moreFavBtn" onclick="toggleFavoriteFromMore(${w.id})"><i class="ti ti-star${isFavNow?'-filled fav-star':''}"></i> ${isFavNow?'Favoriden Çıkar':'Favoriye Ekle'}</button>
         <button class="more-sheet-item" onclick="stubAction('PDF / Nota görüntüleme')"><i class="ti ti-file-music"></i> PDF / Nota</button>
         <button class="more-sheet-item" onclick="toggleMoreSheet(false);openEditEserModal(${w.id})" style="display:${(isAdmin() || isEditor()) ? 'flex' : 'none'}"><i class="ti ti-edit"></i> Düzenle</button>
         <button class="more-sheet-item danger" onclick="toggleMoreSheet(false);showDeleteConfirm(${w.id})" style="display:${isAdmin() ? 'flex' : 'none'}"><i class="ti ti-trash"></i> Sil</button>
+      </div>
+
+      <!-- REPERTUVARA EKLE sheet'i -->
+      <div class="more-sheet-overlay" id="repAddSheetOverlay" onclick="closeRepAddSheet()"></div>
+      <div class="more-sheet" id="repAddSheet">
+        <div class="more-sheet-title">Repertuvara Ekle</div>
+        <div id="repAddList" style="max-height:50vh;overflow-y:auto;">
+          <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Yükleniyor...</div>
+        </div>
+        <div id="repAddMsg" style="padding:10px 20px 4px;font-size:12px;color:var(--text3);display:none;"></div>
       </div>
       <div class="confirm-bar" id="confirm-${w.id}">
         <span>Bu eseri silmek istediğinize emin misiniz?</span>
