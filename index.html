@@ -58,7 +58,7 @@
     }
     /* iPad çerçevesi */
     .hero-ipad {
-      position:relative; z-index:1; max-width:400px; margin:0 auto;
+      position:relative; z-index:1; max-width:360px; margin:0 auto;
       background: linear-gradient(160deg, var(--surface), var(--bg2));
       border:1px solid rgba(255,200,61,.2); border-radius:28px; padding:14px;
       box-shadow: 0 30px 60px rgba(0,0,0,.5), inset 0 0 0 5px #000;
@@ -106,13 +106,13 @@
     .hero-pedal-badge .status { color:var(--ready-color, #34C759); font-weight:600; display:flex; align-items:center; gap:5px; }
     .hero-pedal-dot { width:7px; height:7px; border-radius:50%; background:var(--ready-color, #34C759); animation: pedalPulse 2s infinite; }
     .hero-pedal-device {
-      width:120px; height:70px; border-radius:16px;
+      width:150px; height:88px; border-radius:18px;
       background: linear-gradient(160deg, #23262f, #101216);
       border:1px solid rgba(255,255,255,.08); position:relative;
       box-shadow: 0 16px 34px rgba(0,0,0,.5);
     }
     .hero-pedal-device::before, .hero-pedal-device::after {
-      content:''; position:absolute; bottom:8px; width:44%; height:44px; border-radius:10px;
+      content:''; position:absolute; bottom:10px; width:44%; height:56px; border-radius:12px;
       background: linear-gradient(160deg, #2c2f3a, #15171c); border:1px solid rgba(255,255,255,.06);
     }
     .hero-pedal-device::before { left:6px; }
@@ -120,6 +120,12 @@
     .hero-pedal-device .led { position:absolute; top:10px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:var(--ready-color,#34C759); animation: pedalPulse 2s infinite; z-index:2; }
 
     /* Özellik şeridi — ikon + başlık + açıklama */
+    .hero-stats { display:flex; align-items:center; justify-content:center; gap:28px; margin-top:32px; animation: heroFadeUp .7s ease .26s both; }
+    .hero-stat { text-align:center; }
+    .hero-stat span { display:block; font-size:24px; font-weight:800; color:var(--accent); }
+    .hero-stat label { display:block; font-size:11px; color:var(--text3); margin-top:2px; }
+    .hero-stat-div { width:1px; height:28px; background:var(--border); }
+    @media (max-width:560px) { .hero-stats { gap:20px; } .hero-stat span { font-size:20px; } }
     .hero-feature-strip {
       display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
       margin-top:48px; padding-top:0;
@@ -164,8 +170,8 @@
       <ul class="hero-bullets">
         <li>Repertuvarını oluştur.</li>
         <li>Sürükle bırak ile saniyeler içinde düzenle.</li>
-        <li>Bluetooth pedal ile ellerini enstrümandan ayırmadan yönet.</li>
-        <li>İnternet bağlantın kopsa bile performansın devam etsin.</li>
+        <li>Bluetooth pedal ile yönet.</li>
+        <li>İnternet olmasa bile çalışmaya devam et.</li>
       </ul>
       <div class="hero-actions">
         <a href="repertoires.html" class="hero-btn-primary"><i class="ti ti-music"></i> Repertuvarlara Bak →</a>
@@ -213,6 +219,15 @@
       </div>
     </div>
 
+    <!-- HERO İSTATİSTİK -->
+    <div class="hero-stats">
+      <div class="hero-stat"><span id="heroStatWorks">—</span><label>Eser</label></div>
+      <div class="hero-stat-div"></div>
+      <div class="hero-stat"><span id="heroStatReps">—</span><label>Repertuvar</label></div>
+      <div class="hero-stat-div"></div>
+      <div class="hero-stat"><span id="heroStatGroups">—</span><label>Grup</label></div>
+    </div>
+
     <!-- ÖZELLİK ŞERİDİ -->
     <div class="hero-feature-strip">
       <div class="hero-feature-card">
@@ -235,7 +250,7 @@
 
     <!-- ÖZELLİKLER -->
     <div class="section">
-      <div class="feat-section-title">repertuvar.app ile neler yapabilirsiniz?</div>
+      <div class="feat-section-title">Neler Yapabilirsiniz?</div>
       <div class="feat-scroll-wrap">
         <div class="feat-grid">
           <a href="eserler.html" class="feat-card" style="text-decoration:none;">
@@ -326,13 +341,22 @@
     if (cnt) {
       const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=cnt;
       const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=cnt;
+      const hs=document.getElementById('heroStatWorks'); if(hs) hs.textContent=cnt;
     }
+    // Hero istatistik satırı — repertuvar ve grup sayısı
+    const repR = await fetch(SUPA_URL+'/rest/v1/repertoires?select=id&limit=1', {headers:H});
+    const repCnt = repR.headers.get('content-range')?.split('/')[1];
+    const hr=document.getElementById('heroStatReps'); if(hr && repCnt) hr.textContent=repCnt;
+    const grpR = await fetch(SUPA_URL+'/rest/v1/groups?select=id&limit=1', {headers:H});
+    const grpCnt = grpR.headers.get('content-range')?.split('/')[1];
+    const hg=document.getElementById('heroStatGroups'); if(hg && grpCnt) hg.textContent=grpCnt;
   } catch(e) {
     onlineFailed = true;
     try {
       const ws = await db.works.getAll();
       const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=ws.length||'—';
       const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=ws.length||'—';
+      const hs=document.getElementById('heroStatWorks'); if(hs) hs.textContent=ws.length||'—';
     } catch(e2) {}
   }
 

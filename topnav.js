@@ -31,7 +31,7 @@
         text-decoration: none; transition: all .15s; position: relative;
         width: 100%; box-sizing: border-box;
       }
-      .sb-item:hover { background: var(--surface, #12123a); color: var(--text, #FFFFFF); }
+      .sb-item:hover { background: var(--surface, #19233F); color: var(--text, #FFFFFF); }
       .sb-item.active {
         background: rgba(255,200,61,0.12); color: var(--accent3, #8CC5FF);
         border: 1px solid rgba(255,200,61,0.2);
@@ -88,10 +88,10 @@
 
     .r-topnav {
       position: sticky; top: 0; z-index: 200;
-      height: auto; min-height: 62px;
-      background: rgba(7,7,26,0.92);
+      height: auto; min-height: 66px;
+      background: rgba(7,11,24,0.92);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(120,100,255,0.18);
+      border-bottom: 1px solid rgba(255,200,61,0.16);
       display: flex; flex-direction: row; align-items: center;
       padding: 0 16px;
       padding-top: env(safe-area-inset-top);
@@ -113,10 +113,10 @@
       flex-shrink: 0;
     }
     .r-tn-avatar {
-      width: 30px; height: 30px; border-radius: 50%;
+      width: 36px; height: 36px; border-radius: 50%;
       background: linear-gradient(135deg, #FFC83D, #4DA3FF);
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+      font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
     }
     .r-tn-uname {
       font-size: 13px; font-weight: 600; color: #FFFFFF;
@@ -125,7 +125,7 @@
     .r-tn-user { cursor: pointer; position: relative; }
     .r-tn-dropdown {
       display: none; position: fixed; top: 60px; right: 12px;
-      background: #12123a; border: 1px solid rgba(120,100,255,0.25);
+      background: #19233F; border: 1px solid rgba(255,200,61,0.25);
       border-radius: 10px; padding: 6px; min-width: 140px; z-index: 9999;
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
@@ -338,7 +338,7 @@
       }
       .dt-user-dropdown {
         display: none; position: absolute; top: calc(100% + 6px); right: 0;
-        background: #12123a; border: 1px solid rgba(120,100,255,0.25);
+        background: #19233F; border: 1px solid rgba(255,200,61,0.25);
         border-radius: 10px; padding: 6px; min-width: 150px; z-index: 9999;
         box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       }
@@ -461,7 +461,7 @@
       dd.id = 'rTnDropdown';
       dd.className = 'r-tn-dropdown';
       dd.innerHTML = `
-        <div style="padding:8px 12px 6px;border-bottom:1px solid rgba(120,100,255,0.15);margin-bottom:4px;">
+        <div style="padding:8px 12px 6px;border-bottom:1px solid rgba(255,200,61,0.15);margin-bottom:4px;">
           <div id="rTnUserName" style="font-size:12px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">—</div>
         </div>
         <a href="ayarlar.html" class="r-tn-dd-item">
