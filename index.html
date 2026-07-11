@@ -53,8 +53,8 @@
     @keyframes pedalPulse { 0%,100% { box-shadow:0 0 0 0 rgba(52,199,89,.5); } 70% { box-shadow:0 0 0 8px rgba(52,199,89,0); } }
 
     /* iPad + pedal'ı yan yana taşıyan geniş kapsayıcı */
-    .hero-visual-row { display:flex; align-items:center; gap:28px; flex:1 1 420px; }
-    .hero-preview-wrap { position: relative; flex:1 1 320px; animation: heroFadeUp .8s ease .22s both; }
+    .hero-visual-row { display:flex; flex-direction:column; align-items:center; gap:14px; flex:1 1 340px; }
+    .hero-preview-wrap { position: relative; width:100%; max-width:380px; animation: heroFadeUp .8s ease .22s both; }
     .hero-preview-glow {
       position:absolute; inset:-25px; border-radius:32px;
       background: radial-gradient(circle, rgba(255,200,61,.28), rgba(77,163,255,.2) 55%, transparent 75%);
@@ -62,7 +62,7 @@
     }
     /* iPad çerçevesi */
     .hero-ipad {
-      position:relative; z-index:1; max-width:360px; margin:0 auto;
+      position:relative; z-index:1; max-width:380px; margin:0 auto;
       background: linear-gradient(160deg, var(--surface), var(--bg2));
       border:1px solid rgba(255,200,61,.2); border-radius:28px; padding:14px;
       box-shadow: 0 30px 60px rgba(0,0,0,.5), inset 0 0 0 5px #000;
@@ -71,6 +71,8 @@
     .hero-ipad-topbar { display:flex; align-items:center; justify-content:space-between; padding:4px 6px 12px; color:var(--text2); }
     .hero-ipad-topbar .title { font-size:15px; font-weight:700; color:var(--text); }
     .hero-ipad-topbar .icons { display:flex; align-items:center; gap:14px; font-size:16px; }
+    .hero-ipad-bt { color: var(--accent2); animation: btBlink 2.4s ease-in-out infinite; }
+    @keyframes btBlink { 0%,100% { opacity:.6; } 50% { opacity:1; } }
     .hero-ipad-screen { background:var(--bg2); border-radius:14px; padding:14px; }
     .hero-song-row {
       display:flex; align-items:center; gap:10px; background:var(--surface2);
@@ -97,7 +99,7 @@
     .hero-ipad-tabbar .tab i { font-size:15px; }
 
     /* Bluetooth pedal — stilize temsil (gerçek fotoğraf değil) */
-    .hero-pedal-col { flex:0 0 150px; display:flex; flex-direction:column; align-items:center; gap:14px; animation: heroFadeUp .8s ease .3s both; }
+    .hero-pedal-col { width:100%; display:flex; align-items:center; justify-content:center; gap:16px; animation: heroFadeUp .8s ease .3s both; flex-wrap:wrap; }
     .hero-pedal-badge {
       display:flex; align-items:center; gap:9px; padding:10px 14px;
       background:var(--surface2); border:1px solid var(--border); border-radius:14px; font-size:12px;
@@ -125,10 +127,10 @@
 
     /* Özellik şeridi — ikon + başlık + açıklama */
     .cs-mini-icons { display:flex; gap:14px; margin-top:10px; font-size:17px; opacity:.85; }
-    .hero-ipad-stats { display:flex; justify-content:space-around; padding-top:12px; margin-top:12px; border-top:1px solid var(--border); }
-    .hero-ipad-stats .hero-stat span { font-size:20px; font-weight:800; color:var(--accent); display:block; }
-    .hero-ipad-stats .hero-stat label { font-size:10px; color:var(--text3); display:block; margin-top:1px; }
-    .hero-ipad-stats .hero-stat { text-align:center; }
+    .hero-visual-stats { display:flex; justify-content:center; gap:32px; padding-top:12px; margin-top:2px; border-top:1px solid var(--border); width:100%; max-width:380px; }
+    .hero-visual-stats .hero-stat span { font-size:22px; font-weight:800; color:var(--accent); display:block; }
+    .hero-visual-stats .hero-stat label { font-size:10px; color:var(--text3); display:block; margin-top:1px; }
+    .hero-visual-stats .hero-stat { text-align:center; }
     .hero-feature-strip {
       display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
       margin-top:24px; padding-top:0;
@@ -189,7 +191,7 @@
             <div class="hero-ipad-topbar">
               <i class="ti ti-menu-2"></i>
               <span class="title">Repertuvar</span>
-              <div class="icons"><i class="ti ti-search"></i><i class="ti ti-plus"></i><i class="ti ti-dots-vertical"></i></div>
+              <div class="icons"><i class="ti ti-bluetooth-connected hero-ipad-bt"></i><i class="ti ti-search"></i><i class="ti ti-plus"></i><i class="ti ti-dots-vertical"></i></div>
             </div>
             <div class="hero-ipad-screen">
               <div class="hero-song-row dragging" id="heroRow1"><span class="grip">☰</span><b>Hekimoğlu</b><span>Bm</span></div>
@@ -206,11 +208,6 @@
                 <div class="tab"><i class="ti ti-users-group"></i>Grup</div>
                 <div class="tab"><i class="ti ti-settings"></i>Ayarlar</div>
               </div>
-              <div class="hero-ipad-stats">
-                <div class="hero-stat"><span id="heroStatWorks">—</span><label>Eser</label></div>
-                <div class="hero-stat"><span id="heroStatReps">—</span><label>Repertuvar</label></div>
-                <div class="hero-stat"><span id="heroStatGroups">—</span><label>Grup</label></div>
-              </div>
             </div>
           </div>
         </div>
@@ -222,6 +219,13 @@
             <div><b>Bluetooth Pedal</b><span class="status"><span class="hero-pedal-dot"></span>Bağlandı</span></div>
           </div>
           <div class="hero-pedal-device"><span class="led"></span></div>
+        </div>
+
+        <!-- İSTATİSTİKLER — dikey akışın en altı -->
+        <div class="hero-visual-stats">
+          <div class="hero-stat"><span id="heroStatWorks">—</span><label>Eser</label></div>
+          <div class="hero-stat"><span id="heroStatReps">—</span><label>Repertuvar</label></div>
+          <div class="hero-stat"><span id="heroStatGroups">—</span><label>Grup</label></div>
         </div>
       </div>
     </div>
