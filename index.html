@@ -37,7 +37,8 @@
     /* ═══ İki kolonlu hero: metin solda, iPad önizlemesi sağda ═══ */
     .hero-section {
       display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
-      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+      background: linear-gradient(160deg, #151D37, #101624);
+      border: 1px solid var(--border); border-radius: 20px;
       padding: 28px 24px;
     }
     .hero-text { flex: 1 1 320px; }
@@ -48,10 +49,15 @@
 
     .hero-bullets { list-style:none; margin:0 0 20px; padding:0; }
     .hero-bullets li { font-size:15px; line-height:1.5; color:var(--text2); padding:6px 0; display:flex; align-items:center; gap:8px; }
+    .hero-bullets li i { color:var(--accent); font-size:16px; width:18px; text-align:center; flex-shrink:0; }
 
     @keyframes previewFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(.4deg); } }
     @keyframes glowPulse { 0%,100% { opacity:.5; transform:scale(1); } 50% { opacity:.8; transform:scale(1.05); } }
-    @keyframes dragBob { 0%,100% { transform: translateY(0) scale(1.03); } 50% { transform: translateY(-5px) scale(1.03); } }
+    @keyframes dragSlide {
+      0%   { transform: translateY(-16px) scale(1.05); box-shadow:0 4px 10px rgba(0,0,0,.25); }
+      55%  { transform: translateY(3px) scale(1.03); }
+      100% { transform: translateY(0) scale(1.03); box-shadow:0 12px 24px rgba(0,0,0,.4); }
+    }
     @keyframes arrowBob { 0%,100% { transform: translateY(0); opacity:.6; } 50% { transform: translateY(-4px); opacity:1; } }
     @keyframes pedalPulse { 0%,100% { box-shadow:0 0 0 0 rgba(52,199,89,.5); } 70% { box-shadow:0 0 0 8px rgba(52,199,89,0); } }
 
@@ -76,6 +82,14 @@
     .hero-ipad-topbar .icons { display:flex; align-items:center; gap:14px; font-size:16px; }
     .hero-ipad-bt { color: var(--accent2); animation: btBlink 2.4s ease-in-out infinite; }
     @keyframes btBlink { 0%,100% { opacity:.6; } 50% { opacity:1; } }
+    .hero-ipad-toast {
+      position:absolute; top:8px; left:50%; transform:translateX(-50%) translateY(-8px);
+      background: var(--ready-color,#34C759); color:#06210e; font-size:11px; font-weight:700;
+      padding:6px 12px; border-radius:20px; white-space:nowrap; z-index:5;
+      display:flex; align-items:center; gap:5px;
+      opacity:0; pointer-events:none; transition: opacity .3s ease, transform .3s ease;
+    }
+    .hero-ipad-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
     .hero-ipad-screen { background:var(--bg2); border-radius:14px; padding:14px; }
     .hero-song-row {
       display:flex; align-items:center; gap:10px; background:var(--surface2);
@@ -87,9 +101,10 @@
     .hero-song-row b { flex:1; color:var(--text); font-weight:600; }
     .hero-song-row span { color:var(--accent); font-weight:700; font-size:12px; }
     .hero-song-row.dragging {
-      background: var(--surface); border-color: rgba(255,200,61,.5);
+      background: var(--surface2); border-color: rgba(255,200,61,.5);
       box-shadow: 0 12px 24px rgba(0,0,0,.4);
-      animation: dragBob 2.2s ease-in-out infinite;
+      animation: dragSlide .9s cubic-bezier(.34,1.56,.64,1) both;
+      position: relative; z-index: 2;
     }
     .hero-drop-slot {
       border:1.5px dashed var(--border2); border-radius:10px; height:38px; margin:7px 0;
@@ -174,11 +189,11 @@
     <div class="hero-section">
       <div class="hero-text">
       <div class="hero-greeting" id="heroGreeting">Hoşgeldiniz 👋</div>
-      <div class="hero-title">Sahnede En Büyük<br><em class="hero-title-sub">Yardımcın.</em></div>
+      <div class="hero-title">Sahnedeki<br><em class="hero-title-sub">En Büyük Yardımcın.</em></div>
       <ul class="hero-bullets">
-        <li>🎵 Repertuvarını oluştur</li>
-        <li>↕️ Sürükle bırak ile düzenle</li>
-        <li>🦶 Bluetooth pedal ile yönet</li>
+        <li><i class="ti ti-music"></i> Repertuvarını oluştur</li>
+        <li><i class="ti ti-arrows-sort"></i> Sürükle bırak ile düzenle</li>
+        <li><i class="ti ti-shoe"></i> Bluetooth pedal ile yönet</li>
       </ul>
       <div class="hero-actions">
         <a href="repertoires.html" class="hero-btn-primary"><i class="ti ti-music"></i> Repertuvarlara Bak →</a>
@@ -191,6 +206,7 @@
         <div class="hero-preview-wrap">
           <div class="hero-preview-glow"></div>
           <div class="hero-ipad">
+            <div class="hero-ipad-toast" id="heroToast"><i class="ti ti-check"></i> Repertuvar güncellendi</div>
             <div class="hero-ipad-topbar">
               <i class="ti ti-menu-2"></i>
               <span class="title">Repertuvar</span>
@@ -221,7 +237,6 @@
             <span class="bticon"><i class="ti ti-bluetooth"></i></span>
             <div><b>Bluetooth Pedal</b><span class="status"><span class="hero-pedal-dot"></span>Bağlandı</span></div>
           </div>
-          <div class="hero-pedal-device"><span class="led"></span></div>
         </div>
 
         <!-- İSTATİSTİKLER — dikey akışın en altı -->
@@ -417,6 +432,7 @@
   (function() {
     const rows = [document.getElementById('heroRow1'), document.getElementById('heroRow2'), document.getElementById('heroRow3')];
     const dropSlot = document.getElementById('heroDropSlot');
+    const toast = document.getElementById('heroToast');
     if (!rows[0] || !rows[1] || !rows[2]) return;
     let idx = 0;
     setInterval(() => {
@@ -424,6 +440,11 @@
       idx = (idx + 1) % rows.length;
       rows[idx].classList.add('dragging');
       if (dropSlot) rows[idx].insertAdjacentElement('afterend', dropSlot);
+      // Sürükleme tamamlanınca kısa bir onay toast'ı göster
+      if (toast) {
+        setTimeout(() => toast.classList.add('show'), 700);
+        setTimeout(() => toast.classList.remove('show'), 1900);
+      }
     }, 2400);
   })();
 
