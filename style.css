@@ -348,12 +348,12 @@ body {
 .wb { font-size: 10px; color: var(--text3); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; }
 .wb-key { color: var(--key-color); border-color: rgba(255,200,61,0.25); background: rgba(255,200,61,0.1); }
 .wc-play {
-  width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
-  background: rgba(255,200,61,0.1); border: 1px solid rgba(255,200,61,0.25);
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  background: rgba(255,200,61,0.12); border: 1px solid rgba(255,200,61,0.3);
   display: flex; align-items: center; justify-content: center;
-  font-size: 10px; color: var(--accent2); cursor: pointer; transition: all .15s;
+  font-size: 13px; color: var(--accent); cursor: pointer; transition: all .15s;
 }
-.wc-play:hover { background: rgba(255,200,61,0.2); }
+.wc-play:hover { background: rgba(255,200,61,0.22); transform: scale(1.06); }
 
 .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
 @media (max-width: 480px) { .stats-row { grid-template-columns: repeat(2,1fr); } }
@@ -503,7 +503,8 @@ body {
 .cs-icon { font-size: 24px; flex-shrink: 0; color: var(--accent2); }
 .cs-icon i { font-size: 24px; }
 .feat-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-.feat-desc { font-size: 13px; color: var(--text2); line-height: 1.55; }
+.feat-desc { font-size: 13px; color: var(--text2); line-height: 1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.feat-detay { display:inline-block; margin-top:8px; font-size:12px; font-weight:600; color:var(--accent); }
 
 /* ── v2-desktop-topbar (eski sayfa yapısı) ── */
 @media(min-width:1024px) {

@@ -120,6 +120,7 @@
     .hero-pedal-device .led { position:absolute; top:10px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:var(--ready-color,#34C759); animation: pedalPulse 2s infinite; z-index:2; }
 
     /* Özellik şeridi — ikon + başlık + açıklama */
+    .cs-mini-icons { display:flex; gap:14px; margin-top:10px; font-size:17px; opacity:.85; }
     .hero-stats { display:flex; align-items:center; justify-content:center; gap:28px; margin-top:32px; animation: heroFadeUp .7s ease .26s both; }
     .hero-stat { text-align:center; }
     .hero-stat span { display:block; font-size:24px; font-weight:800; color:var(--accent); }
@@ -190,10 +191,10 @@
               <div class="icons"><i class="ti ti-search"></i><i class="ti ti-plus"></i><i class="ti ti-dots-vertical"></i></div>
             </div>
             <div class="hero-ipad-screen">
-              <div class="hero-song-row dragging"><span class="grip">☰</span><b>Hekimoğlu</b><span>Bm</span></div>
-              <div class="hero-drop-slot">↑</div>
-              <div class="hero-song-row"><span class="num">2</span><b>Çökertme</b><span>Dm</span></div>
-              <div class="hero-song-row"><span class="num">3</span><b>Fidayda</b><span>Gm</span></div>
+              <div class="hero-song-row dragging" id="heroRow1"><span class="grip">☰</span><b>Hekimoğlu</b><span>Bm</span></div>
+              <div class="hero-drop-slot" id="heroDropSlot">↑</div>
+              <div class="hero-song-row" id="heroRow2"><span class="num">2</span><b>Çökertme</b><span>Dm</span></div>
+              <div class="hero-song-row" id="heroRow3"><span class="num">3</span><b>Fidayda</b><span>Gm</span></div>
               <div class="hero-song-row"><span class="num">4</span><b>Uzun İnce Yol</b><span>Am</span></div>
               <div class="hero-song-row"><span class="num">5</span><b>Sen Ağlama</b><span>C</span></div>
               <div class="hero-song-row"><span class="num">6</span><b>Gül Yüzlü Sevdiğim</b><span>Em</span></div>
@@ -256,32 +257,32 @@
           <a href="eserler.html" class="feat-card" style="text-decoration:none;">
             <div class="feat-icon"><i class="ti ti-music"></i></div>
             <div class="feat-title">Eser Arşivi</div>
-            <div class="feat-desc">Makam, usul, güfte, akor — hepsini bir kez gir, her yerden ulaş. Türk müziğinin tüm incelikleriyle kayıt altına alın. Sistemde şu an <span id="activeListCount" style="color:var(--accent2);font-weight:700;">—</span> eser kayıtlı. Bu sayıya eser önererek katkıda bulunabilirsiniz. Önerilen eserler Admin ya da Editörler tarafından onaylandıktan sonra sistemde görünecektir...</div>
+            <div class="feat-desc">Makam, usul, güfte, akor — hepsini bir kez gir, her yerden ulaş. Türk müziğinin tüm incelikleriyle kayıt altına alın. Sistemde şu an <span id="activeListCount" style="color:var(--accent2);font-weight:700;">—</span> eser kayıtlı. Bu sayıya eser önererek katkıda bulunabilirsiniz. Önerilen eserler Admin ya da Editörler tarafından onaylandıktan sonra sistemde görünecektir...<span class="feat-detay">Detay →</span></div>
           </a>
           <a href="repertoires.html" class="feat-card" style="text-decoration:none;">
             <div class="feat-icon"><i class="ti ti-playlist"></i></div>
             <div class="feat-title">Hazır Repertuvar Listeleri</div>
-            <div class="feat-desc">Her ortam için veya sahne için ayrı listeler... — Dost meclislerinde prova yaparken veya konserlerde sürükle-bırak ile sıralamayı anında değiştir. Repertuvar listeleriniz her an hazır olsun! Yaptığınız değişiklikler gerçek zamanlı sisteme kaydedilir ve varsa tüm grup üyeleri değişiklikleri görür.</div>
+            <div class="feat-desc">Her ortam için veya sahne için ayrı listeler... — Dost meclislerinde prova yaparken veya konserlerde sürükle-bırak ile sıralamayı anında değiştir. Repertuvar listeleriniz her an hazır olsun! Yaptığınız değişiklikler gerçek zamanlı sisteme kaydedilir ve varsa tüm grup üyeleri değişiklikleri görür.<span class="feat-detay">Detay →</span></div>
           </a>
           <a href="repertoires.html" class="feat-card" style="text-decoration:none;">
             <div class="feat-icon"><i class="ti ti-lock"></i></div>
             <div class="feat-title">Size Özel / Herkese açık</div>
-            <div class="feat-desc">Kişisel notalarınızı, henüz paylaşmak istemediğiniz bestelerinizi dilerseniz genelle paylaşır, dilerseniz size özel olacak şekilde gizli yaparsınız. Kontrol tamamen sizde!.. Bu tercihleri daha sonradan da değiştirmeniz mümkündür. O eseri bularak Düzenle butonu ile bunu gerçekleştirebilirsiniz.</div>
+            <div class="feat-desc">Kişisel notalarınızı, henüz paylaşmak istemediğiniz bestelerinizi dilerseniz genelle paylaşır, dilerseniz size özel olacak şekilde gizli yaparsınız. Kontrol tamamen sizde!.. Bu tercihleri daha sonradan da değiştirmeniz mümkündür. O eseri bularak Düzenle butonu ile bunu gerçekleştirebilirsiniz.<span class="feat-detay">Detay →</span></div>
           </a>
           <a href="gruplar.html" class="feat-card" style="text-decoration:none;">
             <div class="feat-icon"><i class="ti ti-users-group"></i></div>
             <div class="feat-title">Grup & Koro</div>
-            <div class="feat-desc">Ekibinizle ortak Repertuvar listelerini paylaşın. Sahnede; "sırada ne var, hangi makamdan çalıyoruz, hangi usulden?" gibi soruları unutun!.. — Her şey anında herkesin kendi ekranında!..</div>
+            <div class="feat-desc">Ekibinizle ortak Repertuvar listelerini paylaşın. Sahnede; "sırada ne var, hangi makamdan çalıyoruz, hangi usulden?" gibi soruları unutun!.. — Her şey anında herkesin kendi ekranında!..<span class="feat-detay">Detay →</span></div>
           </a>
           <a href="stage.html" class="feat-card" onclick="localStorage.setItem('stageSource','index')" style="text-decoration:none;">
             <div class="feat-icon"><i class="ti ti-wifi-off"></i></div>
             <div class="feat-title">Online & Offline</div>
-            <div class="feat-desc">Sahne arkasında veya bulunduğunuz yerde sinyal mi yok? Fark etmez, Repertuvar Listelerinize ve Eserler'e yine de ulaşabilirsiniz. Sistem çevrimdışı da çalışmaya devam eder!</div>
+            <div class="feat-desc">Sahne arkasında veya bulunduğunuz yerde sinyal mi yok? Fark etmez, Repertuvar Listelerinize ve Eserler'e yine de ulaşabilirsiniz. Sistem çevrimdışı da çalışmaya devam eder!<span class="feat-detay">Detay →</span></div>
           </a>
           <a href="stage.html" class="feat-card" onclick="localStorage.setItem('stageSource','index')" style="text-decoration:none;">
             <div class="feat-icon"><i class="ti ti-device-gamepad"></i></div>
             <div class="feat-title">Bluetooth'lu Sayfa Çevirici Pedal</div>
-            <div class="feat-desc">Enstrüman elinizde, gözleriniz notalarda — Siz sadece sahnenize ve performansınıza odaklanın!.. Telefona / tablete dokunmadan eser geçişlerini kablosuz (PageTurners) pedallar ile halledebilirsiniz. Sistem buna uyumludur!...</div>
+            <div class="feat-desc">Enstrüman elinizde, gözleriniz notalarda — Siz sadece sahnenize ve performansınıza odaklanın!.. Telefona / tablete dokunmadan eser geçişlerini kablosuz (PageTurners) pedallar ile halledebilirsiniz. Sistem buna uyumludur!...<span class="feat-detay">Detay →</span></div>
           </a>
         </div>
         <div class="feat-dots" id="featDots"></div>
@@ -295,6 +296,12 @@
         <div class="cs-icon"><i class="ti ti-calendar-event"></i></div>
         <div class="cs-title">Konser Ajandası</div>
         <div class="cs-desc">Konserlerinizin tarih, mekan, organizatör bilgileri; karşılama, transfer ve konaklama detayları — tüm konser lojistiğinizi tek ekrandan Repertuvarlarınızla ilişkilendirilmiş şekilde yönetebileceksiniz!...</div>
+        <div class="cs-mini-icons">
+          <span title="Tarih">📅</span>
+          <span title="Mekan">📍</span>
+          <span title="Konaklama">🏨</span>
+          <span title="Transfer">🚐</span>
+        </div>
       </div>
     </div>
 
@@ -401,6 +408,20 @@
       document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
     }
   } catch(e) {}
+
+  // Hero: "sürükleniyor" satırını sırayla değiştir (Hekimoğlu → Çökertme → Fidayda)
+  (function() {
+    const rows = [document.getElementById('heroRow1'), document.getElementById('heroRow2'), document.getElementById('heroRow3')];
+    const dropSlot = document.getElementById('heroDropSlot');
+    if (!rows[0] || !rows[1] || !rows[2]) return;
+    let idx = 0;
+    setInterval(() => {
+      rows[idx].classList.remove('dragging');
+      idx = (idx + 1) % rows.length;
+      rows[idx].classList.add('dragging');
+      if (dropSlot) rows[idx].insertAdjacentElement('afterend', dropSlot);
+    }, 2400);
+  })();
 
   // Feat slideshow
   (function() {
