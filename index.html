@@ -352,6 +352,11 @@
 
   ['sbUserName','tnUserName'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=name; });
   ['sbAvatar','tnAvatar'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=initial; });
+  const heroG = document.getElementById('heroGreeting');
+  if (heroG) {
+    const firstName = (name && name !== '—') ? name.trim().split(' ')[0] : '';
+    heroG.textContent = firstName ? `Hoşgeldin ${firstName} 👋` : 'Hoşgeldiniz 👋';
+  }
 
   const H = {
     'apikey': SUPA_KEY,
