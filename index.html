@@ -58,12 +58,12 @@
     .hero-text { flex: 0 1 400px; }
     @media (max-width: 900px) {
       .hero-section { flex-direction: column; gap: 0; }
-      .hero-text { flex: 0 1 auto; width: 100%; }
+      .hero-text { flex: 0 1 auto !important; width: 100% !important; }
       .hero-bullets { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; row-gap: 0; }
       .hero-actions { margin-bottom: 24px; }
-      .hero-visual-row { flex: 0 1 auto; width: 100%; }
-      .hero-preview-wrap { max-width: 100%; margin-left: 0; }
-      .hero-ipad { max-width: 100%; }
+      .hero-visual-row { flex: 0 1 auto !important; width: 100% !important; }
+      .hero-preview-wrap { max-width: 100% !important; margin-left: 0 !important; }
+      .hero-ipad { max-width: 100% !important; margin: 0 !important; }
     }
 
     .hero-bullets { list-style:none; margin:0 0 20px; padding:0; }
