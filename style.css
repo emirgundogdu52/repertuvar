@@ -21,7 +21,7 @@
   --favorite-color: #FF5A5F; /* Favori eser */
   --ready-color:    #34C759; /* Hazır eser */
   --warning-color:  #FF9500; /* Uyarı */
-  --sidebar-w:  220px;
+  --sidebar-w:  330px;
   --topnav-h:   56px;
   --tabnav-h:   52px;
   --bottom-h:   72px;
@@ -508,7 +508,7 @@ body {
 
 /* ── v2-desktop-topbar (eski sayfa yapısı) ── */
 @media(min-width:1024px) {
-  .v2-main-wrap { margin-left: 220px; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .v2-main-wrap { margin-left: 330px; flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .v2-desktop-topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 32px; border-bottom:1px solid var(--border); background:var(--bg); backdrop-filter:blur(12px); position:sticky; top:0; z-index:100; }
   .v2-crumb { font-size:13px; color:var(--text2); }
   .v2-crumb span { color:var(--text); font-weight:600; }
