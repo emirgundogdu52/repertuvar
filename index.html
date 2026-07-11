@@ -107,7 +107,7 @@
     .hero-ipad-bt { color: var(--accent2); animation: btBlink 2.4s ease-in-out infinite; }
     @keyframes btBlink { 0%,100% { opacity:.6; } 50% { opacity:1; } }
     .hero-ipad-toast {
-      position:absolute; top:8px; left:50%; transform:translateX(-50%) translateY(-8px);
+      position:absolute; top:16px; left:50%; transform:translateX(-50%) translateY(-8px);
       background: #30C95A; color:#06210e; font-size:11px; font-weight:700;
       padding:6px 12px; border-radius:20px; white-space:nowrap; z-index:5;
       display:flex; align-items:center; gap:5px;
@@ -215,8 +215,8 @@
     <div class="hero-section">
       <div class="hero-text">
       <div class="hero-greeting-row">
-        <div class="hero-greeting" id="heroGreeting">Hoşgeldiniz 👋</div>
-        <div class="hero-live-line"><i class="ti ti-bluetooth"></i> Bluetooth Pedal Bağlı <span class="hero-live-dot"></span></div>
+        <div class="hero-greeting" id="heroGreeting">Hoş geldiniz 👋</div>
+        <div class="hero-live-line"><span class="hero-live-dot"></span> Pedal Bağlı</div>
       </div>
       <div class="hero-title">Sahnedeki En Büyük <span class="hero-title-accent">Yardımcın</span></div>
       <ul class="hero-bullets">
@@ -227,7 +227,7 @@
       </ul>
       <div class="hero-actions">
         <a href="repertoires.html" class="hero-btn-primary"><i class="ti ti-music"></i> Repertuvarlara Bak →</a>
-        <a href="stage.html" class="hero-btn-secondary">Demo</a>
+        <a href="stage.html" class="hero-btn-secondary">Demo İzle</a>
       </div>
       </div>
 
@@ -384,7 +384,7 @@
   const heroG = document.getElementById('heroGreeting');
   if (heroG) {
     const firstName = (name && name !== '—') ? name.trim().split(' ')[0] : '';
-    heroG.textContent = firstName ? `Hoşgeldin ${firstName} 👋` : 'Hoşgeldiniz 👋';
+    heroG.textContent = firstName ? `Hoş geldin, ${firstName} 👋` : 'Hoş geldiniz 👋';
   }
 
   const H = {
