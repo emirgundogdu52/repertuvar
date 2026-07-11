@@ -123,12 +123,12 @@
   .detail-header { padding:14px 16px 12px; border-bottom:1px solid var(--border); background:var(--surface); box-sizing:border-box; width:100%; }
   .detail-id { font-size:11px; color:var(--text3); letter-spacing:.05em; margin-bottom:6px; }
   .detail-title { font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size:18px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:10px; word-break:break-word; }
-  .detail-chips { display:flex; gap:5px; flex-wrap:wrap; max-width:100%; }
-  .chip { padding:3px 8px; border-radius:20px; font-size:11px; font-weight:500; white-space:nowrap; }
-  .chip.makam { background:#1e1b2e; color:#9b8fd4; border:1px solid #3a3060; }
-  .chip.form  { background:#1a271a; color:#7ab87a; border:1px solid #2a3d2a; }
-  .chip.tuning{ background:#271a0d; color:#c8904a; border:1px solid #3d2a1a; }
-  .chip.meas  { background:#1a1e27; color:#6a9fd4; border:1px solid #1f3050; }
+  .detail-chips { display:flex; gap:8px; flex-wrap:wrap; max-width:100%; }
+  .chip { padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; }
+  .chip.makam { background:#5D4AA5; color:#FFFFFF; border:none; font-size:13.8px; padding:6px 14px; font-weight:700; }
+  .chip.form  { background:#2E8B57; color:#FFFFFF; border:none; }
+  .chip.tuning{ background:#D68A00; color:#FFFFFF; border:none; }
+  .chip.meas  { background:#3478F6; color:#FFFFFF; border:none; }
   .detail-body { padding:16px 20px; }
   .detail-row { margin-bottom:14px; }
   .detail-row-label { font-size:10px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:4px; }
@@ -757,10 +757,10 @@ function selectWork(id) {
   dc.style.display = 'block';
 
   const chips = [
-    w.makam ? `<span class="chip makam">🎵 Makam: ${w.makam}</span>` : '',
-    w.form ? `<span class="chip form">📋 Form: ${w.form}</span>` : '',
-    w.tuning ? `<span class="chip tuning">🎸 Akort: ${w.tuning}</span>` : '',
-    w.measurement ? `<span class="chip meas">♩ Usul: ${w.measurement}</span>` : '',
+    w.makam ? `<span class="chip makam">🎼 ${w.makam}</span>` : '',
+    w.measurement ? `<span class="chip meas">🥁 ${w.measurement}</span>` : '',
+    w.form ? `<span class="chip form">🎵 ${w.form}</span>` : '',
+    w.tuning ? `<span class="chip tuning">🎸 ${w.tuning}</span>` : '',
   ].filter(Boolean).join('');
 
   function row(label, val) {
@@ -782,7 +782,7 @@ function selectWork(id) {
     <div class="detail-header">
       <div class="detail-title">${w.name||'(isimsiz)'}</div>
       <div class="detail-chips">${chips}</div>
-      <div class="detail-stage-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;width:100%;">
+      <div class="detail-stage-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:16px;width:100%;">
         ${stageBtn}
         ${videoBtn}
         <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}" style="display:${(isAdmin() || isEditor()) ? '' : 'none'}">✏️ Düzenle</button>
@@ -813,6 +813,16 @@ function selectWork(id) {
     </div>
 
     <div id="tab-gufte" class="detail-tab-content detail-body${lastTab==='gufte'?' active':''}">
+      ${(() => {
+        const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
+        const groupCount = (window.WORK_GROUP_COUNTS && window.WORK_GROUP_COUNTS[w.id]) || 0;
+        const bits = [
+          repCount > 0 ? `📂 ${repCount} repertuvarda` : '',
+          groupCount > 0 ? `👥 ${groupCount} grup kullanıyor` : '',
+          `🟢 Offline hazır`,
+        ].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
+        return `<div style="font-size:11px;font-weight:500;color:var(--text3);margin-bottom:12px;">${bits}</div>`;
+      })()}
       ${w.lyrics
         ? `<div class="lyrics-box">${renderLyricsHtml(w.lyrics)}</div>`
         : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">Bu eser için güfte eklenmemiş.</div>`
