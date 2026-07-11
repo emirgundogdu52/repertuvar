@@ -10,7 +10,7 @@
     @media (min-width: 1024px) {
       body { display: flex; }
       .sidebar {
-        position: fixed; top: 0; left: 0; bottom: 0; width: 330px;
+        position: fixed; top: 0; left: 0; bottom: 0; width: 252px;
         background: rgba(9,9,28,0.96);
         backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
         border-right: 1px solid var(--border, rgba(48,58,85,0.38));
@@ -54,7 +54,7 @@
       }
       .sb-stage:hover { opacity: .9; }
       /* main-wrap'i sidebar genişliği kadar it */
-      .main-wrap, .v2-main-wrap { margin-left: 330px; flex: 1; min-width: 0; }
+      .main-wrap, .v2-main-wrap { margin-left: 252px; flex: 1; min-width: 0; }
     }
     @media (max-width: 1023px) {
       .sidebar { display: none !important; }
@@ -531,7 +531,7 @@
     aside.className = 'sidebar';
     aside.innerHTML = `
       <div class="sb-brand">
-        <img src="${logo}" alt="repertuvar.app" style="height:50px;width:auto;max-width:270px;display:block;" data-logo="true">
+        <img src="${logo}" alt="repertuvar.app" style="height:42px;width:auto;max-width:230px;display:block;" data-logo="true">
       </div>
       <nav class="sb-nav">${navHtml}</nav>
       <div style="padding:8px 12px 4px;">
