@@ -124,8 +124,10 @@
   .detail-id { font-size:11px; color:var(--text3); letter-spacing:.05em; margin-bottom:6px; }
   .detail-title { font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size:18px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:10px; word-break:break-word; }
   .detail-chips { display:flex; gap:8px; flex-wrap:wrap; max-width:100%; }
-  .chip { padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; }
-  .chip.makam { background:#5D4AA5; color:#FFFFFF; border:none; font-size:13.8px; padding:6px 14px; font-weight:700; }
+  .chip { padding:6px 14px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
+  .chip i { font-size:13px; }
+  .chip.makam { background:#5D4AA5; color:#FFFFFF; border:none; font-size:14.8px; padding:7px 16px; font-weight:700; }
+  .chip.makam i { font-size:14.8px; }
   .chip.form  { background:#2E8B57; color:#FFFFFF; border:none; }
   .chip.tuning{ background:#D68A00; color:#FFFFFF; border:none; }
   .chip.meas  { background:#3478F6; color:#FFFFFF; border:none; }
@@ -215,13 +217,14 @@
   .delete-btn:hover { background: rgba(192,84,68,0.22); border-color: rgba(192,84,68,0.6); }
 
   .stage-open-btn {
-    display: inline-flex; align-items: center; justify-content:flex-start; gap: 5px;
-    padding: 6px 10px; border-radius: 8px;
-    background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.35);
-    color: var(--accent); font-size: 12px; font-weight: 500;
+    display: inline-flex; align-items: center; justify-content:center; gap: 6px;
+    padding: 9px 16px; border-radius: 8px;
+    background: var(--accent); border: none;
+    color: #1a1200; font-size: 13px; font-weight: 700;
     text-decoration: none; transition: all .15s; white-space:nowrap;
+    box-shadow: 0 4px 14px rgba(255,200,61,.3);
   }
-  .stage-open-btn:hover { background: rgba(88,166,255,0.2); border-color: rgba(88,166,255,0.6); }
+  .stage-open-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
   .actions-wrap { display:none; }
 
@@ -280,6 +283,38 @@
     cursor: pointer; transition: all .15s; font-family: inherit; white-space:nowrap;
   }
   .edit-btn:hover { background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.6); }
+
+  /* ── DİĞER İŞLEMLER (•••) MENÜSÜ ── */
+  .more-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); font-size: 16px; cursor: pointer; transition: all .15s;
+  }
+  .more-btn:hover { background: var(--surface); color: var(--text); }
+  .more-sheet-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 950;
+  }
+  .more-sheet-overlay.open { display: block; }
+  .more-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 951;
+    background: var(--surface); border-radius: 16px 16px 0 0;
+    padding: 8px 0 max(16px, env(safe-area-inset-bottom));
+    transform: translateY(105%); transition: transform .3s cubic-bezier(.32,.72,0,1);
+    max-width: 420px; margin: 0 auto;
+  }
+  .more-sheet.open { transform: translateY(0); }
+  .more-sheet-title { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; padding: 12px 20px 6px; }
+  .more-sheet-item {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 13px 20px; background: none; border: none; text-align: left;
+    font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; font-family: inherit;
+  }
+  .more-sheet-item:hover { background: var(--surface2); }
+  .more-sheet-item i { font-size: 17px; color: var(--text2); width: 20px; text-align: center; }
+  .more-sheet-item.danger { color: #e07060; border-top: 1px solid var(--border); margin-top: 6px; padding-top: 15px; }
+  .more-sheet-item.danger i { color: #e07060; }
+  .more-sheet-item .fav-star { color: var(--accent); }
 
   #ne_lyrics_editor:empty:before {
     content: attr(placeholder);
@@ -618,6 +653,38 @@ function getFavs() {
   try { return new Set(JSON.parse(localStorage.getItem(getFavKey()) || '[]').map(Number)); }
   catch(e) { return new Set(); }
 }
+// ── Diğer İşlemler (•••) sheet'i ──
+function toggleMoreSheet(show, id) {
+  const overlay = document.getElementById('moreSheetOverlay');
+  const sheet = document.getElementById('moreSheet');
+  if (!overlay || !sheet) return;
+  overlay.classList.toggle('open', show);
+  sheet.classList.toggle('open', show);
+}
+
+function stubAction(label) {
+  toggleMoreSheet(false);
+  alert(label + ' özelliği yakında eklenecek.');
+}
+
+function shareWork(id) {
+  toggleMoreSheet(false);
+  const w = DATA.find(x => x.id === id);
+  const url = location.origin + location.pathname + '?id=' + id;
+  const text = (w?.name || 'Eser') + ' — Repertuvar.app';
+  if (navigator.share) {
+    navigator.share({ title: text, url }).catch(() => {});
+  } else {
+    navigator.clipboard?.writeText(url);
+    alert('Bağlantı kopyalandı: ' + url);
+  }
+}
+
+function toggleFavoriteFromMore(id) {
+  toggleFavorite(id, null);
+  toggleMoreSheet(false);
+}
+
 function toggleFavorite(id, ev) {
   if (ev) { ev.stopPropagation(); ev.preventDefault(); }
   const favs = getFavs();
@@ -757,10 +824,10 @@ function selectWork(id) {
   dc.style.display = 'block';
 
   const chips = [
-    w.makam ? `<span class="chip makam">🎼 ${w.makam}</span>` : '',
-    w.measurement ? `<span class="chip meas">🥁 ${w.measurement}</span>` : '',
-    w.form ? `<span class="chip form">🎵 ${w.form}</span>` : '',
-    w.tuning ? `<span class="chip tuning">🎸 ${w.tuning}</span>` : '',
+    w.makam ? `<span class="chip makam"><i class="ti ti-music"></i> ${w.makam}</span>` : '',
+    w.measurement ? `<span class="chip meas"><i class="ti ti-clock"></i> ${w.measurement}</span>` : '',
+    w.form ? `<span class="chip form"><i class="ti ti-category"></i> ${w.form}</span>` : '',
+    w.tuning ? `<span class="chip tuning"><i class="ti ti-adjustments"></i> ${w.tuning}</span>` : '',
   ].filter(Boolean).join('');
 
   function row(label, val) {
@@ -776,17 +843,29 @@ function selectWork(id) {
   const stageId = String(parseInt(w.id));
   const lastTab = 'gufte';  // Her eser açılışında güfteden başla
   const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="openStageFromDetail('${stageId}');return false;">🎭 Sahne Modunda Aç</a>`;
+  const isFavNow = getFavs().has(w.id);
+  const moreBtn = `<button class="more-btn" onclick="event.stopPropagation();toggleMoreSheet(true, ${w.id})" title="Diğer İşlemler"><i class="ti ti-dots-vertical"></i></button>`;
 
   dc.innerHTML = `
     <div class="back-btn" onclick="backFromDetail()">← Listeye Dön</div>
     <div class="detail-header">
       <div class="detail-title">${w.name||'(isimsiz)'}</div>
       <div class="detail-chips">${chips}</div>
-      <div class="detail-stage-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:16px;width:100%;">
+      <div class="detail-stage-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px;width:100%;">
         ${stageBtn}
         ${videoBtn}
-        <button class="edit-btn" onclick="openEditEserModal(${w.id})" id="editBtn-${w.id}" style="display:${(isAdmin() || isEditor()) ? '' : 'none'}">✏️ Düzenle</button>
-        <button class="delete-btn" onclick="showDeleteConfirm(${w.id})" id="deleteBtn-${w.id}" style="display:${isAdmin() ? '' : 'none'}">🗑 Sil</button>
+        ${moreBtn}
+      </div>
+      <!-- Diğer İşlemler sheet'i her zaman gizli render edilir, gerekince açılır -->
+      <div class="more-sheet-overlay" id="moreSheetOverlay" onclick="toggleMoreSheet(false)"></div>
+      <div class="more-sheet" id="moreSheet">
+        <div class="more-sheet-title">Diğer İşlemler</div>
+        <button class="more-sheet-item" onclick="stubAction('Repertuvara ekleme')"><i class="ti ti-playlist-add"></i> Repertuvara Ekle</button>
+        <button class="more-sheet-item" onclick="shareWork(${w.id})"><i class="ti ti-share"></i> Paylaş</button>
+        <button class="more-sheet-item" id="moreFavBtn" onclick="toggleFavoriteFromMore(${w.id})"><i class="ti ti-star${isFavNow?'-filled fav-star':''}"></i> ${isFavNow?'Favoriden Çıkar':'Favoriye Ekle'}</button>
+        <button class="more-sheet-item" onclick="stubAction('PDF / Nota görüntüleme')"><i class="ti ti-file-music"></i> PDF / Nota</button>
+        <button class="more-sheet-item" onclick="toggleMoreSheet(false);openEditEserModal(${w.id})" style="display:${(isAdmin() || isEditor()) ? 'flex' : 'none'}"><i class="ti ti-edit"></i> Düzenle</button>
+        <button class="more-sheet-item danger" onclick="toggleMoreSheet(false);showDeleteConfirm(${w.id})" style="display:${isAdmin() ? 'flex' : 'none'}"><i class="ti ti-trash"></i> Sil</button>
       </div>
       <div class="confirm-bar" id="confirm-${w.id}">
         <span>Bu eseri silmek istediğinize emin misiniz?</span>
