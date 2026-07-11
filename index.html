@@ -43,10 +43,16 @@
       max-width: 980px; margin: 0 auto;
       position: relative;
     }
+    .hero-greeting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 8px; margin-bottom: 6px;
+    }
+    .hero-greeting { margin-bottom: 0 !important; }
     .hero-live-line {
       display: inline-flex; align-items: center; gap: 7px;
       font-size: 12px; font-weight: 600; color: var(--text2);
-      margin-bottom: 16px;
+      margin-bottom: 0;
+      white-space: nowrap;
     }
     .hero-live-line i { color: var(--accent2); font-size: 13px; animation: btBlink 2.4s ease-in-out infinite; }
     .hero-live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ready-color,#34C759); box-shadow: 0 0 6px rgba(48,201,90,.45); animation: pedalPulse 2s infinite; }
@@ -208,9 +214,11 @@
     <!-- HERO -->
     <div class="hero-section">
       <div class="hero-text">
-      <div class="hero-greeting" id="heroGreeting">Hoşgeldiniz 👋</div>
+      <div class="hero-greeting-row">
+        <div class="hero-greeting" id="heroGreeting">Hoşgeldiniz 👋</div>
+        <div class="hero-live-line"><i class="ti ti-bluetooth"></i> Bluetooth Pedal Bağlı <span class="hero-live-dot"></span></div>
+      </div>
       <div class="hero-title">Sahnedeki En Büyük <span class="hero-title-accent">Yardımcın</span></div>
-      <div class="hero-live-line"><i class="ti ti-bluetooth"></i> Bluetooth Pedal Bağlı <span class="hero-live-dot"></span></div>
       <ul class="hero-bullets">
         <li><i class="ti ti-check"></i> Eseri seç / kaydet</li>
         <li><i class="ti ti-music"></i> Repertuvarı oluştur</li>
