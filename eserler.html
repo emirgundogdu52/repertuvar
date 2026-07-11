@@ -125,7 +125,7 @@
   .detail-title { font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size:18px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:10px; word-break:break-word; }
   .detail-subtitle { font-size:12px; color:var(--text3); margin-top:-6px; margin-bottom:10px; }
   .detail-chips { display:flex; gap:8px; flex-wrap:wrap; max-width:100%; }
-  .chip { padding:6px 14px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
+  .chip { padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
   .chip i { font-size:13px; }
   .chip.makam { background:#5D4AA5; color:#FFFFFF; border:none; font-size:14.8px; padding:8px 18px; font-weight:700; }
   .chip.makam i { font-size:14.8px; }
@@ -231,14 +231,15 @@
 
   .tab-dropdown-wrap { position:relative; padding:8px 16px; }
   .tab-main-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    padding: 0; border-radius: 8px;
-    background: transparent; border: none;
-    color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600;
-    cursor: pointer; font-family: inherit; transition: color .15s;
-    width: 44px; height: 44px;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 12px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all .15s;
+    width: auto; height: auto;
   }
-  .tab-main-btn:hover { color: #fff; background: transparent; }
+  .tab-main-btn:hover { color: #fff; background: var(--surface); }
+  .tab-divider { height:1px; background:var(--border); margin: 4px 16px 0; }
   .tab-dropdown {
     display: none; position: absolute; top: calc(100% - 4px); left: 16px; right: 16px;
     background: var(--surface); border: 1px solid var(--border);
@@ -956,7 +957,7 @@ function selectWork(id) {
     return `<div class="detail-row" style="min-width:0;"><div class="detail-row-label">${label}</div><div class="detail-row-value" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${val}">${val}</div></div>`;
   }
 
-  const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video İzle</a>` : '';
+  const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video</a>` : '';
   const stageId = String(parseInt(w.id));
   const lastTab = 'gufte';  // Her eser açılışında güfteden başla
   const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="openStageFromDetail('${stageId}');return false;">🎭 Sahne Modunda Aç</a>`;
@@ -967,7 +968,7 @@ function selectWork(id) {
     <div class="back-btn" onclick="backFromDetail()">← Listeye Dön</div>
     <div class="detail-header">
       <div class="detail-title">${w.name||'(isimsiz)'}</div>
-      ${(w.region || w.sourcePerson || w.composer) ? `<div class="detail-subtitle">${[w.region ? `📍 ${w.region}` : '', (w.sourcePerson||w.composer) ? `👤 ${w.sourcePerson||w.composer}` : ''].filter(Boolean).join(' &nbsp;·&nbsp; ')}</div>` : ''}
+      ${(w.region || w.sourcePerson || w.composer) ? `<div class="detail-subtitle">${[w.region ? `📍 ${w.region}` : '', (w.sourcePerson||w.composer) ? `👤 ${w.sourcePerson||w.composer}` : ''].filter(Boolean).join(' &nbsp;•&nbsp; ')}</div>` : ''}
       <div class="detail-chips">${chips}</div>
       <div class="detail-stage-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px;width:100%;">
         ${stageBtn}
@@ -981,13 +982,11 @@ function selectWork(id) {
       </div>
     </div>
 
+    <div class="tab-divider"></div>
     <div class="tab-dropdown-wrap">
       <button class="tab-main-btn" id="tabMainBtn" onclick="event.stopPropagation();toggleTabDropdown()">
-        <svg width="24" height="24" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="4" cy="10" r="2.5" fill="currentColor"/>
-          <circle cx="10" cy="10" r="2.5" fill="currentColor"/>
-          <circle cx="16" cy="10" r="2.5" fill="currentColor"/>
-        </svg>
+        <span id="tabMainLabel">${TAB_LABELS[lastTab]||TAB_LABELS.gufte}</span>
+        <i class="ti ti-chevron-down" style="font-size:14px;"></i>
       </button>
       <div class="tab-dropdown" id="tabDropdown">
         <button class="tab-dd-item${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</button>
@@ -1005,7 +1004,7 @@ function selectWork(id) {
         const bits = [
           repCount > 0 ? `📂 ${repCount} Repertuvar` : '',
           groupCount > 0 ? `👥 ${groupCount} Grup` : '',
-          `🟢 Offline`,
+          `🟢 Offline Hazır`,
         ].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
         return `<div style="font-size:11px;font-weight:500;color:var(--text3);margin-bottom:12px;">${bits}</div>`;
       })()}
@@ -1013,8 +1012,8 @@ function selectWork(id) {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <span style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.06em;">SÖZLER</span>
         <div style="display:flex;gap:4px;">
-          <button onclick="adjustLyricsFontSize(-1)" title="Küçült" style="width:26px;height:26px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:11px;cursor:pointer;">Aa−</button>
-          <button onclick="adjustLyricsFontSize(1)" title="Büyüt" style="width:26px;height:26px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:13px;cursor:pointer;">Aa+</button>
+          <button onclick="adjustLyricsFontSize(-1)" title="Küçült" style="width:26px;height:26px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:12px;cursor:pointer;">A−</button>
+          <button onclick="adjustLyricsFontSize(1)" title="Büyüt" style="width:26px;height:26px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:14px;cursor:pointer;">A+</button>
         </div>
       </div>` : ''}
       ${w.lyrics
