@@ -634,7 +634,7 @@ function initBackBtn() {
     const lbl = backBtn.querySelector('.v2-bn-label');
     if (lbl) lbl.textContent = labels[src] || 'Geri Dön';
   }
-  // Not: görünüm etiketi artık her showWork() çağrısında updateViewToggleUI() ile güncelleniyor
+  // Not: görünüm etiketi artık her renderStage() çağrısında updateViewToggleUI() ile güncelleniyor
 }
 
 // ── Görünüm modu: Söz / Akor / Nota — segmented control ile, repertuvar bazında hatırlanır ──
@@ -659,7 +659,7 @@ function setViewMode(mode) {
   if (mode === 'chords' && !w.chords) return;
   if (mode === 'nota' && !w.notaUrl) return;
   localStorage.setItem(viewModeStorageKey(), mode);
-  showWork(w);
+  renderStage();
 }
 
 function updateViewToggleUI(w) {
