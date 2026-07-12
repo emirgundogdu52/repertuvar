@@ -46,6 +46,10 @@
   --accent3:  #8CC5FF;
 }
 
+html {
+  background: var(--bg);
+}
+
 body {
   background: var(--bg);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;

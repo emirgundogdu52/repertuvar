@@ -63,11 +63,13 @@
 
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
-      height: 68px;
+      height: calc(68px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
       background: var(--bg, #07071a);
       backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
       border-top: 1px solid var(--border, rgba(48,58,85,0.38));
       display: flex; align-items: center;
+      box-sizing: border-box;
     }
     @media (min-width: 1024px) { .bottom-nav { display: none !important; } }
     .bn-items { display: flex; width: 100%; padding: 0 4px; }
