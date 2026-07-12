@@ -35,6 +35,13 @@ async function dbDelWhere(table, col, val) {
 let WL = {};
 let WLIST = [];
 
+// "Diğer İşlemler" menüsü dışına tıklanınca kapat
+document.addEventListener('click', (e) => {
+  document.querySelectorAll('.ov-menu[open]').forEach(d => {
+    if (!d.contains(e.target)) d.removeAttribute('open');
+  });
+});
+
 async function loadWorksData() {
   try {
     let rows = [];
@@ -196,12 +203,13 @@ function renderDetail(){
     const w=WL[it.workId]||{};
     const cn=it.closingNote||w.closingNote||'';
     const pf = it.performer || '';
-    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" style="touch-action:pan-y;"${idx%2===1?' class="zebra-tr"':''}>
+    const isActive = activeItemRepId===rep.id && activeItemIdx===idx;
+    const rowClasses=[idx%2===1?'zebra-tr':'',isActive?'item-active':''].filter(Boolean).join(' ');
+    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" style="touch-action:pan-y;"${rowClasses?' class="'+rowClasses+'"':''}>
       <td class="sq" style="text-align:center;user-select:none;padding:0 2px;vertical-align:middle;width:48px;">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
-          <span style="color:var(--text3);font-size:11px;font-weight:600;min-width:14px;">${idx+1}</span>
-          <span ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)"
-            style="color:var(--text3);font-size:20px;line-height:1;padding:6px 4px;cursor:grab;touch-action:none;display:block;">⠿</span>
+          <span style="color:${isActive?'var(--accent)':'var(--text3)'};font-size:11px;font-weight:${isActive?'700':'600'};min-width:16px;">${isActive?'▶ ':''}${idx+1}</span>
+          <span class="drag-handle" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)">⠿</span>
         </div>
       </td>
       <td style="padding-left:16px;">
@@ -223,28 +231,28 @@ function renderDetail(){
   dc.innerHTML=`
     <div class="dh" style="padding:10px 14px 8px;">
       <div class="mobile-back-btn" onclick="goBackToList()" style="display:none;margin:-10px -14px 8px;padding:8px 14px;" id="mobileBackBtn">← Repertuvar Listesi</div>
-      <div style="margin-bottom:6px;">
-        <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:6px;">${rep.name}</div>
-        <div class="da-wrap">
-        <div class="da" style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;">
-          <a href="stage.html" class="bi bstage" style="white-space:nowrap;font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:14px;" aria-hidden="true"></i> Sahneye Çık</a>
-          ${rep.isOwner ? `
-          <button class="bi" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="openEdit('${rep.id}')"><i class="ti ti-edit" style="font-size:14px;" aria-hidden="true"></i> Düzenle</button>
-          <button class="bi bshare" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="shareRep('${rep.id}')"><i class="ti ti-share" style="font-size:14px;" aria-hidden="true"></i> Paylaş</button>
-          <button class="bi" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="printR('${rep.id}')"><i class="ti ti-printer" style="font-size:14px;" aria-hidden="true"></i> Yazdır</button>
-          <button class="bi ${rep.is_public?'bshare':''}" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="togglePublic('${rep.id}')" title="${rep.is_public?'Public — tıkla gizle':'Private — tıkla herkese aç'}">${rep.is_public?'<i class="ti ti-lock-open" aria-hidden="true"></i> Public':'<i class="ti ti-lock" aria-hidden="true"></i> Private'}</button>
-          <button class="bi bd" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="delRep('${rep.id}')"><i class="ti ti-trash" style="font-size:14px;" aria-hidden="true"></i> Sil</button>
-          ` : `
-          <button class="baw" style="font-size:12px;padding:3px 8px;display:inline-flex;flex-shrink:0;align-items:center;gap:4px;white-space:nowrap;" onclick="copyRep('${rep.id}')"><i class="ti ti-copy" style="font-size:14px;" aria-hidden="true"></i> Kopyala</button>
-          `}
-        </div>
-        <div class="da-fade" aria-hidden="true"></div>
-        </div>
+      <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:8px;">${rep.name}</div>
+      <div class="cta-row">
+        <a href="stage.html" class="bstage-primary" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:15px;" aria-hidden="true"></i> Sahneye Çık</a>
+        ${rep.isOwner ? `
+        <details class="ov-menu">
+          <summary class="bi" style="font-size:12px;padding:9px 12px;">⋯ Diğer</summary>
+          <div class="ov-menu-body">
+            <button onclick="openEdit('${rep.id}')"><i class="ti ti-edit" aria-hidden="true"></i> Düzenle</button>
+            <button onclick="shareRep('${rep.id}')"><i class="ti ti-share" aria-hidden="true"></i> Paylaş</button>
+            <button onclick="printR('${rep.id}')"><i class="ti ti-printer" aria-hidden="true"></i> Yazdır</button>
+            <button class="ov-danger" onclick="delRep('${rep.id}')"><i class="ti ti-trash" aria-hidden="true"></i> Sil</button>
+          </div>
+        </details>
+        ` : `
+        <button class="baw" style="font-size:12px;padding:9px 12px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;" onclick="copyRep('${rep.id}')"><i class="ti ti-copy" style="font-size:14px;" aria-hidden="true"></i> Kopyala</button>
+        `}
       </div>
       <div class="dmr" style="gap:8px;padding-bottom:4px;flex-wrap:nowrap;overflow-x:auto;">
         <div class="mc"><span class="sp ${sc[rep.status]||'sc'}">${sl[rep.status]||'Taslak'}</span></div>
         ${rep.date?`<div class="mc" style="white-space:nowrap;">📅 <strong>${rep.date}</strong>${rep.venue?` &nbsp;📍 <strong>${rep.venue}</strong>`:''}</div>`:''}
         ${!rep.date&&rep.venue?`<div class="mc" style="white-space:nowrap;">📍 <strong>${rep.venue}</strong></div>`:''}
+        ${rep.isOwner?`<div class="mc"><span class="chip-vis ${rep.is_public?'pub':'priv'}" onclick="togglePublic('${rep.id}')" title="${rep.is_public?'Public — tıkla gizle':'Private — tıkla herkese aç'}">${rep.is_public?'🌐 Public':'🔒 Private'}</span></div>`:''}
         ${rep.notes?`<div class="mc" style="color:var(--text3);white-space:nowrap;display:flex;align-items:center;gap:4px;"><i class="ti ti-pencil-plus" style="font-size:13px;" aria-hidden="true"></i> ${rep.notes}</div>`:''}
       </div>
     </div>
