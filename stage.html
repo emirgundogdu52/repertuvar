@@ -247,7 +247,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 #v2StageBotNav .v2-bn-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:7px 2px; text-decoration:none; color:#5e5c8a; border-radius:10px; transition:all .15s; }
 #v2StageBotNav .v2-bn-item.active { color:#FFC83D; }
 #v2StageBotNav .v2-bn-label { font-size:9px; font-weight:600; }
-#v2StageBotNav .v2-bn-stage { background:linear-gradient(135deg,rgba(255,200,61,0.18),rgba(77,163,255,0.08)); border:1px solid rgba(255,200,61,0.3); color:#FFC83D !important; margin:5px 2px; border-radius:11px; cursor:pointer; }
 
 /* Desktop: picker ekranında sidebar layout */
 @media (min-width: 1024px) {
@@ -823,24 +822,20 @@ function showScreen(id){
   const rTopnav=document.querySelector('.r-topnav');
   if(rTopnav)rTopnav.style.display=id==='stageScreen'?'none':'';
   const bnav=document.getElementById('v2StageBotNav');
-  const pickerNav=document.getElementById('stageNavPicker');
   const stageNav=document.getElementById('stageNavStage');
   const handle=document.getElementById('stageSwipeHandle');
   if(bnav){
     if(id==='stageScreen'){
       bnav.style.display='flex';
       bnav.classList.add('stage-hidden'); // sahne modunda başta gizli
-      if(pickerNav)pickerNav.style.display='none';
       if(stageNav)stageNav.style.display='flex';
       if(handle)handle.classList.add('visible');
       showStageHint();
-    } else if(id==='pickerScreen'){
-      bnav.style.display='flex';
-      bnav.classList.remove('stage-hidden');
-      if(pickerNav)pickerNav.style.display='flex';
-      if(stageNav)stageNav.style.display='none';
-      if(handle)handle.classList.remove('visible');
     } else {
+      // picker/bitiş ekranlarında kendi nav'ımızı göstermiyoruz —
+      // paylaşılan topnav.js alt nav'ı (#r-bottom-nav) zaten burada görünür durumda.
+      // İki ayrı nav'ın üst üste binmesi (ve ikonların tutarsız kalması) bu yüzden
+      // kaldırıldı — bkz. Eserler/Repertuvarlar ikon karışıklığı bug'ı.
       bnav.style.display='none';
       if(handle)handle.classList.remove('visible');
     }
@@ -1072,15 +1067,7 @@ function loadSideWork(id) {
 </script>
 
 <nav id="v2StageBotNav">
-  <!-- Picker screen: genel nav -->
-  <div class="v2-bn-items" id="stageNavPicker">
-    <a href="index.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-home" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Ana Sayfa</span></a>
-    <a href="eserler.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-playlist" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Eserler</span></a>
-    <a href="repertoires.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-book" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Repertuvarlar</span></a>
-    <a onclick="showScreen('pickerScreen')" class="v2-bn-item v2-bn-stage" style="cursor:pointer;"><i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Sahne Modu</span></a>
-    <a href="mesajlar.html" class="v2-bn-item" onclick="localStorage.setItem('stageSource','stage')"><i class="ti ti-message" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Mesajlar</span></a>
-  </div>
-  <!-- Stage screen: sahneye özel nav -->
+  <!-- Stage screen: sahneye özel nav — picker/bitiş ekranlarında paylaşılan topnav.js alt nav'ı (#r-bottom-nav) kullanılıyor -->
   <div class="v2-bn-items" id="stageNavStage" style="display:none;">
     <a href="#" class="v2-bn-item" id="btnGoBack" onclick="goBack(event)"><i class="ti ti-arrow-left" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Geri Dön</span></a>
     <button class="v2-bn-item v2-bn-exit" onclick="event.stopPropagation();exitStage(event)" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-x" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Çık</span></button>
