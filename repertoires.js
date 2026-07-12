@@ -149,9 +149,10 @@ function renderList(){
   const mine = reps.filter(r=>r.isOwner);
   const pub  = reps.filter(r=>!r.isOwner && r.is_public);
   function repCard(r, _zi){
-    return `<div class="ri${selId===r.id?' active':_zi%2===1?' zebra':''}" onclick="sel('${r.id}')">
-      <div class="rn">${r.name}${r.is_public&&r.isOwner?' <span style="font-size:10px;color:#4ade80;font-weight:600;">🌐</span>':''}</div>
-      <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${r.date?'<span>'+r.date+'</span>':''}<span>${(r.items||[]).length} eser</span></div>
+    return `<div class="ri${selId===r.id?' active':''}" onclick="sel('${r.id}')">
+      <div><div class="rn">${r.name}${r.is_public&&r.isOwner?' <span style="font-size:10px;color:#4ade80;font-weight:600;">🌐</span>':''}</div>
+      <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${r.date?'<span>'+r.date+'</span>':''}</div></div>
+      <div class="rc">${(r.items||[]).length} eser</div>
     </div>`;
   }
   let html = '';

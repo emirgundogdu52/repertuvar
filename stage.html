@@ -26,11 +26,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .rsl{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;max-height:55vh;overflow-y:auto;}
 .rsl::-webkit-scrollbar{width:4px;}.rsl::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 .rsi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;align-items:center;justify-content:space-between;}
-.rsi:hover{border-color:rgba(168,85,247,.4);background:var(--surface2);}
-.rsi.sel{border-color:var(--accent);background:rgba(168,85,247,.08);}
+.rsi:hover{border-color:rgba(255,200,61,.4);background:var(--surface2);}
+.rsi.sel{border-color:#FFC83D;background:rgba(255,200,61,.08);}
 .rsn{font-size:15px;font-weight:500;color:var(--text);margin-bottom:3px;}
 .rsm{font-size:12px;color:var(--text2);}
 .rsc{font-size:12px;color:var(--text3);}
+/* Picker ekranı: marka paleti (altın/mavi) — sahne performans ekranı kendi mor gece paletinde kalıyor */
+#pickerScreen{--accent:#FFC83D;--accent2:#4DA3FF;}
 .bstart{width:100%;background:var(--accent);border:none;border-radius:10px;padding:16px;color:#0a0818;font-size:16px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:background .15s,transform .1s;}
 .bstart:hover{background:var(--accent2);}
 .bstart:active{transform:scale(.98);}
@@ -307,8 +309,8 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     <div class="rsl" id="rsl"><div class="loading">Yükleniyor...</div></div>
     <button class="bstart" id="bstart" disabled onclick="startStage()">Sahneye Çık →</button>
     <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
-      <div id="tc-day" onclick="setTheme('day')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(120,100,255,0.18);color:#5e5c8a;cursor:pointer;transition:all .15s;">☀️ Gündüz</div>
-      <div id="tc-night" onclick="setTheme('night')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(120,100,255,0.18);color:#5e5c8a;cursor:pointer;transition:all .15s;">🌙 Gece</div>
+      <div id="tc-day" onclick="setTheme('day')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(148,148,168,0.18);color:#8b8aa8;cursor:pointer;transition:all .15s;">☀️ Gündüz</div>
+      <div id="tc-night" onclick="setTheme('night')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(148,148,168,0.18);color:#8b8aa8;cursor:pointer;transition:all .15s;">🌙 Gece</div>
     </div>
   </div>
 </div>
@@ -561,8 +563,8 @@ function applyStageTheme(screen){
 }
 function setTheme(t){
   localStorage.setItem('stageTheme',t);
-  const active={background:'rgba(167,139,250,0.12)',borderColor:'rgba(167,139,250,0.4)',color:'#c4b5fd'};
-  const inactive={background:'',borderColor:'rgba(120,100,255,0.18)',color:'#5e5c8a'};
+  const active={background:'rgba(255,200,61,0.12)',borderColor:'rgba(255,200,61,0.4)',color:'#E5A900'};
+  const inactive={background:'',borderColor:'rgba(148,148,168,0.18)',color:'#8b8aa8'};
   ['day','night'].forEach(k=>{
     const el=document.getElementById('tc-'+k); if(!el)return;
     const s=k===t?active:inactive;

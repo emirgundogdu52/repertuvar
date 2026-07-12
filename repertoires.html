@@ -25,15 +25,14 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .lph h2{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}
 .bn{background:var(--accent);border:none;border-radius:6px;padding:5px 12px;color:#1a1000;font-size:12px;font-weight:500;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;cursor:pointer;}
 .bn:hover{background:var(--accent2);}
-.ls{overflow-y:auto;flex:1;}
+.ls{overflow-y:auto;flex:1;padding:10px 10px 4px;}
 .ls::-webkit-scrollbar{width:4px;}.ls::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-.ri{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
-.ri.zebra{background:rgba(124,111,255,0.06);}
-[data-theme="light"] .ri.zebra{background:rgba(124,111,255,0.05);}
-.ri:hover{background:rgba(124,111,255,0.1);}
-.ri.active{background:var(--surface2);border-left:3px solid var(--accent);padding-left:13px;}
-.rn{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;}
-.rm{font-size:11px;color:var(--text3);display:flex;gap:8px;}
+.ri{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.ri:hover{border-color:var(--border2);background:var(--surface2);}
+.ri.active{border-color:var(--accent);background:rgba(255,200,61,.08);}
+.rn{font-size:14px;font-weight:600;color:var(--text);margin-bottom:5px;}
+.rm{font-size:11px;color:var(--text3);display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.rc{font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0;}
 .sp{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:500;}
 .sc{background:#3d3a1a;color:#c8b050;}.sf{background:#1a2d1a;color:#6ab87a;}.sa{background:#1a1a2d;color:#7a8ab8;}
 .dp{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
