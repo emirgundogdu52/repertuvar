@@ -545,10 +545,6 @@ function setTheme(t){
     el.style.background=s.background; el.style.borderColor=s.borderColor; el.style.color=s.color;
   });
 }
-function goToActiveRep(e){
-  e.stopPropagation();
-  window.location.href=curRep&&curRep.id&&curRep.id!=='single'?'repertoires.html?rep='+curRep.id:'repertoires.html';
-}
 function startStage(){
   curRep=reps.find(r=>r.id===selId);
   if(!curRep||(curRep.items||[]).length===0)return;
@@ -1032,7 +1028,6 @@ function loadSideWork(id) {
   <!-- Stage screen: sahneye özel nav -->
   <div class="v2-bn-items" id="stageNavStage" style="display:none;">
     <a href="#" class="v2-bn-item" id="btnGoBack" onclick="goBack(event)"><i class="ti ti-arrow-left" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Geri Dön</span></a>
-    <a href="repertoires.html" class="v2-bn-item" id="btnActiveRep" onclick="goToActiveRep(event)"><i class="ti ti-book" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Repertuvar</span></a>
     <button class="v2-bn-item v2-bn-exit" onclick="event.stopPropagation();exitStage(event)" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-x" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Çık</span></button>
   </div>
 </nav>
