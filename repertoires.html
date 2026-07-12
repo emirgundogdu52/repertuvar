@@ -19,8 +19,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .dot{width:7px;height:7px;border-radius:50%;background:var(--text3);transition:background .3s;}
 .dot.ok{background:var(--green);}.dot.err{background:var(--red);}.dot.spin{background:var(--accent);animation:pu .8s ease infinite;}
 @keyframes pu{0%,100%{opacity:1}50%{opacity:.4}}
-.layout{display:flex;height:calc(100vh - 56px);}
-@media(max-width:1023px){.layout{height:calc(100vh - 56px - 68px);}}
+.layout{display:flex;height:calc(100vh - var(--topnav-h, 56px));height:calc(100dvh - var(--topnav-h, 56px));}
+@media(max-width:1023px){.layout{height:calc(100vh - var(--topnav-h, 56px) - var(--bottom-h, 68px));height:calc(100dvh - var(--topnav-h, 56px) - var(--bottom-h, 68px));}}
 .lp{width:300px;min-width:300px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
 .lph{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .lph h2{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}

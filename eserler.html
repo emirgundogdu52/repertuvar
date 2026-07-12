@@ -29,8 +29,8 @@
   body { background:var(--bg); color:var(--text); font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size:14px; }
 
   /* LAYOUT */
-  .layout { display:flex; height:calc(100vh - var(--topnav-h, 56px)); }
-  @media (min-width:1024px) { .layout { height:calc(100vh - 49px); } } /* desktop topbar height */
+  .layout { display:flex; height:calc(100vh - var(--topnav-h, 56px)); height:calc(100dvh - var(--topnav-h, 56px)); }
+  @media (min-width:1024px) { .layout { height:calc(100vh - 49px); height:calc(100dvh - 49px); } } /* desktop topbar height */
 
   /* SIDEBAR FILTERS */
   .sidebar:not(#r-sidebar) { display:none; }
@@ -198,10 +198,10 @@
     .back-btn { display:flex; align-items:center; gap:6px; padding:12px 20px; color:var(--accent); font-size:14px; cursor:pointer; border-bottom:1px solid var(--border); }
     .sort-bar { padding:8px 12px; gap:6px; }
     .sort-btn { font-size:11px; padding:4px 10px; }
-    .layout { height:calc(100vh - var(--topnav-h, 56px) - var(--bottom-h, 68px)); }
+    .layout { height:calc(100vh - var(--topnav-h, 56px) - var(--bottom-h, 68px)); height:calc(100dvh - var(--topnav-h, 56px) - var(--bottom-h, 68px)); }
   }
   @media (max-width: 480px) {
-    .layout { height:calc(100vh - var(--topnav-h, 56px) - var(--bottom-h, 68px)); }
+    .layout { height:calc(100vh - var(--topnav-h, 56px) - var(--bottom-h, 68px)); height:calc(100dvh - var(--topnav-h, 56px) - var(--bottom-h, 68px)); }
   }
   @media (min-width: 769px) {
     .back-btn { display:none; }

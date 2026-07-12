@@ -774,18 +774,27 @@
   setInterval(loadMsgBadge, 60000);
   setInterval(loadDeletionBadge, 60000);
 
-  // Offline sync - authReady'de, 30 dakikada bir
-  window.addEventListener('authReady', () => {
-    const SYNC_INTERVAL = 30 * 60 * 1000; // 30 dakika
-    const lastSync = parseInt(localStorage.getItem('lastSyncTime') || '0');
-    const now = Date.now();
-    if (now - lastSync > SYNC_INTERVAL) {
-      if (typeof syncOfflineData === 'function') {
-        syncOfflineData().then(() => {
-          localStorage.setItem('lastSyncTime', String(now));
-        }).catch(e => console.warn('Sync hatası:', e));
-      }
-    }
-  });
+})();
 
+// ═══ Gerçek nav yüksekliklerini ölç, --topnav-h / --bottom-h değişkenlerine yaz ═══
+// Bu değişkenler sayfa CSS'lerinde (örn. .layout{height:calc(100vh - var(--topnav-h))})
+// statik varsayılanlarla (56px/68px) kullanılıyordu ama hiç güncellenmiyordu. Safe-area
+// (çentik/home indicator) eklendikçe gerçek yükseklik bu varsayılanlardan sapıyor ve
+// içerik alanı yanlış hesaplanıyordu.
+(function () {
+  function measureNavHeights() {
+    const topEl = document.querySelector('.r-topnav');
+    const botEl = document.getElementById('r-bottom-nav');
+    if (topEl) {
+      document.documentElement.style.setProperty('--topnav-h', topEl.offsetHeight + 'px');
+    }
+    if (botEl && botEl.style.display !== 'none') {
+      document.documentElement.style.setProperty('--bottom-h', botEl.offsetHeight + 'px');
+    }
+  }
+  // İlk render sonrası birkaç kez dene (fontlar/ikonlar geç yüklenip yüksekliği değiştirebilir)
+  [0, 100, 400, 900].forEach(t => setTimeout(measureNavHeights, t));
+  window.addEventListener('resize', measureNavHeights);
+  window.addEventListener('orientationchange', () => setTimeout(measureNavHeights, 200));
+  window.addEventListener('stageExit', () => setTimeout(measureNavHeights, 100));
 })();
