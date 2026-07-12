@@ -244,9 +244,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 [data-theme="light"] #v2StageBotNav .v2-bn-item.active { color: #E5A900 !important; }
 @media(min-width:1024px){ #v2StageBotNav { position:static; width:100%; height:auto; padding:8px 0; background:rgba(7,7,26,0.6); backdrop-filter:none; } }
 #v2StageBotNav .v2-bn-items { display:flex; width:100%; padding:0 4px; }
-#v2StageBotNav .v2-bn-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:7px 2px; text-decoration:none; color:#5e5c8a; border-radius:10px; transition:color .15s; }
+#v2StageBotNav .v2-bn-item { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:7px 2px; text-decoration:none; color:#5e5c8a; border-radius:10px; transition:color .15s; }
 #v2StageBotNav .v2-bn-item.active { color:#FFC83D; }
-#v2StageBotNav .v2-bn-label { font-size:9px; font-weight:600; }
+#v2StageBotNav .v2-bn-label { font-size:9px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; text-align:center; }
 
 /* Desktop: picker ekranında sidebar layout */
 @media (min-width: 1024px) {

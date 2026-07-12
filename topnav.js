@@ -74,13 +74,13 @@
     @media (min-width: 1024px) { .bottom-nav { display: none !important; } }
     .bn-items { display: flex; width: 100%; padding: 0 4px; }
     .bn-item {
-      flex: 1; display: flex; flex-direction: column; align-items: center;
+      flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center;
       justify-content: center; gap: 3px; padding: 7px 2px;
       text-decoration: none; color: var(--text3, #5e5c8a);
       border-radius: 10px; transition: color .15s, background .15s; position: relative;
     }
     .bn-item.active { color: var(--accent, #FFC83D); }
-    .bn-label { font-size: 9px; font-weight: 600; }
+    .bn-label { font-size: 9px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; }
     .bn-stage {
       background: linear-gradient(135deg,rgba(255,200,61,0.18),rgba(77,163,255,0.08));
       border: 1px solid rgba(255,200,61,0.25);
