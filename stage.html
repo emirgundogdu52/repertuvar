@@ -478,18 +478,31 @@ function renderStageChords(text) {
 }
 
 
+let _stageToolsAutoHide = null;
+function scheduleStageToolsHide() {
+  clearTimeout(_stageToolsAutoHide);
+  _stageToolsAutoHide = setTimeout(() => {
+    const panel = document.getElementById('stageToolsPanel');
+    if (panel) panel.style.display = 'none';
+  }, 4000);
+}
 function toggleStageTools(e) {
   if (e) e.stopPropagation();
   const panel = document.getElementById('stageToolsPanel');
   const isOpen = panel.style.display === 'flex';
   panel.style.display = isOpen ? 'none' : 'flex';
   panel.style.flexDirection = 'column';
+  clearTimeout(_stageToolsAutoHide);
+  if (!isOpen) scheduleStageToolsHide(); // az önce açıldıysa geri sayımı başlat
 }
 document.addEventListener('click', function(e) {
   const toggle = document.getElementById('stageToolsToggle');
   const panel = document.getElementById('stageToolsPanel');
   if (panel && toggle && !toggle.contains(e.target) && !panel.contains(e.target)) {
     panel.style.display = 'none';
+    clearTimeout(_stageToolsAutoHide);
+  } else if (panel && panel.contains(e.target) && panel.style.display === 'flex') {
+    scheduleStageToolsHide(); // panel içinde bir butona basıldıysa süreyi yenile
   }
 });
 function toggleStageTheme(){
