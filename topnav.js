@@ -77,7 +77,7 @@
       flex: 1; display: flex; flex-direction: column; align-items: center;
       justify-content: center; gap: 3px; padding: 7px 2px;
       text-decoration: none; color: var(--text3, #5e5c8a);
-      border-radius: 10px; transition: all .15s; position: relative;
+      border-radius: 10px; transition: color .15s, background .15s; position: relative;
     }
     .bn-item.active { color: var(--accent, #FFC83D); }
     .bn-label { font-size: 9px; font-weight: 600; }
