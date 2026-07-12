@@ -377,7 +377,8 @@ async function loadWL() {
         measurement: w.measurement || '',
         region: w.region || '',
         lyrics: w.lyrics || '',
-        chords: w.chords || ''
+        chords: w.chords || '',
+        notaUrl: w.nota_url || ''
       };
     });
     // customWorks patch
@@ -385,8 +386,8 @@ async function loadWL() {
       const customs = JSON.parse(localStorage.getItem('customWorks') || '[]');
       customs.forEach(w => {
         const id = String(parseInt(w.id));
-        if(WL[id]) Object.assign(WL[id], {name:w.name||WL[id].name, lyrics:w.lyrics!==undefined?w.lyrics:WL[id].lyrics, composer:w.composer||WL[id].composer});
-        else WL[id] = {name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||''};
+        if(WL[id]) Object.assign(WL[id], {name:w.name||WL[id].name, lyrics:w.lyrics!==undefined?w.lyrics:WL[id].lyrics, composer:w.composer||WL[id].composer, notaUrl:w.notaUrl!==undefined?w.notaUrl:WL[id].notaUrl});
+        else WL[id] = {name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||'',notaUrl:w.notaUrl||''};
       });
     } catch(e) {}
   } catch(e) { console.error('WL yüklenemedi:', e); }
