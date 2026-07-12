@@ -311,6 +311,9 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   <div class="pi" style="padding-top:24px;padding-bottom:88px;">
     <h1 class="ptitle">Sahne Moduna Hoş Geldiniz</h1>
     <p class="psub">Hangi repertuvar ile sahneye çıkıyorsunuz?</p>
+    <input type="text" id="stageSearchInput" placeholder="Repertuvar veya eser adı ara..." oninput="onStageSearchInput(this.value)"
+      style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--text);font-family:inherit;outline:none;margin-bottom:16px;transition:border-color .15s;box-sizing:border-box;"
+      onfocus="this.style.borderColor='#FFC83D'" onblur="this.style.borderColor='var(--border)'">
     <div class="rsl" id="rsl"><div class="loading">Yükleniyor...</div></div>
     <button class="bstart" id="bstart" disabled onclick="startStage()">Sahneye Çık →</button>
     <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
@@ -454,11 +457,31 @@ async function loadReps(){
   }catch(e){console.error(e);return [];}
 }
 
+let stageSearchQuery = '';
+
+function onStageSearchInput(val) {
+  stageSearchQuery = val || '';
+  renderPicker();
+}
+
+function stageRepMatchesSearch(r, q) {
+  if (!q) return true;
+  const norm = s => (s || '').toLocaleLowerCase('tr');
+  const nq = norm(q);
+  if (norm(r.name).includes(nq)) return true;
+  return (r.items || []).some(it => {
+    const w = WL[it.workId] || {};
+    return norm(w.name).includes(nq);
+  });
+}
+
 function renderPicker(){
   const el=document.getElementById('rsl');
   if(!reps.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);line-height:1.8;">Henüz repertuvar yok.<br><a href=\"repertoires.html\" style=\"color:var(--accent)\">Repertuvar sayfasında</a> repertuvar oluşturun.</div>';return;}
+  const filtered = reps.filter(r=>stageRepMatchesSearch(r, stageSearchQuery));
+  if(stageSearchQuery && !filtered.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);">"'+stageSearchQuery+'" için sonuç bulunamadı</div>';return;}
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
-  el.innerHTML=reps.map(r=>`<div class="rsi${selId===r.id?' sel':''}" onclick="pickRep('${r.id}')">
+  el.innerHTML=filtered.map(r=>`<div class="rsi${selId===r.id?' sel':''}" onclick="pickRep('${r.id}')">
     <div><div class="rsn">${r.name}</div><div class="rsm">${[r.date,r.venue,sl[r.status]].filter(Boolean).join(' · ')}</div></div>
     <div class="rsc">${(r.items||[]).length} eser</div>
   </div>`).join('');

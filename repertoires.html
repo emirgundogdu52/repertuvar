@@ -280,6 +280,11 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 <div class="layout">
   <aside class="lp">
     <div class="lph"><h2>Mevcut Repertuvarlar</h2><button class="bn" onclick="openNew()" title="+ Yeni Repertuvar Oluştur">+ Yeni</button></div>
+    <div style="padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <input type="text" id="repSearchInput" placeholder="Repertuvar veya eser adı ara..." oninput="onRepSearchInput(this.value)"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;transition:border-color .15s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+    </div>
     <div class="ls" id="list"></div>
   </aside>
   <div class="dp" id="dp">

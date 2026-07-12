@@ -34,6 +34,23 @@ async function dbDelWhere(table, col, val) {
 
 let WL = {};
 let WLIST = [];
+let repSearchQuery = '';
+
+function onRepSearchInput(val) {
+  repSearchQuery = val || '';
+  renderList();
+}
+
+function repMatchesSearch(r, q) {
+  if (!q) return true;
+  const norm = s => (s || '').toLocaleLowerCase('tr');
+  const nq = norm(q);
+  if (norm(r.name).includes(nq)) return true;
+  return (r.items || []).some(it => {
+    const w = WL[it.workId] || {};
+    return norm(w.name).includes(nq);
+  });
+}
 
 // "Diğer İşlemler" menüsü dışına tıklanınca kapat
 document.addEventListener('click', (e) => {
@@ -144,10 +161,12 @@ function fixMobileHeight() {
 function renderList(){
   const el=document.getElementById('list');
   if(!reps.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">Henüz repertuvar yok</div>';return;}
+  const filtered = reps.filter(r=>repMatchesSearch(r, repSearchQuery));
+  if(repSearchQuery && !filtered.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">"'+repSearchQuery+'" için sonuç bulunamadı</div>';return;}
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
-  const mine = reps.filter(r=>r.isOwner);
-  const pub  = reps.filter(r=>!r.isOwner && r.is_public);
+  const mine = filtered.filter(r=>r.isOwner);
+  const pub  = filtered.filter(r=>!r.isOwner && r.is_public);
   function repCard(r, _zi){
     return `<div class="ri${selId===r.id?' active':''}" onclick="sel('${r.id}')">
       <div><div class="rn">${r.name}${r.is_public&&r.isOwner?' <span style="font-size:10px;color:#4ade80;font-weight:600;">🌐</span>':''}</div>
