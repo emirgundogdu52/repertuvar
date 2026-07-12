@@ -448,12 +448,14 @@
     document.addEventListener('DOMContentLoaded', () => {
       render();
       attachToggle();
-      setTimeout(() => { fillUser(); applyTheme(localStorage.getItem('r_theme') || 'dark'); }, 400);
+      applyTheme(localStorage.getItem('r_theme') || 'dark');
+      setTimeout(fillUser, 400);
     });
   } else {
     render();
     attachToggle();
-    setTimeout(() => { fillUser(); applyTheme(localStorage.getItem('r_theme') || 'dark'); }, 400);
+    applyTheme(localStorage.getItem('r_theme') || 'dark');
+    setTimeout(fillUser, 400);
   }
   window.toggleTnDropdown = function(e) {
     e.stopPropagation();
@@ -792,8 +794,24 @@
       document.documentElement.style.setProperty('--bottom-h', botEl.offsetHeight + 'px');
     }
   }
-  // İlk render sonrası birkaç kez dene (fontlar/ikonlar geç yüklenip yüksekliği değiştirebilir)
-  [0, 100, 400, 900].forEach(t => setTimeout(measureNavHeights, t));
+  // İlk ölçüm — nav'lar DOM'a eklenir eklenmez
+  measureNavHeights();
+  // Gerçek boyut değiştiğinde (font/ikon geç yüklenmesi, ekran döndürme, vb.) anında tekrar ölç.
+  // Sabit setTimeout gecikmeleri yerine ResizeObserver kullanmak, "bir süre sonra aniden değişiyor"
+  // hissi yaratan görünür flaş/sıçramaları ortadan kaldırır.
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(measureNavHeights);
+    const attachObserver = () => {
+      const topEl = document.querySelector('.r-topnav');
+      const botEl = document.getElementById('r-bottom-nav');
+      if (topEl) ro.observe(topEl);
+      if (botEl) ro.observe(botEl);
+    };
+    // Nav'lar henüz DOM'da olmayabilir (render() DOMContentLoaded'da çalışıyor) — kısa aralıklarla dene
+    attachObserver();
+    setTimeout(attachObserver, 50);
+    setTimeout(attachObserver, 300);
+  }
   window.addEventListener('resize', measureNavHeights);
   window.addEventListener('orientationchange', () => setTimeout(measureNavHeights, 200));
   window.addEventListener('stageExit', () => setTimeout(measureNavHeights, 100));
