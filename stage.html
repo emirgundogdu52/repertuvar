@@ -7,19 +7,21 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Sahne Modu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--border:#484860;--accent:#a855f7;--accent2:#c084fc;--text:#f1f0ff;--text2:#8b8aa8;--text3:#3d3d58;--green:#4a9462;--red:#c05444;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100vh;overflow:hidden;user-select:none;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Plus Jakarta Sans', sans-serif;height:100vh;overflow:hidden;user-select:none;}
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;}
 .screen.hidden{display:none;}
 
 #pickerScreen{background:var(--bg);align-items:center;justify-content:center;padding:32px 24px;}
 .pi{width:100%;max-width:520px;}
 .plogo{display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center;}
-.plogo span{font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);}
 .plogo small{color:var(--text2);font-size:12px;letter-spacing:.1em;text-transform:uppercase;}
-.ptitle{font-family:'Playfair Display',serif;font-size:28px;color:var(--text);margin-bottom:8px;text-align:center;}
+.ptitle{font-weight:800;letter-spacing:-.02em;font-size:26px;color:var(--text);margin-bottom:8px;text-align:center;}
 .psub{font-size:13px;color:var(--text2);margin-bottom:28px;text-align:center;}
 .rsl{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;max-height:55vh;overflow-y:auto;}
 .rsl::-webkit-scrollbar{width:4px;}.rsl::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
