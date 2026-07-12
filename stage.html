@@ -50,6 +50,16 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;hei
 .bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
 .bex:hover{color:var(--red);border-color:var(--red);}
 
+/* ═══ Görünüm değiştirici: Söz / Akor / Nota (segmented control) ═══ */
+.view-switch-wrap{display:flex;justify-content:center;padding:6px 12px 2px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);}
+.view-switch{display:inline-flex;gap:2px;padding:3px;background:rgba(120,100,255,0.08);border:1px solid var(--border);border-radius:20px;}
+.vs-btn{background:none;border:none;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;border-radius:16px;display:inline-flex;align-items:center;gap:5px;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.vs-btn .ti{font-size:15px;line-height:1;}
+.vs-btn:hover:not(:disabled):not(.active){color:var(--text);}
+.vs-btn.active{background:var(--accent);color:#1a0f2e;}
+.vs-btn:disabled{opacity:.32;cursor:not-allowed;}
+.view-switch-wrap.single-mode{display:none;}
+
 .sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 56px 80px;position:relative;overflow-y:auto;cursor:pointer;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
@@ -307,6 +317,13 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     </div>
   </div>
   <div class="stage-info-panel" id="stageInfoPanel"></div>
+  <div class="view-switch-wrap" id="viewSwitchWrap">
+    <div class="view-switch" id="viewSwitch">
+      <button class="vs-btn" data-mode="lyrics" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i> Söz</button>
+      <button class="vs-btn" data-mode="chords" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i> Akor</button>
+      <button class="vs-btn" data-mode="nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i> Nota</button>
+    </div>
+  </div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
   <div class="sm" id="sm" onclick="nextWork()"></div>
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
@@ -620,47 +637,44 @@ function initBackBtn() {
   // Not: görünüm etiketi artık her showWork() çağrısında updateViewToggleUI() ile güncelleniyor
 }
 
-// ── Görünüm modu: Söz / Akor / Nota — eserde hangi veriler varsa döngüye o kadarı girer ──
+// ── Görünüm modu: Söz / Akor / Nota — segmented control ile, repertuvar bazında hatırlanır ──
+// Not: eser (work) bazında ayrı bir "varsayılan görünüm" alanı henüz veritabanında yok;
+// o katman eklenmek istenirse work_parts/works şemasına bir alan gerekir.
+function viewModeStorageKey(){
+  const repId = curRep && curRep.id ? curRep.id : 'default';
+  return 'stageViewMode_' + repId;
+}
 function getStageViewMode(w) {
-  let mode = localStorage.getItem('stageViewMode') || 'lyrics';
+  let mode = localStorage.getItem(viewModeStorageKey()) || 'lyrics';
   // Eserde o modun verisi yoksa güvenli şekilde söze düş
   if (mode === 'chords' && !w.chords) mode = 'lyrics';
   if (mode === 'nota' && !w.notaUrl) mode = 'lyrics';
   return mode;
 }
 
-function cycleViewMode() {
-  const item = items[curIdx];
+function setViewMode(mode) {
+  const item = curRep && curRep.items ? curRep.items[curIdx] : null;
   const w = item ? (WL[item.workId] || {}) : null;
   if (!w) return;
-  const available = ['lyrics'];
-  if (w.chords) available.push('chords');
-  if (w.notaUrl) available.push('nota');
-  const current = getStageViewMode(w);
-  const idx = available.indexOf(current);
-  const next = available[(idx + 1) % available.length];
-  localStorage.setItem('stageViewMode', next);
+  if (mode === 'chords' && !w.chords) return;
+  if (mode === 'nota' && !w.notaUrl) return;
+  localStorage.setItem(viewModeStorageKey(), mode);
   showWork(w);
 }
 
 function updateViewToggleUI(w) {
-  const lbl = document.getElementById('toggleViewLabel');
-  const icon = document.querySelector('#btnToggleView .ti');
-  const btn = document.getElementById('btnToggleView');
-  if (!lbl || !btn) return;
+  const wrap = document.getElementById('viewSwitchWrap');
+  if (!wrap) return;
   const mode = getStageViewMode(w);
-  const meta = {
-    lyrics: { label: 'Güfte', icon: 'ti-music' },
-    chords: { label: 'Akor',  icon: 'ti-guitar-pick' },
-    nota:   { label: 'Nota',  icon: 'ti-file-music' },
-  }[mode];
-  lbl.textContent = meta.label;
-  if (icon) { icon.className = 'ti ' + meta.icon; icon.style.cssText = 'font-size:20px;line-height:1;'; }
-  // Bu eserde tek mod varsa (geçecek bir şey yoksa) butonu soluklaştır
-  const available = ['lyrics'];
-  if (w.chords) available.push('chords');
-  if (w.notaUrl) available.push('nota');
-  btn.style.opacity = available.length > 1 ? '1' : '.4';
+  const available = { lyrics: true, chords: !!w.chords, nota: !!w.notaUrl };
+  wrap.querySelectorAll('.vs-btn').forEach(btn => {
+    const m = btn.dataset.mode;
+    btn.classList.toggle('active', m === mode);
+    btn.disabled = !available[m];
+  });
+  // Tek mod varsa (geçecek bir şey yoksa) kontrolü tamamen gizle
+  const modeCount = Object.values(available).filter(Boolean).length;
+  wrap.classList.toggle('single-mode', modeCount <= 1);
 }
 
 function goBack(e) {
@@ -1007,7 +1021,6 @@ function loadSideWork(id) {
   <!-- Stage screen: sahneye özel nav -->
   <div class="v2-bn-items" id="stageNavStage" style="display:none;">
     <a href="#" class="v2-bn-item" id="btnGoBack" onclick="goBack(event)"><i class="ti ti-arrow-left" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Geri Dön</span></a>
-    <button class="v2-bn-item" id="btnToggleView" onclick="event.stopPropagation();cycleViewMode()" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-music" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" id="toggleViewLabel">Güfte</span></button>
     <a href="repertoires.html" class="v2-bn-item" id="btnActiveRep" onclick="goToActiveRep(event)"><i class="ti ti-book" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Repertuvar</span></a>
     <button class="v2-bn-item v2-bn-exit" onclick="event.stopPropagation();exitStage(event)" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-x" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Çık</span></button>
   </div>
