@@ -259,39 +259,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 </style>
 <script src="auth.js"></script>
 <style id="v2-stage-nav">
-/* Gündüz teması */
+/* Gündüz teması (sahne performans ekranındaki okuma teması — ayrı bir sistem) */
 body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;--accent:#7c6fff;--accent2:#a78bfa;--text:#1a1825;--text2:#5a5670;--text3:#9d9aae;}
-
-/* Üst navigasyon (topnav.js) her zaman koyu — global açık tema burada üst çubuğu beyazlatıp
-   Sahne Modu'nun kendi koyu paletiyle çelişiyordu. Bu sadece bu sayfaya özel, global tema
-   tercihine (diğer sayfalarda) dokunmuyor. */
-.r-topnav{background:rgba(7,11,24,0.92) !important;border-bottom-color:rgba(255,200,61,0.16) !important;}
-.r-tn-user{background:rgba(255,200,61,0.12) !important;}
-.r-tn-uname{color:#FFFFFF !important;}
-.r-tn-dropdown{background:#19233F !important;box-shadow:0 8px 24px rgba(0,0,0,0.4) !important;}
-.r-tn-dd-item{color:#9d9bc4 !important;}
-.r-tn-dd-item:hover{color:#FFFFFF !important;}
 </style>
-<script>
-// Üst navigasyonun arka planı bu sayfada her zaman koyu (yukarıdaki .r-topnav kuralı).
-// topnav.js açık/koyu tema tercihine göre logoyu da değiştirmeye çalışıyor — bu da
-// arka plan koyu kalırken logonun açık-tema (siyah) varyantına geçip görünmez olmasına
-// yol açıyordu. Logoyu da arka planla tutarlı şekilde her zaman koyu varyantta sabitliyoruz.
-(function () {
-  function forceLogoDark() {
-    const img = document.getElementById('rNavLogo');
-    if (img && !img.src.includes('logo_dark.png')) img.src = 'logo_dark.png';
-  }
-  const obs = new MutationObserver(forceLogoDark);
-  function attachLogoObserver() {
-    const img = document.getElementById('rNavLogo');
-    if (img) { forceLogoDark(); obs.observe(img, { attributes: true, attributeFilter: ['src'] }); }
-  }
-  attachLogoObserver();
-  setTimeout(attachLogoObserver, 100);
-  setTimeout(attachLogoObserver, 500);
-})();
-</script>
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
   <link rel="manifest" href="manifest.json">
