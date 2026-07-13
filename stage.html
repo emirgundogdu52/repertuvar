@@ -491,14 +491,14 @@ function renderStageChords(text) {
   if (!text) return '';
   return text.trim().split('\n').map(line => {
     if (line.startsWith('%%')) {
-      const akorlar = line.slice(2).trim();
-      return akorlar
-        ? `<span style="color:#58A6FF;font-size:0.85em;letter-spacing:.08em;font-family:monospace;display:block;margin-top:8px;">${akorlar}</span>`
+      const akorlar = line.slice(2);
+      return akorlar.trim()
+        ? `<span style="color:#58A6FF;font-size:0.85em;letter-spacing:.08em;font-family:monospace;display:block;margin-top:8px;white-space:pre;text-align:left;">${akorlar.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`
         : '';
     } else if (line.trim() === '') {
       return '<br>';
     } else {
-      return `<span style="display:block;">${line.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
+      return `<span style="display:block;text-align:left;">${line.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
     }
   }).join('');
 }
