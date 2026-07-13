@@ -24,7 +24,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 
 #pickerScreen{background:var(--bg);overflow:hidden;}
 .pi{width:100%;max-width:520px;height:100%;margin:0 auto;display:flex;flex-direction:column;}
-.pi-fixed-top{flex-shrink:0;padding:24px 24px 0;}
+.pi-fixed-top{flex-shrink:0;padding:4px 24px 0;}
 .pi-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px;}
 .pi-fixed-bottom{flex-shrink:0;padding:16px 24px calc(16px + env(safe-area-inset-bottom));}
 .plogo{display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center;}
@@ -97,22 +97,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 }
 #v2StageBotNav.stage-hidden{transform:translateY(100%);}
 
-/* Swipe handle — sahne modunda görünür */
-#stageSwipeHandle{
-  position:fixed;bottom:0;left:0;right:0;
-  height:36px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;z-index:500;
-  pointer-events:auto;
-  opacity:0.4;
-}
-#stageSwipeHandle.visible{opacity:0.8;}
-@media(hover:hover){#stageSwipeHandle{opacity:0.6;}}
-#stageSwipeHandle::after{
-  content:'';display:block;
-  width:36px;height:4px;border-radius:2px;
-  background:rgba(168,85,247,0.45);
-}
 .np{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;flex:1;max-width:400px;opacity:0;animation:fi .5s ease .4s forwards;}
 .nl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
 .nn{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -303,7 +287,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   <div class="pi">
     <div class="pi-fixed-top">
       <h1 class="ptitle">Sahne Moduna Hoş Geldiniz</h1>
-      <p class="psub">Hangi repertuvar ile sahneye çıkıyorsunuz?</p>
+      <p class="psub">Sahne performansınız için bir repertuvar seçiniz</p>
       <input type="text" id="stageSearchInput" placeholder="Repertuvar veya eser adı ara..." oninput="onStageSearchInput(this.value)"
         style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--text);font-family:inherit;outline:none;margin-bottom:16px;transition:border-color .15s;box-sizing:border-box;"
         onfocus="this.style.borderColor='#FFC83D'" onblur="this.style.borderColor='var(--border)'">
@@ -843,20 +827,17 @@ function showScreen(id){
   if(rTopnav)rTopnav.style.display=id==='stageScreen'?'none':'';
   const bnav=document.getElementById('v2StageBotNav');
   const stageNav=document.getElementById('stageNavStage');
-  const handle=document.getElementById('stageSwipeHandle');
   if(bnav){
     if(id==='stageScreen'){
       bnav.style.display='flex';
       bnav.classList.add('stage-hidden'); // sahne modunda başta gizli
       if(stageNav)stageNav.style.display='flex';
-      if(handle)handle.classList.add('visible');
     } else {
       // picker/bitiş ekranlarında kendi nav'ımızı göstermiyoruz —
       // paylaşılan topnav.js alt nav'ı (#r-bottom-nav) zaten burada görünür durumda.
       // İki ayrı nav'ın üst üste binmesi (ve ikonların tutarsız kalması) bu yüzden
       // kaldırıldı — bkz. Eserler/Repertuvarlar ikon karışıklığı bug'ı.
       bnav.style.display='none';
-      if(handle)handle.classList.remove('visible');
     }
   }
 }
@@ -893,12 +874,6 @@ document.addEventListener('touchend',e=>{
     dx<0?nextWork():prevWork();
   }
 },{passive:true});
-
-// Handle tıklama → aç (timer ile)
-const _sh=document.getElementById('stageSwipeHandle');
-if(_sh)_sh.addEventListener('click',e=>{e.stopPropagation();openStageNav();});
-const _mb=document.getElementById('stagMenuBtn');
-if(_mb)_mb.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();openStageNav();},true);
 
 // ── NAVİGASYON ──
 let sideList = [];
@@ -1097,6 +1072,5 @@ function loadSideWork(id) {
   }
 })();
 </script>
-<div id="stageSwipeHandle"></div>
 </body>
 </html>
