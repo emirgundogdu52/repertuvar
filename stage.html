@@ -516,6 +516,12 @@ function toggleStageTools(e) {
   if (e) e.stopPropagation();
   const panel = document.getElementById('stageToolsPanel');
   const isOpen = panel.style.display === 'flex';
+  if (!isOpen) {
+    // "Sıradaki" kartıyla çakışmasın diye alt bar'ın (.sb) gerçek yüksekliğine göre konumlan
+    const sb = document.querySelector('.sb');
+    const sbHeight = sb ? sb.getBoundingClientRect().height : 80;
+    panel.style.bottom = (sbHeight + 8) + 'px';
+  }
   panel.style.display = isOpen ? 'none' : 'flex';
   panel.style.flexDirection = 'column';
   clearTimeout(_stageToolsAutoHide);
