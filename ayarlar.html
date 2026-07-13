@@ -156,6 +156,10 @@ async function davetGonder() {
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 
+/* Üst nav bu sayfada sabit kalsın (scroll ile kaybolmasın) */
+.r-topnav{position:fixed !important;top:0;left:0;right:0;z-index:200;}
+body{padding-top:var(--topnav-h, 66px);}
+
 /* ── Page styles ── */
 .page { padding: 24px 20px; max-width: 640px; zoom: 1.25; }
 @media(min-width:1024px) { .page { padding: 32px; } }
