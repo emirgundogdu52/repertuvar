@@ -161,7 +161,7 @@ async function davetGonder() {
 body{padding-top:var(--topnav-h, 66px);}
 
 /* ── Page styles ── */
-.page { padding: 24px 20px; max-width: 640px; zoom: 1.25; }
+.page { padding: 24px 20px; max-width: 640px; }
 @media(min-width:1024px) { .page { padding: 32px; } }
 
 .settings-section {
@@ -176,9 +176,9 @@ body{padding-top:var(--topnav-h, 66px);}
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px;
 }
-.section-icon { font-size: 18px; }
-.section-title { font-size: 13px; font-weight: 700; color: var(--text); }
-.section-subtitle { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.section-icon { font-size: 22px; }
+.section-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.section-subtitle { font-size: 14px; color: var(--text3); margin-top: 1px; }
 
 .setting-row {
   display: flex; align-items: center; justify-content: space-between;
@@ -186,8 +186,8 @@ body{padding-top:var(--topnav-h, 66px);}
   border-bottom: 1px solid var(--border);
 }
 .setting-row:last-child { border-bottom: none; }
-.setting-label { font-size: 13px; font-weight: 500; color: var(--text); }
-.setting-desc { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.setting-label { font-size: 16px; font-weight: 500; color: var(--text); }
+.setting-desc { font-size: 14px; color: var(--text3); margin-top: 2px; }
 
 /* Toggle switch */
 .toggle {
@@ -212,7 +212,7 @@ body{padding-top:var(--topnav-h, 66px);}
 .setting-select {
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: 8px; padding: 6px 10px;
-  color: var(--text); font-size: 12px; font-family: var(--font);
+  color: var(--text); font-size: 15px; font-family: var(--font);
   outline: none; cursor: pointer;
 }
 .setting-select:focus { border-color: var(--accent); }
@@ -221,7 +221,7 @@ body{padding-top:var(--topnav-h, 66px);}
 .setting-btn {
   background: none; border: 1px solid var(--border);
   border-radius: 8px; padding: 7px 14px;
-  font-size: 12px; font-weight: 600; color: var(--text2);
+  font-size: 15px; font-weight: 600; color: var(--text2);
   cursor: pointer; font-family: var(--font); transition: all .15s;
   text-decoration: none; display: inline-block;
 }
@@ -236,15 +236,15 @@ body{padding-top:var(--topnav-h, 66px);}
   width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
   background: linear-gradient(135deg,var(--accent),var(--accent2));
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px; font-weight: 800; color: #fff;
+  font-size: 28px; font-weight: 800; color: #fff;
   box-shadow: 0 0 16px rgba(124,111,255,0.3);
 }
 .profile-info { flex: 1; min-width: 0; }
-.profile-name { font-size: 15px; font-weight: 700; color: var(--text); }
-.profile-email { font-size: 12px; color: var(--text3); margin-top: 3px; }
+.profile-name { font-size: 19px; font-weight: 700; color: var(--text); }
+.profile-email { font-size: 15px; color: var(--text3); margin-top: 3px; }
 .profile-role {
   display: inline-block; margin-top: 6px;
-  font-size: 10px; font-weight: 700;
+  font-size: 12px; font-weight: 700;
   padding: 2px 8px; border-radius: 10px;
   background: rgba(124,111,255,0.15); border: 1px solid rgba(124,111,255,0.3);
   color: var(--accent3);
@@ -255,7 +255,7 @@ body{padding-top:var(--topnav-h, 66px);}
   display: inline-flex; align-items: center; gap: 6px;
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: 20px; padding: 4px 12px;
-  font-size: 11px; color: var(--text3);
+  font-size: 14px; color: var(--text3);
 }
 
 /* Toast */
@@ -263,7 +263,7 @@ body{padding-top:var(--topnav-h, 66px);}
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
   background: var(--surface); border: 1px solid var(--border2);
   border-radius: 10px; padding: 10px 20px;
-  font-size: 13px; color: var(--text2); z-index: 999;
+  font-size: 16px; color: var(--text2); z-index: 999;
   animation: toastIn .2s ease; white-space: nowrap;
 }
 .toast.ok { border-color: rgba(74,222,128,.4); color: var(--green); }
@@ -281,13 +281,13 @@ body{padding-top:var(--topnav-h, 66px);}
   background: var(--surface); border: 1px solid var(--border2);
   border-radius: 16px; padding: 24px; width: min(400px, 96vw);
 }
-.modal-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+.modal-title { font-size: 19px; font-weight: 700; margin-bottom: 16px; }
 .field { margin-bottom: 12px; }
-.field label { display: block; font-size: 11px; font-weight: 600; color: var(--text3); margin-bottom: 5px; letter-spacing:.05em; }
+.field label { display: block; font-size: 14px; font-weight: 600; color: var(--text3); margin-bottom: 5px; letter-spacing:.05em; }
 .field input {
   width: 100%; background: var(--surface2); border: 1px solid var(--border);
   border-radius: 8px; padding: 9px 12px; color: var(--text);
-  font-size: 13px; font-family: var(--font); outline: none; transition: border-color .15s;
+  font-size: 16px; font-family: var(--font); outline: none; transition: border-color .15s;
 }
 .field input:focus { border-color: var(--accent); }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
@@ -298,7 +298,7 @@ body{padding-top:var(--topnav-h, 66px);}
     padding:4px; z-index:9999; box-shadow:0 -4px 20px rgba(0,0,0,.5); }
   .sb-user-dropdown.open { display:block; }
   .sb-dd-item { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:7px;
-    font-size:12px; font-weight:600; color:var(--text2); text-decoration:none; cursor:pointer;
+    font-size:15px; font-weight:600; color:var(--text2); text-decoration:none; cursor:pointer;
     transition:all .15s; background:none; border:none; width:100%; font-family:inherit; }
   .sb-dd-item:hover { background:rgba(124,111,255,0.12); color:var(--text); }
   .sb-dd-item.danger { color:var(--red); }
@@ -446,13 +446,13 @@ body{padding-top:var(--topnav-h, 66px);}
       <div class="section-header">
         <span class="section-icon">📋</span>
         <div>
-          <div class="section-title">Önerilerim <span id="pendingCountBadge" style="display:none;background:rgba(249,160,74,.2);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:11px;font-weight:700;border-radius:10px;padding:1px 8px;margin-left:4px;"></span></div>
-          <div class="section-subtitle" style="font-size:11px;color:var(--text3);margin-top:2px;">Gönderdiğiniz eser önerileri ve onay durumları</div>
+          <div class="section-title">Önerilerim <span id="pendingCountBadge" style="display:none;background:rgba(249,160,74,.2);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:14px;font-weight:700;border-radius:10px;padding:1px 8px;margin-left:4px;"></span></div>
+          <div class="section-subtitle" style="font-size:14px;color:var(--text3);margin-top:2px;">Gönderdiğiniz eser önerileri ve onay durumları</div>
         </div>
       </div>
       <a href="onerilerim.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;text-decoration:none;margin-top:12px;">
-        <span style="font-size:13px;color:var(--text);">Önerilerimi Görüntüle</span>
-        <i class="ti ti-chevron-right" style="color:var(--text3);font-size:16px;"></i>
+        <span style="font-size:16px;color:var(--text);">Önerilerimi Görüntüle</span>
+        <i class="ti ti-chevron-right" style="color:var(--text3);font-size:20px;"></i>
       </a>
     </div>
 
@@ -461,7 +461,7 @@ body{padding-top:var(--topnav-h, 66px);}
         <span class="section-icon">🎵</span>
         <div>
           <div class="section-title">Arkadaşını Davet Et</div>
-          <div class="section-subtitle" style="font-size:11px;color:var(--text3);margin-top:2px;">Repertuvar'ı müzisyen arkadaşlarınla paylaş</div>
+          <div class="section-subtitle" style="font-size:14px;color:var(--text3);margin-top:2px;">Repertuvar'ı müzisyen arkadaşlarınla paylaş</div>
         </div>
       </div>
 
@@ -469,7 +469,7 @@ body{padding-top:var(--topnav-h, 66px);}
       <div class="setting-row">
         <div>
           <div class="setting-label">Davet Linki</div>
-          <div class="setting-desc" id="davetLink" style="font-size:11px;color:var(--text3);word-break:break-all;">repertuvar.app/login.html</div>
+          <div class="setting-desc" id="davetLink" style="font-size:14px;color:var(--text3);word-break:break-all;">repertuvar.app/login.html</div>
         </div>
         <button class="setting-btn" onclick="linkKopyala()" id="kopyalaBtn">📋 Kopyala</button>
       </div>
@@ -478,18 +478,18 @@ body{padding-top:var(--topnav-h, 66px);}
       <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:12px;">
         <div class="setting-label">Paylaş</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;width:100%;">
-          <button onclick="paylasBilesen('whatsapp')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(37,211,102,.1);color:#25D366;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
+          <button onclick="paylasBilesen('whatsapp')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(37,211,102,.1);color:#25D366;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.335-1.508A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.359-.214-3.721.976.994-3.634-.234-.374A9.818 9.818 0 1112 21.818z"/></svg>
             WhatsApp
           </button>
-          <button onclick="paylasBilesen('email')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(124,111,255,.1);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
-            <i class="ti ti-mail" style="font-size:14px;"></i> E-posta
+          <button onclick="paylasBilesen('email')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(124,111,255,.1);color:var(--accent);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
+            <i class="ti ti-mail" style="font-size:18px;"></i> E-posta
           </button>
-          <button onclick="paylasBilesen('sms')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(74,222,128,.1);color:#4ade80;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
-            <i class="ti ti-message" style="font-size:14px;"></i> SMS
+          <button onclick="paylasBilesen('sms')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(74,222,128,.1);color:#4ade80;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
+            <i class="ti ti-message" style="font-size:18px;"></i> SMS
           </button>
-          <button onclick="paylasBilesen('native')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(167,139,250,.1);color:var(--accent2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
-            <i class="ti ti-share" style="font-size:14px;"></i> Diğer
+          <button onclick="paylasBilesen('native')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(167,139,250,.1);color:var(--accent2);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
+            <i class="ti ti-share" style="font-size:18px;"></i> Diğer
           </button>
         </div>
       </div>
@@ -499,11 +499,11 @@ body{padding-top:var(--topnav-h, 66px);}
         <div class="setting-label">E-posta ile Davet Gönder</div>
         <div style="display:flex;gap:8px;width:100%;">
           <input type="email" id="davetEmail" placeholder="arkadas@mail.com" 
-            style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;"
+            style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:16px;font-family:var(--font);outline:none;"
             onkeydown="if(event.key==='Enter') davetGonder()">
-          <button onclick="davetGonder()" id="davetBtn" style="background:var(--accent);border:none;border-radius:8px;padding:8px 16px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap;">Gönder</button>
+          <button onclick="davetGonder()" id="davetBtn" style="background:var(--accent);border:none;border-radius:8px;padding:8px 16px;color:#fff;font-size:16px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap;">Gönder</button>
         </div>
-        <div id="davetMsg" style="font-size:12px;display:none;"></div>
+        <div id="davetMsg" style="font-size:15px;display:none;"></div>
       </div>
     </div>
 
@@ -536,13 +536,13 @@ body{padding-top:var(--topnav-h, 66px);}
 <div class="modal-overlay" id="hesapSilModal">
   <div class="modal-card">
     <div class="modal-title" style="color:var(--red);">⚠️ Hesabı Sil</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:8px;">Bu işlem <strong>geri alınamaz</strong>. Tüm hesap bilgileriniz kalıcı olarak silinecek.</p>
-    <p id="silRepUyari" style="font-size:13px;color:var(--red);font-weight:600;margin-bottom:8px;display:none;"></p>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:8px;">Talebiniz alındıktan sonra <strong>30 gün içinde</strong> tüm verileriniz silinecek ve size bilgi verilecektir.</p>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Onaylamak için e-posta adresinizi yazın:</p>
+    <p style="font-size:16px;color:var(--text2);margin-bottom:8px;">Bu işlem <strong>geri alınamaz</strong>. Tüm hesap bilgileriniz kalıcı olarak silinecek.</p>
+    <p id="silRepUyari" style="font-size:16px;color:var(--red);font-weight:600;margin-bottom:8px;display:none;"></p>
+    <p style="font-size:16px;color:var(--text2);margin-bottom:8px;">Talebiniz alındıktan sonra <strong>30 gün içinde</strong> tüm verileriniz silinecek ve size bilgi verilecektir.</p>
+    <p style="font-size:16px;color:var(--text2);margin-bottom:16px;">Onaylamak için e-posta adresinizi yazın:</p>
     <input type="email" id="silOnayEmail" placeholder="e-posta adresiniz"
-      style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;margin-bottom:16px;">
-    <div id="silHataMsg" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px;"></div>
+      style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:16px;font-family:var(--font);outline:none;margin-bottom:16px;">
+    <div id="silHataMsg" style="font-size:15px;color:var(--red);display:none;margin-bottom:8px;"></div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="hesapSilKapat()">İptal</button>
       <button class="modal-btn danger" id="silOnayla" onclick="hesapSil()">Silme Talebini Gönder</button>

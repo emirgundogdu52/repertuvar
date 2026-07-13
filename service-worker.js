@@ -2,7 +2,7 @@
 // NOT: Her önemli deploy'da CACHE_NAME'i artır (v8 → v9 → v10...) — bu, eski Service Worker'ı
 // zorla devre dışı bırakıp yenisini aktive eder. Aksi halde kullanıcıların tarayıcısında
 // haftalarca eski Service Worker aktif kalabilir ve yeni dosyaları hiç görmeyebilirler.
-const CACHE_NAME = 'repertuvar-v132';
+const CACHE_NAME = 'repertuvar-v133';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
