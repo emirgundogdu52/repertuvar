@@ -487,13 +487,24 @@ function updateFontSizeButtons(scale) {
   if (plusBtn) plusBtn.disabled = scale >= LYRICS_SCALE_MAX;
 }
 
+// Bir satırın tamamen akor isimlerinden oluşup oluşmadığını denetler (Cm, Fm, D#, G#m7, A/C# vb.)
+// "%%" öneki olmadan girilmiş akor satırlarını da otomatik tanımak için kullanılıyor.
+const CHORD_TOKEN_RE = /^[A-G](#|b)?(maj|min|dim|aug|sus|add)?[0-9]*m?[0-9]*(\/[A-G](#|b)?)?$/i;
+function looksLikeChordLine(line) {
+  const t = line.trim();
+  if (!t) return false;
+  const tokens = t.split(/\s+/);
+  return tokens.every(tok => CHORD_TOKEN_RE.test(tok));
+}
+
 function renderStageChords(text) {
   if (!text) return '';
   return text.trim().split('\n').map(line => {
-    if (line.startsWith('%%')) {
-      const akorlar = line.slice(2);
-      return akorlar.trim()
-        ? `<span style="color:#58A6FF;font-size:0.85em;letter-spacing:.08em;font-family:monospace;display:block;margin-top:8px;white-space:pre;text-align:left;">${akorlar.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`
+    const isExplicitChordLine = line.startsWith('%%');
+    const rawChordContent = isExplicitChordLine ? line.slice(2) : line;
+    if (isExplicitChordLine || looksLikeChordLine(line)) {
+      return rawChordContent.trim()
+        ? `<span style="color:#58A6FF;font-size:0.85em;letter-spacing:.08em;font-family:monospace;display:block;margin-top:8px;white-space:pre;text-align:left;">${rawChordContent.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`
         : '';
     } else if (line.trim() === '') {
       return '<br>';
