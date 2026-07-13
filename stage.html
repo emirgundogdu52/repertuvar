@@ -98,9 +98,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 #v2StageBotNav.stage-hidden{transform:translateY(100%);}
 
 .np{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;padding:6px 16px;flex:1;max-width:400px;opacity:0;animation:fi .5s ease .4s forwards;}
-.nl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:4px;}
-.nn{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.nm{font-size:11px;color:var(--text2);margin-top:2px;}
+.nl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:4px;font-weight:600;}
+.nn{font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;}
+.nm{font-size:12px;color:var(--text2);margin-top:3px;font-weight:500;}
 .th{font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;line-height:1.5;opacity:0;animation:fi .5s ease .5s forwards;}
 .th kbd{display:inline-block;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;font-family:'DM Sans',sans-serif;color:var(--text3);}
 
@@ -658,7 +658,7 @@ function renderStage(){
   updateFontSizeButtons(savedScale);
   const next=items[curIdx+1];
   const np=document.getElementById('np');
-  if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
+  if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,nw.measurement,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
   else np.style.display='none';
 }
 
