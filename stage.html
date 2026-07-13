@@ -46,7 +46,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .bback:hover{color:var(--text2);}
 .loading{text-align:center;color:var(--text2);padding:24px;font-size:13px;}
 
-.stb{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:8px;position:relative;z-index:401;}
+.stb{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:8px;position:relative;z-index:401;}
 #v2StageBotNav .v2-bn-exit { color: #c05444 !important; }
 #v2StageBotNav .v2-bn-exit:hover { color: #e06655 !important; }
 .strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;}
@@ -80,7 +80,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .wch.n{border-color:#3d2a1a;color:var(--accent);background:#1e1208;}
 .wch.i{border-color:#1a2d1a;color:#7ab87a;background:#0f1a0f;}
 .wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:600px;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
-.wlyrics{font-size:clamp(18px,2.8vw,28px);color:var(--text);text-align:center;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;}
+.wlyrics{font-size:calc(clamp(18px,2.8vw,28px) * var(--lyrics-scale,1));color:var(--text);text-align:center;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;}
 .wnota{display:flex;justify-content:center;align-items:center;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;width:100%;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
@@ -149,6 +149,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 @keyframes ff{to{opacity:0}}
 
 .align-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:44px;height:44px;font-size:20px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.align-btn:disabled{opacity:.35;cursor:not-allowed;}
 .align-btn:hover{border-color:var(--accent);color:var(--accent);}
 .align-btn.active{background:rgba(168,85,247,.15);border-color:var(--accent);color:var(--accent);}
 .stage-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;} .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
@@ -182,7 +183,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
-    .stb { padding:8px 10px; height:auto; min-height:48px; }
+    .stb { padding:8px 10px; padding-top:calc(8px + env(safe-area-inset-top)); height:auto; min-height:48px; }
     .strn { font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .bex, .stage-nav a { font-size:10px; padding:4px 8px; }
     .stage-nav { gap:4px; }
@@ -202,14 +203,14 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
   }
   @media (max-width: 480px) {
     .wtitle { font-size:clamp(18px,5vw,26px); }
-    .wlyrics { font-size:clamp(14px,4.2vw,20px); line-height:1.8; padding:0 4px 80px; }
+    .wlyrics { font-size:calc(clamp(14px,4.2vw,20px) * var(--lyrics-scale,1)); line-height:1.8; padding:0 4px 80px; }
     .side-nav-btn { width:40px !important; height:40px !important; }
     .side-nav-left { left:6px !important; border-radius:10px !important; }
     .side-nav-right { right:6px !important; border-radius:10px !important; }
     .snb-label { display:none; }
     .sb { padding:0 8px 12px; gap:8px; flex-wrap:wrap; }
     .th { font-size:10px; }
-    .stb { padding:6px 8px; }
+    .stb { padding:6px 8px; padding-top:calc(6px + env(safe-area-inset-top)); }
     .stage-nav a, .bex { font-size:10px !important; padding:3px 6px !important; }
     .sm { padding:16px 52px 80px; }
     /* Picker screen on mobile */
@@ -363,8 +364,8 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     </div>
     <div style="position:relative;">
       <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" style="background:none;border:none;width:56px;height:56px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s;flex-shrink:0;padding:0;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'"><i class="ti ti-adjustments-horizontal" style="font-size:24px;"></i></button>
-      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;gap:8px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
-        <div style="display:flex;gap:6px;align-items:center;" id="stageToolsRow"></div>
+      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;left:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;gap:8px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;" id="stageToolsRow"></div>
       </div>
     </div>
     <div class="th" style="display:none;">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
@@ -498,6 +499,21 @@ function setLyricsAlign(align) {
     if (!btn) return;
     btn.classList.toggle('active', a === align);
   });
+}
+
+const LYRICS_SCALE_MIN = 0.75, LYRICS_SCALE_MAX = 1.6, LYRICS_SCALE_STEP = 0.1;
+function adjustLyricsFontSize(delta) {
+  let scale = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
+  scale = Math.min(LYRICS_SCALE_MAX, Math.max(LYRICS_SCALE_MIN, +(scale + delta).toFixed(2)));
+  localStorage.setItem('stageLyricsScale', scale);
+  document.documentElement.style.setProperty('--lyrics-scale', scale);
+  updateFontSizeButtons(scale);
+}
+function updateFontSizeButtons(scale) {
+  const minusBtn = document.getElementById('fontSizeMinus');
+  const plusBtn = document.getElementById('fontSizePlus');
+  if (minusBtn) minusBtn.disabled = scale <= LYRICS_SCALE_MIN;
+  if (plusBtn) plusBtn.disabled = scale >= LYRICS_SCALE_MAX;
 }
 
 function renderStageChords(text) {
@@ -660,6 +676,9 @@ function renderStage(){
   // Kaydedilmiş hizalamayı uygula
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
   requestAnimationFrame(() => setLyricsAlign(savedAlign));
+  const savedScale = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
+  document.documentElement.style.setProperty('--lyrics-scale', savedScale);
+  updateFontSizeButtons(savedScale);
   const next=items[curIdx+1];
   const np=document.getElementById('np');
   if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
@@ -740,12 +759,16 @@ function buildStageToolsRow(mode) {
   if (mode === 'nota') {
     row.innerHTML = themeBtn + navBtn;
   } else {
-    // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama ikisinde de geçerli
+    // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama ve yazı boyutu ikisinde de geçerli
+    const fontBtns = `
+      <button onclick="event.stopPropagation();adjustLyricsFontSize(-0.1)" id="fontSizeMinus" title="Yazıyı Küçült" class="align-btn"><span style="font-size:11px;font-weight:700;">A−</span></button>
+      <button onclick="event.stopPropagation();adjustLyricsFontSize(0.1)" id="fontSizePlus" title="Yazıyı Büyüt" class="align-btn"><span style="font-size:15px;font-weight:700;">A+</span></button>`;
     const alignBtns = `
       <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>`;
-    row.innerHTML = alignBtns + themeBtn + navBtn;
+    row.innerHTML = fontBtns + alignBtns + themeBtn + navBtn;
+    updateFontSizeButtons(parseFloat(localStorage.getItem('stageLyricsScale')) || 1);
   }
 }
 
