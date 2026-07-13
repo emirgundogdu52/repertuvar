@@ -176,11 +176,11 @@ function renderList(){
   }
   let html = '';
   if(mine.length){
-    html += '<div style="padding:8px 12px 4px;font-size:30px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;">📁 Repertuvarlarım</div>';
+    html += '<div style="padding:8px 12px 4px;font-size:20px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;">📁 Repertuvarlarım</div>';
     html += mine.map(repCard).join('');
   }
   if(pub.length){
-    html += '<div style="padding:12px 12px 4px;font-size:30px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;">🌐 Genel Repertuvarlar</div>';
+    html += '<div style="padding:12px 12px 4px;font-size:20px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;">🌐 Genel Repertuvarlar</div>';
     html += pub.map(repCard).join('');
   }
   el.innerHTML = html;
