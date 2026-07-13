@@ -1412,16 +1412,45 @@ function renderLyricsHtml(lyrics) {
     return esc;
   }).join('\n');
 }
+// innerText, elementin o an görünür/render edilmiş olmasına bağımlı — sekme gizliyken
+// (display:none) satır sonlarını kaybedip kelimeleri birbirine yapıştırabiliyor (WebKit).
+// Bunun yerine DOM'u elle gezip <div>/<br> sınırlarını '\n' olarak ekliyoruz; sekme
+// görünür olsun olmasın her zaman doğru sonuç verir.
+function domToPlainText(node) {
+  let out = '';
+  node.childNodes.forEach(child => {
+    if (child.nodeType === Node.TEXT_NODE) {
+      out += child.textContent;
+    } else if (child.nodeType === Node.ELEMENT_NODE) {
+      const tag = child.tagName;
+      if (tag === 'BR') {
+        out += '\n';
+      } else {
+        out += domToPlainText(child);
+        // Blok elementler (div, p vb.) kendi satırında biter
+        if (getComputedStyle_safe(child) !== 'inline') out += '\n';
+      }
+    }
+  });
+  return out;
+}
+function getComputedStyle_safe(el) {
+  try { return window.getComputedStyle(el).display; } catch(e) { return 'block'; }
+}
+
 function getLyricsValue() {
   const ed = document.getElementById('ne_lyrics_editor');
   if (!ed) return '';
-  // innerHTML'i düz metne çevir (satır sonları koru)
-  return ed.innerText || ed.textContent || '';
+  const raw = domToPlainText(ed);
+  // Ardışık fazla boş satırları sadeleştirme yapmadan, sondaki tek fazla satırı temizle
+  return raw.replace(/\n+$/, '');
 }
 function setLyricsValue(text) {
   const ed = document.getElementById('ne_lyrics_editor');
   if (!ed) return;
-  ed.innerText = text || '';
+  // innerText = ataması da görünürlüğe bağımlı olabiliyor; escape edip <br> ile kuruyoruz
+  const esc = (text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  ed.innerHTML = esc.split('\n').join('<br>');
 }
 
 function lyricsInsert(text) {
