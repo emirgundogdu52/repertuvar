@@ -22,13 +22,16 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 #pickerScreen, #endScreen{top:calc(66px + env(safe-area-inset-top));}
 .screen.hidden{display:none;}
 
-#pickerScreen{background:var(--bg);align-items:center;justify-content:center;padding:32px 24px;}
-.pi{width:100%;max-width:520px;}
+#pickerScreen{background:var(--bg);overflow:hidden;}
+.pi{width:100%;max-width:520px;height:100%;margin:0 auto;display:flex;flex-direction:column;}
+.pi-fixed-top{flex-shrink:0;padding:24px 24px 0;}
+.pi-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px;}
+.pi-fixed-bottom{flex-shrink:0;padding:16px 24px calc(16px + env(safe-area-inset-bottom));}
 .plogo{display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center;}
 .plogo small{color:var(--text2);font-size:12px;letter-spacing:.1em;text-transform:uppercase;}
 .ptitle{font-weight:800;letter-spacing:-.02em;font-size:26px;color:var(--text);margin-bottom:8px;text-align:center;}
-.psub{font-size:13px;color:var(--text2);margin-bottom:28px;text-align:center;}
-.rsl{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;max-height:55vh;overflow-y:auto;}
+.psub{font-size:13px;color:var(--text2);margin-bottom:16px;text-align:center;}
+.rsl{display:flex;flex-direction:column;gap:8px;padding-bottom:16px;}
 .rsl::-webkit-scrollbar{width:4px;}.rsl::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 .rsi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;align-items:center;justify-content:space-between;}
 .rsi:hover{border-color:rgba(255,200,61,.4);background:var(--surface2);}
@@ -86,19 +89,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 
 .sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;position:relative;z-index:10;}
 
-#stageHintToast{
-  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
-  background:rgba(20,10,40,.82);backdrop-filter:blur(8px);
-  border:1px solid rgba(168,85,247,.3);border-radius:12px;
-  padding:10px 20px;display:flex;gap:20px;align-items:center;
-  color:rgba(255,255,255,.75);font-size:13px;font-weight:500;
-  pointer-events:none;z-index:200;
-  opacity:0;transition:opacity .4s;
-  white-space:nowrap;
-}
-#stageHintToast.show{opacity:1;}
-#stageHintToast span{display:flex;align-items:center;gap:5px;}
-#stageHintToast i{font-size:15px;}
 #v2StageBotNav{
   position:fixed;bottom:0;left:0;right:0;
   transition:transform .28s cubic-bezier(.4,0,.2,1);
@@ -193,7 +183,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
     .side-nav-right { right:8px; border-radius:12px; }
     .side-nav-btn { width:44px; height:44px; }
     /* Picker */
-    .pi { max-width:100%; padding:20px 16px; }
+    .pi { max-width:100%; }
+    .pi-fixed-top, .pi-scroll, .pi-fixed-bottom { padding-left:16px; padding-right:16px; }
     .rb { padding:14px 16px; }
     .rbn { font-size:14px; }
     .side-nav-btn { width:40px; padding:10px 6px; }
@@ -214,13 +205,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
     .stage-nav a, .bex { font-size:10px !important; padding:3px 6px !important; }
     .sm { padding:16px 52px 80px; }
     /* Picker screen on mobile */
-    .pi { padding:16px; }
+    .pi-fixed-top, .pi-scroll, .pi-fixed-bottom { padding-left:16px; padding-right:16px; }
     .ptitle { font-size:20px; }
     .rb { padding:12px 14px; }
   }
   /* Picker screen mobile */
   @media (max-width: 600px) {
-    .pi { padding:0 8px; }
+    .pi-fixed-top, .pi-scroll, .pi-fixed-bottom { padding-left:8px; padding-right:8px; }
     .ptitle { font-size:20px; }
     .psub { font-size:13px; }
     .rl { padding:10px 12px; }
@@ -307,19 +298,25 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 <script src="topnav.js"></script>
 
 
-<div class="screen" id="pickerScreen" style="overflow-y:auto;-webkit-overflow-scrolling:touch;">
+<div class="screen" id="pickerScreen">
   <button onclick="openStageNav()" title="Menü" style="position:fixed;bottom:20px;right:16px;z-index:500;width:44px;height:44px;border-radius:50%;background:rgba(124,111,255,0.15);border:1px solid rgba(124,111,255,0.35);color:#7c6fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);display:none;"><i class="ti ti-layout-navbar" style="font-size:20px;"></i></button>
-  <div class="pi" style="padding-top:24px;padding-bottom:88px;">
-    <h1 class="ptitle">Sahne Moduna Hoş Geldiniz</h1>
-    <p class="psub">Hangi repertuvar ile sahneye çıkıyorsunuz?</p>
-    <input type="text" id="stageSearchInput" placeholder="Repertuvar veya eser adı ara..." oninput="onStageSearchInput(this.value)"
-      style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--text);font-family:inherit;outline:none;margin-bottom:16px;transition:border-color .15s;box-sizing:border-box;"
-      onfocus="this.style.borderColor='#FFC83D'" onblur="this.style.borderColor='var(--border)'">
-    <div class="rsl" id="rsl"><div class="loading">Yükleniyor...</div></div>
-    <button class="bstart" id="bstart" disabled onclick="startStage()">Sahneye Çık →</button>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
-      <div id="tc-day" onclick="setTheme('day')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(148,148,168,0.18);color:#8b8aa8;cursor:pointer;transition:all .15s;">☀️ Gündüz</div>
-      <div id="tc-night" onclick="setTheme('night')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(148,148,168,0.18);color:#8b8aa8;cursor:pointer;transition:all .15s;">🌙 Gece</div>
+  <div class="pi">
+    <div class="pi-fixed-top">
+      <h1 class="ptitle">Sahne Moduna Hoş Geldiniz</h1>
+      <p class="psub">Hangi repertuvar ile sahneye çıkıyorsunuz?</p>
+      <input type="text" id="stageSearchInput" placeholder="Repertuvar veya eser adı ara..." oninput="onStageSearchInput(this.value)"
+        style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--text);font-family:inherit;outline:none;margin-bottom:16px;transition:border-color .15s;box-sizing:border-box;"
+        onfocus="this.style.borderColor='#FFC83D'" onblur="this.style.borderColor='var(--border)'">
+    </div>
+    <div class="pi-scroll">
+      <div class="rsl" id="rsl"><div class="loading">Yükleniyor...</div></div>
+    </div>
+    <div class="pi-fixed-bottom">
+      <button class="bstart" id="bstart" disabled onclick="startStage()">Sahneye Çık →</button>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
+        <div id="tc-day" onclick="setTheme('day')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(148,148,168,0.18);color:#8b8aa8;cursor:pointer;transition:all .15s;">☀️ Gündüz</div>
+        <div id="tc-night" onclick="setTheme('night')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(148,148,168,0.18);color:#8b8aa8;cursor:pointer;transition:all .15s;">🌙 Gece</div>
+      </div>
     </div>
   </div>
 </div>
@@ -853,7 +850,6 @@ function showScreen(id){
       bnav.classList.add('stage-hidden'); // sahne modunda başta gizli
       if(stageNav)stageNav.style.display='flex';
       if(handle)handle.classList.add('visible');
-      showStageHint();
     } else {
       // picker/bitiş ekranlarında kendi nav'ımızı göstermiyoruz —
       // paylaşılan topnav.js alt nav'ı (#r-bottom-nav) zaten burada görünür durumda.
@@ -875,15 +871,6 @@ document.addEventListener('keydown',e=>{
 // Yatay swipe → eser geçişi | Swipe up → bottom nav aç (4sn sonra kapan)
 let txStart=0, tyStart=0;
 let _navTimer=null;
-function showStageHint(){
-  if(localStorage.getItem('stageHintSeen')) return;
-  localStorage.setItem('stageHintSeen','1');
-  const t=document.getElementById('stageHintToast');
-  if(!t)return;
-  setTimeout(()=>t.classList.add('show'),400);
-  setTimeout(()=>t.classList.remove('show'),3200);
-}
-
 function openStageNav(){
   const bnav=document.getElementById('v2StageBotNav');
   if(!bnav)return;
@@ -1110,11 +1097,6 @@ function loadSideWork(id) {
   }
 })();
 </script>
-<div id="stageHintToast">
-  <span><i class="ti ti-arrow-left"></i><i class="ti ti-arrow-right"></i> Eser geçişi</span>
-  <span><i class="ti ti-arrow-up"></i> Menü</span>
-</div>
-
 <div id="stageSwipeHandle"></div>
 </body>
 </html>
