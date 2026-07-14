@@ -447,8 +447,8 @@ async function refreshRepsInBackground(){
       fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H, signal:AbortSignal.timeout(6000)}).then(r=>r.json())
     ]);
     if (window.db) {
-      await db.repertoires.saveAll(r||[]);
-      await db.repertoire_items.saveAll(items||[]);
+      await db.repertoires.replaceAll(r||[]);
+      await db.repertoire_items.replaceAll(items||[]);
     }
     reps = buildRepsFromRaw(r, items);
     // Kullanıcı hâlâ seçim ekranındaysa listeyi tazele — sahnedeyken (performans sırasında) ekranı bozma

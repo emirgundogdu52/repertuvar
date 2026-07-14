@@ -73,6 +73,24 @@ function makeStore(storeName) {
           tx.onerror = () => reject(tx.error);
         })).catch((e) => { console.warn('[db] saveAll hatası:', e); })
       : Promise.resolve(),
+    // Sunucudan gelen TAM (o sorgu kapsamındaki) listeyle local'i eşitler:
+    // yeni/güncellenen kayıtları yazar, artık sunucuda olmayanları local'den SİLER.
+    // saveAll'dan farkı bu — saveAll asla silmez, bu yüzden silinen/gizli kalan
+    // kayıtlar (ör. silinen bir repertuvar) local cache'de sonsuza kadar kalabiliyordu.
+    replaceAll: (items) => HAS_IDB
+      ? storeOp(storeName, 'readonly', (s) => s.getAllKeys()).then((existingKeys) => {
+          const newIds = new Set((items || []).map((it) => it.id));
+          const toDelete = (existingKeys || []).filter((k) => !newIds.has(k));
+          return openDB().then((db) => new Promise((resolve, reject) => {
+            const tx = db.transaction(storeName, 'readwrite');
+            const store = tx.objectStore(storeName);
+            toDelete.forEach((k) => store.delete(k));
+            (items || []).forEach((item) => store.put(item));
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+          }));
+        }).catch((e) => { console.warn('[db] replaceAll hatası:', e); })
+      : Promise.resolve(),
     delete: (id) => HAS_IDB
       ? storeOp(storeName, 'readwrite', (s) => s.delete(id)).catch((e) => { console.warn('[db] delete hatası:', e); })
       : Promise.resolve(),
@@ -131,10 +149,10 @@ window.syncOfflineData = async function() {
       fetch(SUPA_URL + '/rest/v1/repertoire_items?select=*&order=seq.asc', { headers }),
     ]);
 
-    if (worksRes.ok) await db.works.saveAll(await worksRes.json());
-    if (repsRes.ok) await db.repertoires.saveAll(await repsRes.json());
-    if (solRes.ok) await db.solistler.saveAll(await solRes.json());
-    if (itemsRes.ok) await db.repertoire_items.saveAll(await itemsRes.json());
+    if (worksRes.ok) await db.works.replaceAll(await worksRes.json());
+    if (repsRes.ok) await db.repertoires.replaceAll(await repsRes.json());
+    if (solRes.ok) await db.solistler.replaceAll(await solRes.json());
+    if (itemsRes.ok) await db.repertoire_items.replaceAll(await itemsRes.json());
 
     await db.meta.set('lastSync', new Date().toISOString());
     console.log('[db] Offline sync tamamlandı:', new Date().toLocaleTimeString('tr-TR'));

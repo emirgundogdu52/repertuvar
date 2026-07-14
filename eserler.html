@@ -579,7 +579,7 @@ async function syncWorksFromServer(hadLocalData) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const rows = await r.json();
     if (!Array.isArray(rows)) throw new Error('Unexpected response');
-    if (typeof db !== 'undefined') db.works.saveAll(rows).catch(()=>{});
+    if (typeof db !== 'undefined') db.works.replaceAll(rows).catch(()=>{});
     parseWorksRows(rows);
     // Solistler sayfası için önbelleği de tazele (DATA artık güncel)
     try {

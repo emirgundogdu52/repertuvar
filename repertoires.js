@@ -239,9 +239,9 @@ async function load(){
     ]);
     dbg('sunucudan geldi — rep sayısı: '+(r||[]).length+' | items: '+(i||[]).length);
     if (window.db) {
-      await db.repertoires.saveAll(r||[]);
-      await db.solistler.saveAll(s||[]);
-      await db.repertoire_items.saveAll(i||[]);
+      await db.repertoires.replaceAll(r||[]);
+      await db.solistler.replaceAll(s||[]);
+      await db.repertoire_items.replaceAll(i||[]);
     }
     applyRepsData(r, i, s);
     sync('ok','Senkronize');
