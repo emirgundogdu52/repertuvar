@@ -28,6 +28,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .bn:hover{background:var(--accent2);}
 .ls{overflow-y:auto;flex:1;padding:10px 10px 4px;}
 .ls::-webkit-scrollbar{width:4px;}.ls::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.ri-wrap{position:relative;overflow:hidden;border-radius:10px;margin-bottom:8px;}
+.ri-wrap .ri{margin-bottom:0;position:relative;z-index:2;touch-action:pan-y;}
+.ri-delete-bg{position:absolute;top:0;right:0;bottom:0;width:84px;background:#e5484d;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:600;z-index:1;cursor:pointer;}
+.ri-delete-bg i{font-size:18px;}
+
 .ri{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .ri:hover{border-color:var(--border2);background:var(--surface2);}
 .ri.active{border-color:var(--accent);background:rgba(255,200,61,.08);}

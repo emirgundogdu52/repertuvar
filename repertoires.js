@@ -52,11 +52,84 @@ function repMatchesSearch(r, q) {
   });
 }
 
+// ── Swipe-to-delete (Repertuvarlar listesi) ──
+const RI_SWIPE_THRESHOLD = 44;   // bu kadar kaydırınca "açık" sayılır
+const RI_SWIPE_MAX = 84;         // silme butonunun genişliği kadar
+let _riSwipe = null;
+let _riOpenCard = null; // o an açık (silme butonu görünür) kart
+
+function riCloseOpenCard() {
+  if (_riOpenCard) {
+    _riOpenCard.style.transition = 'transform .2s ease';
+    _riOpenCard.style.transform = 'translateX(0)';
+    _riOpenCard.classList.remove('swiped-open');
+    _riOpenCard = null;
+  }
+}
+
+function riTouchStart(e) {
+  if (_riOpenCard && _riOpenCard !== e.currentTarget) riCloseOpenCard();
+  const t = e.touches[0];
+  _riSwipe = { card: e.currentTarget, startX: t.clientX, startY: t.clientY, dx: 0, dir: null };
+}
+
+function riTouchMove(e) {
+  if (!_riSwipe || _riSwipe.card !== e.currentTarget) return;
+  const t = e.touches[0];
+  const dx = t.clientX - _riSwipe.startX;
+  const dy = t.clientY - _riSwipe.startY;
+  if (_riSwipe.dir === null) {
+    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+      _riSwipe.dir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    }
+  }
+  if (_riSwipe.dir === 'v') { _riSwipe = null; return; }
+  if (_riSwipe.dir === 'h') {
+    e.preventDefault();
+    const base = _riSwipe.card.classList.contains('swiped-open') ? -RI_SWIPE_MAX : 0;
+    const clamped = Math.min(4, Math.max(base + dx, -RI_SWIPE_MAX));
+    _riSwipe.dx = clamped;
+    _riSwipe.card.style.transition = 'none';
+    _riSwipe.card.style.transform = `translateX(${clamped}px)`;
+  }
+}
+
+function riTouchEnd(e) {
+  if (!_riSwipe || _riSwipe.dir !== 'h') { _riSwipe = null; return; }
+  const card = _riSwipe.card;
+  card.style.transition = 'transform .2s ease';
+  if (_riSwipe.dx < -RI_SWIPE_THRESHOLD) {
+    card.style.transform = `translateX(${-RI_SWIPE_MAX}px)`;
+    card.classList.add('swiped-open');
+    card.dataset.justSwiped = '1';
+    _riOpenCard = card;
+  } else {
+    card.style.transform = 'translateX(0)';
+    card.classList.remove('swiped-open');
+    if (_riOpenCard === card) _riOpenCard = null;
+  }
+  _riSwipe = null;
+}
+
+function riCardClick(e, id) {
+  const card = e.currentTarget;
+  if (card.classList.contains('swiped-open')) {
+    riCloseOpenCard();
+    return;
+  }
+  if (card.dataset.justSwiped === '1') {
+    delete card.dataset.justSwiped;
+    return;
+  }
+  sel(id);
+}
+
 // "Diğer İşlemler" menüsü dışına tıklanınca kapat
 document.addEventListener('click', (e) => {
   document.querySelectorAll('.ov-menu[open]').forEach(d => {
     if (!d.contains(e.target)) d.removeAttribute('open');
   });
+  if (_riOpenCard && !_riOpenCard.contains(e.target)) riCloseOpenCard();
 });
 
 async function loadWorksData() {
@@ -168,10 +241,17 @@ function renderList(){
   const mine = filtered.filter(r=>r.isOwner);
   const pub  = filtered.filter(r=>!r.isOwner && r.is_public);
   function repCard(r, _zi){
-    return `<div class="ri${selId===r.id?' active':''}" onclick="sel('${r.id}')">
+    const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')"
+        ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)">
       <div><div class="rn">${r.name}${r.is_public&&r.isOwner?' <span style="font-size:10px;color:#4ade80;font-weight:600;">🌐</span>':''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${r.date?'<span>'+r.date+'</span>':''}</div></div>
       <div class="rc">${(r.items||[]).length} eser</div>
+    </div>`;
+    // Silme sadece kendi repertuvarların için — başkasının/genel repertuvarda kaydırma yok
+    if (!r.isOwner) return `<div class="ri-wrap">${cardHtml}</div>`;
+    return `<div class="ri-wrap">
+      <div class="ri-delete-bg" onclick="delRep('${r.id}')"><i class="ti ti-trash"></i>Sil</div>
+      ${cardHtml}
     </div>`;
   }
   let html = '';
