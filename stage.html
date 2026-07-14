@@ -26,7 +26,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .pi{width:100%;max-width:520px;height:100%;margin:0 auto;display:flex;flex-direction:column;}
 .pi-fixed-top{flex-shrink:0;padding:4px 24px 0;}
 .pi-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px;}
-.pi-fixed-bottom{flex-shrink:0;padding:16px 24px calc(24px + env(safe-area-inset-bottom));}
+.pi-fixed-bottom{flex-shrink:0;padding:16px 24px calc(32px + env(safe-area-inset-bottom));}
 .plogo{display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center;}
 .plogo small{color:var(--text2);font-size:12px;letter-spacing:.1em;text-transform:uppercase;}
 .ptitle{font-weight:800;letter-spacing:-.02em;font-size:26px;color:var(--text);margin-bottom:8px;text-align:center;}
@@ -41,7 +41,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .rsc{font-size:12px;color:var(--text3);}
 /* Picker ekranı: marka paleti (altın/mavi) — sahne performans ekranı kendi mor gece paletinde kalıyor */
 #pickerScreen{--accent:#FFC83D;--accent2:#4DA3FF;}
-.bstart{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;padding:12px;color:#0a0818;font-size:16px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;box-shadow:0 4px 14px rgba(255,200,61,.22);}
+.bstart{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;padding:9px;color:#0a0818;font-size:16px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;box-shadow:0 4px 14px rgba(255,200,61,.22);}
 .bstart:hover{opacity:.92;}
 .bstart:active{transform:scale(.98);}
 .bstart:disabled{opacity:.35;cursor:not-allowed;}
