@@ -124,6 +124,20 @@ function riCardClick(e, id) {
   sel(id);
 }
 
+// Sayfa bfcache'den (geri/ileri önbelleği) geri geldiğinde önceki kaydırma durumu
+// donmuş halde kalabiliyor (özellikle ilk kartın "silmeye hazır" görünmesi). Her
+// pageshow'da (hem normal yükleme hem bfcache restore) temiz duruma sıfırla.
+window.addEventListener('pageshow', () => {
+  document.querySelectorAll('.ri.swiped-open').forEach(card => {
+    card.classList.remove('swiped-open');
+    card.style.transition = 'none';
+    card.style.transform = 'translateX(0)';
+    delete card.dataset.justSwiped;
+  });
+  _riOpenCard = null;
+  _riSwipe = null;
+});
+
 // "Diğer İşlemler" menüsü dışına tıklanınca kapat
 document.addEventListener('click', (e) => {
   document.querySelectorAll('.ov-menu[open]').forEach(d => {
