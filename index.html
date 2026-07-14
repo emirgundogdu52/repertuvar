@@ -14,6 +14,10 @@
   <link rel="manifest" href="manifest.json">
   <script src="db.js"></script>
   <style>
+    /* Üst nav bu sayfada sabit kalsın (scroll ile kaybolmasın) */
+    .r-topnav{position:fixed !important;top:0;left:0;right:0;z-index:200;}
+    body{padding-top:var(--topnav-h, 66px);}
+
     /* ═══ index.html'e özgü hero yerleşimi ve animasyonları ═══
        Renkler artık merkezi style.css'teki :root değişkenlerinden geliyor,
        burada ayrı bir renk paleti tanımlanmıyor. */
