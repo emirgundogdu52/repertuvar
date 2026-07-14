@@ -69,7 +69,7 @@
 .admin-only{display:none;}
 /* ── Conversation list (admin) ── */
 .conv-list { display:flex; flex-direction:column; gap:8px; }
-.conv-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; cursor:pointer; display:flex; align-items:center; gap:12px; transition:all .15s; width:424px; margin-left:calc(50% - 212px); margin-right:calc(50% - 212px); box-sizing:border-box; }
+.conv-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; cursor:pointer; display:flex; align-items:center; gap:12px; transition:all .15s; width:424px; margin-left:calc(50% - 212px); margin-right:calc(50% - 212px); box-sizing:border-box; -webkit-user-select:none; -webkit-touch-callout:none; user-select:none; }
 .conv-item:hover { border-color:var(--accent); }
 .conv-item.unread { border-color:rgba(124,111,255,0.5); }
 .conv-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#fff; flex-shrink:0; }
