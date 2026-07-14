@@ -134,8 +134,11 @@ window.syncOfflineData = async function() {
     const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token };
 
     // group_id veya owner_id'ye göre repertuvar filtresi
-    const gid = localStorage.getItem('user_group_id');
-    const uid = localStorage.getItem('sb_user') ? JSON.parse(localStorage.getItem('sb_user')).id : null;
+    // ÖNEMLİ: repertoires.js ve stage.html ile AYNI kaynağı kullanmalı (getGroupId/getUserId) —
+    // yoksa üçü farklı "gid" değerlerine göre çekip replaceAll ile birbirinin cache'ini
+    // ezerek kapsam dışı repertuvarları geri sızdırabilir.
+    const gid = (typeof getGroupId === 'function') ? getGroupId() : localStorage.getItem('user_group_id');
+    const uid = (typeof getUserId === 'function') ? getUserId() : (localStorage.getItem('sb_user') ? JSON.parse(localStorage.getItem('sb_user')).id : null);
     const repFilter = gid
       ? '/rest/v1/repertoires?select=*&order=created_at.desc&group_id=eq.' + gid
       : (uid ? '/rest/v1/repertoires?select=*&order=created_at.desc&or=(owner_id.eq.' + uid + ',is_public.eq.true)' : '/rest/v1/repertoires?select=*&order=created_at.desc&is_public=eq.true');
