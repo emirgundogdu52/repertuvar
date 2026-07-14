@@ -544,6 +544,27 @@ function parseWorksRows(rows) {
   applyFilters();
 }
 async function loadWorksFromSupabase() {
+  let localHadData = false;
+
+  // ── 1) ÖNCELİKLE LOCAL'DEN ANINDA GÖSTER (sinyal zayıf/yokken bile beklemeden) ──
+  try {
+    if (typeof db !== 'undefined') {
+      const cached = await db.works.getAll();
+      if (cached && cached.length > 0) {
+        parseWorksRows(cached); // DATA + filteredData + buildFilters + applyFilters hepsini yapar
+        localHadData = true;
+        console.log('[eserler] local\'den anında gösterildi:', cached.length, 'eser');
+      }
+    }
+  } catch(e) { console.warn('[eserler] IndexedDB okuma hatası:', e); }
+
+  // ── 2) ARKA PLANDA SUNUCUYLA SENKRONİZE ET — init() akışını bloklamaz ──
+  syncWorksFromServer(localHadData);
+
+  return localHadData;
+}
+
+async function syncWorksFromServer(hadLocalData) {
   try {
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
     // Admin ve editör tüm eserleri görür, üye sadece onaylananları
@@ -552,51 +573,22 @@ async function loadWorksFromSupabase() {
     const uid = getUserId();
     const statusFilter = (isAdmin() || isEditor()) ? '' : '&or=(status.eq.approved,and(status.eq.pending,submitted_by.eq.'+uid+'))'
     const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=name&limit=2000'+groupFilter+statusFilter, {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token},
+      signal: AbortSignal.timeout(hadLocalData ? 8000 : 5000)
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const rows = await r.json();
     if (!Array.isArray(rows)) throw new Error('Unexpected response');
     if (typeof db !== 'undefined') db.works.saveAll(rows).catch(()=>{});
-    DATA = rows.map(w => ({
-      id: w.id,
-      name: w.name || '',
-      composer: w.composer || '',
-      lyricWriter: w.lyric_writer || '',
-      makam: w.makam || '',
-      form: w.form || '',
-      measurement: w.measurement || '',
-      metronom: '',
-      genre: '',
-      instrument: w.instrument || '',
-      tuning: w.tuning || '',
-      closingNote: w.closing_note || '',
-      area: '',
-      region: w.region || '',
-      sourcePerson: w.source_person || '',
-      videoLink: w.video_link || '',
-      lyrics: w.lyrics || '',
-      chords: w.chords || '',
-      notaUrl: w.nota_url || '',
-      status: w.status || 'approved',
-      submitted_by: w.submitted_by || '',
-      submitter_email: w.submitter_email || '',
-      submitted_at: w.submitted_at || ''
-    }));
-    return true;
-  } catch(e) {
-    console.warn('[eserler] Supabase hatasi, IndexedDB deneniyor:', e.message);
+    parseWorksRows(rows);
+    // Solistler sayfası için önbelleği de tazele (DATA artık güncel)
     try {
-      if (typeof db !== 'undefined') {
-        const cached = await db.works.getAll();
-        if (cached && cached.length > 0) {
-          console.log('[eserler] IndexedDB fallback:', cached.length, 'eser');
-          parseWorksRows(cached);
-          return true;
-        }
-      }
-    } catch(e2) { console.warn('[eserler] IndexedDB hatasi:', e2); }
-    return false;
+      const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
+      localStorage.setItem('worksListCache', JSON.stringify(list));
+    } catch(e) {}
+    if (isAdmin() || isEditor()) updatePendingCount();
+  } catch(e) {
+    console.warn('[eserler] Sunucu senkronizasyonu başarısız (offline/zayıf sinyal):', e.message);
   }
 }
 let filteredData = [...DATA];
