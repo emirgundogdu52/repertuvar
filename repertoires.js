@@ -221,7 +221,7 @@ async function load(){
     sync('ok','Senkronize');
     renderList();
     const urlRep=new URLSearchParams(window.location.search).get('rep');
-    if(urlRep&&reps.find(x=>x.id===urlRep)){selId=urlRep;}else if(!selId&&reps.length){selId=reps[0].id;}
+    if(urlRep&&reps.find(x=>x.id===urlRep)){selId=urlRep;}
     renderList();renderDetail();
     setTimeout(fixMobileHeight, 100);
   }catch(e){sync('err','Bağlantı hatası');toast(e.message,'er');}
