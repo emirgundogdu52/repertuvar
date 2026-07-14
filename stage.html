@@ -87,7 +87,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .wnota{display:flex;justify-content:center;align-items:center;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;width:100%;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-.sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;position:relative;z-index:10;}
+.sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:flex-start;gap:16px;position:relative;z-index:10;}
 
 #v2StageBotNav{
   position:fixed;bottom:0;left:0;right:0;
@@ -333,7 +333,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="nn" id="nn">—</div>
       <div class="nm" id="nm">—</div>
     </div>
-    <div style="position:relative;">
+    <div style="position:relative;margin-left:auto;">
       <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" style="background:none;border:none;width:56px;height:56px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s;flex-shrink:0;padding:0;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'"><i class="ti ti-adjustments-horizontal" style="font-size:24px;"></i></button>
       <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;left:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;gap:8px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;" id="stageToolsRow"></div>
