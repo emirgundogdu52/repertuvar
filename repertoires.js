@@ -247,6 +247,18 @@ function fixMobileHeight() {
   ls.style.overflowY = 'scroll';
 }
 
+function getHiddenRepIds() {
+  try { return JSON.parse(localStorage.getItem('hiddenRepIds') || '[]'); }
+  catch (e) { return []; }
+}
+function hideRepFromView(id) {
+  const hidden = getHiddenRepIds();
+  if (!hidden.includes(id)) hidden.push(id);
+  localStorage.setItem('hiddenRepIds', JSON.stringify(hidden));
+  toast('Görünümünden kaldırıldı');
+  renderList();
+}
+
 function renderList(){
   const el=document.getElementById('list');
   if(!reps.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">Henüz repertuvar yok</div>';return;}
@@ -254,23 +266,26 @@ function renderList(){
   if(repSearchQuery && !filtered.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">"'+repSearchQuery+'" için sonuç bulunamadı</div>';return;}
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
+  const hiddenIds = getHiddenRepIds();
   const mine = filtered.filter(r=>r.isOwner);
-  const pub  = filtered.filter(r=>!r.isOwner && r.is_public);
+  const pub  = filtered.filter(r=>!r.isOwner && r.is_public && !hiddenIds.includes(r.id));
   function repCard(r, _zi){
-    // Silme sadece kendi repertuvarların için — başkasının/genel repertuvarda ne kaydırma
-    // dinleyicisi ne de arkada bir silme butonu var; kısa/yarım bir dokunuş bile kart
-    // seçimine (sel()) dönüşecek şekilde net davranıyor.
-    const touchAttrs = r.isOwner
-      ? `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)"`
-      : '';
+    const touchAttrs = `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)"`;
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
       <div><div class="rn">${r.name}${r.is_public&&r.isOwner?' <span style="font-size:10px;color:#4ade80;font-weight:600;">🌐</span>':''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${r.date?'<span>'+r.date+'</span>':''}</div></div>
       <div class="rc">${(r.items||[]).length} eser</div>
     </div>`;
-    if (!r.isOwner) return `<div class="ri-wrap">${cardHtml}</div>`;
+    // Kendi repertuvarında: gerçekten SİL (kırmızı). Başkasınınkinde: sadece kendi
+    // görünümünden GİZLE (mavi) — orijinal veriye, sahibine ya da gruba hiç dokunmuyor.
+    if (r.isOwner) {
+      return `<div class="ri-wrap">
+        <div class="ri-delete-bg" onclick="delRep('${r.id}')"><i class="ti ti-trash"></i>Sil</div>
+        ${cardHtml}
+      </div>`;
+    }
     return `<div class="ri-wrap">
-      <div class="ri-delete-bg" onclick="delRep('${r.id}')"><i class="ti ti-trash"></i>Sil</div>
+      <div class="ri-delete-bg ri-hide-bg" onclick="hideRepFromView('${r.id}')"><i class="ti ti-eye-off"></i>Gizle</div>
       ${cardHtml}
     </div>`;
   }
