@@ -422,14 +422,31 @@ function buildRepsFromRaw(r, items) {
     .map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
 }
 
+// repertoires.js ile AYNI görünürlük kapsamı — ikisi farklı mantık kullanırsa
+// (biri grup bazlı, diğeri owner/public bazlı) iki sayfa farklı repertuvar listeleri gösterir.
+function repVisibilityFilterFn() {
+  const uid = getUserId();
+  const gid = (typeof getGroupId === 'function') ? getGroupId() : null;
+  if (gid) {
+    return (x) => x.group_id === gid;
+  }
+  return (x) => x.owner_id === uid || x.user_id === uid || x.is_public === true;
+}
+function repVisibilityQuery() {
+  const uid = getUserId();
+  const gid = (typeof getGroupId === 'function') ? getGroupId() : null;
+  return gid
+    ? 'group_id=eq.' + gid
+    : 'or=(owner_id.eq.' + uid + ',is_public.eq.true)';
+}
+
 async function loadReps(){
   // ── 1) ÖNCELİKLE LOCAL'DEN ANINDA DÖN (sinyal zayıf/yokken bile beklemeden) ──
   let localR = [], localItems = [];
   if (window.db) {
     try {
-      const uid = getUserId();
       const allReps = await db.repertoires.getAll();
-      localR = allReps.filter(x => x.owner_id === uid || x.user_id === uid || x.is_public === true);
+      localR = allReps.filter(repVisibilityFilterFn());
       localItems = await db.repertoire_items.getAll();
     } catch(e) { console.warn('[stage] local repertuvar okuma hatası:', e); }
   }
@@ -443,7 +460,7 @@ async function loadReps(){
 async function refreshRepsInBackground(){
   try {
     const [r, items] = await Promise.all([
-      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at&or=(owner_id.eq.'+getUserId()+',is_public.eq.true)',{headers:H, signal:AbortSignal.timeout(6000)}).then(r=>r.json()),
+      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at&'+repVisibilityQuery(),{headers:H, signal:AbortSignal.timeout(6000)}).then(r=>r.json()),
       fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H, signal:AbortSignal.timeout(6000)}).then(r=>r.json())
     ]);
     if (window.db) {

@@ -143,7 +143,7 @@ window.syncOfflineData = async function() {
 
     // Eserleri çek ve kaydet
     const [worksRes, repsRes, solRes, itemsRes] = await Promise.all([
-      fetch(SUPA_URL + '/rest/v1/works?select=*&order=name.asc&limit=1000', { headers }),
+      fetch(SUPA_URL + '/rest/v1/works?select=*&order=name.asc&limit=10000', { headers }),
       fetch(SUPA_URL + repFilter, { headers }),
       fetch(SUPA_URL + solFilter, { headers }),
       fetch(SUPA_URL + '/rest/v1/repertoire_items?select=*&order=seq.asc', { headers }),
