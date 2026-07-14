@@ -98,10 +98,12 @@ function riTouchEnd(e) {
   if (!_riSwipe || _riSwipe.dir !== 'h') { _riSwipe = null; return; }
   const card = _riSwipe.card;
   card.style.transition = 'transform .2s ease';
+  // Gerçek bir yatay hareket olduysa (ne kadar küçük olursa olsun), bunu takip eden
+  // "click" olayını görmezden gel — bir swipe denemesi asla kart seçimine dönüşmemeli.
+  if (Math.abs(_riSwipe.dx) > 5) card.dataset.justSwiped = '1';
   if (_riSwipe.dx < -RI_SWIPE_THRESHOLD) {
     card.style.transform = `translateX(${-RI_SWIPE_MAX}px)`;
     card.classList.add('swiped-open');
-    card.dataset.justSwiped = '1';
     _riOpenCard = card;
   } else {
     card.style.transform = 'translateX(0)';
@@ -255,13 +257,17 @@ function renderList(){
   const mine = filtered.filter(r=>r.isOwner);
   const pub  = filtered.filter(r=>!r.isOwner && r.is_public);
   function repCard(r, _zi){
-    const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')"
-        ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)">
+    // Silme sadece kendi repertuvarların için — başkasının/genel repertuvarda ne kaydırma
+    // dinleyicisi ne de arkada bir silme butonu var; kısa/yarım bir dokunuş bile kart
+    // seçimine (sel()) dönüşecek şekilde net davranıyor.
+    const touchAttrs = r.isOwner
+      ? `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)"`
+      : '';
+    const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
       <div><div class="rn">${r.name}${r.is_public&&r.isOwner?' <span style="font-size:10px;color:#4ade80;font-weight:600;">🌐</span>':''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${r.date?'<span>'+r.date+'</span>':''}</div></div>
       <div class="rc">${(r.items||[]).length} eser</div>
     </div>`;
-    // Silme sadece kendi repertuvarların için — başkasının/genel repertuvarda kaydırma yok
     if (!r.isOwner) return `<div class="ri-wrap">${cardHtml}</div>`;
     return `<div class="ri-wrap">
       <div class="ri-delete-bg" onclick="delRep('${r.id}')"><i class="ti ti-trash"></i>Sil</div>
