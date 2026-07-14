@@ -488,6 +488,12 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
           style="width:100%;height:42px;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0 12px 0 36px;color:var(--text);font-size:14px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;outline:none;transition:border-color .2s;"
           oninput="applyFilters();">
       </div>
+      <div class="fav-toggle-wrap" style="display:flex;gap:6px;margin-top:8px;">
+        <button id="favToggleAll" class="fav-toggle-btn active" onclick="setFavOnly(false)"
+          style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Tümü</button>
+        <button id="favToggleFav" class="fav-toggle-btn" onclick="setFavOnly(true)"
+          style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;">★ Favoriler</button>
+      </div>
     </div>
     <div class="toolbar">
       <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;"><i class="ti ti-adjustments-horizontal"></i> Filtreler<span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
@@ -498,6 +504,13 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
       <button id="btnOnerilerim" onclick="window.location.href='onerilerim.html'" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">📋 Önerilerim</button>
     </div>
     <div class="list-panel" id="listPanel"></div>
+    <div id="bulkActionBar" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:600;background:var(--surface);border-top:1px solid var(--border);padding:10px 14px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(0,0,0,.28);align-items:center;gap:10px;">
+      <span id="bulkCountLabel" style="font-size:12px;color:var(--text2);font-weight:600;white-space:nowrap;">0 seçildi</span>
+      <div style="flex:1;"></div>
+      <button onclick="exitBulkMode()" style="padding:8px 12px;border-radius:8px;background:none;border:1px solid var(--border);color:var(--text2);font-size:12px;cursor:pointer;">İptal</button>
+      <button onclick="bulkAddToRepertoire()" style="padding:8px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;">Var Olana Ekle</button>
+      <button onclick="bulkCreateRepertoire()" style="padding:8px 14px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#1a1200;font-size:12px;font-weight:700;cursor:pointer;">Repertuvar Oluştur</button>
+    </div>
   </div>
 
   <aside class="detail" id="detailPanel">
@@ -590,6 +603,11 @@ let filteredData = [...DATA];
 let selectedId = null;
 let sortMode = 'name';
 let activeFilters = { form: null, tuning: null, region: null, makam: null };
+let favOnly = false;               // "Tümü / Favoriler" toggle durumu
+let bulkMode = false;               // Favoriler filtresinde uzun-basma ile toplu seçim modu
+let bulkSelectedIds = new Set();    // Toplu seçimde işaretli eser id'leri
+let longPressTimer = null;
+let longPressFiredId = null;        // Long-press tetiklendiyse ardından gelen click'i yut
 
 function getUnique(field) {
   const counts = {};
@@ -635,8 +653,10 @@ function clearFilters() {
 
 function applyFilters() {
   const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const favs = favOnly ? getFavs() : null;
   filteredData = DATA.filter(w => {
     if (w.status === 'pending' && w.submitted_by !== getUserId()) return false; // Sadece kendi pending eserlerini göster
+    if (favOnly && !favs.has(w.id)) return false;
     if (activeFilters.form && w.form !== activeFilters.form) return false;
     if (activeFilters.tuning && w.tuning !== activeFilters.tuning) return false;
     if (activeFilters.region && w.region !== activeFilters.region) return false;
@@ -651,6 +671,26 @@ function applyFilters() {
   renderList();
   const countBadgeEl = document.getElementById('countBadge');
   if (countBadgeEl) countBadgeEl.textContent = filteredData.length + ' eser';
+}
+
+// ── Tümü / Favoriler toggle ──
+function setFavOnly(on) {
+  favOnly = on;
+  if (!on) exitBulkMode(); // Favoriler filtresinden çıkınca toplu seçim modunu da kapat
+  const allBtn = document.getElementById('favToggleAll');
+  const favBtn = document.getElementById('favToggleFav');
+  if (allBtn) {
+    allBtn.classList.toggle('active', !on);
+    allBtn.style.background = !on ? 'var(--surface2)' : 'none';
+    allBtn.style.color = !on ? 'var(--text)' : 'var(--text2)';
+  }
+  if (favBtn) {
+    favBtn.classList.toggle('active', on);
+    favBtn.style.background = on ? 'rgba(255,200,61,.14)' : 'none';
+    favBtn.style.color = on ? 'var(--accent)' : 'var(--text2)';
+    favBtn.style.borderColor = on ? 'rgba(255,200,61,.4)' : 'var(--border)';
+  }
+  applyFilters();
 }
 
 // ── Favoriler (localStorage, kullanıcıya özel) ──
@@ -902,12 +942,16 @@ function renderList() {
     const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
     const countBadge = repCount > 0 ? `<span class="work-count-badge" title="${repCount} repertuvarda kullanılıyor">${repCount}</span>` : '';
     const isFav = favs.has(w.id);
+    const isChecked = bulkMode && bulkSelectedIds.has(w.id);
     // Sol renk şeridi — yeşil: bir repertuvarda kullanılıyor
     const stripeClass = repCount > 0 ? ' has-stripe stripe-green' : '';
+    const clickHandler = bulkMode ? `toggleBulkSelect(${w.id}, event)` : `selectWork(${w.id})`;
+    const checkbox = favOnly ? `<span class="work-bulk-check${isChecked?' checked':''}" style="display:${bulkMode?'flex':'none'};width:20px;height:20px;border-radius:6px;border:1.5px solid ${isChecked?'var(--accent)':'var(--border2)'};background:${isChecked?'var(--accent)':'none'};align-items:center;justify-content:center;flex-shrink:0;align-self:center;font-size:12px;color:#1a1200;font-weight:700;">${isChecked?'✓':''}</span>` : '';
     // Kompakt görünüm: sadece isim + besteci + tek durum satırı.
     // Makam/Form/Akort/Usul/Repertuvar/Grup detayları artık satıra basınca açılan
     // detay panelinde (mevcut chips sistemi) gösteriliyor — liste kalabalık olmasın diye.
-    return `<div class="work-item${stripeClass}${selectedId===w.id?' selected':_zi%2===1?' zebra':''}" onclick="selectWork(${w.id})" data-id="${w.id}">
+    return `<div class="work-item${stripeClass}${isChecked?' selected':(selectedId===w.id&&!bulkMode?' selected':_zi%2===1?' zebra':'')}" onclick="${clickHandler}" data-id="${w.id}">
+      ${checkbox}
       <div class="work-icon">🎵</div>
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
@@ -918,11 +962,174 @@ function renderList() {
       </div>
       <div class="work-actions">
         ${countBadge}
-        <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori">${isFav ? '★' : '☆'}</button>
-        <span class="work-chevron">›</span>
+        <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori" style="display:${bulkMode?'none':'flex'};">${isFav ? '★' : '☆'}</button>
+        <span class="work-chevron" style="display:${bulkMode?'none':'inline'};">›</span>
       </div>
     </div>`;
   }).join('');
+}
+
+// ── Favoriler filtresinde uzun-basma ile toplu seçim ──
+function initLongPressHandlers() {
+  const panel = document.getElementById('listPanel');
+  if (!panel || panel.dataset.longPressBound) return;
+  panel.dataset.longPressBound = '1';
+
+  function findItem(target) { return target.closest ? target.closest('.work-item') : null; }
+
+  panel.addEventListener('pointerdown', (e) => {
+    if (!favOnly) return; // Uzun-basma sadece Favoriler filtresi aktifken çalışır
+    const item = findItem(e.target);
+    if (!item) return;
+    const id = parseInt(item.dataset.id);
+    clearTimeout(longPressTimer);
+    longPressTimer = setTimeout(() => {
+      longPressFiredId = id;
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch(err) {}
+      if (!bulkMode) enterBulkMode(id);
+      else toggleBulkSelect(id, null);
+    }, 500);
+  });
+  ['pointerup', 'pointermove', 'pointercancel', 'pointerleave'].forEach(evt => {
+    panel.addEventListener(evt, () => clearTimeout(longPressTimer));
+  });
+}
+
+function enterBulkMode(firstId) {
+  bulkMode = true;
+  bulkSelectedIds = new Set(firstId != null ? [firstId] : []);
+  updateBulkBar();
+  renderList();
+}
+
+function exitBulkMode() {
+  bulkMode = false;
+  bulkSelectedIds = new Set();
+  updateBulkBar();
+  renderList();
+}
+
+function toggleBulkSelect(id, ev) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  // Long-press'in tetiklediği aynı id için gelen click'i yut (çift işlem olmasın)
+  if (longPressFiredId === id) { longPressFiredId = null; return; }
+  if (bulkSelectedIds.has(id)) bulkSelectedIds.delete(id);
+  else bulkSelectedIds.add(id);
+  if (bulkSelectedIds.size === 0) { exitBulkMode(); return; }
+  updateBulkBar();
+  renderList();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulkActionBar');
+  const label = document.getElementById('bulkCountLabel');
+  if (!bar || !label) return;
+  bar.style.display = bulkMode ? 'flex' : 'none';
+  label.textContent = bulkSelectedIds.size + ' seçildi';
+}
+
+async function bulkCreateRepertoire() {
+  if (!bulkSelectedIds.size) return;
+  const name = prompt('Yeni repertuvarın adı:');
+  if (!name || !name.trim()) return;
+  const token = localStorage.getItem('sb_token') || SUPA_KEY;
+  const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=representation' };
+  const gid = localStorage.getItem('user_group_id');
+  const savedUser = (() => { try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; } })();
+  const uid = savedUser?.id;
+  try {
+    const body = { name: name.trim() };
+    if (gid) body.group_id = gid;
+    if (uid) body.owner_id = uid;
+    const res = await fetch(SUPA_URL + '/rest/v1/repertoires', { method: 'POST', headers, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error('repertoire create failed');
+    const rows = await res.json();
+    const repId = rows?.[0]?.id;
+    if (!repId) throw new Error('no repertoire id returned');
+    const ids = [...bulkSelectedIds];
+    const items = ids.map((wid, i) => ({ repertoire_id: repId, work_id: wid, seq: i + 1 }));
+    const insRes = await fetch(SUPA_URL + '/rest/v1/repertoire_items', { method: 'POST', headers, body: JSON.stringify(items) });
+    if (!insRes.ok) throw new Error('items insert failed');
+    if (typeof loadRepertoireCounts === 'function') loadRepertoireCounts();
+    alert('✓ "' + name.trim() + '" repertuvarı ' + ids.length + ' eserle oluşturuldu.');
+    exitBulkMode();
+  } catch (e) {
+    alert('Repertuvar oluşturulurken bir hata oluştu.');
+  }
+}
+
+function bulkAddToRepertoire() {
+  if (!bulkSelectedIds.size) return;
+  const overlay = document.getElementById('repAddSheetOverlay');
+  const sheet = document.getElementById('repAddSheet');
+  if (!overlay || !sheet) return;
+  const count = bulkSelectedIds.size;
+  sheet.innerHTML = `
+    <div class="more-sheet-title">${count} Eseri Repertuvara Ekle</div>
+    <div id="repAddList" style="max-height:50vh;overflow-y:auto;">
+      <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Yükleniyor...</div>
+    </div>
+    <div id="repAddMsg" style="padding:10px 20px 4px;font-size:12px;color:var(--text3);display:none;"></div>
+  `;
+  const list = document.getElementById('repAddList');
+  const msg = document.getElementById('repAddMsg');
+  overlay.classList.add('open');
+  sheet.classList.add('open');
+
+  const token = localStorage.getItem('sb_token') || SUPA_KEY;
+  const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token };
+  const gid = localStorage.getItem('user_group_id');
+  const savedUser = (() => { try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; } })();
+  const uid = savedUser?.id;
+  const filter = gid
+    ? '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&group_id=eq.' + gid
+    : (uid ? '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&or=(owner_id.eq.' + uid + ',is_public.eq.true)'
+           : '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&is_public=eq.true');
+
+  fetch(SUPA_URL + filter, { headers })
+    .then(r => r.json())
+    .then(reps => {
+      if (!Array.isArray(reps) || !reps.length) {
+        list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Henüz bir repertuvarın yok.</div>';
+        return;
+      }
+      list.innerHTML = reps.map(r => `
+        <button class="more-sheet-item" onclick="pickRepertoireForBulkAdd('${r.id}', '${(r.name||'').replace(/'/g,"\\'")}')">
+          <i class="ti ti-playlist"></i> ${r.name || '(isimsiz)'}
+        </button>`).join('');
+    })
+    .catch(() => {
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:#e07060;font-size:13px;">Repertuvarlar yüklenemedi.</div>';
+    });
+}
+
+async function pickRepertoireForBulkAdd(repId, repName) {
+  const msg = document.getElementById('repAddMsg');
+  const token = localStorage.getItem('sb_token') || SUPA_KEY;
+  const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=representation' };
+  msg.style.display = 'block';
+  msg.style.color = 'var(--text3)';
+  msg.textContent = 'Ekleniyor...';
+  try {
+    const existingR = await fetch(SUPA_URL + '/rest/v1/repertoire_items?select=id,seq,work_id&repertoire_id=eq.' + repId, { headers });
+    const existing = await existingR.json();
+    const existingWorkIds = new Set(existing.map(it => Number(it.work_id)));
+    let nextSeq = existing.length ? Math.max(...existing.map(it => it.seq || 0)) + 1 : 1;
+    const toAdd = [...bulkSelectedIds].filter(id => !existingWorkIds.has(Number(id)));
+    const skipped = bulkSelectedIds.size - toAdd.length;
+    if (toAdd.length) {
+      const items = toAdd.map(wid => ({ repertoire_id: repId, work_id: wid, seq: nextSeq++ }));
+      const insRes = await fetch(SUPA_URL + '/rest/v1/repertoire_items', { method: 'POST', headers, body: JSON.stringify(items) });
+      if (!insRes.ok) throw new Error('insert failed');
+    }
+    msg.style.color = 'var(--ready-color,#34C759)';
+    msg.textContent = '✓ ' + toAdd.length + ' eser "' + repName + '" içine eklendi.' + (skipped ? ' (' + skipped + ' zaten vardı)' : '');
+    if (typeof loadRepertoireCounts === 'function') loadRepertoireCounts();
+    setTimeout(() => { closeRepAddSheet(); exitBulkMode(); }, 1100);
+  } catch (e) {
+    msg.style.color = '#e07060';
+    msg.textContent = 'Eklenirken bir hata oluştu.';
+  }
 }
 
 
@@ -1650,6 +1857,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (e.target === this) closeNewEserModal();
     });
   }
+  initLongPressHandlers();
 });
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeNewEserModal();
