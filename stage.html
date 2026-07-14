@@ -404,29 +404,61 @@ async function loadWL() {
   } catch(e) { console.error('WL yüklenemedi:', e); }
 }let reps=[], selId=null, curRep=null, curIdx=0;
 
+// repertoires.html'deki "Gizle" (hiddenRepIds, sadece client-side) ile tutarlı olsun diye —
+// bir repertuvarı orada gizlersen burada da (sahne modunda) görünmemeli.
+function getHiddenRepIds() {
+  try { return JSON.parse(localStorage.getItem('hiddenRepIds') || '[]'); }
+  catch(e) { return []; }
+}
+
+function buildRepsFromRaw(r, items) {
+  const uid = getUserId();
+  const hiddenIds = getHiddenRepIds();
+  return (r||[])
+    .filter(x => {
+      const isOwner = x.owner_id === uid || x.user_id === uid;
+      return isOwner || !hiddenIds.includes(x.id); // sadece başkasına ait ve gizlenmiş olanları çıkar
+    })
+    .map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
+}
+
 async function loadReps(){
-  try{
-    let r, items;
+  // ── 1) ÖNCELİKLE LOCAL'DEN ANINDA DÖN (sinyal zayıf/yokken bile beklemeden) ──
+  let localR = [], localItems = [];
+  if (window.db) {
     try {
-      [r, items] = await Promise.all([
-        fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at&or=(owner_id.eq.'+getUserId()+',is_public.eq.true)',{headers:H, signal:AbortSignal.timeout(4000)}).then(r=>r.json()),
-        fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H, signal:AbortSignal.timeout(4000)}).then(r=>r.json())
-      ]);
-      if (window.db) {
-        await db.repertoires.saveAll(r||[]);
-        await db.repertoire_items.saveAll(items||[]);
-      }
-    } catch(fetchErr) {
-      console.warn('[stage] loadReps offline, IndexedDB kullanılıyor');
-      if (window.db) {
-        const uid = getUserId();
-        const allReps = await db.repertoires.getAll();
-        r = allReps.filter(x => x.owner_id === uid || x.user_id === uid || x.is_public === true);
-        items = await db.repertoire_items.getAll();
-      } else { r=[]; items=[]; }
+      const uid = getUserId();
+      const allReps = await db.repertoires.getAll();
+      localR = allReps.filter(x => x.owner_id === uid || x.user_id === uid || x.is_public === true);
+      localItems = await db.repertoire_items.getAll();
+    } catch(e) { console.warn('[stage] local repertuvar okuma hatası:', e); }
+  }
+
+  // ── 2) ARKA PLANDA SUNUCUYLA SENKRONİZE ET, sonucu güncelle ──
+  refreshRepsInBackground();
+
+  return buildRepsFromRaw(localR, localItems);
+}
+
+async function refreshRepsInBackground(){
+  try {
+    const [r, items] = await Promise.all([
+      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at&or=(owner_id.eq.'+getUserId()+',is_public.eq.true)',{headers:H, signal:AbortSignal.timeout(6000)}).then(r=>r.json()),
+      fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H, signal:AbortSignal.timeout(6000)}).then(r=>r.json())
+    ]);
+    if (window.db) {
+      await db.repertoires.saveAll(r||[]);
+      await db.repertoire_items.saveAll(items||[]);
     }
-    return (r||[]).map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
-  }catch(e){console.error(e);return [];}
+    reps = buildRepsFromRaw(r, items);
+    // Kullanıcı hâlâ seçim ekranındaysa listeyi tazele — sahnedeyken (performans sırasında) ekranı bozma
+    const picker = document.getElementById('pickerScreen');
+    if (picker && !picker.classList.contains('hidden')) {
+      renderPicker();
+    }
+  } catch(e) {
+    console.warn('[stage] arka plan senkronizasyonu başarısız (offline/zayıf sinyal):', e);
+  }
 }
 
 let stageSearchQuery = '';

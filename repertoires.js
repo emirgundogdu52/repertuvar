@@ -5,8 +5,8 @@ const H = {
   'Content-Type': 'application/json',
   'Prefer': 'return=representation'
 };
-async function dbGet(table, qs='') {
-  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?'+qs, {headers:H});
+async function dbGet(table, qs='', signal) {
+  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?'+qs, {headers:H, signal});
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
@@ -185,48 +185,78 @@ function toast(m,t='ok'){const e=document.createElement('div');e.className='toas
 
 let SOLISTLER = []; // sanatçı listesi
 
+function applyRepsData(r, i, s) {
+  SOLISTLER = (s||[]).map(x=>x.name).filter(Boolean);
+  const uid = getUserId() || '';
+  reps = (r||[]).map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||''}))}));
+}
+
+function selectUrlRepIfPresent() {
+  const urlRep=new URLSearchParams(window.location.search).get('rep');
+  if(urlRep&&reps.find(x=>x.id===urlRep)){selId=urlRep;}
+}
+
 async function load(){
-  sync('spin','Yükleniyor...');
   dbg('load() başladı');
-  try{
-    let r, i, s;
+  let localHadData = false;
+
+  // ── 1) ÖNCELİKLE LOCAL'DEN ANINDA GÖSTER (sinyal zayıf/yokken bile beklemeden) ──
+  if (window.db) {
     try {
-      const uid2 = getUserId();
-      const gid = getGroupId();
-      const repQuery = gid
-        ? 'order=created_at&limit=100&group_id=eq.'+gid
-        : (uid2
-          ? 'order=created_at&limit=100&or=(owner_id.eq.'+uid2+',is_public.eq.true)'
-          : 'order=created_at&limit=100&is_public=eq.true');
-      const solQuery = gid ? 'order=name&group_id=eq.'+gid : 'order=name';
-      [r,i,s] = await Promise.all([
-        dbGet('repertoires', repQuery),
-        dbGet('repertoire_items','order=seq'),
-        dbGet('solistler', solQuery)
+      const [rLocal, iLocal, sLocal] = await Promise.all([
+        db.repertoires.getAll(),
+        db.repertoire_items.getAll(),
+        db.solistler.getAll()
       ]);
-      dbg('rep sayısı: '+(r||[]).length+' | items: '+(i||[]).length);
-      if (window.db) {
-        await db.repertoires.saveAll(r||[]);
-        await db.solistler.saveAll(s||[]);
+      if ((rLocal||[]).length) {
+        applyRepsData(rLocal, iLocal, sLocal);
+        localHadData = true;
+        sync('ok','Yerel veri');
+        selectUrlRepIfPresent();
+        renderList(); renderDetail();
+        setTimeout(fixMobileHeight, 100);
+        dbg('local\'den anında gösterildi: '+rLocal.length+' repertuvar');
       }
-    } catch(fetchErr) {
-      if (window.db) {
-        r = await db.repertoires.getAll();
-        i = await db.repertoire_items.getAll();
-        s = await db.solistler.getAll();
-      } else { r=[]; i=[]; s=[]; dbg('db yok, boş liste'); }
-      toast('📵 Çevrimdışı mod', 'ok');
+    } catch(e) { dbg('local okuma hatası: '+e.message); }
+  }
+  if (!localHadData) sync('spin','Yükleniyor...');
+
+  // ── 2) ARKA PLANDA SUNUCUYLA SENKRONİZE ET (timeout'lu — asılı kalmasın) ──
+  try{
+    const uid2 = getUserId();
+    const gid = getGroupId();
+    const repQuery = gid
+      ? 'order=created_at&limit=100&group_id=eq.'+gid
+      : (uid2
+        ? 'order=created_at&limit=100&or=(owner_id.eq.'+uid2+',is_public.eq.true)'
+        : 'order=created_at&limit=100&is_public=eq.true');
+    const solQuery = gid ? 'order=name&group_id=eq.'+gid : 'order=name';
+    const timeoutMs = localHadData ? 6000 : 5000; // local veri zaten ekrandaysa biraz daha sabırlı olabiliriz
+    const [r,i,s] = await Promise.all([
+      dbGet('repertoires', repQuery, AbortSignal.timeout(timeoutMs)),
+      dbGet('repertoire_items','order=seq', AbortSignal.timeout(timeoutMs)),
+      dbGet('solistler', solQuery, AbortSignal.timeout(timeoutMs))
+    ]);
+    dbg('sunucudan geldi — rep sayısı: '+(r||[]).length+' | items: '+(i||[]).length);
+    if (window.db) {
+      await db.repertoires.saveAll(r||[]);
+      await db.solistler.saveAll(s||[]);
+      await db.repertoire_items.saveAll(i||[]);
     }
-    SOLISTLER = (s||[]).map(x=>x.name).filter(Boolean);
-    const uid = getUserId() || '';
-    reps = r.map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||''}))}));
+    applyRepsData(r, i, s);
     sync('ok','Senkronize');
-    renderList();
-    const urlRep=new URLSearchParams(window.location.search).get('rep');
-    if(urlRep&&reps.find(x=>x.id===urlRep)){selId=urlRep;}
-    renderList();renderDetail();
+    selectUrlRepIfPresent();
+    renderList(); renderDetail();
     setTimeout(fixMobileHeight, 100);
-  }catch(e){sync('err','Bağlantı hatası');toast(e.message,'er');}
+  }catch(fetchErr){
+    dbg('sunucu senkronizasyonu başarısız (offline/zayıf sinyal): '+fetchErr.message);
+    if (!localHadData) {
+      // Local'de de veri yoktu, ağ da başarısız oldu — boş liste göster
+      renderList(); renderDetail();
+    }
+    sync(localHadData ? 'ok' : 'err', localHadData ? 'Yerel veri (senkronize edilemedi)' : 'Bağlantı hatası');
+    toast('📵 Çevrimdışı mod — yerel veriler gösteriliyor', 'ok');
+  }
 }
 
 function fixMobileHeight() {
