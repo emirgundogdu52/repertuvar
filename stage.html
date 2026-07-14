@@ -417,7 +417,10 @@ function buildRepsFromRaw(r, items) {
   return (r||[])
     .filter(x => {
       const isOwner = x.owner_id === uid || x.user_id === uid;
-      return isOwner || !hiddenIds.includes(x.id); // sadece başkasına ait ve gizlenmiş olanları çıkar
+      // repertoires.js'deki renderList ile BİREBİR aynı görünürlük: ya kendi repertuvarın,
+      // ya da başkasına ait AMA açıkça "public" işaretli VE gizlenmemiş olmalı.
+      // Grup içindeki private (is_public=false) repertuvarlar, sahibi olmayanlara hiç gösterilmez.
+      return isOwner || (x.is_public === true && !hiddenIds.includes(x.id));
     })
     .map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
 }
