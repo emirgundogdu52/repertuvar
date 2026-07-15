@@ -1,20 +1,17 @@
-hh<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
-<script>window.onerror = function(msg, src, line, col, err) { document.title = '❌ ' + msg + ' L' + line; document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:12px;font-size:14px;position:fixed;top:0;left:0;right:0;z-index:99999;">HATA: ' + msg + ' (satır ' + line + ')</div>'); };</script>
-<script>window.addEventListener('unhandledrejection', function(e) { document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:12px;font-size:14px;position:fixed;top:0;left:0;right:0;z-index:99999;">PROMISE HATASI: ' + (e.reason && e.reason.message ? e.reason.message : e.reason) + '</div>'); });</script>
-  
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Repertuvar — İstatistikler</title>
-<!-- <script src="topnav.js" defer></script> -->
+<script src="auth.js" onerror="var el=document.getElementById('sttLoading'); if(el) el.innerHTML = 'Bağlantı zayıf, sayfa yüklenemedi. <button onclick=\'location.reload()\'>Tekrar Dene</button>';"></script>
 <script src="topnav.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js" defer crossorigin="anonymous"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js" defer crossorigin="anonymous"></script>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif; }
   .page { padding: 24px 20px 40px; max-width: 1080px; margin: 0 auto; }
@@ -186,21 +183,18 @@ function renderStats(days) {
   document.getElementById('sttMobileRatio').textContent = rows.length ? Math.round(mobileCount/rows.length*100) + '%' : '—';
   document.getElementById('sttLoggedInRatio').textContent = rows.length ? Math.round(loggedInCount/rows.length*100) + '%' : '—';
 
-  // En çok ziyaret edilen sayfalar
   const pages = topN(rows, 'path', 8);
   const pagesMax = pages.length ? pages[0][1] : 0;
   document.getElementById('sttTopPages').innerHTML = pages.length
     ? pages.map(([p,c]) => bar(p, c, pagesMax)).join('')
     : '<div class="stt-empty">Henüz veri yok</div>';
 
-  // Bölge (timezone)
   const regions = topN(rows, 'timezone', 8);
   const regionsMax = regions.length ? regions[0][1] : 0;
   document.getElementById('sttRegions').innerHTML = regions.length
     ? regions.map(([tz,c]) => bar(tz === '—' ? 'Bilinmiyor' : tz.replace('_',' '), c, regionsMax)).join('')
     : '<div class="stt-empty">Henüz veri yok</div>';
 
-  // Cihaz
   const devices = topN(rows, 'device_type', 4);
   const devicesMax = devices.length ? devices[0][1] : 0;
   const deviceLabels = { mobile: '📱 Mobil', desktop: '🖥️ Masaüstü' };
@@ -208,7 +202,6 @@ function renderStats(days) {
     ? devices.map(([d,c]) => bar(deviceLabels[d] || d, c, devicesMax)).join('')
     : '<div class="stt-empty">Henüz veri yok</div>';
 
-  // Platform
   const platforms = topN(rows, 'platform', 4);
   const platformsMax = platforms.length ? platforms[0][1] : 0;
   const platformLabels = { web: '🌐 Web', ios: '🍎 iOS', android: '🤖 Android' };
@@ -269,6 +262,10 @@ document.getElementById('sttRange').addEventListener('click', (e) => {
 });
 
 (async function init() {
+  if (typeof requireAuth !== 'function') {
+    document.getElementById('sttLoading').innerHTML = 'Sayfa tam yüklenemedi (zayıf bağlantı olabilir). <button onclick="location.reload()">Tekrar Dene</button>';
+    return;
+  }
   const ok = await requireAuth(); if (!ok) return;
   if (!isAdmin()) {
     document.querySelector('.page').innerHTML = '<div class="stt-empty" style="padding:80px 20px;">Bu sayfayı görüntüleme yetkin yok.</div>';
