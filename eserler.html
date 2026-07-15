@@ -558,7 +558,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 let DATA = []; // Supabase'den yüklenecek
 
 
-function parseWorksRows(rows) {
+function parseWorksRows(rows, skipRender) {
   DATA = rows.map(w => ({
     id: w.id, name: w.name || '', composer: w.composer || '',
     lyricWriter: w.lyric_writer || '', makam: w.makam || '',
@@ -573,6 +573,7 @@ function parseWorksRows(rows) {
   }));
   filteredData = [...DATA];
   buildFilters();
+  if (skipRender) return; // veri güncellendi ama görünüm bir sonraki fırsatta tazelenecek (aktif swipe'ı bozmamak için)
   applyFilters();
 }
 async function loadWorksFromSupabase() {
@@ -612,7 +613,10 @@ async function syncWorksFromServer(hadLocalData) {
     const rows = await r.json();
     if (!Array.isArray(rows)) throw new Error('Unexpected response');
     if (typeof db !== 'undefined') db.works.replaceAll(rows).catch(()=>{});
-    parseWorksRows(rows);
+    // Tam o an bir eseri kaydırıyorsa (parmak hâlâ ekranda) ya da bir panel açıksa, DOM'u
+    // altından çekip garip bir ara-duruma sokmamak için görünümü yeniden çizmeyi erteliyoruz —
+    // veri (DATA) yine de güncellenir, sadece ekran tazelemesi bir sonraki fırsata kalır.
+    parseWorksRows(rows, !!(_weSwipe || _weOpenCard));
     // Solistler sayfası için önbelleği de tazele (DATA artık güncel)
     try {
       const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
@@ -989,7 +993,7 @@ function renderList() {
     // Admin/editör her eseri düzenleyebilir; üye sadece kendi eklediği eseri (submitted_by) düzenleyebilir.
     const canEdit = swipeAllowedContext && (isAdmin() || isEditor() || w.submitted_by === uidNow);
     const cardOnclick = canEdit ? `weCardClick(event, ${w.id})` : clickHandler;
-    const touchAttrs = canEdit ? `ontouchstart="weTouchStart(event)" ontouchmove="weTouchMove(event)" ontouchend="weTouchEnd(event)"` : '';
+    const touchAttrs = canEdit ? `ontouchstart="weTouchStart(event)" ontouchmove="weTouchMove(event)" ontouchend="weTouchEnd(event)" ontouchcancel="weTouchEnd(event)"` : '';
     const cardHtml = `<div class="work-item${stripeClass}${isChecked?' selected':(selectedId===w.id&&!bulkMode?' selected':_zi%2===1?' zebra':'')}" onclick="${cardOnclick}" data-id="${w.id}" ${touchAttrs}>
       ${checkbox}
       <div class="work-icon">🎵</div>

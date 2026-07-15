@@ -487,9 +487,12 @@ async function refreshRepsInBackground(){
       await db.repertoire_items.replaceAll(items||[]);
     }
     reps = buildRepsFromRaw(r, items);
-    // Kullanıcı hâlâ seçim ekranındaysa listeyi tazele — sahnedeyken (performans sırasında) ekranı bozma
+    // Kullanıcı hâlâ seçim ekranındaysa listeyi tazele — sahnedeyken (performans sırasında) ekranı bozma.
+    // Ayrıca tam o an bir kartı kaydırıyorsa (parmak hâlâ ekranda) veya bir panel açıksa,
+    // DOM'u altından çekip garip bir ara-duruma sokmamak için yeniden çizimi erteliyoruz —
+    // bir sonraki etkileşimde (dokunuş bitince) zaten güncel veriyle çizilecek.
     const picker = document.getElementById('pickerScreen');
-    if (picker && !picker.classList.contains('hidden')) {
+    if (picker && !picker.classList.contains('hidden') && !_rsSwipe && !_rsOpenCard) {
       renderPicker();
     }
   } catch(e) {
@@ -524,7 +527,7 @@ function renderPicker(){
   const uid = getUserId();
   el.innerHTML=filtered.map(r=>{
     const isOwner = r.owner_id === uid || r.user_id === uid;
-    const cardHtml = `<div class="rsi${selId===r.id?' sel':''}" onclick="rsCardClick(event,'${r.id}')" ontouchstart="rsTouchStart(event)" ontouchmove="rsTouchMove(event)" ontouchend="rsTouchEnd(event)">
+    const cardHtml = `<div class="rsi${selId===r.id?' sel':''}" onclick="rsCardClick(event,'${r.id}')" ontouchstart="rsTouchStart(event)" ontouchmove="rsTouchMove(event)" ontouchend="rsTouchEnd(event)" ontouchcancel="rsTouchEnd(event)">
       <div><div class="rsn">${r.name}</div><div class="rsm">${[r.date,r.venue,sl[r.status]].filter(Boolean).join(' · ')}</div></div>
       <div class="rsc">${(r.items||[]).length} eser</div>
     </div>`;

@@ -262,7 +262,7 @@ async function load(){
     applyRepsData(r, i, s);
     sync('ok','Senkronize');
     selectUrlRepIfPresent();
-    renderList(); renderDetail();
+    if (!_riSwipe && !_riOpenCard) { renderList(); renderDetail(); }
     setTimeout(fixMobileHeight, 100);
   }catch(fetchErr){
     dbg('sunucu senkronizasyonu başarısız (offline/zayıf sinyal): '+fetchErr.message);
@@ -316,7 +316,7 @@ function renderList(){
   const mine = filtered.filter(r=>r.isOwner);
   const pub  = filtered.filter(r=>!r.isOwner && r.is_public && !hiddenIds.includes(r.id));
   function repCard(r, _zi){
-    const touchAttrs = `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)"`;
+    const touchAttrs = `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)" ontouchcancel="riTouchEnd(event)"`;
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
       <div><div class="rn">${r.name}${r.is_public&&r.isOwner?' <span style="font-size:10px;color:#4ade80;font-weight:600;">🌐</span>':''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${r.date?'<span>'+r.date+'</span>':''}</div></div>
