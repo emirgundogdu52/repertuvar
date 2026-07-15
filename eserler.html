@@ -414,6 +414,15 @@
   .pm-reject { padding:6px 16px; border-radius:7px; background:rgba(192,84,68,.12); border:1px solid rgba(192,84,68,.4); color:#e07060; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
   .pm-reject:hover { background:rgba(192,84,68,.25); }
   .pm-empty { text-align:center; color:var(--text3); padding:32px; font-size:14px; }
+
+  /* ── YAZI BOYUTU SLIDER (Söz kutusu üstü) ── */
+  .font-slider-wrap { display:flex; align-items:center; gap:8px; }
+  .font-slider-wrap .fs-a-sm { font-size:11px; font-weight:800; color:var(--text3); line-height:1; }
+  .font-slider-wrap .fs-a-lg { font-size:16px; font-weight:800; color:var(--text3); line-height:1; }
+  .font-slider { -webkit-appearance:none; appearance:none; width:84px; height:4px; border-radius:2px; background:var(--border); outline:none; cursor:pointer; }
+  .font-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,.35); cursor:pointer; border:none; }
+  .font-slider::-moz-range-thumb { width:18px; height:18px; border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,.35); cursor:pointer; border:none; }
+  .font-slider::-moz-range-track { height:4px; border-radius:2px; background:transparent; }
 </style>
 <script src="auth.js"></script>
 <script src="topnav.js" defer></script>
@@ -873,13 +882,21 @@ async function loadRepertoireCounts() {
   } catch(e) { console.warn('[eserler] Repertuvar/grup sayımı alınamadı:', e.message); }
 }
 
-// ── Şarkı sözü yazı boyutu (Aa+ / Aa-) ──
-let lyricsFontStep = 0; // -2..+4 arası, adım başına 1px
-function adjustLyricsFontSize(delta) {
+// ── Şarkı sözü yazı boyutu (slider ile) ──
+const LYRICS_STEP_MIN = -2, LYRICS_STEP_MAX = 6; // 13px (-2) .. 19px (+6) arası
+let lyricsFontStep = 0;
+function setLyricsFontStep(step) {
   const box = document.getElementById('lyricsBoxDisplay');
-  if (!box) return;
-  lyricsFontStep = Math.max(-2, Math.min(6, lyricsFontStep + delta));
-  box.style.fontSize = (13 + lyricsFontStep) + 'px';
+  lyricsFontStep = Math.max(LYRICS_STEP_MIN, Math.min(LYRICS_STEP_MAX, Math.round(Number(step))));
+  if (box) box.style.fontSize = (13 + lyricsFontStep) + 'px';
+  updateLyricsFontSliderUI();
+}
+function updateLyricsFontSliderUI() {
+  const slider = document.getElementById('lyricsFontSlider');
+  if (!slider) return;
+  slider.value = lyricsFontStep;
+  const pct = ((lyricsFontStep - LYRICS_STEP_MIN) / (LYRICS_STEP_MAX - LYRICS_STEP_MIN)) * 100;
+  slider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--border) ${pct}%, var(--border) 100%)`;
 }
 
 function toggleFilterSheet(show) {
@@ -1211,9 +1228,11 @@ function selectWork(id) {
       ${w.lyrics ? `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <span style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.06em;">SÖZLER</span>
-        <div style="display:flex;gap:4px;">
-          <button onclick="adjustLyricsFontSize(-1)" title="Küçült" style="width:26px;height:26px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:12px;cursor:pointer;">A−</button>
-          <button onclick="adjustLyricsFontSize(1)" title="Büyüt" style="width:26px;height:26px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:14px;cursor:pointer;">A+</button>
+        <div class="font-slider-wrap" title="Yazı Boyutu">
+          <span class="fs-a-sm">A</span>
+          <input type="range" id="lyricsFontSlider" class="font-slider" min="${LYRICS_STEP_MIN}" max="${LYRICS_STEP_MAX}" step="1" value="0"
+            oninput="setLyricsFontStep(this.value)">
+          <span class="fs-a-lg">A</span>
         </div>
       </div>` : ''}
       ${w.lyrics
@@ -1309,6 +1328,10 @@ function selectWork(id) {
   // Not: Düzenle/Sil butonları artık yukarıda template içinde doğrudan
   // isAdmin()/isEditor() ile senkron olarak doğru görünürlükte render ediliyor —
   // ayrı bir "authReady bekle" adımına gerek yok (o gecikme hissi buradan geliyordu).
+
+  // Yazı boyutu slider'ını her eser açılışında sıfırdan başlat ve UI'ı senkronla
+  lyricsFontStep = 0;
+  updateLyricsFontSliderUI();
 
   // Mobile: detail panel top offset
   function setDetailTop() {
