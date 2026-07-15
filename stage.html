@@ -25,7 +25,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 #pickerScreen{background:var(--bg);overflow:hidden;}
 .pi{width:100%;max-width:520px;height:100%;margin:0 auto;display:flex;flex-direction:column;}
 .pi-fixed-top{flex-shrink:0;padding:4px 24px 0;}
-.pi-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px;}
+.pi-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 24px;}
 .pi-fixed-bottom{flex-shrink:0;padding:16px 24px calc(32px + env(safe-area-inset-bottom));}
 .plogo{display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center;}
 .plogo small{color:var(--text2);font-size:12px;letter-spacing:.1em;text-transform:uppercase;}
@@ -39,6 +39,14 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .rsn{font-size:15px;font-weight:500;color:var(--text);margin-bottom:3px;}
 .rsm{font-size:12px;color:var(--text2);}
 .rsc{font-size:12px;color:var(--text3);}
+/* ── İKİ YÖNLÜ KAYDIRMA (repertuvarlardaki desenin aynısı): sağa → Değiştir, sola → Sil/Gizle ── */
+.rs-wrap{position:relative;overflow:hidden;border-radius:10px;}
+.rs-wrap .rsi{position:relative;z-index:2;touch-action:pan-y;}
+.rs-edit-bg,.rs-delete-bg{position:absolute;top:0;bottom:0;width:84px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:600;z-index:1;cursor:pointer;}
+.rs-edit-bg{left:0;background:#4DA3FF;}
+.rs-delete-bg{right:0;background:#e5484d;}
+.rs-delete-bg.rs-hide-bg{background:#4A90D9;}
+.rs-edit-bg i,.rs-delete-bg i{font-size:18px;}
 /* Picker ekranı: marka paleti (altın/mavi) — sahne performans ekranı kendi mor gece paletinde kalıyor */
 #pickerScreen{--accent:#FFC83D;--accent2:#4DA3FF;}
 .bstart{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;padding:9px;color:#0a0818;font-size:16px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;box-shadow:0 4px 14px rgba(255,200,61,.22);}
@@ -256,15 +264,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .sip-row{display:flex;align-items:center;gap:8px;font-size:13px;}
 .sip-label{color:rgba(255,255,255,0.5);font-size:11px;min-width:80px;}
 .sip-val{color:#fff;font-weight:600;}
-
-.font-slider-wrap{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:30px;padding:7px 14px;flex-shrink:0;}
-.font-slider-wrap .fs-a-sm{font-size:12px;font-weight:800;color:var(--text3);line-height:1;}
-.font-slider-wrap .fs-a-lg{font-size:19px;font-weight:800;color:var(--text3);line-height:1;}
-.font-slider{-webkit-appearance:none;appearance:none;width:110px;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;}
-.font-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
-.font-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
-.font-slider::-moz-range-track{height:4px;border-radius:2px;background:transparent;}
-@media (max-width:768px){ .font-slider{width:70px;} .font-slider-wrap{padding:6px 10px;gap:6px;} }
 </style>
 <script src="auth.js"></script>
 <style id="v2-stage-nav">
@@ -337,22 +336,16 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   <div class="sm" id="sm" onclick="nextWork()"></div>
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
-    <div style="position:relative;flex-shrink:0;">
-      <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" style="background:none;border:none;width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s;flex-shrink:0;padding:0;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'"><i class="ti ti-adjustments-horizontal" style="font-size:22px;"></i></button>
-      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;left:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;gap:8px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;" id="stageToolsRow"></div>
-      </div>
-    </div>
     <div class="np" id="np" style="display:none;">
       <div class="nl">Sıradaki</div>
       <div class="nn" id="nn">—</div>
       <div class="nm" id="nm">—</div>
     </div>
-    <div class="font-slider-wrap" style="margin-left:auto;" title="Yazı Boyutu">
-      <span class="fs-a-sm">A</span>
-      <input type="range" id="lyricsFontSlider" class="font-slider" min="0.75" max="1.6" step="0.1" value="1"
-        oninput="setLyricsFontScale(this.value)">
-      <span class="fs-a-lg">A</span>
+    <div style="position:relative;margin-left:auto;">
+      <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" style="background:none;border:none;width:56px;height:56px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s;flex-shrink:0;padding:0;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'"><i class="ti ti-adjustments-horizontal" style="font-size:24px;"></i></button>
+      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;left:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;gap:8px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;" id="stageToolsRow"></div>
+      </div>
     </div>
     <div class="th" style="display:none;">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
@@ -520,10 +513,141 @@ function renderPicker(){
   const filtered = reps.filter(r=>stageRepMatchesSearch(r, stageSearchQuery));
   if(stageSearchQuery && !filtered.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);">"'+stageSearchQuery+'" için sonuç bulunamadı</div>';return;}
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
-  el.innerHTML=filtered.map(r=>`<div class="rsi${selId===r.id?' sel':''}" onclick="pickRep('${r.id}')">
-    <div><div class="rsn">${r.name}</div><div class="rsm">${[r.date,r.venue,sl[r.status]].filter(Boolean).join(' · ')}</div></div>
-    <div class="rsc">${(r.items||[]).length} eser</div>
-  </div>`).join('');
+  const uid = getUserId();
+  el.innerHTML=filtered.map(r=>{
+    const isOwner = r.owner_id === uid || r.user_id === uid;
+    const cardHtml = `<div class="rsi${selId===r.id?' sel':''}" onclick="rsCardClick(event,'${r.id}')" ontouchstart="rsTouchStart(event)" ontouchmove="rsTouchMove(event)" ontouchend="rsTouchEnd(event)">
+      <div><div class="rsn">${r.name}</div><div class="rsm">${[r.date,r.venue,sl[r.status]].filter(Boolean).join(' · ')}</div></div>
+      <div class="rsc">${(r.items||[]).length} eser</div>
+    </div>`;
+    const editBg = `<div class="rs-edit-bg" onclick="event.stopPropagation();rsCloseOpenCard();window.location.href='repertoires.html?rep=${r.id}'"><i class="ti ti-edit"></i>Değiştir</div>`;
+    const rightBg = isOwner
+      ? `<div class="rs-delete-bg" onclick="event.stopPropagation();rsCloseOpenCard();rsDeleteRep('${r.id}')"><i class="ti ti-trash"></i>Sil</div>`
+      : `<div class="rs-delete-bg rs-hide-bg" onclick="event.stopPropagation();rsCloseOpenCard();rsHideRep('${r.id}')"><i class="ti ti-eye-off"></i>Gizle</div>`;
+    return `<div class="rs-wrap">${editBg}${rightBg}${cardHtml}</div>`;
+  }).join('');
+}
+
+// ── İki yönlü kaydırma (repertuvarlardaki riTouchStart/Move/End deseninin aynısı) ──
+const RS_SWIPE_THRESHOLD = 44;
+const RS_SWIPE_MAX = 84;
+let _rsSwipe = null;
+let _rsOpenCard = null;
+
+function rsCloseOpenCard() {
+  if (_rsOpenCard) {
+    _rsOpenCard.style.transition = 'transform .2s ease';
+    _rsOpenCard.style.transform = 'translateX(0)';
+    _rsOpenCard.classList.remove('swiped-open-left', 'swiped-open-right');
+    _rsOpenCard = null;
+  }
+}
+
+function rsTouchStart(e) {
+  if (_rsOpenCard && _rsOpenCard !== e.currentTarget) rsCloseOpenCard();
+  const t = e.touches[0];
+  _rsSwipe = { card: e.currentTarget, startX: t.clientX, startY: t.clientY, dx: 0, dir: null };
+}
+
+function rsTouchMove(e) {
+  if (!_rsSwipe || _rsSwipe.card !== e.currentTarget) return;
+  const t = e.touches[0];
+  const dx = t.clientX - _rsSwipe.startX;
+  const dy = t.clientY - _rsSwipe.startY;
+  if (_rsSwipe.dir === null) {
+    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+      _rsSwipe.dir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    }
+  }
+  if (_rsSwipe.dir === 'v') { _rsSwipe = null; return; }
+  if (_rsSwipe.dir === 'h') {
+    e.preventDefault();
+    let base = 0;
+    if (_rsSwipe.card.classList.contains('swiped-open-right')) base = -RS_SWIPE_MAX;
+    else if (_rsSwipe.card.classList.contains('swiped-open-left')) base = RS_SWIPE_MAX;
+    const clamped = Math.min(RS_SWIPE_MAX, Math.max(base + dx, -RS_SWIPE_MAX));
+    _rsSwipe.dx = clamped;
+    _rsSwipe.card.style.transition = 'none';
+    _rsSwipe.card.style.transform = `translateX(${clamped}px)`;
+  }
+}
+
+function rsTouchEnd(e) {
+  if (!_rsSwipe || _rsSwipe.dir !== 'h') { _rsSwipe = null; return; }
+  const card = _rsSwipe.card;
+  card.style.transition = 'transform .2s ease';
+  if (Math.abs(_rsSwipe.dx) > 5) card.dataset.justSwiped = '1';
+  card.classList.remove('swiped-open-left', 'swiped-open-right');
+  if (_rsSwipe.dx <= -RS_SWIPE_THRESHOLD) {
+    card.style.transform = `translateX(${-RS_SWIPE_MAX}px)`;
+    card.classList.add('swiped-open-right');
+    _rsOpenCard = card;
+  } else if (_rsSwipe.dx >= RS_SWIPE_THRESHOLD) {
+    card.style.transform = `translateX(${RS_SWIPE_MAX}px)`;
+    card.classList.add('swiped-open-left');
+    _rsOpenCard = card;
+  } else {
+    card.style.transform = 'translateX(0)';
+    if (_rsOpenCard === card) _rsOpenCard = null;
+  }
+  _rsSwipe = null;
+}
+
+function rsCardClick(e, id) {
+  const card = e.currentTarget;
+  if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) {
+    rsCloseOpenCard();
+    return;
+  }
+  if (card.dataset.justSwiped === '1') {
+    delete card.dataset.justSwiped;
+    return;
+  }
+  pickRep(id);
+}
+
+window.addEventListener('pageshow', () => {
+  document.querySelectorAll('.rsi.swiped-open-left, .rsi.swiped-open-right').forEach(card => {
+    card.classList.remove('swiped-open-left', 'swiped-open-right');
+    card.style.transition = 'none';
+    card.style.transform = 'translateX(0)';
+    delete card.dataset.justSwiped;
+  });
+  _rsOpenCard = null;
+  _rsSwipe = null;
+});
+
+// Silme/gizleme, repertoires.js'deki delRep/hideRepFromView ile aynı davranışta —
+// ama gerçek kullanıcı token'ı gerektiriyor (stage.html'in salt-okunur H'si SUPA_KEY
+// kullanıyor, RLS altında silme için yetmez), o yüzden ayrı bir authenticated header.
+const RS_AUTH_H = {
+  get apikey() { return SUPA_KEY; },
+  get Authorization() { return 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY); },
+  'Content-Type': 'application/json'
+};
+
+async function rsDeleteRep(id) {
+  if (!confirm('Bu repertuvarı silmek istiyor musunuz?')) return;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/repertoires?id=eq.' + id, { method: 'DELETE', headers: RS_AUTH_H });
+    if (!r.ok) throw new Error(await r.text());
+    if (selId === id) { selId = null; const b = document.getElementById('bstart'); if (b) b.disabled = true; }
+    reps = reps.filter(x => x.id !== id);
+    if (window.db) db.repertoires.delete(id).catch(()=>{});
+    renderPicker();
+  } catch (e) {
+    alert('Silinirken bir hata oluştu: ' + e.message);
+  }
+}
+
+function rsHideRep(id) {
+  const hiddenIds = getHiddenRepIds();
+  if (!hiddenIds.includes(id)) {
+    hiddenIds.push(id);
+    localStorage.setItem('hiddenRepIds', JSON.stringify(hiddenIds));
+  }
+  reps = reps.filter(x => x.id !== id);
+  renderPicker();
 }
 
 function pickRep(id){selId=id;document.getElementById('bstart').disabled=false;renderPicker();}
@@ -539,19 +663,19 @@ function setLyricsAlign(align) {
   });
 }
 
-const LYRICS_SCALE_MIN = 0.75, LYRICS_SCALE_MAX = 1.6;
-function setLyricsFontScale(scale) {
-  scale = Math.min(LYRICS_SCALE_MAX, Math.max(LYRICS_SCALE_MIN, +parseFloat(scale).toFixed(2)));
+const LYRICS_SCALE_MIN = 0.75, LYRICS_SCALE_MAX = 1.6, LYRICS_SCALE_STEP = 0.1;
+function adjustLyricsFontSize(delta) {
+  let scale = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
+  scale = Math.min(LYRICS_SCALE_MAX, Math.max(LYRICS_SCALE_MIN, +(scale + delta).toFixed(2)));
   localStorage.setItem('stageLyricsScale', scale);
   document.documentElement.style.setProperty('--lyrics-scale', scale);
-  updateFontSliderUI(scale);
+  updateFontSizeButtons(scale);
 }
-function updateFontSliderUI(scale) {
-  const slider = document.getElementById('lyricsFontSlider');
-  if (!slider) return;
-  slider.value = scale;
-  const pct = ((scale - LYRICS_SCALE_MIN) / (LYRICS_SCALE_MAX - LYRICS_SCALE_MIN)) * 100;
-  slider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--border) ${pct}%, var(--border) 100%)`;
+function updateFontSizeButtons(scale) {
+  const minusBtn = document.getElementById('fontSizeMinus');
+  const plusBtn = document.getElementById('fontSizePlus');
+  if (minusBtn) minusBtn.disabled = scale <= LYRICS_SCALE_MIN;
+  if (plusBtn) plusBtn.disabled = scale >= LYRICS_SCALE_MAX;
 }
 
 // Bir satırın tamamen akor isimlerinden oluşup oluşmadığını denetler (Cm, Fm, D#, G#m7, A/C# vb.)
@@ -733,7 +857,7 @@ function renderStage(){
   requestAnimationFrame(() => setLyricsAlign(savedAlign));
   const savedScale = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
   document.documentElement.style.setProperty('--lyrics-scale', savedScale);
-  updateFontSliderUI(savedScale);
+  updateFontSizeButtons(savedScale);
   const next=items[curIdx+1];
   const np=document.getElementById('np');
   if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,nw.measurement,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
@@ -814,13 +938,16 @@ function buildStageToolsRow(mode) {
   if (mode === 'nota') {
     row.innerHTML = themeBtn + navBtn;
   } else {
-    // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama aynı şekilde geçerli
-    // (Yazı boyutu artık .sb üzerindeki kalıcı slider ile ayarlanıyor — bu panelden çıkarıldı)
+    // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama ve yazı boyutu ikisinde de geçerli
+    const fontBtns = `
+      <button onclick="event.stopPropagation();adjustLyricsFontSize(-0.1)" id="fontSizeMinus" title="Yazıyı Küçült" class="align-btn"><span style="font-size:11px;font-weight:700;">A−</span></button>
+      <button onclick="event.stopPropagation();adjustLyricsFontSize(0.1)" id="fontSizePlus" title="Yazıyı Büyüt" class="align-btn"><span style="font-size:15px;font-weight:700;">A+</span></button>`;
     const alignBtns = `
       <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>`;
-    row.innerHTML = alignBtns + themeBtn + navBtn;
+    row.innerHTML = fontBtns + alignBtns + themeBtn + navBtn;
+    updateFontSizeButtons(parseFloat(localStorage.getItem('stageLyricsScale')) || 1);
   }
 }
 

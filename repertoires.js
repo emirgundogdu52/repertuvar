@@ -52,17 +52,17 @@ function repMatchesSearch(r, q) {
   });
 }
 
-// ── Swipe-to-delete (Repertuvarlar listesi) ──
+// ── Swipe-to-delete + swipe-to-değiştir (Repertuvarlar listesi) ──
 const RI_SWIPE_THRESHOLD = 44;   // bu kadar kaydırınca "açık" sayılır
-const RI_SWIPE_MAX = 84;         // silme butonunun genişliği kadar
+const RI_SWIPE_MAX = 84;         // silme/değiştir butonunun genişliği kadar
 let _riSwipe = null;
-let _riOpenCard = null; // o an açık (silme butonu görünür) kart
+let _riOpenCard = null; // o an açık (buton görünür) kart
 
 function riCloseOpenCard() {
   if (_riOpenCard) {
     _riOpenCard.style.transition = 'transform .2s ease';
     _riOpenCard.style.transform = 'translateX(0)';
-    _riOpenCard.classList.remove('swiped-open');
+    _riOpenCard.classList.remove('swiped-open-left', 'swiped-open-right');
     _riOpenCard = null;
   }
 }
@@ -86,8 +86,10 @@ function riTouchMove(e) {
   if (_riSwipe.dir === 'v') { _riSwipe = null; return; }
   if (_riSwipe.dir === 'h') {
     e.preventDefault();
-    const base = _riSwipe.card.classList.contains('swiped-open') ? -RI_SWIPE_MAX : 0;
-    const clamped = Math.min(4, Math.max(base + dx, -RI_SWIPE_MAX));
+    let base = 0;
+    if (_riSwipe.card.classList.contains('swiped-open-right')) base = -RI_SWIPE_MAX; // sil/gizle paneli açıktı
+    else if (_riSwipe.card.classList.contains('swiped-open-left')) base = RI_SWIPE_MAX; // değiştir paneli açıktı
+    const clamped = Math.min(RI_SWIPE_MAX, Math.max(base + dx, -RI_SWIPE_MAX));
     _riSwipe.dx = clamped;
     _riSwipe.card.style.transition = 'none';
     _riSwipe.card.style.transform = `translateX(${clamped}px)`;
@@ -101,13 +103,17 @@ function riTouchEnd(e) {
   // Gerçek bir yatay hareket olduysa (ne kadar küçük olursa olsun), bunu takip eden
   // "click" olayını görmezden gel — bir swipe denemesi asla kart seçimine dönüşmemeli.
   if (Math.abs(_riSwipe.dx) > 5) card.dataset.justSwiped = '1';
-  if (_riSwipe.dx < -RI_SWIPE_THRESHOLD) {
+  card.classList.remove('swiped-open-left', 'swiped-open-right');
+  if (_riSwipe.dx <= -RI_SWIPE_THRESHOLD) {
     card.style.transform = `translateX(${-RI_SWIPE_MAX}px)`;
-    card.classList.add('swiped-open');
+    card.classList.add('swiped-open-right'); // sağdaki (Sil/Gizle) panel açık
+    _riOpenCard = card;
+  } else if (_riSwipe.dx >= RI_SWIPE_THRESHOLD) {
+    card.style.transform = `translateX(${RI_SWIPE_MAX}px)`;
+    card.classList.add('swiped-open-left'); // soldaki (Değiştir) panel açık
     _riOpenCard = card;
   } else {
     card.style.transform = 'translateX(0)';
-    card.classList.remove('swiped-open');
     if (_riOpenCard === card) _riOpenCard = null;
   }
   _riSwipe = null;
@@ -115,7 +121,7 @@ function riTouchEnd(e) {
 
 function riCardClick(e, id) {
   const card = e.currentTarget;
-  if (card.classList.contains('swiped-open')) {
+  if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) {
     riCloseOpenCard();
     return;
   }
@@ -130,8 +136,8 @@ function riCardClick(e, id) {
 // donmuş halde kalabiliyor (özellikle ilk kartın "silmeye hazır" görünmesi). Her
 // pageshow'da (hem normal yükleme hem bfcache restore) temiz duruma sıfırla.
 window.addEventListener('pageshow', () => {
-  document.querySelectorAll('.ri.swiped-open').forEach(card => {
-    card.classList.remove('swiped-open');
+  document.querySelectorAll('.ri.swiped-open-left, .ri.swiped-open-right').forEach(card => {
+    card.classList.remove('swiped-open-left', 'swiped-open-right');
     card.style.transition = 'none';
     card.style.transform = 'translateX(0)';
     delete card.dataset.justSwiped;
@@ -308,14 +314,18 @@ function renderList(){
     </div>`;
     // Kendi repertuvarında: gerçekten SİL (kırmızı). Başkasınınkinde: sadece kendi
     // görünümünden GİZLE (mavi) — orijinal veriye, sahibine ya da gruba hiç dokunmuyor.
+    // Sağa kaydırınca (her ikisinde de) DEĞİŞTİR (mavi, sol) — kartı tıklamakla aynı.
+    const editBg = `<div class="ri-edit-bg" onclick="event.stopPropagation();riCloseOpenCard();sel('${r.id}')"><i class="ti ti-edit"></i>Değiştir</div>`;
     if (r.isOwner) {
       return `<div class="ri-wrap">
-        <div class="ri-delete-bg" onclick="delRep('${r.id}')"><i class="ti ti-trash"></i>Sil</div>
+        ${editBg}
+        <div class="ri-delete-bg" onclick="event.stopPropagation();riCloseOpenCard();delRep('${r.id}')"><i class="ti ti-trash"></i>Sil</div>
         ${cardHtml}
       </div>`;
     }
     return `<div class="ri-wrap">
-      <div class="ri-delete-bg ri-hide-bg" onclick="hideRepFromView('${r.id}')"><i class="ti ti-eye-off"></i>Gizle</div>
+      ${editBg}
+      <div class="ri-delete-bg ri-hide-bg" onclick="event.stopPropagation();riCloseOpenCard();hideRepFromView('${r.id}')"><i class="ti ti-eye-off"></i>Gizle</div>
       ${cardHtml}
     </div>`;
   }
