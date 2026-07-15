@@ -31,13 +31,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .ri-wrap{position:relative;overflow:hidden;border-radius:10px;margin-bottom:8px;}
 .ri-wrap .ri{margin-bottom:0;position:relative;z-index:2;touch-action:pan-y;}
 .ri-edit-bg{position:absolute;top:0;left:0;bottom:0;width:84px;background:var(--accent2);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:600;z-index:1;cursor:pointer;}
-.ri-delete-bg{position:absolute;top:0;right:0;bottom:0;width:84px;background:#e5484d;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:600;z-index:1;cursor:pointer;}
+.ri-delete-bg{position:absolute;top:0;right:0;bottom:0;width:84px;background:#FF5A5F;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:600;z-index:1;cursor:pointer;}
 .ri-hide-bg{background:#4A90D9;}
 .ri-delete-bg i,.ri-edit-bg i{font-size:18px;}
 /* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
 .ri-wrap::before {
-  content:''; position:absolute; inset:0; border-radius:10px; padding:2px;
-  background:linear-gradient(90deg,var(--accent2,#4DA3FF),#e5484d);
+  content:''; position:absolute; inset:0; border-radius:10px; padding:2.5px;
+  background:linear-gradient(90deg,#4DA3FF,#FF5A5F);
   -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   -webkit-mask-composite:xor; mask-composite:exclude;
   opacity:var(--swipe-glow,0); pointer-events:none; z-index:3;

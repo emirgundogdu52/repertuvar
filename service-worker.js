@@ -1,89 +1,105 @@
-// Repertuvar Service Worker — offline cache
-// NOT: Her önemli deploy'da CACHE_NAME'i artır (v8 → v9 → v10...) — bu, eski Service Worker'ı
-// zorla devre dışı bırakıp yenisini aktive eder. Aksi halde kullanıcıların tarayıcısında
-// haftalarca eski Service Worker aktif kalabilir ve yeni dosyaları hiç görmeyebilirler.
-const CACHE_NAME = 'repertuvar-v189';
-const STATIC_ASSETS = [
+// ═══════════════════════════════════════════════════════════════
+// Repertuvar — Service Worker
+//
+// KRİTİK DEĞİŞİKLİK: JS ve CSS dosyaları artık NETWORK-FIRST.
+// Eski davranış (cache-first) yüzünden push edilen yeni auth.js/db.js/
+// repertoires.js kullanıcıya hiç ulaşmıyordu — SW cache'deki eski sürümü
+// sunuyordu. Artık kod dosyaları her zaman önce ağdan alınır (güncel kalır),
+// ağ yoksa cache'e düşülür (offline çalışma korunur).
+//
+// Strateji özeti:
+//   • HTML, JS, CSS  → network-first (güncel kalması kritik)
+//   • Görsel/font/diğer statikler → cache-first (nadiren değişir, hız için)
+//   • Supabase/API istekleri → SW'ye hiç uğramaz (her zaman canlı)
+// ═══════════════════════════════════════════════════════════════
+
+// Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
+const CACHE_NAME = 'repertuvar-v185';
+
+// Açılışta öncelikli önbelleğe alınacak çekirdek dosyalar.
+const PRECACHE = [
   '/',
   '/index.html',
-  '/eserler.html',
-  '/repertoires.html',
-  '/artiesten.html',
-  '/stage.html',
-  '/ayarlar.html',
-  '/auth.js',
-  '/topnav.js',
-  '/db.js',
-  '/manifest.json',
-  '/logo_dark.png',
-  '/logo_light.png',
-  '/logo_slogan_dark.png',
-  '/logo_slogan_light.png',
-  '/Repertuvar_logo.png',
-  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap',
-  'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css',
 ];
 
-// Kurulum — statik dosyaları cache'e al
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('[SW] Cache addAll kısmen başarısız:', err);
-      });
-    })
+// ── INSTALL: çekirdek dosyaları önbelleğe al, yeni SW'yi hemen beklet ──
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE).catch(() => {}))
+      .then(() => self.skipWaiting()) // yeni SW beklemeden aktifleşsin
   );
-  self.skipWaiting();
 });
 
-// Aktivasyon — eski cache'leri temizle
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
+// ── ACTIVATE: eski cache'leri sil, tüm sekmeleri hemen devral ──
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(
         keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
-      )
-    )
+      ))
+      .then(() => self.clients.claim()) // açık sekmeler yeni SW'yi hemen kullansın
   );
-  self.clients.claim();
 });
 
-// Fetch stratejisi
-self.addEventListener('fetch', (e) => {
-  const url = new URL(e.request.url);
+// Yardımcı: network-first — önce ağ, başarısızsa cache.
+function networkFirst(request) {
+  return fetch(request, { cache: 'no-store' })
+    .then((res) => {
+      // Başarılı yanıtı cache'e yaz (offline için)
+      if (res && res.status === 200 && res.type === 'basic') {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((c) => c.put(request, copy)).catch(() => {});
+      }
+      return res;
+    })
+    .catch(() => caches.match(request)); // ağ yok → cache'ten ver
+}
 
-  // Supabase API isteklerini cache'leme — direkt network
-  if (url.hostname.includes('supabase.co')) return;
+// Yardımcı: cache-first — önce cache, yoksa ağdan al ve cache'le.
+function cacheFirst(request) {
+  return caches.match(request).then((cached) => {
+    if (cached) return cached;
+    return fetch(request).then((res) => {
+      if (res && res.status === 200 && res.type === 'basic') {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((c) => c.put(request, copy)).catch(() => {});
+      }
+      return res;
+    });
+  });
+}
 
-  // Sadece GET
-  if (e.request.method !== 'GET') return;
+// ── FETCH ──
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
 
-  // HTML sayfaları: network-first (her zaman taze, offline fallback)
-  // cache:'no-store' → tarayıcının kendi HTTP cache'ini de atlar, gerçekten sunucudan ister
-  if (e.request.headers.get('accept')?.includes('text/html')) {
-    e.respondWith(
-      fetch(e.request, { cache: 'no-store' }).then((response) => {
-        if (response && response.status === 200) {
-          const cloned = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, cloned));
-        }
-        return response;
-      }).catch(() => caches.match(e.request))
-    );
+  // Sadece GET isteklerini ele al
+  if (req.method !== 'GET') return;
+
+  let url;
+  try { url = new URL(req.url); } catch (e) { return; }
+
+  // Supabase / API / farklı origin istekleri: SW'ye uğratma, doğrudan ağa gitsin.
+  // (Auth, veri fetch'leri her zaman canlı olmalı; cache'lenmemeli.)
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.includes('/rest/v1/') || url.pathname.includes('/auth/v1/')) return;
+
+  const path = url.pathname;
+  const isHTML = req.mode === 'navigate' || req.destination === 'document' || path.endsWith('.html');
+  const isCode = path.endsWith('.js') || path.endsWith('.css');
+
+  // HTML + kod dosyaları → network-first (GÜNCEL kalması kritik)
+  if (isHTML || isCode) {
+    event.respondWith(networkFirst(req));
     return;
   }
 
-  // Diğer statik dosyalar: network-first, cache fallback
-  // cache:'no-store' → tarayıcının kendi HTTP cache'ini de atlar, gerçekten sunucudan ister
-  e.respondWith(
-    fetch(e.request, { cache: 'no-store' })
-      .then((response) => {
-        if (response && response.status === 200) {
-          const cloned = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, cloned));
-        }
-        return response;
-      })
-      .catch(() => caches.match(e.request))
-  );
+  // Görsel, font, manifest vb. → cache-first (nadiren değişir, hız için)
+  event.respondWith(cacheFirst(req));
+});
+
+// Sayfa "hemen güncelle" isterse (opsiyonel): postMessage ile skipWaiting tetikle.
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });

@@ -83,8 +83,8 @@
   .we-wrap:has(.work-item:active) { box-shadow:0 0 0 1px rgba(255,200,61,.35),0 4px 18px rgba(255,200,61,.18); border-radius:16px; }
   /* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
   .we-wrap::before {
-    content:''; position:absolute; inset:0; border-radius:16px; padding:2px;
-    background:linear-gradient(90deg,var(--accent2),#FF5A5F);
+    content:''; position:absolute; inset:0; border-radius:16px; padding:2.5px;
+    background:linear-gradient(90deg,#4DA3FF,#FF5A5F);
     -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
     -webkit-mask-composite:xor; mask-composite:exclude;
     opacity:var(--swipe-glow,0); pointer-events:none; z-index:3;

@@ -44,13 +44,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .rs-wrap .rsi{position:relative;z-index:2;touch-action:pan-y;}
 .rs-edit-bg,.rs-delete-bg{position:absolute;top:0;bottom:0;width:84px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:600;z-index:1;cursor:pointer;}
 .rs-edit-bg{left:0;background:#4DA3FF;}
-.rs-delete-bg{right:0;background:#e5484d;}
+.rs-delete-bg{right:0;background:#FF5A5F;}
 .rs-delete-bg.rs-hide-bg{background:#4A90D9;}
 .rs-edit-bg i,.rs-delete-bg i{font-size:18px;}
 /* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
 .rs-wrap::before {
-  content:''; position:absolute; inset:0; border-radius:10px; padding:2px;
-  background:linear-gradient(90deg,#4DA3FF,#e5484d);
+  content:''; position:absolute; inset:0; border-radius:10px; padding:2.5px;
+  background:linear-gradient(90deg,#4DA3FF,#FF5A5F);
   -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   -webkit-mask-composite:xor; mask-composite:exclude;
   opacity:var(--swipe-glow,0); pointer-events:none; z-index:3;
@@ -638,6 +638,13 @@ window.addEventListener('pageshow', () => {
   _rsSwipe = null;
 });
 
+// Açık bir swipe kartı varken ekranın herhangi bir yerine tıklanınca (kartın dışına) kapat.
+// repertoires.js ve eserler.html'de bu satır vardı, stage.html'de eksikti — kartın
+// yarı-açık takılı kalmasının ve iki kartın birden açık kalmasının sebebi buydu.
+document.addEventListener('click', (e) => {
+  if (_rsOpenCard && !_rsOpenCard.contains(e.target)) rsCloseOpenCard();
+});
+
 // Silme/gizleme, repertoires.js'deki delRep/hideRepFromView ile aynı davranışta —
 // ama gerçek kullanıcı token'ı gerektiriyor (stage.html'in salt-okunur H'si SUPA_KEY
 // kullanıyor, RLS altında silme için yetmez), o yüzden ayrı bir authenticated header.
@@ -1172,8 +1179,18 @@ function loadSideWork(id) {
   // Arka planda sync yap (online ise IndexedDB'yi güncelle)
   if (window.syncOfflineData) syncOfflineData();
 
-  // Önce Supabase'den WL'yi yükle
-  await loadWL();
+  // WL (works) yüklemesi: tek-eser (?work=) ve paylaşım (?share=) linkleri WL'ye
+  // bağımlı olduğundan onlar için BEKLE; normal picker açılışında ise BEKLEME —
+  // picker repertuvarları works olmadan da listelenir, eser adları sonra dolar.
+  const _needsWL = urlParams.get('work') || urlParams.get('share');
+  if (_needsWL) {
+    await loadWL();
+  } else {
+    loadWL().then(() => {
+      const picker = document.getElementById('pickerScreen');
+      if (picker && !picker.classList.contains('hidden') && !_rsSwipe && !_rsOpenCard) renderPicker();
+    });
+  }
 
   // Paylaşım linki: ?share=token → token'dan rep ID çöz, Supabase'den yükle
   const shareToken = urlParams.get('share');
@@ -1290,6 +1307,28 @@ function loadSideWork(id) {
     });
   }
 })();
+
+// --- SYNC/ONLINE OTOMATİK TAZELEME (stage) ---
+// Ağ değişince veya sync bitince picker açıksa listeyi tazele. Sadece picker
+// görünürken ve kullanıcı kaydırma yapmıyorken çiz (açık swipe'ı bozmamak için).
+(function() {
+  let _rt;
+  function _refreshPicker() {
+    clearTimeout(_rt);
+    _rt = setTimeout(function() {
+      var picker = document.getElementById('pickerScreen');
+      if (picker && !picker.classList.contains('hidden') &&
+          typeof renderPicker === 'function' &&
+          (typeof _rsSwipe === 'undefined' || !_rsSwipe) &&
+          (typeof _rsOpenCard === 'undefined' || !_rsOpenCard)) {
+        renderPicker();
+      }
+    }, 150);
+  }
+  window.addEventListener('data-synced', _refreshPicker);
+  window.addEventListener('online', _refreshPicker);
+})();
+
 </script>
 </body>
 </html>

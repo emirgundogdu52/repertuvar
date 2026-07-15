@@ -53,10 +53,26 @@ function storeOp(storeName, mode, fn) {
   }));
 }
 
+// Bir okuma promise'i verilen süre içinde dönmezse fallback değerle çöz.
+// Neden gerekli: aynı store'a açık bir readwrite transaction (ör. replaceAll
+// 410 kayıt yazarken) readonly getAll'ı bloke edebiliyor; yavaş ağda bu
+// "sonsuz pending"e dönüşüyordu. Kalkan sayesinde UI en fazla `ms` bekler.
+// onTimeout: yalnızca süre dolunca çağrılan fonksiyon (fallback değeri döndürür).
+function withTimeout(promise, ms, onTimeout) {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => setTimeout(() => resolve(onTimeout()), ms))
+  ]);
+}
+
 function makeStore(storeName) {
   return {
     getAll: () => HAS_IDB
-      ? storeOp(storeName, 'readonly', (s) => s.getAll()).catch((e) => { console.warn('[db] getAll hatası:', e); return []; })
+      ? withTimeout(
+          storeOp(storeName, 'readonly', (s) => s.getAll()).catch((e) => { console.warn('[db] getAll hatası:', e); return []; }),
+          3000,
+          () => { console.warn('[db] getAll 3sn timeout (' + storeName + ') — boş dönülüyor, sync arka planda tazeleyecek'); return []; }
+        )
       : Promise.resolve([]),
     get: (id) => HAS_IDB
       ? storeOp(storeName, 'readonly', (s) => s.get(id)).catch((e) => { console.warn('[db] get hatası:', e); return undefined; })
@@ -124,9 +140,12 @@ window.isOnline = () => navigator.onLine;
 
 // Sync — sunucudan veri çekip IndexedDB'ye kaydet
 window.syncOfflineData = async function() {
-  if (!navigator.onLine) return;
-  const token = localStorage.getItem('sb_token');
+  // Token dolmuş olabilir (1 saatlik ömür) — sync fetch'lerinden ÖNCE yenile.
+  let token = localStorage.getItem('sb_token');
   if (!token) return;
+  if (typeof window.ensureValidToken === 'function') {
+    try { token = (await window.ensureValidToken()) || token; } catch(e) {}
+  }
 
   try {
     const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
@@ -159,6 +178,8 @@ window.syncOfflineData = async function() {
 
     await db.meta.set('lastSync', new Date().toISOString());
     console.log('[db] Offline sync tamamlandı:', new Date().toLocaleTimeString('tr-TR'));
+    // Sync bitti — dinleyen sayfalar (repertuvarlar, sahne) kendini tazelesin.
+    try { window.dispatchEvent(new CustomEvent('data-synced')); } catch (e) {}
   } catch (e) {
     console.warn('[db] Sync hatası:', e);
   }

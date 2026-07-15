@@ -972,6 +972,26 @@ function shareViaWhatsApp() {
   const ok = await requireAuth();
   if(!ok) return;
   if (window.syncOfflineData) syncOfflineData();
-  await loadWorksData();
+  // works verisini BEKLEME — repertuvar listesi works olmadan da çizilir (eser adları
+  // sonra dolar). Önce local repertuvarları göster, works arka planda gelince tazele.
   load();
+  loadWorksData().then(() => { renderList(); renderDetail(); });
+})();
+
+
+// --- SYNC/ONLINE OTOMATİK TAZELEME ---
+// Ağ değişince (WiFi↔GSM) veya arka plan sync'i bitince veri IndexedDB'de
+// güncellenir; ama sayfa açılışta boş kaldıysa kendini çizmiyordu. Bu
+// dinleyiciler o durumda listeyi otomatik tazeler. load() local-first
+// olduğundan tekrar çağrılması güvenli.
+(function() {
+  let _refreshT;
+  function _refresh() {
+    clearTimeout(_refreshT);
+    _refreshT = setTimeout(function() {
+      if (typeof load === 'function') load();
+    }, 150);
+  }
+  window.addEventListener('data-synced', _refresh);
+  window.addEventListener('online', _refresh);
 })();
