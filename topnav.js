@@ -101,6 +101,19 @@
       gap: 12px;
       width: 100%; box-sizing: border-box; max-width: 100vw; overflow: hidden;
     }
+    /* Üst nav'ı GERÇEKTEN sabit (fixed) yap — merkezi kural, tek yerden tüm sayfalar.
+       Sadece "doğal sayfa scroll" mimarisi kullanan sayfalara uygulanır (aşağıdaki JS ile
+       işaretlenir). Kabuk mimarili sayfalar (eserler/repertoires/stage) body'yi zaten
+       position:fixed;inset:0 ile sabitliyor ve kendi iç panellerini kaydırıyor — o sayfalarda
+       topnav sticky de kalsa hiç hareket etmiyor, ayrıca onlara padding eklemek kendi
+       height:calc(100vh - var(--topnav-h)) hesaplarını bozar. Bu yüzden sadece doğal-scroll
+       sayfalarda fixed'e geçiyoruz. */
+    html.r-natural-scroll-page .r-topnav {
+      position: fixed !important; top: 0; left: 0; right: 0;
+    }
+    html.r-natural-scroll-page body {
+      padding-top: var(--topnav-h, 66px);
+    }
     .r-topnav img.r-logo {
       height: 55px; width: auto; max-width: 220px; flex-shrink: 0; object-fit: contain;
     }
@@ -785,6 +798,23 @@
 // (çentik/home indicator) eklendikçe gerçek yükseklik bu varsayılanlardan sapıyor ve
 // içerik alanı yanlış hesaplanıyordu.
 (function () {
+  // Üst nav'ı sabitleme kuralı SADECE "doğal sayfa scroll" mimarisi kullanan sayfalara
+  // uygulanmalı. Kabuk mimarili sayfalar (eserler/repertoires/stage) body'yi kendi CSS'inde
+  // position:fixed;inset:0 ile sabitler — bunu tespit edip öyle sayfalara dokunmuyoruz.
+  function markScrollArchitecture() {
+    try {
+      const bodyPos = getComputedStyle(document.body).position;
+      if (bodyPos !== 'fixed') {
+        document.documentElement.classList.add('r-natural-scroll-page');
+      }
+    } catch (e) {}
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', markScrollArchitecture);
+  } else {
+    markScrollArchitecture();
+  }
+
   function measureNavHeights() {
     const topEl = document.querySelector('.r-topnav');
     const botEl = document.getElementById('r-bottom-nav');
@@ -816,4 +846,46 @@
   window.addEventListener('resize', measureNavHeights);
   window.addEventListener('orientationchange', () => setTimeout(measureNavHeights, 200));
   window.addEventListener('stageExit', () => setTimeout(measureNavHeights, 100));
+})();
+
+// ═══ Basit ziyaretçi/sayfa görüntüleme takibi ═══
+// Kendi Supabase altyapımız — üçüncü taraf servis yok, IP dışarıya gitmiyor.
+// Her sayfa yüklendiğinde bir kayıt atar; hata olursa sessizce vazgeçer, kullanıcı deneyimini
+// asla etkilemez (bloklamaz, hata göstermez).
+(function () {
+  try {
+    const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+    const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+
+    // Oturum ID'si — sekme/oturum başına bir kez üretilir, sayfalar arası aynı kalır.
+    // Bu sayede "kaç farklı ziyaret" ile "kaç sayfa görüntüleme" ayrıştırılabilir.
+    let sid = sessionStorage.getItem('r_session_id');
+    if (!sid) {
+      sid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
+      sessionStorage.setItem('r_session_id', sid);
+    }
+
+    const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    const platform = isNative ? ((window.Capacitor.getPlatform && window.Capacitor.getPlatform()) || 'native') : 'web';
+    const deviceType = (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) ? 'mobile' : 'desktop';
+    let tz = null;
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch (e) {}
+    const uid = (typeof getUserId === 'function') ? getUserId() : null;
+
+    const payload = {
+      path: (location.pathname.split('/').pop() || 'index.html'),
+      referrer: document.referrer || null,
+      user_id: uid || null,
+      session_id: sid,
+      timezone: tz,
+      device_type: deviceType,
+      platform: platform
+    };
+
+    fetch(SUPA_URL + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+  } catch (e) { /* takip asla sayfayı bozmamalı */ }
 })();

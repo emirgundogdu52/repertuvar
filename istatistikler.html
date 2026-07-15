@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Repertuvar — İstatistikler</title>
+<script src="auth.js"></script>
+<script src="topnav.js" defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif; }
+  .page { padding: 24px 20px 40px; max-width: 1080px; margin: 0 auto; }
+  @media(min-width:1024px) { .page { padding: 32px 32px 48px; } }
+
+  .stt-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:22px; }
+  .stt-title { font-size:20px; font-weight:800; color:var(--text); margin:0; }
+  .stt-sub { font-size:12px; color:var(--text3); margin-top:2px; }
+
+  .stt-range { display:flex; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:4px; }
+  .stt-range-btn { padding:7px 13px; border-radius:7px; border:none; background:none; color:var(--text2); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+  .stt-range-btn.active { background:rgba(255,200,61,0.14); color:var(--accent); }
+
+  .stt-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:22px; }
+  .stt-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; }
+  .stt-card-label { font-size:11px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; display:flex; align-items:center; gap:6px; }
+  .stt-card-value { font-size:26px; font-weight:800; color:var(--text); margin-top:8px; }
+
+  .stt-grid { display:grid; grid-template-columns:1fr; gap:16px; }
+  @media(min-width:900px) { .stt-grid { grid-template-columns:1.4fr 1fr; } }
+
+  .stt-panel { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; }
+  .stt-panel-title { font-size:13px; font-weight:700; color:var(--text); margin:0 0 14px; display:flex; align-items:center; gap:7px; }
+  .stt-panel-title i { color:var(--accent2); font-size:16px; }
+
+  .stt-bar-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .stt-bar-row:last-child { margin-bottom:0; }
+  .stt-bar-label { font-size:12px; color:var(--text2); width:120px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .stt-bar-track { flex:1; height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+  .stt-bar-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--accent),var(--accent2)); }
+  .stt-bar-count { font-size:11px; color:var(--text3); width:38px; text-align:right; flex-shrink:0; font-variant-numeric:tabular-nums; }
+
+  .stt-empty { padding:30px 10px; text-align:center; color:var(--text3); font-size:13px; }
+  .stt-chart-wrap { height:220px; }
+
+  .stt-loading { padding:60px 0; text-align:center; color:var(--text3); font-size:13px; }
+</style>
+</head>
+<body>
+
+<div id="r-topnav-container"></div>
+
+<div class="main-wrap">
+  <div class="page">
+    <div class="stt-header">
+      <div>
+        <h1 class="stt-title">📊 İstatistikler</h1>
+        <div class="stt-sub" id="sttSub">Yükleniyor...</div>
+      </div>
+      <div class="stt-range" id="sttRange">
+        <button class="stt-range-btn" data-days="1">Bugün</button>
+        <button class="stt-range-btn active" data-days="7">7 gün</button>
+        <button class="stt-range-btn" data-days="30">30 gün</button>
+        <button class="stt-range-btn" data-days="0">Tümü</button>
+      </div>
+    </div>
+
+    <div id="sttLoading" class="stt-loading">Veriler yükleniyor...</div>
+
+    <div id="sttContent" style="display:none;">
+      <div class="stt-cards">
+        <div class="stt-card">
+          <div class="stt-card-label"><i class="ti ti-eye"></i> Sayfa Görüntüleme</div>
+          <div class="stt-card-value" id="sttTotalViews">—</div>
+        </div>
+        <div class="stt-card">
+          <div class="stt-card-label"><i class="ti ti-users"></i> Benzersiz Oturum</div>
+          <div class="stt-card-value" id="sttUniqueSessions">—</div>
+        </div>
+        <div class="stt-card">
+          <div class="stt-card-label"><i class="ti ti-device-mobile"></i> Mobil Oranı</div>
+          <div class="stt-card-value" id="sttMobileRatio">—</div>
+        </div>
+        <div class="stt-card">
+          <div class="stt-card-label"><i class="ti ti-login"></i> Giriş Yapmış</div>
+          <div class="stt-card-value" id="sttLoggedInRatio">—</div>
+        </div>
+      </div>
+
+      <div class="stt-panel" style="margin-bottom:16px;">
+        <div class="stt-panel-title"><i class="ti ti-chart-line"></i> Zaman İçinde Görüntülemeler</div>
+        <div class="stt-chart-wrap"><canvas id="sttTrendChart"></canvas></div>
+      </div>
+
+      <div class="stt-grid">
+        <div class="stt-panel">
+          <div class="stt-panel-title"><i class="ti ti-file-text"></i> En Çok Ziyaret Edilen Sayfalar</div>
+          <div id="sttTopPages"></div>
+        </div>
+        <div class="stt-panel">
+          <div class="stt-panel-title"><i class="ti ti-world"></i> Bölge <span style="font-weight:400;color:var(--text3);font-size:10px;">(saat dilimine göre yaklaşık)</span></div>
+          <div id="sttRegions"></div>
+        </div>
+      </div>
+
+      <div class="stt-grid" style="margin-top:16px;">
+        <div class="stt-panel">
+          <div class="stt-panel-title"><i class="ti ti-device-desktop"></i> Cihaz Türü</div>
+          <div id="sttDevices"></div>
+        </div>
+        <div class="stt-panel">
+          <div class="stt-panel-title"><i class="ti ti-brand-appstore"></i> Platform</div>
+          <div id="sttPlatforms"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+
+let sttRows = [];
+let sttChart = null;
+
+function sttHeaders() {
+  const token = localStorage.getItem('sb_token') || SUPA_KEY;
+  return { apikey: SUPA_KEY, Authorization: 'Bearer ' + token };
+}
+
+async function loadStats() {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/page_views?select=path,referrer,user_id,session_id,timezone,device_type,platform,created_at&order=created_at.desc&limit=20000', {
+      headers: sttHeaders()
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    sttRows = await r.json();
+    document.getElementById('sttLoading').style.display = 'none';
+    document.getElementById('sttContent').style.display = 'block';
+    renderStats(7);
+  } catch (e) {
+    document.getElementById('sttLoading').textContent = 'Veriler yüklenemedi: ' + e.message;
+  }
+}
+
+function filterByDays(days) {
+  if (!days) return sttRows;
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  return sttRows.filter(r => new Date(r.created_at).getTime() >= cutoff);
+}
+
+function bar(label, count, max) {
+  const pct = max ? Math.max(4, Math.round((count / max) * 100)) : 0;
+  return `<div class="stt-bar-row">
+    <div class="stt-bar-label" title="${label}">${label}</div>
+    <div class="stt-bar-track"><div class="stt-bar-fill" style="width:${pct}%"></div></div>
+    <div class="stt-bar-count">${count}</div>
+  </div>`;
+}
+
+function topN(rows, field, n) {
+  const counts = {};
+  rows.forEach(r => { const v = r[field] || '—'; counts[v] = (counts[v]||0) + 1; });
+  return Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, n);
+}
+
+function renderStats(days) {
+  const rows = filterByDays(days);
+  const rangeLabel = days === 1 ? 'bugün' : days === 7 ? 'son 7 gün' : days === 30 ? 'son 30 gün' : 'tüm zamanlar';
+  document.getElementById('sttSub').textContent = rows.length + ' görüntüleme — ' + rangeLabel;
+
+  const sessions = new Set(rows.map(r => r.session_id));
+  const mobileCount = rows.filter(r => r.device_type === 'mobile').length;
+  const loggedInCount = rows.filter(r => r.user_id).length;
+
+  document.getElementById('sttTotalViews').textContent = rows.length;
+  document.getElementById('sttUniqueSessions').textContent = sessions.size;
+  document.getElementById('sttMobileRatio').textContent = rows.length ? Math.round(mobileCount/rows.length*100) + '%' : '—';
+  document.getElementById('sttLoggedInRatio').textContent = rows.length ? Math.round(loggedInCount/rows.length*100) + '%' : '—';
+
+  // En çok ziyaret edilen sayfalar
+  const pages = topN(rows, 'path', 8);
+  const pagesMax = pages.length ? pages[0][1] : 0;
+  document.getElementById('sttTopPages').innerHTML = pages.length
+    ? pages.map(([p,c]) => bar(p, c, pagesMax)).join('')
+    : '<div class="stt-empty">Henüz veri yok</div>';
+
+  // Bölge (timezone)
+  const regions = topN(rows, 'timezone', 8);
+  const regionsMax = regions.length ? regions[0][1] : 0;
+  document.getElementById('sttRegions').innerHTML = regions.length
+    ? regions.map(([tz,c]) => bar(tz === '—' ? 'Bilinmiyor' : tz.replace('_',' '), c, regionsMax)).join('')
+    : '<div class="stt-empty">Henüz veri yok</div>';
+
+  // Cihaz
+  const devices = topN(rows, 'device_type', 4);
+  const devicesMax = devices.length ? devices[0][1] : 0;
+  const deviceLabels = { mobile: '📱 Mobil', desktop: '🖥️ Masaüstü' };
+  document.getElementById('sttDevices').innerHTML = devices.length
+    ? devices.map(([d,c]) => bar(deviceLabels[d] || d, c, devicesMax)).join('')
+    : '<div class="stt-empty">Henüz veri yok</div>';
+
+  // Platform
+  const platforms = topN(rows, 'platform', 4);
+  const platformsMax = platforms.length ? platforms[0][1] : 0;
+  const platformLabels = { web: '🌐 Web', ios: '🍎 iOS', android: '🤖 Android' };
+  document.getElementById('sttPlatforms').innerHTML = platforms.length
+    ? platforms.map(([p,c]) => bar(platformLabels[p] || p, c, platformsMax)).join('')
+    : '<div class="stt-empty">Henüz veri yok</div>';
+
+  renderTrendChart(rows, days);
+}
+
+function renderTrendChart(rows, days) {
+  const bucketDays = days === 1 ? 1 : (days || 30);
+  const buckets = {};
+  const now = new Date();
+  for (let i = bucketDays - 1; i >= 0; i--) {
+    const d = new Date(now); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    buckets[key] = 0;
+  }
+  rows.forEach(r => {
+    const key = r.created_at.slice(0,10);
+    if (key in buckets) buckets[key]++;
+    else if (!days) buckets[key] = (buckets[key]||0) + 1;
+  });
+  const labels = Object.keys(buckets).sort();
+  const data = labels.map(k => buckets[k]);
+  const displayLabels = labels.map(l => { const d = new Date(l); return d.getDate() + '.' + (d.getMonth()+1); });
+
+  const ctx = document.getElementById('sttTrendChart').getContext('2d');
+  if (sttChart) sttChart.destroy();
+  sttChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: displayLabels,
+      datasets: [{
+        data, fill: true, tension: 0.35,
+        borderColor: '#FFC83D', backgroundColor: 'rgba(255,200,61,0.12)',
+        pointRadius: 0, pointHoverRadius: 4, borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#78829A', font: { size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: '#78829A', font: { size: 10 }, precision: 0 }, grid: { color: 'rgba(120,130,154,0.12)' } }
+      }
+    }
+  });
+}
+
+document.getElementById('sttRange').addEventListener('click', (e) => {
+  const btn = e.target.closest('.stt-range-btn');
+  if (!btn) return;
+  document.querySelectorAll('.stt-range-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStats(parseInt(btn.dataset.days));
+});
+
+(async function init() {
+  const ok = await requireAuth(); if (!ok) return;
+  if (!isAdmin()) {
+    document.querySelector('.page').innerHTML = '<div class="stt-empty" style="padding:80px 20px;">Bu sayfayı görüntüleme yetkin yok.</div>';
+    return;
+  }
+  loadStats();
+})();
+</script>
+
+</body>
+</html>
