@@ -31,7 +31,8 @@ async function requireAuth() {
   if (getUser()) window.dispatchEvent(new CustomEvent('authReady'));
   try {
     const r = await fetch(SUPA_URL+'/auth/v1/user', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token},
+      signal: AbortSignal.timeout(6000)
     });
     if (!r.ok) {
       const refresh = localStorage.getItem('sb_refresh');
@@ -39,25 +40,35 @@ async function requireAuth() {
         const r2 = await fetch(SUPA_URL+'/auth/v1/token?grant_type=refresh_token', {
           method: 'POST',
           headers: {'apikey': SUPA_KEY, 'Content-Type': 'application/json'},
-          body: JSON.stringify({refresh_token: refresh})
+          body: JSON.stringify({refresh_token: refresh}),
+          signal: AbortSignal.timeout(6000)
         });
         if (r2.ok) {
           const data = await r2.json();
           localStorage.setItem('sb_token', data.access_token);
           localStorage.setItem('sb_refresh', data.refresh_token);
           localStorage.setItem('sb_user', JSON.stringify(data.user));
+          window.dispatchEvent(new CustomEvent('authReady'));
           return true;
         }
       }
+      // Sunucu token'ı reddetti VE yenilenemedi — ama cache'de kullanıcı varsa
+      // (örn. zayıf sinyalde geçici bir hata olabilir) çevrimdışı devam et, direkt atmayalım.
+      const cachedUser = getUser();
+      if (cachedUser) { window.dispatchEvent(new CustomEvent('authReady')); return true; }
       logout();
       return false;
     }
     const user = await r.json();
     localStorage.setItem('sb_user', JSON.stringify(user));
-    await ensureProfile(user);
-    await loadUserRole();
 
-    // Hesap askıya alınmış veya silinme talep edilmişse engelle
+    // Profil senkronizasyonu ve rol/grup yükleme ARKA PLANDA yapılır — sayfayı bloklamaz.
+    // localStorage'da zaten önceki oturumdan kalma bir kopyaları var; en güncel hali
+    // arka planda gelip localStorage'ı sessizce günceller, sayfa onu beklemeden açılır.
+    ensureProfile(user).catch(()=>{});
+    loadUserRole().catch(()=>{});
+
+    // Hesap askıya alınmış veya silinme talep edilmişse engelle (cache'deki son bilinen durum)
     const status = localStorage.getItem('user_status');
     if (status === 'suspended') {
       logoutSilent();
@@ -73,6 +84,7 @@ async function requireAuth() {
     window.dispatchEvent(new CustomEvent('authReady'));
     return true;
   } catch(e) {
+    // Ağ hatası/timeout (zayıf sinyal, offline) — cache'de kullanıcı varsa çevrimdışı devam et
     const cachedUser = getUser();
     if (!cachedUser) { window.location.href = 'login.html'; return false; }
     window.dispatchEvent(new CustomEvent('authReady'));
@@ -100,7 +112,8 @@ async function ensureProfile(user) {
   try {
     // Mevcut profili kontrol et — display_name email dışında bir şeyse koru
     const check = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + user.id + '&select=display_name', {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) }
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) },
+      signal: AbortSignal.timeout(6000)
     });
     const existing = check.ok ? await check.json() : [];
     const currentName = existing[0]?.display_name || '';
@@ -124,7 +137,8 @@ async function ensureProfile(user) {
         id: user.id,
         display_name,
         email: user.email
-      })
+      }),
+      signal: AbortSignal.timeout(6000)
     });
   } catch(e) {}
 }
@@ -136,7 +150,8 @@ async function loadUserRole() {
     localStorage.setItem('user_role', 'admin');
     try {
       const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=group_id', {
-        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) }
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) },
+        signal: AbortSignal.timeout(6000)
       });
       if (r.ok) {
         const data = await r.json();
@@ -148,7 +163,8 @@ async function loadUserRole() {
   }
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=role,status,group_id', {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) }
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) },
+      signal: AbortSignal.timeout(6000)
     });
     if (r.ok) {
       const data = await r.json();
