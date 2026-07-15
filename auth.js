@@ -62,11 +62,13 @@ async function requireAuth() {
     const user = await r.json();
     localStorage.setItem('sb_user', JSON.stringify(user));
 
-    // Profil senkronizasyonu ve rol/grup yükleme ARKA PLANDA yapılır — sayfayı bloklamaz.
-    // localStorage'da zaten önceki oturumdan kalma bir kopyaları var; en güncel hali
-    // arka planda gelip localStorage'ı sessizce günceller, sayfa onu beklemeden açılır.
+    // Profil senkronizasyonu (sadece display_name) ARKA PLANDA — kritik değil, kimse
+    // sonucunu senkron beklemiyor. Rol/grup yükleme ise BEKLENİR — çünkü requireAuth()
+    // biter bitmez repertoires.js/stage.html gibi sayfalar getGroupId()'i hemen çağırıyor;
+    // arka planda bırakırsak henüz güncellenmemiş/boş group_id okuyup yanlış (daha dar)
+    // bir sorguya düşebilirler. Timeout'lu olduğu için artık sonsuza dek asılı kalamaz.
     ensureProfile(user).catch(()=>{});
-    loadUserRole().catch(()=>{});
+    await loadUserRole();
 
     // Hesap askıya alınmış veya silinme talep edilmişse engelle (cache'deki son bilinen durum)
     const status = localStorage.getItem('user_status');
