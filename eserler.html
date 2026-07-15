@@ -72,6 +72,16 @@
   .work-item:first-child { margin-top:12px; }
   .work-item:active { transform:scale(1.012); box-shadow:0 6px 18px rgba(0,0,0,.32); z-index:2; }
   .work-item.zebra { background:var(--surface2); }
+  /* ── İKİ YÖNLÜ KAYDIRMA: sağa → Değiştir (solda açılır), sola → Sil (sağda açılır) ── */
+  .we-wrap { position:relative; overflow:hidden; border-radius:16px; margin:0 12px 12px; }
+  .we-wrap:first-child { margin-top:12px; }
+  .we-wrap .work-item { margin:0; z-index:2; touch-action:pan-y; }
+  .we-edit-bg, .we-delete-bg { position:absolute; top:0; bottom:0; width:84px; color:#fff;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    font-size:12px; font-weight:600; z-index:1; cursor:pointer; }
+  .we-edit-bg { left:0; background:var(--accent2); }
+  .we-delete-bg { right:0; background:#FF5A5F; }
+  .we-edit-bg i, .we-delete-bg i { font-size:18px; }
   [data-theme="light"] .work-item.zebra { background: #f5f4fb; }
   [data-theme="light"] .work-item { background: #ffffff; box-shadow:0 1px 3px rgba(0,0,0,.08); }
   .work-item:hover { background:var(--surface2); }
@@ -805,8 +815,8 @@ function toggleMoreSheet(show, id) {
       <button class="more-sheet-item" onclick="toggleFavoriteFromMore(${id})"><i class="ti ti-star${isFavNow?'-filled fav-star':''}"></i> ${isFavNow?'Favoriden Çıkar':'Favoriye Ekle'}</button>
       <button class="more-sheet-item" onclick="stubAction('PDF / Nota görüntüleme')"><i class="ti ti-file-music"></i> PDF / Nota</button>
       <button class="more-sheet-item" onclick="stubAction('Kopyasını oluşturma')"><i class="ti ti-copy"></i> Kopyasını Oluştur</button>
-      <button class="more-sheet-item" onclick="toggleMoreSheet(false);openEditEserModal(${id})" style="display:${(isAdmin() || isEditor()) ? 'flex' : 'none'}"><i class="ti ti-edit"></i> Düzenle</button>
-      <button class="more-sheet-item danger" onclick="toggleMoreSheet(false);showDeleteConfirm(${id})" style="display:${isAdmin() ? 'flex' : 'none'}"><i class="ti ti-trash"></i> Sil</button>
+      <button class="more-sheet-item" onclick="toggleMoreSheet(false);openEditEserModal(${id})" style="display:${(isAdmin() || isEditor() || w.submitted_by === getUserId()) ? 'flex' : 'none'}"><i class="ti ti-edit"></i> Düzenle</button>
+      <button class="more-sheet-item danger" onclick="toggleMoreSheet(false);showDeleteConfirm(${id})" style="display:${(isAdmin() || isEditor() || w.submitted_by === getUserId()) ? 'flex' : 'none'}"><i class="ti ti-trash"></i> Sil</button>
     `;
   }
   overlay.classList.toggle('open', show);
@@ -947,6 +957,10 @@ function renderList() {
     return;
   }
   const favs = getFavs();
+  const uidNow = getUserId();
+  // Toplu seçim modundayken VE Favoriler sekmesindeyken (uzun-basma sistemi orada aktif)
+  // swipe kapalı — iki dokunuş sistemi aynı anda çakışmasın.
+  const swipeAllowedContext = !bulkMode && !favOnly;
   panel.innerHTML = filteredData.map((w, _zi) => {
     const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
     const countBadge = repCount > 0 ? `<span class="work-count-badge" title="${repCount} repertuvarda kullanılıyor">${repCount}</span>` : '';
@@ -959,7 +973,11 @@ function renderList() {
     // Kompakt görünüm: sadece isim + besteci + tek durum satırı.
     // Makam/Form/Akort/Usul/Repertuvar/Grup detayları artık satıra basınca açılan
     // detay panelinde (mevcut chips sistemi) gösteriliyor — liste kalabalık olmasın diye.
-    return `<div class="work-item${stripeClass}${isChecked?' selected':(selectedId===w.id&&!bulkMode?' selected':_zi%2===1?' zebra':'')}" onclick="${clickHandler}" data-id="${w.id}">
+    // Admin/editör her eseri düzenleyebilir; üye sadece kendi eklediği eseri (submitted_by) düzenleyebilir.
+    const canEdit = swipeAllowedContext && (isAdmin() || isEditor() || w.submitted_by === uidNow);
+    const cardOnclick = canEdit ? `weCardClick(event, ${w.id})` : clickHandler;
+    const touchAttrs = canEdit ? `ontouchstart="weTouchStart(event)" ontouchmove="weTouchMove(event)" ontouchend="weTouchEnd(event)"` : '';
+    const cardHtml = `<div class="work-item${stripeClass}${isChecked?' selected':(selectedId===w.id&&!bulkMode?' selected':_zi%2===1?' zebra':'')}" onclick="${cardOnclick}" data-id="${w.id}" ${touchAttrs}>
       ${checkbox}
       <div class="work-icon">🎵</div>
       <div class="work-num">${w.id||'—'}</div>
@@ -975,8 +993,107 @@ function renderList() {
         <span class="work-chevron" style="display:${bulkMode?'none':'inline'};">›</span>
       </div>
     </div>`;
+    if (!canEdit) return cardHtml;
+    return `<div class="we-wrap">
+      <div class="we-edit-bg" onclick="event.stopPropagation();weCloseOpenCard();openEditEserModal(${w.id})"><i class="ti ti-edit"></i>Değiştir</div>
+      <div class="we-delete-bg" onclick="event.stopPropagation();weCloseOpenCard();if(confirm('${(w.name||'Bu eseri').replace(/'/g,"\\'")} silinsin mi?'))deleteWork(${w.id});"><i class="ti ti-trash"></i>Sil</div>
+      ${cardHtml}
+    </div>`;
   }).join('');
 }
+
+// ── İki yönlü kaydırma: sağa → Değiştir, sola → Sil ──
+const WE_SWIPE_THRESHOLD = 44;
+const WE_SWIPE_MAX = 84;
+let _weSwipe = null;
+let _weOpenCard = null;
+
+function weCloseOpenCard() {
+  if (_weOpenCard) {
+    _weOpenCard.style.transition = 'transform .2s ease';
+    _weOpenCard.style.transform = 'translateX(0)';
+    _weOpenCard.classList.remove('swiped-open-left', 'swiped-open-right');
+    _weOpenCard = null;
+  }
+}
+
+function weTouchStart(e) {
+  if (_weOpenCard && _weOpenCard !== e.currentTarget) weCloseOpenCard();
+  const t = e.touches[0];
+  _weSwipe = { card: e.currentTarget, startX: t.clientX, startY: t.clientY, dx: 0, dir: null };
+}
+
+function weTouchMove(e) {
+  if (!_weSwipe || _weSwipe.card !== e.currentTarget) return;
+  const t = e.touches[0];
+  const dx = t.clientX - _weSwipe.startX;
+  const dy = t.clientY - _weSwipe.startY;
+  if (_weSwipe.dir === null) {
+    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+      _weSwipe.dir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+    }
+  }
+  if (_weSwipe.dir === 'v') { _weSwipe = null; return; }
+  if (_weSwipe.dir === 'h') {
+    e.preventDefault();
+    let base = 0;
+    if (_weSwipe.card.classList.contains('swiped-open-right')) base = -WE_SWIPE_MAX; // sil paneli açıktı
+    else if (_weSwipe.card.classList.contains('swiped-open-left')) base = WE_SWIPE_MAX; // değiştir paneli açıktı
+    const clamped = Math.min(WE_SWIPE_MAX, Math.max(base + dx, -WE_SWIPE_MAX));
+    _weSwipe.dx = clamped;
+    _weSwipe.card.style.transition = 'none';
+    _weSwipe.card.style.transform = `translateX(${clamped}px)`;
+  }
+}
+
+function weTouchEnd(e) {
+  if (!_weSwipe || _weSwipe.dir !== 'h') { _weSwipe = null; return; }
+  const card = _weSwipe.card;
+  card.style.transition = 'transform .2s ease';
+  // Gerçek bir yatay hareket olduysa, ardından gelen "click" olayını görmezden gel —
+  // bir swipe denemesi asla eser seçimine dönüşmemeli.
+  if (Math.abs(_weSwipe.dx) > 5) card.dataset.justSwiped = '1';
+  card.classList.remove('swiped-open-left', 'swiped-open-right');
+  if (_weSwipe.dx <= -WE_SWIPE_THRESHOLD) {
+    card.style.transform = `translateX(${-WE_SWIPE_MAX}px)`;
+    card.classList.add('swiped-open-right'); // sağdaki (Sil) panel açık
+    _weOpenCard = card;
+  } else if (_weSwipe.dx >= WE_SWIPE_THRESHOLD) {
+    card.style.transform = `translateX(${WE_SWIPE_MAX}px)`;
+    card.classList.add('swiped-open-left'); // soldaki (Değiştir) panel açık
+    _weOpenCard = card;
+  } else {
+    card.style.transform = 'translateX(0)';
+    if (_weOpenCard === card) _weOpenCard = null;
+  }
+  _weSwipe = null;
+}
+
+function weCardClick(e, id) {
+  const card = e.currentTarget;
+  if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) {
+    weCloseOpenCard();
+    return;
+  }
+  if (card.dataset.justSwiped === '1') {
+    delete card.dataset.justSwiped;
+    return;
+  }
+  selectWork(id);
+}
+
+// Sayfa bfcache'den geri geldiğinde önceki kaydırma durumu donmuş kalabiliyor —
+// her pageshow'da temiz duruma sıfırla (repertuvarlardaki ile aynı önlem).
+window.addEventListener('pageshow', () => {
+  document.querySelectorAll('.work-item.swiped-open-left, .work-item.swiped-open-right').forEach(card => {
+    card.classList.remove('swiped-open-left', 'swiped-open-right');
+    card.style.transition = 'none';
+    card.style.transform = 'translateX(0)';
+    delete card.dataset.justSwiped;
+  });
+  _weOpenCard = null;
+  _weSwipe = null;
+});
 
 // ── Favoriler filtresinde uzun-basma ile toplu seçim ──
 function initLongPressHandlers() {
