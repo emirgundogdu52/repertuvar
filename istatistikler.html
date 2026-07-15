@@ -135,8 +135,10 @@ function sttHeaders() {
 
 async function loadStats() {
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/page_views?select=path,referrer,user_id,session_id,timezone,device_type,platform,created_at&order=created_at.desc&limit=20000', {
-      headers: sttHeaders()
+        const r = await fetch(SUPA_URL + '/rest/v1/page_views?select=path,referrer,user_id,session_id,timezone,device_type,platform,created_at&order=created_at.desc&limit=20000', {
+      headers: sttHeaders(),
+      signal: AbortSignal.timeout(10000)
+    });
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     sttRows = await r.json();
