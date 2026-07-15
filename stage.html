@@ -431,7 +431,7 @@ function repVisibilityFilterFn() {
   const uid = getUserId();
   const gid = (typeof getGroupId === 'function') ? getGroupId() : null;
   if (gid) {
-    return (x) => x.group_id === gid;
+    return (x) => x.owner_id === uid || x.user_id === uid || x.group_id === gid || x.is_public === true;
   }
   return (x) => x.owner_id === uid || x.user_id === uid || x.is_public === true;
 }
@@ -439,7 +439,7 @@ function repVisibilityQuery() {
   const uid = getUserId();
   const gid = (typeof getGroupId === 'function') ? getGroupId() : null;
   return gid
-    ? 'group_id=eq.' + gid
+    ? 'or=(owner_id.eq.' + uid + ',group_id.eq.' + gid + ',is_public.eq.true)'
     : 'or=(owner_id.eq.' + uid + ',is_public.eq.true)';
 }
 

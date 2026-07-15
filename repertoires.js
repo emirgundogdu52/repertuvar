@@ -226,7 +226,7 @@ async function load(){
     const uid2 = getUserId();
     const gid = getGroupId();
     const repQuery = gid
-      ? 'order=created_at&limit=100&group_id=eq.'+gid
+      ? 'order=created_at&limit=100&or=(owner_id.eq.'+uid2+',group_id.eq.'+gid+',is_public.eq.true)'
       : (uid2
         ? 'order=created_at&limit=100&or=(owner_id.eq.'+uid2+',is_public.eq.true)'
         : 'order=created_at&limit=100&is_public=eq.true');

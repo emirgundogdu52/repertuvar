@@ -140,7 +140,7 @@ window.syncOfflineData = async function() {
     const gid = (typeof getGroupId === 'function') ? getGroupId() : localStorage.getItem('user_group_id');
     const uid = (typeof getUserId === 'function') ? getUserId() : (localStorage.getItem('sb_user') ? JSON.parse(localStorage.getItem('sb_user')).id : null);
     const repFilter = gid
-      ? '/rest/v1/repertoires?select=*&order=created_at.desc&group_id=eq.' + gid
+      ? '/rest/v1/repertoires?select=*&order=created_at.desc&or=(owner_id.eq.' + uid + ',group_id.eq.' + gid + ',is_public.eq.true)'
       : (uid ? '/rest/v1/repertoires?select=*&order=created_at.desc&or=(owner_id.eq.' + uid + ',is_public.eq.true)' : '/rest/v1/repertoires?select=*&order=created_at.desc&is_public=eq.true');
     const solFilter = gid ? '/rest/v1/solistler?select=*&order=name.asc&group_id=eq.' + gid : '/rest/v1/solistler?select=*&order=name.asc';
 
