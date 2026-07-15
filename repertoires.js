@@ -63,6 +63,8 @@ function riCloseOpenCard() {
     _riOpenCard.style.transition = 'transform .2s ease';
     _riOpenCard.style.transform = 'translateX(0)';
     _riOpenCard.classList.remove('swiped-open-left', 'swiped-open-right');
+    const wrap = _riOpenCard.closest('.ri-wrap');
+    if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
     _riOpenCard = null;
   }
 }
@@ -93,6 +95,8 @@ function riTouchMove(e) {
     _riSwipe.dx = clamped;
     _riSwipe.card.style.transition = 'none';
     _riSwipe.card.style.transform = `translateX(${clamped}px)`;
+    const wrap = _riSwipe.card.closest('.ri-wrap');
+    if (wrap) wrap.style.setProperty('--swipe-glow', Math.min(1, Math.abs(clamped) / RI_SWIPE_MAX));
   }
 }
 
@@ -104,16 +108,20 @@ function riTouchEnd(e) {
   // "click" olayını görmezden gel — bir swipe denemesi asla kart seçimine dönüşmemeli.
   if (Math.abs(_riSwipe.dx) > 5) card.dataset.justSwiped = '1';
   card.classList.remove('swiped-open-left', 'swiped-open-right');
+  const wrap = card.closest('.ri-wrap');
   if (_riSwipe.dx <= -RI_SWIPE_THRESHOLD) {
     card.style.transform = `translateX(${-RI_SWIPE_MAX}px)`;
     card.classList.add('swiped-open-right'); // sağdaki (Sil/Gizle) panel açık
+    if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _riOpenCard = card;
   } else if (_riSwipe.dx >= RI_SWIPE_THRESHOLD) {
     card.style.transform = `translateX(${RI_SWIPE_MAX}px)`;
     card.classList.add('swiped-open-left'); // soldaki (Değiştir) panel açık
+    if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _riOpenCard = card;
   } else {
     card.style.transform = 'translateX(0)';
+    if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
     if (_riOpenCard === card) _riOpenCard = null;
   }
   _riSwipe = null;
@@ -141,6 +149,8 @@ window.addEventListener('pageshow', () => {
     card.style.transition = 'none';
     card.style.transform = 'translateX(0)';
     delete card.dataset.justSwiped;
+    const wrap = card.closest('.ri-wrap');
+    if (wrap) wrap.style.setProperty('--swipe-glow', 0);
   });
   _riOpenCard = null;
   _riSwipe = null;

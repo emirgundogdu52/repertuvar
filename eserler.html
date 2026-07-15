@@ -81,6 +81,14 @@
      kırpılıyordu — aynı parıltı efektini dış sarmalayıcıya (kırpılmayan) taşıyoruz. */
   .we-wrap:has(.work-item.selected) { box-shadow:0 2px 12px rgba(255,200,61,.18); border-radius:16px; }
   .we-wrap:has(.work-item:active) { box-shadow:0 0 0 1px rgba(255,200,61,.35),0 4px 18px rgba(255,200,61,.18); border-radius:16px; }
+  /* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
+  .we-wrap::before {
+    content:''; position:absolute; inset:0; border-radius:16px; padding:2px;
+    background:linear-gradient(90deg,var(--accent2),#FF5A5F);
+    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;
+    opacity:var(--swipe-glow,0); pointer-events:none; z-index:3;
+  }
   .we-edit-bg, .we-delete-bg { position:absolute; top:0; bottom:0; width:84px; color:#fff;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
     font-size:12px; font-weight:600; z-index:1; cursor:pointer; }
@@ -1018,6 +1026,8 @@ function weCloseOpenCard() {
     _weOpenCard.style.transition = 'transform .2s ease';
     _weOpenCard.style.transform = 'translateX(0)';
     _weOpenCard.classList.remove('swiped-open-left', 'swiped-open-right');
+    const wrap = _weOpenCard.closest('.we-wrap');
+    if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
     _weOpenCard = null;
   }
 }
@@ -1048,6 +1058,8 @@ function weTouchMove(e) {
     _weSwipe.dx = clamped;
     _weSwipe.card.style.transition = 'none';
     _weSwipe.card.style.transform = `translateX(${clamped}px)`;
+    const wrap = _weSwipe.card.closest('.we-wrap');
+    if (wrap) wrap.style.setProperty('--swipe-glow', Math.min(1, Math.abs(clamped) / WE_SWIPE_MAX));
   }
 }
 
@@ -1059,16 +1071,20 @@ function weTouchEnd(e) {
   // bir swipe denemesi asla eser seçimine dönüşmemeli.
   if (Math.abs(_weSwipe.dx) > 5) card.dataset.justSwiped = '1';
   card.classList.remove('swiped-open-left', 'swiped-open-right');
+  const wrap = card.closest('.we-wrap');
   if (_weSwipe.dx <= -WE_SWIPE_THRESHOLD) {
     card.style.transform = `translateX(${-WE_SWIPE_MAX}px)`;
     card.classList.add('swiped-open-right'); // sağdaki (Sil) panel açık
+    if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _weOpenCard = card;
   } else if (_weSwipe.dx >= WE_SWIPE_THRESHOLD) {
     card.style.transform = `translateX(${WE_SWIPE_MAX}px)`;
     card.classList.add('swiped-open-left'); // soldaki (Değiştir) panel açık
+    if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _weOpenCard = card;
   } else {
     card.style.transform = 'translateX(0)';
+    if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
     if (_weOpenCard === card) _weOpenCard = null;
   }
   _weSwipe = null;
@@ -1095,6 +1111,8 @@ window.addEventListener('pageshow', () => {
     card.style.transition = 'none';
     card.style.transform = 'translateX(0)';
     delete card.dataset.justSwiped;
+    const wrap = card.closest('.we-wrap');
+    if (wrap) wrap.style.setProperty('--swipe-glow', 0);
   });
   _weOpenCard = null;
   _weSwipe = null;

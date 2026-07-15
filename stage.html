@@ -47,6 +47,14 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .rs-delete-bg{right:0;background:#e5484d;}
 .rs-delete-bg.rs-hide-bg{background:#4A90D9;}
 .rs-edit-bg i,.rs-delete-bg i{font-size:18px;}
+/* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
+.rs-wrap::before {
+  content:''; position:absolute; inset:0; border-radius:10px; padding:2px;
+  background:linear-gradient(90deg,#4DA3FF,#e5484d);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  opacity:var(--swipe-glow,0); pointer-events:none; z-index:3;
+}
 /* Picker ekranı: marka paleti (altın/mavi) — sahne performans ekranı kendi mor gece paletinde kalıyor */
 #pickerScreen{--accent:#FFC83D;--accent2:#4DA3FF;}
 .bstart{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;padding:9px;color:#0a0818;font-size:16px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;box-shadow:0 4px 14px rgba(255,200,61,.22);}
@@ -539,6 +547,8 @@ function rsCloseOpenCard() {
     _rsOpenCard.style.transition = 'transform .2s ease';
     _rsOpenCard.style.transform = 'translateX(0)';
     _rsOpenCard.classList.remove('swiped-open-left', 'swiped-open-right');
+    const wrap = _rsOpenCard.closest('.rs-wrap');
+    if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
     _rsOpenCard = null;
   }
 }
@@ -569,6 +579,8 @@ function rsTouchMove(e) {
     _rsSwipe.dx = clamped;
     _rsSwipe.card.style.transition = 'none';
     _rsSwipe.card.style.transform = `translateX(${clamped}px)`;
+    const wrap = _rsSwipe.card.closest('.rs-wrap');
+    if (wrap) wrap.style.setProperty('--swipe-glow', Math.min(1, Math.abs(clamped) / RS_SWIPE_MAX));
   }
 }
 
@@ -578,16 +590,20 @@ function rsTouchEnd(e) {
   card.style.transition = 'transform .2s ease';
   if (Math.abs(_rsSwipe.dx) > 5) card.dataset.justSwiped = '1';
   card.classList.remove('swiped-open-left', 'swiped-open-right');
+  const wrap = card.closest('.rs-wrap');
   if (_rsSwipe.dx <= -RS_SWIPE_THRESHOLD) {
     card.style.transform = `translateX(${-RS_SWIPE_MAX}px)`;
     card.classList.add('swiped-open-right');
+    if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _rsOpenCard = card;
   } else if (_rsSwipe.dx >= RS_SWIPE_THRESHOLD) {
     card.style.transform = `translateX(${RS_SWIPE_MAX}px)`;
     card.classList.add('swiped-open-left');
+    if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _rsOpenCard = card;
   } else {
     card.style.transform = 'translateX(0)';
+    if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
     if (_rsOpenCard === card) _rsOpenCard = null;
   }
   _rsSwipe = null;
@@ -612,6 +628,8 @@ window.addEventListener('pageshow', () => {
     card.style.transition = 'none';
     card.style.transform = 'translateX(0)';
     delete card.dataset.justSwiped;
+    const wrap = card.closest('.rs-wrap');
+    if (wrap) wrap.style.setProperty('--swipe-glow', 0);
   });
   _rsOpenCard = null;
   _rsSwipe = null;
