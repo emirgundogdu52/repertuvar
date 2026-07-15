@@ -2,6 +2,8 @@
 <html lang="tr">
 <head>
 <script>window.onerror = function(msg, src, line, col, err) { document.title = '❌ ' + msg + ' L' + line; document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:12px;font-size:14px;position:fixed;top:0;left:0;right:0;z-index:99999;">HATA: ' + msg + ' (satır ' + line + ')</div>'); };</script>
+<script>window.addEventListener('unhandledrejection', function(e) { document.body.insertAdjacentHTML('afterbegin', '<div style="background:red;color:white;padding:12px;font-size:14px;position:fixed;top:0;left:0;right:0;z-index:99999;">PROMISE HATASI: ' + (e.reason && e.reason.message ? e.reason.message : e.reason) + '</div>'); });</script>
+  
   <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
