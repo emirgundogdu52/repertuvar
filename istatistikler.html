@@ -5,7 +5,7 @@
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Repertuvar — İstatistikler</title>
-<script src="auth.js" onerror="var el=document.getElementById('sttLoading'); if(el) el.innerHTML = 'Bağlantı zayıf, sayfa yüklenemedi. <button onclick=\'location.reload()\'>Tekrar Dene</button>';"></script>
+<script src="auth.js"></script>
 <script src="topnav.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -135,11 +135,7 @@ function sttHeaders() {
 
 async function loadStats() {
   try {
-        const r = await fetch(SUPA_URL + '/rest/v1/page_views?select=path,referrer,user_id,session_id,timezone,device_type,platform,created_at&order=created_at.desc&limit=20000', {
-      headers: sttHeaders(),
-      signal: AbortSignal.timeout(10000)
-    });
-    });
+    const r = await fetch(SUPA_URL + '/rest/v1/page_views?select=path,referrer,user_id,session_id,timezone,device_type,platform,created_at&order=created_at.desc&limit=20000', { headers: sttHeaders() });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     sttRows = await r.json();
     document.getElementById('sttLoading').style.display = 'none';
@@ -264,10 +260,6 @@ document.getElementById('sttRange').addEventListener('click', (e) => {
 });
 
 (async function init() {
-  if (typeof requireAuth !== 'function') {
-    document.getElementById('sttLoading').innerHTML = 'Sayfa tam yüklenemedi (zayıf bağlantı olabilir). <button onclick="location.reload()">Tekrar Dene</button>';
-    return;
-  }
   const ok = await requireAuth(); if (!ok) return;
   if (!isAdmin()) {
     document.querySelector('.page').innerHTML = '<div class="stt-empty" style="padding:80px 20px;">Bu sayfayı görüntüleme yetkin yok.</div>';
