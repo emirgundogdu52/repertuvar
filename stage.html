@@ -256,6 +256,15 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .sip-row{display:flex;align-items:center;gap:8px;font-size:13px;}
 .sip-label{color:rgba(255,255,255,0.5);font-size:11px;min-width:80px;}
 .sip-val{color:#fff;font-weight:600;}
+
+.font-slider-wrap{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:30px;padding:7px 14px;flex-shrink:0;}
+.font-slider-wrap .fs-a-sm{font-size:12px;font-weight:800;color:var(--text3);line-height:1;}
+.font-slider-wrap .fs-a-lg{font-size:19px;font-weight:800;color:var(--text3);line-height:1;}
+.font-slider{-webkit-appearance:none;appearance:none;width:110px;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;}
+.font-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
+.font-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
+.font-slider::-moz-range-track{height:4px;border-radius:2px;background:transparent;}
+@media (max-width:768px){ .font-slider{width:70px;} .font-slider-wrap{padding:6px 10px;gap:6px;} }
 </style>
 <script src="auth.js"></script>
 <style id="v2-stage-nav">
@@ -328,16 +337,22 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   <div class="sm" id="sm" onclick="nextWork()"></div>
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
+    <div style="position:relative;flex-shrink:0;">
+      <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" style="background:none;border:none;width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s;flex-shrink:0;padding:0;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'"><i class="ti ti-adjustments-horizontal" style="font-size:22px;"></i></button>
+      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;left:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;gap:8px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;" id="stageToolsRow"></div>
+      </div>
+    </div>
     <div class="np" id="np" style="display:none;">
       <div class="nl">Sıradaki</div>
       <div class="nn" id="nn">—</div>
       <div class="nm" id="nm">—</div>
     </div>
-    <div style="position:relative;margin-left:auto;">
-      <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" style="background:none;border:none;width:56px;height:56px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s;flex-shrink:0;padding:0;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'"><i class="ti ti-adjustments-horizontal" style="font-size:24px;"></i></button>
-      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;left:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;gap:8px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;" id="stageToolsRow"></div>
-      </div>
+    <div class="font-slider-wrap" style="margin-left:auto;" title="Yazı Boyutu">
+      <span class="fs-a-sm">A</span>
+      <input type="range" id="lyricsFontSlider" class="font-slider" min="0.75" max="1.6" step="0.1" value="1"
+        oninput="setLyricsFontScale(this.value)">
+      <span class="fs-a-lg">A</span>
     </div>
     <div class="th" style="display:none;">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
@@ -524,19 +539,19 @@ function setLyricsAlign(align) {
   });
 }
 
-const LYRICS_SCALE_MIN = 0.75, LYRICS_SCALE_MAX = 1.6, LYRICS_SCALE_STEP = 0.1;
-function adjustLyricsFontSize(delta) {
-  let scale = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
-  scale = Math.min(LYRICS_SCALE_MAX, Math.max(LYRICS_SCALE_MIN, +(scale + delta).toFixed(2)));
+const LYRICS_SCALE_MIN = 0.75, LYRICS_SCALE_MAX = 1.6;
+function setLyricsFontScale(scale) {
+  scale = Math.min(LYRICS_SCALE_MAX, Math.max(LYRICS_SCALE_MIN, +parseFloat(scale).toFixed(2)));
   localStorage.setItem('stageLyricsScale', scale);
   document.documentElement.style.setProperty('--lyrics-scale', scale);
-  updateFontSizeButtons(scale);
+  updateFontSliderUI(scale);
 }
-function updateFontSizeButtons(scale) {
-  const minusBtn = document.getElementById('fontSizeMinus');
-  const plusBtn = document.getElementById('fontSizePlus');
-  if (minusBtn) minusBtn.disabled = scale <= LYRICS_SCALE_MIN;
-  if (plusBtn) plusBtn.disabled = scale >= LYRICS_SCALE_MAX;
+function updateFontSliderUI(scale) {
+  const slider = document.getElementById('lyricsFontSlider');
+  if (!slider) return;
+  slider.value = scale;
+  const pct = ((scale - LYRICS_SCALE_MIN) / (LYRICS_SCALE_MAX - LYRICS_SCALE_MIN)) * 100;
+  slider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--border) ${pct}%, var(--border) 100%)`;
 }
 
 // Bir satırın tamamen akor isimlerinden oluşup oluşmadığını denetler (Cm, Fm, D#, G#m7, A/C# vb.)
@@ -718,7 +733,7 @@ function renderStage(){
   requestAnimationFrame(() => setLyricsAlign(savedAlign));
   const savedScale = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
   document.documentElement.style.setProperty('--lyrics-scale', savedScale);
-  updateFontSizeButtons(savedScale);
+  updateFontSliderUI(savedScale);
   const next=items[curIdx+1];
   const np=document.getElementById('np');
   if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,nw.measurement,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
@@ -799,16 +814,13 @@ function buildStageToolsRow(mode) {
   if (mode === 'nota') {
     row.innerHTML = themeBtn + navBtn;
   } else {
-    // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama ve yazı boyutu ikisinde de geçerli
-    const fontBtns = `
-      <button onclick="event.stopPropagation();adjustLyricsFontSize(-0.1)" id="fontSizeMinus" title="Yazıyı Küçült" class="align-btn"><span style="font-size:11px;font-weight:700;">A−</span></button>
-      <button onclick="event.stopPropagation();adjustLyricsFontSize(0.1)" id="fontSizePlus" title="Yazıyı Büyüt" class="align-btn"><span style="font-size:15px;font-weight:700;">A+</span></button>`;
+    // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama aynı şekilde geçerli
+    // (Yazı boyutu artık .sb üzerindeki kalıcı slider ile ayarlanıyor — bu panelden çıkarıldı)
     const alignBtns = `
       <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>`;
-    row.innerHTML = fontBtns + alignBtns + themeBtn + navBtn;
-    updateFontSizeButtons(parseFloat(localStorage.getItem('stageLyricsScale')) || 1);
+    row.innerHTML = alignBtns + themeBtn + navBtn;
   }
 }
 
