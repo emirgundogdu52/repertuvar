@@ -1393,9 +1393,20 @@ function selectWork(id) {
     </div>
 
     <div id="tab-akorlar" class="detail-tab-content detail-body${lastTab==='akorlar'?' active':''}">
-      <div style="margin-bottom:16px;">
-        <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Güfte & Akorlar</div>
-        <div class="lyrics-box" style="font-family:monospace;font-size:13px;line-height:2;">
+      ${(isAdmin() || isEditor()) ? `
+        <div style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;">
+          Akoru <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz — örn. <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--text2);">[Dm]Sabahtan [G]kalktım</code>
+        </div>
+        <textarea id="inline_chords_${w.id}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="updateChordsPreview(${w.id})" style="width:100%;min-height:320px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
+          placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm"
+        >${(w.chords || w.lyrics || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+          <button onclick="saveChords(${w.id})" style="padding:8px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;color:#1a1200;font-size:13px;font-weight:600;cursor:pointer;">💾 Kaydet</button>
+          <button id="chords_preview_btn_${w.id}" onclick="toggleChordsPreview(${w.id})" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:13px;cursor:pointer;">👁 Önizle</button>
+        </div>
+        <div id="chords_preview_${w.id}" class="lyrics-box" style="display:none;margin-top:12px;"></div>
+      ` : `
+        <div class="lyrics-box">
           ${w.chords && w.chords.trim()
             ? renderChords(w.chords.trim())
             : (w.lyrics
@@ -1403,19 +1414,7 @@ function selectWork(id) {
                 : `<span style="color:var(--text3);font-size:12px;">Güfte ve akor bilgisi yok.</span>`)
           }
         </div>
-      </div>
-      ${(isAdmin() || isEditor()) ? `
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
-          <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Akor Gir</div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.6;">
-            Akoru <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:#58A6FF;">[Am]</code> gibi köşeli parantez içinde, ait olduğu hecenin önüne yaz. Örn: <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--text2);">[Dm]Sabahtan [G]kalktım</code>
-          </div>
-          <textarea id="inline_chords_${w.id}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" style="width:100%;min-height:160px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:monospace;line-height:1.8;resize:vertical;"
-            placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm"
-          >${(w.chords || w.lyrics || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
-          <button onclick="saveChords(${w.id})" style="margin-top:10px;padding:7px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;color:#1a1200;font-size:13px;font-weight:600;cursor:pointer;">💾 Kaydet</button>
-        </div>
-      ` : ''}
+      `}
     </div>
 
     <div id="tab-bilgiler" class="detail-tab-content detail-body${lastTab==='bilgiler'?' active':''}">
@@ -1558,6 +1557,26 @@ function renderChords(text) {
   }).join('');
 }
 
+function updateChordsPreview(id){
+  const prev = document.getElementById('chords_preview_'+id);
+  const ta = document.getElementById('inline_chords_'+id);
+  if(!prev || !ta) return;
+  if(prev.style.display !== 'block') return; // gizliyken boşuna render etme
+  const val = ta.value.trim();
+  prev.innerHTML = hasRealChords(val)
+    ? renderChords(val)
+    : '<span style="color:var(--text3);font-size:12px;">Önizlemek için akor ([Am]) ekleyin.</span>';
+}
+function toggleChordsPreview(id){
+  const prev = document.getElementById('chords_preview_'+id);
+  const btn = document.getElementById('chords_preview_btn_'+id);
+  if(!prev) return;
+  const show = prev.style.display !== 'block';
+  prev.style.display = show ? 'block' : 'none';
+  if(btn) btn.style.borderColor = show ? 'var(--accent)' : 'var(--border)';
+  if(show) updateChordsPreview(id);
+}
+
 async function saveChords(id) {
   const ta = document.getElementById('inline_chords_'+id);
   if (!ta) { console.error('textarea bulunamadı: inline_chords_'+id); return; }
@@ -1579,9 +1598,12 @@ async function saveChords(id) {
     if (r.ok || r.status === 204) {
       const idx = DATA.findIndex(x => x.id === id || x.id === parseInt(id));
       if (idx > -1) { DATA[idx].chords = chords; if (_hasCh) DATA[idx].lyrics = chordsToLyrics(chords); }
-      const display = document.querySelector('#tab-akorlar .lyrics-box');
-      if (display) {
-        display.innerHTML = _hasCh ? renderChords(chords) : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>';
+      const prev = document.getElementById('chords_preview_'+id);
+      if (prev) {
+        prev.innerHTML = _hasCh ? renderChords(chords) : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>';
+        prev.style.display = 'block';
+        const pb = document.getElementById('chords_preview_btn_'+id);
+        if (pb) pb.style.borderColor = 'var(--accent)';
       }
       // Güfte de akordan türetildiği için güfte görünümünü de tazele
       if (_hasCh) {
