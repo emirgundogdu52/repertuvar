@@ -9,6 +9,17 @@
     kondu — sağ altta. Ayarlar (⚙️) butonu sola taşındı. Fonksiyonlar:
     setLyricsFontScale(), updateFontSliderUI() — eski adjustLyricsFontSize()/
     updateFontSizeButtons() YERİNE geçti, ikisi birden var olmamalı.
+  - 2026-07-16: (1) GÜFTE TAM GENİŞLİK — .wtitle/.wnote/.wlyrics üzerindeki
+    700px/600px max-width tavanları kaldırıldı (max-width:100%), .sm yan
+    padding'i küçültüldü; güfte artık ekranın kenarına kadar açılıyor.
+    (2) SÖZ/AKOR/NOTA yatay bar (.view-switch-wrap) KALDIRILDI, yerine üst
+    sağda bilgi ikonunun yanında açılır MENÜ geldi: #viewModeBtn + #viewModeMenu
+    (.vm-menu/.vm-item), toggleViewModeMenu()/closeViewModeMenu(). Aktif moda
+    göre üstteki ikon değişir; tek mod varsa buton gizlenir.
+    (3) GÜVENLİ SAYFA ATLATMA — .sm üzerindeki onclick="nextWork()" KALDIRILDI
+    (güfteye dokununca artık sayfa atlamıyor). Sol/sağ .side-nav-btn butonları
+    büyütülüp güvenli dokunma alanı haline getirildi; sadece onlara dokununca
+    sayfa atlıyor. (Swipe ve pedal/klavye navigasyonu aynen çalışıyor.)
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -91,27 +102,27 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .bex:hover{color:var(--red);border-color:var(--red);}
 
 /* ═══ Görünüm değiştirici: Söz / Akor / Nota (segmented control) ═══ */
-.view-switch-wrap{display:flex;justify-content:center;padding:6px 12px 2px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);}
-.view-switch{display:inline-flex;gap:2px;padding:3px;background:rgba(120,100,255,0.08);border:1px solid var(--border);border-radius:20px;}
-.vs-btn{background:none;border:none;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;border-radius:16px;display:inline-flex;align-items:center;gap:5px;transition:all .15s;font-family:'DM Sans',sans-serif;}
-.vs-btn .ti{font-size:15px;line-height:1;}
-.vs-btn:hover:not(:disabled):not(.active){color:var(--text);}
-.vs-btn.active{background:var(--accent);color:#1a0f2e;}
-.vs-btn:disabled{opacity:.32;cursor:not-allowed;}
-.view-switch-wrap.single-mode{display:none;}
+/* ═══ Görünüm menüsü: Söz / Akor / Nota (üst sağ, açılır menü) ═══ */
+.vm-menu{position:absolute;top:46px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px;min-width:158px;z-index:9999;box-shadow:0 10px 28px rgba(0,0,0,.55);}
+.vm-item{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;color:var(--text);font-size:14px;font-weight:600;padding:10px 12px;border-radius:8px;cursor:pointer;text-align:left;font-family:inherit;transition:background .12s,color .12s;}
+.vm-item .ti{font-size:17px;line-height:1;}
+.vm-item:hover:not(:disabled){background:var(--surface2);}
+.vm-item.active{color:var(--accent);}
+.vm-item.active .ti{color:var(--accent);}
+.vm-item:disabled{opacity:.32;cursor:not-allowed;}
 
-.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 56px 80px;position:relative;overflow-y:auto;cursor:pointer;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
+.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 16px 80px;position:relative;overflow-y:auto;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
-.wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
+.wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:100%;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
 .wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;opacity:0;animation:si .4s ease .14s forwards;}
 .wcr:empty{display:none;margin:0;}
 .wch{padding:5px 14px;border-radius:20px;font-size:13px;border:1px solid var(--border);color:var(--text2);background:var(--surface);}
 .wch.m{border-color:#3a3060;color:#9b8fd4;background:#1a1828;}
 .wch.n{border-color:#3d2a1a;color:var(--accent);background:#1e1208;}
 .wch.i{border-color:#1a2d1a;color:#7ab87a;background:#0f1a0f;}
-.wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:600px;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
-.wlyrics{font-size:calc(clamp(18px,2.8vw,28px) * var(--lyrics-scale,1));color:var(--text);text-align:center;width:100%;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;box-sizing:border-box;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:100%;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
+.wlyrics{font-size:calc(clamp(18px,2.8vw,28px) * var(--lyrics-scale,1));color:var(--text);text-align:center;width:100%;max-width:100%;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 4px 40px;box-sizing:border-box;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .wnota{display:flex;justify-content:center;align-items:center;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;width:100%;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
@@ -176,10 +187,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
   cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 4px;
-  padding: 14px 8px;
-  width: 48px;
-  transition: all .2s;
-  z-index: 50;
+  padding: 0;
+  width: 54px;
+  height: 132px;
+  transition: background .2s, border-color .2s, transform .2s;
+  z-index: 60;
   user-select: none;
   font-family: 'DM Sans', sans-serif;
 }
@@ -197,17 +209,17 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
     .strn { font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .bex, .stage-nav a { font-size:10px; padding:4px 8px; }
     .stage-nav { gap:4px; }
-    .sm { padding:20px 60px 100px; }
+    .sm { padding:20px 14px 100px; }
     .sb { padding:0 12px 16px; flex-wrap:wrap; gap:8px; }
     .side-nav-left { left:8px; border-radius:12px; }
     .side-nav-right { right:8px; border-radius:12px; }
-    .side-nav-btn { width:44px; height:44px; }
+    .side-nav-btn { width:50px; height:120px; }
     /* Picker */
     .pi { max-width:100%; }
     .pi-fixed-top, .pi-scroll, .pi-fixed-bottom { padding-left:16px; padding-right:16px; }
     .rb { padding:14px 16px; }
     .rbn { font-size:14px; }
-    .side-nav-btn { width:40px; padding:10px 6px; }
+    .side-nav-btn { width:50px; height:120px; padding:0; }
     .snb-label { font-size:9px; }
     .snb-arrow { font-size:22px; }
     .np { max-width:160px; }
@@ -215,7 +227,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
   @media (max-width: 480px) {
     .wtitle { font-size:clamp(18px,5vw,26px); }
     .wlyrics { font-size:calc(clamp(14px,4.2vw,20px) * var(--lyrics-scale,1)); line-height:1.8; padding:0 4px 80px; }
-    .side-nav-btn { width:40px !important; height:40px !important; }
+    .side-nav-btn { width:46px !important; height:108px !important; }
     .side-nav-left { left:6px !important; border-radius:10px !important; }
     .side-nav-right { right:6px !important; border-radius:10px !important; }
     .snb-label { display:none; }
@@ -223,7 +235,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
     .th { font-size:10px; }
     .stb { padding:6px 8px; padding-top:calc(6px + env(safe-area-inset-top)); }
     .stage-nav a, .bex { font-size:10px !important; padding:3px 6px !important; }
-    .sm { padding:16px 52px 80px; }
+    .sm { padding:16px 10px 80px; }
     /* Picker screen on mobile */
     .pi-fixed-top, .pi-scroll, .pi-fixed-bottom { padding-left:16px; padding-right:16px; }
     .ptitle { font-size:20px; }
@@ -338,7 +350,17 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="pds" id="pds"></div>
       <div class="stc" id="stc">1/1</div>
     </div>
-    <div style="display:flex;align-items:center;gap:6px;">
+    <div style="display:flex;align-items:center;gap:4px;">
+      <div style="position:relative;">
+        <button class="stage-info-btn" id="viewModeBtn" onclick="event.stopPropagation();toggleViewModeMenu(event)" title="Görünüm (Söz / Akor / Nota)">
+          <i class="ti ti-music" id="viewModeIcon" style="font-size:22px;"></i>
+        </button>
+        <div class="vm-menu" id="viewModeMenu" style="display:none;">
+          <button class="vm-item" data-mode="lyrics" onclick="event.stopPropagation();setViewMode('lyrics');closeViewModeMenu();"><i class="ti ti-music" aria-hidden="true"></i> Söz</button>
+          <button class="vm-item" data-mode="chords" onclick="event.stopPropagation();setViewMode('chords');closeViewModeMenu();"><i class="ti ti-guitar-pick" aria-hidden="true"></i> Akor</button>
+          <button class="vm-item" data-mode="nota" onclick="event.stopPropagation();setViewMode('nota');closeViewModeMenu();"><i class="ti ti-file-music" aria-hidden="true"></i> Nota</button>
+        </div>
+      </div>
       <button class="stage-info-btn" onclick="openInfoSheet()" title="Eser Bilgileri">
         <i class="ti ti-info-circle" style="font-size:22px;"></i>
       </button>
@@ -353,15 +375,8 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     </div>
     <div class="info-sheet-body" id="stageInfoPanel"></div>
   </div>
-  <div class="view-switch-wrap" id="viewSwitchWrap">
-    <div class="view-switch" id="viewSwitch">
-      <button class="vs-btn" data-mode="lyrics" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i> Söz</button>
-      <button class="vs-btn" data-mode="chords" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i> Akor</button>
-      <button class="vs-btn" data-mode="nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i> Nota</button>
-    </div>
-  </div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
-  <div class="sm" id="sm" onclick="nextWork()"></div>
+  <div class="sm" id="sm"></div>
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
     <div style="position:relative;flex-shrink:0;">
@@ -965,19 +980,40 @@ function setViewMode(mode) {
   renderStage();
 }
 
+// Açılır menüyü aç/kapat
+function toggleViewModeMenu(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  const m = document.getElementById('viewModeMenu');
+  if (!m) return;
+  m.style.display = (m.style.display === 'none' || !m.style.display) ? 'block' : 'none';
+}
+function closeViewModeMenu() {
+  const m = document.getElementById('viewModeMenu');
+  if (m) m.style.display = 'none';
+}
+// Menü dışında bir yere tıklanınca kapat
+document.addEventListener('click', closeViewModeMenu);
+
 function updateViewToggleUI(w) {
-  const wrap = document.getElementById('viewSwitchWrap');
-  if (!wrap) return;
+  const btn  = document.getElementById('viewModeBtn');
+  const menu = document.getElementById('viewModeMenu');
+  if (!btn || !menu) return;
   const mode = getStageViewMode(w);
   const available = { lyrics: true, chords: !!w.chords, nota: !!w.notaUrl };
-  wrap.querySelectorAll('.vs-btn').forEach(btn => {
-    const m = btn.dataset.mode;
-    btn.classList.toggle('active', m === mode);
-    btn.disabled = !available[m];
+  const icons = { lyrics: 'ti ti-music', chords: 'ti ti-guitar-pick', nota: 'ti ti-file-music' };
+  // Üstteki buton ikonunu aktif moda göre değiştir
+  const iconEl = document.getElementById('viewModeIcon');
+  if (iconEl) iconEl.className = icons[mode] || icons.lyrics;
+  // Menü öğelerini işaretle / gerektiğinde kapat
+  menu.querySelectorAll('.vm-item').forEach(it => {
+    const m = it.dataset.mode;
+    it.classList.toggle('active', m === mode);
+    it.disabled = !available[m];
   });
-  // Tek mod varsa (geçecek bir şey yoksa) kontrolü tamamen gizle
+  // Tek mod varsa (geçecek bir şey yoksa) butonu tamamen gizle
   const modeCount = Object.values(available).filter(Boolean).length;
-  wrap.classList.toggle('single-mode', modeCount <= 1);
+  btn.style.display = modeCount <= 1 ? 'none' : 'flex';
+  if (modeCount <= 1) closeViewModeMenu();
   buildStageToolsRow(mode);
 }
 
