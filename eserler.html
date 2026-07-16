@@ -163,6 +163,13 @@
   .lyrics-box { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px; font-size:13px; color:var(--text2); line-height:1.8; max-height:none; text-align:left;white-space:pre-wrap; word-break:break-word; }
   .lyrics-box::-webkit-scrollbar { width:3px; }
   .lyrics-box::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+  /* ChordPro: akor hecenin üstünde */
+  .cp-line { display:block; }
+  .cp-blank { display:block; height:.8em; }
+  .cp-comment { display:block; color:var(--accent,#58A6FF); font-style:italic; font-size:.8em; margin:10px 0 2px; opacity:.85; }
+  .cp-seg { display:inline-block; position:relative; vertical-align:bottom; }
+  .cp-chord { display:block; font-size:.72em; font-weight:700; color:#58A6FF; line-height:1.15; min-height:1.25em; white-space:nowrap; letter-spacing:.02em; }
+  .cp-lyric { display:block; white-space:pre-wrap; }
   .video-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; background:rgba(88,166,255,.1); border:1px solid rgba(88,166,255,.3); border-radius:6px; color:var(--accent); font-size:13px; text-decoration:none; transition:all .15s; }
   .video-btn:hover { background:rgba(88,166,255,.2); }
 
@@ -1401,14 +1408,11 @@ function selectWork(id) {
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
           <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Akor Gir</div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.6;">
-            <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:#58A6FF;">%%</code> ile başlayan satır = akor satırı, altındaki = güfte satırı
+            Akoru <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:#58A6FF;">[Am]</code> gibi köşeli parantez içinde, ait olduğu hecenin önüne yaz. Örn: <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--text2);">[Dm]Sabahtan [G]kalktım</code>
           </div>
           <textarea id="inline_chords_${w.id}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" style="width:100%;min-height:160px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:monospace;line-height:1.8;resize:vertical;"
-            placeholder="%%Dm  G   Am&#10;Sabahtan kalktım yıkadım yüzüm&#10;%%C        F&#10;Telim örülürken ağladı gözüm"
-          >${w.chords
-            ? (w.chords).replace(/</g,'&lt;').replace(/>/g,'&gt;')
-            : (w.lyrics||'').split('\n').map(l => '%%\n'+l).join('\n')
-          }</textarea>
+            placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm"
+          >${(w.chords || w.lyrics || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
           <button onclick="saveChords(${w.id})" style="margin-top:10px;padding:7px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;color:#1a1200;font-size:13px;font-weight:600;cursor:pointer;">💾 Kaydet</button>
         </div>
       ` : ''}
@@ -1505,29 +1509,62 @@ function selectWork(id) {
   }
 }
 
+// ── TEK KAYNAK YARDIMCILARI (ChordPro) ──
+// Akor alanı ChordPro formatında: akorlar sözlerin İÇİNDE [Am] köşeli parantezle,
+// ait olduğu hecenin önünde durur. Güfte = aynı metnin akorları ayıklanmış hali.
+// hasRealChords: içinde en az bir gerçek akor [X] var mı?
+function hasRealChords(text){ return /\[[^\]]+\]/.test(text||''); }
+// chordsToLyrics: ChordPro metninden [akor] etiketlerini ve {direktif} satırlarını
+// ayıklayıp düz güfteyi üretir.
+function chordsToLyrics(text){
+  return (text||'').split('\n')
+    .filter(l => !/^\s*\{.*\}\s*$/.test(l))
+    .map(l => l.replace(/\[[^\]]*\]/g,''))
+    .join('\n').replace(/[ \t]+$/gm,'').trim();
+}
+// Güfte editörünü, akoru olan eserlerde kilitle (güfte otomatik türetiliyor).
+function applyLyricsLockState(locked){
+  const ed = document.getElementById('ne_lyrics_editor');
+  const note = document.getElementById('ne_lyrics_derived_note');
+  const tb = document.getElementById('lyricsToolbar');
+  if (ed){ ed.contentEditable = locked ? 'false' : 'true'; ed.style.opacity = locked ? '.55' : '1'; }
+  if (note) note.style.display = locked ? 'block' : 'none';
+  if (tb) tb.style.display = locked ? 'none' : 'flex';
+}
+
+// ChordPro render: [Am] köşeli parantezli akorlar, ait olduğu hecenin ÜSTÜNE yazılır.
 function renderChords(text) {
-  const lines = text.trim().split('\n');
-  let html = '';
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (line.startsWith('%%')) {
-      const akorlar = line.slice(2).trim();
-      if (akorlar) {
-        html += `<span style="color:#58A6FF;opacity:.9;font-size:12px;letter-spacing:.08em;display:block;margin-top:4px;">${akorlar}</span>`;
-      }
-    } else if (line.trim() === '') {
-      html += `<span style="display:block;height:8px;"></span>`;
-    } else {
-      html += `<span style="color:var(--text2);display:block;">${line.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
+  if (!text) return '';
+  const esc = s => (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return text.split('\n').map(line => {
+    const dir = line.match(/^\s*\{\s*(?:c|comment|comment_italic|ci)?\s*:?\s*([^}]*)\}\s*$/i);
+    if (dir) { const l = esc((dir[1]||'').trim()); return l ? `<div class="cp-comment">${l}</div>` : ''; }
+    if (line.trim() === '') return '<div class="cp-blank"></div>';
+    if (line.indexOf('[') === -1) {
+      return `<div class="cp-line"><span class="cp-seg"><span class="cp-chord"></span><span class="cp-lyric">${esc(line)}</span></span></div>`;
     }
-  }
-  return html;
+    let html = '<div class="cp-line">';
+    const first = line.indexOf('[');
+    if (first > 0) html += `<span class="cp-seg"><span class="cp-chord"></span><span class="cp-lyric">${esc(line.slice(0, first))}</span></span>`;
+    const re = /\[([^\]]*)\]([^\[]*)/g; let m;
+    const scan = line.slice(first);
+    while ((m = re.exec(scan)) !== null) {
+      const chord = esc(m[1].trim());
+      const lyric = esc(m[2]);
+      html += `<span class="cp-seg"><span class="cp-chord">${chord}</span><span class="cp-lyric">${lyric === '' ? '&nbsp;' : lyric}</span></span>`;
+    }
+    html += '</div>';
+    return html;
+  }).join('');
 }
 
 async function saveChords(id) {
   const ta = document.getElementById('inline_chords_'+id);
   if (!ta) { console.error('textarea bulunamadı: inline_chords_'+id); return; }
-  const chords = ta.value.trim();
+  const raw = ta.value.trim();
+  const _hasCh = hasRealChords(raw);
+  // Gerçek [akor] yoksa akor alanını BOŞ kaydet (düz güfte akor alanına sızmasın).
+  const chords = _hasCh ? raw : '';
   const token = localStorage.getItem('sb_token') || SUPA_KEY;
   fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
     method: 'PATCH',
@@ -1537,14 +1574,19 @@ async function saveChords(id) {
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify({chords: chords})
+    body: JSON.stringify(_hasCh ? {chords: chords, lyrics: chordsToLyrics(chords)} : {chords: ''})
   }).then(r => {
     if (r.ok || r.status === 204) {
       const idx = DATA.findIndex(x => x.id === id || x.id === parseInt(id));
-      if (idx > -1) DATA[idx].chords = chords;
+      if (idx > -1) { DATA[idx].chords = chords; if (_hasCh) DATA[idx].lyrics = chordsToLyrics(chords); }
       const display = document.querySelector('#tab-akorlar .lyrics-box');
       if (display) {
-        display.innerHTML = chords ? renderChords(chords) : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>';
+        display.innerHTML = _hasCh ? renderChords(chords) : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>';
+      }
+      // Güfte de akordan türetildiği için güfte görünümünü de tazele
+      if (_hasCh) {
+        const gbox = document.getElementById('lyricsBoxDisplay');
+        if (gbox) gbox.innerHTML = renderLyricsHtml(chordsToLyrics(chords));
       }
       const alertMsg = document.createElement('div');
       alertMsg.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;';
@@ -1692,6 +1734,7 @@ function openNewEserModal() {
    'ne_tuning','ne_instrument','ne_region','ne_sourcePerson','ne_videoLink','ne_lyrics','ne_chords','ne_closingNote']
     .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   setLyricsValue('');
+  applyLyricsLockState(false);
   document.getElementById('ne_visPublic').checked = true;
   switchNeTab('lyrics');
   document.getElementById('newEserModal').style.display = 'flex';
@@ -1708,13 +1751,15 @@ function openEditEserModal(id) {
     ne_tuning: w.tuning, ne_instrument: w.instrument, ne_region: w.region,
     ne_sourcePerson: w.sourcePerson, ne_videoLink: w.videoLink, ne_lyrics: w.lyrics,
     ne_closingNote: w.closingNote,
-    ne_chords: w.chords || (w.lyrics||'').split('\n').map(l => '%%\n'+l).join('\n')
+    ne_chords: w.chords || w.lyrics || ''
   };
   Object.entries(fields).forEach(([id, val]) => {
     const el = document.getElementById(id);
     if (el) el.value = val || '';
   });
   setLyricsValue(w.lyrics || '');
+  // Akoru olan eserde güfte akordan türetiliyor → güfte editörünü kilitle + uyar
+  applyLyricsLockState(hasRealChords(w.chords));
   if (w.is_public === false) document.getElementById('ne_visPrivate').checked = true;
   else document.getElementById('ne_visPublic').checked = true;
   switchNeTab('lyrics');
@@ -1849,6 +1894,14 @@ function saveNewEser() {
   if (!name) { switchNeTab('lyrics'); alert('Eser adı zorunludur.'); return; }
   const isPublic = document.getElementById('ne_visPublic').checked;
 
+  // TEK KAYNAK: akorda gerçek akor satırı varsa akor ana kaynaktır, güfte ondan
+  // türetilir (böylece aynı metni iki kez düzenleme derdi biter). Akor yoksa
+  // (yalnızca güfteli eser) güfte editörü kaynaktır.
+  const _chordsRaw = (document.getElementById('ne_chords')?.value || '').trim();
+  const _realChords = hasRealChords(_chordsRaw);
+  const _lyricsVal = _realChords ? chordsToLyrics(_chordsRaw) : getLyricsValue().trim();
+  const _chordsVal = _realChords ? _chordsRaw : '';
+
   const fields = {
     name,
     composer:     document.getElementById('ne_composer').value.trim(),
@@ -1861,8 +1914,8 @@ function saveNewEser() {
     region:       document.getElementById('ne_region').value.trim(),
     sourcePerson: document.getElementById('ne_sourcePerson').value.trim(),
     videoLink:    document.getElementById('ne_videoLink').value.trim(),
-    lyrics:       getLyricsValue().trim(),
-    chords:       (document.getElementById('ne_chords')?.value || '').trim(),
+    lyrics:       _lyricsVal,
+    chords:       _chordsVal,
     closingNote:  document.getElementById('ne_closingNote').value.trim(),
     isPublic,
     metronom: '', area: '', genre: '', _custom: true
@@ -2348,6 +2401,7 @@ function openSuggestModal() {
       <div><label style="font-size:12px;color:var(--text2);">Eser Adı *</label><input id="ne_name" placeholder="Eser adı..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
       <div>
       <label style="font-size:12px;color:var(--text2);">Güfte</label>
+      <div id="ne_lyrics_derived_note" style="display:none;margin-top:6px;padding:8px 10px;background:rgba(77,163,255,.08);border:1px solid rgba(77,163,255,.25);border-radius:7px;font-size:12px;color:#4DA3FF;line-height:1.5;">Bu eserde akor var — güfte, akordan otomatik oluşuyor. Metni düzenlemek için <b>İcra Detayları → Akorlar</b> kutusunu kullanın.</div>
       <div style="margin-top:6px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
         <!-- Toolbar -->
         <div id="lyricsToolbar" style="display:flex;align-items:center;gap:2px;padding:6px 8px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;">
@@ -2400,8 +2454,8 @@ function openSuggestModal() {
       <div><label style="font-size:12px;color:var(--text2);">Enstrüman</label><input id="ne_instrument" placeholder="Enstrüman..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
       <div style="grid-column:1/-1;"><label style="font-size:12px;color:var(--text2);">Video Linki</label><input id="ne_videoLink" placeholder="https://..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
       <div style="grid-column:1/-1;">
-        <label style="font-size:12px;color:var(--text2);">Akorlar <span style="color:var(--text3);font-weight:300;">(opsiyonel — %% ile başlayan satırlar akor satırı)</span></label>
-        <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="%%Am  Dm&#10;Sabahtan kalktım yıkadım yüzüm" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:400px;resize:vertical;"></textarea>
+        <label style="font-size:12px;color:var(--text2);">Akorlar <span style="color:var(--text3);font-weight:300;">(opsiyonel — akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz)</span></label>
+        <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:400px;resize:vertical;"></textarea>
       </div>
     </div>
 

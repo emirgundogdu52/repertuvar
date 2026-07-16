@@ -138,6 +138,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .wlyrics{font-size:calc(clamp(18px,2.8vw,28px) * var(--lyrics-scale,1));color:var(--text);text-align:center;width:100%;max-width:100%;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 4px 40px;box-sizing:border-box;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .wnota{display:flex;justify-content:center;align-items:center;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;width:100%;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+/* ChordPro: akor hecenin üstünde */
+.wlyrics .cp-line{display:block;text-align:left;}
+.wlyrics .cp-blank{display:block;height:.9em;}
+.wlyrics .cp-comment{display:block;text-align:left;color:var(--accent,#4DA3FF);font-style:italic;font-size:.7em;margin:10px 0 2px;opacity:.85;}
+.wlyrics .cp-seg{display:inline-block;position:relative;vertical-align:bottom;}
+.wlyrics .cp-chord{display:block;font-size:.62em;font-weight:700;color:#4DA3FF;line-height:1.15;min-height:1.2em;white-space:nowrap;font-family:'SF Mono',ui-monospace,monospace;letter-spacing:.02em;}
+.wlyrics .cp-lyric{display:block;white-space:pre-wrap;}
 
 .sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:flex-start;gap:16px;position:relative;z-index:10;}
 
@@ -791,30 +798,33 @@ function stepLyricsFont(delta) {
   setLyricsFontScale(cur + delta);
 }
 
-// Bir satırın tamamen akor isimlerinden oluşup oluşmadığını denetler (Cm, Fm, D#, G#m7, A/C# vb.)
-// "%%" öneki olmadan girilmiş akor satırlarını da otomatik tanımak için kullanılıyor.
-const CHORD_TOKEN_RE = /^[A-G](#|b)?(maj|min|dim|aug|sus|add)?[0-9]*m?[0-9]*(\/[A-G](#|b)?)?$/i;
-function looksLikeChordLine(line) {
-  const t = line.trim();
-  if (!t) return false;
-  const tokens = t.split(/\s+/);
-  return tokens.every(tok => CHORD_TOKEN_RE.test(tok));
-}
+// ChordPro render: akorlar sözlerin içinde [Am] köşeli parantezle, ait olduğu
+// hecenin önünde durur; ekranda o hecenin ÜSTÜNE yazılır. Standart ChordPro formatı.
+function renderStageChords(text) { return renderChordPro(text); }
 
-function renderStageChords(text) {
+function renderChordPro(text) {
   if (!text) return '';
-  return text.trim().split('\n').map(line => {
-    const isExplicitChordLine = line.startsWith('%%');
-    const rawChordContent = isExplicitChordLine ? line.slice(2) : line;
-    if (isExplicitChordLine || looksLikeChordLine(line)) {
-      return rawChordContent.trim()
-        ? `<span style="color:#58A6FF;font-size:0.85em;letter-spacing:.08em;font-family:monospace;display:block;margin-top:8px;white-space:pre;text-align:left;">${rawChordContent.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`
-        : '';
-    } else if (line.trim() === '') {
-      return '<br>';
-    } else {
-      return `<span style="display:block;text-align:left;">${line.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`;
+  const esc = s => (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return text.split('\n').map(line => {
+    // Direktif satırı {comment: ...} / {c: ...} → bölüm etiketi
+    const dir = line.match(/^\s*\{\s*(?:c|comment|comment_italic|ci)?\s*:?\s*([^}]*)\}\s*$/i);
+    if (dir) { const l = esc((dir[1]||'').trim()); return l ? `<div class="cp-comment">${l}</div>` : ''; }
+    if (line.trim() === '') return '<div class="cp-blank"></div>';
+    if (line.indexOf('[') === -1) {
+      return `<div class="cp-line"><span class="cp-seg"><span class="cp-chord"></span><span class="cp-lyric">${esc(line)}</span></span></div>`;
     }
+    let html = '<div class="cp-line">';
+    const first = line.indexOf('[');
+    if (first > 0) html += `<span class="cp-seg"><span class="cp-chord"></span><span class="cp-lyric">${esc(line.slice(0, first))}</span></span>`;
+    const re = /\[([^\]]*)\]([^\[]*)/g; let m;
+    const scan = line.slice(first);
+    while ((m = re.exec(scan)) !== null) {
+      const chord = esc(m[1].trim());
+      const lyric = esc(m[2]);
+      html += `<span class="cp-seg"><span class="cp-chord">${chord}</span><span class="cp-lyric">${lyric === '' ? '&nbsp;' : lyric}</span></span>`;
+    }
+    html += '</div>';
+    return html;
   }).join('');
 }
 
