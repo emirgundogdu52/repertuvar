@@ -1,3 +1,39 @@
+<!--
+  STAGE.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur; her önemli özellik değişikliğinde güncellenir)
+  Bu bloğun amacı: Claude'a dosya yapıştırıldığında, kodun BEKLENEN en güncel halini
+  taşıyıp taşımadığını satır satır okumadan tek bakışta anlamak. Yapıştırılan kodda
+  aşağıdaki son maddenin karşılığı yoksa, bu muhtemelen eski bir kopya demektir —
+  GitHub'daki gerçek dosyayı tekrar çekip öyle paylaş.
+  - 2026-07-15: Sahne modunda A−/A+ butonları kaldırıldı, yerine sürükleyerek
+    büyütüp küçülten TEK bir font boyutu bar'ı (range slider, #lyricsFontSlider)
+    kondu — sağ altta. Ayarlar (⚙️) butonu sola taşındı. Fonksiyonlar:
+    setLyricsFontScale(), updateFontSliderUI() — eski adjustLyricsFontSize()/
+    updateFontSizeButtons() YERİNE geçti, ikisi birden var olmamalı.
+  - 2026-07-16: (1) GÜFTE TAM GENİŞLİK — .wtitle/.wnote/.wlyrics üzerindeki
+    700px/600px max-width tavanları kaldırıldı (max-width:100%), .sm yan
+    padding'i küçültüldü; güfte artık ekranın kenarına kadar açılıyor.
+    (2) SÖZ/AKOR/NOTA yatay bar (.view-switch-wrap) KALDIRILDI, yerine üst
+    sağda bilgi ikonunun yanında açılır MENÜ geldi: #viewModeBtn + #viewModeMenu
+    (.vm-menu/.vm-item), toggleViewModeMenu()/closeViewModeMenu(). Aktif moda
+    göre üstteki ikon değişir; tek mod varsa buton gizlenir.
+    (3) GÜVENLİ SAYFA ATLATMA — .sm üzerindeki onclick="nextWork()" KALDIRILDI
+    (güfteye dokununca artık sayfa atlamıyor). Sol/sağ .side-nav-btn butonları
+    büyütülüp güvenli dokunma alanı haline getirildi; sadece onlara dokununca
+    sayfa atlıyor. (Swipe ve pedal/klavye navigasyonu aynen çalışıyor.)
+  - 2026-07-16 (b): (1) ALT NAVBAR sahne modunda yukarı-swipe ile açılması
+    kaldırıldı (openStageNav artık touchend'de çağrılmıyor) — güfteyi kaydırırken
+    kazara açılıp alt barı örtmüyor. Çıkış hâlâ Görünüm Ayarları (⚙) menüsündeki
+    liste butonuyla mümkün. (2) YAZI BOYUTU: kaydırıcının iki yanındaki "A"
+    etiketleri artık tıklanabilir A−/A+ butonları (stepLyricsFont(±0.1),
+    setLyricsFontScale'i kullanır) — hem buton hem kaydırıcı bir arada.
+  - 2026-07-16 (c): eserler.html'den tek eserle (?work=) sahneye girildiğinde
+    alt navbar görünme bug'ı düzeltildi. Sebep: tek-eser giriş yolu, startStage()
+    içindeki stageEnter olayını (topnav.js'in paylaşılan #r-bottom-nav'ı gizlemesini
+    tetikleyen) atlamıyordu. Çözüm: (1) ?work= yoluna aynı giriş dizisi eklendi
+    (_stageActive + stageEnter + applyStageTheme); (2) sağlamlık için showScreen()
+    body'ye 'stage-active' sınıfı ekliyor ve CSS bu sınıfla .r-topnav + #r-bottom-nav'ı
+    display:none !important yapıyor — giriş yolundan/topnav zamanlamasından bağımsız.
+-->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -79,27 +115,27 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .bex:hover{color:var(--red);border-color:var(--red);}
 
 /* ═══ Görünüm değiştirici: Söz / Akor / Nota (segmented control) ═══ */
-.view-switch-wrap{display:flex;justify-content:center;padding:6px 12px 2px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);}
-.view-switch{display:inline-flex;gap:2px;padding:3px;background:rgba(120,100,255,0.08);border:1px solid var(--border);border-radius:20px;}
-.vs-btn{background:none;border:none;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;border-radius:16px;display:inline-flex;align-items:center;gap:5px;transition:all .15s;font-family:'DM Sans',sans-serif;}
-.vs-btn .ti{font-size:15px;line-height:1;}
-.vs-btn:hover:not(:disabled):not(.active){color:var(--text);}
-.vs-btn.active{background:var(--accent);color:#1a0f2e;}
-.vs-btn:disabled{opacity:.32;cursor:not-allowed;}
-.view-switch-wrap.single-mode{display:none;}
+/* ═══ Görünüm menüsü: Söz / Akor / Nota (üst sağ, açılır menü) ═══ */
+.vm-menu{position:absolute;top:46px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px;min-width:158px;z-index:9999;box-shadow:0 10px 28px rgba(0,0,0,.55);}
+.vm-item{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;color:var(--text);font-size:14px;font-weight:600;padding:10px 12px;border-radius:8px;cursor:pointer;text-align:left;font-family:inherit;transition:background .12s,color .12s;}
+.vm-item .ti{font-size:17px;line-height:1;}
+.vm-item:hover:not(:disabled){background:var(--surface2);}
+.vm-item.active{color:var(--accent);}
+.vm-item.active .ti{color:var(--accent);}
+.vm-item:disabled{opacity:.32;cursor:not-allowed;}
 
-.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 56px 80px;position:relative;overflow-y:auto;cursor:pointer;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
+.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 16px 80px;position:relative;overflow-y:auto;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
-.wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:700px;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
+.wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:100%;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
 .wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;opacity:0;animation:si .4s ease .14s forwards;}
 .wcr:empty{display:none;margin:0;}
 .wch{padding:5px 14px;border-radius:20px;font-size:13px;border:1px solid var(--border);color:var(--text2);background:var(--surface);}
 .wch.m{border-color:#3a3060;color:#9b8fd4;background:#1a1828;}
 .wch.n{border-color:#3d2a1a;color:var(--accent);background:#1e1208;}
 .wch.i{border-color:#1a2d1a;color:#7ab87a;background:#0f1a0f;}
-.wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:600px;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
-.wlyrics{font-size:calc(clamp(18px,2.8vw,28px) * var(--lyrics-scale,1));color:var(--text);text-align:center;width:100%;max-width:700px;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;box-sizing:border-box;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:100%;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
+.wlyrics{font-size:calc(clamp(18px,2.8vw,28px) * var(--lyrics-scale,1));color:var(--text);text-align:center;width:100%;max-width:100%;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 4px 40px;box-sizing:border-box;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .wnota{display:flex;justify-content:center;align-items:center;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;width:100%;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
@@ -112,6 +148,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
   z-index:100;
 }
 #v2StageBotNav.stage-hidden{transform:translateY(100%);}
+/* Sahne ekranındayken paylaşılan topnav.js header'ı ve alt navbar'ı kesin gizle
+   (giriş yolundan ve topnav.js yükleme zamanlamasından bağımsız). */
+body.stage-active .r-topnav,
+body.stage-active #r-topnav-container .r-topnav,
+body.stage-active #r-bottom-nav{display:none !important;}
 
 .np{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;padding:6px 16px;flex:1;max-width:400px;opacity:0;animation:fi .5s ease .4s forwards;}
 .nl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:4px;font-weight:600;}
@@ -142,6 +183,17 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .align-btn:disabled{opacity:.35;cursor:not-allowed;}
 .align-btn:hover{border-color:var(--accent);color:var(--accent);}
 .align-btn.active{background:rgba(168,85,247,.15);border-color:var(--accent);color:var(--accent);}
+.font-slider-wrap{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:30px;padding:7px 14px;flex-shrink:0;}
+.font-slider-wrap .fs-a-sm{font-size:12px;font-weight:800;color:var(--text3);line-height:1;}
+.font-slider-wrap .fs-a-lg{font-size:19px;font-weight:800;color:var(--text3);line-height:1;}
+.fs-step{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px;font-family:inherit;transition:color .15s,background .15s;flex-shrink:0;}
+.fs-step:hover{color:var(--text);background:var(--surface2);}
+.fs-step:active{transform:scale(.94);}
+.font-slider{-webkit-appearance:none;appearance:none;width:110px;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;}
+.font-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
+.font-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
+.font-slider::-moz-range-track{height:4px;border-radius:2px;background:transparent;}
+@media (max-width:768px){ .font-slider{width:70px;} .font-slider-wrap{padding:6px 10px;gap:6px;} }
 .stage-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;} .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
 .stage-nav a:hover{border-color:var(--accent);color:var(--accent);}
 
@@ -156,10 +208,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
   cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 4px;
-  padding: 14px 8px;
-  width: 48px;
-  transition: all .2s;
-  z-index: 50;
+  padding: 0;
+  width: 54px;
+  height: 132px;
+  transition: background .2s, border-color .2s, transform .2s;
+  z-index: 60;
   user-select: none;
   font-family: 'DM Sans', sans-serif;
 }
@@ -177,17 +230,17 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
     .strn { font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .bex, .stage-nav a { font-size:10px; padding:4px 8px; }
     .stage-nav { gap:4px; }
-    .sm { padding:20px 60px 100px; }
+    .sm { padding:20px 14px 100px; }
     .sb { padding:0 12px 16px; flex-wrap:wrap; gap:8px; }
     .side-nav-left { left:8px; border-radius:12px; }
     .side-nav-right { right:8px; border-radius:12px; }
-    .side-nav-btn { width:44px; height:44px; }
+    .side-nav-btn { width:50px; height:120px; }
     /* Picker */
     .pi { max-width:100%; }
     .pi-fixed-top, .pi-scroll, .pi-fixed-bottom { padding-left:16px; padding-right:16px; }
     .rb { padding:14px 16px; }
     .rbn { font-size:14px; }
-    .side-nav-btn { width:40px; padding:10px 6px; }
+    .side-nav-btn { width:50px; height:120px; padding:0; }
     .snb-label { font-size:9px; }
     .snb-arrow { font-size:22px; }
     .np { max-width:160px; }
@@ -195,7 +248,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
   @media (max-width: 480px) {
     .wtitle { font-size:clamp(18px,5vw,26px); }
     .wlyrics { font-size:calc(clamp(14px,4.2vw,20px) * var(--lyrics-scale,1)); line-height:1.8; padding:0 4px 80px; }
-    .side-nav-btn { width:40px !important; height:40px !important; }
+    .side-nav-btn { width:46px !important; height:108px !important; }
     .side-nav-left { left:6px !important; border-radius:10px !important; }
     .side-nav-right { right:6px !important; border-radius:10px !important; }
     .snb-label { display:none; }
@@ -203,7 +256,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
     .th { font-size:10px; }
     .stb { padding:6px 8px; padding-top:calc(6px + env(safe-area-inset-top)); }
     .stage-nav a, .bex { font-size:10px !important; padding:3px 6px !important; }
-    .sm { padding:16px 52px 80px; }
+    .sm { padding:16px 10px 80px; }
     /* Picker screen on mobile */
     .pi-fixed-top, .pi-scroll, .pi-fixed-bottom { padding-left:16px; padding-right:16px; }
     .ptitle { font-size:20px; }
@@ -318,7 +371,17 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="pds" id="pds"></div>
       <div class="stc" id="stc">1/1</div>
     </div>
-    <div style="display:flex;align-items:center;gap:6px;">
+    <div style="display:flex;align-items:center;gap:4px;">
+      <div style="position:relative;">
+        <button class="stage-info-btn" id="viewModeBtn" onclick="event.stopPropagation();toggleViewModeMenu(event)" title="Görünüm (Söz / Akor / Nota)">
+          <i class="ti ti-music" id="viewModeIcon" style="font-size:22px;"></i>
+        </button>
+        <div class="vm-menu" id="viewModeMenu" style="display:none;">
+          <button class="vm-item" data-mode="lyrics" onclick="event.stopPropagation();setViewMode('lyrics');closeViewModeMenu();"><i class="ti ti-music" aria-hidden="true"></i> Söz</button>
+          <button class="vm-item" data-mode="chords" onclick="event.stopPropagation();setViewMode('chords');closeViewModeMenu();"><i class="ti ti-guitar-pick" aria-hidden="true"></i> Akor</button>
+          <button class="vm-item" data-mode="nota" onclick="event.stopPropagation();setViewMode('nota');closeViewModeMenu();"><i class="ti ti-file-music" aria-hidden="true"></i> Nota</button>
+        </div>
+      </div>
       <button class="stage-info-btn" onclick="openInfoSheet()" title="Eser Bilgileri">
         <i class="ti ti-info-circle" style="font-size:22px;"></i>
       </button>
@@ -333,27 +396,26 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     </div>
     <div class="info-sheet-body" id="stageInfoPanel"></div>
   </div>
-  <div class="view-switch-wrap" id="viewSwitchWrap">
-    <div class="view-switch" id="viewSwitch">
-      <button class="vs-btn" data-mode="lyrics" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i> Söz</button>
-      <button class="vs-btn" data-mode="chords" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i> Akor</button>
-      <button class="vs-btn" data-mode="nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i> Nota</button>
-    </div>
-  </div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
-  <div class="sm" id="sm" onclick="nextWork()"></div>
+  <div class="sm" id="sm"></div>
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
+    <div style="position:relative;flex-shrink:0;">
+      <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" style="background:none;border:none;width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s;flex-shrink:0;padding:0;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'"><i class="ti ti-adjustments-horizontal" style="font-size:22px;"></i></button>
+      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;left:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;gap:8px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;" id="stageToolsRow"></div>
+      </div>
+    </div>
     <div class="np" id="np" style="display:none;">
       <div class="nl">Sıradaki</div>
       <div class="nn" id="nn">—</div>
       <div class="nm" id="nm">—</div>
     </div>
-    <div style="position:relative;margin-left:auto;">
-      <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" style="background:none;border:none;width:56px;height:56px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s;flex-shrink:0;padding:0;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'"><i class="ti ti-adjustments-horizontal" style="font-size:24px;"></i></button>
-      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;left:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;gap:8px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;" id="stageToolsRow"></div>
-      </div>
+    <div class="font-slider-wrap" style="margin-left:auto;" title="Yazı Boyutu">
+      <button type="button" class="fs-a-sm fs-step" onclick="event.stopPropagation();stepLyricsFont(-0.1)" title="Yazıyı küçült">A−</button>
+      <input type="range" id="lyricsFontSlider" class="font-slider" min="0.75" max="1.6" step="0.1" value="1"
+        oninput="setLyricsFontScale(this.value)">
+      <button type="button" class="fs-a-lg fs-step" onclick="event.stopPropagation();stepLyricsFont(0.1)" title="Yazıyı büyüt">A+</button>
     </div>
     <div class="th" style="display:none;">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
@@ -520,7 +582,7 @@ function stageRepMatchesSearch(r, q) {
 
 function renderPicker(){
   const el=document.getElementById('rsl');
-  if(!reps.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);line-height:1.8;">Henüz repertuvar yok.<br><a href=\"repertoires.html\" style=\"color:var(--accent)\">Repertuvar sayfasında</a> repertuvar oluşturun.</div>';return;}
+  if(!reps.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);line-height:1.8;">Henüz repertuvar yok.<br><a href="repertoires.html" style="color:var(--accent)">Repertuvar sayfasında</a> repertuvar oluşturun.</div>';return;}
   const filtered = reps.filter(r=>stageRepMatchesSearch(r, stageSearchQuery));
   if(stageSearchQuery && !filtered.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);">"'+stageSearchQuery+'" için sonuç bulunamadı</div>';return;}
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
@@ -691,19 +753,24 @@ function setLyricsAlign(align) {
   });
 }
 
-const LYRICS_SCALE_MIN = 0.75, LYRICS_SCALE_MAX = 1.6, LYRICS_SCALE_STEP = 0.1;
-function adjustLyricsFontSize(delta) {
-  let scale = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
-  scale = Math.min(LYRICS_SCALE_MAX, Math.max(LYRICS_SCALE_MIN, +(scale + delta).toFixed(2)));
+const LYRICS_SCALE_MIN = 0.75, LYRICS_SCALE_MAX = 1.6;
+function setLyricsFontScale(scale) {
+  scale = Math.min(LYRICS_SCALE_MAX, Math.max(LYRICS_SCALE_MIN, +parseFloat(scale).toFixed(2)));
   localStorage.setItem('stageLyricsScale', scale);
   document.documentElement.style.setProperty('--lyrics-scale', scale);
-  updateFontSizeButtons(scale);
+  updateFontSliderUI(scale);
 }
-function updateFontSizeButtons(scale) {
-  const minusBtn = document.getElementById('fontSizeMinus');
-  const plusBtn = document.getElementById('fontSizePlus');
-  if (minusBtn) minusBtn.disabled = scale <= LYRICS_SCALE_MIN;
-  if (plusBtn) plusBtn.disabled = scale >= LYRICS_SCALE_MAX;
+function updateFontSliderUI(scale) {
+  const slider = document.getElementById('lyricsFontSlider');
+  if (!slider) return;
+  slider.value = scale;
+  const pct = ((scale - LYRICS_SCALE_MIN) / (LYRICS_SCALE_MAX - LYRICS_SCALE_MIN)) * 100;
+  slider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--border) ${pct}%, var(--border) 100%)`;
+}
+// A− / A+ butonları: kaydırıcıyla aynı ölçeği adım adım değiştirir (0.1'lik adım).
+function stepLyricsFont(delta) {
+  const cur = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
+  setLyricsFontScale(cur + delta);
 }
 
 // Bir satırın tamamen akor isimlerinden oluşup oluşmadığını denetler (Cm, Fm, D#, G#m7, A/C# vb.)
@@ -885,7 +952,7 @@ function renderStage(){
   requestAnimationFrame(() => setLyricsAlign(savedAlign));
   const savedScale = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
   document.documentElement.style.setProperty('--lyrics-scale', savedScale);
-  updateFontSizeButtons(savedScale);
+  updateFontSliderUI(savedScale);
   const next=items[curIdx+1];
   const np=document.getElementById('np');
   if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,nw.measurement,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
@@ -939,19 +1006,40 @@ function setViewMode(mode) {
   renderStage();
 }
 
+// Açılır menüyü aç/kapat
+function toggleViewModeMenu(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  const m = document.getElementById('viewModeMenu');
+  if (!m) return;
+  m.style.display = (m.style.display === 'none' || !m.style.display) ? 'block' : 'none';
+}
+function closeViewModeMenu() {
+  const m = document.getElementById('viewModeMenu');
+  if (m) m.style.display = 'none';
+}
+// Menü dışında bir yere tıklanınca kapat
+document.addEventListener('click', closeViewModeMenu);
+
 function updateViewToggleUI(w) {
-  const wrap = document.getElementById('viewSwitchWrap');
-  if (!wrap) return;
+  const btn  = document.getElementById('viewModeBtn');
+  const menu = document.getElementById('viewModeMenu');
+  if (!btn || !menu) return;
   const mode = getStageViewMode(w);
   const available = { lyrics: true, chords: !!w.chords, nota: !!w.notaUrl };
-  wrap.querySelectorAll('.vs-btn').forEach(btn => {
-    const m = btn.dataset.mode;
-    btn.classList.toggle('active', m === mode);
-    btn.disabled = !available[m];
+  const icons = { lyrics: 'ti ti-music', chords: 'ti ti-guitar-pick', nota: 'ti ti-file-music' };
+  // Üstteki buton ikonunu aktif moda göre değiştir
+  const iconEl = document.getElementById('viewModeIcon');
+  if (iconEl) iconEl.className = icons[mode] || icons.lyrics;
+  // Menü öğelerini işaretle / gerektiğinde kapat
+  menu.querySelectorAll('.vm-item').forEach(it => {
+    const m = it.dataset.mode;
+    it.classList.toggle('active', m === mode);
+    it.disabled = !available[m];
   });
-  // Tek mod varsa (geçecek bir şey yoksa) kontrolü tamamen gizle
-  const modeCount = Object.values(available).filter(Boolean).length;
-  wrap.classList.toggle('single-mode', modeCount <= 1);
+  // Buton HER ZAMAN görünür kalır (yalnızca söz olan eserlerde de) —
+  // eskiden tek-mod olunca gizleniyordu, "menü kayıp" görünmesinin sebebi buydu.
+  // Sadece söz varsa menüde Akor/Nota pasif görünür ama buton yerinde durur.
+  btn.style.display = 'flex';
   buildStageToolsRow(mode);
 }
 
@@ -966,16 +1054,12 @@ function buildStageToolsRow(mode) {
   if (mode === 'nota') {
     row.innerHTML = themeBtn + navBtn;
   } else {
-    // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama ve yazı boyutu ikisinde de geçerli
-    const fontBtns = `
-      <button onclick="event.stopPropagation();adjustLyricsFontSize(-0.1)" id="fontSizeMinus" title="Yazıyı Küçült" class="align-btn"><span style="font-size:11px;font-weight:700;">A−</span></button>
-      <button onclick="event.stopPropagation();adjustLyricsFontSize(0.1)" id="fontSizePlus" title="Yazıyı Büyüt" class="align-btn"><span style="font-size:15px;font-weight:700;">A+</span></button>`;
+    // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama ikisinde de geçerli
     const alignBtns = `
       <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>`;
-    row.innerHTML = fontBtns + alignBtns + themeBtn + navBtn;
-    updateFontSizeButtons(parseFloat(localStorage.getItem('stageLyricsScale')) || 1);
+    row.innerHTML = alignBtns + themeBtn + navBtn;
   }
 }
 
@@ -1066,6 +1150,10 @@ function showScreen(id){
       bnav.style.display='none';
     }
   }
+  // Paylaşılan topnav.js header/alt-navbar'ını sahne ekranında CSS ile kesin gizle —
+  // giriş yoluna (eserler ?work= vs repertuvar) ve topnav.js'in geç yüklenmesine
+  // bakmaksızın çalışır; stageEnter olayının yakalanmasına bağlı kalmaz.
+  document.body.classList.toggle('stage-active', id==='stageScreen');
 }
 
 document.addEventListener('keydown',e=>{
@@ -1094,9 +1182,11 @@ document.addEventListener('touchend',e=>{
   if(document.getElementById('stageScreen').classList.contains('hidden'))return;
   const dx=e.changedTouches[0].clientX-txStart;
   const dy=e.changedTouches[0].clientY-tyStart;
-  if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>50){
-    if(dy<0) openStageNav(); // swipe up → aç
-  } else if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){
+  // Yalnızca yatay swipe → eser geçişi. Yukarı swipe ile alt navbar AÇMA kaldırıldı:
+  // sahne modunda navbar istenmiyor, güfteyi kaydırırken kazara açılıp alt barı
+  // (yazı boyutu kontrolünü) örtüyordu. Çıkış için Görünüm Ayarları (⚙) menüsündeki
+  // liste butonu kullanılabilir.
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){
     dx<0?nextWork():prevWork();
   }
 },{passive:true});
@@ -1241,6 +1331,13 @@ function loadSideWork(id) {
         items: [{ workId: normalizedId, closingNote: w.closingNote || '' }]
       };
       curIdx = 0;
+      // Repertuvar yolundaki startStage() ile AYNI giriş dizisi — eksik olması,
+      // eserler.html'den tek eserle girildiğinde topnav.js'in paylaşılan alt
+      // navbar'ı (#r-bottom-nav) gizlememesine yol açıyordu (stageEnter olayı hiç
+      // atılmıyordu). Repertuvardan girişte çalışıp buradan çalışmamasının sebebi buydu.
+      window._stageActive = true;
+      window.dispatchEvent(new Event('stageEnter'));
+      applyStageTheme('stage');
       showScreen('stageScreen');
       document.getElementById('strn').textContent = w.name || '';
       renderStage();
