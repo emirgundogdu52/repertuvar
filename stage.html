@@ -436,7 +436,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 <script>
 const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
 
-let WL = {}, WL_loaded = false; // Supabase'den yüklenecek (WL_loaded: yükleme denemesi bitti mi)
+let WL = {}, WL_loaded = false, _stageShowsPlaceholder = false; // WL_loaded: yükleme bitti mi; _stageShowsPlaceholder: sahnede şu an gerçek ad yerine placeholder/… gösteriliyor mu
 
 async function loadWL() {
   try {
@@ -927,6 +927,7 @@ function renderStage(){
   const item=items[curIdx];
   if(!item)return;
   const w=WL[item.workId]||{};
+  _stageShowsPlaceholder = !w.name; // gerçek ad yoksa placeholder/… bastık demektir
   const total=items.length;
   document.getElementById('stc').textContent=(curIdx+1)+'/'+total;
   const pds=document.getElementById('pds');
@@ -1442,12 +1443,15 @@ function loadSideWork(id) {
           typeof renderPicker === 'function') {
         renderPicker();
       }
-      // Sahne açıksa: works geç geldiyse eser_id (örn. 37) yerine
-      // gerçek ad+güfte gelsin. Aynı eserde kalır (curIdx korunur).
+      // Sahne açıksa: SADECE ekranda şu an placeholder duruyorsa VE ad artık
+      // geldiyse bir kez yeniden çiz. Ad zaten doğru görünüyorsa dokunma —
+      // gereksiz re-render titreme (flicker) yapar.
       if (stage && !stage.classList.contains('hidden') &&
           typeof curRep !== 'undefined' && curRep &&
-          typeof renderStage === 'function') {
-        renderStage();
+          typeof renderStage === 'function' && _stageShowsPlaceholder) {
+        var _it = (curRep.items || [])[curIdx];
+        var _nowResolved = _it && WL[_it.workId] && WL[_it.workId].name;
+        if (_nowResolved) renderStage();
       }
     }, 150);
   }
