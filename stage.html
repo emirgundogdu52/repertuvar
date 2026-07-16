@@ -1294,8 +1294,9 @@ function loadSideWork(id) {
     await loadWL();
   } else {
     loadWL().then(() => {
-      const picker = document.getElementById('pickerScreen');
-      if (picker && !picker.classList.contains('hidden') && !_rsSwipe && !_rsOpenCard) renderPicker();
+      // works geldi: picker VE (açıksa) sahne ekranını tazele — sahnede
+      // eser_id (örn. 37) yerine gerçek ad+güfte gelsin.
+      if (window._rsRefreshAfterWorks) window._rsRefreshAfterWorks();
     });
   }
 
@@ -1427,20 +1428,32 @@ function loadSideWork(id) {
 // görünürken ve kullanıcı kaydırma yapmıyorken çiz (açık swipe'ı bozmamak için).
 (function() {
   let _rt;
-  function _refreshPicker() {
+  function _refreshAfterWorks() {
     clearTimeout(_rt);
     _rt = setTimeout(function() {
+      var swipeOk = (typeof _rsSwipe === 'undefined' || !_rsSwipe) &&
+                    (typeof _rsOpenCard === 'undefined' || !_rsOpenCard);
+      if (!swipeOk) return; // açık swipe'ı bozma
       var picker = document.getElementById('pickerScreen');
+      var stage  = document.getElementById('stageScreen');
+      // Picker açıksa listeyi tazele
       if (picker && !picker.classList.contains('hidden') &&
-          typeof renderPicker === 'function' &&
-          (typeof _rsSwipe === 'undefined' || !_rsSwipe) &&
-          (typeof _rsOpenCard === 'undefined' || !_rsOpenCard)) {
+          typeof renderPicker === 'function') {
         renderPicker();
+      }
+      // Sahne açıksa: works geç geldiyse eser_id (örn. 37) yerine
+      // gerçek ad+güfte gelsin. Aynı eserde kalır (curIdx korunur).
+      if (stage && !stage.classList.contains('hidden') &&
+          typeof curRep !== 'undefined' && curRep &&
+          typeof renderStage === 'function') {
+        renderStage();
       }
     }, 150);
   }
-  window.addEventListener('data-synced', _refreshPicker);
-  window.addEventListener('online', _refreshPicker);
+  // loadWL().then() de bunu çağırıyor (init'te)
+  window._rsRefreshAfterWorks = _refreshAfterWorks;
+  window.addEventListener('data-synced', _refreshAfterWorks);
+  window.addEventListener('online', _refreshAfterWorks);
 })();
 
 </script>
