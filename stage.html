@@ -26,6 +26,13 @@
     liste butonuyla mümkün. (2) YAZI BOYUTU: kaydırıcının iki yanındaki "A"
     etiketleri artık tıklanabilir A−/A+ butonları (stepLyricsFont(±0.1),
     setLyricsFontScale'i kullanır) — hem buton hem kaydırıcı bir arada.
+  - 2026-07-16 (c): eserler.html'den tek eserle (?work=) sahneye girildiğinde
+    alt navbar görünme bug'ı düzeltildi. Sebep: tek-eser giriş yolu, startStage()
+    içindeki stageEnter olayını (topnav.js'in paylaşılan #r-bottom-nav'ı gizlemesini
+    tetikleyen) atlamıyordu. Çözüm: (1) ?work= yoluna aynı giriş dizisi eklendi
+    (_stageActive + stageEnter + applyStageTheme); (2) sağlamlık için showScreen()
+    body'ye 'stage-active' sınıfı ekliyor ve CSS bu sınıfla .r-topnav + #r-bottom-nav'ı
+    display:none !important yapıyor — giriş yolundan/topnav zamanlamasından bağımsız.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -141,6 +148,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
   z-index:100;
 }
 #v2StageBotNav.stage-hidden{transform:translateY(100%);}
+/* Sahne ekranındayken paylaşılan topnav.js header'ı ve alt navbar'ı kesin gizle
+   (giriş yolundan ve topnav.js yükleme zamanlamasından bağımsız). */
+body.stage-active .r-topnav,
+body.stage-active #r-topnav-container .r-topnav,
+body.stage-active #r-bottom-nav{display:none !important;}
 
 .np{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;padding:6px 16px;flex:1;max-width:400px;opacity:0;animation:fi .5s ease .4s forwards;}
 .nl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:4px;font-weight:600;}
@@ -1138,6 +1150,10 @@ function showScreen(id){
       bnav.style.display='none';
     }
   }
+  // Paylaşılan topnav.js header/alt-navbar'ını sahne ekranında CSS ile kesin gizle —
+  // giriş yoluna (eserler ?work= vs repertuvar) ve topnav.js'in geç yüklenmesine
+  // bakmaksızın çalışır; stageEnter olayının yakalanmasına bağlı kalmaz.
+  document.body.classList.toggle('stage-active', id==='stageScreen');
 }
 
 document.addEventListener('keydown',e=>{
@@ -1315,6 +1331,13 @@ function loadSideWork(id) {
         items: [{ workId: normalizedId, closingNote: w.closingNote || '' }]
       };
       curIdx = 0;
+      // Repertuvar yolundaki startStage() ile AYNI giriş dizisi — eksik olması,
+      // eserler.html'den tek eserle girildiğinde topnav.js'in paylaşılan alt
+      // navbar'ı (#r-bottom-nav) gizlememesine yol açıyordu (stageEnter olayı hiç
+      // atılmıyordu). Repertuvardan girişte çalışıp buradan çalışmamasının sebebi buydu.
+      window._stageActive = true;
+      window.dispatchEvent(new Event('stageEnter'));
+      applyStageTheme('stage');
       showScreen('stageScreen');
       document.getElementById('strn').textContent = w.name || '';
       renderStage();
