@@ -1792,9 +1792,16 @@ function domToPlainText(node) {
       if (tag === 'BR') {
         out += '\n';
       } else {
-        out += domToPlainText(child);
-        // Blok elementler (div, p vb.) kendi satırında biter
-        if (getComputedStyle_safe(child) !== 'inline') out += '\n';
+        const inner = domToPlainText(child);
+        out += inner;
+        // Blok elementler (div, p vb.) kendi satırında biter — ama içeriği
+        // zaten bir '\n' ile bitiyorsa (ör. son çocuğu <br> olan bir blok,
+        // tarayıcının Enter'da oluşturduğu tipik boş-satır deseni) tekrar
+        // '\n' eklenmez; aksi halde her blok için satır sonu ikiye katlanır
+        // ve satırlar kaydettikçe aşağı/yukarı kayar.
+        if (getComputedStyle_safe(child) !== 'inline' && !inner.endsWith('\n')) {
+          out += '\n';
+        }
       }
     }
   });
@@ -2014,6 +2021,22 @@ document.addEventListener('DOMContentLoaded', function() {
   if (overlay) {
     overlay.addEventListener('click', function(e) {
       if (e.target === this) closeNewEserModal();
+    });
+  }
+  // Güfte editörü hep düz bir yapı (metin + <br>) bekliyor (bkz. setLyricsValue /
+  // domToPlainText). Ama contenteditable'da Enter'ın varsayılan davranışı
+  // tarayıcıya göre değişiyor: WebKit (iOS/Capacitor) satırı <div> içine sarıp
+  // yeni bir <div> açabiliyor. Bu, ilk satırda (veya herhangi bir yerde) Enter'a
+  // basıldığında yapının bozulmasına ve kaydedince satırların "eski yerine geri
+  // dönmüş" gibi görünmesine yol açan asıl sebepti. Enter'ı burada yakalayıp her
+  // zaman düz bir <br> ekletiyoruz, böylece DOM asla <div> ile parçalanmıyor.
+  const lyricsEditor = document.getElementById('ne_lyrics_editor');
+  if (lyricsEditor) {
+    lyricsEditor.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.execCommand('insertLineBreak');
+      }
     });
   }
   initLongPressHandlers();
