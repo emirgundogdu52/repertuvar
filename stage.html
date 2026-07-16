@@ -650,7 +650,24 @@ function rsTouchMove(e) {
 }
 
 function rsTouchEnd(e) {
-  if (!_rsSwipe || _rsSwipe.dir !== 'h') { _rsSwipe = null; return; }
+  if (!_rsSwipe) return;
+  // Yatay swipe değilse (merkeze tıklama / dikey / belirsiz hareket): kartı
+  // yarı-kaymış bırakma — açıksa açık konumuna, değilse translateX(0)'a çek.
+  if (_rsSwipe.dir !== 'h') {
+    const c = _rsSwipe.card;
+    c.style.transition = 'transform .2s ease';
+    if (c.classList.contains('swiped-open-left')) {
+      c.style.transform = `translateX(${RS_SWIPE_MAX}px)`;
+    } else if (c.classList.contains('swiped-open-right')) {
+      c.style.transform = `translateX(${-RS_SWIPE_MAX}px)`;
+    } else {
+      c.style.transform = 'translateX(0)';
+      const w = c.closest('.rs-wrap');
+      if (w) w.style.setProperty('--swipe-glow', 0);
+    }
+    _rsSwipe = null;
+    return;
+  }
   const card = _rsSwipe.card;
   card.style.transition = 'transform .2s ease';
   if (Math.abs(_rsSwipe.dx) > 5) card.dataset.justSwiped = '1';
