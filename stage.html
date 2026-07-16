@@ -20,6 +20,12 @@
     (güfteye dokununca artık sayfa atlamıyor). Sol/sağ .side-nav-btn butonları
     büyütülüp güvenli dokunma alanı haline getirildi; sadece onlara dokununca
     sayfa atlıyor. (Swipe ve pedal/klavye navigasyonu aynen çalışıyor.)
+  - 2026-07-16 (b): (1) ALT NAVBAR sahne modunda yukarı-swipe ile açılması
+    kaldırıldı (openStageNav artık touchend'de çağrılmıyor) — güfteyi kaydırırken
+    kazara açılıp alt barı örtmüyor. Çıkış hâlâ Görünüm Ayarları (⚙) menüsündeki
+    liste butonuyla mümkün. (2) YAZI BOYUTU: kaydırıcının iki yanındaki "A"
+    etiketleri artık tıklanabilir A−/A+ butonları (stepLyricsFont(±0.1),
+    setLyricsFontScale'i kullanır) — hem buton hem kaydırıcı bir arada.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -168,6 +174,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .font-slider-wrap{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:30px;padding:7px 14px;flex-shrink:0;}
 .font-slider-wrap .fs-a-sm{font-size:12px;font-weight:800;color:var(--text3);line-height:1;}
 .font-slider-wrap .fs-a-lg{font-size:19px;font-weight:800;color:var(--text3);line-height:1;}
+.fs-step{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px;font-family:inherit;transition:color .15s,background .15s;flex-shrink:0;}
+.fs-step:hover{color:var(--text);background:var(--surface2);}
+.fs-step:active{transform:scale(.94);}
 .font-slider{-webkit-appearance:none;appearance:none;width:110px;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;}
 .font-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
 .font-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
@@ -391,10 +400,10 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="nm" id="nm">—</div>
     </div>
     <div class="font-slider-wrap" style="margin-left:auto;" title="Yazı Boyutu">
-      <span class="fs-a-sm">A</span>
+      <button type="button" class="fs-a-sm fs-step" onclick="event.stopPropagation();stepLyricsFont(-0.1)" title="Yazıyı küçült">A−</button>
       <input type="range" id="lyricsFontSlider" class="font-slider" min="0.75" max="1.6" step="0.1" value="1"
         oninput="setLyricsFontScale(this.value)">
-      <span class="fs-a-lg">A</span>
+      <button type="button" class="fs-a-lg fs-step" onclick="event.stopPropagation();stepLyricsFont(0.1)" title="Yazıyı büyüt">A+</button>
     </div>
     <div class="th" style="display:none;">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
@@ -746,6 +755,11 @@ function updateFontSliderUI(scale) {
   const pct = ((scale - LYRICS_SCALE_MIN) / (LYRICS_SCALE_MAX - LYRICS_SCALE_MIN)) * 100;
   slider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--border) ${pct}%, var(--border) 100%)`;
 }
+// A− / A+ butonları: kaydırıcıyla aynı ölçeği adım adım değiştirir (0.1'lik adım).
+function stepLyricsFont(delta) {
+  const cur = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
+  setLyricsFontScale(cur + delta);
+}
 
 // Bir satırın tamamen akor isimlerinden oluşup oluşmadığını denetler (Cm, Fm, D#, G#m7, A/C# vb.)
 // "%%" öneki olmadan girilmiş akor satırlarını da otomatik tanımak için kullanılıyor.
@@ -1010,10 +1024,10 @@ function updateViewToggleUI(w) {
     it.classList.toggle('active', m === mode);
     it.disabled = !available[m];
   });
-  // Tek mod varsa (geçecek bir şey yoksa) butonu tamamen gizle
-  const modeCount = Object.values(available).filter(Boolean).length;
-  btn.style.display = modeCount <= 1 ? 'none' : 'flex';
-  if (modeCount <= 1) closeViewModeMenu();
+  // Buton HER ZAMAN görünür kalır (yalnızca söz olan eserlerde de) —
+  // eskiden tek-mod olunca gizleniyordu, "menü kayıp" görünmesinin sebebi buydu.
+  // Sadece söz varsa menüde Akor/Nota pasif görünür ama buton yerinde durur.
+  btn.style.display = 'flex';
   buildStageToolsRow(mode);
 }
 
@@ -1152,9 +1166,11 @@ document.addEventListener('touchend',e=>{
   if(document.getElementById('stageScreen').classList.contains('hidden'))return;
   const dx=e.changedTouches[0].clientX-txStart;
   const dy=e.changedTouches[0].clientY-tyStart;
-  if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>50){
-    if(dy<0) openStageNav(); // swipe up → aç
-  } else if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){
+  // Yalnızca yatay swipe → eser geçişi. Yukarı swipe ile alt navbar AÇMA kaldırıldı:
+  // sahne modunda navbar istenmiyor, güfteyi kaydırırken kazara açılıp alt barı
+  // (yazı boyutu kontrolünü) örtüyordu. Çıkış için Görünüm Ayarları (⚙) menüsündeki
+  // liste butonu kullanılabilir.
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){
     dx<0?nextWork():prevWork();
   }
 },{passive:true});
