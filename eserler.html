@@ -563,6 +563,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 
 <script>
 let DATA = []; // Supabase'den yüklenecek
+let PERSONAL_CHORDS = {}; // {String(work_id): ChordPro metni} — kullanıcının SADECE kendine ait akorları
 
 
 function parseWorksRows(rows, skipRender) {
@@ -1332,6 +1333,13 @@ function selectWork(id) {
   const isFavNow = getFavs().has(w.id);
   const moreBtn = `<button class="more-btn" onclick="event.stopPropagation();toggleMoreSheet(true, ${w.id})" title="Diğer İşlemler"><i class="ti ti-dots-vertical"></i></button>`;
 
+  // ── KİŞİSEL AKOR ÇÖZÜMLEME ── kullanıcının kişisel akoru varsa onun görünümü ondan türer
+  const _pc = (typeof PERSONAL_CHORDS!=='undefined' && PERSONAL_CHORDS[String(w.id)]) || '';
+  const _canShared = (isAdmin() || isEditor());
+  const _defaultScope = _pc ? 'kisisel' : (_canShared ? 'ortak' : 'kisisel');
+  const dispChords = _pc || (w.chords || '');
+  const dispLyrics = _pc ? chordsToLyrics(_pc) : (w.lyrics || '');
+
   dc.innerHTML = `
     <div class="back-btn" onclick="backFromDetail()">← Listeye Dön</div>
     <div class="detail-header">
@@ -1376,7 +1384,7 @@ function selectWork(id) {
         ].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
         return `<div style="font-size:11px;font-weight:500;color:var(--text3);margin-bottom:12px;">${bits}</div>`;
       })()}
-      ${w.lyrics ? `
+      ${dispLyrics ? `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <span style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.06em;">SÖZLER</span>
         <div class="font-slider-wrap" title="Yazı Boyutu">
@@ -1386,30 +1394,32 @@ function selectWork(id) {
           <span class="fs-a-lg">A</span>
         </div>
       </div>` : ''}
-      ${w.lyrics
-        ? `<div class="lyrics-box" id="lyricsBoxDisplay">${renderLyricsHtml(w.lyrics)}</div>`
+      ${dispLyrics
+        ? `<div class="lyrics-box" id="lyricsBoxDisplay">${renderLyricsHtml(dispLyrics)}</div>`
         : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">Bu eser için güfte eklenmemiş.</div>`
       }
     </div>
 
     <div id="tab-akorlar" class="detail-tab-content detail-body${lastTab==='akorlar'?' active':''}">
-      ${(isAdmin() || isEditor()) ? `
-        <div style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;">
-          Akoru <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz — örn. <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--text2);">[Dm]Sabahtan [G]kalktım</code>
+      ${getUserId() ? `
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+          ${_canShared ? `<button id="scope_ortak_${w.id}" onclick="setChordScope(${w.id},'ortak')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">🌐 Ortak (herkes)</button>` : ''}
+          <button id="scope_kisisel_${w.id}" onclick="setChordScope(${w.id},'kisisel')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">👤 Kişisel (sadece ben)</button>
         </div>
-        <textarea id="inline_chords_${w.id}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="updateChordsPreview(${w.id})" style="width:100%;min-height:320px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
-          placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm"
-        >${(w.chords || w.lyrics || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
-        <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+        <div id="scope_help_${w.id}" style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;"></div>
+        <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="updateChordsPreview(${w.id})" style="width:100%;min-height:300px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
+          placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm"></textarea>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
           <button onclick="saveChords(${w.id})" style="padding:8px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;color:#1a1200;font-size:13px;font-weight:600;cursor:pointer;">💾 Kaydet</button>
           <button id="chords_preview_btn_${w.id}" onclick="toggleChordsPreview(${w.id})" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:13px;cursor:pointer;">👁 Önizle</button>
+          <button id="delpc_${w.id}" onclick="deletePersonalChords(${w.id})" style="display:none;padding:8px 14px;background:none;border:1px solid rgba(239,68,68,.4);border-radius:6px;color:#ef4444;font-size:12px;cursor:pointer;">Kişiseli sil</button>
         </div>
         <div id="chords_preview_${w.id}" class="lyrics-box" style="display:none;margin-top:12px;"></div>
       ` : `
         <div class="lyrics-box">
-          ${w.chords && w.chords.trim()
-            ? renderChords(w.chords.trim())
-            : (w.lyrics
+          ${dispChords && dispChords.trim()
+            ? renderChords(dispChords.trim())
+            : (dispLyrics
                 ? `<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>`
                 : `<span style="color:var(--text3);font-size:12px;">Güfte ve akor bilgisi yok.</span>`)
           }
@@ -1479,6 +1489,9 @@ function selectWork(id) {
   // Yazı boyutu slider'ını her eser açılışında sıfırdan başlat ve UI'ı senkronla
   lyricsFontStep = 0;
   updateLyricsFontSliderUI();
+
+  // Akor editörü: kapsam seçicisini (Ortak/Kişisel) başlat, doğru içeriği yükle
+  if (getUserId() && document.getElementById('inline_chords_'+w.id)) setChordScope(w.id, _defaultScope);
 
   // Mobile: detail panel top offset
   function setDetailTop() {
@@ -1577,48 +1590,123 @@ function toggleChordsPreview(id){
   if(show) updateChordsPreview(id);
 }
 
+// ── KİŞİSEL AKOR KATMANI ──
+async function loadPersonalChords(){
+  try{
+    const uid = (typeof getUserId==='function') ? getUserId() : null;
+    if(!uid) return;
+    const token = localStorage.getItem('sb_token') || SUPA_KEY;
+    const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords&user_id=eq.'+uid, {
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+token}
+    });
+    if(!r.ok) return;
+    const rows = await r.json();
+    PERSONAL_CHORDS = {};
+    (rows||[]).forEach(x=>{ if(x.chords) PERSONAL_CHORDS[String(x.work_id)] = x.chords; });
+  }catch(e){ console.warn('[eserler] kişisel akorlar yüklenemedi:', e.message); }
+}
+async function savePersonalChordsRow(id, chords){
+  const uid = getUserId();
+  const token = localStorage.getItem('sb_token') || SUPA_KEY;
+  const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?on_conflict=user_id,work_id', {
+    method:'POST',
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+    body: JSON.stringify({ user_id: uid, work_id: parseInt(id), chords: chords, updated_at: new Date().toISOString() })
+  });
+  return r.ok || r.status===201 || r.status===204;
+}
+async function deletePersonalChordsRow(id){
+  const uid = getUserId();
+  const token = localStorage.getItem('sb_token') || SUPA_KEY;
+  const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id), {
+    method:'DELETE',
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Prefer':'return=minimal'}
+  });
+  return r.ok || r.status===204;
+}
+async function deletePersonalChords(id){
+  if(!confirm('Kişisel akorun silinecek, ortak akora döneceksin. Emin misin?')) return;
+  const ok = await deletePersonalChordsRow(id);
+  if(!ok){ alert('Silinemedi, tekrar dene.'); return; }
+  delete PERSONAL_CHORDS[String(id)];
+  toastMsg('✓ Kişisel akor silindi');
+  setChordScope(id, (document.getElementById('inline_chords_'+id)?.dataset.scope) || 'kisisel');
+}
+// Kapsam (Ortak/Kişisel) değiştir — editör içeriğini ve butonları güncelle
+function setChordScope(id, scope){
+  const ta = document.getElementById('inline_chords_'+id);
+  if(!ta) return;
+  const canShared = (isAdmin() || isEditor());
+  if(scope==='ortak' && !canShared) scope='kisisel';
+  ta.dataset.scope = scope;
+  const w = DATA.find(x=>x.id===id || x.id===parseInt(id)) || {};
+  const shared = w.chords || '';
+  const personal = PERSONAL_CHORDS[String(id)] || '';
+  ta.value = scope==='ortak' ? (shared || w.lyrics || '') : (personal || shared || w.lyrics || '');
+  const bo=document.getElementById('scope_ortak_'+id), bk=document.getElementById('scope_kisisel_'+id);
+  const setBtn=(b,on)=>{ if(!b)return; b.style.background=on?'var(--accent)':'transparent'; b.style.color=on?'#1a1200':'var(--text2)'; b.style.borderColor=on?'var(--accent)':'var(--border)'; };
+  setBtn(bo, scope==='ortak'); setBtn(bk, scope==='kisisel');
+  const help=document.getElementById('scope_help_'+id);
+  if(help) help.innerHTML = scope==='ortak'
+    ? 'Bu akoru <b>gruptaki herkes</b> görür. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.'
+    : 'Bu akoru <b>sadece sen</b> görürsün; ortak akor değişmez. <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.';
+  const del=document.getElementById('delpc_'+id);
+  if(del) del.style.display = (scope==='kisisel' && personal) ? 'inline-block' : 'none';
+  updateChordsPreview(id);
+}
+function toastMsg(text){
+  const m=document.createElement('div');
+  m.style.cssText='position:fixed;bottom:24px;right:24px;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;';
+  m.textContent=text; document.body.appendChild(m); setTimeout(()=>m.remove(),2500);
+}
+function _afterChordsSaved(id, hasCh, chords, isShared){
+  const prev = document.getElementById('chords_preview_'+id);
+  if (prev) {
+    prev.innerHTML = hasCh ? renderChords(chords) : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi yok.</span>';
+    prev.style.display = 'block';
+    const pb = document.getElementById('chords_preview_btn_'+id);
+    if (pb) pb.style.borderColor = 'var(--accent)';
+  }
+  // Bu kullanıcının GEÇERLİ akoru (kişisel varsa o) → güfte tab'ını tazele
+  const eff = PERSONAL_CHORDS[String(id)] || (DATA.find(x=>x.id===id||x.id===parseInt(id))||{}).chords || '';
+  const gbox = document.getElementById('lyricsBoxDisplay');
+  if (gbox && hasRealChords(eff)) gbox.innerHTML = renderLyricsHtml(chordsToLyrics(eff));
+  const del=document.getElementById('delpc_'+id);
+  if(del) del.style.display = (!isShared && PERSONAL_CHORDS[String(id)]) ? 'inline-block' : 'none';
+  toastMsg(isShared ? '✓ Ortak akor kaydedildi' : '✓ Kişisel akor kaydedildi');
+}
+
 async function saveChords(id) {
   const ta = document.getElementById('inline_chords_'+id);
   if (!ta) { console.error('textarea bulunamadı: inline_chords_'+id); return; }
+  const scope = ta.dataset.scope || 'kisisel';
   const raw = ta.value.trim();
   const _hasCh = hasRealChords(raw);
-  // Gerçek [akor] yoksa akor alanını BOŞ kaydet (düz güfte akor alanına sızmasın).
   const chords = _hasCh ? raw : '';
-  const token = localStorage.getItem('sb_token') || SUPA_KEY;
-  fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + token,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify(_hasCh ? {chords: chords, lyrics: chordsToLyrics(chords)} : {chords: ''})
-  }).then(r => {
-    if (r.ok || r.status === 204) {
+
+  if (scope === 'ortak') {
+    if (!(isAdmin() || isEditor())) { alert('Ortak akoru sadece editör düzenleyebilir.'); return; }
+    const token = localStorage.getItem('sb_token') || SUPA_KEY;
+    try {
+      const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
+        method: 'PATCH',
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify(_hasCh ? {chords: chords, lyrics: chordsToLyrics(chords)} : {chords: ''})
+      });
+      if (!(r.ok || r.status === 204)) { alert('Kayıt hatası: ' + (await r.text())); return; }
       const idx = DATA.findIndex(x => x.id === id || x.id === parseInt(id));
       if (idx > -1) { DATA[idx].chords = chords; if (_hasCh) DATA[idx].lyrics = chordsToLyrics(chords); }
-      const prev = document.getElementById('chords_preview_'+id);
-      if (prev) {
-        prev.innerHTML = _hasCh ? renderChords(chords) : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>';
-        prev.style.display = 'block';
-        const pb = document.getElementById('chords_preview_btn_'+id);
-        if (pb) pb.style.borderColor = 'var(--accent)';
-      }
-      // Güfte de akordan türetildiği için güfte görünümünü de tazele
-      if (_hasCh) {
-        const gbox = document.getElementById('lyricsBoxDisplay');
-        if (gbox) gbox.innerHTML = renderLyricsHtml(chordsToLyrics(chords));
-      }
-      const alertMsg = document.createElement('div');
-      alertMsg.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;';
-      alertMsg.textContent = '✓ Akorlar kaydedildi';
-      document.body.appendChild(alertMsg);
-      setTimeout(() => alertMsg.remove(), 2500);
-    } else {
-      r.text().then(t => alert('Kayıt hatası: ' + t));
-    }
-  }).catch(err => alert('Bağlantı hatası: ' + err.message));
+      _afterChordsSaved(id, _hasCh, chords, true);
+    } catch(err) { alert('Bağlantı hatası: ' + err.message); }
+  } else {
+    // KİŞİSEL: sadece bu kullanıcı görür, ortak works.chords'a dokunulmaz
+    try {
+      const ok = _hasCh ? await savePersonalChordsRow(id, chords) : await deletePersonalChordsRow(id);
+      if (!ok) { alert('Kaydedilemedi, tekrar dene.'); return; }
+      if (_hasCh) PERSONAL_CHORDS[String(id)] = chords; else delete PERSONAL_CHORDS[String(id)];
+      _afterChordsSaved(id, _hasCh, chords, false);
+    } catch(err) { alert('Bağlantı hatası: ' + err.message); }
+  }
 }
 
 async function uploadNota(id, input) {
@@ -2162,6 +2250,7 @@ document.addEventListener('keydown', function(e) {
   const _lp = document.getElementById('listPanel'); if(_lp) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">Eserler yükleniyor...</div>';
   
   await loadWorksFromSupabase();
+  loadPersonalChords(); // kişisel akorları arka planda yükle (listeyi bloklamaz)
   loadRepertoireCounts(); // arka planda, listeyi bloklamadan
   
   // URL'den id parametresi varsa o eseri seç

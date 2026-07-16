@@ -486,6 +486,27 @@ async function loadWL() {
         else WL[id] = {name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||'',notaUrl:w.notaUrl||''};
       });
     } catch(e) {}
+    // Kişisel akor overlay — kullanıcının kendi akoru varsa sahne görünümü ondan türer
+    try {
+      const uid = (typeof getUserId==='function') ? getUserId() : null;
+      if (uid) {
+        const tok = localStorage.getItem('sb_token') || SUPA_KEY;
+        const pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords&user_id=eq.'+uid, {
+          headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+tok},
+          signal: AbortSignal.timeout(4000)
+        });
+        if (pr.ok) {
+          const prows = await pr.json();
+          (prows||[]).forEach(x => {
+            if (!x.chords) return;
+            const id = String(parseInt(x.work_id));
+            const lyr = x.chords.split('\n').filter(l=>!/^\s*\{.*\}\s*$/.test(l)).map(l=>l.replace(/\[[^\]]*\]/g,'')).join('\n').replace(/[ \t]+$/gm,'').trim();
+            if (WL[id]) { WL[id].chords = x.chords; WL[id].lyrics = lyr; }
+            else WL[id] = { name:'', lyrics: lyr, chords: x.chords, composer:'', makam:'', instrument:'', closingNote:'', notaUrl:'' };
+          });
+        }
+      }
+    } catch(e) { /* offline / yetki yok — kişisel katman atlanır */ }
   } catch(e) { console.error('WL yüklenemedi:', e); }
   finally { WL_loaded = true; } // works yükleme denemesi bitti (başarılı/başarısız)
 }let reps=[], selId=null, curRep=null, curIdx=0;
