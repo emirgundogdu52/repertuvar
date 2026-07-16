@@ -436,7 +436,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 <script>
 const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
 
-let WL = {}; // Supabase'den yüklenecek
+let WL = {}, WL_loaded = false; // Supabase'den yüklenecek (WL_loaded: yükleme denemesi bitti mi)
 
 async function loadWL() {
   try {
@@ -480,6 +480,7 @@ async function loadWL() {
       });
     } catch(e) {}
   } catch(e) { console.error('WL yüklenemedi:', e); }
+  finally { WL_loaded = true; } // works yükleme denemesi bitti (başarılı/başarısız)
 }let reps=[], selId=null, curRep=null, curIdx=0;
 
 // repertoires.html'deki "Gizle" (hiddenRepIds, sadece client-side) ile tutarlı olsun diye —
@@ -961,7 +962,7 @@ function renderStage(){
   }
   document.getElementById('sm').innerHTML=`
     <div class="wnum"></div>
-    <div class="wtitle">${w.name||item.workId}</div>
+    <div class="wtitle">${w.name || (WL_loaded ? item.workId : '…')}</div>
     ${bodyHtml}`;
   updateViewToggleUI(w);
   // Kaydedilmiş hizalamayı uygula
@@ -972,7 +973,7 @@ function renderStage(){
   updateFontSliderUI(savedScale);
   const next=items[curIdx+1];
   const np=document.getElementById('np');
-  if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name||next.workId;document.getElementById('nm').textContent=[nw.makam,nw.measurement,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
+  if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name || (WL_loaded ? next.workId : '…');document.getElementById('nm').textContent=[nw.makam,nw.measurement,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
   else np.style.display='none';
 }
 
