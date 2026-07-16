@@ -84,6 +84,43 @@ async function ensureValidToken() {
 }
 window.ensureValidToken = ensureValidToken;
 
+// ── TÜM SUPABASE FETCH'LERİNE OTOMATİK TOKEN YENİLEME ──
+// window.fetch'i sarmalıyoruz: Supabase'e giden her istek, gitmeden önce
+// taze token alır. Böylece sayfaların kendi fetch'leri (token yenilemeyi
+// bilmeyenler dahil) 401 almaz. Tek noktadan tüm çağrılar korunur.
+if (!window._supaFetchPatched) {
+  window._supaFetchPatched = true;
+  var _origFetch = window.fetch.bind(window);
+  window.fetch = async function(input, init) {
+    try {
+      var url = (typeof input === 'string') ? input : (input && input.url) || '';
+      // Sadece Supabase REST/diğer istekleri; refresh'in KENDİSİ muaf (sonsuz döngü olmasın).
+      var isSupa = url.indexOf('supabase.co') !== -1;
+      var isTokenReq = url.indexOf('/auth/v1/token') !== -1;
+      if (isSupa && !isTokenReq && typeof ensureValidToken === 'function') {
+        var fresh = await ensureValidToken();
+        if (fresh) {
+          init = init || {};
+          var h = init.headers;
+          // headers Headers nesnesi olabilir ya da düz obje — ikisini de yönet.
+          if (h instanceof Headers) {
+            // Yalnızca zaten Authorization taşıyan istekleri güncelle (SUPA_KEY-only olanlara dokunma).
+            if (h.has('Authorization')) h.set('Authorization', 'Bearer ' + fresh);
+          } else if (h && typeof h === 'object') {
+            if (h.Authorization || h.authorization) {
+              h.Authorization = 'Bearer ' + fresh;
+              if (h.authorization) delete h.authorization;
+            }
+            init.headers = h;
+          }
+        }
+      }
+    } catch (e) { /* patch hatası olsa bile isteği engelleme */ }
+    return _origFetch(input, init);
+  };
+}
+
+
 // Uygulama açık kalırken de token dolabilir (1 saatlik ömür). requireAuth yalnızca
 // açılışta çalıştığından, açıkken dolan token kimse tarafından yenilenmiyordu.
 // Bu zamanlayıcı token'ı periyodik olarak (görünür sekmede) sessizce tazeler.

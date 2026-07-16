@@ -971,11 +971,11 @@ function shareViaWhatsApp() {
 (async function() {
   const ok = await requireAuth();
   if(!ok) return;
-  if (window.syncOfflineData) syncOfflineData();
-  // works verisini BEKLEME — repertuvar listesi works olmadan da çizilir (eser adları
-  // sonra dolar). Önce local repertuvarları göster, works arka planda gelince tazele.
+  // Önce local'den oku ve çiz (load), SONRA sync'i gecikmeyle başlat —
+  // böylece açılış okuması, sync'in works yazmasıyla çakışmaz.
   load();
   loadWorksData().then(() => { renderList(); renderDetail(); });
+  if (window.syncOfflineData) setTimeout(() => syncOfflineData(), 800);
 })();
 
 

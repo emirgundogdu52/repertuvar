@@ -84,7 +84,7 @@ function makeStore(storeName) {
       ? openDB().then((db) => new Promise((resolve, reject) => {
           const tx = db.transaction(storeName, 'readwrite');
           const store = tx.objectStore(storeName);
-          items.forEach((item) => store.put(item));
+          (items || []).forEach((item) => store.put(item));
           tx.oncomplete = () => resolve();
           tx.onerror = () => reject(tx.error);
         })).catch((e) => { console.warn('[db] saveAll hatası:', e); })
@@ -196,6 +196,9 @@ if ('serviceWorker' in navigator) {
 
 // Online gelince sync yap
 window.addEventListener('online', () => {
-  console.log('[db] Online — sync başlıyor...');
-  syncOfflineData();
+  console.log('[db] Online — sync (kısa gecikmeyle) başlıyor...');
+  // Gecikme: ağ değişince sayfa büyük olasılıkla o an local'i okuyup çiziyor.
+  // Sync'i hemen başlatırsak works store'una yazma, okumayı bloke ediyor.
+  // 800ms bekleyip yazmaya başlayınca okuma çoktan bitmiş oluyor.
+  setTimeout(() => syncOfflineData(), 800);
 });
