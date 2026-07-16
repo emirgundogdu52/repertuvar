@@ -1267,7 +1267,7 @@ function loadSideWork(id) {
   }
 
   // Arka planda sync yap (online ise IndexedDB'yi güncelle)
-  if (window.syncOfflineData) syncOfflineData();
+  if (window.syncOfflineData) setTimeout(() => syncOfflineData(), 800);
 
   // WL (works) yüklemesi: tek-eser (?work=) ve paylaşım (?share=) linkleri WL'ye
   // bağımlı olduğundan onlar için BEKLE; normal picker açılışında ise BEKLEME —
