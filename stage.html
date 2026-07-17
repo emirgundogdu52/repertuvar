@@ -52,6 +52,11 @@
     alındı (.sb-menu/.sb-menu-btn — satır yüksekliği eklemez). Harf büyüt/küçült
     kontrolü küçültülüp "Sıradaki" kartıyla aynı alt satıra yan yana kondu. .sm ve
     .wlyrics alt padding'leri (80-100px → 20px) kısıldı; güfte alanı büyüdü.
+  - 2026-07-17 (e): Alt kontrol çubuğu (.sb) artık in-flow değil, tabana YÜZEN
+    overlay (position:absolute;bottom:0;pointer-events yalnız pill'lerde). Güfte alanı
+    (.sm) ekranın en altına kadar uzuyor; alt boşluk yalnızca her zaman görünen harf
+    kontrolünü aşacak kadar (calc(60px+safe-area)). Menü butonu/paneli güftenin üstüne
+    biniyor (bazen açık). Böylece güftenin alt çizgisi menü üst hizasında kesilmiyor.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -143,7 +148,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .vm-item.active .ti{color:var(--accent);}
 .vm-item:disabled{opacity:.32;cursor:not-allowed;}
 
-.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:28px 16px 20px;position:relative;overflow-y:auto;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
+.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:28px 16px calc(60px + env(safe-area-inset-bottom));position:relative;overflow-y:auto;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
 .wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:100%;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
@@ -169,7 +174,8 @@ body.day-theme{--chord-color:#B26A00;}   /* açık: koyu amber (beyaz zeminde ko
 [data-theme="light"]{--chord-color:#B26A00;}
 .wlyrics .cp-lyric{display:block;white-space:pre-wrap;}
 
-.sb{padding:0 16px 16px;flex-shrink:0;display:flex;align-items:flex-end;gap:10px;position:relative;z-index:10;}
+.sb{padding:0 16px 16px;position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;gap:10px;z-index:10;pointer-events:none;}
+.sb > *{pointer-events:auto;}
 .sb-menu{position:absolute;right:16px;bottom:calc(100% + 6px);z-index:11;}
 .sb-menu-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s,border-color .15s;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.25);}
 .sb-menu-btn:hover{color:var(--text);border-color:var(--accent);}
@@ -264,7 +270,7 @@ body.stage-active #r-bottom-nav{display:none !important;}
     .strn { font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .bex, .stage-nav a { font-size:10px; padding:4px 8px; }
     .stage-nav { gap:4px; }
-    .sm { padding:20px 14px 20px; }
+    .sm { padding:20px 14px calc(60px + env(safe-area-inset-bottom)); }
     .sb { padding:0 12px 16px; flex-wrap:nowrap; gap:8px; }
     .side-nav-left { left:8px; border-radius:12px; }
     .side-nav-right { right:8px; border-radius:12px; }
@@ -290,7 +296,7 @@ body.stage-active #r-bottom-nav{display:none !important;}
     .th { font-size:10px; }
     .stb { padding:6px 8px; padding-top:calc(6px + env(safe-area-inset-top)); }
     .stage-nav a, .bex { font-size:10px !important; padding:3px 6px !important; }
-    .sm { padding:16px 10px 20px; }
+    .sm { padding:16px 10px calc(60px + env(safe-area-inset-bottom)); }
     /* Picker screen on mobile */
     .pi-fixed-top, .pi-scroll, .pi-fixed-bottom { padding-left:16px; padding-right:16px; }
     .ptitle { font-size:20px; }
