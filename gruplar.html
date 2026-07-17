@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+  GRUPLAR.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur)
+  - 2026-07-17: Mobil düzen katmanı eklendi (@media max-width:600px) — masaüstü
+    değişmedi. Kenar boşlukları küçültüldü (.page-content/.section), yatay taşma
+    kesildi, rol açılır menüsü (.role-dd-menu) sağ kenara yaslandı, iOS metin
+    otomatik büyütmesi kapatıldı (-webkit-text-size-adjust), buton satırları mobilde
+    sarıp tam genişliğe yayılıyor (.m-btn-row).
+-->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -49,6 +57,25 @@
 .member-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; color: var(--text3); margin-top: 2px; }
 .member-meta span { display: flex; align-items: center; gap: 3px; }
 .member-instrument { font-size: 11px; color: var(--accent2); margin-top: 3px; display: flex; align-items: center; gap: 3px; }
+
+/* ── MOBİL DÜZEN (masaüstünü etkilemez) ── */
+html { -webkit-text-size-adjust: 100%; }
+@media (max-width: 600px) {
+  html, body { overflow-x: hidden; }
+  .page-content { padding: 12px 12px 90px; }
+  .section { padding: 16px; border-radius: 12px; margin-bottom: 14px; }
+  .section-title { margin-bottom: 12px; }
+  .group-avatar { width: 46px; height: 46px; font-size: 20px; border-radius: 12px; }
+  .group-name { font-size: 18px; }
+  .member-item { gap: 10px; }
+  .member-meta { font-size: 10px; }
+  .member-meta span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .role-dd-menu { right: 0; left: auto; }   /* açılır menü sağ kenardan taşmasın */
+  .toast { white-space: normal; max-width: 90vw; text-align: center; }
+  /* form buton satırları: sar + tam genişliğe yayıl (kolay dokunma) */
+  .m-btn-row { flex-wrap: wrap; }
+  .m-btn-row .btn { flex: 1 1 auto; min-height: 42px; }
+}
 </style>
 </head>
 <body>
@@ -74,7 +101,7 @@
         <label class="fl">Açıklama</label>
         <input class="fi" id="newGroupDesc" placeholder="Kısa bir açıklama...">
       </div>
-      <div style="display:flex;gap:10px;">
+      <div class="m-btn-row" style="display:flex;gap:10px;">
         <button class="btn btn-secondary" onclick="hideCreateGroup()">İptal</button>
         <button class="btn btn-primary" onclick="createGroup()">Koroyu Oluştur</button>
       </div>
@@ -107,7 +134,7 @@
           <label class="fl">Açıklama</label>
           <input class="fi" id="editGroupDesc" placeholder="Açıklama...">
         </div>
-        <div style="display:flex;gap:8px;">
+        <div class="m-btn-row" style="display:flex;gap:8px;">
           <button class="btn btn-primary" style="font-size:12px;" onclick="saveGroupEdit()">Kaydet</button>
           <button class="btn btn-secondary" style="font-size:12px;" onclick="hideEditGroup()">İptal</button>
         </div>
