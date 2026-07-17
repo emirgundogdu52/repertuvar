@@ -1,4 +1,5 @@
 /* topnav.js — v2026-06-30-switch-unified — sbThemeToggle/rThemeToggle/dtThemeToggle hepsi tek .r-theme-toggle markup'ı kullanır */
+/* 2026-07-17: SYNC BAR eklendi (dosya sonu) — Supabase /rest/v1 & /auth/v1 fetch'lerinde ekranın en üstünde ince altın ilerleme çubuğu. */
 (function() {
   // CSS inject
   const style = document.createElement('style');
@@ -888,4 +889,96 @@
       body: JSON.stringify(payload)
     }).catch(() => {});
   } catch (e) { /* takip asla sayfayı bozmamalı */ }
+})();
+
+/* ─────────────────────────────────────────────────────────────
+   SYNC BAR — ince üst ilerleme çubuğu (2026-07-17)
+   Supabase (/rest/v1/, /auth/v1/) fetch istekleri sırasında ekranın en
+   üstünde marka altınıyla dolan 3px'lik bar. Gerçek yüzde yok (tek istek);
+   NProgress mantığı: başlarken ~%90'a kadar yavaşlayarak dolar, bitince
+   %100'e atlayıp söner. En az ~450ms görünür ki hızlı sync'lerde flaş olmasın.
+   window.fetch'i sarar; auth.js'in fetch sarmalayıcısının ÜSTÜNE zincirlenir
+   (auth.js defer'sız önce, topnav.js defer sonra çalışır → çakışma yok).
+   ───────────────────────────────────────────────────────────── */
+(function () {
+  if (window.__syncBarInstalled) return;
+  window.__syncBarInstalled = true;
+
+  var css = document.createElement('style');
+  css.textContent =
+    '#sync-bar{position:fixed;top:0;left:0;height:3px;width:100%;' +
+    'transform:scaleX(0);transform-origin:0 50%;opacity:0;' +
+    'background:linear-gradient(90deg,#FFC83D,#FFD972);' +
+    'box-shadow:0 0 10px rgba(255,200,61,.65),0 0 4px rgba(255,200,61,.9);' +
+    'z-index:2147483647;pointer-events:none;will-change:transform,opacity;' +
+    'transition:transform .2s ease,opacity .35s ease;}' +
+    '#sync-bar.on{opacity:1;}';
+  (document.head || document.documentElement).appendChild(css);
+
+  var bar = null, prog = 0, trickle = null, count = 0, startedAt = 0;
+  var MIN_MS = 450;
+
+  function el() {
+    if (!bar || !bar.isConnected) {
+      bar = document.getElementById('sync-bar');
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'sync-bar';
+      }
+      if (!bar.isConnected) (document.body || document.documentElement).appendChild(bar);
+    }
+    return bar;
+  }
+  function set(p) {
+    prog = Math.max(0, Math.min(1, p));
+    el().style.transform = 'scaleX(' + prog + ')';
+  }
+  function start() {
+    startedAt = Date.now();
+    var b = el();
+    b.style.transition = 'none';   // görünmezken 0'a çek (animasyonsuz)
+    set(0);
+    void b.offsetWidth;            // reflow
+    b.style.transition = '';       // geçişi geri aç
+    b.classList.add('on');
+    set(0.08);
+    clearInterval(trickle);
+    trickle = setInterval(function () {
+      if (prog < 0.9) set(prog + (0.9 - prog) * 0.12 + 0.005);
+    }, 220);
+  }
+  function finish() {
+    if (count !== 0) return;       // arada yeni istek başladıysa gizleme
+    clearInterval(trickle); trickle = null;
+    set(1);
+    setTimeout(function () { if (count === 0) el().classList.remove('on'); }, 240);
+  }
+  function done() {
+    var wait = Math.max(0, MIN_MS - (Date.now() - startedAt));
+    setTimeout(finish, wait);
+  }
+
+  window.__syncBar = {
+    inc: function () { count++; if (count === 1) start(); },
+    dec: function () { count = Math.max(0, count - 1); if (count === 0) done(); },
+    // İstersen elle de tetiklenebilir (ör. IndexedDB işleri için):
+    pulse: function () { this.inc(); var s = this; setTimeout(function () { s.dec(); }, 300); }
+  };
+
+  var of = window.fetch;
+  if (typeof of === 'function') {
+    window.fetch = function (input, init) {
+      var url = '';
+      try { url = (typeof input === 'string') ? input : (input && input.url) || ''; } catch (e) {}
+      var track = /\/rest\/v1\/|\/auth\/v1\//.test(url);
+      if (track) window.__syncBar.inc();
+      var p;
+      try { p = of.apply(this, arguments); }
+      catch (e) { if (track) window.__syncBar.dec(); throw e; }
+      if (track && p && typeof p.then === 'function') {
+        p.then(function () { window.__syncBar.dec(); }, function () { window.__syncBar.dec(); });
+      }
+      return p;
+    };
+  }
 })();
