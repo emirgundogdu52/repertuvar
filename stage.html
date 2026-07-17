@@ -44,6 +44,9 @@
     yerel veriler gösteriliyor" toast'ı sayfa başına bir kez çıkar (works ve reps
     arka plan fetch'i başarısız olunca; stageToast/stageOfflineToast). repertuvarlar
     ve eserler ile aynı davranış.
+  - 2026-07-17 (c): Akor rengi temaya duyarlı yapıldı. .cp-chord artık sabit mavi
+    değil, var(--chord-color): karanlıkta #FFC83D (altın), açıkta #B26A00 (koyu amber).
+    Güfteden (--text) net ayrışıp sahnede takibi kolaylaştırır. eserler.html'de de aynı.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -154,7 +157,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .wlyrics .cp-blank{display:block;height:.9em;}
 .wlyrics .cp-comment{display:block;text-align:left;color:var(--accent,#4DA3FF);font-style:italic;font-size:.7em;margin:10px 0 2px;opacity:.85;}
 .wlyrics .cp-seg{display:inline-block;position:relative;vertical-align:bottom;}
-.wlyrics .cp-chord{display:block;font-size:.62em;font-weight:700;color:#4DA3FF;line-height:1.15;min-height:1.2em;white-space:nowrap;font-family:'SF Mono',ui-monospace,monospace;letter-spacing:.02em;}
+.wlyrics .cp-chord{display:block;font-size:.62em;font-weight:700;color:var(--chord-color,#FFC83D);line-height:1.15;min-height:1.2em;white-space:nowrap;font-family:'SF Mono',ui-monospace,monospace;letter-spacing:.02em;}
+/* Akor rengi — temaya duyarlı altın/amber, güfteden ayrışsın (2026-07-17) */
+:root{--chord-color:#FFC83D;}            /* karanlık: parlak altın */
+body.day-theme{--chord-color:#B26A00;}   /* açık: koyu amber (beyaz zeminde kontrast) */
+[data-theme="light"]{--chord-color:#B26A00;}
 .wlyrics .cp-lyric{display:block;white-space:pre-wrap;}
 
 .sb{padding:0 24px 24px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:flex-start;gap:16px;position:relative;z-index:10;}
