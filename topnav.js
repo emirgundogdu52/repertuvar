@@ -398,6 +398,7 @@
       <header class="r-topnav">
         <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
         <div class="r-tn-right">
+          <button class="r-tn-bell" id="rTnBell" onclick="toggleNotifPanel(event)" title="Bildirimler" aria-label="Bildirimler"><i class="ti ti-bell"></i><span id="rTnBellBadge"></span></button>
           ${themeToggleMarkup('rThemeToggle', _theme)}
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
             <div class="r-tn-avatar" id="rTnAvatar"><i class="ti ti-user" style="font-size:16px;"></i></div>
@@ -736,6 +737,115 @@
     });
   }
 
+  // ── BİLDİRİM ZİLİ (uygulama içi) — tüm sayfalarda topnav'da ──
+  const NOTIF_SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+  const NOTIF_SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+  function _notifAuth() {
+    const token = localStorage.getItem('sb_token');
+    const uid = localStorage.getItem('sb_user') ? JSON.parse(localStorage.getItem('sb_user')).id : null;
+    return (token && uid) ? { token: token, uid: uid } : null;
+  }
+  function _notifEsc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function _notifTime(iso){
+    try {
+      const d = new Date(iso), diff = (Date.now() - d.getTime())/1000;
+      if (diff < 60) return 'az önce';
+      if (diff < 3600) return Math.floor(diff/60)+' dk önce';
+      if (diff < 86400) return Math.floor(diff/3600)+' sa önce';
+      if (diff < 604800) return Math.floor(diff/86400)+' gün önce';
+      return d.toLocaleDateString('tr-TR', {day:'2-digit', month:'short'});
+    } catch(e){ return ''; }
+  }
+  async function loadNotifBadge() {
+    const a = _notifAuth(); if (!a) return;
+    try {
+      const r = await fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&is_read=eq.false&select=id', { headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token } });
+      if (!r.ok) return;
+      const rows = await r.json();
+      applyNotifBadge(rows.length);
+    } catch(e) {}
+  }
+  function applyNotifBadge(count) {
+    const b = document.getElementById('rTnBellBadge');
+    if (!b) return;
+    b.textContent = count > 0 ? (count > 99 ? '99+' : count) : '';
+    b.style.display = count > 0 ? 'inline-flex' : 'none';
+  }
+  window.toggleNotifPanel = function(e) {
+    if (e) e.stopPropagation();
+    let p = document.getElementById('rNotifPanel');
+    if (!p) {
+      p = document.createElement('div');
+      p.id = 'rNotifPanel';
+      p.className = 'r-notif-panel';
+      document.body.appendChild(p);
+      document.addEventListener('click', function(){ p.classList.remove('open'); });
+    }
+    const bell = document.getElementById('rTnBell');
+    if (bell) {
+      const rect = bell.getBoundingClientRect();
+      p.style.top = (rect.bottom + 6) + 'px';
+      p.style.right = Math.max(8, window.innerWidth - rect.right) + 'px';
+    }
+    const willOpen = !p.classList.contains('open');
+    p.classList.toggle('open');
+    if (willOpen) loadNotifList();
+  };
+  async function loadNotifList() {
+    const p = document.getElementById('rNotifPanel');
+    const a = _notifAuth();
+    if (!p || !a) return;
+    p.innerHTML = '<div class="r-notif-head">Bildirimler</div><div style="padding:16px;color:#9aa4b2;font-size:13px;">Yükleniyor…</div>';
+    try {
+      const r = await fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&order=created_at.desc&limit=30&select=id,type,title,body,is_read,created_at', { headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token } });
+      const rows = r.ok ? await r.json() : [];
+      if (!rows.length) {
+        p.innerHTML = '<div class="r-notif-head">Bildirimler</div><div style="padding:22px 16px;color:#6b7482;font-size:13px;text-align:center;">Henüz bildirim yok.</div>';
+        return;
+      }
+      p.innerHTML = '<div class="r-notif-head">Bildirimler</div>' + rows.map(function(n){
+        return '<div class="r-notif-item' + (n.is_read ? '' : ' unread') + '">' +
+          '<div class="r-notif-title">' + _notifEsc(n.title) + '</div>' +
+          (n.body ? '<div class="r-notif-body">' + _notifEsc(n.body) + '</div>' : '') +
+          '<div class="r-notif-time">' + _notifTime(n.created_at) + '</div>' +
+        '</div>';
+      }).join('');
+      const unread = rows.filter(function(n){ return !n.is_read; }).map(function(n){ return n.id; });
+      if (unread.length) {
+        fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?id=in.(' + unread.join(',') + ')', {
+          method: 'PATCH',
+          headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ is_read: true })
+        }).then(function(){ applyNotifBadge(0); }).catch(function(){});
+      }
+    } catch(e) {
+      p.innerHTML = '<div class="r-notif-head">Bildirimler</div><div style="padding:16px;color:#c05444;font-size:13px;">Yüklenemedi.</div>';
+    }
+  }
+  (function(){
+    if (document.getElementById('r-notif-style')) return;
+    const st = document.createElement('style');
+    st.id = 'r-notif-style';
+    st.textContent = `
+      .r-tn-bell { position:relative; background:none; border:none; cursor:pointer; color:inherit; display:flex; align-items:center; justify-content:center; padding:6px; }
+      .r-tn-bell i { font-size:20px; color:#e6e2ff; }
+      [data-theme="light"] .r-tn-bell i { color:#3a3a5a; }
+      #rTnBellBadge { position:absolute; top:-2px; right:-2px; min-width:16px; height:16px; padding:0 4px; border-radius:8px; background:#FFC83D; color:#1a1200; font-size:9px; font-weight:800; align-items:center; justify-content:center; display:none; }
+      .r-notif-panel { position:fixed; z-index:3000; width:300px; max-width:calc(100vw - 16px); max-height:70vh; overflow-y:auto; background:#141827; border:1px solid rgba(255,200,61,0.18); border-radius:14px; box-shadow:0 12px 32px rgba(0,0,0,0.4); opacity:0; transform:translateY(-6px); pointer-events:none; transition:opacity .15s, transform .15s; }
+      .r-notif-panel.open { opacity:1; transform:translateY(0); pointer-events:auto; }
+      [data-theme="light"] .r-notif-panel { background:#ffffff; border-color:rgba(0,0,0,0.08); box-shadow:0 12px 32px rgba(0,0,0,0.12); }
+      .r-notif-head { padding:12px 14px 8px; font-size:12px; font-weight:800; letter-spacing:.04em; color:#9aa4b2; border-bottom:1px solid rgba(255,255,255,0.06); position:sticky; top:0; background:inherit; }
+      .r-notif-item { padding:11px 14px; border-bottom:1px solid rgba(255,255,255,0.05); }
+      [data-theme="light"] .r-notif-item { border-bottom-color:rgba(0,0,0,0.05); }
+      .r-notif-item.unread { background:rgba(255,200,61,0.07); }
+      .r-notif-title { font-size:13px; font-weight:700; color:#e6edf3; }
+      [data-theme="light"] .r-notif-title { color:#1a1a2e; }
+      .r-notif-body { font-size:12px; color:#9aa4b2; margin-top:2px; line-height:1.4; }
+      .r-notif-time { font-size:10px; color:#6b7482; margin-top:4px; }
+    `;
+    document.head.appendChild(st);
+  })();
+
   // Silme talebi badge'i — sadece admin
   async function loadDeletionBadge() {
     const token = localStorage.getItem('sb_token');
@@ -790,6 +900,8 @@
   // Her 60 saniyede bir yenile
   setInterval(loadMsgBadge, 60000);
   setInterval(loadDeletionBadge, 60000);
+  window.addEventListener('load', () => setTimeout(loadNotifBadge, 900));
+  setInterval(loadNotifBadge, 60000);
 
 })();
 
