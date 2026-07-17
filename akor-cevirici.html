@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Akor Çevirici — Üstte → ChordPro</title>
+<style>
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface2:#1c2230; --border:#2a3140;
+    --text:#e6edf3; --text2:#9aa4b2; --text3:#6b7482; --accent:#D68A00; --chord:#58A6FF;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:18px;line-height:1.5}
+  h1{font-size:18px;margin:0 0 4px}
+  .sub{color:var(--text3);font-size:13px;margin:0 0 16px}
+  .grid{display:grid;gap:14px}
+  @media(min-width:820px){.grid{grid-template-columns:1fr 1fr}}
+  label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin:0 0 6px;letter-spacing:.03em}
+  textarea{width:100%;min-height:280px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);
+           font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.8;padding:12px;resize:vertical;white-space:pre;overflow:auto}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}
+  button{padding:9px 18px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#1a1200}
+  button:active{transform:translateY(1px)}
+  .hint{font-size:12px;color:var(--text3);margin-top:6px;line-height:1.6}
+  code{background:var(--surface);padding:1px 5px;border-radius:3px;color:var(--chord);font-family:monospace;font-size:12px}
+  .preview{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;min-height:120px;margin-top:8px}
+  /* ChordPro render — uygulamandakiyle aynı */
+  .cp-line{display:block}
+  .cp-blank{display:block;height:.8em}
+  .cp-comment{display:block;color:var(--accent);font-style:italic;font-size:.85em;margin:10px 0 2px;opacity:.9}
+  .cp-seg{display:inline-block;position:relative;vertical-align:bottom}
+  .cp-chord{display:block;font-size:.72em;font-weight:700;color:var(--chord);line-height:1.15;min-height:1.25em;white-space:nowrap;letter-spacing:.02em;font-family:monospace}
+  .cp-lyric{display:block;white-space:pre-wrap}
+  .toast{position:fixed;bottom:20px;right:20px;background:#238636;color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+  <h1>Akor Çevirici</h1>
+  <p class="sub">"Akor üstte" (akor satırı + altında güfte) yazımını <b>ChordPro</b> satır-içi <code>[Am]</code> biçimine çevirir.</p>
+
+  <div class="grid">
+    <div>
+      <label>GİRDİ — akor üstte (kaynaktan yapıştır)</label>
+      <textarea id="in" spellcheck="false" placeholder="Am        G
+sabah oldu uyandım
+F         C       G
+kuşlar ötüyor bak"></textarea>
+      <div class="hint"><b>Önemli:</b> Yapıştırırken orijinal boşlukların bozulmaması gerekir (akorun sütun konumu ondan geliyor). Kaynağı düz metin olarak yapıştır.</div>
+    </div>
+    <div>
+      <label>ÇIKTI — ChordPro <code>[Am]</code></label>
+      <textarea id="out" spellcheck="false" placeholder="Buraya çevrilmiş metin gelecek..."></textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="primary" onclick="doConvert()">↓ Çevir</button>
+        <button onclick="copyOut()">📋 Kopyala</button>
+        <button onclick="clearAll()">Temizle</button>
+      </div>
+    </div>
+  </div>
+
+  <label style="margin-top:8px">ÖNİZLEME (uygulamadaki render)</label>
+  <div id="preview" class="preview"><span style="color:var(--text3);font-size:13px">Çevirince burada akor-hecenin-üstünde görünür.</span></div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+// Bir jeton akor gibi mi görünüyor? (kök A-G büyük harf zorunlu → güfte kelimeleri yanlışlıkla akor sayılmaz)
+function isChordToken(raw){
+  const t = raw.replace(/^\(+|\)+$/g,'');
+  if(!t) return false;
+  return /^[A-G](#|b|##|bb)?(m|min|maj|dim|aug|sus|add|M|Δ|\+|°)?\d{0,2}(sus\d|add\d)?(\/[A-G](#|b)?)?$/.test(t);
+}
+function isChordLine(line){
+  const t = line.trim();
+  if(!t) return false;
+  const toks = t.split(/\s+/);
+  return toks.length>0 && toks.every(isChordToken);
+}
+// Akor satırı + güfte satırını birleştir: her akoru kendi sütununa [..] olarak göm (sağdan sola)
+function mergeChordLyric(chordLine, lyricLine){
+  const chords = [];
+  const re = /\S+/g; let m;
+  while((m = re.exec(chordLine)) !== null) chords.push({col:m.index, name:m[0]});
+  let lyric = lyricLine.replace(/\s+$/,'');
+  chords.sort((a,b)=>b.col-a.col);
+  chords.forEach(c=>{
+    let col = c.col;
+    if(col > lyric.length) lyric = lyric.padEnd(col,' ');
+    lyric = lyric.slice(0,col) + '[' + c.name + ']' + lyric.slice(col);
+  });
+  return lyric;
+}
+function convertChordsAbove(text){
+  const lines = (text||'').replace(/\r\n?/g,'\n').split('\n');
+  const out = [];
+  for(let i=0;i<lines.length;i++){
+    const line = lines[i];
+    if(isChordLine(line)){
+      const next = lines[i+1];
+      if(next!==undefined && next.trim()!=='' && !isChordLine(next)){
+        out.push(mergeChordLyric(line, next));
+        i++; // güfte satırı tüketildi
+      } else {
+        // akorun altında güfte yok → sadece akorlar (ara/enstrümantal)
+        out.push(line.trim().split(/\s+/).map(c=>'['+c+']').join(' '));
+      }
+    } else {
+      out.push(line); // güfte / boş satır / bölüm başlığı → olduğu gibi
+    }
+  }
+  return out.join('\n');
+}
+
+// ChordPro render (uygulamandaki renderChordPro ile aynı)
+function renderChordPro(text){
+  if(!text) return '';
+  const esc = s => (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return text.split('\n').map(line=>{
+    const dir=line.match(/^\s*\{\s*(?:c|comment|comment_italic|ci)?\s*:?\s*([^}]*)\}\s*$/i);
+    if(dir){const l=esc((dir[1]||'').trim());return l?`<div class="cp-comment">${l}</div>`:'';}
+    if(line.trim()==='')return '<div class="cp-blank"></div>';
+    if(line.indexOf('[')===-1)return `<div class="cp-line"><span class="cp-seg"><span class="cp-chord"></span><span class="cp-lyric">${esc(line)}</span></span></div>`;
+    let html='<div class="cp-line">';const first=line.indexOf('[');
+    if(first>0)html+=`<span class="cp-seg"><span class="cp-chord"></span><span class="cp-lyric">${esc(line.slice(0,first))}</span></span>`;
+    const re=/\[([^\]]*)\]([^\[]*)/g;let m;const scan=line.slice(first);
+    while((m=re.exec(scan))!==null){const ch=esc(m[1].trim());const ly=esc(m[2]);html+=`<span class="cp-seg"><span class="cp-chord">${ch}</span><span class="cp-lyric">${ly===''?'&nbsp;':ly}</span></span>`;}
+    html+='</div>';return html;
+  }).join('');
+}
+
+function doConvert(){
+  const src = document.getElementById('in').value;
+  const cp = convertChordsAbove(src);
+  document.getElementById('out').value = cp;
+  document.getElementById('preview').innerHTML = cp.trim() ? renderChordPro(cp)
+    : '<span style="color:var(--text3);font-size:13px">Girdi boş.</span>';
+}
+function copyOut(){
+  const out = document.getElementById('out');
+  out.select(); out.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(out.value).then(()=>toast('Kopyalandı')).catch(()=>toast('Kopyalanamadı'));
+}
+function clearAll(){
+  document.getElementById('in').value=''; document.getElementById('out').value='';
+  document.getElementById('preview').innerHTML='<span style="color:var(--text3);font-size:13px">Çevirince burada akor-hecenin-üstünde görünür.</span>';
+}
+let _tt;
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),1800);
+}
+// Girdi değiştikçe otomatik çevir (rahat olsun)
+document.getElementById('in').addEventListener('input', doConvert);
+</script>
+</body>
+</html>
