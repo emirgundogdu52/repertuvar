@@ -1,5 +1,14 @@
 <!DOCTYPE html>
 <!-- design-test v1 -->
+<!--
+  DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-17: Eser listesi yüklemesi İKİ FAZA bölündü (soğuk açılış hızı için).
+    FAZ 1 hafif liste (güfte/akor/nota HARİÇ, select=id,name,composer,...) → anında
+    çizilir. FAZ 2 ağır alanlar (id,lyrics,chords,nota_url) arka planda gelir, DATA'ya
+    işlenir, IndexedDB TAM veriyle güncellenir, açık detay sessizce (titreşimsiz)
+    tazelenir. Eskiden tek fetch select=* ile tüm güfte/akoru çekip ilk boyamayı
+    bekletiyordu. syncWorksFromServer() içinde; selectWork(id, silent) param eklendi.
+-->
 
 <html lang="tr">
 <head>
@@ -612,25 +621,62 @@ async function syncWorksFromServer(hadLocalData) {
     const groupId = getGroupId();
     const groupFilter = groupId ? '&group_id=eq.'+groupId : '';
     const uid = getUserId();
-    const statusFilter = (isAdmin() || isEditor()) ? '' : '&or=(status.eq.approved,and(status.eq.pending,submitted_by.eq.'+uid+'))'
-    const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=name&limit=10000'+groupFilter+statusFilter, {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token},
+    const statusFilter = (isAdmin() || isEditor()) ? '' : '&or=(status.eq.approved,and(status.eq.pending,submitted_by.eq.'+uid+'))';
+    const base = '/rest/v1/works?order=name&limit=10000'+groupFilter+statusFilter;
+    const hdr = {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token};
+
+    // ── FAZ 1: HAFİF liste (güfte/akor/nota HARİÇ) — ilk boyama hızlı olsun.
+    //    Liste ve filtreler bu alanlara ihtiyaç duymaz; ağır güfte/akor metnini
+    //    ilk yükte çekmek soğuk açılışı yavaşlatan asıl sebepti. ──
+    const lightSel = 'select=id,name,composer,lyric_writer,makam,form,measurement,instrument,tuning,closing_note,region,source_person,video_link,status,submitted_by,submitter_email,submitted_at';
+    const r = await fetch(SUPA_URL+base+'&'+lightSel, {
+      headers: hdr,
       signal: AbortSignal.timeout(hadLocalData ? 8000 : 5000)
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const rows = await r.json();
     if (!Array.isArray(rows)) throw new Error('Unexpected response');
-    if (typeof db !== 'undefined') db.works.replaceAll(rows).catch(()=>{});
-    // Tam o an bir eseri kaydırıyorsa (parmak hâlâ ekranda) ya da bir panel açıksa, DOM'u
-    // altından çekip garip bir ara-duruma sokmamak için görünümü yeniden çizmeyi erteliyoruz —
-    // veri (DATA) yine de güncellenir, sadece ekran tazelemesi bir sonraki fırsata kalır.
+    // Tam o an bir eseri kaydırıyorsa/panel açıksa görünümü yeniden çizmeyi ertele.
     parseWorksRows(rows, !!(_weSwipe || _weOpenCard));
-    // Solistler sayfası için önbelleği de tazele (DATA artık güncel)
+    // Solistler sayfası için önbelleği tazele (DATA artık güncel — hafif alanlar yeter)
     try {
       const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
       localStorage.setItem('worksListCache', JSON.stringify(list));
     } catch(e) {}
     if (isAdmin() || isEditor()) updatePendingCount();
+
+    // ── FAZ 2: AĞIR alanlar (güfte/akor/nota) ARKA PLANDA — listeyi bloklamaz.
+    //    Geldiğinde DATA'ya işlenir, IndexedDB TAM veriyle güncellenir (sonraki
+    //    soğuk açılış her şeyiyle gelir) ve açık bir detay varsa sessizce tazelenir. ──
+    fetch(SUPA_URL+base+'&select=id,lyrics,chords,nota_url', {
+      headers: hdr, signal: AbortSignal.timeout(12000)
+    })
+      .then(r2 => r2.ok ? r2.json() : Promise.reject(new Error('HTTP '+r2.status)))
+      .then(heavyRows => {
+        if (!Array.isArray(heavyRows)) return;
+        const hmap = {};
+        heavyRows.forEach(h => { hmap[String(h.id)] = h; });
+        DATA.forEach(w => {
+          const h = hmap[String(w.id)];
+          if (h) { w.lyrics = h.lyrics||''; w.chords = h.chords||''; w.notaUrl = h.nota_url||''; }
+        });
+        // IndexedDB'ye TAM veriyi yaz (sonraki soğuk açılış güfte/akorla birlikte gelsin)
+        if (typeof db !== 'undefined') {
+          const full = DATA.map(w => ({
+            id:w.id, name:w.name, composer:w.composer, lyric_writer:w.lyricWriter, makam:w.makam,
+            form:w.form, measurement:w.measurement, instrument:w.instrument, tuning:w.tuning,
+            closing_note:w.closingNote, region:w.region, source_person:w.sourcePerson, video_link:w.videoLink,
+            lyrics:w.lyrics, chords:w.chords, nota_url:w.notaUrl, status:w.status,
+            submitted_by:w.submitted_by, submitter_email:w.submitter_email, submitted_at:w.submitted_at
+          }));
+          db.works.replaceAll(full).catch(()=>{});
+        }
+        // Açık bir detay varsa güfte/akor gelmiş haliyle sessizce tazele (titreşim yok)
+        if (selectedId != null && typeof selectWork === 'function' && !(_weSwipe || _weOpenCard)) {
+          selectWork(selectedId, true);
+        }
+      })
+      .catch(e => console.warn('[eserler] ağır alan (güfte/akor) yüklenemedi:', e.message));
   } catch(e) {
     console.warn('[eserler] Sunucu senkronizasyonu başarısız (offline/zayıf sinyal):', e.message);
   }
@@ -1299,9 +1345,9 @@ function saveStageList(currentId) {
   localStorage.setItem('stageWorkList', JSON.stringify(ids));
   localStorage.setItem('stageWorkId', currentId);
 }
-function selectWork(id) {
+function selectWork(id, silent) {
   selectedId = id;
-  try { if (navigator.vibrate) navigator.vibrate(6); } catch(e) {}
+  if (!silent) { try { if (navigator.vibrate) navigator.vibrate(6); } catch(e) {} }
   const w = DATA.find(x => x.id === id);
   document.querySelectorAll('.work-item').forEach(el => el.classList.toggle('selected', parseInt(el.dataset.id)===id));
   if (!w) return;
