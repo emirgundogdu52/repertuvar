@@ -6,6 +6,10 @@
     kesildi, rol açılır menüsü (.role-dd-menu) sağ kenara yaslandı, iOS metin
     otomatik büyütmesi kapatıldı (-webkit-text-size-adjust), buton satırları mobilde
     sarıp tam genişliğe yayılıyor (.m-btn-row).
+  - 2026-07-17 (b): (1) Davet linki artık capacitor://localhost yerine canlı web
+    adresinden (origin http değilse https://www.repertuvar.app) kuruluyor — native
+    app'te üretilen link de paylaşılabilir/açılabilir. (2) Topnav üstte sabitlendi
+    (#r-topnav-container position:sticky).
 -->
 <html lang="tr">
 <head>
@@ -21,6 +25,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
 <style>
 .page-content { max-width: 680px; margin: 0; padding: 16px 20px 80px; }
+/* Topnav'ı üstte sabitle (sayfa kayınca kaybolmasın) */
+#r-topnav-container { position: sticky; top: 0; z-index: 500; background: var(--bg); }
 .section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
 .section-title { font-size: 13px; font-weight: 700; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 16px; }
 .group-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
@@ -398,7 +404,12 @@ async function generateInvite() {
     });
     if (!r.ok) throw new Error(await r.text());
     const [invite] = await r.json();
-    const link = window.location.origin + '/login.html?invite=' + invite.token;
+    // Davet linki HERKESE açık olmalı: native app'te origin 'capacitor://localhost'
+    // olur ve o link paylaşılamaz. Web origin'i http ise onu kullan, değilse
+    // (native app) canlı web adresine düş.
+    const origin = window.location.origin;
+    const shareBase = origin.startsWith('http') ? origin : 'https://www.repertuvar.app';
+    const link = shareBase + '/login.html?invite=' + invite.token;
     currentInviteLink = link;
     document.getElementById('inviteLinkText').textContent = link;
     document.getElementById('inviteExpiry').textContent = '⏳ ' + new Date(invite.expires_at).toLocaleDateString('tr-TR', {day:'2-digit',month:'long',year:'numeric'}) + ' tarihine kadar geçerli';
