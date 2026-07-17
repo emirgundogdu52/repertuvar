@@ -1,3 +1,11 @@
+// ============================================================================
+// repertoires.js — changelog (son değişiklikler üstte)
+// 2026-07-17: (1) loadWorksData local-first yapıldı — eser adları/güftesi artık
+//             IndexedDB'den anında geliyor, "#37" numara-yerine-ad regresyonu bitti.
+//             (2) "Çevrimdışı mod" toast'ı yalnızca navigator.onLine===false iken
+//             gösteriliyor — online'ken sync timeout'u artık sessiz.
+//             (3) Arka plan sync timeout 6000→3500ms (ağ geçişinde asılı kalma azaldı).
+// ============================================================================
 
 const H = {
   get apikey() { return SUPA_KEY; },
@@ -164,33 +172,53 @@ document.addEventListener('click', (e) => {
   if (_riOpenCard && !_riOpenCard.contains(e.target)) riCloseOpenCard();
 });
 
-async function loadWorksData() {
+// WL/WLIST'i verilen works satırlarından (yerel ya da sunucu) sıfırdan kurar.
+// Her çağrıda resetler ki local→sunucu tazelemesinde WLIST'te çift kayıt olmasın.
+function _applyWorksRows(rows) {
+  WL = {}; WLIST = [];
+  (rows||[]).forEach(w => {
+    const id = String(w.id);
+    WL[id] = { name: w.name||'', composer: w.composer||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'' };
+    WLIST.push({ id, name: w.name||'', composer: w.composer||'', makam: w.makam||'' });
+  });
+  // customWorks patch (yerel override'lar)
   try {
-    let rows = [];
+    const customs = JSON.parse(localStorage.getItem('customWorks') || '[]');
+    const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
+    deleted.forEach(function(did){ var sid=String(parseInt(did)); delete WL[sid]; for(var j=WLIST.length-1;j>=0;j--){if(WLIST[j].id===sid){WLIST.splice(j,1);break;}} });
+    customs.forEach(function(w){ var sid=String(parseInt(w.id)); if(WL[sid]){if(w.name)WL[sid].name=w.name;if(w.lyrics!==undefined)WL[sid].lyrics=w.lyrics;} else WL[sid]={name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||''}; var found=false; for(var k=0;k<WLIST.length;k++){if(WLIST[k].id===sid){if(w.name)WLIST[k].name=w.name;found=true;break;}} if(!found)WLIST.push({id:sid,name:w.name||'',composer:w.composer||'',makam:w.makam||''}); });
+  } catch(e) {}
+}
+
+async function loadWorksData() {
+  // ── 1) ÖNCE LOCAL (IndexedDB): WL'i anında doldur, beklemeden çiz ──
+  //     Böylece eser adları/güftesi ağ beklemeden gelir; "#37" görünmez.
+  if (window.db) {
     try {
-      const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000', {
-        headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY},
-        signal: AbortSignal.timeout(4000)
-      });
-      rows = await r.json();
-      if (window.db) await db.works.saveAll(rows);
-    } catch(fetchErr) {
-      console.warn('[repertoires] Works offline, IndexedDB kullanılıyor');
-      if (window.db) rows = await db.works.getAll();
-    }
-    rows.forEach(w => {
-      const id = String(w.id);
-      WL[id] = { name: w.name||'', composer: w.composer||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'' };
-      WLIST.push({ id, name: w.name||'', composer: w.composer||'', makam: w.makam||'' });
+      const localRows = await db.works.getAll();
+      if ((localRows||[]).length) {
+        _applyWorksRows(localRows);
+        try { renderList(); renderDetail(); } catch(e) {}
+      }
+    } catch(e) { console.warn('[repertoires] works local okuma hatası:', e); }
+  }
+  // ── 2) ARKA PLANDA sunucudan tazele (asılı kalmasın diye kısa timeout) ──
+  try {
+    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000', {
+      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY},
+      signal: AbortSignal.timeout(3500)
     });
-    // customWorks patch
-    try {
-      const customs = JSON.parse(localStorage.getItem('customWorks') || '[]');
-      const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
-      deleted.forEach(function(did){ var sid=String(parseInt(did)); delete WL[sid]; for(var j=WLIST.length-1;j>=0;j--){if(WLIST[j].id===sid){WLIST.splice(j,1);break;}} });
-      customs.forEach(function(w){ var sid=String(parseInt(w.id)); if(WL[sid]){if(w.name)WL[sid].name=w.name;if(w.lyrics!==undefined)WL[sid].lyrics=w.lyrics;} else WL[sid]={name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||''}; var found=false; for(var k=0;k<WLIST.length;k++){if(WLIST[k].id===sid){if(w.name)WLIST[k].name=w.name;found=true;break;}} if(!found)WLIST.push({id:sid,name:w.name||'',composer:w.composer||'',makam:w.makam||''}); });
-    } catch(e) {}
-  } catch(e) { console.error('Works yüklenemedi:', e); }
+    if (!r.ok) throw new Error('works fetch '+r.status);
+    const rows = await r.json();
+    if ((rows||[]).length) {
+      if (window.db) { try { await db.works.saveAll(rows); } catch(e) {} }
+      _applyWorksRows(rows);
+      try { renderList(); renderDetail(); } catch(e) {}
+    }
+  } catch(fetchErr) {
+    // Sunucudan tazeleyemedik — sorun değil, WL zaten local'den dolu.
+    console.warn('[repertoires] Works sunucudan tazelenemedi, local kullanılıyor:', fetchErr.message);
+  }
 }
 let reps=[], selId=null, editId=null, selWId=null, addRepId=null, activeItemIdx=null, activeItemRepId=null;
 
@@ -247,7 +275,9 @@ async function load(){
         ? 'order=created_at&limit=100&or=(owner_id.eq.'+uid2+',is_public.eq.true)'
         : 'order=created_at&limit=100&is_public=eq.true');
     const solQuery = gid ? 'order=name&group_id=eq.'+gid : 'order=name';
-    const timeoutMs = localHadData ? 6000 : 5000; // local veri zaten ekrandaysa biraz daha sabırlı olabiliriz
+    // Yerel veri zaten ekrandaysa uzun beklemeye gerek yok — 3.5 sn'de gelmezse
+    // sessizce local ile devam. Yerel veri yoksa ağa biraz daha şans ver (4.5 sn).
+    const timeoutMs = localHadData ? 3500 : 4500;
     const [r,i,s] = await Promise.all([
       dbGet('repertoires', repQuery, AbortSignal.timeout(timeoutMs)),
       dbGet('repertoire_items','order=seq', AbortSignal.timeout(timeoutMs)),
@@ -270,8 +300,16 @@ async function load(){
       // Local'de de veri yoktu, ağ da başarısız oldu — boş liste göster
       renderList(); renderDetail();
     }
-    sync(localHadData ? 'ok' : 'err', localHadData ? 'Yerel veri (senkronize edilemedi)' : 'Bağlantı hatası');
-    toast('📵 Çevrimdışı mod — yerel veriler gösteriliyor', 'ok');
+    // navigator.onLine === false → cihaz GERÇEKTEN çevrimdışı (güvenilir negatif sinyal).
+    // Online'ken sync sadece timeout olduysa yerel veri zaten ekranda; kullanıcıyı
+    // "çevrimdışısın" diye yanıltma.
+    const reallyOffline = (navigator.onLine === false);
+    if (localHadData) {
+      sync('ok', reallyOffline ? 'Çevrimdışı — yerel veri' : 'Senkronize edilemedi');
+    } else {
+      sync('err', reallyOffline ? 'Çevrimdışı' : 'Bağlantı hatası');
+    }
+    if (reallyOffline) toast('📵 Çevrimdışı mod — yerel veriler gösteriliyor', 'ok');
   }
 }
 
