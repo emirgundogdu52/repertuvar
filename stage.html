@@ -39,6 +39,11 @@
     düşülüyordu. r.ok + dizi kontrolü eklendi; timeout 4000→3500. Ayrıca ?work= yolu
     artık WL bir an boş olsa bile picker'a düşmeyip tek-eser sahnesine giriyor
     (ad/güfte works gelince tazeleniyor). Tek kök, üç sorunu kapatır.
+  - 2026-07-17 (b): Çevrimdışı bildirimi eklendi — bağlantı GERÇEKTEN yoksa
+    (navigator.onLine===false) ve veri yerelden gösteriliyorsa "📵 Çevrimdışı mod —
+    yerel veriler gösteriliyor" toast'ı sayfa başına bir kez çıkar (works ve reps
+    arka plan fetch'i başarısız olunca; stageToast/stageOfflineToast). repertuvarlar
+    ve eserler ile aynı davranış.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -451,6 +456,21 @@ const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'
 
 let WL = {}, WL_loaded = false, _stageShowsPlaceholder = false; // WL_loaded: yükleme bitti mi; _stageShowsPlaceholder: sahnede şu an gerçek ad yerine placeholder/… gösteriliyor mu
 
+// ── Çevrimdışı bildirimi (repertuvarlar/eserler ile aynı davranış) ──
+// Bağlantı GERÇEKTEN yoksa (navigator offline) ve veri yerelden gösteriliyorsa,
+// sayfa başına EN FAZLA bir kez "çevrimdışı" toast'ı göster. Online'ken sadece
+// bir fetch timeout olduysa sessiz kal (yanıltıcı olmasın).
+let _stageOfflineToastShown = false;
+function stageToast(text){
+  const m=document.createElement('div');
+  m.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#238636;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.4);';
+  m.textContent=text; document.body.appendChild(m); setTimeout(()=>m.remove(),2800);
+}
+function stageOfflineToast(){
+  if (_stageOfflineToastShown) return;
+  if (navigator.onLine === false){ _stageOfflineToastShown = true; stageToast('📵 Çevrimdışı mod — yerel veriler gösteriliyor'); }
+}
+
 async function loadWL() {
   try {
     let rows = [];
@@ -471,6 +491,7 @@ async function loadWL() {
     } catch(fetchErr) {
       console.warn('[stage] Supabase ulaşılamadı, IndexedDB kullanılıyor');
       if (window.db) rows = await db.works.getAll();
+      stageOfflineToast(); // bağlantı yoksa ve yerelden gösteriliyorsa bildir (kendi içinde offline kontrolü var)
     }
     rows.forEach(w => {
       WL[String(w.id)] = {
@@ -600,6 +621,7 @@ async function refreshRepsInBackground(){
     }
   } catch(e) {
     console.warn('[stage] arka plan senkronizasyonu başarısız (offline/zayıf sinyal):', e);
+    stageOfflineToast(); // bağlantı yoksa ve picker yerelden gösteriliyorsa bildir
   }
 }
 

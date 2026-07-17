@@ -8,6 +8,9 @@
     işlenir, IndexedDB TAM veriyle güncellenir, açık detay sessizce (titreşimsiz)
     tazelenir. Eskiden tek fetch select=* ile tüm güfte/akoru çekip ilk boyamayı
     bekletiyordu. syncWorksFromServer() içinde; selectWork(id, silent) param eklendi.
+  - 2026-07-17 (b): Çevrimdışı bildirimi — bağlantı yoksa (navigator.onLine===false)
+    ve liste yerelden gösteriliyorsa syncWorksFromServer catch'inde toastMsg ile
+    "📵 Çevrimdışı mod — yerel veriler gösteriliyor" çıkar. repertuvarlar/stage ile aynı.
 -->
 
 <html lang="tr">
@@ -679,6 +682,11 @@ async function syncWorksFromServer(hadLocalData) {
       .catch(e => console.warn('[eserler] ağır alan (güfte/akor) yüklenemedi:', e.message));
   } catch(e) {
     console.warn('[eserler] Sunucu senkronizasyonu başarısız (offline/zayıf sinyal):', e.message);
+    // Bağlantı GERÇEKTEN yoksa (navigator offline) ve ekranda yerel veri gösteriliyorsa
+    // kullanıcıyı bilgilendir. Online'ken sadece timeout olduysa sessiz kal.
+    if (navigator.onLine === false && hadLocalData) {
+      toastMsg('📵 Çevrimdışı mod — yerel veriler gösteriliyor');
+    }
   }
 }
 let filteredData = [...DATA];
