@@ -57,6 +57,9 @@
     (.sm) ekranın en altına kadar uzuyor; alt boşluk yalnızca her zaman görünen harf
     kontrolünü aşacak kadar (calc(60px+safe-area)). Menü butonu/paneli güftenin üstüne
     biniyor (bazen açık). Böylece güftenin alt çizgisi menü üst hizasında kesilmiyor.
+  - 2026-07-17 (f): Sahne alt menüsüne (v2StageBotNav → stageNavStage) "Ana Sayfa"
+    linki eklendi (btnStageHome → index.html), Geri Dön ile Çık arasında. Menü artık:
+    Geri Dön · Ana Sayfa · Çık.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -1498,6 +1501,7 @@ function loadSideWork(id) {
   <!-- Stage screen: sahneye özel nav — picker/bitiş ekranlarında paylaşılan topnav.js alt nav'ı (#r-bottom-nav) kullanılıyor -->
   <div class="v2-bn-items" id="stageNavStage" style="display:none;">
     <a href="#" class="v2-bn-item" id="btnGoBack" onclick="goBack(event)"><i class="ti ti-arrow-left" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Geri Dön</span></a>
+    <a href="index.html" class="v2-bn-item" id="btnStageHome"><i class="ti ti-home" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Ana Sayfa</span></a>
     <button class="v2-bn-item v2-bn-exit" onclick="event.stopPropagation();exitStage(event)" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-x" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Çık</span></button>
   </div>
 </nav>
