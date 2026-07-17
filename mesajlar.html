@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+  DEĞİŞİKLİK GÜNLÜĞÜ:
+  - 2026-07-17: Mobilde "zoom'lu/kırpık" görünüm düzeltildi. Asıl sebep: .tabs/
+    .compose-box/.ann-card/.conv-item sabit width:424px + margin:calc(50% - 212px)
+    ile ortalanıyordu (masaüstü hilesi) → telefonda negatif margin, ekrandan taşma.
+    <style> sonunda bu 4 sınıf responsive'e çevrildi (width:100%;max-width:424px;
+    margin auto) + body overflow-x:hidden. Ayrıca html/body text-size-adjust:100%.
+-->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -133,6 +141,20 @@ body { -webkit-text-size-adjust: 100%; }
   .sb-dd-item:hover { background:rgba(124,111,255,0.12); color:var(--text); }
   .sb-dd-item.danger { color:var(--red); }
   .sb-dd-item.danger:hover { background:rgba(248,113,113,0.1); }
+
+  /* ── MOBİL GENİŞLİK FIX (zoom/kırpılma sebebi buydu) ──
+     .tabs / .compose-box / .ann-card / .conv-item eskiden sabit width:424px +
+     margin-left:calc(50% - 212px) ile ortalanıyordu (masaüstü hilesi). Telefonda
+     (~390px ekran) bu negatif margin verip elemanları ekrandan taşırıyor, sol
+     kenarı kırpıp sayfayı "zoom'lu" gösteriyordu. Artık responsive: ebeveyni
+     doldur, 424px'i geçme, ortala. box-sizing:border-box zaten tanımlı. */
+  .tabs, .compose-box, .ann-card, .conv-item {
+    width: 100%;
+    max-width: 424px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  body { overflow-x: hidden; }
 </style>
 </head>
 <body>
