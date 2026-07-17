@@ -33,6 +33,12 @@
     (_stageActive + stageEnter + applyStageTheme); (2) sağlamlık için showScreen()
     body'ye 'stage-active' sınıfı ekliyor ve CSS bu sınıfla .r-topnav + #r-bottom-nav'ı
     display:none !important yapıyor — giriş yolundan/topnav zamanlamasından bağımsız.
+  - 2026-07-17: loadWL() works fetch'i ANON key (SUPA_KEY) ile yapılıyor — eskiden
+    süresi dolmuş sb_token 401 verince WL boş kalıyor, sahne modunda ad/güfte yerine
+    numara çıkıyor VE eserler.html'den ?work= ile girişte WL boş olunca picker'a
+    düşülüyordu. r.ok + dizi kontrolü eklendi; timeout 4000→3500. Ayrıca ?work= yolu
+    artık WL bir an boş olsa bile picker'a düşmeyip tek-eser sahnesine giriyor
+    (ad/güfte works gelince tazeleniyor). Tek kök, üç sorunu kapatır.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -449,11 +455,17 @@ async function loadWL() {
   try {
     let rows = [];
     try {
+      // works PAYLAŞILAN referans veri — kullanıcıya özel değil. Süresi dolmuş
+      // sb_token 401 verip WL'i boş bırakmasın diye ANON key (SUPA_KEY) ile çekiyoruz;
+      // repertuvarları da (picker) zaten anon key ile çekip sorunsuz alıyoruz.
       const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=id&limit=2000', {
-        headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY)},
-        signal: AbortSignal.timeout(4000)
+        headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY},
+        signal: AbortSignal.timeout(3500)
       });
-      rows = await r.json();
+      if (!r.ok) throw new Error('works '+r.status);
+      const fetched = await r.json();
+      if (!Array.isArray(fetched) || !fetched.length) throw new Error('works bos/gecersiz yanit');
+      rows = fetched;
       // Online'dan geldi — IndexedDB'yi güncelle
       if (window.db) await db.works.saveAll(rows);
     } catch(fetchErr) {
@@ -1372,10 +1384,13 @@ function loadSideWork(id) {
   }
 
   const workParam = urlParams.get('work');
-  if (workParam) {
+  if (workParam && !isNaN(parseInt(workParam))) {
     const normalizedId = String(parseInt(workParam));
-    const w = WL[normalizedId] || WL[workParam];
-    if (w) {
+    // WL bir an boş olsa bile picker'a DÜŞME — tek-eser sahnesine gir, ad/güfte
+    // works gelince _rsRefreshAfterWorks() ile kendini tazeler. (Eskiden if(w)
+    // koşulu WL boşken bu yolu atlayıp picker'a düşürüyordu.)
+    const w = WL[normalizedId] || WL[workParam] || {};
+    {
       curRep = {
         id: 'single',
         name: w.name || 'Eser',
