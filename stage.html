@@ -102,6 +102,15 @@
     @media(max-height:620px): #stageToolsPanel max-height + overflow-y:auto (menü
     ekran dışına taşıp "kaybolmuyor"), kapsül bottom 22→10px, başlık/karar/.sm
     boşlukları küçültüldü.
+  - 2026-07-18 (o): Dört düzeltme. (1) BAŞLIK GÜFTEDEN AYRILDI — eser adı + karar
+    rozeti artık kaydırılan .sm alanının dışında, sabit #smHead şeridinde; güfte
+    büyüyüp kaydıkça başlık yerinden oynamıyor. Üst boşluklar küçültüldü (.sm
+    padding-top 28→6px, .smhead 6/8px) — başlık ekranın üstüne yakın, alan verimli.
+    (2) Karar rozeti BÜYÜTÜLDÜ: clamp(11–14px) → clamp(15–22px), font-weight 800
+    (sahnede uzaktan okunabilsin). (3) ± TON artık eserde AKOR VARSA görünüyor
+    (eskiden yalnızca Akor görünümündeyken gelirdi; Söz'e geçince "motor kayboldu"
+    sanılıyordu) — Nota görünümünde gizli. (4) Alt menü (v2StageBotNav) HER ekran
+    boyutunda 10sn sonra kapanıyor; masaüstü/tablette hiç kapanmaması kaldırıldı.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -193,7 +202,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .vm-item.active .ti{color:var(--accent);}
 .vm-item:disabled{opacity:.32;cursor:not-allowed;}
 
-.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:28px 16px calc(60px + env(safe-area-inset-bottom));position:relative;overflow-y:auto;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
+/* Sabit başlık şeridi — güfte alanının DIŞINDA, üstte durur. Güfte büyüyüp
+   kaydıkça başlık yerinden oynamaz; alan da verimli kullanılır (üste yakın). */
+.smhead{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:6px 16px 8px;text-align:center;position:relative;z-index:5;}
+.smhead .wtitle{margin-bottom:4px;}
+.smhead .wnum{margin-bottom:2px;}
+.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:6px 16px calc(60px + env(safe-area-inset-bottom));position:relative;overflow-y:auto;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
 /* Görünüm Ayarları şeridi (#stageToolsPanel) inline stilde left:12px + right:12px
@@ -205,7 +220,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 }
 .wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:100%;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
 /* Karar sesi rozeti — başlığın altında, ton değiştikçe güncellenir */
-.wkarar{font-size:clamp(11px,1.4vw,14px);font-weight:700;letter-spacing:.04em;color:var(--text2,#9aa4b2);text-align:center;margin:-4px 0 10px;opacity:0;animation:si .4s ease .12s forwards;}
+.wkarar{font-size:clamp(15px,2.1vw,22px);font-weight:800;letter-spacing:.05em;color:var(--text2,#9aa4b2);text-align:center;margin:0;opacity:0;animation:si .4s ease .12s forwards;}
 .wkarar.shifted{color:var(--accent,#FFC83D);}
 .wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;opacity:0;animation:si .4s ease .14s forwards;}
 .wcr:empty{display:none;margin:0;}
@@ -545,6 +560,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     <div class="info-sheet-body" id="stageInfoPanel"></div>
   </div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
+  <div class="smhead" id="smHead"></div>
   <div class="sm" id="sm"></div>
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
@@ -1265,11 +1281,12 @@ function renderStage(){
   const kararChip = _cn
     ? `<div class="wkarar${_kt ? ' shifted' : ''}" title="${_kt && kararLabel(_cn,0) ? 'Orijinal karar: ' + kararLabel(_cn,0) : ''}">Karar: ${_kl || _cn}${(!_kl && _kt) ? ' (kaydırılmadı)' : ''}</div>`
     : '';
-  document.getElementById('sm').innerHTML=`
+  const _head = document.getElementById('smHead');
+  if (_head) _head.innerHTML = `
     <div class="wnum"></div>
     <div class="wtitle">${w.name || (WL_loaded ? item.workId : '…')}</div>
-    ${kararChip}
-    ${bodyHtml}`;
+    ${kararChip}`;
+  document.getElementById('sm').innerHTML = bodyHtml;
   updateViewToggleUI(w);
   // Kaydedilmiş hizalamayı uygula
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
@@ -1378,7 +1395,10 @@ function buildStageToolsRow(mode) {
   // Akor modunda ton kaydırma (± yarım ton) — eser başına saklanır
   const item = (curRep && (curRep.items||[])[curIdx]) || null;
   const tVal = item ? getTranspose(item.workId) : 0;
-  const tonBtns = (mode === 'chords' && item) ? `
+  // ± Ton, eserde AKOR VARSA görünür (eskiden yalnızca Akor görünümündeyken
+  // gelirdi; Söz görünümüne geçilince "motor kayboldu" sanılıyordu).
+  const _hasChords = !!(item && (WL[String(item.workId)]||{}).chords);
+  const tonBtns = (_hasChords && mode !== 'nota') ? `
       <button onclick="event.stopPropagation();stepTranspose(-1)" title="Yarım ton pes" class="align-btn"><i class="ti ti-minus"></i></button>
       <button onclick="event.stopPropagation();resetTranspose()" id="tonBadge" title="Tonu sıfırla" class="align-btn" style="min-width:44px;font-size:12px;font-weight:800;${tVal?'color:var(--accent);border-color:var(--accent);':''}">${tVal>0?'+'+tVal:(tVal||'Ton')}</button>
       <button onclick="event.stopPropagation();stepTranspose(1)" title="Yarım ton tiz" class="align-btn"><i class="ti ti-plus"></i></button>
@@ -1526,9 +1546,9 @@ function scheduleStageNavHide(){
   const bnav=document.getElementById('v2StageBotNav');
   if(!bnav)return;
   if(_navTimer)clearTimeout(_navTimer);
-  const roomy = window.matchMedia('(min-width:768px)').matches;
-  if(roomy) return; // masaüstü/tablet: açık kalsın
-  _navTimer=setTimeout(()=>bnav.classList.add('stage-hidden'),8000);
+  // Her ekran boyutunda kapanır (10sn). Eskiden masaüstü/tablette hiç kapanmıyordu
+  // ve menü sürekli ekranda kalıyordu. Fare/parmak üzerindeyken sayaç durur.
+  _navTimer=setTimeout(()=>bnav.classList.add('stage-hidden'),10000);
 }
 document.addEventListener('touchstart',e=>{
   if(document.getElementById('stageScreen').classList.contains('hidden'))return;
