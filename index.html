@@ -45,7 +45,10 @@
       background: linear-gradient(160deg, #151D37, #101624);
       border: 1px solid var(--border); border-radius: 20px;
       padding: 28px 24px;
-      max-width: 980px; margin: 0 auto;
+      /* Eskiden max-width:980px idi — geniş ekranda (tablet yatay, masaüstü) kart
+         o sınırda kalıp iki yanda boşluk bırakıyordu. Artık mevcut alanı doldurur;
+         çok geniş ekranlarda satırlar okunmaz uzunlukta olmasın diye üst sınır 1400px. */
+      max-width: 1400px; width: 100%; margin: 0 auto;
       position: relative;
     }
     .hero-greeting-row {
