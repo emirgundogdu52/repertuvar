@@ -797,7 +797,7 @@
     if (!p || !a) return;
     p.innerHTML = '<div class="r-notif-head">Bildirimler</div><div style="padding:16px;color:#9aa4b2;font-size:13px;">Yükleniyor…</div>';
     try {
-      const r = await fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&order=created_at.desc&limit=30&select=id,type,title,body,is_read,created_at', { headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token } });
+      const r = await fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&order=created_at.desc&limit=10&select=id,type,title,body,is_read,created_at', { headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token } });
       const rows = r.ok ? await r.json() : [];
       if (!rows.length) {
         p.innerHTML = '<div class="r-notif-head">Bildirimler</div><div style="padding:22px 16px;color:#6b7482;font-size:13px;text-align:center;">Henüz bildirim yok.</div>';
@@ -902,6 +902,11 @@
   setInterval(loadDeletionBadge, 60000);
   window.addEventListener('load', () => setTimeout(loadNotifBadge, 900));
   setInterval(loadNotifBadge, 60000);
+  // Uygulama/sekme öne gelince ANINDA kontrol et (60sn turunu bekleme, pil yakmaz)
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden) loadNotifBadge();
+  });
+  window.addEventListener('focus', loadNotifBadge);
 
 })();
 
