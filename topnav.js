@@ -526,7 +526,12 @@
         if (window.innerWidth >= 1024) {
           if (!document.getElementById('r-sidebar')) renderSidebar();
         } else {
-          if (!document.getElementById('r-bottom-nav')) renderBottomNav();
+          const bn = document.getElementById('r-bottom-nav');
+          const wantRoomy = window.innerWidth >= 600 ? '1' : '0';
+          // Eşik değiştiyse (telefon ↔ tablet genişliği) listeyi yeniden kur,
+          // yoksa Solistler/Grup-Koro öğeleri eski halinde kalır.
+          if (bn && bn.dataset.roomy !== wantRoomy) { bn.remove(); renderBottomNav(); }
+          else if (!bn) renderBottomNav();
         }
         if (typeof loadMsgBadge === 'function') loadMsgBadge();
         if (typeof loadNotifBadge === 'function') loadNotifBadge();
@@ -603,10 +608,20 @@
     const savedRole = localStorage.getItem('user_role') || '';
     const isAdminNow = savedUser?.id === ADMIN_ID || savedRole === 'admin';
 
+    // Geniş ekranda (tablet dikey, ≥600px) sidebar'daki Solistler ve Grup/Koro'yu
+    // alt menüye de ekle — tablet dikeyde sidebar gizli olduğu için bu sayfalara
+    // erişim kalmıyordu. Telefonda 7 öğe sıkışacağı için orada 5'li liste kalır.
+    // (Üyeler ve Ayarlar bilerek dışarıda: Ayarlar zaten avatar menüsünde.)
+    const roomyNav = window.innerWidth >= 600;
+
     const bnItems = [
       { href: 'index.html',       icon: 'ti-home',     label: 'Ana Sayfa' },
       { href: 'eserler.html',     icon: 'ti-book',     label: 'Eserler' },
       { href: 'repertoires.html', icon: 'ti-playlist', label: 'Repertuvarlar' },
+      ...(roomyNav ? [
+        { href: 'artiesten.html', icon: 'ti-microphone',  label: 'Solistler' },
+        { href: 'gruplar.html',   icon: 'ti-users-group', label: 'Grup / Koro' },
+      ] : []),
       { href: 'stage.html',       icon: 'ti-music',    label: 'Sahne Modu', stage: true },
       { href: 'mesajlar.html',    icon: 'ti-message',  label: 'Mesajlar' },
     ];
@@ -623,6 +638,7 @@
     const nav = document.createElement('nav');
     nav.id = 'r-bottom-nav';
     nav.className = 'bottom-nav';
+    nav.dataset.roomy = roomyNav ? '1' : '0'; // eşik değişince yeniden kurulabilsin
     nav.innerHTML = `<div class="bn-items">${bnHtml}</div>`;
     document.body.appendChild(nav);
 
