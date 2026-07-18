@@ -80,6 +80,12 @@
     "Karar: A (La)" biçiminde, ton değiştikçe güncellenir (renderStage her ± basışında
     yeniden çizdiği için otomatik). Kaydırıldıysa altın (.shifted) + ipucunda orijinali.
     Tanınmayan yazımlar (perde adları) kaydırılmadan gösterilir, yanına "(kaydırılmadı)".
+  - 2026-07-18 (k): Sahne alt menüsü (v2StageBotNav) iki düzeltme: (1) otomatik kapanma
+    4sn → telefonda 8sn, masaüstü/tablette (min-width:768px) HİÇ kapanmıyor
+    (scheduleStageNavHide); fare/parmak menü üzerindeyken sayaç duruyor, ayrılınca
+    yeniden başlıyor. (2) Masaüstünde menü tüm sayfa genişliğine yayılıyordu — artık
+    butonlar kadar geniş, ortalanmış bir kapsül (width:fit-content + margin:auto,
+    .v2-bn-item flex:0 0 auto).
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -378,11 +384,17 @@ body.stage-active #r-bottom-nav{display:none !important;}
      şey görünmüyor ve buton tepkisiz sanılıyor. 4sn sonra stage-hidden geri gelir. */
   body.stage-active #v2StageBotNav:not(.stage-hidden) {
     display: flex !important;
-    position: fixed; bottom: 0; left: 0; right: 0;
-    width: auto; height: auto; padding: 8px 0;
+    position: fixed; bottom: 22px; left: 0; right: 0;
+    width: fit-content; margin: 0 auto;      /* butonlar kadar geniş, ortalanmış */
+    height: auto; padding: 6px 10px;
     background: rgba(7,11,24,0.97); backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,200,61,0.18); border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
     z-index: 450;
   }
+  /* İçerideki öğeler eşit paylaşıp yayılmasın — kendi genişliklerinde dursun */
+  body.stage-active #v2StageBotNav:not(.stage-hidden) .v2-bn-items { width: auto; padding: 0; gap: 4px; }
+  body.stage-active #v2StageBotNav:not(.stage-hidden) .v2-bn-item { flex: 0 0 auto; padding: 8px 18px; }
   /* Sahne aktifken sidebar gizle, picker tam genişlik */
   body.stage-active .sidebar { display: none !important; }
 }
@@ -1427,8 +1439,25 @@ function openStageNav(){
   const bnav=document.getElementById('v2StageBotNav');
   if(!bnav)return;
   bnav.classList.remove('stage-hidden');
+  scheduleStageNavHide();
+  // Fare/parmak menünün üzerindeyken kapanmasın; ayrılınca sayaç yeniden başlasın
+  if(!bnav.dataset.hoverBound){
+    bnav.dataset.hoverBound='1';
+    const stay=()=>{ if(_navTimer)clearTimeout(_navTimer); };
+    bnav.addEventListener('mouseenter',stay);
+    bnav.addEventListener('touchstart',stay,{passive:true});
+    bnav.addEventListener('mouseleave',scheduleStageNavHide);
+  }
+}
+// Otomatik kapanma süresi: telefonda güfteyi kapattığı için kapanır (8sn),
+// masaüstü/tabletde yer sorunu yok — hiç kapanmaz, kullanıcı seçene kadar durur.
+function scheduleStageNavHide(){
+  const bnav=document.getElementById('v2StageBotNav');
+  if(!bnav)return;
   if(_navTimer)clearTimeout(_navTimer);
-  _navTimer=setTimeout(()=>bnav.classList.add('stage-hidden'),4000);
+  const roomy = window.matchMedia('(min-width:768px)').matches;
+  if(roomy) return; // masaüstü/tablet: açık kalsın
+  _navTimer=setTimeout(()=>bnav.classList.add('stage-hidden'),8000);
 }
 document.addEventListener('touchstart',e=>{
   if(document.getElementById('stageScreen').classList.contains('hidden'))return;
