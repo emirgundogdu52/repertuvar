@@ -1032,21 +1032,68 @@
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch (e) {}
     const uid = (typeof getUserId === 'function') ? getUserId() : null;
 
-    const payload = {
-      path: (location.pathname.split('/').pop() || 'index.html'),
-      referrer: document.referrer || null,
-      user_id: uid || null,
-      session_id: sid,
-      timezone: tz,
-      device_type: deviceType,
-      platform: platform
-    };
+    // ── KONUM (ülke / il / şehir) ───────────────────────────────────────────
+    // Saat dilimi yalnızca ülkeyi kabaca söyler ("Europe/Istanbul"). İl bilgisi
+    // için IP tabanlı konum çözümlemesi gerekiyor; bu, ziyaretçinin IP'sinin bir
+    // DIŞ SERVİSE gitmesi demektir (gizlilik metninde belirtilmeli).
+    // Kapatmak istersen: GEO_ENABLED = false yap — diğer her şey aynı çalışır.
+    const GEO_ENABLED = true;
+    const GEO_TTL = 24 * 60 * 60 * 1000; // günde bir kez sorar, sonuç önbellekte
 
-    fetch(SUPA_URL + '/rest/v1/page_views', {
-      method: 'POST',
-      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify(payload)
-    }).catch(() => {});
+    function cachedGeo() {
+      try {
+        const raw = localStorage.getItem('r_geo');
+        if (!raw) return null;
+        const o = JSON.parse(raw);
+        if (!o || (Date.now() - (o.t || 0)) > GEO_TTL) return null;
+        return o.g || null;
+      } catch (e) { return null; }
+    }
+    function fetchGeo() {
+      // Sonuç dönene kadar kayıt beklemez; ilk görüntülemede konum boş kalabilir,
+      // sonraki sayfalarda önbellekten gelir.
+      if (!GEO_ENABLED) return Promise.resolve(null);
+      return fetch('https://ipwho.is/?fields=success,country,region,city', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(j => {
+          if (!j || j.success === false) return null;
+          const g = { country: j.country || null, region: j.region || null, city: j.city || null };
+          try { localStorage.setItem('r_geo', JSON.stringify({ t: Date.now(), g: g })); } catch (e) {}
+          return g;
+        })
+        .catch(() => null);
+    }
+
+    function sendView(geo) {
+      const payload = {
+        path: (location.pathname.split('/').pop() || 'index.html'),
+        referrer: document.referrer || null,
+        user_id: uid || null,
+        session_id: sid,
+        timezone: tz,
+        device_type: deviceType,
+        platform: platform,
+        country: geo ? geo.country : null,
+        region:  geo ? geo.region  : null,
+        city:    geo ? geo.city    : null
+      };
+      fetch(SUPA_URL + '/rest/v1/page_views', {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    }
+
+    const geoNow = cachedGeo();
+    if (geoNow || !GEO_ENABLED) {
+      sendView(geoNow);
+    } else {
+      // Konum sorgusu en fazla 1.5sn beklesin; gecikirse kayıt konumsuz gider
+      let sent = false;
+      const go = g => { if (!sent) { sent = true; sendView(g); } };
+      setTimeout(() => go(null), 1500);
+      fetchGeo().then(go);
+    }
   } catch (e) { /* takip asla sayfayı bozmamalı */ }
 })();
 

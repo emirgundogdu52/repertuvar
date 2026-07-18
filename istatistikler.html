@@ -89,6 +89,14 @@
           <div class="stt-card-label"><i class="ti ti-login"></i> Giriş Yapmış</div>
           <div class="stt-card-value" id="sttLoggedInRatio">—</div>
         </div>
+        <div class="stt-card">
+          <div class="stt-card-label"><i class="ti ti-user-check"></i> Kayıtlı Ziyaretçi</div>
+          <div class="stt-card-value" id="sttUniqueUsers">—</div>
+        </div>
+        <div class="stt-card">
+          <div class="stt-card-label"><i class="ti ti-stack-2"></i> Oturum Başına Sayfa</div>
+          <div class="stt-card-value" id="sttPagesPerSession">—</div>
+        </div>
       </div>
 
       <div class="stt-panel" style="margin-bottom:16px;">
@@ -117,6 +125,28 @@
           <div id="sttPlatforms"></div>
         </div>
       </div>
+
+      <div class="stt-grid" style="margin-top:16px;">
+        <div class="stt-panel">
+          <div class="stt-panel-title"><i class="ti ti-building-community"></i> Şehir / İl</div>
+          <div id="sttCities"></div>
+        </div>
+        <div class="stt-panel">
+          <div class="stt-panel-title"><i class="ti ti-flag"></i> Ülke</div>
+          <div id="sttCountries"></div>
+        </div>
+      </div>
+
+      <div class="stt-grid" style="margin-top:16px;">
+        <div class="stt-panel">
+          <div class="stt-panel-title"><i class="ti ti-clock"></i> Saat Dağılımı <span style="font-weight:400;color:var(--text3);font-size:10px;">(yerel saat)</span></div>
+          <div id="sttHours"></div>
+        </div>
+        <div class="stt-panel">
+          <div class="stt-panel-title"><i class="ti ti-external-link"></i> Yönlendiren</div>
+          <div id="sttReferrers"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -133,7 +163,7 @@ function sttHeaders() {
 
 async function loadStats() {
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/page_views?select=path,referrer,user_id,session_id,timezone,device_type,platform,created_at&order=created_at.desc&limit=20000', { headers: sttHeaders() });
+    const r = await fetch(SUPA_URL + '/rest/v1/page_views?select=path,referrer,user_id,session_id,timezone,device_type,platform,country,region,city,created_at&order=created_at.desc&limit=20000', { headers: sttHeaders() });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     sttRows = await r.json();
     document.getElementById('sttLoading').style.display = 'none';
@@ -203,6 +233,49 @@ function renderStats(days) {
   const platformLabels = { web: '🌐 Web', ios: '🍎 iOS', android: '🤖 Android' };
   document.getElementById('sttPlatforms').innerHTML = platforms.length
     ? platforms.map(([p,c]) => bar(platformLabels[p] || p, c, platformsMax)).join('')
+    : '<div class="stt-empty">Henüz veri yok</div>';
+
+  // Kayıtlı (giriş yapmış) benzersiz kullanıcı ve oturum başına sayfa
+  const uniqUsers = new Set(rows.filter(r => r.user_id).map(r => r.user_id));
+  document.getElementById('sttUniqueUsers').textContent = uniqUsers.size;
+  document.getElementById('sttPagesPerSession').textContent =
+    sessions.size ? (rows.length / sessions.size).toFixed(1) : '—';
+
+  // Şehir / İl — IP tabanlı konumdan (yoksa "Bilinmiyor")
+  const cities = topN(rows, 'city', 10);
+  const citiesMax = cities.length ? cities[0][1] : 0;
+  document.getElementById('sttCities').innerHTML = cities.length
+    ? cities.map(([c,n]) => bar(c === '—' ? 'Bilinmiyor' : c, n, citiesMax)).join('')
+    : '<div class="stt-empty">Henüz veri yok</div>';
+
+  const countries = topN(rows, 'country', 8);
+  const countriesMax = countries.length ? countries[0][1] : 0;
+  document.getElementById('sttCountries').innerHTML = countries.length
+    ? countries.map(([c,n]) => bar(c === '—' ? 'Bilinmiyor' : c, n, countriesMax)).join('')
+    : '<div class="stt-empty">Henüz veri yok</div>';
+
+  // Saat dağılımı (0-23)
+  const hourCounts = {};
+  rows.forEach(r => { const h = new Date(r.created_at).getHours(); hourCounts[h] = (hourCounts[h]||0)+1; });
+  const hourMax = Math.max(0, ...Object.values(hourCounts));
+  const hoursHtml = Object.keys(hourCounts).map(Number)
+    .sort((a,b) => hourCounts[b] - hourCounts[a])
+    .slice(0,8)
+    .map(h => bar(String(h).padStart(2,'0') + ':00', hourCounts[h], hourMax)).join('');
+  document.getElementById('sttHours').innerHTML = hoursHtml || '<div class="stt-empty">Henüz veri yok</div>';
+
+  // Yönlendiren — sadece alan adı gösterilir (tam URL değil)
+  const refCounts = {};
+  rows.forEach(r => {
+    let key = 'Doğrudan';
+    if (r.referrer) { try { key = new URL(r.referrer).hostname || r.referrer; } catch(e) { key = r.referrer; } }
+    if (key === location.hostname) key = 'Site içi';
+    refCounts[key] = (refCounts[key]||0)+1;
+  });
+  const refs = Object.entries(refCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const refMax = refs.length ? refs[0][1] : 0;
+  document.getElementById('sttReferrers').innerHTML = refs.length
+    ? refs.map(([k,n]) => bar(k, n, refMax)).join('')
     : '<div class="stt-empty">Henüz veri yok</div>';
 
   renderTrendChart(rows, days);
