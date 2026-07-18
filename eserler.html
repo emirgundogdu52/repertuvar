@@ -253,8 +253,8 @@
     .detail.mobile-visible .edit-btn,
     .detail.mobile-visible .delete-btn { font-size:11px; padding:5px 8px; }
     .detail.mobile-visible .tab-dropdown-wrap { padding:6px 14px; box-sizing:border-box; width:100%; overflow:visible; display:flex; justify-content:flex-start; }
-    .detail.mobile-visible .detail-tabs { padding:6px 12px 4px; }
-    .detail.mobile-visible .dtab { font-size:12px; padding:6px 11px; }
+    .detail.mobile-visible .detail-tabs { padding:6px 8px 4px; gap:5px; }
+    .detail.mobile-visible .dtab { font-size:11.5px; padding:6px 10px; }
     .detail.mobile-visible .tab-main-btn { width:auto; box-sizing:border-box; }
     .detail.mobile-visible .tab-dropdown { left:14px; right:14px; }
     .detail.mobile-visible .detail-body { padding:12px 14px; overflow-x:hidden; width:100%; }
@@ -298,12 +298,12 @@
   .actions-wrap { display:none; }
 
   /* Sekmeler: açılır menü yerine yan yana butonlar — hangi bölümler olduğu
-     menüyü açmadan görünüyor. Dar ekranda yatay kayar (çubuk gizli). */
+     menüyü açmadan görünüyor. Sığmazsa ORTALI şekilde alt satıra sarar
+     (yatay kaydırmada en sağdaki "Hikaye" kesiliyordu). */
   .detail-tabs {
-    display: flex; gap: 6px; padding: 8px 16px 6px;
-    overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    display: flex; gap: 6px; padding: 8px 12px 6px;
+    justify-content: center; flex-wrap: wrap;
   }
-  .detail-tabs::-webkit-scrollbar { display: none; }
   .dtab {
     flex: 0 0 auto; white-space: nowrap;
     padding: 7px 14px; border-radius: 999px;
@@ -1462,8 +1462,8 @@ function selectWork(id, silent) {
     <div class="detail-tabs">
       <button class="dtab${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</button>
       <button class="dtab${lastTab==='akorlar'?' active':''}" onclick="switchDetailTab('akorlar')">🎸 Akorlar</button>
-      <button class="dtab${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">📋 Bilgiler</button>
       <button class="dtab${lastTab==='nota'?' active':''}" onclick="switchDetailTab('nota')">🎼 Nota</button>
+      <button class="dtab${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">📋 Bilgiler</button>
       <button class="dtab${lastTab==='hikaye'?' active':''}" onclick="switchDetailTab('hikaye')">📖 Hikaye</button>
     </div>
 
