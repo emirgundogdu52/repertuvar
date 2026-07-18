@@ -17,6 +17,9 @@
         border-right: 1px solid var(--border, rgba(48,58,85,0.38));
         display: flex; flex-direction: column;
         z-index: 300; padding-bottom: 20px;
+        /* Üst güvenli alan (status bar) — sayfa içeriği bunu hesaba katıyordu ama
+           sidebar top:0'dan başladığı için logo hero bölümünden yukarıda kalıyordu. */
+        padding-top: env(safe-area-inset-top, 0px);
         font-family: 'Plus Jakarta Sans', sans-serif;
       }
       .sb-brand {
