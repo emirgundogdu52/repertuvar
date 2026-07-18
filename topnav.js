@@ -510,6 +510,29 @@
     }
   };
 
+  // ── Ekran döndüğünde/boyut değiştiğinde navigasyonu YENİDEN değerlendir ──
+  // Eskiden sidebar/alt menü kararı SAYFA YÜKLENİRKEN bir kez veriliyordu. iPad mini
+  // dikeyde 744px (alt menü basılır), yatayda 1133px olur — CSS ≥1024'te alt menüyü
+  // ve üst çubuğu gizler ama sidebar hiç oluşturulmadığı için ekranda HİÇ menü kalmaz.
+  // Artık iki yön için de eksik olan nav çağrıldığında kurulur.
+  let _navResizeT = null;
+  function reevaluateNav() {
+    clearTimeout(_navResizeT);
+    _navResizeT = setTimeout(function() {
+      try {
+        if (window.innerWidth >= 1024) {
+          if (!document.getElementById('r-sidebar')) renderSidebar();
+        } else {
+          if (!document.getElementById('r-bottom-nav')) renderBottomNav();
+        }
+        if (typeof loadMsgBadge === 'function') loadMsgBadge();
+        if (typeof loadNotifBadge === 'function') loadNotifBadge();
+      } catch (e) { console.warn('[topnav] nav yeniden kurulamadı:', e); }
+    }, 150);
+  }
+  window.addEventListener('resize', reevaluateNav);
+  window.addEventListener('orientationchange', reevaluateNav);
+
   // ── Sidebar render — tüm sayfalarda otomatik ──
   function renderSidebar() {
     if (window.innerWidth < 1024) return;
