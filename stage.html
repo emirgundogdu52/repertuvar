@@ -94,6 +94,14 @@
     masaüstü/tablette (min-width:768px) HİÇ kapanmıyor — kullanıcı ☰'ye veya dışarı
     basana kadar açık kalır. Fare/parmak şeridin üzerindeyken sayaç duruyor, ayrılınca
     yeniden başlıyor (scheduleStageToolsHide + panel hover/touch dinleyicileri).
+  - 2026-07-18 (n): TABLET dikey + yatay düzeltmesi. (1) Kapsül menü ve "açık kalsın"
+    davranışı yalnızca ≥1024px'te tanımlıydı; tablet DİKEY (768–1023) kapsam dışı
+    kalıyordu — eşik @media(min-width:768px)'e indirildi, iki yönde de aynı davranış
+    (JS zaten min-width:768px kullanıyor). transform:none eklendi ki stage-hidden'ın
+    translateY'si açık kapsülde kalıntı bırakmasın. (2) Yatay/alçak ekranlar için
+    @media(max-height:620px): #stageToolsPanel max-height + overflow-y:auto (menü
+    ekran dışına taşıp "kaybolmuyor"), kapsül bottom 22→10px, başlık/karar/.sm
+    boşlukları küçültüldü.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -381,6 +389,43 @@ body.stage-active #r-bottom-nav{display:none !important;}
 #v2StageBotNav .v2-bn-label { font-size:9px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; text-align:center; }
 
 /* Desktop: picker ekranında sidebar layout */
+/* ── TABLET (dikey + yatay) ──
+   Kapsül menü ve "açık kalsın" davranışı önceden yalnızca ≥1024px'te tanımlıydı;
+   tablet DİKEY (768–1023) bunun dışında kalıyordu. Eşik 768'e indirildi, böylece
+   tablet iki yönde de aynı davranır. JS tarafı da (min-width:768px) kullanıyor. */
+@media (min-width: 768px) {
+  body.stage-active #v2StageBotNav:not(.stage-hidden) {
+    display: flex !important;
+    position: fixed; bottom: 22px; left: 0; right: 0;
+    width: fit-content; margin: 0 auto;
+    height: auto; padding: 6px 10px;
+    background: rgba(7,11,24,0.97); backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,200,61,0.18); border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
+    transform: none;            /* stage-hidden'ın translateY'si kalıntı bırakmasın */
+    z-index: 450;
+  }
+  body.stage-active #v2StageBotNav:not(.stage-hidden) .v2-bn-items { width: auto; padding: 0; gap: 4px; }
+  body.stage-active #v2StageBotNav:not(.stage-hidden) .v2-bn-item { flex: 0 0 auto; padding: 8px 18px; }
+}
+
+/* ── YATAY / ALÇAK EKRAN (tablet yatay, telefon yatay) ──
+   Ekran yüksekliği azalınca şerit ve menü ekran dışına taşıp "kayboluyordu".
+   Yükseklik sınırlanıp kaydırılabilir yapılıyor, boşluklar küçültülüyor. */
+@media (max-height: 620px) {
+  #stageToolsPanel {
+    max-height: calc(100vh - 96px) !important;
+    overflow-y: auto !important;
+    padding: 8px !important;
+  }
+  body.stage-active #v2StageBotNav:not(.stage-hidden) { bottom: 10px; padding: 4px 8px; }
+  body.stage-active #v2StageBotNav:not(.stage-hidden) .v2-bn-item { padding: 6px 14px; }
+  #v2StageBotNav .v2-bn-label { font-size: 8px; }
+  .sm { padding-top: 14px; padding-bottom: 64px; }
+  .wtitle { font-size: clamp(17px, 2.6vw, 24px); margin-bottom: 6px; }
+  .wkarar { margin: -2px 0 6px; }
+}
+
 @media (min-width: 1024px) {
   #pickerScreen {
     position: fixed !important;
