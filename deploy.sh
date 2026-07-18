@@ -1,25 +1,22 @@
 #!/usr/bin/env bash
 # ────────────────────────────────────────────────────────────
-# Repertuvar — tek komutla deploy + native sync
+# Repertuvar — tek komutla deploy (web + www/ + native)
 #
 # Kullanım:
-#   ./deploy.sh "commit mesajı"          → push + www sync + cap sync ios
-#   ./deploy.sh "mesaj" --run            → yukarıdakiler + iPad/simülatöre kur
-#   ./deploy.sh "mesaj" --web            → sadece git push (web testi; native atlanır)
-#   ./deploy.sh                          → mesaj vermezsen tarih/saat kullanır
+#   ./deploy.sh "commit mesajı"     → push + www/ + native sync + DOĞRULAMA (VARSAYILAN)
+#   ./deploy.sh "mesaj" --run       → yukarıdakiler + simülatöre/cihaza kur
+#   ./deploy.sh "mesaj" --web       → SADECE web (native ATLANIR — cihazda eski sürüm kalır!)
+#   ./deploy.sh                     → mesaj vermezsen tarih/saat kullanır
 #
-# İlk sefer çalıştırılabilir yap:  chmod +x deploy.sh
+# NOT: Cihazda/simülatörde test edeceksen --web KULLANMA.
+# İlk sefer:  chmod +x deploy.sh
 # ────────────────────────────────────────────────────────────
 set -uo pipefail
 
-# --- Repo klasörü (gerekirse burayı kendi yolunla değiştir) ---
 REPO="$HOME/Desktop/Yeni Repertuvar/Repertuvar App Claude/Repertuvar"
 cd "$REPO" || { echo "❌ Repo bulunamadı: $REPO"; exit 1; }
 
-# --- Argümanları ayrıştır (mesaj + bayraklar herhangi bir sırada) ---
-MSG=""
-RUN_IOS=false
-WEB_ONLY=false
+MSG=""; RUN_IOS=false; WEB_ONLY=false
 for arg in "$@"; do
   case "$arg" in
     --run) RUN_IOS=true ;;
@@ -31,51 +28,95 @@ done
 
 echo "📁 $REPO"
 
-# --- 1) Service worker cache sürümünü otomatik artır (repertuvar-vN) ---
+# --- 1) Service worker cache sürümü ---
 if [ -f service-worker.js ]; then
   perl -i -pe 's/(repertuvar-v)(\d+)/$1.($2+1)/e' service-worker.js
-  NEWV=$(grep -oE 'repertuvar-v[0-9]+' service-worker.js | head -1)
-  echo "🔖 Service worker sürümü: ${NEWV:-?}"
+  echo "🔖 Service worker: $(grep -oE 'repertuvar-v[0-9]+' service-worker.js | head -1)"
 fi
 
-# --- 2) Git: ekle, commit, push ---
+# --- 2) Git ---
 git add -A
 if git diff --cached --quiet; then
   echo "ℹ️  Commit edilecek değişiklik yok."
 else
   git commit -m "$MSG" && echo "✅ Commit: $MSG"
-  git push origin main && echo "🚀 Push edildi (web ~1-2 dk içinde güncellenir)"
+  git push origin main && echo "🚀 Push edildi (repertuvar.app ~1-2 dk)"
 fi
 
-# --- Sadece web testi isteniyorsa burada dur ---
 if $WEB_ONLY; then
-  echo "🌐 --web: native sync atlandı. repertuvar.app'ten test edebilirsin."
+  echo ""
+  echo "⚠️  --web KULLANILDI: www/ ve native GÜNCELLENMEDİ."
+  echo "    Cihazda/simülatörde ESKİ sürüm çalışmaya devam eder."
+  echo "    Cihazda test için bayraksız çalıştır:  ./deploy.sh \"$MSG\""
   exit 0
 fi
 
-# --- 3) www/ güncelle + Capacitor sync ---
-echo "🔄 npm run sync ..."
-npm run sync   || { echo "❌ npm run sync başarısız"; exit 1; }
-echo "🔄 npx cap sync ios ..."
-npx cap sync ios || { echo "❌ cap sync ios başarısız"; exit 1; }
+# --- 3) Dosyaları www/ içine kopyala ---
+mkdir -p www
+echo "🔄 www/ güncelleniyor..."
+if npm run sync >/dev/null 2>&1; then
+  echo "   ✓ npm run sync"
+else
+  echo "   ⚠️  npm run sync başarısız/eksik — doğrudan kopyalanıyor"
+  cp -f ./*.html www/ 2>/dev/null
+  cp -f ./*.js   www/ 2>/dev/null
+  cp -f ./*.css  www/ 2>/dev/null
+  cp -f ./*.png  www/ 2>/dev/null
+  cp -f ./*.svg  www/ 2>/dev/null
+  [ -f manifest.json ] && cp -f manifest.json www/
+  echo "   ✓ manuel kopyalama"
+fi
 
-# --- 4) www/ gerçekten güncellendi mi hızlı doğrulama ---
-for f in repertoires.js stage.html eserler.html; do
-  if [ -f "$f" ] && [ -f "www/$f" ]; then
-    if diff -q "$f" "www/$f" >/dev/null; then
-      echo "✅ www/$f güncel"
-    else
-      echo "⚠️  www/$f kök dosyayla FARKLI — sync'i kontrol et!"
+# --- 4) Capacitor → native klasörleri ---
+echo "🔄 npx cap sync ios ..."
+if npx cap sync ios >/dev/null 2>&1; then
+  echo "   ✓ cap sync ios"
+else
+  echo "❌ cap sync ios başarısız — Xcode/Capacitor kurulumunu kontrol et"; exit 1
+fi
+
+# --- 5) DOĞRULAMA: kök → www/ → native ---
+NATIVE_DIR="ios/App/App/public"
+FAIL=0; OK=0
+echo ""
+echo "🔍 Doğrulama (kök → www/ → native)"
+for f in ./*.html ./*.js ./*.css manifest.json; do
+  [ -f "$f" ] || continue
+  base=$(basename "$f")
+  if [ ! -f "www/$base" ]; then
+    echo "   ❌ www/$base YOK"; FAIL=$((FAIL+1)); continue
+  fi
+  if ! diff -q "$f" "www/$base" >/dev/null; then
+    echo "   ❌ www/$base kök dosyadan FARKLI"; FAIL=$((FAIL+1)); continue
+  fi
+  if [ -d "$NATIVE_DIR" ]; then
+    if [ ! -f "$NATIVE_DIR/$base" ]; then
+      echo "   ❌ $NATIVE_DIR/$base YOK"; FAIL=$((FAIL+1)); continue
+    fi
+    if ! diff -q "$f" "$NATIVE_DIR/$base" >/dev/null; then
+      echo "   ❌ $NATIVE_DIR/$base kök dosyadan FARKLI"; FAIL=$((FAIL+1)); continue
     fi
   fi
+  OK=$((OK+1))
 done
 
-# --- 5) İstenirse cihaza/simülatöre kur ---
+echo ""
+if [ "$FAIL" -eq 0 ]; then
+  echo "✅ $OK dosya doğrulandı — kök, www/ ve native aynı."
+else
+  echo "⚠️  $FAIL dosya eşleşmedi, $OK dosya tamam."
+  echo "    Bunlar cihazda ESKİ kalır — tekrar çalıştır ya da elle kontrol et."
+fi
+
+# --- 6) İstenirse kur ---
 if $RUN_IOS; then
-  echo "📲 npx cap run ios (cihaz/simülatör seç) ..."
+  echo ""
+  echo "📲 npx cap run ios ..."
   npx cap run ios
 else
   echo ""
-  echo "✅ Bitti. Cihaza kurmak için: Xcode → hedef cihaz → Clean Build Folder → Run"
-  echo "   Sonraki sefer tek adımda kurmak istersen:  ./deploy.sh \"mesaj\" --run"
+  echo "➡️  Cihaza kurmak için: Xcode → hedef cihaz → Clean Build Folder → Run"
+  echo "   (tek adımda:  ./deploy.sh \"mesaj\" --run)"
 fi
+
+[ "$FAIL" -eq 0 ] || exit 1
