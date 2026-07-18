@@ -1484,6 +1484,7 @@ function selectWork(id, silent) {
         <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
           <button onclick="saveChords(${w.id})" style="padding:8px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;color:#1a1200;font-size:13px;font-weight:600;cursor:pointer;">💾 Kaydet</button>
           <button id="chords_preview_btn_${w.id}" onclick="toggleChordsPreview(${w.id})" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:13px;cursor:pointer;">👁 Önizle</button>
+          <button onclick="convertChordsInEditor(${w.id})" title="Akorlar sözlerin üstünde ayrı satırdaysa [Am] biçimine çevirir" style="padding:8px 14px;background:none;border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:13px;cursor:pointer;">⇄ ChordPro'ya çevir</button>
           <button id="delpc_${w.id}" onclick="deletePersonalChords(${w.id})" style="display:none;padding:8px 14px;background:none;border:1px solid rgba(239,68,68,.4);border-radius:6px;color:#ef4444;font-size:12px;cursor:pointer;">Kişiseli sil</button>
         </div>
         <div id="chords_preview_${w.id}" class="lyrics-box" style="display:none;margin-top:12px;"></div>
@@ -1640,6 +1641,69 @@ function transposeChordPro(text, n) {
   return text.replace(/\[([^\]]+)\]/g, (full, inner) => '[' + transposeChordToken(inner.trim(), n) + ']');
 }
 function getTranspose(workId) { return TRANSPOSE[String(workId)] || 0; }
+
+// ── ESKİ FORMAT ("akor üstte") → ChordPro ÇEVİRİCİ ──
+// Eski kayıtlarda akorlar sözlerin ÜSTÜNDE ayrı satırda. Transpoze ve akor-hece
+// hizalaması [Am] biçimini gerektirir. Bu çevirici akorun sütununa en yakın kelime
+// başını bulup oraya [akor] gömer (orantılı fontla yazılmış kaynaklarda da isabetli).
+function _isChordToken(raw){
+  const t = (raw||'').replace(/^\(+|\)+$/g,'');
+  if(!t) return false;
+  return /^[A-G](#|b|##|bb)?(m|min|maj|dim|aug|sus|add|M|\+|°)?\d{0,2}(sus\d|add\d)?(\/[A-G](#|b)?)?$/.test(t);
+}
+function _isChordLine(line){
+  const t = (line||'').trim();
+  if(!t) return false;
+  const toks = t.split(/\s+/);
+  return toks.length>0 && toks.every(_isChordToken);
+}
+function _mergeChordLyric(chordLine, lyricLine){
+  const lyric = lyricLine.replace(/\s+$/,'');
+  const wordStarts = []; let wm; const wre=/\S+/g;
+  while((wm=wre.exec(lyric))!==null) wordStarts.push(wm.index);
+  const chords=[]; let cm; const cre=/\S+/g;
+  while((cm=cre.exec(chordLine))!==null) chords.push({col:cm.index,name:cm[0]});
+  const ins = chords.map(c=>{
+    let target=c.col;
+    if(wordStarts.length){
+      let best=wordStarts[0], bd=Math.abs(best-c.col);
+      for(const ws of wordStarts){ const d=Math.abs(ws-c.col); if(d<bd){bd=d;best=ws;} }
+      target=best;
+    }
+    return {col:target,name:c.name};
+  });
+  ins.sort((a,b)=>a.col-b.col);
+  let out=lyric, off=0;
+  for(const x of ins){ const at=Math.min(x.col,lyric.length)+off; const tag='['+x.name+']'; out=out.slice(0,at)+tag+out.slice(at); off+=tag.length; }
+  return out;
+}
+function convertChordsAboveToChordPro(text){
+  const lines=(text||'').replace(/\r\n?/g,'\n').split('\n');
+  const out=[];
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    if(_isChordLine(line)){
+      const next=lines[i+1];
+      if(next!==undefined && next.trim()!=='' && !_isChordLine(next)){ out.push(_mergeChordLyric(line,next)); i++; }
+      else out.push(line.trim().split(/\s+/).map(c=>'['+c+']').join(' '));
+    } else out.push(line);
+  }
+  return out.join('\n');
+}
+// Editördeki metni yerinde çevir, önizlemeyi aç (kullanıcı sonucu görüp kaydeder)
+function convertChordsInEditor(id){
+  const ta=document.getElementById('inline_chords_'+id);
+  if(!ta) return;
+  const src=ta.value;
+  if(hasRealChords(src)){ alert('Bu metin zaten ChordPro biçiminde ([Am]) görünüyor.'); return; }
+  const converted=convertChordsAboveToChordPro(src);
+  if(!hasRealChords(converted)){ alert('Çevrilecek akor satırı bulunamadı. Akorların sözlerin üstünde ayrı satırda olduğundan emin olun.'); return; }
+  ta.value=converted;
+  const prev=document.getElementById('chords_preview_'+id);
+  if(prev){ prev.style.display='block'; const pb=document.getElementById('chords_preview_btn_'+id); if(pb) pb.style.borderColor='var(--accent)'; }
+  updateChordsPreview(id);
+  toastMsg('✓ ChordPro biçimine çevrildi — kontrol edip Kaydet');
+}
 
 function renderChords(text) {
   if (!text) return '';
@@ -1838,7 +1902,12 @@ async function saveChords(id) {
   const scope = ta.dataset.scope || 'kisisel';
   const raw = ta.value.trim();
   const _hasCh = hasRealChords(raw);
-  const chords = _hasCh ? raw : '';
+  // GÜVENLİK: parantezsiz ama DOLU metni asla silme (eski "akor üstte" biçimindeki
+  // kayıtlar böyle). Eskiden boş kaydediliyordu ve ortak akor siliniyordu.
+  if (raw && !_hasCh) {
+    if (!confirm('Bu metinde [Am] biçiminde akor yok (eski "akor üstte" biçimi olabilir).\n\nOK: metni olduğu gibi kaydet.\nİptal: önce "⇄ ChordPro\'ya çevir" ile dönüştür.')) return;
+  }
+  const chords = raw; // dolu metin her zaman korunur; boşsa zaten '' kaydedilir
 
   if (scope === 'ortak') {
     if (!(isAdmin() || isEditor())) { alert('Ortak akoru sadece editör düzenleyebilir.'); return; }
