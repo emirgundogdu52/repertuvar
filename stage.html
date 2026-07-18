@@ -570,10 +570,18 @@ async function loadWL() {
       const uid = (typeof getUserId==='function') ? getUserId() : null;
       if (uid) {
         const tok = localStorage.getItem('sb_token') || SUPA_KEY;
-        const pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, {
-          headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+tok},
-          signal: AbortSignal.timeout(4000)
+        const _pH = {'apikey':SUPA_KEY,'Authorization':'Bearer '+tok};
+        // transpose sütunu yoksa istek 400 döner — sütunsuz tekrar dene, yoksa
+        // kişisel AKORLAR da yüklenmez (sessiz yan hasar).
+        let pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, {
+          headers:_pH, signal: AbortSignal.timeout(4000)
         });
+        if (!pr.ok) {
+          console.warn('[stage] transpose sütunu yok gibi — SQL çalıştırıldı mı? Sütunsuz deneniyor.');
+          pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords&user_id=eq.'+uid, {
+            headers:_pH, signal: AbortSignal.timeout(4000)
+          });
+        }
         if (pr.ok) {
           const prows = await pr.json();
           (prows||[]).forEach(x => {

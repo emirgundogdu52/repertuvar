@@ -1687,9 +1687,17 @@ function updateTonBadge(id){
 }
 function _afterTonChange(id){
   updateTonBadge(id);
-  // Editör önizlemesi açıksa onu, değilse okuyucu görünümünü tazele
+  // Editördeysek önizlemeyi OTOMATİK AÇ — yoksa ± basınca hiçbir şey değişmiş
+  // gibi görünür (textarea orijinal metni gösterir, ton görünüme uygulanır).
   const prev = document.getElementById('chords_preview_'+id);
-  if (prev && prev.style.display === 'block') updateChordsPreview(id);
+  if (prev && document.getElementById('inline_chords_'+id)) {
+    if (prev.style.display !== 'block') {
+      prev.style.display = 'block';
+      const pb = document.getElementById('chords_preview_btn_'+id);
+      if (pb) pb.style.borderColor = 'var(--accent)';
+    }
+    updateChordsPreview(id);
+  }
   const box = document.querySelector('#tab-akorlar .lyrics-box');
   if (box && !document.getElementById('inline_chords_'+id)) {
     const src = PERSONAL_CHORDS[String(id)] || (DATA.find(x=>x.id===id||x.id===parseInt(id))||{}).chords || '';
@@ -1736,9 +1744,14 @@ async function loadPersonalChords(){
     const uid = (typeof getUserId==='function') ? getUserId() : null;
     if(!uid) return;
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
-    const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, {
-      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+token}
-    });
+    const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+token};
+    // transpose sütunu henüz eklenmemişse istek 400 döner — o durumda sütunsuz tekrar
+    // dene, yoksa kişisel AKORLAR da yüklenemez (sessiz yan hasar).
+    let r = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, { headers:H });
+    if(!r.ok){
+      console.warn('[eserler] transpose sütunu yok gibi görünüyor — SQL çalıştırıldı mı? Sütunsuz deneniyor.');
+      r = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords&user_id=eq.'+uid, { headers:H });
+    }
     if(!r.ok) return;
     const rows = await r.json();
     PERSONAL_CHORDS = {};
