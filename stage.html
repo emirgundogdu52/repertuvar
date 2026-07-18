@@ -60,6 +60,11 @@
   - 2026-07-17 (f): Sahne alt menüsüne (v2StageBotNav → stageNavStage) "Ana Sayfa"
     linki eklendi (btnStageHome → index.html), Geri Dön ile Çık arasında. Menü artık:
     Geri Dön · Ana Sayfa · Çık.
+  - 2026-07-18 (g): Desktop'ta (min-width:1024px) sağ alttaki "Navigasyon" (☰)
+    butonu tepkisiz görünüyordu — openStageNav() çalışıyordu ama medya sorgusundaki
+    #v2StageBotNav{display:none !important} menüyü tamamen gizliyordu. Eklenen kural:
+    body.stage-active #v2StageBotNav:not(.stage-hidden) → display:flex !important +
+    position:fixed alt şerit. Yani varsayılan gizli, butonla açılınca görünür.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -350,6 +355,16 @@ body.stage-active #r-bottom-nav{display:none !important;}
   #pickerScreen.hidden { display: none !important; }
   /* Alt nav desktop'ta gizle */
   #v2StageBotNav { display: none !important; }
+  /* ...ama sahne modunda "Navigasyon" (☰) butonuyla BİLEREK açıldığında göster.
+     Aksi halde openStageNav() çalışsa bile display:none !important yüzünden hiçbir
+     şey görünmüyor ve buton tepkisiz sanılıyor. 4sn sonra stage-hidden geri gelir. */
+  body.stage-active #v2StageBotNav:not(.stage-hidden) {
+    display: flex !important;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    width: auto; height: auto; padding: 8px 0;
+    background: rgba(7,11,24,0.97); backdrop-filter: blur(24px);
+    z-index: 450;
+  }
   /* Sahne aktifken sidebar gizle, picker tam genişlik */
   body.stage-active .sidebar { display: none !important; }
 }
