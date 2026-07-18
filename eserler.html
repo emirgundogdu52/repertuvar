@@ -2,6 +2,14 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-18 (b): Detay paneli üç düzenleme. (1) .stage-open-btn (Sahne Modunda Aç)
+    çok yüksekti (height:48px) — yanındaki .video-btn ile aynı yüksekliğe indirildi
+    (padding:7px 16px, font 13px, 1px şeffaf kenarlık, radius 6px). (2) .detail-header
+    dolgusu daraltıldı (14/12 → 8/8; mobilde 12/10 → 8/6) — üstte kazanılan yer
+    aşağıdaki içeriğe kaldı. (3) Güfte/Akorlar/Bilgiler/Nota/Hikaye açılır menüsü
+    (.tab-dropdown) YAN YANA SEKMELERE çevrildi (.detail-tabs + .dtab, aktif sekme
+    altın gradient) — hangi bölümlerin olduğu menü açmadan görünüyor; dar ekranda
+    yatay kayar. Butonlar .tab-dd-item sınıfını koruyor, switchDetailTab aynen çalışıyor.
   - 2026-07-18: ± TON eklendi (stage.html ile AYNI motor). Akorlar sekmesinde
     − / rozet / + kontrolü; rozete basınca orijinal tona döner. Ton ESER BAŞINA
     saklanır (personal_chords.transpose, kullanıcıya özel, cihazlar arası senkron).
@@ -163,7 +171,7 @@
   .detail::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
   .detail-empty { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; height:100%; color:var(--text3); gap:12px; }
   .detail-empty svg { opacity:.3; }
-  .detail-header { padding:14px 16px 12px; border-bottom:1px solid var(--border); background:var(--surface); box-sizing:border-box; width:100%; }
+  .detail-header { padding:8px 16px 8px; border-bottom:1px solid var(--border); background:var(--surface); box-sizing:border-box; width:100%; }
   .detail-id { font-size:11px; color:var(--text3); letter-spacing:.05em; margin-bottom:6px; }
   .detail-title { font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size:18px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:10px; word-break:break-word; }
   .detail-subtitle { font-size:12px; color:var(--text3); margin-top:-6px; margin-bottom:10px; }
@@ -235,7 +243,7 @@
       background:var(--bg);
     }
     .detail.mobile-visible * { max-width:100%; box-sizing:border-box; }
-    .detail.mobile-visible .detail-header { padding:12px 14px 10px; width:100%; overflow:visible; }
+    .detail.mobile-visible .detail-header { padding:8px 12px 6px; width:100%; overflow:visible; }
     .detail.mobile-visible .detail-chips { display:flex; flex-wrap:wrap; gap:4px; overflow:visible; width:100%; }
     .detail.mobile-visible .chip { white-space:nowrap; font-size:10px; padding:2px 7px; }
     .detail.mobile-visible .detail-stage-row { flex-wrap:wrap !important; gap:6px; overflow:visible; }
@@ -243,6 +251,8 @@
     .detail.mobile-visible .edit-btn,
     .detail.mobile-visible .delete-btn { font-size:11px; padding:5px 8px; }
     .detail.mobile-visible .tab-dropdown-wrap { padding:6px 14px; box-sizing:border-box; width:100%; overflow:visible; display:flex; justify-content:flex-start; }
+    .detail.mobile-visible .detail-tabs { padding:6px 12px 4px; }
+    .detail.mobile-visible .dtab { font-size:12px; padding:6px 11px; }
     .detail.mobile-visible .tab-main-btn { width:auto; box-sizing:border-box; }
     .detail.mobile-visible .tab-dropdown { left:14px; right:14px; }
     .detail.mobile-visible .detail-body { padding:12px 14px; overflow-x:hidden; width:100%; }
@@ -272,16 +282,39 @@
 
   .stage-open-btn {
     display: inline-flex; align-items: center; justify-content:center; gap: 6px;
-    padding: 0 20px; height: 48px; border-radius: 10px;
-    background: linear-gradient(135deg,var(--accent),var(--accent2)); border: none;
-    color: #1a1200; font-size: 14px; font-weight: 700;
+    /* Yanındaki .video-btn ile AYNI yükseklik: aynı dolgu/punto + 1px şeffaf kenarlık
+       (video-btn'de 1px kenarlık var, olmazsa 2px fark kalıyordu). */
+    padding: 7px 16px; height: auto; border-radius: 6px;
+    background: linear-gradient(135deg,var(--accent),var(--accent2));
+    border: 1px solid transparent;
+    color: #1a1200; font-size: 13px; font-weight: 700;
     text-decoration: none; transition: all .15s; white-space:nowrap;
-    box-shadow: 0 4px 14px rgba(255,200,61,.3);
+    box-shadow: 0 3px 10px rgba(255,200,61,.25);
   }
   .stage-open-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
   .actions-wrap { display:none; }
 
+  /* Sekmeler: açılır menü yerine yan yana butonlar — hangi bölümler olduğu
+     menüyü açmadan görünüyor. Dar ekranda yatay kayar (çubuk gizli). */
+  .detail-tabs {
+    display: flex; gap: 6px; padding: 8px 16px 6px;
+    overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .detail-tabs::-webkit-scrollbar { display: none; }
+  .dtab {
+    flex: 0 0 auto; white-space: nowrap;
+    padding: 7px 14px; border-radius: 999px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text2); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all .15s;
+  }
+  .dtab:hover { color: var(--text); background: var(--surface2); }
+  .dtab.active {
+    color: #1a1200; font-weight: 700;
+    background: linear-gradient(135deg,var(--accent),var(--accent2));
+    border-color: transparent;
+  }
   .tab-dropdown-wrap { position:relative; padding:8px 16px; }
   .tab-main-btn {
     display: inline-flex; align-items: center; gap: 6px;
@@ -1424,18 +1457,12 @@ function selectWork(id, silent) {
     </div>
 
     <div class="tab-divider"></div>
-    <div class="tab-dropdown-wrap">
-      <button class="tab-main-btn" id="tabMainBtn" onclick="event.stopPropagation();toggleTabDropdown()">
-        <span id="tabMainLabel">${TAB_LABELS[lastTab]||TAB_LABELS.gufte}</span>
-        <i class="ti ti-chevron-down" style="font-size:14px;"></i>
-      </button>
-      <div class="tab-dropdown" id="tabDropdown">
-        <button class="tab-dd-item${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</button>
-        <button class="tab-dd-item${lastTab==='akorlar'?' active':''}" onclick="switchDetailTab('akorlar')">🎸 Akorlar</button>
-        <button class="tab-dd-item${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">📋 Bilgiler</button>
-        <button class="tab-dd-item${lastTab==='nota'?' active':''}" onclick="switchDetailTab('nota')">🎼 Nota</button>
-        <button class="tab-dd-item${lastTab==='hikaye'?' active':''}" onclick="switchDetailTab('hikaye')">📖 Hikaye</button>
-      </div>
+    <div class="detail-tabs">
+      <button class="dtab tab-dd-item${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</button>
+      <button class="dtab tab-dd-item${lastTab==='akorlar'?' active':''}" onclick="switchDetailTab('akorlar')">🎸 Akorlar</button>
+      <button class="dtab tab-dd-item${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">📋 Bilgiler</button>
+      <button class="dtab tab-dd-item${lastTab==='nota'?' active':''}" onclick="switchDetailTab('nota')">🎼 Nota</button>
+      <button class="dtab tab-dd-item${lastTab==='hikaye'?' active':''}" onclick="switchDetailTab('hikaye')">📖 Hikaye</button>
     </div>
 
     <div id="tab-gufte" class="detail-tab-content detail-body${lastTab==='gufte'?' active':''}">
