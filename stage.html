@@ -71,6 +71,15 @@
     slash bass (G/B) ve uzantılar (m7, sus4...) korunur. GÖRÜNÜM dönüşümüdür: kayıtlı
     akor metni asla değişmez, renderStage çizerken uygular. UI: Görünüm Ayarları (⚙)
     satırında Akor modunda − / rozet / + ; rozete basınca ton sıfırlanır. Aralık -6..+6.
+  - 2026-07-18 (i): Ton kontrolünün yanına KARAR SESİ göstergesi eklendi — kaydırılmış
+    güncel karar "A (La)" biçiminde yazılır (kaydırıldıysa altın renk, ipucunda orijinali).
+    Solfej (La, Sib, Sol#) ve Latin (A, Bb) yazımı tanınır; perde adı gibi tanınmayan
+    değerler KAYDIRILMADAN olduğu gibi gösterilir (koma sesleri 12 eşit aralığa oturmaz).
+    Kaynak: repertuvar item.closingNote, yoksa WL[...].closingNote.
+  - 2026-07-18 (j): Sahnede eser BAŞLIĞININ ALTINA karar sesi rozeti (.wkarar) eklendi —
+    "Karar: A (La)" biçiminde, ton değiştikçe güncellenir (renderStage her ± basışında
+    yeniden çizdiği için otomatik). Kaydırıldıysa altın (.shifted) + ipucunda orijinali.
+    Tanınmayan yazımlar (perde adları) kaydırılmadan gösterilir, yanına "(kaydırılmadı)".
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -166,6 +175,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
 .wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:100%;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
+/* Karar sesi rozeti — başlığın altında, ton değiştikçe güncellenir */
+.wkarar{font-size:clamp(11px,1.4vw,14px);font-weight:700;letter-spacing:.04em;color:var(--text2,#9aa4b2);text-align:center;margin:-4px 0 10px;opacity:0;animation:si .4s ease .12s forwards;}
+.wkarar.shifted{color:var(--accent,#FFC83D);}
 .wcr{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;opacity:0;animation:si .4s ease .14s forwards;}
 .wcr:empty{display:none;margin:0;}
 .wch{padding:5px 14px;border-radius:20px;font-size:13px;border:1px solid var(--border);color:var(--text2);background:var(--surface);}
@@ -936,6 +948,28 @@ function transposeChordPro(text, n) {
 }
 function getTranspose(workId) { return TRANSPOSE[String(workId)] || 0; }
 
+// ── KARAR SESİ (kaydırılmış) — eserler.html ile AYNI mantık ──
+// Solfej ("La", "Sib") ve Latin ("A", "Bb") yazımını tanır; perde adı gibi
+// tanımadıklarını kaydırmadan olduğu gibi bırakır (koma sesleri 12'liye oturmaz).
+const _KARAR_LATIN = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const _KARAR_TR    = ['Do','Reb','Re','Mib','Mi','Fa','Solb','Sol','Lab','La','Sib','Si'];
+const _KARAR_IN = {
+  'do':0,'do#':1,'reb':1,'re':2,'re#':3,'mib':3,'mi':4,'fa':5,'fa#':6,'solb':6,
+  'sol':7,'sol#':8,'lab':8,'la':9,'la#':10,'sib':10,'si':11,
+  'c':0,'c#':1,'db':1,'d':2,'d#':3,'eb':3,'e':4,'f':5,'f#':6,'gb':6,
+  'g':7,'g#':8,'ab':8,'a':9,'a#':10,'bb':10,'b':11
+};
+function parseKararNote(s){
+  const k = (s||'').toString().trim().toLowerCase().replace(/\s+/g,'').replace('♭','b').replace('♯','#');
+  return (k in _KARAR_IN) ? _KARAR_IN[k] : null;
+}
+function kararLabel(closingNote, n){
+  const i = parseKararNote(closingNote);
+  if (i === null) return null;
+  const j = ((i + (n||0)) % 12 + 12) % 12;
+  return _KARAR_LATIN[j] + ' (' + _KARAR_TR[j] + ')';
+}
+
 // ± butonları: tonu kaydır, ekranı hemen tazele, sonra arka planda kaydet
 function stepTranspose(delta) {
   const item = (curRep && (curRep.items||[])[curIdx]) || null;
@@ -1142,9 +1176,16 @@ function renderStage(){
   } else {
     bodyHtml = w.lyrics ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>` : '';
   }
+  const _cn = item.closingNote || w.closingNote || '';
+  const _kt = getTranspose(item.workId);
+  const _kl = kararLabel(_cn, _kt);
+  const kararChip = _cn
+    ? `<div class="wkarar${_kt ? ' shifted' : ''}" title="${_kt && kararLabel(_cn,0) ? 'Orijinal karar: ' + kararLabel(_cn,0) : ''}">Karar: ${_kl || _cn}${(!_kl && _kt) ? ' (kaydırılmadı)' : ''}</div>`
+    : '';
   document.getElementById('sm').innerHTML=`
     <div class="wnum"></div>
     <div class="wtitle">${w.name || (WL_loaded ? item.workId : '…')}</div>
+    ${kararChip}
     ${bodyHtml}`;
   updateViewToggleUI(w);
   // Kaydedilmiş hizalamayı uygula
@@ -1257,7 +1298,16 @@ function buildStageToolsRow(mode) {
   const tonBtns = (mode === 'chords' && item) ? `
       <button onclick="event.stopPropagation();stepTranspose(-1)" title="Yarım ton pes" class="align-btn"><i class="ti ti-minus"></i></button>
       <button onclick="event.stopPropagation();resetTranspose()" id="tonBadge" title="Tonu sıfırla" class="align-btn" style="min-width:44px;font-size:12px;font-weight:800;${tVal?'color:var(--accent);border-color:var(--accent);':''}">${tVal>0?'+'+tVal:(tVal||'Ton')}</button>
-      <button onclick="event.stopPropagation();stepTranspose(1)" title="Yarım ton tiz" class="align-btn"><i class="ti ti-plus"></i></button>` : '';
+      <button onclick="event.stopPropagation();stepTranspose(1)" title="Yarım ton tiz" class="align-btn"><i class="ti ti-plus"></i></button>
+      ${(() => {
+        const cn = (item && (item.closingNote || (WL[String(item.workId)]||{}).closingNote)) || '';
+        const cur = kararLabel(cn, tVal);
+        if (cur) {
+          const orig = tVal ? kararLabel(cn, 0) : '';
+          return `<span class="ton-karar" title="${orig?('Orijinal karar: '+orig):''}" style="font-size:11px;font-weight:700;white-space:nowrap;padding:0 6px;color:${tVal?'var(--accent)':'var(--text2, #9aa4b2)'};">${cur}</span>`;
+        }
+        return cn ? `<span class="ton-karar" style="font-size:11px;white-space:nowrap;padding:0 6px;color:var(--text3, #6b7482);">${cn}</span>` : '';
+      })()}` : '';
   if (mode === 'nota') {
     row.innerHTML = themeBtn + navBtn;
   } else {
