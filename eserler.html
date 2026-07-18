@@ -2,6 +2,12 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-18: ± TON eklendi (stage.html ile AYNI motor). Akorlar sekmesinde
+    − / rozet / + kontrolü; rozete basınca orijinal tona döner. Ton ESER BAŞINA
+    saklanır (personal_chords.transpose, kullanıcıya özel, cihazlar arası senkron).
+    GÖRÜNÜM dönüşümüdür: kayıtlı akor metni hiç değişmez — hem editör önizlemesi
+    hem okuyucu görünümü çizerken transposeChordPro ile kaydırılır. Motor bemol
+    tercihli (_CHROM_FLAT), slash bass (G/B) ve uzantılar (m7, sus4) korunur.
   - 2026-07-17: Eser listesi yüklemesi İKİ FAZA bölündü (soğuk açılış hızı için).
     FAZ 1 hafif liste (güfte/akor/nota HARİÇ, select=id,name,composer,...) → anında
     çizilir. FAZ 2 ağır alanlar (id,lyrics,chords,nota_url) arka planda gelir, DATA'ya
@@ -1466,6 +1472,13 @@ function selectWork(id, silent) {
           <button id="scope_kisisel_${w.id}" onclick="setChordScope(${w.id},'kisisel')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">👤 Kişisel (sadece ben)</button>
         </div>
         <div id="scope_help_${w.id}" style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;"></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+          <span style="font-size:12px;color:var(--text3);">Ton:</span>
+          <button onclick="stepTranspose(${w.id},-1)" title="Yarım ton pes" style="width:32px;height:30px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text2);font-size:15px;font-weight:700;cursor:pointer;">−</button>
+          <button id="ton_badge_${w.id}" onclick="resetTranspose(${w.id})" title="Orijinal tona dön" style="min-width:52px;height:30px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text2);font-size:12px;font-weight:800;cursor:pointer;">Orijinal</button>
+          <button onclick="stepTranspose(${w.id},1)" title="Yarım ton tiz" style="width:32px;height:30px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text2);font-size:15px;font-weight:700;cursor:pointer;">+</button>
+          <span style="font-size:11px;color:var(--text3);">sadece görünümü kaydırır, kayıtlı akoru değiştirmez</span>
+        </div>
         <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="updateChordsPreview(${w.id})" style="width:100%;min-height:300px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
           placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm"></textarea>
         <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
@@ -1477,7 +1490,7 @@ function selectWork(id, silent) {
       ` : `
         <div class="lyrics-box">
           ${dispChords && dispChords.trim()
-            ? renderChords(dispChords.trim())
+            ? renderChords(transposeChordPro(dispChords.trim(), getTranspose(w.id)))
             : (dispLyrics
                 ? `<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>`
                 : `<span style="color:var(--text3);font-size:12px;">Güfte ve akor bilgisi yok.</span>`)
@@ -1551,6 +1564,7 @@ function selectWork(id, silent) {
 
   // Akor editörü: kapsam seçicisini (Ortak/Kişisel) başlat, doğru içeriği yükle
   if (getUserId() && document.getElementById('inline_chords_'+w.id)) setChordScope(w.id, _defaultScope);
+  updateTonBadge(w.id);
 
   // Mobile: detail panel top offset
   function setDetailTop() {
@@ -1604,6 +1618,29 @@ function applyLyricsLockState(locked){
 }
 
 // ChordPro render: [Am] köşeli parantezli akorlar, ait olduğu hecenin ÜSTÜNE yazılır.
+// ── TON KAYDIRMA (± yarım ton) — stage.html ile AYNI motor ──
+// Eser başına saklanır (personal_chords.transpose). GÖRÜNÜM dönüşümüdür:
+// kayıtlı akor metni ASLA değiştirilmez, sadece ekranda kaydırılmış gösterilir.
+let TRANSPOSE = {}; // {work_id: yarım ton (+/-)}
+const _CHROM_FLAT = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const _NOTE_INDEX = {'C':0,'B#':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'Fb':4,'E#':5,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11,'Cb':11};
+function transposeNote(note, n) {
+  const i = _NOTE_INDEX[note];
+  if (i === undefined) return note;
+  return _CHROM_FLAT[((i + n) % 12 + 12) % 12];
+}
+function transposeChordToken(tok, n) {
+  return tok.split('/').map(part => {
+    const m = part.match(/^([A-G](?:#|b)?)(.*)$/);
+    return m ? transposeNote(m[1], n) + m[2] : part;
+  }).join('/');
+}
+function transposeChordPro(text, n) {
+  if (!text || !n) return text || '';
+  return text.replace(/\[([^\]]+)\]/g, (full, inner) => '[' + transposeChordToken(inner.trim(), n) + ']');
+}
+function getTranspose(workId) { return TRANSPOSE[String(workId)] || 0; }
+
 function renderChords(text) {
   if (!text) return '';
   const esc = s => (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1636,8 +1673,52 @@ function updateChordsPreview(id){
   if(prev.style.display !== 'block') return; // gizliyken boşuna render etme
   const val = ta.value.trim();
   prev.innerHTML = hasRealChords(val)
-    ? renderChords(val)
+    ? renderChords(transposeChordPro(val, getTranspose(id)))
     : '<span style="color:var(--text3);font-size:12px;">Önizlemek için akor ([Am]) ekleyin.</span>';
+}
+// ± Ton — eser başına, kişisel katmanda saklanır (stage.html ile aynı davranış)
+function updateTonBadge(id){
+  const b = document.getElementById('ton_badge_'+id);
+  if(!b) return;
+  const v = getTranspose(id);
+  b.textContent = v > 0 ? '+'+v : (v < 0 ? String(v) : 'Orijinal');
+  b.style.color = v ? 'var(--accent)' : 'var(--text2)';
+  b.style.borderColor = v ? 'var(--accent)' : 'var(--border)';
+}
+function _afterTonChange(id){
+  updateTonBadge(id);
+  // Editör önizlemesi açıksa onu, değilse okuyucu görünümünü tazele
+  const prev = document.getElementById('chords_preview_'+id);
+  if (prev && prev.style.display === 'block') updateChordsPreview(id);
+  const box = document.querySelector('#tab-akorlar .lyrics-box');
+  if (box && !document.getElementById('inline_chords_'+id)) {
+    const src = PERSONAL_CHORDS[String(id)] || (DATA.find(x=>x.id===id||x.id===parseInt(id))||{}).chords || '';
+    if (src.trim()) box.innerHTML = renderChords(transposeChordPro(src.trim(), getTranspose(id)));
+  }
+  savePersonalTranspose(id, getTranspose(id));
+}
+function stepTranspose(id, delta){
+  let v = (getTranspose(id) + delta) % 12;
+  if (v > 6) v -= 12; else if (v < -6) v += 12; // -6..+6 aralığında tut
+  TRANSPOSE[String(id)] = v;
+  _afterTonChange(id);
+}
+function resetTranspose(id){
+  if (!getTranspose(id)) return;
+  TRANSPOSE[String(id)] = 0;
+  _afterTonChange(id);
+}
+// Kayıtlı akor metnine DOKUNMAZ — yalnızca transpose alanını günceller
+async function savePersonalTranspose(id, val){
+  try {
+    const uid = getUserId(); if(!uid) return;
+    const token = localStorage.getItem('sb_token') || SUPA_KEY;
+    await fetch(SUPA_URL+'/rest/v1/personal_chords?on_conflict=user_id,work_id', {
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+      body: JSON.stringify({ user_id: uid, work_id: parseInt(id), transpose: val, updated_at: new Date().toISOString() })
+    });
+  } catch(e){ console.warn('[eserler] ton kaydedilemedi:', e.message); }
 }
 function toggleChordsPreview(id){
   const prev = document.getElementById('chords_preview_'+id);
@@ -1655,13 +1736,16 @@ async function loadPersonalChords(){
     const uid = (typeof getUserId==='function') ? getUserId() : null;
     if(!uid) return;
     const token = localStorage.getItem('sb_token') || SUPA_KEY;
-    const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords&user_id=eq.'+uid, {
+    const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, {
       headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+token}
     });
     if(!r.ok) return;
     const rows = await r.json();
     PERSONAL_CHORDS = {};
-    (rows||[]).forEach(x=>{ if(x.chords) PERSONAL_CHORDS[String(x.work_id)] = x.chords; });
+    (rows||[]).forEach(x=>{
+      if(x.chords) PERSONAL_CHORDS[String(x.work_id)] = x.chords;
+      if(x.transpose) TRANSPOSE[String(x.work_id)] = parseInt(x.transpose) || 0;
+    });
   }catch(e){ console.warn('[eserler] kişisel akorlar yüklenemedi:', e.message); }
 }
 async function savePersonalChordsRow(id, chords){
