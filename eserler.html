@@ -9,7 +9,9 @@
     aşağıdaki içeriğe kaldı. (3) Güfte/Akorlar/Bilgiler/Nota/Hikaye açılır menüsü
     (.tab-dropdown) YAN YANA SEKMELERE çevrildi (.detail-tabs + .dtab, aktif sekme
     altın gradient) — hangi bölümlerin olduğu menü açmadan görünüyor; dar ekranda
-    yatay kayar. Butonlar .tab-dd-item sınıfını koruyor, switchDetailTab aynen çalışıyor.
+    yatay kayar. NOT: sekmelere önce eski .tab-dd-item sınıfı da bırakılmıştı ama o
+    kuralda width:100% olduğu için sekmeler tam genişleyip yalnızca ilki görünüyordu;
+    sınıf kaldırıldı, switchDetailTab artık .dtab üzerinden çalışıyor.
   - 2026-07-18: ± TON eklendi (stage.html ile AYNI motor). Akorlar sekmesinde
     − / rozet / + kontrolü; rozete basınca orijinal tona döner. Ton ESER BAŞINA
     saklanır (personal_chords.transpose, kullanıcıya özel, cihazlar arası senkron).
@@ -1458,11 +1460,11 @@ function selectWork(id, silent) {
 
     <div class="tab-divider"></div>
     <div class="detail-tabs">
-      <button class="dtab tab-dd-item${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</button>
-      <button class="dtab tab-dd-item${lastTab==='akorlar'?' active':''}" onclick="switchDetailTab('akorlar')">🎸 Akorlar</button>
-      <button class="dtab tab-dd-item${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">📋 Bilgiler</button>
-      <button class="dtab tab-dd-item${lastTab==='nota'?' active':''}" onclick="switchDetailTab('nota')">🎼 Nota</button>
-      <button class="dtab tab-dd-item${lastTab==='hikaye'?' active':''}" onclick="switchDetailTab('hikaye')">📖 Hikaye</button>
+      <button class="dtab${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Güfte</button>
+      <button class="dtab${lastTab==='akorlar'?' active':''}" onclick="switchDetailTab('akorlar')">🎸 Akorlar</button>
+      <button class="dtab${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">📋 Bilgiler</button>
+      <button class="dtab${lastTab==='nota'?' active':''}" onclick="switchDetailTab('nota')">🎼 Nota</button>
+      <button class="dtab${lastTab==='hikaye'?' active':''}" onclick="switchDetailTab('hikaye')">📖 Hikaye</button>
     </div>
 
     <div id="tab-gufte" class="detail-tab-content detail-body${lastTab==='gufte'?' active':''}">
@@ -2085,8 +2087,8 @@ document.addEventListener('click', function(e) {
 function switchDetailTab(tabId) {
   localStorage.setItem('detailActiveTab', tabId);
   document.querySelectorAll('.detail-tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-dd-item').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-dd-item').forEach(t => {
+  document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.dtab').forEach(t => {
     if (t.getAttribute('onclick') === `switchDetailTab('${tabId}')`) t.classList.add('active');
   });
   const content = document.getElementById('tab-'+tabId);
