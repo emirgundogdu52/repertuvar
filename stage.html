@@ -65,6 +65,12 @@
     #v2StageBotNav{display:none !important} menüyü tamamen gizliyordu. Eklenen kural:
     body.stage-active #v2StageBotNav:not(.stage-hidden) → display:flex !important +
     position:fixed alt şerit. Yani varsayılan gizli, butonla açılınca görünür.
+  - 2026-07-18 (h): AKOR MODUNDA ± TON eklendi. Ton kaydırma ESER BAŞINA saklanır
+    (personal_chords.transpose, kullanıcıya özel, cihazlar arası senkron). Motor:
+    transposeChordPro/transposeChordToken/transposeNote — bemol tercihli (_CHROM_FLAT),
+    slash bass (G/B) ve uzantılar (m7, sus4...) korunur. GÖRÜNÜM dönüşümüdür: kayıtlı
+    akor metni asla değişmez, renderStage çizerken uygular. UI: Görünüm Ayarları (⚙)
+    satırında Akor modunda − / rozet / + ; rozete basınca ton sıfırlanır. Aralık -6..+6.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -564,15 +570,17 @@ async function loadWL() {
       const uid = (typeof getUserId==='function') ? getUserId() : null;
       if (uid) {
         const tok = localStorage.getItem('sb_token') || SUPA_KEY;
-        const pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords&user_id=eq.'+uid, {
+        const pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, {
           headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+tok},
           signal: AbortSignal.timeout(4000)
         });
         if (pr.ok) {
           const prows = await pr.json();
           (prows||[]).forEach(x => {
-            if (!x.chords) return;
             const id = String(parseInt(x.work_id));
+            // Ton kaydırma eser başına saklanır (0 ise satır olsa bile etkisiz)
+            if (x.transpose) TRANSPOSE[id] = parseInt(x.transpose) || 0;
+            if (!x.chords) return;
             const lyr = x.chords.split('\n').filter(l=>!/^\s*\{.*\}\s*$/.test(l)).map(l=>l.replace(/\[[^\]]*\]/g,'')).join('\n').replace(/[ \t]+$/gm,'').trim();
             if (WL[id]) { WL[id].chords = x.chords; WL[id].lyrics = lyr; }
             else WL[id] = { name:'', lyrics: lyr, chords: x.chords, composer:'', makam:'', instrument:'', closingNote:'', notaUrl:'' };
@@ -895,6 +903,66 @@ function stepLyricsFont(delta) {
 
 // ChordPro render: akorlar sözlerin içinde [Am] köşeli parantezle, ait olduğu
 // hecenin önünde durur; ekranda o hecenin ÜSTÜNE yazılır. Standart ChordPro formatı.
+// ── TON KAYDIRMA (± yarım ton) ──
+// Eser başına saklanır (personal_chords.transpose). GÖRÜNÜM dönüşümüdür:
+// kayıtlı akor metni ASLA değiştirilmez, sadece ekranda kaydırılmış gösterilir.
+let TRANSPOSE = {}; // {work_id: yarım ton (+/-)}
+const _CHROM_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const _NOTE_INDEX  = {'C':0,'B#':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'Fb':4,'E#':5,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11,'Cb':11};
+function transposeNote(note, n) {
+  const i = _NOTE_INDEX[note];
+  if (i === undefined) return note;              // tanımadığımız kökü olduğu gibi bırak
+  return _CHROM_FLAT[((i + n) % 12 + 12) % 12];  // Türk müziği yazımında bemol tercih edilir
+}
+// Tek bir akor jetonunu kaydır: kök + son ek + (varsa) /bas
+function transposeChordToken(tok, n) {
+  return tok.split('/').map(part => {
+    const m = part.match(/^([A-G](?:#|b)?)(.*)$/);
+    return m ? transposeNote(m[1], n) + m[2] : part;
+  }).join('/');
+}
+// ChordPro metnindeki TÜM [akor] etiketlerini kaydır; sözlere dokunma
+function transposeChordPro(text, n) {
+  if (!text || !n) return text || '';
+  return text.replace(/\[([^\]]+)\]/g, (full, inner) => '[' + transposeChordToken(inner.trim(), n) + ']');
+}
+function getTranspose(workId) { return TRANSPOSE[String(workId)] || 0; }
+
+// ± butonları: tonu kaydır, ekranı hemen tazele, sonra arka planda kaydet
+function stepTranspose(delta) {
+  const item = (curRep && (curRep.items||[])[curIdx]) || null;
+  if (!item) return;
+  const id = String(item.workId);
+  let v = (getTranspose(id) + delta) % 12;      // bir oktavdan fazlası anlamsız
+  if (v > 6) v -= 12; else if (v < -6) v += 12; // en yakın yazımda tut (-6..+6)
+  TRANSPOSE[id] = v;
+  renderStage();
+  savePersonalTranspose(id, v);
+}
+function resetTranspose() {
+  const item = (curRep && (curRep.items||[])[curIdx]) || null;
+  if (!item) return;
+  const id = String(item.workId);
+  if (!getTranspose(id)) return;
+  TRANSPOSE[id] = 0;
+  renderStage();
+  savePersonalTranspose(id, 0);
+}
+// personal_chords satırına yaz (eser başına, kullanıcıya özel, cihazlar arası senkron).
+// Kayıtlı akor metnine DOKUNULMAZ — sadece transpose alanı güncellenir.
+async function savePersonalTranspose(workId, val) {
+  try {
+    const uid = (typeof getUserId==='function') ? getUserId() : null;
+    if (!uid) return;
+    const tok = localStorage.getItem('sb_token') || SUPA_KEY;
+    await fetch(SUPA_URL+'/rest/v1/personal_chords?on_conflict=user_id,work_id', {
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+tok,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+      body: JSON.stringify({ user_id: uid, work_id: parseInt(workId), transpose: val, updated_at: new Date().toISOString() })
+    });
+  } catch(e) { console.warn('[stage] ton kaydedilemedi:', e.message); }
+}
+
 function renderStageChords(text) { return renderChordPro(text); }
 
 function renderChordPro(text) {
@@ -1062,7 +1130,7 @@ function renderStage(){
   if (viewMode === 'nota' && w.notaUrl) {
     bodyHtml = `<div class="wnota"><img src="${w.notaUrl}" alt="Nota" style="max-width:100%;max-height:70vh;border-radius:8px;"></div>`;
   } else if (viewMode === 'chords' && w.chords) {
-    bodyHtml = `<div class="wlyrics">${renderStageChords(w.chords)}</div>`;
+    bodyHtml = `<div class="wlyrics">${renderStageChords(transposeChordPro(w.chords, getTranspose(item.workId)))}</div>`;
   } else {
     bodyHtml = w.lyrics ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>` : '';
   }
@@ -1175,6 +1243,13 @@ function buildStageToolsRow(mode) {
   if (!row) return;
   const themeBtn = `<button onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn2" title="Gece/Gündüz" class="align-btn"><i class="ti ti-sun"></i></button>`;
   const navBtn = `<button onclick="event.stopPropagation();openStageNav()" title="Navigasyon" class="align-btn" style="color:var(--accent);border-color:var(--accent);"><i class="ti ti-list"></i></button>`;
+  // Akor modunda ton kaydırma (± yarım ton) — eser başına saklanır
+  const item = (curRep && (curRep.items||[])[curIdx]) || null;
+  const tVal = item ? getTranspose(item.workId) : 0;
+  const tonBtns = (mode === 'chords' && item) ? `
+      <button onclick="event.stopPropagation();stepTranspose(-1)" title="Yarım ton pes" class="align-btn"><i class="ti ti-minus"></i></button>
+      <button onclick="event.stopPropagation();resetTranspose()" id="tonBadge" title="Tonu sıfırla" class="align-btn" style="min-width:44px;font-size:12px;font-weight:800;${tVal?'color:var(--accent);border-color:var(--accent);':''}">${tVal>0?'+'+tVal:(tVal||'Ton')}</button>
+      <button onclick="event.stopPropagation();stepTranspose(1)" title="Yarım ton tiz" class="align-btn"><i class="ti ti-plus"></i></button>` : '';
   if (mode === 'nota') {
     row.innerHTML = themeBtn + navBtn;
   } else {
@@ -1183,7 +1258,7 @@ function buildStageToolsRow(mode) {
       <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>`;
-    row.innerHTML = alignBtns + themeBtn + navBtn;
+    row.innerHTML = alignBtns + tonBtns + themeBtn + navBtn;
   }
 }
 
