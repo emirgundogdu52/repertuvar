@@ -1477,6 +1477,7 @@ function selectWork(id, silent) {
           <button onclick="stepTranspose(${w.id},-1)" title="Yarım ton pes" style="width:32px;height:30px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text2);font-size:15px;font-weight:700;cursor:pointer;">−</button>
           <button id="ton_badge_${w.id}" onclick="resetTranspose(${w.id})" title="Orijinal tona dön" style="min-width:52px;height:30px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text2);font-size:12px;font-weight:800;cursor:pointer;">Orijinal</button>
           <button onclick="stepTranspose(${w.id},1)" title="Yarım ton tiz" style="width:32px;height:30px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text2);font-size:15px;font-weight:700;cursor:pointer;">+</button>
+          <span id="karar_lbl_${w.id}" style="font-size:12px;font-weight:700;color:var(--text2);margin-left:4px;"></span>
           <span style="font-size:11px;color:var(--text3);">sadece görünümü kaydırır, kayıtlı akoru değiştirmez</span>
         </div>
         <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="updateChordsPreview(${w.id})" style="width:100%;min-height:300px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
@@ -1642,6 +1643,29 @@ function transposeChordPro(text, n) {
 }
 function getTranspose(workId) { return TRANSPOSE[String(workId)] || 0; }
 
+// ── KARAR SESİ (kaydırılmış) ──
+// Karar sesi serbest metin alanı (closing_note). Solfej ("La", "Sib") veya Latin
+// ("A", "Bb") yazımını tanır; tanımadığını olduğu gibi bırakır (perde adları gibi).
+const _KARAR_LATIN = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const _KARAR_TR    = ['Do','Reb','Re','Mib','Mi','Fa','Solb','Sol','Lab','La','Sib','Si'];
+const _KARAR_IN = {
+  'do':0,'do#':1,'reb':1,'re':2,'re#':3,'mib':3,'mi':4,'fa':5,'fa#':6,'solb':6,
+  'sol':7,'sol#':8,'lab':8,'la':9,'la#':10,'sib':10,'si':11,
+  'c':0,'c#':1,'db':1,'d':2,'d#':3,'eb':3,'e':4,'f':5,'f#':6,'gb':6,
+  'g':7,'g#':8,'ab':8,'a':9,'a#':10,'bb':10,'b':11
+};
+function parseKararNote(s){
+  const k = (s||'').toString().trim().toLowerCase().replace(/\s+/g,'').replace('♭','b').replace('♯','#');
+  return (k in _KARAR_IN) ? _KARAR_IN[k] : null;
+}
+// "A (La)" biçiminde etiket üretir; n kadar kaydırır
+function kararLabel(closingNote, n){
+  const i = parseKararNote(closingNote);
+  if (i === null) return null;
+  const j = ((i + (n||0)) % 12 + 12) % 12;
+  return _KARAR_LATIN[j] + ' (' + _KARAR_TR[j] + ')';
+}
+
 // ── ESKİ FORMAT ("akor üstte") → ChordPro ÇEVİRİCİ ──
 // Eski kayıtlarda akorlar sözlerin ÜSTÜNDE ayrı satırda. Transpoze ve akor-hece
 // hizalaması [Am] biçimini gerektirir. Bu çevirici akorun sütununa en yakın kelime
@@ -1743,11 +1767,29 @@ function updateChordsPreview(id){
 // ± Ton — eser başına, kişisel katmanda saklanır (stage.html ile aynı davranış)
 function updateTonBadge(id){
   const b = document.getElementById('ton_badge_'+id);
-  if(!b) return;
   const v = getTranspose(id);
-  b.textContent = v > 0 ? '+'+v : (v < 0 ? String(v) : 'Orijinal');
-  b.style.color = v ? 'var(--accent)' : 'var(--text2)';
-  b.style.borderColor = v ? 'var(--accent)' : 'var(--border)';
+  if(b){
+    b.textContent = v > 0 ? '+'+v : (v < 0 ? String(v) : 'Orijinal');
+    b.style.color = v ? 'var(--accent)' : 'var(--text2)';
+    b.style.borderColor = v ? 'var(--accent)' : 'var(--border)';
+  }
+  // Karar sesi: kaydırılmış güncel değer (örn. "A (La)")
+  const kl = document.getElementById('karar_lbl_'+id);
+  if(kl){
+    const w = DATA.find(x=>x.id===id || x.id===parseInt(id)) || {};
+    const cur = kararLabel(w.closingNote, v);
+    if(cur){
+      const orig = v ? kararLabel(w.closingNote, 0) : null;
+      kl.textContent = 'Karar: ' + cur;
+      kl.title = orig ? ('Orijinal karar: ' + orig) : '';
+      kl.style.color = v ? 'var(--accent)' : 'var(--text2)';
+    } else {
+      // Tanınmayan yazım (ör. perde adı) — kaydırmadan olduğu gibi göster
+      kl.textContent = w.closingNote ? ('Karar: ' + w.closingNote + (v ? ' (kaydırılmadı)' : '')) : '';
+      kl.style.color = 'var(--text3)';
+      kl.title = '';
+    }
+  }
 }
 function _afterTonChange(id){
   updateTonBadge(id);
