@@ -90,6 +90,10 @@
     uzuyordu — inline stilde left:12px + right:12px vardı. @media(min-width:768px) ile
     left:auto + width:fit-content (!important, inline stili geçmek için) yapıldı:
     geniş ekranda butonlar kadar geniş, sağa yaslı; telefonda tam genişlik korunuyor.
+  - 2026-07-18 (m): Görünüm Ayarları şeridi otomatik kapanma: 4sn → telefonda 8sn,
+    masaüstü/tablette (min-width:768px) HİÇ kapanmıyor — kullanıcı ☰'ye veya dışarı
+    basana kadar açık kalır. Fare/parmak şeridin üzerindeyken sayaç duruyor, ayrılınca
+    yeniden başlıyor (scheduleStageToolsHide + panel hover/touch dinleyicileri).
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -1058,12 +1062,15 @@ function renderChordPro(text) {
 
 
 let _stageToolsAutoHide = null;
+// Telefonda şerit güfteyi kapattığı için kapanır (8sn), masaüstü/tablette yer sorunu
+// yok — hiç kapanmaz, kullanıcı ☰'ye ya da dışarı basana kadar açık kalır.
 function scheduleStageToolsHide() {
   clearTimeout(_stageToolsAutoHide);
+  if (window.matchMedia('(min-width:768px)').matches) return; // geniş ekran: açık kalsın
   _stageToolsAutoHide = setTimeout(() => {
     const panel = document.getElementById('stageToolsPanel');
     if (panel) panel.style.display = 'none';
-  }, 4000);
+  }, 8000);
 }
 function toggleStageTools(e) {
   if (e) e.stopPropagation();
@@ -1074,6 +1081,14 @@ function toggleStageTools(e) {
     const sb = document.querySelector('.sb');
     const sbHeight = sb ? sb.getBoundingClientRect().height : 80;
     panel.style.bottom = (sbHeight + 8) + 'px';
+    // Fare/parmak şeridin üzerindeyken kapanmasın; ayrılınca sayaç yeniden başlasın
+    if (!panel.dataset.hoverBound) {
+      panel.dataset.hoverBound = '1';
+      const stay = () => clearTimeout(_stageToolsAutoHide);
+      panel.addEventListener('mouseenter', stay);
+      panel.addEventListener('touchstart', stay, {passive:true});
+      panel.addEventListener('mouseleave', scheduleStageToolsHide);
+    }
   }
   panel.style.display = isOpen ? 'none' : 'flex';
   panel.style.flexDirection = 'column';
