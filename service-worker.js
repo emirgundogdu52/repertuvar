@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
-const CACHE_NAME = 'repertuvar-v220';
+const CACHE_NAME = 'repertuvar-v221';
 
 // Açılışta öncelikli önbelleğe alınacak çekirdek dosyalar.
 const PRECACHE = [
