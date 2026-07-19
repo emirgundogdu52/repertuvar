@@ -1,5 +1,19 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-07-19 (c): Potpuri İÇEREN repertuvarlar listede ve detay başlığında 🔗
+//             rozetiyle işaretleniyor (.rep-medley). Liste kartında sadece "🔗"
+//             (birden fazla zincir varsa "🔗 2"), detayda "🔗 N Potpuri".
+//             Zincir sayısı = ardışık linkedPrev bloklarının sayısı.
+// 2026-07-19 (b): POTPURİ SÜRÜKLE-BIRAK DÜZELTMESİ. Hata: sürükle-bırak da mv()'yi
+//             çağırıyordu (dir = hedef - kaynak) ama mv'nin blok dalı dir'i TEK ADIM
+//             sanıyordu — zincir başı sürüklenince blok hedefe değil bir komşu kadar
+//             kayıyordu; zincir üyesi dışarı sürüklendiğinde ise linked_prev true
+//             kalıp altın şerit "kopmuş gibi" duruyordu. Çözüm: sıralama tek yoldan
+//             geçiyor — applyReorder() + normalizeChains(). TEK KURAL: bir satırın
+//             bağı, YENİ üstündeki satır o satırın ORİJİNAL zincirindense korunur,
+//             değilse çözülür. Yeni mvTo(repId,src,dest) sürükle-bırak (ve chSeq)
+//             için; mv() yalnız ↑/↓ tek adım. linked_prev PATCH'i yalnız DEĞİŞEN
+//             satırlar için gönderilir.
 // 2026-07-19: POTPURİ (medley) desteği. repertoire_items'a linked_prev boolean
 //             kolonu eklendi: bir satır "bir öncekiyle kesintisiz devam ediyor"
 //             demek. Potpuri = linked_prev=true olan ARDIŞIK satır zinciri
@@ -363,11 +377,19 @@ function renderList(){
   const hiddenIds = getHiddenRepIds();
   const mine = filtered.filter(r=>r.isOwner);
   const pub  = filtered.filter(r=>!r.isOwner && r.is_public && !hiddenIds.includes(r.id));
+    // POTPURİ sayacı — repertuvarda kaç ayrı zincir var (ardışık linkedPrev blokları)
+  function medleyCount(r){
+    const its=r.items||[]; let n=0;
+    for(let i=1;i<its.length;i++){ if(its[i].linkedPrev && !its[i-1].linkedPrev) n++; }
+    return n;
+  }
   function repCard(r, _zi){
+    const mc = medleyCount(r);
+    const medleyChip = mc ? `<span class="rep-medley" title="${mc===1?'Bu repertuvarda bir potpuri var':'Bu repertuvarda '+mc+' potpuri var'}">🔗${mc>1?' '+mc:''}</span>` : '';
     const touchAttrs = `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)" ontouchcancel="riTouchEnd(event)"`;
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
       <div><div class="rn">${r.name}${r.is_public&&r.isOwner?' <span style="font-size:10px;color:#4ade80;font-weight:600;">🌐</span>':''}</div>
-      <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${r.date?'<span>'+r.date+'</span>':''}</div></div>
+      <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${medleyChip}${r.date?'<span>'+r.date+'</span>':''}</div></div>
       <div class="rc">${(r.items||[]).length} eser</div>
     </div>`;
     // Kendi repertuvarında: gerçekten SİL (kırmızı). Başkasınınkinde: sadece kendi
@@ -434,6 +456,8 @@ function renderDetail(){
   const items=rep.items||[];
   // ── POTPURİ: zincir hesapları (linkedPrev ardışık satır zinciri) ──
   // Sıra numarası yalnızca zincir BAŞLARINDA artar; devam satırları "↳" gösterir.
+  let _medleyN = 0;
+  for(let i=1;i<items.length;i++){ if(items[i].linkedPrev && !items[i-1].linkedPrev) _medleyN++; }
   const _no = []; let _n = 0;
   items.forEach((it,ix)=>{ if(!(ix>0 && it.linkedPrev)) _n++; _no[ix] = (ix>0 && it.linkedPrev) ? null : _n; });
   const rows=items.length?items.map((it,idx)=>{
@@ -492,6 +516,7 @@ function renderDetail(){
       </div>
       <div class="dmr" style="gap:8px;padding-bottom:4px;flex-wrap:nowrap;overflow-x:auto;">
         <div class="mc"><span class="sp ${sc[rep.status]||'sc'}">${sl[rep.status]||'Taslak'}</span></div>
+        ${_medleyN?`<div class="mc"><span class="rep-medley" title="Potpuri: kesintisiz çalınan eser zinciri">🔗 ${_medleyN} Potpuri</span></div>`:''}
         ${rep.date?`<div class="mc" style="white-space:nowrap;">📅 <strong>${rep.date}</strong>${rep.venue?` &nbsp;📍 <strong>${rep.venue}</strong>`:''}</div>`:''}
         ${!rep.date&&rep.venue?`<div class="mc" style="white-space:nowrap;">📍 <strong>${rep.venue}</strong></div>`:''}
         ${rep.isOwner?`<div class="mc"><span class="chip-vis ${rep.is_public?'pub':'priv'}" onclick="togglePublic('${rep.id}')" title="${rep.is_public?'Public — tıkla gizle':'Private — tıkla herkese aç'}">${rep.is_public?'🌐 Public':'🔒 Private'}</span></div>`:''}
@@ -722,7 +747,7 @@ async function dragDrop(e) {
   const destIdx = parseInt(tr.dataset.idx);
   tr.classList.remove('drag-over');
   if (_dragSrcIdx === null || _dragSrcIdx === destIdx) return;
-  await mv(_dragRepId, _dragSrcIdx, destIdx - _dragSrcIdx);
+  await mvTo(_dragRepId, _dragSrcIdx, destIdx);
   _dragSrcIdx = null;
 }
 
@@ -778,7 +803,7 @@ async function touchDragEnd(e) {
   if (!targetTr) { _dragSrcIdx = null; return; }
   const destIdx = parseInt(targetTr.dataset.idx);
   if (_dragSrcIdx === null || _dragSrcIdx === destIdx) { _dragSrcIdx = null; return; }
-  await mv(_dragRepId, _dragSrcIdx, destIdx - _dragSrcIdx);
+  await mvTo(_dragRepId, _dragSrcIdx, destIdx);
   _dragSrcIdx = null;
 }
 
@@ -812,6 +837,46 @@ function chainRange(items, idx){
 }
 function isChainHead(items, idx){ return !(idx > 0 && items[idx].linkedPrev); }
 
+// ── ZİNCİR NORMALİZASYONU (2026-07-19 b — sürükle-bırak hatası düzeltmesi) ──
+// TEK KURAL: bir satırın bağı (linkedPrev) ancak YENİ üstündeki satır, o satırın
+// ORİJİNAL zincirinden geliyorsa korunur. Aksi halde bağ otomatik çözülür.
+// Bu tek kural şunların hepsini doğru yapar:
+//   • zincirden bir parçayı dışarı sürüklemek  → bağ çözülür (altın şerit kalmaz)
+//   • zincir İÇİNDE sıra değiştirmek           → bağ korunur
+//   • tüm bloğu taşımak                        → bağlar korunur
+//   • zincirin ortasına yabancı eser bırakmak  → zincir orada KOPAR (eseri yutmaz)
+//   • bir satırın listenin en başına gelmesi   → bağ çözülür (zincir baştan başlayamaz)
+function normalizeChains(origItems, merged){
+  const chainIdOf = new Map();
+  origItems.forEach((it,i)=>{ const [a]=chainRange(origItems,i); chainIdOf.set(String(it.id), String(origItems[a].id)); });
+  merged.forEach((it,i)=>{
+    if (i === 0) { it.linkedPrev = false; return; }
+    if (!it.linkedPrev) return;
+    const prev = merged[i-1];
+    if (chainIdOf.get(String(prev.id)) !== chainIdOf.get(String(it.id))) it.linkedPrev = false;
+  });
+}
+
+// Yeni sıralamayı uygula: normalize et, seq'leri yaz, DEĞİŞEN linked_prev'leri yaz.
+async function applyReorder(repId, origItems, merged, newActiveIdx){
+  const before = new Map(origItems.map(it => [String(it.id), !!it.linkedPrev]));
+  normalizeChains(origItems, merged);
+  merged.forEach((it,i)=> it.seq = i+1);
+  sync('spin','...');
+  try{
+    const patches = merged.map(it => {
+      const body = { seq: it.seq };
+      if (before.get(String(it.id)) !== !!it.linkedPrev) body.linked_prev = !!it.linkedPrev;
+      return dbPatch('repertoire_items', it.id, body);
+    });
+    await Promise.all(patches);
+    if (activeItemRepId === repId && newActiveIdx != null) activeItemIdx = newActiveIdx;
+    await load();
+  }catch(e){
+    toast(/linked_prev/.test(e.message)?'linked_prev kolonu eksik — SQL\'i çalıştır':e.message,'er');
+  }
+}
+
 // 🔗 butonu — satırı bir öncekine bağlar / bağı çözer
 async function toggleLink(repId, itemId){
   const rep=getRep(repId); if(!rep) return;
@@ -825,57 +890,63 @@ async function toggleLink(repId, itemId){
     toast(val?'🔗 Potpuriye bağlandı':'Bağ çözüldü');
     await load();
   }catch(e){
-    // linked_prev kolonu yoksa PostgREST 400 döner — kullanıcıya net söyle
     toast(/linked_prev/.test(e.message)?'linked_prev kolonu eksik — SQL\'i çalıştır':e.message,'er');
   }
 }
 
+// ↑/↓ butonları — TEK ADIM. Zincir BAŞINDA basılırsa tüm blok komşu bloğun
+// üstüne/altına atlar; zincir içindeki satırda tek satır hareket eder.
 async function mv(repId,idx,dir){
   const rep=getRep(repId);if(!rep)return;
-  const items=[...rep.items];
-  // POTPURİ: zincir BAŞINDA ↑/↓ tüm bloğu taşır; zincir içindeki satır tek başına taşınır.
-  const [ca,cb]=chainRange(items,idx);
-  const isHead=isChainHead(items,idx);
+  const orig=[...rep.items];
+  const [ca,cb]=chainRange(orig,idx);
+  const isHead=isChainHead(orig,idx);
+  let merged, newActive;
   if(isHead && cb>ca){
-    const block=items.slice(ca,cb+1);
-    const rest=[...items.slice(0,ca),...items.slice(cb+1)];
-    // Bloğun önündeki/arkasındaki komşu bloğun boyu kadar kaydır
+    const block=orig.slice(ca,cb+1);
+    const rest=[...orig.slice(0,ca),...orig.slice(cb+1)];
     let insertAt;
     if(dir<0){
       if(ca===0) return;
-      const [pa]=chainRange(items,ca-1);
-      insertAt=pa;
+      const [pa]=chainRange(orig,ca-1); insertAt=pa;
     }else{
-      if(cb===items.length-1) return;
-      const [,nb]=chainRange(items,cb+1);
-      insertAt=nb-block.length+1;
+      if(cb===orig.length-1) return;
+      const [,nb]=chainRange(orig,cb+1); insertAt=nb-block.length+1;
     }
-    const merged=[...rest.slice(0,insertAt),...block,...rest.slice(insertAt)];
-    merged.forEach((it,i)=>it.seq=i+1);
-    sync('spin','...');
-    try{
-      await Promise.all(merged.map(it=>dbPatch('repertoire_items',it.id,{seq:it.seq})));
-      if(activeItemRepId===repId) activeItemIdx = insertAt;
-      await load();
-    }catch(e){toast(e.message,'er');}
-    return;
+    merged=[...rest.slice(0,insertAt),...block,...rest.slice(insertAt)];
+    newActive=insertAt;
+  }else{
+    const ni=idx+dir;
+    if(ni<0||ni>=orig.length)return;
+    merged=[...orig];
+    const [moved]=merged.splice(idx,1);
+    merged.splice(ni,0,moved);
+    newActive=ni;
   }
-  const ni=idx+dir;
-  if(ni<0||ni>=items.length)return;
-  // Drag-drop: splice to destination
-  const [moved]=items.splice(idx,1);
-  items.splice(ni,0,moved);
-  items.forEach((it,i)=>it.seq=i+1);
-  sync('spin','...');
-  try{
-    const patches=items.map(it=>dbPatch('repertoire_items',it.id,{seq:it.seq}));
-    // Listenin başına gelen satırın bağı otomatik çözülür (zincir başta başlayamaz)
-    if(items[0] && items[0].linkedPrev){ items[0].linkedPrev=false; patches.push(dbPatch('repertoire_items',items[0].id,{linked_prev:false})); }
-    await Promise.all(patches);
-    if(activeItemRepId===repId) activeItemIdx = ni;
-    await load();
-    // activeItemIdx zaten set edildi, renderDetail load içinde çağrılıyor
-  }catch(e){toast(e.message,'er');}
+  await applyReorder(repId, orig, merged, newActive);
+}
+
+// SÜRÜKLE-BIRAK — kaynak satırı hedef sıraya taşır.
+// Zincir BAŞI sürüklenirse tüm blok birlikte gider; zincir ÜYESİ sürüklenirse
+// yalnız o satır gider ve normalizeChains bağını otomatik çözer.
+async function mvTo(repId, srcIdx, destIdx){
+  const rep=getRep(repId); if(!rep) return;
+  const orig=[...rep.items];
+  if(srcIdx==null||destIdx==null||srcIdx<0||srcIdx>=orig.length||destIdx<0||destIdx>=orig.length||srcIdx===destIdx) return;
+  const [ca,cb]=chainRange(orig,srcIdx);
+  const isHead=isChainHead(orig,srcIdx);
+  const moveBlock = isHead && cb>ca;
+  const block = moveBlock ? orig.slice(ca,cb+1) : [orig[srcIdx]];
+  const from  = moveBlock ? ca : srcIdx;
+  const rest  = moveBlock ? [...orig.slice(0,ca),...orig.slice(cb+1)]
+                          : [...orig.slice(0,srcIdx),...orig.slice(srcIdx+1)];
+  // Hedef satırın kalan listedeki yeri; aşağı taşımada onun ALTINA bırakılır.
+  const destItem = orig[destIdx];
+  let ins = rest.findIndex(x => String(x.id) === String(destItem.id));
+  if (ins < 0) ins = Math.min(from, rest.length);      // hedef, sürüklenen bloğun içindeyse
+  else if (destIdx > from) ins = ins + 1;
+  const merged=[...rest.slice(0,ins),...block,...rest.slice(ins)];
+  await applyReorder(repId, orig, merged, ins);
 }
 
 async function chSeq(repId,idx,val){
@@ -883,14 +954,8 @@ async function chSeq(repId,idx,val){
   const items=[...rep.items];
   const ns=parseInt(val);
   if(isNaN(ns)||ns<1||ns>items.length){renderDetail();return;}
-  const [moved]=items.splice(idx,1);
-  items.splice(ns-1,0,moved);
-  items.forEach((it,i)=>it.seq=i+1);
-  sync('spin','...');
-  try{
-    await Promise.all(items.map(it=>dbPatch('repertoire_items',it.id,{seq:it.seq})));
-    await load();
-  }catch(e){toast(e.message,'er');}
+  await mvTo(repId, idx, ns-1);
+  return;
 }
 
 function printR(repId){
