@@ -111,6 +111,13 @@
     (eskiden yalnızca Akor görünümündeyken gelirdi; Söz'e geçince "motor kayboldu"
     sanılıyordu) — Nota görünümünde gizli. (4) Alt menü (v2StageBotNav) HER ekran
     boyutunda 10sn sonra kapanıyor; masaüstü/tablette hiç kapanmaması kaldırıldı.
+  - 2026-07-19 (r): POTPURİ (medley) desteği. repertoire_items.linked_prev=true olan
+    ARDIŞIK eserler kesintisiz bir zincir sayılır. Sahnede: (1) üst barda zincir rozeti
+    #medleyBadge — "🔗 Potpuri 2/3" (kaçıncı parçadasın); (2) "Sıradaki" kartı zincir
+    içindeyken altın çerçeveli "🔗 POTPURİ — DEVAMI" başlığına döner (kart KALDIRILMADI
+    — potpuride sıradakini bilmek daha da önemli); (3) zincirin son parçasında kart
+    normale döner. Yardımcılar: stageChainInfo(items,idx) → {inChain,pos,len,nextLinked}.
+    linked_prev alanı items map'inde zaten ...t ile geliyor; ilk satırda yok sayılır.
   - 2026-07-19 (p): GÖRÜNÜM SEÇİCİ (Söz/Akor/Nota) AÇILIR MENÜDEN SEKME (tab)
     STİLİNE çevrildi. Üst bardaki #viewModeBtn ikonu + #viewModeMenu açılır menüsü
     KALDIRILDI; yerine üst barda her zaman görünen segmented sekme şeridi geldi:
@@ -204,6 +211,10 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 
 /* ═══ Görünüm seçici: Söz / Akor / Nota — SEKME (tab) stili, üst barda ═══ */
 /* 2026-07-19: açılır menü (.vm-menu/.vm-item) yerine her zaman görünen sekme şeridi. */
+/* ── POTPURİ rozeti (2026-07-19) ── */
+.medley-badge{display:none;align-items:center;gap:5px;background:rgba(255,200,61,.14);border:1px solid var(--accent);color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.03em;padding:3px 8px;border-radius:999px;white-space:nowrap;flex-shrink:0;}
+.np.medley{border-color:var(--accent);background:rgba(255,200,61,.10);}
+.np.medley .nl{color:var(--accent);font-weight:800;}
 .vm-tabs{display:flex;align-items:center;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:3px;flex-shrink:0;}
 .vm-tab{display:flex;align-items:center;justify-content:center;gap:6px;background:none;border:none;color:var(--text2);font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.01em;padding:0 11px;height:34px;min-width:40px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:background .14s,color .14s;}
 .vm-tab .ti{font-size:17px;line-height:1;}
@@ -548,6 +559,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     <div class="stp">
       <div class="pds" id="pds"></div>
       <div class="stc" id="stc">1/1</div>
+      <div class="medley-badge" id="medleyBadge"></div>
     </div>
     <div style="display:flex;align-items:center;gap:4px;">
       <div class="vm-tabs" id="viewModeTabs" role="tablist" aria-label="Görünüm">
@@ -1304,10 +1316,39 @@ function renderStage(){
   const savedScale = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
   document.documentElement.style.setProperty('--lyrics-scale', savedScale);
   updateFontSliderUI(savedScale);
+  // ── POTPURİ: zincir rozeti + "Sıradaki" kartının potpuri hali ──
+  const ch = stageChainInfo(items, curIdx);
+  const mb = document.getElementById('medleyBadge');
+  if (mb) {
+    if (ch.inChain) { mb.textContent = '🔗 Potpuri ' + ch.pos + '/' + ch.len; mb.style.display = 'flex'; }
+    else mb.style.display = 'none';
+  }
   const next=items[curIdx+1];
   const np=document.getElementById('np');
-  if(next){const nw=WL[next.workId]||{};document.getElementById('nn').textContent=nw.name || (WL_loaded ? next.workId : '…');document.getElementById('nm').textContent=[nw.makam,nw.measurement,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');np.style.display='block';}
+  if(next){
+    const nw=WL[next.workId]||{};
+    document.getElementById('nn').textContent=nw.name || (WL_loaded ? next.workId : '…');
+    document.getElementById('nm').textContent=[nw.makam,nw.measurement,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');
+    // Sonraki eser bu esere BAĞLIYSA kart potpuri görünümüne geçer (ara vermeden devam)
+    const linkedNext = !!next.linked_prev;
+    np.classList.toggle('medley', linkedNext);
+    const nl = np.querySelector('.nl');
+    if (nl) nl.textContent = linkedNext ? '🔗 POTPURİ — DEVAMI' : 'Sıradaki';
+    np.style.display='block';
+  }
   else np.style.display='none';
+}
+
+// ── POTPURİ yardımcısı ──
+// items[idx] hangi zincirde? {inChain, pos (1-tabanlı), len, nextLinked}
+// Zincir = linked_prev=true olan ARDIŞIK satırlar; ilk satırda bayrak yok sayılır.
+function stageChainInfo(items, idx){
+  const lp = i => i > 0 && !!(items[i] && items[i].linked_prev);
+  let a = idx, b = idx;
+  while (a > 0 && lp(a)) a--;
+  while (b + 1 < items.length && lp(b+1)) b++;
+  const len = b - a + 1;
+  return { inChain: len > 1, pos: idx - a + 1, len, nextLinked: lp(idx+1) };
 }
 
 function nextWork(){

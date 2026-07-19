@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v5 -->
+<!-- build: v6 — 2026-07-19 potpuri (linked_prev) -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -98,6 +98,20 @@ tr:hover .ra{opacity:1;}
 .br:hover{color:var(--text);border-color:var(--border2);}
 .br.dl:hover{color:var(--red);border-color:var(--red);}
 .br:disabled{opacity:.25;cursor:not-allowed;}
+/* ── POTPURİ (2026-07-19) — zincir satırları ───────────────────────────────
+   linked_prev ile birbirine bağlanan ARDIŞIK satırlar tek blok gibi görünür. */
+.br.bl{filter:grayscale(1);opacity:.55;}
+.br.bl:hover:not(:disabled){filter:none;opacity:1;border-color:var(--accent);}
+.br.bl.linked{filter:none;opacity:1;border-color:var(--accent);background:rgba(124,111,255,.14);}
+tr.medley-row td:first-child{position:relative;}
+tr.medley-row td:first-child::before{
+  content:'';position:absolute;left:3px;width:3px;background:var(--accent);border-radius:2px;
+  top:0;bottom:0;
+}
+tr.medley-head td:first-child::before{top:50%;border-radius:2px 2px 0 0;}
+tr.medley-end  td:first-child::before{bottom:50%;border-radius:0 0 2px 2px;}
+tr.medley-row{background:rgba(124,111,255,.05);}
+.medley-chip{font-size:11px;opacity:.85;}
 
 /* ═══ Detay başlığı: 2 seviyeli düzen (CTA satırı + meta satırı) ═══ */
 .cta-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}

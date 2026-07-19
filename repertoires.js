@@ -1,5 +1,14 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-07-19: POTPURİ (medley) desteği. repertoire_items'a linked_prev boolean
+//             kolonu eklendi: bir satır "bir öncekiyle kesintisiz devam ediyor"
+//             demek. Potpuri = linked_prev=true olan ARDIŞIK satır zinciri
+//             (ayrı grup id'si YOK — sürükle-bırak sıralamayı bozmasın diye).
+//             Yeni: chainRange()/isChainHead() yardımcıları, toggleLink() (🔗
+//             butonu, satırı öncekine bağlar/çözer), zincir satırlarında sol
+//             altın şerit + "↳" numara, mv() zincir BAŞINA basıldığında tüm
+//             bloğu taşır. idx===0 satırında linked_prev her zaman yok sayılır
+//             (zincir asla listenin başında başlayamaz).
 // 2026-07-17: (1) loadWorksData local-first yapıldı — eser adları/güftesi artık
 //             IndexedDB'den anında geliyor, "#37" numara-yerine-ad regresyonu bitti.
 //             (2) "Çevrimdışı mod" toast'ı yalnızca navigator.onLine===false iken
@@ -232,7 +241,8 @@ let SOLISTLER = []; // sanatçı listesi
 function applyRepsData(r, i, s) {
   SOLISTLER = (s||[]).map(x=>x.name).filter(Boolean);
   const uid = getUserId() || '';
-  reps = (r||[]).map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||''}))}));
+  // linkedPrev: ilk satırda her zaman false — zincir listenin başında başlayamaz.
+  reps = (r||[]).map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map((t,ix)=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||'',linkedPrev: ix>0 && !!t.linked_prev}))}));
 }
 
 function selectUrlRepIfPresent() {
@@ -422,21 +432,29 @@ function renderDetail(){
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
   const items=rep.items||[];
+  // ── POTPURİ: zincir hesapları (linkedPrev ardışık satır zinciri) ──
+  // Sıra numarası yalnızca zincir BAŞLARINDA artar; devam satırları "↳" gösterir.
+  const _no = []; let _n = 0;
+  items.forEach((it,ix)=>{ if(!(ix>0 && it.linkedPrev)) _n++; _no[ix] = (ix>0 && it.linkedPrev) ? null : _n; });
   const rows=items.length?items.map((it,idx)=>{
     const w=WL[it.workId]||{};
     const cn=it.closingNote||w.closingNote||'';
     const pf = it.performer || '';
     const isActive = activeItemRepId===rep.id && activeItemIdx===idx;
-    const rowClasses=[idx%2===1?'zebra-tr':'',isActive?'item-active':''].filter(Boolean).join(' ');
+    const linked   = idx>0 && !!it.linkedPrev;                 // öncekine bağlı mı
+    const hasNext  = !!(items[idx+1] && items[idx+1].linkedPrev); // sonraki bu satıra bağlı mı
+    const inChain  = linked || hasNext;
+    const chainCls = inChain ? (linked && hasNext ? ' medley-mid' : (linked ? ' medley-end' : ' medley-head')) : '';
+    const rowClasses=[idx%2===1?'zebra-tr':'',isActive?'item-active':'',inChain?'medley-row':'',chainCls.trim()].filter(Boolean).join(' ');
     return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" style="touch-action:pan-y;"${rowClasses?' class="'+rowClasses+'"':''}>
       <td class="sq" style="text-align:center;user-select:none;padding:0 2px;vertical-align:middle;width:48px;">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
-          <span style="color:${isActive?'var(--accent)':'var(--text3)'};font-size:11px;font-weight:${isActive?'700':'600'};min-width:16px;">${isActive?'▶ ':''}${idx+1}</span>
+          <span style="color:${isActive?'var(--accent)':(linked?'var(--accent2)':'var(--text3)')};font-size:11px;font-weight:${isActive?'700':'600'};min-width:16px;" title="${linked?'Potpuri — bir öncekiyle kesintisiz':''}">${isActive?'▶ ':''}${linked?'↳':_no[idx]}</span>
           <span class="drag-handle" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)">⠿</span>
         </div>
       </td>
       <td style="padding-left:16px;">
-        <div class="wn">${w.name||'#'+it.workId}</div>
+        <div class="wn">${linked?'<span class="medley-chip" title="Potpuri devamı">🔗</span> ':''}${w.name||'#'+it.workId}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
         ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
       </td>
@@ -445,6 +463,7 @@ function renderDetail(){
       <td><div class="ra">
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
+        <button class="br bl${linked?' linked':''}" onclick="toggleLink('${rep.id}','${it.id}')" ${idx===0?'disabled':''} title="${linked?'Potpuri bağını çöz':'Bir öncekiyle potpuri yap (kesintisiz devam)'}">🔗</button>
         <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
         <button class="br dl" onclick="rmItem('${rep.id}','${it.id}','${(w.name||'Bu eser').replace(/'/g,"\\'")}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
       </div></td>
@@ -514,7 +533,7 @@ async function copyRep(repId){
       await fetch(SUPA_URL+'/rest/v1/repertoire_items',{
         method:'POST',
         headers:{...H,'Prefer':'return=minimal'},
-        body:JSON.stringify(rep.items.map((it,i)=>({repertoire_id:newRep.id,work_id:parseInt(it.workId),seq:i+1,closing_note:it.closingNote||null,note:it.note||null,performer:it.performer||null})))
+        body:JSON.stringify(rep.items.map((it,i)=>({repertoire_id:newRep.id,work_id:parseInt(it.workId),seq:i+1,closing_note:it.closingNote||null,note:it.note||null,performer:it.performer||null,linked_prev:i>0&&!!it.linkedPrev})))
       });
     }
     toast('📋 Repertuvar kopyalandı!');
@@ -779,9 +798,68 @@ function setActiveItem(repId, idx) {
   activeItemIdx = idx;
 }
 
+// ══ POTPURİ (medley) ══════════════════════════════════════════════════════
+// Model: repertoire_items.linked_prev = "bu eser bir öncekiyle KESİNTİSİZ devam eder".
+// Potpuri = linked_prev=true olan ARDIŞIK satırların zinciri. Ayrı grup tablosu/id
+// yok; böylece sürükle-bırak sıralaması hiçbir tutarlılık kontrolü gerektirmiyor.
+
+// idx'in içinde bulunduğu zincirin [başlangıç, bitiş] aralığı (tek başınaysa [idx,idx])
+function chainRange(items, idx){
+  let a = idx, b = idx;
+  while (a > 0 && items[a].linkedPrev) a--;
+  while (b + 1 < items.length && items[b+1].linkedPrev) b++;
+  return [a, b];
+}
+function isChainHead(items, idx){ return !(idx > 0 && items[idx].linkedPrev); }
+
+// 🔗 butonu — satırı bir öncekine bağlar / bağı çözer
+async function toggleLink(repId, itemId){
+  const rep=getRep(repId); if(!rep) return;
+  const idx=(rep.items||[]).findIndex(x=>String(x.id)===String(itemId));
+  if(idx<=0) return;                       // ilk satır zincir başlatamaz
+  const it=rep.items[idx];
+  const val=!it.linkedPrev;
+  sync('spin','...');
+  try{
+    await dbPatch('repertoire_items', it.id, {linked_prev: val});
+    toast(val?'🔗 Potpuriye bağlandı':'Bağ çözüldü');
+    await load();
+  }catch(e){
+    // linked_prev kolonu yoksa PostgREST 400 döner — kullanıcıya net söyle
+    toast(/linked_prev/.test(e.message)?'linked_prev kolonu eksik — SQL\'i çalıştır':e.message,'er');
+  }
+}
+
 async function mv(repId,idx,dir){
   const rep=getRep(repId);if(!rep)return;
   const items=[...rep.items];
+  // POTPURİ: zincir BAŞINDA ↑/↓ tüm bloğu taşır; zincir içindeki satır tek başına taşınır.
+  const [ca,cb]=chainRange(items,idx);
+  const isHead=isChainHead(items,idx);
+  if(isHead && cb>ca){
+    const block=items.slice(ca,cb+1);
+    const rest=[...items.slice(0,ca),...items.slice(cb+1)];
+    // Bloğun önündeki/arkasındaki komşu bloğun boyu kadar kaydır
+    let insertAt;
+    if(dir<0){
+      if(ca===0) return;
+      const [pa]=chainRange(items,ca-1);
+      insertAt=pa;
+    }else{
+      if(cb===items.length-1) return;
+      const [,nb]=chainRange(items,cb+1);
+      insertAt=nb-block.length+1;
+    }
+    const merged=[...rest.slice(0,insertAt),...block,...rest.slice(insertAt)];
+    merged.forEach((it,i)=>it.seq=i+1);
+    sync('spin','...');
+    try{
+      await Promise.all(merged.map(it=>dbPatch('repertoire_items',it.id,{seq:it.seq})));
+      if(activeItemRepId===repId) activeItemIdx = insertAt;
+      await load();
+    }catch(e){toast(e.message,'er');}
+    return;
+  }
   const ni=idx+dir;
   if(ni<0||ni>=items.length)return;
   // Drag-drop: splice to destination
@@ -790,7 +868,10 @@ async function mv(repId,idx,dir){
   items.forEach((it,i)=>it.seq=i+1);
   sync('spin','...');
   try{
-    await Promise.all(items.map(it=>dbPatch('repertoire_items',it.id,{seq:it.seq})));
+    const patches=items.map(it=>dbPatch('repertoire_items',it.id,{seq:it.seq}));
+    // Listenin başına gelen satırın bağı otomatik çözülür (zincir başta başlayamaz)
+    if(items[0] && items[0].linkedPrev){ items[0].linkedPrev=false; patches.push(dbPatch('repertoire_items',items[0].id,{linked_prev:false})); }
+    await Promise.all(patches);
     if(activeItemRepId===repId) activeItemIdx = ni;
     await load();
     // activeItemIdx zaten set edildi, renderDetail load içinde çağrılıyor
