@@ -1,5 +1,16 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-07-19 (d): MAKAMA GÖRE SIRALAMA MOTORU. makams tablosu + kişisel ton
+//             kaydırmaları loadMakams() ile çekilir. workProfile() her satırın
+//             makam/aile/karar profilini çıkarır (karar önceliği: satır kapanışı >
+//             eser kapanışı > makamın kuramsal kararı, üstüne transpose eklenir).
+//             transitionCost() ardışık iki eser arasına puan verir (aynı makam 0,
+//             aynı karar 1, aynı aile 1.5, tam ses/dörtlü 2, üçlü 3, yarım ses/
+//             artık dörtlü 5). proposeOrder(items,mode) üç mod: akilli (en yakın
+//             komşu + 2-opt), makam, karar. Potpuri zincirleri TEK ATOM; açılış
+//             atomu sabit; makamı bilinmeyen eserler yerlerinde kalır. Sonuç
+//             DOĞRUDAN UYGULANMAZ — 🎼 Sırala butonu önizleme açar (satır araları
+//             geçiş gerekçesiyle etiketli), Uygula denince applyReorder() çalışır.
 // 2026-07-19 (c): Potpuri İÇEREN repertuvarlar listede ve detay başlığında 🔗
 //             rozetiyle işaretleniyor (.rep-medley). Liste kartında sadece "🔗"
 //             (birden fazla zincir varsa "🔗 2"), detayda "🔗 N Potpuri".
@@ -500,6 +511,7 @@ function renderDetail(){
       <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:8px;">${rep.name}</div>
       <div class="cta-row">
         <a href="stage.html" class="bstage-primary" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:15px;" aria-hidden="true"></i> Sahneye Çık</a>
+        ${rep.isOwner && (rep.items||[]).length>2 ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openSortSheet('${rep.id}')" title="Makam geçişlerine göre sıralama önerisi">🎼 Sırala</button>` : ''}
         ${rep.isOwner ? `
         <details class="ov-menu">
           <summary class="bi" style="font-size:12px;padding:9px 12px;">⋯ Diğer</summary>
@@ -722,6 +734,237 @@ let _dragSrcIdx = null;
 let _dragRepId  = null;
 let _touchClone = null;
 let _touchSrcTr = null;
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAKAMA GÖRE SIRALAMA MOTORU — 2026-07-19
+// Kurgu: iki ardışık eser arasına bir GEÇİŞ MALİYETİ verilir, toplam maliyeti
+// en düşük dizilim aranır. Sonuç doğrudan uygulanmaz — önizleme çıkar, sen
+// onaylarsın.
+//
+// Kurallar:
+//   • Potpuri zincirleri TEK ATOM — bölünmez, blok olarak yerleşir.
+//   • Açılış eseri (ilk atom) yerinde kalır — repertuvarın girişi senin kararın.
+//   • Makamı tanınmayan eserler SABİT kalır; diğerleri onların arasına dizilir.
+//   • Karar sesi önceliği: repertuvar satırındaki kapanış > eserin kapanışı >
+//     makamın kuramsal kararı. Üstüne eserin ton kaydırması (transpose) eklenir.
+// ═══════════════════════════════════════════════════════════════════════════
+
+let MAKAMS = {};          // norm(ad|alias) -> {ad, aile, kararLatin, ...}
+let MAKAMS_OK = false;    // makams tablosu yüklendi mi
+let TRANSPOSE_R = {};     // work_id -> yarım ton
+
+const _TRMAP = {'Â':'A','Î':'I','Û':'U','â':'a','î':'i','û':'u','İ':'I','ı':'i',
+                'Ş':'S','ş':'s','Ğ':'G','ğ':'g','Ü':'U','ü':'u','Ö':'O','ö':'o','Ç':'C','ç':'c'};
+// SQL'deki makam_norm() ile AYNI sonucu verir
+function makamNorm(t){
+  return (t||'').split('').map(c=>_TRMAP[c]||c).join('').toLowerCase().replace(/[^a-z0-9]/g,'');
+}
+
+const _PC = {'C':0,'C#':1,'DB':1,'D':2,'D#':3,'EB':3,'E':4,'F':5,'F#':6,'GB':6,
+             'G':7,'G#':8,'AB':8,'A':9,'A#':10,'BB':10,'B':11};
+// Solfej + perde adları → pitch class. Perdeler yaklaşık karşılıktır (koma sesleri
+// 12 eşit aralığa oturmaz) — yalnızca sıralama hesabında kullanılır.
+const _PC_TR = {
+  'do':0,'reb':1,'re':2,'mib':3,'mi':4,'fa':5,'fad':6,'sol':7,'lab':8,'la':9,'sib':10,'si':11,
+  'rast':7,'dugah':9,'segah':11,'cargah':0,'neva':2,'huseyni':4,'acem':5,'evic':6,
+  'gerdaniye':7,'yegah':2,'muhayyer':9,'tizsegah':11,'acemasiran':5,'hicaz':10,'kurdi':10
+};
+function pitchOf(txt){
+  if(!txt) return null;
+  const raw=String(txt).trim().replace('♭','b').replace('♯','#');
+  const up=raw.toUpperCase().replace(/\s+/g,'');
+  if(_PC[up]!==undefined) return _PC[up];
+  const n=makamNorm(raw);
+  if(_PC_TR[n]!==undefined) return _PC_TR[n];
+  return null;
+}
+
+async function loadMakams(){
+  try{
+    const rows=await dbGet('makams','select=ad,aile,karar_perde,karar_latin,guclu_perde,seyir,aliases');
+    MAKAMS={};
+    (rows||[]).forEach(m=>{
+      const rec={ad:m.ad,aile:m.aile||'',kararPerde:m.karar_perde||'',karar:pitchOf(m.karar_latin||m.karar_perde)};
+      MAKAMS[makamNorm(m.ad)]=rec;
+      (m.aliases||[]).forEach(a=>{ const k=makamNorm(a); if(k && !MAKAMS[k]) MAKAMS[k]=rec; });
+    });
+    MAKAMS_OK=Object.keys(MAKAMS).length>0;
+  }catch(e){ MAKAMS_OK=false; }
+  // Kişisel ton kaydırmaları (varsa) — karar sesi hesabı kaydırılmış hâli kullanır
+  try{
+    const uid=getUserId();
+    if(uid){
+      const pc=await dbGet('personal_chords','select=work_id,transpose&user_id=eq.'+uid);
+      TRANSPOSE_R={}; (pc||[]).forEach(r=>{ if(r.transpose) TRANSPOSE_R[String(r.work_id)]=r.transpose; });
+    }
+  }catch(e){ TRANSPOSE_R={}; }
+}
+
+// Bir repertuvar satırının makam/karar profili
+function workProfile(it){
+  const w=WL[it.workId]||{};
+  const mk=MAKAMS[makamNorm(w.makam)]||null;
+  const tr=TRANSPOSE_R[String(it.workId)]||0;
+  // Karar önceliği: satır kapanışı > eser kapanışı > makamın kuramsal kararı
+  let base=pitchOf(it.closingNote); if(base===null) base=pitchOf(w.closingNote);
+  if(base===null||base===undefined) base=mk?mk.karar:null;
+  const karar=(base===null||base===undefined)?null:(((base+tr)%12)+12)%12;
+  return {name:w.name||('#'+it.workId), makamAd:mk?mk.ad:'', aile:mk?mk.aile:'',
+          karar, bilinmiyor:!mk && (base===null||base===undefined), kararTxt:it.closingNote||w.closingNote||(mk?mk.kararPerde:'')};
+}
+
+const _PCNAME=['Do','Reb','Re','Mib','Mi','Fa','Fa#','Sol','Lab','La','Sib','Si'];
+// İki profil arası geçiş maliyeti + insan okunur gerekçe
+function transitionCost(a,b){
+  if(a.karar===null||b.karar===null) return {c:2.5,txt:'karar sesi bilinmiyor',lvl:'na'};
+  if(a.makamAd && a.makamAd===b.makamAd) return {c:0,txt:'aynı makam: '+a.makamAd,lvl:'ok'};
+  const d0=Math.abs(a.karar-b.karar)%12;
+  const d=Math.min(d0,12-d0);
+  if(d===0) return {c:1,txt:'aynı karar: '+_PCNAME[a.karar],lvl:'ok'};
+  if(a.aile && a.aile===b.aile) return {c:1.5,txt:'aynı aile: '+a.aile,lvl:'ok'};
+  if(d===2||d===5) return {c:2,txt:(d===2?'tam ses':'dörtlü')+' aralık',lvl:'mid'};
+  if(d===3||d===4) return {c:3,txt:'üçlü aralık',lvl:'mid'};
+  return {c:5,txt:(d===1?'yarım ses':'artık dörtlü')+' — kulağı zorlar',lvl:'bad'};
+}
+
+// Atomlar: potpuri zinciri tek atom, tek eser tek atom
+function buildAtoms(items){
+  const atoms=[];
+  for(let i=0;i<items.length;i++){
+    if(i>0 && items[i].linkedPrev){ atoms[atoms.length-1].items.push(items[i]); continue; }
+    atoms.push({items:[items[i]]});
+  }
+  atoms.forEach(a=>{
+    a.inP=workProfile(a.items[0]);
+    a.outP=workProfile(a.items[a.items.length-1]);
+    a.fixed=a.items.every(it=>workProfile(it).bilinmiyor);   // makamı bilinmeyen atom sabit kalır
+  });
+  return atoms;
+}
+
+function totalCost(order){
+  let t=0;
+  for(let i=1;i<order.length;i++) t+=transitionCost(order[i-1].outP,order[i].inP).c;
+  return t;
+}
+
+// En yakın komşu + 2-opt. Açılış atomu sabittir.
+function optimizeAtoms(movable){
+  if(movable.length<3) return movable.slice();
+  const head=movable[0];
+  let rest=movable.slice(1);
+  const order=[head];
+  while(rest.length){
+    let bi=0,bc=Infinity;
+    rest.forEach((a,i)=>{ const c=transitionCost(order[order.length-1].outP,a.inP).c; if(c<bc){bc=c;bi=i;} });
+    order.push(rest.splice(bi,1)[0]);
+  }
+  let improved=true,guard=0;
+  while(improved && guard++<60){
+    improved=false;
+    for(let i=1;i<order.length-1;i++){
+      for(let j=i+1;j<order.length;j++){
+        const cand=order.slice(0,i).concat(order.slice(i,j+1).reverse(),order.slice(j+1));
+        if(totalCost(cand)<totalCost(order)-1e-9){ order.splice(0,order.length,...cand); improved=true; }
+      }
+    }
+  }
+  return order;
+}
+
+// mode: 'akilli' | 'makam' | 'karar'
+function proposeOrder(items, mode){
+  const atoms=buildAtoms(items);
+  const slots=[]; const movable=[];
+  atoms.forEach((a,i)=>{ if(a.fixed) return; slots.push(i); movable.push(a); });
+  let sorted;
+  if(mode==='makam'){
+    sorted=movable.slice().sort((x,y)=> (x.inP.makamAd||'zzz').localeCompare(y.inP.makamAd||'zzz','tr'));
+  }else if(mode==='karar'){
+    sorted=movable.slice().sort((x,y)=> (x.inP.karar??99)-(y.inP.karar??99));
+  }else{
+    sorted=optimizeAtoms(movable);
+  }
+  const out=atoms.slice();
+  slots.forEach((s,k)=> out[s]=sorted[k]);
+  return out.reduce((acc,a)=>acc.concat(a.items),[]);
+}
+
+// ── ÖNİZLEME EKRANI ────────────────────────────────────────────────────────
+let _sortRepId=null, _sortProposal=null;
+
+function openSortSheet(repId){
+  if(!MAKAMS_OK){ toast('Makam tablosu yüklenmedi — makamlar.sql çalıştırıldı mı?','er'); return; }
+  const rep=getRep(repId); if(!rep||!(rep.items||[]).length) return;
+  _sortRepId=repId;
+  const ov=document.getElementById('sortOverlay');
+  ov.style.display='flex';
+  ov.innerHTML=`
+    <div class="sort-box">
+      <div class="sort-head">
+        <div>🎼 Sıralama Önerisi</div>
+        <button class="sort-x" onclick="closeSortSheet()">✕</button>
+      </div>
+      <div class="sort-modes">
+        <button class="sort-mode active" data-mode="akilli" onclick="runSort('akilli')">Akıllı akış</button>
+        <button class="sort-mode" data-mode="makam" onclick="runSort('makam')">Makama göre</button>
+        <button class="sort-mode" data-mode="karar" onclick="runSort('karar')">Karar sesine göre</button>
+      </div>
+      <div class="sort-body" id="sortBody"></div>
+      <div class="sort-foot">
+        <span id="sortScore" class="sort-score"></span>
+        <button class="bi" onclick="closeSortSheet()">Vazgeç</button>
+        <button class="baw" onclick="applySort()">Uygula</button>
+      </div>
+    </div>`;
+  runSort('akilli');
+}
+function closeSortSheet(){
+  const ov=document.getElementById('sortOverlay');
+  if(ov){ ov.style.display='none'; ov.innerHTML=''; }
+  _sortRepId=null; _sortProposal=null;
+}
+
+function runSort(mode){
+  const rep=getRep(_sortRepId); if(!rep) return;
+  document.querySelectorAll('.sort-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+  const before=rep.items;
+  const after=proposeOrder(before,mode);
+  _sortProposal=after;
+  const cBefore=totalCost(buildAtoms(before)), cAfter=totalCost(buildAtoms(after));
+  const body=document.getElementById('sortBody');
+  let html='';
+  after.forEach((it,i)=>{
+    const p=workProfile(it);
+    const linked=i>0 && it.linkedPrev;
+    if(i>0 && !linked){
+      const t=transitionCost(workProfile(after[i-1]),p);
+      html+=`<div class="sort-tr ${t.lvl}">${t.lvl==='bad'?'⚠':(t.lvl==='ok'?'✓':'·')} ${t.txt}</div>`;
+    }
+    html+=`<div class="sort-row${linked?' chained':''}">
+      <span class="sort-no">${linked?'↳':(i+1)}</span>
+      <span class="sort-name">${linked?'🔗 ':''}${p.name}</span>
+      <span class="sort-mk">${p.makamAd||'<i>makam ?</i>'}${p.kararTxt?' · '+p.kararTxt:''}</span>
+    </div>`;
+  });
+  body.innerHTML=html;
+  const sc=document.getElementById('sortScore');
+  const diff=cBefore-cAfter;
+  sc.textContent = diff>0.01 ? ('Geçiş puanı '+cBefore.toFixed(1)+' → '+cAfter.toFixed(1)+' (iyileşme)')
+                 : (diff<-0.01 ? ('Bu mod puanı yükseltiyor: '+cBefore.toFixed(1)+' → '+cAfter.toFixed(1))
+                 : 'Sıra zaten uygun görünüyor');
+}
+
+async function applySort(){
+  const rep=getRep(_sortRepId); if(!rep||!_sortProposal) return;
+  const orig=[...rep.items];
+  const merged=[..._sortProposal];
+  const repId=_sortRepId;
+  closeSortSheet();
+  await applyReorder(repId, orig, merged, null);
+  toast('Sıralama uygulandı');
+}
 
 // ── Desktop drag ──
 function dragStart(e) {
@@ -1159,6 +1402,7 @@ function shareViaWhatsApp() {
   // böylece açılış okuması, sync'in works yazmasıyla çakışmaz.
   load();
   loadWorksData().then(() => { renderList(); renderDetail(); });
+  loadMakams();   // 2026-07-19: makam referans tablosu + kişisel ton kaydırmaları
   if (window.syncOfflineData) setTimeout(() => syncOfflineData(), 800);
 })();
 

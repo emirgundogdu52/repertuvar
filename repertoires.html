@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v7 — 2026-07-19 potpuri + liste rozeti -->
+<!-- build: v8 — 2026-07-19 potpuri + makam sıralama -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -113,6 +113,27 @@ tr.medley-end  td:first-child::before{bottom:50%;border-radius:0 0 2px 2px;}
 tr.medley-row{background:rgba(124,111,255,.05);}
 .medley-chip{font-size:11px;opacity:.85;}
 /* Potpuri içeren repertuvar rozeti — liste kartı + detay başlığı */
+/* ── Sıralama önizleme ekranı (2026-07-19) ── */
+#sortOverlay{display:none;position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.62);align-items:center;justify-content:center;padding:16px;}
+.sort-box{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:520px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.55);}
+.sort-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;}
+.sort-x{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px 6px;}
+.sort-modes{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.sort-mode{flex:1;min-width:90px;padding:7px 8px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.sort-mode.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.sort-body{overflow-y:auto;padding:8px 14px;flex:1;}
+.sort-row{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.sort-row.chained{background:rgba(124,111,255,.07);}
+.sort-no{color:var(--text3);font-size:11px;min-width:18px;}
+.sort-name{flex:1;font-size:13px;color:var(--text);}
+.sort-mk{font-size:11px;color:var(--text3);white-space:nowrap;}
+.sort-tr{font-size:10.5px;padding:3px 0 3px 26px;letter-spacing:.02em;}
+.sort-tr.ok{color:var(--green);}
+.sort-tr.mid{color:var(--text3);}
+.sort-tr.bad{color:var(--red);}
+.sort-tr.na{color:var(--text3);opacity:.7;}
+.sort-foot{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--border);}
+.sort-score{flex:1;font-size:11px;color:var(--text3);}
 .rep-medley{display:inline-flex;align-items:center;gap:3px;background:rgba(124,111,255,.16);border:1px solid var(--accent);color:var(--accent3);font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;line-height:1.6;white-space:nowrap;}
 
 /* ═══ Detay başlığı: 2 seviyeli düzen (CTA satırı + meta satırı) ═══ */
@@ -399,5 +420,6 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 <script src="repertoires.js"></script>
 
 </div><!-- /main-wrap -->
+<div id="sortOverlay"></div>
 </body>
 </html>
