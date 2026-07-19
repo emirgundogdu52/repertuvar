@@ -333,15 +333,16 @@ async function doRegister() {
   const {data, error} = await sb.auth.signUp({email, password: pass, options: { data: { full_name: fullName } }});
   if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent='Kayıt Ol'; return; }
 
-  // display_name'i profiles tablosuna yaz
+  // İsmi profiles'a yaz — display_name VE full_name birlikte, çünkü "Ekleyen"
+  // alanı public_profiles görünümünden okuyor (ikisinden dolu olanı kullanılıyor).
   if (data?.user?.id) {
     try {
       await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + data.user.id, {
         method: 'PATCH',
         headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (data.session?.access_token || ''), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ display_name: fullName })
+        body: JSON.stringify({ display_name: fullName, full_name: fullName })
       });
-    } catch(e) { console.error('display_name yazma hatası:', e); }
+    } catch(e) { console.error('isim yazma hatası:', e); }
   }
 
   const hasPendingInvite = !!localStorage.getItem('pending_invite');

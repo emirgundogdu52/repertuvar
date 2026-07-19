@@ -622,6 +622,28 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 <script>
 let DATA = []; // Supabase'den yüklenecek
 let PERSONAL_CHORDS = {}; // {String(work_id): ChordPro metni} — kullanıcının SADECE kendine ait akorları
+// Kullanıcı kimliği → Ad Soyad. E-posta adreslerini herkese göstermemek için
+// "Ekleyen" alanında bu kullanılır (kaynak: public_profiles görünümü — yalnızca
+// id + full_name yayınlar, e-posta asla dışarı çıkmaz).
+let USER_NAMES = {};
+async function loadUserNames(){
+  try{
+    const token = localStorage.getItem('sb_token') || SUPA_KEY;
+    const r = await fetch(SUPA_URL + '/rest/v1/public_profiles?select=id,full_name', {
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
+    });
+    if(!r.ok) return; // görünüm yoksa/erişilemezse sessizce geç
+    const rows = await r.json();
+    (rows||[]).forEach(p => { if(p.full_name && p.full_name.trim()) USER_NAMES[p.id] = p.full_name.trim(); });
+  }catch(e){ console.warn('[eserler] isimler yüklenemedi:', e.message); }
+}
+// Görüntülenecek ad: isim varsa isim; yoksa admin/editöre e-posta, üyeye "Üye".
+function displayUserName(userId, email){
+  const n = userId && USER_NAMES[userId];
+  if (n) return n;
+  if ((isAdmin() || isEditor()) && email) return email;
+  return 'Üye';
+}
 
 
 function parseWorksRows(rows, skipRender) {
@@ -1576,9 +1598,9 @@ function selectWork(id, silent) {
     </div>
 
     <div id="tab-hikaye" class="detail-tab-content detail-body${lastTab==='hikaye'?' active':''}">
-      ${(w.submitter_email||w.submitted_at)
+      ${(w.submitter_email||w.submitted_by||w.submitted_at)
         ? `<div style="display:flex;flex-direction:column;gap:10px;">
-            ${w.submitter_email ? `<div class="detail-row"><div class="detail-row-label">Ekleyen</div><div class="detail-row-value">${w.submitter_email}</div></div>` : ''}
+            ${(w.submitted_by||w.submitter_email) ? `<div class="detail-row"><div class="detail-row-label">Ekleyen</div><div class="detail-row-value">${displayUserName(w.submitted_by, w.submitter_email)}</div></div>` : ''}
             ${w.submitted_at ? `<div class="detail-row"><div class="detail-row-label">Eklenme Tarihi</div><div class="detail-row-value">${new Date(w.submitted_at).toLocaleDateString('tr-TR',{year:'numeric',month:'long',day:'numeric'})}</div></div>` : ''}
            </div>`
         : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">Bu eser için hikaye bilgisi yok.</div>`
@@ -2547,6 +2569,7 @@ document.addEventListener('keydown', function(e) {
   
   await loadWorksFromSupabase();
   loadPersonalChords(); // kişisel akorları arka planda yükle (listeyi bloklamaz)
+  loadUserNames();      // "Ekleyen" alanında e-posta yerine Ad Soyad göstermek için
   loadRepertoireCounts(); // arka planda, listeyi bloklamadan
   
   // URL'den id parametresi varsa o eseri seç

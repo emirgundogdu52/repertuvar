@@ -340,6 +340,16 @@ body{padding-top:var(--topnav-h, 66px);}
         </div>
       </div>
       <div class="setting-row">
+        <div style="flex:1;min-width:0;">
+          <div class="setting-label">Ad Soyad</div>
+          <div class="setting-desc">Eklediğin eserlerde ve grup listelerinde bu isim görünür</div>
+          <input id="setName" type="text" placeholder="Adınız ve soyadınız" autocomplete="name"
+            style="margin-top:8px;width:100%;max-width:320px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box;">
+          <div id="setNameMsg" style="margin-top:6px;font-size:12px;display:none;"></div>
+        </div>
+        <button class="setting-btn" onclick="saveDisplayName()">Kaydet</button>
+      </div>
+      <div class="setting-row">
         <div>
           <div class="setting-label">Şifre</div>
           <div class="setting-desc">Hesap şifreni değiştir</div>
@@ -590,6 +600,50 @@ function saveSetting(key, value) {
   toast('Kaydedildi ✓');
 }
 
+async function saveDisplayName(){
+  const inp = document.getElementById('setName');
+  const msg = document.getElementById('setNameMsg');
+  const name = (inp && inp.value || '').trim();
+  const show = (t, ok) => { if(!msg) return; msg.style.display='block'; msg.textContent=t;
+    msg.style.color = ok ? 'var(--green,#3FB950)' : 'var(--red,#F85149)'; };
+
+  if (name.length < 2) { show('Lütfen ad ve soyadınızı girin.', false); return; }
+  const u = getUser();
+  const token = localStorage.getItem('sb_token');
+  if (!u || !token) { show('Oturum bulunamadı, tekrar giriş yapın.', false); return; }
+
+  try {
+    // 1) Hesap bilgisine yaz (user_metadata.full_name)
+    const r = await fetch(SUPA_URL + '/auth/v1/user', {
+      method: 'PUT',
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: { full_name: name } })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+
+    // 2) profiles tablosuna yaz — iki sütuna birden (public_profiles görünümü
+    //    hangisi doluysa onu okuyor; "Ekleyen" alanı buradan besleniyor)
+    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + u.id, {
+      method: 'PATCH',
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ display_name: name, full_name: name })
+    }).catch(() => {});
+
+    // 3) Yereldeki kullanıcıyı güncelle — arayüz anında yansısın
+    try {
+      const su = JSON.parse(localStorage.getItem('sb_user') || '{}');
+      su.user_metadata = Object.assign({}, su.user_metadata, { full_name: name });
+      localStorage.setItem('sb_user', JSON.stringify(su));
+    } catch(e) {}
+    ['sbUserName','tnUserName','profileName'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent = name; });
+    ['sbAvatar','tnAvatar','profileAvatar'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent = name.charAt(0).toUpperCase(); });
+
+    show('✓ İsminiz kaydedildi.', true);
+  } catch(e) {
+    show('Kaydedilemedi: ' + e.message, false);
+  }
+}
+
 function loadSettings() {
   const theme = localStorage.getItem('stageTheme') || 'day';
   const align = localStorage.getItem('stageLyricsAlign') || 'center';
@@ -651,6 +705,9 @@ async function changePassword() {
   ['sbAvatar','tnAvatar','profileAvatar'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=initial; });
   ['sbUserName','tnUserName','profileName'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=name; });
   const emailEl = document.getElementById('profileEmail'); if(emailEl) emailEl.textContent = email;
+  // İsim düzenleme alanını mevcut isimle doldur (yoksa boş bırak — e-posta yazma)
+  const nameInput = document.getElementById('setName');
+  if (nameInput) nameInput.value = (u && u.user_metadata && u.user_metadata.full_name) ? u.user_metadata.full_name : '';
 
   // Rol - auth.js fonksiyonlarını kullan, yoksa Supabase'den çek
   try {
