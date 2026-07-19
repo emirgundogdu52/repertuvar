@@ -2,6 +2,22 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-19: (1) NOTA YÜKLEME üç yol: dosya seç · SÜRÜKLE-BIRAK · panodan
+    YAPIŞTIR (Cmd/Ctrl+V). Kesikli çerçeveli bırakma alanı #notaDrop_<id>
+    (.nota-drop / .nota-drop.drag). Fonksiyonlar: uploadNotaFile(id,file) [asıl
+    yükleyici, eski uploadNota(id,input) buna delege eder], setupNotaDropzone(id)
+    [her detay çiziminde çağrılır], global 'paste' dinleyicisi (bir kez kurulur,
+    window._notaPasteId ile hedef eseri bilir; textarea/contenteditable odaktayken
+    devreye GİRMEZ ki akor yapıştırmayı bozmasın). Panodan gelen görselin adı
+    olmadığından uzantı MIME'dan türetilir. Boyut sınırı 15MB, tip: görsel + PDF.
+  - 2026-07-19 (b): DETAY BAŞLIĞINDAKİ ••• (ti-dots-vertical) KEBAB MENÜSÜ
+    KALDIRILDI — içindeki işlemler Video'nun yanına YAN YANA buton şeridine açıldı
+    (.act-bar / .act-btn, .act-btn.danger): Repertuvara Ekle · Paylaş · Favori ·
+    Düzenle · Sil. Şerit flex-wrap olduğu için telefonda yer kalmayınca kendiliğinden
+    ALT SATIRA sarar. Favori butonu yerinde güncellenir (toggleFavoriteInline) —
+    detay yeniden çizilmediği için açık sekme/kaydırma korunur. Yalnızca "yakında"
+    uyarısı veren iki placeholder (PDF/Nota, Kopyasını Oluştur) şeride alınmadı.
+    toggleMoreSheet() fonksiyonu ve sheet DOM'u geriye dönük uyumluluk için duruyor.
   - 2026-07-18 (b): Detay paneli üç düzenleme. (1) .stage-open-btn (Sahne Modunda Aç)
     çok yüksekti (height:48px) — yanındaki .video-btn ile aynı yüksekliğe indirildi
     (padding:7px 16px, font 13px, 1px şeffaf kenarlık, radius 6px). (2) .detail-header
@@ -382,6 +398,36 @@
     color: var(--text2); font-size: 16px; cursor: pointer; transition: all .15s;
   }
   .more-btn:hover { background: var(--surface); color: var(--text); }
+  /* ── 2026-07-19: ••• kebab yerine yan yana işlem butonları ──
+     .detail-stage-row zaten flex-wrap; yer kalmayınca butonlar alt satıra sarar. */
+  .act-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .act-btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    padding:7px 12px; height:34px; background:var(--surface2);
+    border:1px solid var(--border); border-radius:6px; color:var(--text2);
+    font-size:12.5px; font-weight:600; font-family:inherit; line-height:1;
+    cursor:pointer; white-space:nowrap; transition:all .15s;
+  }
+  .act-btn i { font-size:15px; line-height:1; }
+  .act-btn:hover { background:var(--surface); color:var(--text); border-color:var(--border2); }
+  .act-btn.is-fav { color:var(--accent); border-color:rgba(255,200,61,.45); }
+  .act-btn.is-fav i { color:var(--accent); }
+  .act-btn.danger { color:var(--red); border-color:rgba(255,90,95,.32); }
+  .act-btn.danger:hover { background:rgba(255,90,95,.10); color:var(--red); border-color:rgba(255,90,95,.55); }
+  @media (max-width:400px){ .act-btn { padding:7px 10px; font-size:12px; } }
+
+  /* ── 2026-07-19: nota bırakma alanı (sürükle-bırak + panodan yapıştır) ── */
+  .nota-drop {
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    padding:18px 14px; border:1.5px dashed var(--border2); border-radius:10px;
+    background:var(--surface); color:var(--text2); text-align:center;
+    cursor:pointer; transition:all .15s;
+  }
+  .nota-drop:hover { border-color:var(--accent); color:var(--text); }
+  .nota-drop.drag { border-color:var(--accent); background:rgba(255,200,61,.08); color:var(--accent); }
+  .nota-drop-main { font-size:13px; font-weight:600; }
+  .nota-drop-sub { font-size:11.5px; color:var(--text3); line-height:1.5; }
+  .nota-drop-icon { font-size:22px; line-height:1; }
   .more-sheet-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 950;
   }
@@ -988,6 +1034,19 @@ function shareWork(id) {
   }
 }
 
+// 2026-07-19: detay başlığındaki favori butonu — detayı yeniden çizmeden yerinde güncellenir
+function toggleFavoriteInline(id) {
+  toggleFavorite(id, null);
+  const btn = document.getElementById('actFav_'+id);
+  if (!btn) return;
+  const nowFav = getFavs().has(id);
+  btn.classList.toggle('is-fav', nowFav);
+  const ic = btn.querySelector('i');
+  if (ic) ic.className = 'ti ti-star' + (nowFav ? '-filled' : '');
+  const lb = btn.querySelector('.act-lbl');
+  if (lb) lb.textContent = nowFav ? 'Favoride' : 'Favori';
+}
+
 function toggleFavoriteFromMore(id) {
   toggleFavorite(id, null);
   toggleMoreSheet(false);
@@ -1453,7 +1512,16 @@ function selectWork(id, silent) {
   const lastTab = 'gufte';  // Her eser açılışında güfteden başla
   const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="openStageFromDetail('${stageId}');return false;">🎭 Sahne Modunda Aç</a>`;
   const isFavNow = getFavs().has(w.id);
-  const moreBtn = `<button class="more-btn" onclick="event.stopPropagation();toggleMoreSheet(true, ${w.id})" title="Diğer İşlemler"><i class="ti ti-dots-vertical"></i></button>`;
+  // 2026-07-19: ••• kebab yerine yan yana işlem butonları (yer kalmazsa alt satıra sarar)
+  const _canEditW = (isAdmin() || isEditor() || w.submitted_by === getUserId());
+  const moreBtn = `
+      <div class="act-bar">
+        <button class="act-btn" onclick="event.stopPropagation();openRepAddSheet(${w.id})" title="Repertuvara Ekle"><i class="ti ti-playlist-add"></i> Repertuvara Ekle</button>
+        <button class="act-btn" onclick="event.stopPropagation();shareWork(${w.id})" title="Paylaş"><i class="ti ti-share"></i> Paylaş</button>
+        <button class="act-btn${isFavNow?' is-fav':''}" id="actFav_${w.id}" onclick="event.stopPropagation();toggleFavoriteInline(${w.id})" title="Favori"><i class="ti ti-star${isFavNow?'-filled':''}"></i> <span class="act-lbl">${isFavNow?'Favoride':'Favori'}</span></button>
+        ${_canEditW ? `<button class="act-btn" onclick="event.stopPropagation();openEditEserModal(${w.id})" title="Düzenle"><i class="ti ti-edit"></i> Düzenle</button>` : ''}
+        ${_canEditW ? `<button class="act-btn danger" onclick="event.stopPropagation();showDeleteConfirm(${w.id})" title="Sil"><i class="ti ti-trash"></i> Sil</button>` : ''}
+      </div>`;
 
   // ── KİŞİSEL AKOR ÇÖZÜMLEME ── kullanıcının kişisel akoru varsa onun görünümü ondan türer
   const _pc = (typeof PERSONAL_CHORDS!=='undefined' && PERSONAL_CHORDS[String(w.id)]) || '';
@@ -1584,13 +1652,14 @@ function selectWork(id, silent) {
       ${(isAdmin() || isEditor()) ? `
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;">
           <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">Nota Yükle</div>
-          <input type="file" id="notaFile_${w.id}" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
+          <input type="file" id="notaFile_${w.id}" accept="image/*,.pdf"
             style="display:none;" onchange="uploadNota(${w.id}, this)">
-          <label for="notaFile_${w.id}" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;"
-            onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
-            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
-            📎 Dosya Seç (PDF, JPG, PNG)
-          </label>
+          <div class="nota-drop" id="notaDrop_${w.id}" data-work="${w.id}"
+               onclick="document.getElementById('notaFile_${w.id}').click()">
+            <div class="nota-drop-icon">🎼</div>
+            <div class="nota-drop-main">Notayı buraya sürükle veya yapıştır</div>
+            <div class="nota-drop-sub">Panodaki görseli <b>⌘/Ctrl + V</b> ile yapıştırabilirsin<br>ya da dokunup dosya seç (JPG, PNG, WEBP, PDF · en fazla 15 MB)</div>
+          </div>
           <div id="notaUploadStatus_${w.id}" style="margin-top:8px;font-size:12px;color:var(--text3);"></div>
           ${w.notaUrl ? `<button onclick="deleteNota(${w.id})" style="margin-top:8px;display:block;background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">🗑 Notayı Kaldır</button>` : ''}
         </div>
@@ -1617,6 +1686,7 @@ function selectWork(id, silent) {
 
   // Akor editörü: kapsam seçicisini (Ortak/Kişisel) başlat, doğru içeriği yükle
   if (getUserId() && document.getElementById('inline_chords_'+w.id)) setChordScope(w.id, _defaultScope);
+  setupNotaDropzone(w.id);   // 2026-07-19: sürükle-bırak + panodan yapıştır
   updateTonBadge(w.id);
 
   // Mobile: detail panel top offset
@@ -2027,13 +2097,79 @@ async function saveChords(id) {
   }
 }
 
-async function uploadNota(id, input) {
-  const file = input.files[0];
+// ── 2026-07-19: NOTA YÜKLEME — dosya seç · sürükle-bırak · panodan yapıştır ──
+const NOTA_MAX_BYTES = 15 * 1024 * 1024;   // 15 MB
+const _NOTA_EXT_BY_MIME = {
+  'image/png':'png', 'image/jpeg':'jpg', 'image/jpg':'jpg', 'image/webp':'webp',
+  'image/gif':'gif', 'image/heic':'heic', 'image/tiff':'tif', 'application/pdf':'pdf'
+};
+function notaExtOf(file) {
+  const byMime = _NOTA_EXT_BY_MIME[(file.type||'').toLowerCase()];
+  if (byMime) return byMime;
+  const n = file.name || '';
+  const m = n.match(/\.([A-Za-z0-9]{2,5})$/);
+  return m ? m[1].toLowerCase() : 'png';   // panodan gelen görselin adı olmayabilir
+}
+function notaStatus(id, msg, color) {
+  const el = document.getElementById('notaUploadStatus_'+id);
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--text3)'; }
+}
+
+// Dosya seçici (input) → asıl yükleyiciye delege
+function uploadNota(id, input) {
+  const file = input && input.files && input.files[0];
+  if (file) uploadNotaFile(id, file);
+  if (input) input.value = '';   // aynı dosya tekrar seçilebilsin
+}
+
+// Sürükle-bırak alanını ve panodan yapıştırmayı kurar (her detay çiziminde çağrılır)
+function setupNotaDropzone(id) {
+  const zone = document.getElementById('notaDrop_'+id);
+  window._notaPasteId = zone ? id : null;   // yapıştırma hedefi = açık eser
+  if (!zone || zone.dataset.wired === '1') return;
+  zone.dataset.wired = '1';
+  ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); zone.classList.add('drag');
+  }));
+  ['dragleave','dragend'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); zone.classList.remove('drag');
+  }));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); e.stopPropagation(); zone.classList.remove('drag');
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) uploadNotaFile(id, f);
+  });
+}
+
+// Panodan yapıştırma — TEK global dinleyici. Metin alanına yapıştırmayı bozmaz.
+if (!window._notaPasteWired) {
+  window._notaPasteWired = true;
+  document.addEventListener('paste', e => {
+    const id = window._notaPasteId;
+    if (id == null) return;
+    if (!document.getElementById('notaDrop_'+id)) return;     // alan ekranda değil
+    const ae = document.activeElement;
+    if (ae && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT' || ae.isContentEditable)) return;
+    const items = (e.clipboardData && e.clipboardData.files) || [];
+    const f = items[0];
+    if (!f) return;
+    e.preventDefault();
+    uploadNotaFile(id, f);
+  });
+}
+
+async function uploadNotaFile(id, file) {
   if (!file) return;
-  const status = document.getElementById('notaUploadStatus_'+id);
-  if (status) status.textContent = '⏳ Yükleniyor...';
+  const okType = (file.type || '').startsWith('image/') || file.type === 'application/pdf'
+                 || /\.(jpe?g|png|gif|webp|heic|tiff?|pdf)$/i.test(file.name || '');
+  if (!okType) { notaStatus(id, '❌ Yalnızca görsel veya PDF yükleyebilirsin.', 'var(--red)'); return; }
+  if (file.size > NOTA_MAX_BYTES) {
+    notaStatus(id, '❌ Dosya çok büyük (' + (file.size/1048576).toFixed(1) + ' MB) — en fazla 15 MB.', 'var(--red)');
+    return;
+  }
+  notaStatus(id, '⏳ Yükleniyor...');
   const token = localStorage.getItem('sb_token') || SUPA_KEY;
-  const ext = file.name.split('.').pop();
+  const ext = notaExtOf(file);
   const path = `works/${id}/nota_${Date.now()}.${ext}`;
   // Upload to Supabase Storage
   const uploadRes = await fetch(`${SUPA_URL}/storage/v1/object/notalar/${path}`, {
@@ -2047,7 +2183,7 @@ async function uploadNota(id, input) {
     body: file
   });
   if (!uploadRes.ok) {
-    if (status) status.textContent = '❌ Yükleme hatası!';
+    notaStatus(id, '❌ Yükleme hatası!', 'var(--red)');
     return;
   }
   const notaUrl = `${SUPA_URL}/storage/v1/object/public/notalar/${path}`;
@@ -2060,10 +2196,10 @@ async function uploadNota(id, input) {
   if (patchRes.ok || patchRes.status === 204) {
     const idx = DATA.findIndex(x => x.id === id);
     if (idx > -1) DATA[idx].notaUrl = notaUrl;
-    if (status) status.textContent = '✓ Yüklendi!';
-    setTimeout(() => selectWork(id), 800);
+    notaStatus(id, '✓ Yüklendi!', 'var(--green)');
+    setTimeout(() => { selectWork(id); switchDetailTab('nota'); }, 700);
   } else {
-    if (status) status.textContent = '❌ Kayıt hatası!';
+    notaStatus(id, '❌ Kayıt hatası!', 'var(--red)');
   }
 }
 
