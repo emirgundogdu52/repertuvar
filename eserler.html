@@ -2,6 +2,18 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-19 (c): TOPLU SEÇİM (basılı tut → onay kutuları → Repertuvara Ekle)
+    artık YALNIZCA Favoriler sekmesinde değil, HER LİSTEDE çalışıyor. Kaldırılan üç
+    şart: (1) initLongPressHandlers pointerdown'daki `if (!favOnly) return`;
+    (2) renderList'te onay kutusunun `favOnly ? ... : ''` koşulu (artık hep çizilir,
+    yalnız bulkMode'da görünür); (3) setFavOnly'deki exitBulkMode çağrısı — filtre
+    değişince seçim korunur (seçim id bazlı). Ayrıca swipeAllowedContext
+    `!bulkMode && !favOnly` → `!bulkMode`: kaydırarak düzenle/sil Favoriler'de de
+    açıldı; uzun-basma ile çakışmaz çünkü pointermove sayacı iptal ediyor.
+    Yeni korumalar: uzun-basma açık kaydırma paneli varken ve ★ favori butonuna
+    basılınca başlamaz; weCardClick artık longPressFiredId'yi yutuyor (basılı tutunca
+    ardından detay açılmıyor — bu yol eskiden hiç kullanılmıyordu çünkü Favoriler'de
+    swipe kapalıydı).
   - 2026-07-19: (1) NOTA YÜKLEME üç yol: dosya seç · SÜRÜKLE-BIRAK · panodan
     YAPIŞTIR (Cmd/Ctrl+V). Kesikli çerçeveli bırakma alanı #notaDrop_<id>
     (.nota-drop / .nota-drop.drag). Fonksiyonlar: uploadNotaFile(id,file) [asıl
@@ -808,7 +820,7 @@ let selectedId = null;
 let sortMode = 'name';
 let activeFilters = { form: null, tuning: null, region: null, makam: null };
 let favOnly = false;               // "Tümü / Favoriler" toggle durumu
-let bulkMode = false;               // Favoriler filtresinde uzun-basma ile toplu seçim modu
+let bulkMode = false;               // Uzun-basma ile toplu seçim modu (2026-07-19: tüm filtrelerde)
 let bulkSelectedIds = new Set();    // Toplu seçimde işaretli eser id'leri
 let longPressTimer = null;
 let longPressFiredId = null;        // Long-press tetiklendiyse ardından gelen click'i yut
@@ -880,7 +892,8 @@ function applyFilters() {
 // ── Tümü / Favoriler toggle ──
 function setFavOnly(on) {
   favOnly = on;
-  if (!on) exitBulkMode(); // Favoriler filtresinden çıkınca toplu seçim modunu da kapat
+  // 2026-07-19: filtre değişince toplu seçim ARTIK kapanmıyor — seçim id bazlı,
+  // Tümü ↔ Favoriler arasında gezerken işaretlenenler korunur.
   const allBtn = document.getElementById('favToggleAll');
   const favBtn = document.getElementById('favToggleFav');
   if (allBtn) {
@@ -1164,9 +1177,10 @@ function renderList() {
   }
   const favs = getFavs();
   const uidNow = getUserId();
-  // Toplu seçim modundayken VE Favoriler sekmesindeyken (uzun-basma sistemi orada aktif)
-  // swipe kapalı — iki dokunuş sistemi aynı anda çakışmasın.
-  const swipeAllowedContext = !bulkMode && !favOnly;
+  // Swipe yalnızca TOPLU SEÇİM MODUNDA kapalı. (2026-07-19: eskiden Favoriler
+  // sekmesinde de kapalıydı; uzun-basma her yerde açıldığı için o şart kalktı —
+  // parmak kayınca pointermove uzun-basma sayacını zaten iptal ediyor, çakışmıyorlar.)
+  const swipeAllowedContext = !bulkMode;
   panel.innerHTML = filteredData.map((w, _zi) => {
     const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
     const countBadge = repCount > 0 ? `<span class="work-count-badge" title="${repCount} repertuvarda kullanılıyor">${repCount}</span>` : '';
@@ -1175,7 +1189,9 @@ function renderList() {
     // Sol renk şeridi — yeşil: bir repertuvarda kullanılıyor
     const stripeClass = repCount > 0 ? ' has-stripe stripe-green' : '';
     const clickHandler = bulkMode ? `toggleBulkSelect(${w.id}, event)` : `selectWork(${w.id})`;
-    const checkbox = favOnly ? `<span class="work-bulk-check${isChecked?' checked':''}" style="display:${bulkMode?'flex':'none'};width:20px;height:20px;border-radius:6px;border:1.5px solid ${isChecked?'var(--accent)':'var(--border2)'};background:${isChecked?'var(--accent)':'none'};align-items:center;justify-content:center;flex-shrink:0;align-self:center;font-size:12px;color:#1a1200;font-weight:700;">${isChecked?'✓':''}</span>` : '';
+    // 2026-07-19: onay kutusu artık favOnly şartına bağlı değil — her listede çizilir
+    //             (yalnızca bulkMode açıkken görünür).
+    const checkbox = `<span class="work-bulk-check${isChecked?' checked':''}" style="display:${bulkMode?'flex':'none'};width:20px;height:20px;border-radius:6px;border:1.5px solid ${isChecked?'var(--accent)':'var(--border2)'};background:${isChecked?'var(--accent)':'none'};align-items:center;justify-content:center;flex-shrink:0;align-self:center;font-size:12px;color:#1a1200;font-weight:700;">${isChecked?'✓':''}</span>`;
     // Kompakt görünüm: sadece isim + besteci + tek durum satırı.
     // Makam/Form/Akort/Usul/Repertuvar/Grup detayları artık satıra basınca açılan
     // detay panelinde (mevcut chips sistemi) gösteriliyor — liste kalabalık olmasın diye.
@@ -1284,6 +1300,8 @@ function weTouchEnd(e) {
 }
 
 function weCardClick(e, id) {
+  // 2026-07-19: uzun-basma tetiklendiyse ardından gelen click'i yut (detay açılmasın)
+  if (longPressFiredId === id) { longPressFiredId = null; return; }
   const card = e.currentTarget;
   if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) {
     weCloseOpenCard();
@@ -1311,7 +1329,7 @@ window.addEventListener('pageshow', () => {
   _weSwipe = null;
 });
 
-// ── Favoriler filtresinde uzun-basma ile toplu seçim ──
+// ── Uzun-basma ile toplu seçim (2026-07-19'dan beri TÜM filtrelerde) ──
 function initLongPressHandlers() {
   const panel = document.getElementById('listPanel');
   if (!panel || panel.dataset.longPressBound) return;
@@ -1320,7 +1338,9 @@ function initLongPressHandlers() {
   function findItem(target) { return target.closest ? target.closest('.work-item') : null; }
 
   panel.addEventListener('pointerdown', (e) => {
-    if (!favOnly) return; // Uzun-basma sadece Favoriler filtresi aktifken çalışır
+    // 2026-07-19: uzun-basma artık HER filtrede çalışır (eskiden yalnızca Favoriler'de).
+    if (_weOpenCard) return;                                  // açık kaydırma paneli varken başlatma
+    if (e.target.closest && e.target.closest('.work-fav')) return;  // yıldıza basmak seçim başlatmasın
     const item = findItem(e.target);
     if (!item) return;
     const id = parseInt(item.dataset.id);
