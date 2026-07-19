@@ -111,6 +111,16 @@
     (eskiden yalnızca Akor görünümündeyken gelirdi; Söz'e geçince "motor kayboldu"
     sanılıyordu) — Nota görünümünde gizli. (4) Alt menü (v2StageBotNav) HER ekran
     boyutunda 10sn sonra kapanıyor; masaüstü/tablette hiç kapanmaması kaldırıldı.
+  - 2026-07-19 (p): GÖRÜNÜM SEÇİCİ (Söz/Akor/Nota) AÇILIR MENÜDEN SEKME (tab)
+    STİLİNE çevrildi. Üst bardaki #viewModeBtn ikonu + #viewModeMenu açılır menüsü
+    KALDIRILDI; yerine üst barda her zaman görünen segmented sekme şeridi geldi:
+    #viewModeTabs (.vm-tabs / .vm-tab, data-mode="lyrics|chords|nota"). Aktif sekme
+    accent dolgulu; eserde o veri yoksa sekme pasif (disabled, .32 opaklık) ama
+    ŞERİT HER ZAMAN GÖRÜNÜR (yalnız güftesi olan eserlerde de) — eski "menü kayıp"
+    kuralı korunuyor. Dar ekranda (<430px) sekme etiketleri gizlenir, yalnız ikon
+    kalır (dokunma alanı ≥40px korunur). Fonksiyonlar: setViewMode() aynı,
+    updateViewToggleUI() artık sekmeleri işaretliyor; toggleViewModeMenu()/
+    closeViewModeMenu() geriye dönük uyumluluk için boş stub olarak duruyor.
 -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -182,7 +192,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .stb{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:8px;position:relative;z-index:401;}
 #v2StageBotNav .v2-bn-exit { color: #c05444 !important; }
 #v2StageBotNav .v2-bn-exit:hover { color: #e06655 !important; }
-.strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;}
+.strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:32%;min-width:0;flex:0 1 auto;}
 .stp{display:flex;align-items:center;gap:10px;}
 .pds{display:flex;gap:5px;align-items:center;}
 .pd{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;flex-shrink:0;}
@@ -192,15 +202,20 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
 .bex:hover{color:var(--red);border-color:var(--red);}
 
-/* ═══ Görünüm değiştirici: Söz / Akor / Nota (segmented control) ═══ */
-/* ═══ Görünüm menüsü: Söz / Akor / Nota (üst sağ, açılır menü) ═══ */
-.vm-menu{position:absolute;top:46px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px;min-width:158px;z-index:9999;box-shadow:0 10px 28px rgba(0,0,0,.55);}
-.vm-item{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;color:var(--text);font-size:14px;font-weight:600;padding:10px 12px;border-radius:8px;cursor:pointer;text-align:left;font-family:inherit;transition:background .12s,color .12s;}
-.vm-item .ti{font-size:17px;line-height:1;}
-.vm-item:hover:not(:disabled){background:var(--surface2);}
-.vm-item.active{color:var(--accent);}
-.vm-item.active .ti{color:var(--accent);}
-.vm-item:disabled{opacity:.32;cursor:not-allowed;}
+/* ═══ Görünüm seçici: Söz / Akor / Nota — SEKME (tab) stili, üst barda ═══ */
+/* 2026-07-19: açılır menü (.vm-menu/.vm-item) yerine her zaman görünen sekme şeridi. */
+.vm-tabs{display:flex;align-items:center;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:3px;flex-shrink:0;}
+.vm-tab{display:flex;align-items:center;justify-content:center;gap:6px;background:none;border:none;color:var(--text2);font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.01em;padding:0 11px;height:34px;min-width:40px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:background .14s,color .14s;}
+.vm-tab .ti{font-size:17px;line-height:1;}
+.vm-tab:hover:not(:disabled):not(.active){color:var(--text);background:rgba(255,255,255,.05);}
+.vm-tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.28);}
+.vm-tab.active .ti{color:#fff;}
+.vm-tab:disabled{opacity:.32;cursor:not-allowed;}
+/* Dar ekran: etiket gizlenir, ikon kalır — dokunma alanı korunur */
+@media (max-width:430px){
+  .vm-tab .vm-lbl{display:none;}
+  .vm-tab{padding:0 9px;min-width:42px;}
+}
 
 /* Sabit başlık şeridi — güfte alanının DIŞINDA, üstte durur. Güfte büyüyüp
    kaydıkça başlık yerinden oynamaz; alan da verimli kullanılır (üste yakın). */
@@ -337,7 +352,7 @@ body.stage-active #r-bottom-nav{display:none !important;}
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     .stb { padding:8px 10px; padding-top:calc(8px + env(safe-area-inset-top)); height:auto; min-height:48px; }
-    .strn { font-size:12px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .strn { font-size:12px; max-width:88px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .bex, .stage-nav a { font-size:10px; padding:4px 8px; }
     .stage-nav { gap:4px; }
     .sm { padding:20px 14px calc(60px + env(safe-area-inset-bottom)); }
@@ -535,15 +550,10 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="stc" id="stc">1/1</div>
     </div>
     <div style="display:flex;align-items:center;gap:4px;">
-      <div style="position:relative;">
-        <button class="stage-info-btn" id="viewModeBtn" onclick="event.stopPropagation();toggleViewModeMenu(event)" title="Görünüm (Söz / Akor / Nota)">
-          <i class="ti ti-music" id="viewModeIcon" style="font-size:22px;"></i>
-        </button>
-        <div class="vm-menu" id="viewModeMenu" style="display:none;">
-          <button class="vm-item" data-mode="lyrics" onclick="event.stopPropagation();setViewMode('lyrics');closeViewModeMenu();"><i class="ti ti-music" aria-hidden="true"></i> Söz</button>
-          <button class="vm-item" data-mode="chords" onclick="event.stopPropagation();setViewMode('chords');closeViewModeMenu();"><i class="ti ti-guitar-pick" aria-hidden="true"></i> Akor</button>
-          <button class="vm-item" data-mode="nota" onclick="event.stopPropagation();setViewMode('nota');closeViewModeMenu();"><i class="ti ti-file-music" aria-hidden="true"></i> Nota</button>
-        </div>
+      <div class="vm-tabs" id="viewModeTabs" role="tablist" aria-label="Görünüm">
+        <button class="vm-tab" data-mode="lyrics" role="tab" title="Söz" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i><span class="vm-lbl">Söz</span></button>
+        <button class="vm-tab" data-mode="chords" role="tab" title="Akor" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i><span class="vm-lbl">Akor</span></button>
+        <button class="vm-tab" data-mode="nota" role="tab" title="Nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i><span class="vm-lbl">Nota</span></button>
       </div>
       <button class="stage-info-btn" onclick="openInfoSheet()" title="Eser Bilgileri">
         <i class="ti ti-info-circle" style="font-size:22px;"></i>
@@ -1347,40 +1357,27 @@ function setViewMode(mode) {
   renderStage();
 }
 
-// Açılır menüyü aç/kapat
-function toggleViewModeMenu(e) {
-  if (e && e.stopPropagation) e.stopPropagation();
-  const m = document.getElementById('viewModeMenu');
-  if (!m) return;
-  m.style.display = (m.style.display === 'none' || !m.style.display) ? 'block' : 'none';
-}
-function closeViewModeMenu() {
-  const m = document.getElementById('viewModeMenu');
-  if (m) m.style.display = 'none';
-}
-// Menü dışında bir yere tıklanınca kapat
-document.addEventListener('click', closeViewModeMenu);
+// 2026-07-19: açılır menü kaldırıldı (sekme stili). Bu iki fonksiyon yalnızca
+// geriye dönük uyumluluk için boş stub olarak duruyor — eski bir çağrı kalırsa patlamasın.
+function toggleViewModeMenu(e) { if (e && e.stopPropagation) e.stopPropagation(); }
+function closeViewModeMenu() {}
 
 function updateViewToggleUI(w) {
-  const btn  = document.getElementById('viewModeBtn');
-  const menu = document.getElementById('viewModeMenu');
-  if (!btn || !menu) return;
+  const tabs = document.getElementById('viewModeTabs');
+  if (!tabs) return;
   const mode = getStageViewMode(w);
   const available = { lyrics: true, chords: !!w.chords, nota: !!w.notaUrl };
-  const icons = { lyrics: 'ti ti-music', chords: 'ti ti-guitar-pick', nota: 'ti ti-file-music' };
-  // Üstteki buton ikonunu aktif moda göre değiştir
-  const iconEl = document.getElementById('viewModeIcon');
-  if (iconEl) iconEl.className = icons[mode] || icons.lyrics;
-  // Menü öğelerini işaretle / gerektiğinde kapat
-  menu.querySelectorAll('.vm-item').forEach(it => {
-    const m = it.dataset.mode;
-    it.classList.toggle('active', m === mode);
-    it.disabled = !available[m];
+  tabs.querySelectorAll('.vm-tab').forEach(t => {
+    const m = t.dataset.mode;
+    const on = (m === mode);
+    t.classList.toggle('active', on);
+    t.disabled = !available[m];
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
   });
-  // Buton HER ZAMAN görünür kalır (yalnızca söz olan eserlerde de) —
-  // eskiden tek-mod olunca gizleniyordu, "menü kayıp" görünmesinin sebebi buydu.
-  // Sadece söz varsa menüde Akor/Nota pasif görünür ama buton yerinde durur.
-  btn.style.display = 'flex';
+  // Şerit HER ZAMAN görünür kalır (yalnızca güftesi olan eserlerde de) —
+  // eskiden tek-mod olunca gizleniyordu, "seçici kayıp" görünmesinin sebebi buydu.
+  // Veri yoksa Akor/Nota sekmesi pasif görünür ama şerit yerinde durur.
+  tabs.style.display = 'flex';
   buildStageToolsRow(mode);
 }
 
