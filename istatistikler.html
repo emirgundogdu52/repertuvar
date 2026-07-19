@@ -161,12 +161,39 @@ function sttHeaders() {
   return { apikey: SUPA_KEY, Authorization: 'Bearer ' + token };
 }
 
+// PostgREST bir istekte EN FAZLA 1000 satır döndürür (Supabase varsayılan "max-rows").
+// Bu yüzden ?limit=20000 yazsak bile 1000 geliyordu ve sayaç hep 1000'de takılıyordu.
+// Çözüm: Range başlığıyla 1000'erlik sayfalar hâlinde hepsini çekmek.
+const STT_PAGE = 1000;
+const STT_MAX  = 100000; // güvenlik tavanı (100 bin kayıt)
+
+async function fetchAllPageViews() {
+  const select = 'select=path,referrer,user_id,session_id,timezone,device_type,platform,country,region,city,created_at';
+  const base = SUPA_URL + '/rest/v1/page_views?' + select + '&order=created_at.desc';
+  let all = [], from = 0;
+
+  while (from < STT_MAX) {
+    const to = from + STT_PAGE - 1;
+    const r = await fetch(base, {
+      headers: Object.assign(sttHeaders(), { Range: from + '-' + to, 'Range-Unit': 'items' })
+    });
+    if (!r.ok && r.status !== 206) throw new Error('HTTP ' + r.status);
+    const chunk = await r.json();
+    if (!Array.isArray(chunk) || chunk.length === 0) break;
+    all = all.concat(chunk);
+    const el = document.getElementById('sttLoading');
+    if (el) el.textContent = 'Veriler yükleniyor… (' + all.length + ' kayıt)';
+    if (chunk.length < STT_PAGE) break; // son sayfa
+    from += STT_PAGE;
+  }
+  return all;
+}
+
 async function loadStats() {
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/page_views?select=path,referrer,user_id,session_id,timezone,device_type,platform,country,region,city,created_at&order=created_at.desc&limit=20000', { headers: sttHeaders() });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    sttRows = await r.json();
-    document.getElementById('sttLoading').style.display = 'none';
+    const loading = document.getElementById('sttLoading');
+    sttRows = await fetchAllPageViews();
+    loading.style.display = 'none';
     document.getElementById('sttContent').style.display = 'block';
     renderStats(7);
   } catch (e) {
