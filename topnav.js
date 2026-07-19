@@ -119,7 +119,18 @@
       padding-top: var(--topnav-h, 66px);
     }
     .r-topnav img.r-logo {
-      height: 55px; width: auto; max-width: 220px; flex-shrink: 0; object-fit: contain;
+      /* Dar telefonlarda taşmayı önle: logo ekranın en fazla %44'ünü kaplasın ve
+         gerekirse küçülebilsin (flex-shrink:0 iken sağdaki avatar kesiliyordu). */
+      height: 55px; width: auto; max-width: min(220px, 44vw);
+      flex-shrink: 1; min-width: 0; object-fit: contain;
+    }
+    /* iPhone genişlikleri: logo + zil + tema + avatar tek satıra sığsın */
+    @media (max-width: 430px) {
+      .r-topnav { padding: 0 12px; gap: 8px; }
+      .r-topnav img.r-logo { height: 40px; }
+      .r-topnav .r-tn-right { gap: 6px; }
+      .r-tn-bell { padding: 4px; }
+      .r-tn-bell i { font-size: 18px; }
     }
     .r-topnav .r-tn-right {
       margin-left: auto;

@@ -15,6 +15,8 @@
       --brand-gold:#FFC83D; --brand-white:#FFFFFF; --brand-muted:#8FA0BF;
     }
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    /* iOS Safari otomatik yazı büyütmesini kapat */
+    html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:hidden;}
 
     body{
       background:var(--bg);

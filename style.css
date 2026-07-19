@@ -48,6 +48,14 @@
 
 html {
   background: var(--bg);
+  /* iOS Safari, blokları viewport'tan geniş bulduğunda yazıları kendiliğinden
+     büyütür (text autosizing) — sayfa "zoom yapılmış" gibi görünür, görseller
+     normal kalır. Bu kural o davranışı kapatır; tasarım her cihazda aynı ölçekte. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Yatay taşma sayfayı kaydırılabilir/kesik gösteriyordu (üst çubukta avatarın
+     kesilmesi gibi) — ayrıca autosizing'i de tetikliyor. */
+  overflow-x: hidden;
 }
 
 body {
@@ -55,6 +63,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   color: var(--text);
   min-height: 100vh;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 /* ── Background glow ── */
