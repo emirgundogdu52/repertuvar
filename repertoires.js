@@ -1,5 +1,14 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-07-19 (e): "Diğer" menüsündeki PAYLAŞ ve YAZDIR düzeltildi — ikisi de
+//             sessizce TypeError atıyordu. Paylaş: sayfada hiç olmayan #shareModal
+//             /#shareRepName/#shareLink/#copyBtn elemanlarını arıyordu; modal artık
+//             JS ile kuruluyor (#shareOverlay), telefonda önce navigator.share
+//             deneniyor, pano kopyalama için execCommand yedeği var. Yazdır:
+//             window.open('','_blank') açılır pencere engelleyicisinde/Capacitor
+//             WebView'de null dönüyor, ardından win.document.write patlıyordu;
+//             artık gizli iframe'e yazılıp oradan print ediliyor (printViaIframe),
+//             o da olmazsa yeni sekme yedeği (printFallback).
 // 2026-07-19 (d): MAKAMA GÖRE SIRALAMA MOTORU. makams tablosu + kişisel ton
 //             kaydırmaları loadMakams() ile çekilir. workProfile() her satırın
 //             makam/aile/karar profilini çıkarır (karar önceliği: satır kapanışı >
@@ -1206,17 +1215,39 @@ function printR(repId){
   const items=rep.items||[];
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   const rows=items.map(it=>{const w=WL[String(it.workId)]||{};const cn=it.closingNote||w.closingNote||'';return`<tr><td style="width:40px;color:#888;text-align:center;">${it.seq}</td><td style="padding:9px 12px;"><div style="font-weight:500;color:#111;">${w.name||it.workId}</div><div style="font-size:11px;color:#666;">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></td><td style="width:80px;text-align:center;color:#444;">${cn}</td><td style="width:120px;font-size:12px;color:#666;">${it.note||''}</td></tr>`;}).join('');
-  const win=window.open('','_blank','width=800,height=900');
+
   const printCSS = '*{margin:0;padding:0;box-sizing:border-box;}body{font-family:\'DM Sans\',sans-serif;font-size:14px;color:#111;padding:32px 40px;}h1{font-family:\'Playfair Display\',serif;font-size:28px;font-weight:400;margin-bottom:8px;}hr{border:none;border-top:2px solid #111;margin:16px 0;}table{width:100%;border-collapse:collapse;}th{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#888;text-align:left;padding:6px 12px;border-bottom:1px solid #ddd;}td{padding:9px 12px;border-bottom:1px solid #eee;vertical-align:middle;}';
   const printHTML = '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>' + rep.name + '</title><style>' + printCSS + '</style><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"></head><body>'
     + '<div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:24px;">Repertuvar — ' + new Date().toLocaleDateString('tr-TR') + '</div>'
     + '<h1>' + rep.name + '</h1>'
     + '<div style="display:flex;gap:16px;font-size:12px;color:#666;margin-bottom:16px;">' + (rep.date?'\uD83D\uDCC5 '+rep.date:'') + (rep.venue?' \uD83D\uDCCD '+rep.venue:'') + (rep.status?' \u25CF '+sl[rep.status]:'') + ' \uD83C\uDFBC ' + items.length + ' eser</div>'
     + '<hr><table><thead><tr><th>#</th><th>Eser Ad\u0131</th><th>Kapan\u0131\u015f</th><th>Not</th></tr></thead><tbody>' + rows + '</tbody></table>'
-    + '<' + 'script>window.onload=function(){setTimeout(function(){window.print();},400);}' + '<\/script>'
     + '</body></html>';
-  win.document.write(printHTML);
-  win.document.close();
+  printViaIframe(printHTML, rep.name);
+}
+
+// 2026-07-19 düzeltme: eskiden window.open('','_blank') kullanılıyordu — Brave/Safari
+// açılır pencere engelleyicisi ve Capacitor WebView bunu null döndürüyor, sonraki
+// win.document.write satırı TypeError atıyordu (menüde hiçbir şey olmuyor gibi
+// görünüyordu). Artık gizli bir iframe'e yazılıp oradan yazdırılıyor; iframe de
+// engellenirse yeni sekme denenir.
+function printViaIframe(html, title){
+  try{
+    const old=document.getElementById('printFrame');
+    if(old) old.remove();
+    const f=document.createElement('iframe');
+    f.id='printFrame';
+    f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+    document.body.appendChild(f);
+    const d=f.contentWindow.document;
+    d.open(); d.write(html); d.close();
+    setTimeout(()=>{ try{ f.contentWindow.focus(); f.contentWindow.print(); }catch(e){ printFallback(html); } }, 500);
+  }catch(e){ printFallback(html); }
+}
+function printFallback(html){
+  const w=window.open('','_blank');
+  if(!w){ toast('Yazdırma penceresi engellendi — tarayıcı ayarından izin ver','er'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
 }
 
 document.getElementById('rm').addEventListener('click',e=>{if(e.target.id==='rm')closeRM();});
@@ -1339,46 +1370,73 @@ document.addEventListener('click',function(e){
 // ── PAYLAŞIM ──
 let shareRepId = null;
 
-function shareRep(repId) {
-  shareRepId = repId;
+// ── PAYLAŞ (2026-07-19 düzeltme) ────────────────────────────────────────────
+// ESKİ HATA: shareRep() sayfada HİÇ OLMAYAN #shareModal/#shareRepName/#shareLink/
+// #copyBtn elemanlarını arıyordu → getElementById(...).textContent TypeError atıyor,
+// menüye basınca hiçbir şey olmuyordu. Modal artık JS ile kuruluyor, HTML'e bağımlı
+// değil. Telefonda önce yerel paylaşım sayfası (navigator.share) denenir.
+function shareLinkFor(repId){
+  const token = btoa(repId).replace(/=/g,'');
+  const base = window.location.origin.startsWith('http')
+    ? window.location.origin + window.location.pathname.replace(/repertoires\.html.*$/,'')
+    : 'https://www.repertuvar.app/';
+  return base + 'stage.html?share=' + token;
+}
+
+async function shareRep(repId) {
   const rep = getRep(repId);
   if (!rep) return;
-  
-  // Basit token: rep ID'sini base64'e çevir (yeterince güvenli)
-  const token = btoa(repId).replace(/=/g,'');
-  const baseUrl = window.location.origin + window.location.pathname.replace('repertoires.html','');
-  const link = baseUrl + 'stage.html?share=' + token;
-  
-  document.getElementById('shareRepName').textContent = rep.name;
-  document.getElementById('shareLink').textContent = link;
-  document.getElementById('shareLink').dataset.url = link;
-  document.getElementById('copyBtn').textContent = 'Kopyala';
-  document.getElementById('shareModal').classList.add('open');
+  shareRepId = repId;
+  const link = shareLinkFor(repId);
+  // Telefon/tablet: sistemin kendi paylaşım sayfası
+  if (navigator.share) {
+    try { await navigator.share({ title: rep.name, text: rep.name + ' — Repertuvar', url: link }); return; }
+    catch(e) { if (e && e.name === 'AbortError') return; }   // kullanıcı vazgeçti
+  }
+  openShareModal(rep.name, link);
+}
+
+function openShareModal(name, link){
+  let ov = document.getElementById('shareOverlay');
+  if(!ov){ ov = document.createElement('div'); ov.id='shareOverlay'; document.body.appendChild(ov);
+           ov.addEventListener('click', e=>{ if(e.target===ov) closeShare(); }); }
+  ov.innerHTML = `
+    <div class="share-box">
+      <div class="share-head"><span>🔗 Repertuvarı Paylaş</span><button class="sort-x" onclick="closeShare()">✕</button></div>
+      <div class="share-name">${name}</div>
+      <div class="share-link" id="shareLink" data-url="${link}">${link}</div>
+      <div class="share-note">Bu bağlantıyı açan kişi repertuvarı sahne modunda görüntüleyebilir.</div>
+      <div class="share-foot">
+        <button class="bi" onclick="closeShare()">Kapat</button>
+        <button class="baw" id="copyBtn" onclick="copyShareLink()">Kopyala</button>
+      </div>
+    </div>`;
+  ov.style.display='flex';
 }
 
 function closeShare() {
-  document.getElementById('shareModal').classList.remove('open');
+  const ov=document.getElementById('shareOverlay');
+  if(ov){ ov.style.display='none'; ov.innerHTML=''; }
   shareRepId = null;
 }
 
 function copyShareLink() {
-  const link = document.getElementById('shareLink').dataset.url;
-  navigator.clipboard.writeText(link).then(() => {
-    const btn = document.getElementById('copyBtn');
-    btn.textContent = '✓ Kopyalandı';
-    btn.style.background = '#4ade80';
-    setTimeout(() => { btn.textContent = 'Kopyala'; btn.style.background = ''; }, 2000);
-  }).catch(() => {
-    // Fallback for older browsers
-    const el = document.createElement('textarea');
-    el.value = link;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-    document.getElementById('copyBtn').textContent = '✓ Kopyalandı';
-  });
+  const el=document.getElementById('shareLink');
+  const link=el?el.dataset.url:'';
+  const done=()=>{ const btn=document.getElementById('copyBtn');
+    if(btn){ btn.textContent='✓ Kopyalandı'; setTimeout(()=>{ if(btn) btn.textContent='Kopyala'; },2000); } };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(done).catch(()=>fallbackCopy(link,done));
+  } else fallbackCopy(link,done);
 }
+function fallbackCopy(text, done){
+  const el=document.createElement('textarea');
+  el.value=text; el.style.position='fixed'; el.style.opacity='0';
+  document.body.appendChild(el); el.select();
+  try{ document.execCommand('copy'); done(); }catch(e){ toast('Kopyalanamadı — bağlantıyı elle seç','er'); }
+  document.body.removeChild(el);
+}
+
 
 function shareViaEmail() {
   const link = document.getElementById('shareLink').dataset.url;
