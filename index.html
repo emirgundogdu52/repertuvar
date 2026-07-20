@@ -1,4 +1,15 @@
 <!DOCTYPE html>
+<!--
+  DEĞİŞİKLİK GÜNLÜĞÜ
+  2026-07-20 : Pedal anlatımı netleştirildi — pedal HARİCİ bir cihaz, uygulama içi
+               Bluetooth ayarı YOK. (1) hero canlı rozet "Pedal Bağlı" → "Sahneye hazır"
+               (2) hero bullet → "Sayfa çevirme pedalıyla uyumlu"
+               (3) iPad maketindeki ti-bluetooth-connected ikonu kaldırıldı (uygulama içi
+                   bluetooth ayarı varmış izlenimi veriyordu)
+               (4) hero pedal rozeti "Bağlandı" → "Uyumlu · ayrıca satın alınır"
+               (5) özellik kartı + feat-card metinleri: marka örnekleri, "ayrıca satın
+                   alınır", pedalsız alternatif (dokunma/kaydırma/klavye) eklendi
+-->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -224,14 +235,14 @@
       <div class="hero-text">
       <div class="hero-greeting-row">
         <div class="hero-greeting" id="heroGreeting">Hoş geldiniz 👋</div>
-        <div class="hero-live-line"><span class="hero-live-dot"></span> Pedal Bağlı</div>
+        <div class="hero-live-line"><span class="hero-live-dot"></span> Sahneye hazır</div>
       </div>
       <div class="hero-title">Sahnedeki En Büyük <span class="hero-title-accent">Yardımcın</span></div>
       <ul class="hero-bullets">
         <li><i class="ti ti-check"></i> Eseri seç / kaydet</li>
         <li><i class="ti ti-music"></i> Repertuvarı oluştur</li>
         <li><i class="ti ti-arrows-sort"></i> Sürükle bırak ile sırala</li>
-        <li><i class="ti ti-shoe"></i> Bluetooth pedal ile yönet</li>
+        <li><i class="ti ti-shoe"></i> Sayfa çevirme pedalıyla uyumlu</li>
       </ul>
       <div class="hero-actions">
         <a href="repertoires.html" class="hero-btn-primary"><i class="ti ti-music"></i> Repertuvarlara Bak →</a>
@@ -248,7 +259,7 @@
             <div class="hero-ipad-topbar">
               <i class="ti ti-menu-2"></i>
               <span class="title">Repertuvar</span>
-              <div class="icons"><i class="ti ti-bluetooth-connected hero-ipad-bt"></i><i class="ti ti-search"></i><i class="ti ti-plus"></i><i class="ti ti-dots-vertical"></i></div>
+              <div class="icons"><i class="ti ti-search"></i><i class="ti ti-plus"></i><i class="ti ti-dots-vertical"></i></div>
             </div>
             <div class="hero-ipad-screen">
               <div class="hero-song-row dragging hero-rotatable" id="heroRow1"><span class="grip">☰</span><b>Hekimoğlu</b><span>Bm</span></div>
@@ -272,7 +283,7 @@
         <div class="hero-pedal-col">
           <div class="hero-pedal-badge">
             <span class="bticon"><i class="ti ti-bluetooth"></i></span>
-            <div><b>Bluetooth Pedal</b><span class="status"><span class="hero-pedal-dot"></span>Bağlandı</span></div>
+            <div><b>Sayfa Çevirme Pedalı</b><span class="status"><span class="hero-pedal-dot"></span>Uyumlu · ayrıca satın alınır</span></div>
           </div>
         </div>
 
@@ -296,7 +307,7 @@
       </div>
       <div class="hero-feature-card">
         <span class="ic"><i class="ti ti-shoe"></i><span class="chk">✓</span></span>
-        <div><h5>Pedal desteği</h5><p>Bluetooth pedal ile eller serbest şarkı geçişi yapın.</p></div>
+        <div><h5>Pedalla uyumlu</h5><p>Bluetooth sayfa çevirme pedalları (harici cihaz) doğrudan çalışır. Pedalın yoksa dokunma, kaydırma ve klavyeyle de geçebilirsin.</p></div>
       </div>
       <div class="hero-feature-card">
         <span class="ic"><i class="ti ti-users-group"></i><span class="chk">✓</span></span>
@@ -340,8 +351,8 @@
           </a>
           <a href="stage.html" class="feat-card" onclick="localStorage.setItem('stageSource','index')" style="text-decoration:none;">
             <div class="feat-icon"><i class="ti ti-device-gamepad"></i></div>
-            <div class="feat-title">Bluetooth'lu Sayfa Çevirici Pedal</div>
-            <div class="feat-desc">Enstrüman elinizde, gözleriniz notalarda — Siz sadece sahnenize ve performansınıza odaklanın!.. Telefona / tablete dokunmadan eser geçişlerini kablosuz (PageTurners) pedallar ile halledebilirsiniz. Sistem buna uyumludur!...<span class="feat-detay">Detay →</span></div>
+            <div class="feat-title">Sayfa Çevirme Pedalıyla Uyumlu</div>
+            <div class="feat-desc">Enstrüman elinizde, gözleriniz notalarda — siz sadece performansınıza odaklanın. Piyasadaki Bluetooth sayfa çevirme pedalları (AirTurn, Donner, iRig BlueTurn, PageFlip vb.) klavye tuşu gönderdiği için Repertuvar'la doğrudan çalışır; uygulama içinde ayar yapmanız gerekmez. <b>Pedal harici bir cihazdır, ayrıca satın alınır.</b> Pedalınız yoksa ekrana dokunarak, kaydırarak veya klavyeyle de eser geçebilirsiniz.<span class="feat-detay">Detay →</span></div>
           </a>
         </div>
         <div class="feat-dots" id="featDots"></div>
