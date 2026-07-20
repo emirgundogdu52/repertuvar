@@ -2,6 +2,25 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-20 (3): ESER PAYLAŞMA LİNKİ DÜZELTİLDİ. İki ayrı hata vardı:
+    (1) Link üretimi: location.origin + location.pathname kullanılıyordu; native
+    (Capacitor) uygulamada bu "capacitor://localhost/..." üretiyor ve gönderilen
+    link hiçbir cihazda açılmıyordu. Yeni shareBaseUrl() yalnız gerçek web
+    adresindeyken location'ı kullanır, aksi halde SHARE_BASE
+    (https://www.repertuvar.app/eserler.html) yazar. shareWork artık async:
+    navigator.share → clipboard.writeText → execCommand → prompt sırasıyla
+    dener, iptal (AbortError) sessiz, kopyalanmadan "kopyalandı" demez.
+    (2) Linkin AÇILIŞI: init'te sadece `DATA.find(...)` bakılıyordu; ancak
+    loadWorksFromSupabase "önce yerel" çalışıp sunucu senkronunu beklemediği
+    için linki ilk kez açan cihazda (boş IndexedDB) DATA henüz BOŞ oluyor →
+    eser açılmıyor, sadece liste geliyordu. Yeni openSharedWork(id): önce yerel,
+    sonra tek kaydı doğrudan Supabase'ten çeker (works?id=eq.N&select=*, 6s),
+    DATA'ya ekleyip açar, o da olmazsa 10 sn boyunca senkronu bekler, yine
+    bulunamazsa "Paylaşılan eser bulunamadı" mesajı verir.
+    parseWorksRows'un satır eşlemesi mapWorkRow(w) olarak ayrıldı (tek kayıt
+    çekimi aynı eşlemeyi kullanıyor). NOT: kullanıcı GİRİŞ YAPMAMIŞSA
+    requireAuth() index.html'e yönlendirdiği için ?id kayboluyor — girişten
+    sonra geri dönüş auth.js/index.html tarafında ayrıca ele alınmalı.
   - 2026-07-20 (2): ÇOK SAYFALI NOTA (2-3 sayfalık eserler). SORUN: 2. sayfa
     yapıştırılınca 1. sayfanın yerine geçiyordu — çünkü nota tek bir works.nota_url
     alanına PATCH ediliyordu. ÇÖZÜM: works.nota_pages (jsonb dizi) asıl kaynak;
@@ -757,8 +776,10 @@ function displayUserName(userId, email){
 }
 
 
-function parseWorksRows(rows, skipRender) {
-  DATA = rows.map(w => ({
+// Tek bir works satırını uygulama nesnesine çevirir (parseWorksRows + paylaşılan
+// eser tek-kayıt çekimi aynı eşlemeyi kullansın diye ayrıldı).
+function mapWorkRow(w) {
+  return {
     id: w.id, name: w.name || '', composer: w.composer || '',
     lyricWriter: w.lyric_writer || '', makam: w.makam || '',
     form: w.form || '', measurement: w.measurement || '',
@@ -770,7 +791,11 @@ function parseWorksRows(rows, skipRender) {
     notaPages: Array.isArray(w.nota_pages) ? w.nota_pages.filter(Boolean) : (w.nota_url ? [w.nota_url] : []),
     status: w.status || 'approved', submitted_by: w.submitted_by || '',
     submitter_email: w.submitter_email || '', submitted_at: w.submitted_at || ''
-  }));
+  };
+}
+
+function parseWorksRows(rows, skipRender) {
+  DATA = rows.map(mapWorkRow);
   filteredData = [...DATA];
   buildFilters();
   if (skipRender) return; // veri güncellendi ama görünüm bir sonraki fırsatta tazelenecek (aktif swipe'ı bozmamak için)
@@ -1091,17 +1116,87 @@ function stubAction(label) {
   alert(label + ' özelliği yakında eklenecek.');
 }
 
-function shareWork(id) {
-  toggleMoreSheet(false);
-  const w = DATA.find(x => x.id === id);
-  const url = location.origin + location.pathname + '?id=' + id;
-  const text = (w?.name || 'Eser') + ' — Repertuvar.app';
-  if (navigator.share) {
-    navigator.share({ title: text, url }).catch(() => {});
-  } else {
-    navigator.clipboard?.writeText(url);
-    alert('Bağlantı kopyalandı: ' + url);
+// 2026-07-20 (3): Paylaşım bağlantısının tabanı. Uygulama Capacitor içinde
+// çalışırken location.origin "capacitor://localhost" (veya file://) olur; bu
+// adres dışarıya gönderilince hiçbir cihazda açılmaz. Bu yüzden sadece gerçek
+// web adresindeyken location kullanılıyor, aksi halde canlı alan adı yazılıyor.
+const SHARE_BASE = 'https://www.repertuvar.app/eserler.html';
+function shareBaseUrl() {
+  const isWeb = (location.protocol === 'https:' || location.protocol === 'http:');
+  const isLocal = /^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname || '');
+  if (isWeb && !isLocal && /\.html$/.test(location.pathname)) {
+    return location.origin + location.pathname;
   }
+  return SHARE_BASE;
+}
+
+async function shareWork(id) {
+  toggleMoreSheet(false);
+  const w = DATA.find(x => String(x.id) === String(id));
+  const url = shareBaseUrl() + '?id=' + encodeURIComponent(id);
+  const text = (w?.name || 'Eser') + ' — Repertuvar.app';
+  // 1) Yerel paylaşım sayfası (iOS/Android)
+  if (navigator.share) {
+    try { await navigator.share({ title: text, text: text, url: url }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; /* desteklenmiyorsa kopyalamaya düş */ }
+  }
+  // 2) Panoya kopyala
+  try { await navigator.clipboard.writeText(url); toastMsg('✓ Bağlantı kopyalandı'); return; } catch (e) {}
+  // 3) Eski yöntem (HTTPS olmayan / izin verilmeyen ortamlar)
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = url; ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-1000px;opacity:0;';
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, url.length);
+    const ok = document.execCommand('copy'); ta.remove();
+    if (ok) { toastMsg('✓ Bağlantı kopyalandı'); return; }
+  } catch (e) {}
+  // 4) Son çare: kullanıcı elle kopyalasın
+  prompt('Bağlantıyı kopyalayın:', url);
+}
+
+// 2026-07-20 (3): Paylaşılan bağlantı (?id=) ile gelen eseri açar.
+// ESKİ HATA: init içinde sadece `DATA.find(...)` bakılıyordu. loadWorksFromSupabase
+// "önce yerel" çalıştığı ve sunucu senkronunu beklemediği için, soğuk açılışta
+// (linki ilk kez açan cihaz, boş IndexedDB) DATA henüz BOŞ oluyor → eser
+// bulunamıyor, sadece liste açılıyordu. Artık üç aşama denenir.
+async function openSharedWork(rawId) {
+  const id = String(rawId || '').trim();
+  if (!id || !/^\d+$/.test(id)) return;
+  const findLocal = () => DATA.find(x => String(x.id) === id);
+
+  // 1) Zaten yüklüyse hemen aç
+  let w = findLocal();
+  if (w) { setTimeout(() => selectWork(w.id), 100); return; }
+
+  // 2) Tek kaydı doğrudan sunucudan çek (liste senkronunu beklemeden)
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + encodeURIComponent(id) + '&select=*', {
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (r.ok) {
+      const rows = await r.json();
+      if (Array.isArray(rows) && rows.length) {
+        if (!findLocal()) {
+          DATA.push(mapWorkRow(rows[0]));
+          filteredData = [...DATA];
+          applyFilters();
+        }
+        const f = findLocal();
+        if (f) { selectWork(f.id); return; }
+      }
+    }
+  } catch (e) { console.warn('[eserler] paylaşılan eser çekilemedi:', e.message); }
+
+  // 3) Arka plan senkronu listeyi doldurana kadar bekle (en fazla 10 sn)
+  const t0 = Date.now();
+  while (Date.now() - t0 < 10000) {
+    await new Promise(res => setTimeout(res, 300));
+    const f = findLocal();
+    if (f) { selectWork(f.id); return; }
+  }
+  toastMsg('Paylaşılan eser bulunamadı');
 }
 
 // 2026-07-19: detay başlığındaki favori butonu — detayı yeniden çizmeden yerinde güncellenir
@@ -2922,10 +3017,7 @@ document.addEventListener('keydown', function(e) {
   
   // URL'den id parametresi varsa o eseri seç
   const urlId = new URLSearchParams(window.location.search).get('id');
-  if (urlId) {
-    const found = DATA.find(x => String(x.id) === String(urlId));
-    if (found) setTimeout(() => selectWork(found.id), 100);
-  }
+  if (urlId) openSharedWork(urlId); // bloklamaz; DATA boşsa sunucudan tek kaydı çeker
   
   // Cache works list for Solistler page (DATA artık dolu)
   try {
