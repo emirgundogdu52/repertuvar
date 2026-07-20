@@ -4,6 +4,22 @@
   taşıyıp taşımadığını satır satır okumadan tek bakışta anlamak. Yapıştırılan kodda
   aşağıdaki son maddenin karşılığı yoksa, bu muhtemelen eski bir kopya demektir —
   GitHub'daki gerçek dosyayı tekrar çekip öyle paylaş.
+  - 2026-07-20: ÇOK SAYFALI NOTA SAHNEDE (eserler.html'deki works.nota_pages ile
+    birlikte gelir). WL kaydına notaPages eklendi (nota_pages dizisi; boşsa tek
+    nota_url'e düşer) — works fetch'i zaten select=* olduğu için ek istek YOK.
+    Yeni: stageNotaPages(w) / currentNotaPages() / notaViewHtml(pages,i) /
+    notaGoPage(i) / notaStepPage(dir) / notaPreloadNext() ve _notaPage,
+    _notaWorkKey, _notaEnterFromEnd durumu. DAVRANIŞ: nota görünümünde ileri/geri
+    ÖNCE sayfa çevirir, son sayfadan sonra SONRAKİ ESERE geçer; ilk sayfadan
+    geriye gidince ÖNCEKİ ESERİN SON SAYFASI açılır. Tek yol: swipe, klavye/pedal
+    (→ ␣ ↓ / ← ↑) ve yan oklar artık sideNavNext/Prev'i değil nextWork/prevWork'ü
+    çağırır. UI: sağ üstte "2 / 3" rozeti (.nota-count) + altta pager
+    (.nota-pager: ‹ · noktalar · ›, noktaya basınca o sayfaya atlar). Sonraki
+    sayfa new Image() ile önden yüklenir (sahnede bekleme olmasın). Sayfa
+    değişimi renderStage'i TAMAMEN yeniden çizmez, yalnız #sm içeriğini
+    değiştirir. getStageViewMode/setViewMode/updateViewToggleUI'daki !w.notaUrl
+    kontrolleri stageNotaPages(w).length'e çevrildi. PDF notada sayfa geçişi YOK
+    (pdf.js gerekir) — kullanıcıya sayfa başına görsel yüklemesi öneriliyor.
   - 2026-07-15: Sahne modunda A−/A+ butonları kaldırıldı, yerine sürükleyerek
     büyütüp küçülten TEK bir font boyutu bar'ı (range slider, #lyricsFontSlider)
     kondu — sağ altta. Ayarlar (⚙️) butonu sola taşındı. Fonksiyonlar:
@@ -257,6 +273,21 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:100%;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
 .wlyrics{font-size:calc(clamp(18px,2.8vw,28px) * var(--lyrics-scale,1));color:var(--text);text-align:center;width:100%;max-width:100%;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 4px 16px;box-sizing:border-box;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .wnota{display:flex;justify-content:center;align-items:center;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;width:100%;}
+/* ═══ 2026-07-20: ÇOK SAYFALI NOTA — sayfa göstergesi + pager ═══ */
+.wnota{flex-direction:column;gap:10px;}
+.wnota img{max-width:100%;max-height:70vh;border-radius:8px;}
+.nota-count{position:absolute;top:10px;right:12px;z-index:40;font-size:12px;font-weight:800;letter-spacing:.04em;
+  padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(6px);pointer-events:none;}
+body.stage-light .nota-count{background:rgba(255,255,255,.75);color:#1a1a1a;border-color:rgba(0,0,0,.15);}
+.nota-pager{display:flex;align-items:center;justify-content:center;gap:14px;padding:4px 0 8px;}
+.nota-pager button{background:none;border:1px solid var(--border);color:var(--text2);border-radius:999px;
+  width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;}
+.nota-pager button:disabled{opacity:.25;pointer-events:none;}
+.nota-dots{display:flex;gap:8px;align-items:center;}
+.nota-dot{width:9px;height:9px;border-radius:50%;background:var(--border);border:none;padding:0;cursor:pointer;transition:all .18s;}
+.nota-dot.cur{background:var(--accent);transform:scale(1.35);}
+.nota-pdf{background:var(--surface2, #16161c);border:1px solid var(--border);border-radius:8px;padding:18px;text-align:center;color:var(--text2);font-size:14px;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 /* ChordPro: akor hecenin üstünde */
 .wlyrics .cp-line{display:block;text-align:left;}
@@ -581,10 +612,10 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     </div>
     <div class="info-sheet-body" id="stageInfoPanel"></div>
   </div>
-  <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();sideNavPrev()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
+  <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();prevWork()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
   <div class="smhead" id="smHead"></div>
   <div class="sm" id="sm"></div>
-  <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();sideNavNext()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
+  <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();nextWork()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
     <div class="sb-menu">
       <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" class="sb-menu-btn"><i class="ti ti-adjustments-horizontal"></i></button>
@@ -675,7 +706,9 @@ async function loadWL() {
         region: w.region || '',
         lyrics: w.lyrics || '',
         chords: w.chords || '',
-        notaUrl: w.nota_url || ''
+        notaUrl: w.nota_url || '',
+        // 2026-07-20: çok sayfalı nota — nota_pages asıl kaynak, yoksa tek nota_url'e düş
+        notaPages: Array.isArray(w.nota_pages) ? w.nota_pages.filter(Boolean) : (w.nota_url ? [w.nota_url] : [])
       };
     });
     // customWorks patch
@@ -683,7 +716,7 @@ async function loadWL() {
       const customs = JSON.parse(localStorage.getItem('customWorks') || '[]');
       customs.forEach(w => {
         const id = String(parseInt(w.id));
-        if(WL[id]) Object.assign(WL[id], {name:w.name||WL[id].name, lyrics:w.lyrics!==undefined?w.lyrics:WL[id].lyrics, composer:w.composer||WL[id].composer, notaUrl:w.notaUrl!==undefined?w.notaUrl:WL[id].notaUrl});
+        if(WL[id]) Object.assign(WL[id], {name:w.name||WL[id].name, lyrics:w.lyrics!==undefined?w.lyrics:WL[id].lyrics, composer:w.composer||WL[id].composer, notaUrl:w.notaUrl!==undefined?w.notaUrl:WL[id].notaUrl, notaPages: Array.isArray(w.notaPages)? w.notaPages.filter(Boolean) : (WL[id].notaPages||[])});
         else WL[id] = {name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||'',notaUrl:w.notaUrl||''};
       });
     } catch(e) {}
@@ -1290,8 +1323,19 @@ function renderStage(){
   }
   const viewMode = getStageViewMode(w);
   let bodyHtml = '';
-  if (viewMode === 'nota' && w.notaUrl) {
-    bodyHtml = `<div class="wnota"><img src="${w.notaUrl}" alt="Nota" style="max-width:100%;max-height:70vh;border-radius:8px;"></div>`;
+  if (viewMode === 'nota' && stageNotaPages(w).length) {
+    // Sayfa indeksi eser değişince sıfırlanır (aynı esere dönünce de baştan başlar)
+    const _nk = String(item.workId);
+    const _np2 = stageNotaPages(w);
+    if (_notaWorkKey !== _nk) {
+      _notaWorkKey = _nk;
+      // Geriye gidiliyorsa önceki eserin SON sayfasında açılır (doğal akış)
+      _notaPage = _notaEnterFromEnd ? Math.max(0, _np2.length - 1) : 0;
+    }
+    _notaEnterFromEnd = false;
+    if (_notaPage > _np2.length - 1) _notaPage = _np2.length - 1;
+    if (_notaPage < 0) _notaPage = 0;
+    bodyHtml = notaViewHtml(_np2, _notaPage);
   } else if (viewMode === 'chords' && w.chords) {
     bodyHtml = `<div class="wlyrics">${renderStageChords(transposeChordPro(w.chords, getTranspose(item.workId)))}</div>`;
   } else {
@@ -1309,6 +1353,7 @@ function renderStage(){
     <div class="wtitle">${w.name || (WL_loaded ? item.workId : '…')}</div>
     ${kararChip}`;
   document.getElementById('sm').innerHTML = bodyHtml;
+  if (viewMode === 'nota') notaPreloadNext(stageNotaPages(w), _notaPage);
   updateViewToggleUI(w);
   // Kaydedilmiş hizalamayı uygula
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
@@ -1351,12 +1396,82 @@ function stageChainInfo(items, idx){
   return { inChain: len > 1, pos: idx - a + 1, len, nextLinked: lp(idx+1) };
 }
 
+// ── 2026-07-20: ÇOK SAYFALI NOTA — sayfa gezinmesi ────────────────────────
+// Nota görünümündeyken ileri/geri ÖNCE sayfa çevirir; son sayfadan sonra bir
+// SONRAKİ ESERE geçer (ilk sayfadan geriye giderken önceki esere). Swipe,
+// klavye/pedal ve yan oklar aynı yoldan geçer — davranış her yerde aynı.
+let _notaPage = 0, _notaWorkKey = null, _notaEnterFromEnd = false;
+
+function stageNotaPages(w) {
+  if (!w) return [];
+  const p = Array.isArray(w.notaPages) ? w.notaPages.filter(Boolean) : [];
+  if (p.length) return p;
+  return w.notaUrl ? [w.notaUrl] : [];
+}
+function isStageNotaImage(u){ return /\.(jpe?g|png|gif|webp|heic|tiff?)(\?|$)/i.test(u||''); }
+
+// Şu an nota görünümünde miyiz? (öyleyse aktif eserin sayfa listesini döner)
+function currentNotaPages() {
+  const item = curRep && curRep.items ? curRep.items[curIdx] : null;
+  if (!item) return [];
+  const w = WL[String(item.workId)] || {};
+  if (getStageViewMode(w) !== 'nota') return [];
+  return stageNotaPages(w);
+}
+
+function notaViewHtml(pages, i) {
+  const u = pages[i];
+  const body = isStageNotaImage(u)
+    ? `<img id="notaImg" src="${u}" alt="Nota sayfa ${i+1}">`
+    : `<div class="nota-pdf">📄 PDF nota — sayfa geçişi için sayfaları ayrı görsel olarak yükle.<br>
+         <a href="${u}" target="_blank" style="color:var(--accent);">↗ Aç</a></div>`;
+  const counter = pages.length > 1 ? `<div class="nota-count" id="notaCount">${i+1} / ${pages.length}</div>` : '';
+  const pager = pages.length > 1 ? `
+    <div class="nota-pager" id="notaPager">
+      <button onclick="event.stopPropagation();notaGoPage(${i-1})" ${i===0?'disabled':''} aria-label="Önceki sayfa">‹</button>
+      <div class="nota-dots">${pages.map((_,k)=>`<button class="nota-dot${k===i?' cur':''}" onclick="event.stopPropagation();notaGoPage(${k})" aria-label="Sayfa ${k+1}"></button>`).join('')}</div>
+      <button onclick="event.stopPropagation();notaGoPage(${i+1})" ${i===pages.length-1?'disabled':''} aria-label="Sonraki sayfa">›</button>
+    </div>` : '';
+  return counter + `<div class="wnota">${body}${pager}</div>`;
+}
+
+// Sonraki sayfayı önden yükle — sahnede sayfa çevirince bekleme olmasın
+function notaPreloadNext(pages, i) {
+  const nxt = pages[i+1];
+  if (nxt && isStageNotaImage(nxt)) { const im = new Image(); im.src = nxt; }
+}
+
+// Sayfaya git (pager/dot). Aralık dışına taşarsa eser değiştirir.
+function notaGoPage(i) {
+  const pages = currentNotaPages();
+  if (!pages.length) return;
+  if (i < 0) { sideNavPrev(); return; }
+  if (i > pages.length - 1) { sideNavNext(); return; }
+  _notaPage = i;
+  const sm = document.getElementById('sm');
+  if (!sm) return;
+  sm.innerHTML = notaViewHtml(pages, i);
+  notaPreloadNext(pages, i);
+}
+
+// true dönerse "sayfa çevrildi, eser değiştirme"
+function notaStepPage(dir) {
+  const pages = currentNotaPages();
+  if (pages.length < 2) return false;
+  const t = _notaPage + dir;
+  if (t < 0 || t > pages.length - 1) return false;   // sınırda → eser değişsin
+  notaGoPage(t);
+  return true;
+}
+
 function nextWork(){
-  console.log('nextWork called');
+  if (notaStepPage(1)) return;   // önce nota sayfası
   sideNavNext();
 }
 
 function prevWork(){
+  if (notaStepPage(-1)) return;
+  _notaEnterFromEnd = currentNotaPages().length > 0;   // önceki eserin son sayfasında aç
   sideNavPrev();
 }
 
@@ -1384,7 +1499,7 @@ function getStageViewMode(w) {
   let mode = localStorage.getItem(viewModeStorageKey()) || 'lyrics';
   // Eserde o modun verisi yoksa güvenli şekilde söze düş
   if (mode === 'chords' && !w.chords) mode = 'lyrics';
-  if (mode === 'nota' && !w.notaUrl) mode = 'lyrics';
+  if (mode === 'nota' && !stageNotaPages(w).length) mode = 'lyrics';
   return mode;
 }
 
@@ -1393,7 +1508,7 @@ function setViewMode(mode) {
   const w = item ? (WL[item.workId] || {}) : null;
   if (!w) return;
   if (mode === 'chords' && !w.chords) return;
-  if (mode === 'nota' && !w.notaUrl) return;
+  if (mode === 'nota' && !stageNotaPages(w).length) return;
   localStorage.setItem(viewModeStorageKey(), mode);
   renderStage();
 }
@@ -1407,7 +1522,7 @@ function updateViewToggleUI(w) {
   const tabs = document.getElementById('viewModeTabs');
   if (!tabs) return;
   const mode = getStageViewMode(w);
-  const available = { lyrics: true, chords: !!w.chords, nota: !!w.notaUrl };
+  const available = { lyrics: true, chords: !!w.chords, nota: stageNotaPages(w).length > 0 };
   tabs.querySelectorAll('.vm-tab').forEach(t => {
     const m = t.dataset.mode;
     const on = (m === mode);
