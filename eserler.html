@@ -2,6 +2,20 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-20: MOBİLDE PANODAN YAPIŞTIRMA. Sorun: iOS/Android'de "basılı tut →
+    Yapıştır" menüsü yalnızca DÜZENLENEBİLİR bir alanda açılır; eski .nota-drop
+    normal div olduğu için mobilde yapıştırma imkânsızdı (Cmd/Ctrl+V yalnız
+    masaüstünde çalışıyordu). Çözüm: .nota-drop'un ALTINA contenteditable="true"
+    inputmode="none" bir kutu eklendi — #notaPaste_<id> (.nota-paste, boşken
+    :empty::before ile "Buraya basılı tut → Yapıştır" yazar, caret gizli, klavye
+    açılmaz). Yeni fn setupNotaPasteBox(id), setupNotaDropzone(id) içinden çağrılır.
+    paste olayında clipboardData.files boşsa clipboardData.items içinden image/*
+    getAsFile() ile alınır (iOS bazen files vermiyor); e.stopPropagation() ile
+    global paste dinleyicisi ikinci kez tetiklenmez. Kutuya yazı yazılamaz
+    (input→temizle, keydown→harf engelli ama ⌘/Ctrl serbest), sürükle-bırak da
+    destekler. navigator.clipboard.read() BİLEREK KULLANILMADI: iOS'ta her
+    seferinde izin uyarısı çıkarıyor ve WKWebView'da güvenilmez.
+    .nota-drop-sub metni sadeleşti, altına .nota-paste-hint açıklaması eklendi.
   - 2026-07-19 (c): TOPLU SEÇİM (basılı tut → onay kutuları → Repertuvara Ekle)
     artık YALNIZCA Favoriler sekmesinde değil, HER LİSTEDE çalışıyor. Kaldırılan üç
     şart: (1) initLongPressHandlers pointerdown'daki `if (!favOnly) return`;
@@ -440,6 +454,27 @@
   .nota-drop-main { font-size:13px; font-weight:600; }
   .nota-drop-sub { font-size:11.5px; color:var(--text3); line-height:1.5; }
   .nota-drop-icon { font-size:22px; line-height:1; }
+
+  /* ── 2026-07-20: mobil "basılı tut → Yapıştır" kutusu ──
+     iOS/Android yapıştır menüsü YALNIZCA düzenlenebilir bir alanda açılır,
+     bu yüzden bu kutu contenteditable. inputmode=none → klavye açılmaz. */
+  .nota-paste {
+    margin-top:10px; min-height:56px; padding:14px 12px;
+    border:1.5px dashed var(--border2); border-radius:10px;
+    background:var(--surface); color:var(--text3);
+    font-size:12.5px; text-align:center; line-height:1.5;
+    caret-color:transparent; outline:none; overflow:hidden;
+    -webkit-user-select:text; user-select:text;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s;
+  }
+  .nota-paste:empty::before {
+    content:"📋  Buraya basılı tut → Yapıştır";
+    color:var(--text3); font-weight:600; pointer-events:none;
+  }
+  .nota-paste:focus { border-color:var(--accent); color:var(--accent); }
+  .nota-paste.drag  { border-color:var(--accent); background:rgba(255,200,61,.08); }
+  .nota-paste-hint { margin-top:6px; font-size:11px; color:var(--text3); text-align:center; line-height:1.5; }
   .more-sheet-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 950;
   }
@@ -1678,8 +1713,13 @@ function selectWork(id, silent) {
                onclick="document.getElementById('notaFile_${w.id}').click()">
             <div class="nota-drop-icon">🎼</div>
             <div class="nota-drop-main">Notayı buraya sürükle veya yapıştır</div>
-            <div class="nota-drop-sub">Panodaki görseli <b>⌘/Ctrl + V</b> ile yapıştırabilirsin<br>ya da dokunup dosya seç (JPG, PNG, WEBP, PDF · en fazla 15 MB)</div>
+            <div class="nota-drop-sub">Dokunup dosya seç ya da sürükle-bırak<br>(JPG, PNG, WEBP, PDF · en fazla 15 MB)</div>
           </div>
+          <div class="nota-paste" id="notaPaste_${w.id}" data-work="${w.id}"
+               contenteditable="true" inputmode="none" role="button"
+               aria-label="Panodaki görseli yapıştır"
+               onclick="event.stopPropagation()"></div>
+          <div class="nota-paste-hint">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli.</div>
           <div id="notaUploadStatus_${w.id}" style="margin-top:8px;font-size:12px;color:var(--text3);"></div>
           ${w.notaUrl ? `<button onclick="deleteNota(${w.id})" style="margin-top:8px;display:block;background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">🗑 Notayı Kaldır</button>` : ''}
         </div>
@@ -2157,6 +2197,52 @@ function setupNotaDropzone(id) {
   zone.addEventListener('drop', e => {
     e.preventDefault(); e.stopPropagation(); zone.classList.remove('drag');
     const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) uploadNotaFile(id, f);
+  });
+  setupNotaPasteBox(id);   // 2026-07-20: mobil basılı tut → Yapıştır
+}
+
+// 2026-07-20: Mobilde "basılı tut → Yapıştır" için contenteditable kutu.
+// navigator.clipboard.read() BİLEREK kullanılmıyor: iOS'ta her seferinde izin
+// uyarısı çıkarıyor ve WKWebView'da güvenilmez. paste olayında böyle bir uyarı yok.
+function setupNotaPasteBox(id) {
+  const box = document.getElementById('notaPaste_' + id);
+  if (!box || box.dataset.wired === '1') return;
+  box.dataset.wired = '1';
+
+  box.addEventListener('paste', e => {
+    e.preventDefault();
+    e.stopPropagation();               // global dinleyici tekrar çalışmasın
+    const dt = e.clipboardData;
+    let f = (dt && dt.files && dt.files[0]) || null;
+    if (!f && dt && dt.items) {        // iOS bazen files yerine items veriyor
+      for (const it of dt.items) {
+        if (it.type && it.type.indexOf('image/') === 0) { f = it.getAsFile(); break; }
+      }
+    }
+    box.innerHTML = '';
+    box.blur();
+    if (f) uploadNotaFile(id, f);
+    else notaStatus(id, '❌ Panoda görsel yok. Önce bir görsel/ekran görüntüsü kopyala.', 'var(--red)');
+  });
+
+  // Kutu bir metin alanı değil: yazılanı anında temizle, harf girişini engelle.
+  box.addEventListener('input', () => { box.innerHTML = ''; });
+  box.addEventListener('keydown', e => {
+    if (e.key && e.key.length === 1 && !e.metaKey && !e.ctrlKey) e.preventDefault();
+  });
+
+  // Kutuya sürükle-bırak da çalışsın (masaüstü)
+  ['dragenter','dragover'].forEach(ev => box.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); box.classList.add('drag');
+  }));
+  ['dragleave','dragend'].forEach(ev => box.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); box.classList.remove('drag');
+  }));
+  box.addEventListener('drop', e => {
+    e.preventDefault(); e.stopPropagation(); box.classList.remove('drag');
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    box.innerHTML = '';
     if (f) uploadNotaFile(id, f);
   });
 }
