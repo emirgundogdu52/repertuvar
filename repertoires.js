@@ -358,83 +358,22 @@ async function load(){
 }
 
 function fixMobileHeight() {
-  const layout = document.querySelector('.layout');
+  if (window.innerWidth >= 768) return;
+  const topnav = document.querySelector('.r-topnav') || document.querySelector('.v2-topnav');
+  const botnav = document.querySelector('.r-bottom-nav') || document.querySelector('.v2-bottom-nav');
   const lp = document.querySelector('.lp');
-  const dp = document.querySelector('.dp');
   const ls = document.getElementById('list');
-
-  if (window.innerWidth >= 768) {
-    [layout, lp, dp, ls].forEach(function(el){
-      if (el) { el.style.height=''; el.style.maxHeight=''; el.style.minHeight=''; }
-    });
-    return;
-  }
-
-  const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-
-  let bottomEdge = vh;
-  const bars = document.querySelectorAll('.r-bottom-nav, .v2-bottom-nav, #v2StageBotNav, .sb');
-  bars.forEach(function(b){
-    const cs = getComputedStyle(b);
-    if (cs.display === 'none' || cs.visibility === 'hidden') return;
-    if (cs.position !== 'fixed' && cs.position !== 'sticky') return;
-    const r = b.getBoundingClientRect();
-    if (r.height > 0 && r.top > vh * 0.4 && r.top < bottomEdge) bottomEdge = r.top;
-  });
-
-  function fit(el) {
-    if (!el) return 0;
-    if (getComputedStyle(el).display === 'none') return 0;
-    el.style.height=''; el.style.maxHeight=''; el.style.minHeight='';
-    const top = el.getBoundingClientRect().top;
-    const h = Math.round(bottomEdge - top);
-    if (h < 120) return 0;
-    el.style.height = h + 'px';
-    el.style.maxHeight = h + 'px';
-    el.style.minHeight = h + 'px';
-    return h;
-  }
-
-  fit(layout);
-  fit(lp);
-  fit(dp);
-
-  if (lp && ls && getComputedStyle(lp).display !== 'none') {
-    const lpH = parseFloat(lp.style.height) || 0;
-    const lph = lp.querySelector('.lph');
-    const lphH = lph ? lph.offsetHeight : 50;
-    if (lpH > lphH) { ls.style.height = (lpH - lphH) + 'px'; ls.style.overflowY = 'scroll'; }
-  }
-
-  if (location.search.indexOf('debugh') > -1) showHeightDebug(vh, bottomEdge, dp);
+  if (!lp || !ls) return;
+  const topH = topnav ? topnav.offsetHeight : 56;
+  const botH = botnav ? botnav.offsetHeight : 68;
+  const available = window.innerHeight - topH - botH;
+  lp.style.height = available + 'px';
+  lp.style.maxHeight = available + 'px';
+  const lph = lp.querySelector('.lph');
+  const lphH = lph ? lph.offsetHeight : 50;
+  ls.style.height = (available - lphH) + 'px';
+  ls.style.overflowY = 'scroll';
 }
-
-function showHeightDebug(vh, bottomEdge, dp) {
-  let box = document.getElementById('hDebug');
-  if (!box) {
-    box = document.createElement('div');
-    box.id = 'hDebug';
-    box.style.cssText = 'position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.85);color:#FFC83D;font:11px/1.5 monospace;padding:8px 10px;border-radius:8px;max-width:70vw;pointer-events:none;white-space:pre;';
-    document.body.appendChild(box);
-  }
-  const r = dp ? dp.getBoundingClientRect() : null;
-  box.textContent =
-    'innerHeight ' + window.innerHeight +
-    '\nvisualVP   ' + Math.round(vh) +
-    '\nbottomEdge ' + Math.round(bottomEdge) +
-    (r ? '\ndp top     ' + Math.round(r.top) +
-         '\ndp bottom  ' + Math.round(r.bottom) +
-         '\ndp scroll  ' + dp.scrollHeight + ' / ' + dp.clientHeight : '\ndp yok');
-}
-
-var _fmhTimer = null;
-function scheduleFixMobileHeight() {
-  clearTimeout(_fmhTimer);
-  _fmhTimer = setTimeout(fixMobileHeight, 60);
-}
-window.addEventListener('resize', scheduleFixMobileHeight);
-window.addEventListener('orientationchange', function(){ setTimeout(fixMobileHeight, 250); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleFixMobileHeight);
 
 function getHiddenRepIds() {
   try { return JSON.parse(localStorage.getItem('hiddenRepIds') || '[]'); }
@@ -522,7 +461,6 @@ function goBackToList(){
   const dp=document.getElementById('dp');
   if(lp) lp.classList.remove('mobile-hidden');
   if(dp) dp.classList.remove('mobile-open');
-  setTimeout(fixMobileHeight, 60);
   const btn=document.getElementById('mobileBackBtn');
   if(btn) btn.style.display='none';
 }
