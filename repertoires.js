@@ -450,7 +450,6 @@ function sel(id){
     const dp=document.getElementById('dp');
     if(lp) lp.classList.add('mobile-hidden');
     if(dp) dp.classList.add('mobile-open');
-    setTimeout(fixMobileHeight, 60);
     const btn=document.getElementById('mobileBackBtn');
     if(btn) btn.style.display='flex';
   }
