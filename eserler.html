@@ -7,7 +7,7 @@
     (Capacitor) uygulamada bu "capacitor://localhost/..." üretiyor ve gönderilen
     link hiçbir cihazda açılmıyordu. Yeni shareBaseUrl() yalnız gerçek web
     adresindeyken location'ı kullanır, aksi halde SHARE_BASE
-    (https://www.repertuvar.app/eserler.html) yazar. shareWork artık async:
+    (https://app.repertuvar.app/eserler.html) yazar. shareWork artık async:
     navigator.share → clipboard.writeText → execCommand → prompt sırasıyla
     dener, iptal (AbortError) sessiz, kopyalanmadan "kopyalandı" demez.
     (2) Linkin AÇILIŞI: init'te sadece `DATA.find(...)` bakılıyordu; ancak
@@ -1120,7 +1120,7 @@ function stubAction(label) {
 // çalışırken location.origin "capacitor://localhost" (veya file://) olur; bu
 // adres dışarıya gönderilince hiçbir cihazda açılmaz. Bu yüzden sadece gerçek
 // web adresindeyken location kullanılıyor, aksi halde canlı alan adı yazılıyor.
-const SHARE_BASE = 'https://www.repertuvar.app/eserler.html';
+const SHARE_BASE = 'https://app.repertuvar.app/eserler.html';
 function shareBaseUrl() {
   const isWeb = (location.protocol === 'https:' || location.protocol === 'http:');
   const isLocal = /^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname || '');

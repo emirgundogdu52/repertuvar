@@ -23,7 +23,7 @@ Repertuvar.app'e kayıt olduğunuz için teşekkürler.
 Sistemimizde yaptığımız bir inceleme sırasında hesabınızın teknik bir sorun nedeniyle tam olarak aktif edilemediğini fark ettik. Bu sorunu sizin adınıza düzelttik.
 
 Artık aşağıdaki adresten giriş yapabilirsiniz:
-https://www.repertuvar.app/login.html
+https://app.repertuvar.app/login.html
 
 Şifrenizi hatırlamıyorsanız "Şifremi unuttum" seçeneğini kullanabilirsiniz.
 

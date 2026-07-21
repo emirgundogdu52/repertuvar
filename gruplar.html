@@ -7,7 +7,7 @@
     otomatik büyütmesi kapatıldı (-webkit-text-size-adjust), buton satırları mobilde
     sarıp tam genişliğe yayılıyor (.m-btn-row).
   - 2026-07-17 (b): (1) Davet linki artık capacitor://localhost yerine canlı web
-    adresinden (origin http değilse https://www.repertuvar.app) kuruluyor — native
+    adresinden (origin http değilse https://app.repertuvar.app) kuruluyor — native
     app'te üretilen link de paylaşılabilir/açılabilir. (2) Topnav üstte sabitlendi
     (#r-topnav-container position:sticky).
 -->
@@ -415,7 +415,7 @@ async function generateInvite() {
     // olur ve o link paylaşılamaz. Web origin'i http ise onu kullan, değilse
     // (native app) canlı web adresine düş.
     const origin = window.location.origin;
-    const shareBase = origin.startsWith('http') ? origin : 'https://www.repertuvar.app';
+    const shareBase = origin.startsWith('http') ? origin : 'https://app.repertuvar.app';
     const link = shareBase + '/login.html?invite=' + invite.token;
     currentInviteLink = link;
     document.getElementById('inviteLinkText').textContent = link;

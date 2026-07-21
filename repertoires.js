@@ -1379,7 +1379,7 @@ function shareLinkFor(repId){
   const token = btoa(repId).replace(/=/g,'');
   const base = window.location.origin.startsWith('http')
     ? window.location.origin + window.location.pathname.replace(/repertoires\.html.*$/,'')
-    : 'https://www.repertuvar.app/';
+    : 'https://app.repertuvar.app/';
   return base + 'stage.html?share=' + token;
 }
 
