@@ -365,31 +365,66 @@ function fixMobileHeight() {
 
   if (window.innerWidth >= 768) {
     [layout, lp, dp, ls].forEach(function(el){
-      if (el) { el.style.height = ''; el.style.maxHeight = ''; }
+      if (el) { el.style.height=''; el.style.maxHeight=''; el.style.minHeight=''; }
     });
     return;
   }
 
-  const topnav = document.querySelector('.r-topnav') || document.querySelector('.v2-topnav');
-  const botnav = document.querySelector('.r-bottom-nav') || document.querySelector('.v2-bottom-nav');
-  const topH = topnav ? topnav.offsetHeight : 56;
-  const botH = botnav ? botnav.offsetHeight : 68;
-
   const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-  const available = vh - topH - botH;
-  if (available < 120) return;
 
-  if (layout) { layout.style.height = available + 'px'; layout.style.minHeight = available + 'px'; }
+  let bottomEdge = vh;
+  const bars = document.querySelectorAll('.r-bottom-nav, .v2-bottom-nav, #v2StageBotNav, .sb');
+  bars.forEach(function(b){
+    const cs = getComputedStyle(b);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return;
+    if (cs.position !== 'fixed' && cs.position !== 'sticky') return;
+    const r = b.getBoundingClientRect();
+    if (r.height > 0 && r.top > vh * 0.4 && r.top < bottomEdge) bottomEdge = r.top;
+  });
 
-  if (dp) { dp.style.height = available + 'px'; dp.style.maxHeight = available + 'px'; }
+  function fit(el) {
+    if (!el) return 0;
+    if (getComputedStyle(el).display === 'none') return 0;
+    el.style.height=''; el.style.maxHeight=''; el.style.minHeight='';
+    const top = el.getBoundingClientRect().top;
+    const h = Math.round(bottomEdge - top);
+    if (h < 120) return 0;
+    el.style.height = h + 'px';
+    el.style.maxHeight = h + 'px';
+    el.style.minHeight = h + 'px';
+    return h;
+  }
 
-  if (lp) { lp.style.height = available + 'px'; lp.style.maxHeight = available + 'px'; }
-  if (lp && ls) {
+  fit(layout);
+  fit(lp);
+  fit(dp);
+
+  if (lp && ls && getComputedStyle(lp).display !== 'none') {
+    const lpH = parseFloat(lp.style.height) || 0;
     const lph = lp.querySelector('.lph');
     const lphH = lph ? lph.offsetHeight : 50;
-    ls.style.height = (available - lphH) + 'px';
-    ls.style.overflowY = 'scroll';
+    if (lpH > lphH) { ls.style.height = (lpH - lphH) + 'px'; ls.style.overflowY = 'scroll'; }
   }
+
+  if (location.search.indexOf('debugh') > -1) showHeightDebug(vh, bottomEdge, dp);
+}
+
+function showHeightDebug(vh, bottomEdge, dp) {
+  let box = document.getElementById('hDebug');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'hDebug';
+    box.style.cssText = 'position:fixed;left:6px;bottom:6px;z-index:9999;background:rgba(0,0,0,.85);color:#FFC83D;font:11px/1.5 monospace;padding:8px 10px;border-radius:8px;max-width:70vw;pointer-events:none;white-space:pre;';
+    document.body.appendChild(box);
+  }
+  const r = dp ? dp.getBoundingClientRect() : null;
+  box.textContent =
+    'innerHeight ' + window.innerHeight +
+    '\nvisualVP   ' + Math.round(vh) +
+    '\nbottomEdge ' + Math.round(bottomEdge) +
+    (r ? '\ndp top     ' + Math.round(r.top) +
+         '\ndp bottom  ' + Math.round(r.bottom) +
+         '\ndp scroll  ' + dp.scrollHeight + ' / ' + dp.clientHeight : '\ndp yok');
 }
 
 var _fmhTimer = null;
