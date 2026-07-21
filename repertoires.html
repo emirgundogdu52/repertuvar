@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v9 — 2026-07-19 paylaş/yazdır düzeltmesi -->
+<!-- build: v10 — 2026-07-22 mobil detay panelinde eser listesi dibe kadar kaydırılamıyordu: .dp yüksekliği .layout>100vh üzerinden geliyordu, iOS adres çubuğunu saymadığı için panelin altı ekran dışında kalıyordu. fixMobileHeight artık .layout ve .dp yüksekliğini de visualViewport ile ölçüp veriyor; dvh yedekleri ve alt güvenli alan boşluğu eklendi. -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -221,12 +221,13 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     .nb { font-size:11px; padding:4px 8px; white-space:nowrap; }
-    .layout { flex-direction:column; height:calc(100vh - 56px - 68px); }
+    .layout { flex-direction:column; height:calc(100vh - 56px - 68px); height:calc(100dvh - 56px - 68px); }
     .lp { width:100%; min-width:unset; flex:1; height:100%; max-height:none; border-right:none; border-bottom:none; display:flex; flex-direction:column; overflow:hidden; }
     .lph { flex-shrink:0; }
     .ls { flex:1; overflow-y:scroll; -webkit-overflow-scrolling:touch; min-height:0; }
     .dp { display:none; }
-    .dp.mobile-open { display:flex !important; flex-direction:column; }
+    .dp.mobile-open { display:flex !important; flex-direction:column; min-height:0; -webkit-overflow-scrolling:touch; }
+  .dp.mobile-open .dc { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
     .lp.mobile-hidden { display:none !important; }
     .mobile-back-btn { display:flex; align-items:center; gap:8px; padding:12px 16px; color:var(--accent); font-size:13px; font-weight:600; cursor:pointer; border-bottom:1px solid var(--border); background:var(--surface); }
     .dc { padding:16px; }
@@ -243,7 +244,7 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
   @media (max-width: 480px) {
     .nb[href="artiesten.html"], .nb[href="eserler.html"] { display:none; }
     .nb[href="index.html"] img { height:28px !important; }
-    .layout { min-height:calc(100vh - 52px); }
+    .layout { min-height:calc(100vh - 52px); min-height:calc(100dvh - 52px); }
     /* .lp max-height removed — fixMobileHeight() handles this dynamically */
     .dmr { flex-direction:column; gap:6px; }
     .dt { font-size:11px; }
