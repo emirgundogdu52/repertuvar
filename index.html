@@ -25,6 +25,8 @@
   <link rel="manifest" href="manifest.json">
   <script src="db.js"></script>
   <style>
+    :root { --pedal-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='6' width='7' height='12' rx='2'/%3E%3Crect x='14.5' y='6' width='7' height='12' rx='2'/%3E%3Cpath d='M9.5 9h5M9.5 15h5'/%3E%3Ccircle cx='12' cy='12' r='1.4'/%3E%3C/svg%3E"); }
+
     /* Üst nav bu sayfada sabit kalsın (scroll ile kaybolmasın) */
     .r-topnav{position:fixed !important;top:0;left:0;right:0;z-index:200;}
     body{padding-top:var(--topnav-h, 66px);}
@@ -252,6 +254,8 @@
     .hero-song-row.now { border-color: rgba(255,200,61,.5); background: rgba(255,200,61,.08); }
     @media (max-width: 480px) { .hero-pedal-wrap { width: 104px; right: 0; bottom: -4%; } }
     @media (prefers-reduced-motion: reduce) { .hero-pedal-hit, .hero-bt-wave { display: none; } }
+  
+    .pedal-ic { display:inline-block; width:1em; height:1em; vertical-align:-.125em; background-color:currentColor; -webkit-mask:var(--pedal-mask) center/contain no-repeat; mask:var(--pedal-mask) center/contain no-repeat; }
   </style>
 </head>
 <body>
@@ -277,7 +281,7 @@
         <li><i class="ti ti-check"></i> Eseri seç / kaydet</li>
         <li><i class="ti ti-music"></i> Repertuvarı oluştur</li>
         <li><i class="ti ti-arrows-sort"></i> Sürükle bırak ile sırala</li>
-        <li><i class="ti ti-shoe"></i> Sayfa çevirme pedalıyla uyumlu</li>
+        <li><i class="pedal-ic"></i> Sayfa çevirme pedalıyla uyumlu</li>
       </ul>
       <div class="hero-actions">
         <a href="repertoires.html" class="hero-btn-primary"><i class="ti ti-music"></i> Repertuvarlara Bak →</a>
@@ -343,7 +347,7 @@
         <div><h5>Offline çalışır</h5><p>İnternet bağlantınız kopsa bile çalışmaya devam eder.</p></div>
       </div>
       <div class="hero-feature-card">
-        <span class="ic"><i class="ti ti-shoe"></i><span class="chk">✓</span></span>
+        <span class="ic"><i class="pedal-ic"></i><span class="chk">✓</span></span>
         <div><h5>Pedalla uyumlu</h5><p>Bluetooth sayfa çevirme pedalları (harici cihaz) doğrudan çalışır. Pedalın yoksa dokunma, kaydırma ve klavyeyle de geçebilirsin.</p></div>
       </div>
       <div class="hero-feature-card">
@@ -387,7 +391,7 @@
             <div class="feat-desc">Ekibinizle ortak Repertuvar listelerini paylaşın. Sahnede; "sırada ne var, hangi makamdan çalıyoruz, hangi usulden?" gibi soruları unutun!.. — Her şey anında herkesin kendi ekranında!..<span class="feat-detay">Detay →</span></div>
           </a>
           <a href="stage.html" class="feat-card" onclick="localStorage.setItem('stageSource','index')" style="text-decoration:none;">
-            <div class="feat-icon"><i class="ti ti-device-gamepad"></i></div>
+            <div class="feat-icon"><i class="pedal-ic"></i></div>
             <div class="feat-title">Sayfa Çevirme Pedalıyla Uyumlu</div>
             <div class="feat-desc">Enstrüman elinizde, gözleriniz notalarda — siz sadece performansınıza odaklanın. Piyasadaki Bluetooth sayfa çevirme pedalları (AirTurn, Donner, iRig BlueTurn, PageFlip vb.) klavye tuşu gönderdiği için Repertuvar'la doğrudan çalışır; uygulama içinde ayar yapmanız gerekmez. <b>Pedal harici bir cihazdır, ayrıca satın alınır.</b> Pedalınız yoksa ekrana dokunarak, kaydırarak veya klavyeyle de eser geçebilirsiniz.<span class="feat-detay">Detay →</span></div>
           </a>
