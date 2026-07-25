@@ -123,7 +123,6 @@
     .hero-ipad-topbar { display:flex; align-items:center; justify-content:space-between; padding:4px 6px 12px; color:var(--text2); }
     .hero-ipad-topbar .title { font-size:15px; font-weight:700; color:var(--text); }
     .hero-ipad-topbar .icons { display:flex; align-items:center; gap:14px; font-size:16px; }
-    .hero-ipad-bt { color: var(--accent2); animation: btBlink 2.4s ease-in-out infinite; }
     @keyframes btBlink { 0%,100% { opacity:.6; } 50% { opacity:1; } }
     .hero-ipad-toast {
       position:absolute; top:16px; left:50%; transform:translateX(-50%) translateY(-8px);
@@ -143,7 +142,7 @@
     .hero-song-row .num { color:var(--text3); font-size:12px; width:14px; flex-shrink:0; }
     .hero-song-row .grip { color:var(--text3); font-size:14px; letter-spacing:1px; }
     .hero-song-row b { flex:1; color:var(--text); font-weight:600; }
-    .hero-song-row span { color:var(--accent); font-weight:700; font-size:12px; }
+    .hero-song-row span { color:var(--accent); font-weight:700; font-size:11px; white-space:nowrap; }
     .hero-song-row.dragging {
       background: var(--surface2); border-color: rgba(255,200,61,.5);
       box-shadow: 0 12px 24px rgba(0,0,0,.4);
@@ -217,6 +216,42 @@
     }
     .hero-feature-card h5 { font-size:14px; font-weight:700; color:var(--text); margin-bottom:4px; }
     .hero-feature-card p { font-size:12px; color:var(--text3); line-height:1.5; margin:0; }
+  
+    /* ── Hero pedal + Bluetooth sinyali (landing ile ayni mantik) — 2026-07-25 ── */
+    .hero-preview-wrap { position: relative; }
+    .hero-pedal-wrap {
+      position: relative; width: 190px; max-width: 62%; z-index: 3;
+      transform: rotate(2deg);
+      transition: transform .17s cubic-bezier(.3,1.5,.5,1);
+    }
+    .hero-pedal-wrap .hero-pedal {
+      width: 100%; height: auto; display: block;
+      filter: drop-shadow(0 16px 24px rgba(0,0,0,.55));
+    }
+    .hero-pedal-note { display:block; margin-top:10px; font-size:11px; color:var(--text3); text-align:center; }
+    .hero-pedal-wrap.press { transform: rotate(3deg) scale(.965); }
+    .hero-pedal-hit {
+      position: absolute; right: 10%; top: 50%; width: 27%; height: 62%;
+      transform: translateY(-50%); border-radius: 14px; pointer-events: none;
+      background: radial-gradient(ellipse at center, rgba(255,200,61,.5), rgba(255,200,61,.12) 55%, transparent 75%);
+      opacity: 0; transition: opacity .16s ease;
+    }
+    .hero-pedal-wrap.press .hero-pedal-hit { opacity: 1; }
+    .hero-bt-wave {
+      position: absolute; left: 50%; top: -30px; width: 54px; height: 54px;
+      transform: translateX(-50%) rotate(-45deg);
+      pointer-events: none; overflow: visible;
+    }
+    .hero-bt-wave path { fill: none; stroke: #5B9BFF; stroke-width: 3.4; stroke-linecap: round; opacity: 0; }
+    .hero-pedal-wrap.signal .hero-bt-wave path { animation: heroBtArc .62s ease-out both; }
+    .hero-pedal-wrap.signal .hero-bt-wave path:nth-child(2) { animation-delay: .10s; }
+    .hero-pedal-wrap.signal .hero-bt-wave path:nth-child(3) { animation-delay: .20s; }
+    @keyframes heroBtArc { 0% { opacity: 0; } 30% { opacity: .95; } 100% { opacity: 0; } }
+    .hero-ipad { transition: filter .22s ease; }
+    .hero-ipad.recv { filter: drop-shadow(0 0 14px rgba(91,155,255,.55)); }
+    .hero-song-row.now { border-color: rgba(255,200,61,.5); background: rgba(255,200,61,.08); }
+    @media (max-width: 480px) { .hero-pedal-wrap { width: 104px; right: 0; bottom: -4%; } }
+    @media (prefers-reduced-motion: reduce) { .hero-pedal-hit, .hero-bt-wave { display: none; } }
   </style>
 </head>
 <body>
@@ -262,12 +297,12 @@
               <div class="icons"><i class="ti ti-search"></i><i class="ti ti-plus"></i><i class="ti ti-dots-vertical"></i></div>
             </div>
             <div class="hero-ipad-screen">
-              <div class="hero-song-row dragging hero-rotatable" id="heroRow1"><span class="grip">☰</span><b>Hekimoğlu</b><span>Bm</span></div>
-              <div class="hero-song-row hero-rotatable" id="heroRow2"><span class="num">2</span><b>Çökertme</b><span>Dm</span></div>
-              <div class="hero-song-row hero-rotatable" id="heroRow3"><span class="num">3</span><b>Fidayda</b><span>Gm</span></div>
-              <div class="hero-song-row"><span class="num">4</span><b>Uzun İnce Yol</b><span>Am</span></div>
-              <div class="hero-song-row"><span class="num">5</span><b>Sen Ağlama</b><span>C</span></div>
-              <div class="hero-song-row"><span class="num">6</span><b>Gül Yüzlü Sevdiğim</b><span>Em</span></div>
+              <div class="hero-song-row dragging hero-rotatable" id="heroRow1"><span class="grip">☰</span><b>Allı Turnam</b><span>Hüseyni · La</span></div>
+              <div class="hero-song-row hero-rotatable" id="heroRow2"><span class="num">2</span><b>Dostum Dostum</b><span>Hüseyni · La</span></div>
+              <div class="hero-song-row hero-rotatable" id="heroRow3"><span class="num">3</span><b>Barış Güvercini</b><span>Hüseyni · La</span></div>
+              <div class="hero-song-row"><span class="num">4</span><b>Vardar Ovası</b><span>Hicaz · La</span></div>
+              <div class="hero-song-row"><span class="num">5</span><b>Aldırma Gönül</b><span>Hicaz · La</span></div>
+              <div class="hero-song-row"><span class="num">6</span><b>Bedir Geliyor</b><span>Hicaz · La</span></div>
               <div class="hero-ipad-tabbar">
                 <div class="tab active"><i class="ti ti-music"></i>Repertuvar</div>
                 <div class="tab"><i class="ti ti-book"></i>Eserler</div>
@@ -281,10 +316,12 @@
 
         <!-- BLUETOOTH PEDAL -->
         <div class="hero-pedal-col">
-          <div class="hero-pedal-badge">
-            <span class="bticon"><i class="ti ti-bluetooth"></i></span>
-            <div><b>Sayfa Çevirme Pedalı</b><span class="status"><span class="hero-pedal-dot"></span>Uyumlu · ayrıca satın alınır</span></div>
+          <div class="hero-pedal-wrap">
+            <img class="hero-pedal" src="assets/pedal-foto.png" alt="Sayfa çevirme pedalı (harici cihaz, ayrıca satın alınır)" />
+            <span class="hero-pedal-hit"></span>
+            <svg class="hero-bt-wave" viewBox="0 0 60 60"><path d="M40 4 A16 16 0 0 1 56 20"/><path d="M26 4 A30 30 0 0 1 56 34"/><path d="M12 4 A44 44 0 0 1 56 48"/></svg>
           </div>
+          <span class="hero-pedal-note">Sayfa çevirme pedalıyla uyumlu · pedal ayrıca satın alınır</span>
         </div>
 
         <!-- İSTATİSTİKLER — dikey akışın en altı -->
@@ -484,53 +521,81 @@
     }
   } catch(e) {}
 
-  // Hero: iPad'deki eser satırları gerçekten yer değiştirir (FLIP animasyonu)
-  // Hekimoğlu yukarıdan aşağı doğru sürüklenip 3. sıraya iner, diğerleri yumuşakça yukarı kayar.
+  // Hero: iPad + pedal — sürükle-bırak ile repertuvar düzenlenir, sonra pedala
+  // basılınca Bluetooth sinyali pedaldan tablete gider ve çalınan eser bir alt
+  // satıra geçer. Pedal SAYFA ÇEVİRİR, sıralama yapmaz. Bağlantı cihaz
+  // seviyesindedir; ekranın İÇİNE bluetooth simgesi/rozeti konmaz.
   (function() {
     const screen = document.querySelector('.hero-ipad-screen');
+    const ipad = document.querySelector('.hero-ipad');
     const toast = document.getElementById('heroToast');
     if (!screen) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    function rotate() {
+    // pedal ve bluetooth sinyali HTML'de hazir
+    const wrap = document.querySelector('.hero-pedal-wrap');
+
+    const EASE = 'transform .65s cubic-bezier(.34,1.15,.4,1)';
+    const allRows = () => Array.from(screen.querySelectorAll('.hero-song-row'));
+    function renumber() {
+      allRows().forEach((r, i) => {
+        const n = r.querySelector('.num');
+        if (n) n.textContent = i + 1;
+      });
+    }
+    function highlight(idx) {
+      allRows().forEach((r, k) => r.classList.toggle('now', k === idx));
+    }
+
+    function reorder(done) {
       const rows = Array.from(screen.querySelectorAll('.hero-rotatable'));
-      if (rows.length < 2) return;
-      const first = rows[0];
-      const rest = rows.slice(1);
-
-      // 1) Eski konumları kaydet (First)
+      if (rows.length < 2) { done(); return; }
+      const first = rows[0], rest = rows.slice(1);
       const firstOld = first.getBoundingClientRect();
       const restOld = rest.map(r => r.getBoundingClientRect());
-
       first.classList.add('dragging');
-
-      // 2) DOM'da first'i en sona taşı (Last)
       rest[rest.length - 1].insertAdjacentElement('afterend', first);
-
-      // 3) Yeni konumlarla farkı hesapla (Invert) — animasyonsuz anlık ters kaydırma
       const firstNew = first.getBoundingClientRect();
       first.style.transition = 'none';
       first.style.transform = `translateY(${firstOld.top - firstNew.top}px)`;
       rest.forEach((r, i) => {
-        const newRect = r.getBoundingClientRect();
+        const nr = r.getBoundingClientRect();
         r.style.transition = 'none';
-        r.style.transform = `translateY(${restOld[i].top - newRect.top}px)`;
+        r.style.transform = `translateY(${restOld[i].top - nr.top}px)`;
       });
-
-      // 4) Play — bir sonraki frame'de gerçek pozisyona doğru yumuşakça animasyonla dön
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          first.style.transition = 'transform .65s cubic-bezier(.34,1.15,.4,1)';
-          first.style.transform = '';
-          rest.forEach(r => { r.style.transition = 'transform .65s cubic-bezier(.34,1.15,.4,1)'; r.style.transform = ''; });
-          setTimeout(() => first.classList.remove('dragging'), 650);
+          first.style.transition = EASE; first.style.transform = '';
+          rest.forEach(r => { r.style.transition = EASE; r.style.transform = ''; });
+          setTimeout(() => { first.classList.remove('dragging'); renumber(); highlight(0); }, 650);
           setTimeout(() => { if (toast) toast.classList.add('show'); }, 750);
           setTimeout(() => { if (toast) toast.classList.remove('show'); }, 1950);
+          setTimeout(done, 2300);
         });
       });
     }
 
-    setTimeout(rotate, 2500);
-    setInterval(rotate, 3200);
+    function pedalPress(target, done) {
+      if (wrap) {
+        wrap.classList.add('press', 'signal');
+        setTimeout(() => wrap.classList.remove('press'), 165);
+        setTimeout(() => wrap.classList.remove('signal'), 880);
+      }
+      if (ipad) {
+        setTimeout(() => ipad.classList.add('recv'), 250);
+        setTimeout(() => ipad.classList.remove('recv'), 620);
+      }
+      setTimeout(() => highlight(target), 310);
+      setTimeout(done, 1450);
+    }
+
+    let step = 0;
+    function loop() {
+      if (step === 0) { reorder(() => { step = 1; loop(); }); }
+      else if (step <= 3) { const t = step; pedalPress(t, () => { step++; loop(); }); }
+      else { highlight(0); step = 0; setTimeout(loop, 1700); }
+    }
+    setTimeout(loop, 2500);
   })();
 
   // Feat slideshow
