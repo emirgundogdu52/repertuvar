@@ -45,23 +45,26 @@ async function hesapSil() {
   if (email !== user?.email) { hata.style.display='block'; hata.textContent='E-posta adresi eşleşmiyor.'; return; }
 
   const btn = document.getElementById('silOnayla');
-  btn.disabled = true; btn.textContent = 'İşleniyor...';
+  btn.disabled = true; btn.textContent = 'Siliniyor...';
 
   try {
-    // profiles tablosuna silme talebi yaz
-    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + user.id, {
-      method: 'PATCH',
-      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ deletion_requested_at: new Date().toISOString(), status: 'deletion_requested' })
+    // Sunucu tarafı kalıcı silme (tüm veri + auth kaydı)
+    const res = await fetch(SUPA_URL + '/rest/v1/rpc/delete_my_account', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: '{}'
     });
-  } catch(e) {}
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+  } catch(e) {
+    hata.style.display = 'block';
+    hata.textContent = 'Hesap silinemedi, lütfen tekrar deneyin.';
+    btn.disabled = false; btn.textContent = 'Hesabımı Sil';
+    return;
+  }
 
-  // Bilgi e-postası gönder (opsiyonel — mail uygulaması aç)
-  // window.location.href = 'mailto:info@repertuvar.app?subject=Hesap Silme Talebi&body=E-posta: ' + email;
-
-  // Logout
+  // Başarılı: oturumu temizle ve çıkış
   localStorage.clear();
-  window.location.href = 'login.html?msg=silme-talebi';
+  window.location.href = 'login.html?msg=hesap-silindi';
 }
 
 </script>
@@ -574,14 +577,14 @@ body{padding-top:var(--topnav-h, 66px);}
     <div class="modal-title" style="color:var(--red);">⚠️ Hesabı Sil</div>
     <p style="font-size:16px;color:var(--text2);margin-bottom:8px;">Bu işlem <strong>geri alınamaz</strong>. Tüm hesap bilgileriniz kalıcı olarak silinecek.</p>
     <p id="silRepUyari" style="font-size:16px;color:var(--red);font-weight:600;margin-bottom:8px;display:none;"></p>
-    <p style="font-size:16px;color:var(--text2);margin-bottom:8px;">Talebiniz alındıktan sonra <strong>30 gün içinde</strong> tüm verileriniz silinecek ve size bilgi verilecektir.</p>
+    <p style="font-size:16px;color:var(--text2);margin-bottom:8px;">Onayladığınızda hesabınız ve tüm verileriniz <strong>hemen ve kalıcı olarak</strong> silinir. Sahibi olduğunuz gruplarda başka üye varsa yönetim onlara devredilir.</p>
     <p style="font-size:16px;color:var(--text2);margin-bottom:16px;">Onaylamak için e-posta adresinizi yazın:</p>
     <input type="email" id="silOnayEmail" placeholder="e-posta adresiniz"
       style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:16px;font-family:var(--font);outline:none;margin-bottom:16px;">
     <div id="silHataMsg" style="font-size:15px;color:var(--red);display:none;margin-bottom:8px;"></div>
     <div class="modal-actions">
       <button class="modal-btn" onclick="hesapSilKapat()">İptal</button>
-      <button class="modal-btn danger" id="silOnayla" onclick="hesapSil()">Silme Talebini Gönder</button>
+      <button class="modal-btn danger" id="silOnayla" onclick="hesapSil()">Hesabımı Sil</button>
     </div>
   </div>
 </div>
