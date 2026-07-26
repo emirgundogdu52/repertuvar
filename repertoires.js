@@ -570,7 +570,7 @@ async function copyRep(repId){
     const r=await fetch(SUPA_URL+'/rest/v1/repertoires',{
       method:'POST',
       headers:{...H,'Prefer':'return=representation'},
-      body:JSON.stringify({name:rep.name+' (kopya)',status:'concept',user_id:uid,owner_id:uid,is_public:false})
+      body:JSON.stringify({name:rep.name+' (kopya)',status:'concept',user_id:uid,owner_id:uid,is_public:false,group_id:(getGroupId&&getGroupId())||null})
     });
     if(!r.ok)throw new Error(await r.text());
     const [newRep]=await r.json();
