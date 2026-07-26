@@ -12,19 +12,25 @@ async function hesapSilOnay() {
   document.getElementById('silOnayEmail').value = '';
   document.getElementById('silHataMsg').style.display = 'none';
 
-  // Repertuvar sayısını çek
+  // Repertuvar ve sahip olunan grup sayısını çek
   try {
     const uid = getUserId();
     const r = await fetch(SUPA_URL + '/rest/v1/repertoires?owner_id=eq.' + uid + '&select=id', {
       headers: authHeaders()
     });
     const reps = r.ok ? await r.json() : [];
-    const repSayisi = reps.length;
+    const gr = await fetch(SUPA_URL + '/rest/v1/groups?owner_id=eq.' + uid + '&select=id', {
+      headers: authHeaders()
+    });
+    const gruplar = gr.ok ? await gr.json() : [];
+
+    const satirlar = [];
+    if (reps.length > 0) satirlar.push(reps.length + ' repertuvarınız kalıcı olarak silinecek.');
+    if (gruplar.length > 0) satirlar.push('Sahibi olduğunuz ' + gruplar.length + ' grubun yönetimi başka bir üyeye devredilecek (grupta başka üye yoksa grup silinecek).');
+
     const uyariEl = document.getElementById('silRepUyari');
     if (uyariEl) {
-      uyariEl.textContent = repSayisi > 0
-        ? repSayisi + ' repertuvarınız kalıcı olarak silinecek.'
-        : 'Kayıtlı repertuvarınız bulunmuyor.';
+      uyariEl.innerHTML = satirlar.length ? satirlar.join('<br>') : 'Kayıtlı repertuvarınız bulunmuyor.';
       uyariEl.style.display = 'block';
     }
   } catch(e) {}
