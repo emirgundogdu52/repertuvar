@@ -321,6 +321,19 @@ async function doLogin() {
   }
 }
 
+let _signupName = '';
+let _signupEmail = '';
+
+async function writeSignupProfile(userId) {
+  try {
+    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || ''), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ display_name: _signupName, full_name: _signupName })
+    });
+  } catch(e) { console.error('isim yazma hatası:', e); }
+}
+
 async function doRegister() {
   const fullName = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
@@ -333,25 +346,49 @@ async function doRegister() {
   const {data, error} = await sb.auth.signUp({email, password: pass, options: { data: { full_name: fullName } }});
   if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent='Kayıt Ol'; return; }
 
-  // İsmi profiles'a yaz — display_name VE full_name birlikte, çünkü "Ekleyen"
-  // alanı public_profiles görünümünden okuyor (ikisinden dolu olanı kullanılıyor).
-  if (data?.user?.id) {
-    try {
-      await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + data.user.id, {
-        method: 'PATCH',
-        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (data.session?.access_token || ''), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ display_name: fullName, full_name: fullName })
-      });
-    } catch(e) { console.error('isim yazma hatası:', e); }
+  _signupName = fullName;
+  _signupEmail = email;
+
+  // Confirm email KAPALI ise signUp aninda session gelir -> direkt devam
+  if (data && data.session) {
+    localStorage.setItem('sb_token', data.session.access_token);
+    localStorage.setItem('sb_refresh', data.session.refresh_token);
+    await writeSignupProfile(data.session.user.id);
+    await handlePendingInvite(data.session.user.id);
+    window.location.href = 'index.html';
+    return;
   }
 
-  const hasPendingInvite = !!localStorage.getItem('pending_invite');
-  if (hasPendingInvite) {
-    showMsg('ok','Kayıt başarılı! E-postanızı doğrulayıp giriş yaptıktan sonra gruba otomatik ekleneceksiniz.');
-  } else {
-    showMsg('ok','Kayıt başarılı! E-postanızı doğrulayın.');
+  // Confirm email ACIK ise session yok -> 8 haneli kod doğrulama ekrani goster
+  showMsg('ok', email + ' adresine 8 haneli doğrulama kodu gönderildi.');
+  document.getElementById('registerForm').innerHTML =
+    '<div class="field">' +
+      '<label>E-posta</label>' +
+      '<input type="email" id="suEmail" value="' + email + '" readonly style="opacity:.6;">' +
+    '</div>' +
+    '<div class="field">' +
+      '<label>E-postanıza gelen 8 haneli kod</label>' +
+      '<input type="text" id="suCode" placeholder="00000000" maxlength="8" inputmode="numeric" autocomplete="one-time-code" ' +
+        'style="letter-spacing:.3em;font-size:20px;text-align:center;" ' +
+        'onkeydown="if(event.key===\'Enter\') verifySignup()">' +
+    '</div>' +
+    '<button class="btn-primary" onclick="verifySignup()">Kodu Doğrula</button>' +
+    '<button class="forgot" onclick="location.reload()">&larr; Geri dön</button>';
+}
+
+async function verifySignup() {
+  const email = _signupEmail || (document.getElementById('suEmail') ? document.getElementById('suEmail').value.trim() : '');
+  const token = document.getElementById('suCode').value.trim();
+  if(!token || token.length < 8) { showMsg('err','8 haneli kodu girin.'); return; }
+  const {data, error} = await sb.auth.verifyOtp({ email, token, type: 'signup' });
+  if(error) { showMsg('err', 'Kod hatalı veya süresi dolmuş.'); return; }
+  if(data && data.session) {
+    localStorage.setItem('sb_token', data.session.access_token);
+    localStorage.setItem('sb_refresh', data.session.refresh_token);
+    await writeSignupProfile(data.session.user.id);
+    await handlePendingInvite(data.session.user.id);
+    window.location.href = 'index.html';
   }
-  btn.disabled=false; btn.textContent='Kayıt Ol';
 }
 
 async function doReset() {
