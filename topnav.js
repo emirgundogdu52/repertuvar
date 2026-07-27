@@ -863,14 +863,13 @@
           '<div class="r-notif-time">' + _notifTime(n.created_at) + '</div>' +
         '</div>';
       }).join('');
-      const unread = rows.filter(function(n){ return !n.is_read; }).map(function(n){ return n.id; });
-      if (unread.length) {
-        fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?id=in.(' + unread.join(',') + ')', {
-          method: 'PATCH',
-          headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ is_read: true })
-        }).then(function(){ applyNotifBadge(0); }).catch(function(){});
-      }
+      // Panel açıldığında kullanıcının TÜM okunmamış bildirimlerini okundu yap
+      // (sadece son 10'u değil — yoksa listede görünmeyen eski okunmamışlar rozeti takar)
+      fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&is_read=eq.false', {
+        method: 'PATCH',
+        headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ is_read: true })
+      }).then(function(){ applyNotifBadge(0); }).catch(function(){});
     } catch(e) {
       p.innerHTML = '<div class="r-notif-head">Bildirimler</div><div style="padding:16px;color:#c05444;font-size:13px;">Yüklenemedi.</div>';
     }
