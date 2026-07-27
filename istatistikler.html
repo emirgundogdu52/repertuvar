@@ -147,6 +147,11 @@
           <div id="sttReferrers"></div>
         </div>
       </div>
+
+      <div class="stt-panel" style="margin-top:16px;">
+        <div class="stt-panel-title"><i class="ti ti-user-check"></i> Kullanıcılar <span id="sttUserCount" style="font-weight:400;color:var(--text3);font-size:11px;"></span></div>
+        <div id="sttUsers"><div class="stt-loading" style="padding:20px 0;">Yükleniyor…</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -357,6 +362,47 @@ document.getElementById('sttRange').addEventListener('click', (e) => {
   renderStats(parseInt(btn.dataset.days));
 });
 
+async function loadUsers() {
+  const box = document.getElementById('sttUsers');
+  if (!box) return;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/admin_user_list', {
+      method: 'POST',
+      headers: { ...sttHeaders(), 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const rows = await r.json();
+    const cnt = document.getElementById('sttUserCount');
+    if (cnt) cnt.textContent = '(' + rows.length + ')';
+    if (!rows.length) { box.innerHTML = '<div class="stt-empty" style="padding:16px 0;color:var(--text3);font-size:13px;">Kullanıcı yok.</div>'; return; }
+    const fmt = function(d){ if(!d) return '—'; const x=new Date(d); return x.toLocaleDateString('tr-TR')+' '+x.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}); };
+    const esc = function(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+    box.innerHTML =
+      '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+      '<thead><tr style="text-align:left;color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.04em;">' +
+        '<th style="padding:8px 10px;">E-posta</th><th style="padding:8px 10px;">İsim</th><th style="padding:8px 10px;">Grup</th>' +
+        '<th style="padding:8px 10px;">Kayıt</th><th style="padding:8px 10px;">Son Giriş</th>' +
+        '<th style="padding:8px 10px;">Ziyaret</th><th style="padding:8px 10px;">Son Ziyaret</th><th style="padding:8px 10px;">Onaylı</th>' +
+      '</tr></thead><tbody>' +
+      rows.map(function(u){
+        return '<tr style="border-top:1px solid var(--border);">' +
+          '<td style="padding:8px 10px;">' + esc(u.email) + '</td>' +
+          '<td style="padding:8px 10px;">' + esc(u.isim || '—') + '</td>' +
+          '<td style="padding:8px 10px;">' + esc(u.grup || '—') + '</td>' +
+          '<td style="padding:8px 10px;color:var(--text3);">' + fmt(u.kayit_tarihi) + '</td>' +
+          '<td style="padding:8px 10px;color:var(--text3);">' + fmt(u.son_giris) + '</td>' +
+          '<td style="padding:8px 10px;">' + (u.ziyaret || 0) + '</td>' +
+          '<td style="padding:8px 10px;color:var(--text3);">' + fmt(u.son_ziyaret) + '</td>' +
+          '<td style="padding:8px 10px;">' + (u.dogrulanmis ? '✓' : '—') + '</td>' +
+        '</tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  } catch(e) {
+    box.innerHTML = '<div class="stt-empty" style="padding:16px 0;color:#c05444;font-size:13px;">Kullanıcılar yüklenemedi (' + (e.message||'') + ').</div>';
+  }
+}
+
 (async function init() {
   const ok = await requireAuth(); if (!ok) return;
   if (!isAdmin()) {
@@ -364,6 +410,7 @@ document.getElementById('sttRange').addEventListener('click', (e) => {
     return;
   }
   loadStats();
+  loadUsers();
 })();
 </script>
 
