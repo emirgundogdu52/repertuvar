@@ -367,6 +367,13 @@ body{padding-top:var(--topnav-h, 66px);}
       </div>
       <div class="setting-row">
         <div>
+          <div class="setting-label">E-posta Adresi</div>
+          <div class="setting-desc">Hesap e-posta adresini değiştir</div>
+        </div>
+        <button class="setting-btn" onclick="openEmailModal()">Değiştir</button>
+      </div>
+      <div class="setting-row">
+        <div>
           <div class="setting-label">Oturumu Kapat</div>
           <div class="setting-desc">Bu cihazdan çıkış yap</div>
         </div>
@@ -609,6 +616,28 @@ body{padding-top:var(--topnav-h, 66px);}
   </div>
 </div>
 
+<!-- E-posta Değiştir Modal -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal-card">
+    <div class="modal-title">✉️ E-posta Değiştir</div>
+    <div id="emailStep1">
+      <div class="field"><label>YENİ E-POSTA</label><input type="email" id="newEmail" placeholder="yeni@mail.com" autocomplete="email"></div>
+      <div class="modal-actions">
+        <button class="setting-btn" onclick="closeEmailModal()">İptal</button>
+        <button class="setting-btn primary" onclick="requestEmailChange()">Kod Gönder</button>
+      </div>
+    </div>
+    <div id="emailStep2" style="display:none;">
+      <p style="font-size:14px;color:var(--text2);margin-bottom:14px;">Yeni adresine gönderilen <strong>8 haneli kodu</strong> gir.</p>
+      <div class="field"><label>DOĞRULAMA KODU</label><input type="text" id="emailCode" placeholder="00000000" maxlength="8" inputmode="numeric" autocomplete="one-time-code"></div>
+      <div class="modal-actions">
+        <button class="setting-btn" onclick="closeEmailModal()">İptal</button>
+        <button class="setting-btn primary" onclick="verifyEmailChange()">Doğrula</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 function toast(msg, type='ok') {
   const el = document.createElement('div');
@@ -717,6 +746,66 @@ async function changePassword() {
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
 
+// ---- E-posta Değiştir ----
+let _pendingNewEmail = '';
+function openEmailModal() {
+  document.getElementById('newEmail').value = '';
+  document.getElementById('emailCode').value = '';
+  document.getElementById('emailStep1').style.display = '';
+  document.getElementById('emailStep2').style.display = 'none';
+  document.getElementById('emailModal').classList.add('open');
+}
+function closeEmailModal() {
+  document.getElementById('emailModal').classList.remove('open');
+}
+async function requestEmailChange() {
+  const email = document.getElementById('newEmail').value.trim().toLowerCase();
+  if (!email || !email.includes('@') || !email.includes('.')) { toast('Geçerli bir e-posta gir', 'err'); return; }
+  const u = getUser && getUser();
+  if (u && email === (u.email || '').toLowerCase()) { toast('Bu zaten mevcut e-postan', 'err'); return; }
+  try {
+    const r = await fetch(SUPA_URL + '/auth/v1/user', {
+      method: 'PUT',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email })
+    });
+    if (r.ok) {
+      _pendingNewEmail = email;
+      document.getElementById('emailStep1').style.display = 'none';
+      document.getElementById('emailStep2').style.display = '';
+      toast('Doğrulama kodu ' + email + ' adresine gönderildi');
+    } else {
+      const e = await r.json().catch(() => ({}));
+      toast(e.msg || e.error_description || e.error || 'İşlem başarısız', 'err');
+    }
+  } catch (e) { toast('Bağlantı hatası: ' + e.message, 'err'); }
+}
+async function verifyEmailChange() {
+  const token = document.getElementById('emailCode').value.trim();
+  if (!token || token.length < 6) { toast('Kodu gir', 'err'); return; }
+  try {
+    const r = await fetch(SUPA_URL + '/auth/v1/verify', {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'email_change', email: _pendingNewEmail, token })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (r.ok) {
+      if (data.access_token) localStorage.setItem('sb_token', data.access_token);
+      if (data.refresh_token) localStorage.setItem('sb_refresh', data.refresh_token);
+      closeEmailModal();
+      toast('E-posta güncellendi ✓');
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      toast(data.msg || data.error_description || 'Kod hatalı veya süresi dolmuş', 'err');
+    }
+  } catch (e) { toast('Bağlantı hatası: ' + e.message, 'err'); }
+}
+
 (async function() {
   const ok = await requireAuth(); if (!ok) return;
   const u = getUser();
@@ -789,6 +878,9 @@ async function changePassword() {
 // Modal dışına tıklayınca kapat
 document.getElementById('passwordModal').addEventListener('click', function(e) {
   if (e.target === this) closePasswordModal();
+});
+document.getElementById('emailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeEmailModal();
 });
 </script>
 <script>
