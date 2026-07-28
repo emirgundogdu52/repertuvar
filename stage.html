@@ -4,6 +4,20 @@
   taşıyıp taşımadığını satır satır okumadan tek bakışta anlamak. Yapıştırılan kodda
   aşağıdaki son maddenin karşılığı yoksa, bu muhtemelen eski bir kopya demektir —
   GitHub'daki gerçek dosyayı tekrar çekip öyle paylaş.
+  - 2026-07-28: GÜFTENİN ÜST ÜSTE BİNMESİ DÜZELTİLDİ (sahneye ilk girişte üstteki
+    2-3 satır ortalanmış+büyük, altı sola yaslı+küçük görünüyor ve çakışıyordu;
+    sayfa yenilenince geçiyordu). SEBEP çift render DEĞİL — renderStage zaten
+    innerHTML ATIYOR ve _refreshAfterWorks yalnız placeholder varken yeniden
+    çiziyor. Gerçek sebep TEK render'ın İKİ KAREYE yayılmasıydı: içerik basılıyor
+    (.wlyrics varsayılan text-align:center + opacity animasyonu ile), hizalama
+    ise requestAnimationFrame ile BİR SONRAKİ karede uygulanıyordu; --lyrics-scale
+    de ondan sonra yazılıyordu. İlk kare ortalanmış+eski ölçekte boyanıyor,
+    sonraki karede metin sola yaslı+yeni ölçekte yeniden akıyor; opacity
+    animasyonu katmanı compositor'a taşıdığı için iOS Safari yeniden akışı kısmen
+    boyayıp üstteki satırları eski halinde bırakıyordu. DÜZELTME: renderStage
+    içinde sıra değişti — önce --lyrics-scale yazılıyor, sonra innerHTML, sonra
+    AYNI KAREDE setLyricsAlign (requestAnimationFrame kaldırıldı) + slider UI.
+    Kayıtlı hizalama 'left' iken (ya da ölçek 1'den farklıyken) ortaya çıkıyordu.
   - 2026-07-20: ÇOK SAYFALI NOTA SAHNEDE (eserler.html'deki works.nota_pages ile
     birlikte gelir). WL kaydına notaPages eklendi (nota_pages dizisi; boşsa tek
     nota_url'e düşer) — works fetch'i zaten select=* olduğu için ek istek YOK.
@@ -1352,15 +1366,21 @@ function renderStage(){
     <div class="wnum"></div>
     <div class="wtitle">${w.name || (WL_loaded ? item.workId : '…')}</div>
     ${kararChip}`;
-  document.getElementById('sm').innerHTML = bodyHtml;
-  if (viewMode === 'nota') notaPreloadNext(stageNotaPages(w), _notaPage);
-  updateViewToggleUI(w);
-  // Kaydedilmiş hizalamayı uygula
-  const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
-  requestAnimationFrame(() => setLyricsAlign(savedAlign));
+  // 2026-07-28: ÖLÇEK ÖNCE, İÇERİK SONRA, HİZA AYNI KAREDE.
+  // Eskiden içerik basılıyor, hizalama requestAnimationFrame ile BİR SONRAKİ
+  // karede uygulanıyordu. İlk kare ortalanmış+eski ölçekte boyanıyor, sonraki
+  // karede sola yaslı+yeni ölçekte yeniden akıyordu; .wlyrics'in opacity
+  // animasyonu katmanı compositor'a taşıdığı için iOS Safari bu yeniden akışı
+  // kısmen boyayıp üstteki satırları eski halinde bırakıyordu → güfte üst üste
+  // binmiş görünüyordu (yenileyince geçiyordu). Artık üçü de tek karede.
   const savedScale = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
   document.documentElement.style.setProperty('--lyrics-scale', savedScale);
+  document.getElementById('sm').innerHTML = bodyHtml;
+  const savedAlign = localStorage.getItem('stageLyricsAlign') || 'center';
+  setLyricsAlign(savedAlign);
   updateFontSliderUI(savedScale);
+  if (viewMode === 'nota') notaPreloadNext(stageNotaPages(w), _notaPage);
+  updateViewToggleUI(w);
   // ── POTPURİ: zincir rozeti + "Sıradaki" kartının potpuri hali ──
   const ch = stageChainInfo(items, curIdx);
   const mb = document.getElementById('medleyBadge');
