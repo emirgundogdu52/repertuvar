@@ -2,6 +2,32 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-28 (2): ÇEVİRİCİDE AKOR KAYMASI DÜZELTİLDİ. _mergeChordLyric akoru
+    sütununa en yakın KELİME BAŞINA taşıyordu; kelimenin ortasına/sonuna denk
+    gelen akorlar başa çekilip hiza kayıyordu (kaynakta "Her yer loş
+    karanlıktır" satırında Bm kelimenin SONUNDAyken çıktı [Bm]karanlıktır
+    oluyordu). Artık sütuna sadık kalınıp yalnız o sütunu içeren HECENİN başına
+    yuvarlanıyor → karanlık[Bm]tır. Türkçe hece başı kuralı: kelimenin başı +
+    ardından ünlü gelen her ünsüz (_cpSyllableStarts, ka-ran-lık-tır).
+    Boşluğa düşen akor bir sonraki kelimenin başına, satır sonunu aşan akor
+    satır sonuna gider. Kelime başına denk gelen akorlarda çıktı değişmez.
+  - 2026-07-28: AKOR KAYDETME HATASI DÜZELTİLDİ. Sorun: akorların sözlerin
+    ÜSTÜNDE ayrı satırda olduğu bir metin (internetten kopyalanan klasik biçim)
+    yapıştırılıp Kaydet'e basıldığında, uyarı penceresinde TAMAM denilse bile
+    metin kaydolmuyordu. Sebep: saveChords'taki uyarı 2026-07-2x'te eklenmişti
+    ama ASIL KAYIT satırları güncellenmemişti — ortak kapsamda gövde hâlâ
+    {chords:''} gönderiyor (yani alanı boşaltıyor), kişisel kapsamda ise
+    _hasCh false olduğu için savePersonalChordsRow yerine
+    deletePersonalChordsRow çağrılıp satır siliniyordu. Yani uyarı "metni
+    olduğu gibi kaydet" diyor, kod ise siliyordu. DÜZELTME: (1) ortak kapsam
+    artık {chords: chords} yazıyor (metin boşsa zaten '' olur); lyrics türetimi
+    yalnız gerçek [Am] akor varken yapılır; (2) kişisel kapsamda ölçüt _hasCh
+    değil metnin DOLU olması — satır sadece kutu tamamen boşaltılırsa silinir;
+    (3) _afterChordsSaved önizlemesi parantezsiz dolu metni de gösteriyor
+    ("Akor bilgisi yok." yerine), böylece kaydın gerçekleştiği görülüyor;
+    (4) uyarı metni gerçeğe uygun hale getirildi (aynen kaydedilir, ama akor-hece
+    hizası ve ± Ton çalışmaz). NOT: "⇄ ChordPro'ya çevir" butonu ve
+    convertChordsAboveToChordPro zaten mevcut — tercih edilen yol odur.
   - 2026-07-20 (3): ESER PAYLAŞMA LİNKİ DÜZELTİLDİ. İki ayrı hata vardı:
     (1) Link üretimi: location.origin + location.pathname kullanılıyordu; native
     (Capacitor) uygulamada bu "capacitor://localhost/..." üretiyor ve gönderilen
@@ -1966,24 +1992,48 @@ function _isChordLine(line){
   const toks = t.split(/\s+/);
   return toks.length>0 && toks.every(_isChordToken);
 }
+// 2026-07-28: Eskiden akor, sütununa en yakın KELİME BAŞINA taşınıyordu; bu,
+// kelime ortasına/sonuna denk gelen akorları başa çekip hizayı kaydırıyordu
+// (ör. "Her yer loş karanlıktır" satırındaki Bm → [Bm]karanlıktır olurken
+// kaynakta akor kelimenin SONUNDAydı). Artık sütuna sadık kalınıp yalnız o
+// sütunu içeren HECENİN başına yuvarlanıyor → karanlık[Bm]tır.
+const _CP_VOWELS = 'aeıioöuüAEIİOÖUÜâîû';
+function _cpIsVowel(c){ return _CP_VOWELS.indexOf(c) > -1; }
+// Türkçe hece başları: kelimenin başı + ardından ünlü gelen her ünsüz (ka-ran-lık-tır)
+function _cpSyllableStarts(word){
+  const out = [0];
+  for (let i = 1; i < word.length; i++) {
+    if (!_cpIsVowel(word[i]) && i + 1 < word.length && _cpIsVowel(word[i+1])) out.push(i);
+  }
+  return out;
+}
 function _mergeChordLyric(chordLine, lyricLine){
   const lyric = lyricLine.replace(/\s+$/,'');
-  const wordStarts = []; let wm; const wre=/\S+/g;
-  while((wm=wre.exec(lyric))!==null) wordStarts.push(wm.index);
-  const chords=[]; let cm; const cre=/\S+/g;
-  while((cm=cre.exec(chordLine))!==null) chords.push({col:cm.index,name:cm[0]});
-  const ins = chords.map(c=>{
-    let target=c.col;
-    if(wordStarts.length){
-      let best=wordStarts[0], bd=Math.abs(best-c.col);
-      for(const ws of wordStarts){ const d=Math.abs(ws-c.col); if(d<bd){bd=d;best=ws;} }
-      target=best;
+  const words = []; let wm; const wre = /\S+/g;
+  while((wm = wre.exec(lyric)) !== null) words.push({start: wm.index, end: wm.index + wm[0].length, text: wm[0]});
+  const chords = []; let cm; const cre = /\S+/g;
+  while((cm = cre.exec(chordLine)) !== null) chords.push({col: cm.index, name: cm[0]});
+  const ins = chords.map(c => {
+    if (!words.length) return {col: 0, name: c.name};
+    const inW = words.find(w => c.col >= w.start && c.col < w.end);
+    let target;
+    if (inW) {
+      // Akor kelimenin İÇİNE düşüyor → o sütunu içeren hecenin başına yuvarla
+      const off = c.col - inW.start;
+      const ss = _cpSyllableStarts(inW.text);
+      let best = 0; for (const s of ss) { if (s <= off) best = s; }
+      target = inW.start + best;
+    } else {
+      // Boşluğa düşüyor → bir sonraki kelimenin başı (yoksa satır sonu)
+      const next = words.find(w => w.start >= c.col);
+      if (next) target = next.start;
+      else target = (c.col > words[words.length-1].end) ? lyric.length : words[words.length-1].start;
     }
-    return {col:target,name:c.name};
+    return {col: target, name: c.name};
   });
-  ins.sort((a,b)=>a.col-b.col);
-  let out=lyric, off=0;
-  for(const x of ins){ const at=Math.min(x.col,lyric.length)+off; const tag='['+x.name+']'; out=out.slice(0,at)+tag+out.slice(at); off+=tag.length; }
+  ins.sort((a,b) => a.col - b.col);
+  let out = lyric, off = 0;
+  for (const x of ins) { const at = Math.min(x.col, lyric.length) + off; const tag = '[' + x.name + ']'; out = out.slice(0, at) + tag + out.slice(at); off += tag.length; }
   return out;
 }
 function convertChordsAboveToChordPro(text){
@@ -2209,7 +2259,10 @@ function toastMsg(text){
 function _afterChordsSaved(id, hasCh, chords, isShared){
   const prev = document.getElementById('chords_preview_'+id);
   if (prev) {
-    prev.innerHTML = hasCh ? renderChords(chords) : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi yok.</span>';
+    // 2026-07-28: parantezsiz ama dolu metin de gösterilsin (kaydedildiği belli olsun)
+    prev.innerHTML = (hasCh || chords)
+      ? renderChords(chords)
+      : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi yok.</span>';
     prev.style.display = 'block';
     const pb = document.getElementById('chords_preview_btn_'+id);
     if (pb) pb.style.borderColor = 'var(--accent)';
@@ -2232,7 +2285,7 @@ async function saveChords(id) {
   // GÜVENLİK: parantezsiz ama DOLU metni asla silme (eski "akor üstte" biçimindeki
   // kayıtlar böyle). Eskiden boş kaydediliyordu ve ortak akor siliniyordu.
   if (raw && !_hasCh) {
-    if (!confirm('Bu metinde [Am] biçiminde akor yok (eski "akor üstte" biçimi olabilir).\n\nOK: metni olduğu gibi kaydet.\nİptal: önce "⇄ ChordPro\'ya çevir" ile dönüştür.')) return;
+    if (!confirm('Bu metinde [Am] biçiminde akor yok (akorlar sözlerin üstünde ayrı satırda olabilir).\n\nTAMAM: metin aynen kaydedilir — ama akor-hece hizası ve ± Ton çalışmaz.\nİPTAL: kaydetme, önce "⇄ ChordPro\'ya çevir" butonuna bas.')) return;
   }
   const chords = raw; // dolu metin her zaman korunur; boşsa zaten '' kaydedilir
 
@@ -2243,7 +2296,9 @@ async function saveChords(id) {
       const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
         method: 'PATCH',
         headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-        body: JSON.stringify(_hasCh ? {chords: chords, lyrics: chordsToLyrics(chords)} : {chords: ''})
+        // 2026-07-28: parantezsiz ama DOLU metin artık AYNEN kaydedilir (eskiden
+        // burada {chords:''} yazılıyordu → kullanıcı "kaydetmiyor" diye görüyordu).
+        body: JSON.stringify(_hasCh ? {chords: chords, lyrics: chordsToLyrics(chords)} : {chords: chords})
       });
       if (!(r.ok || r.status === 204)) { alert('Kayıt hatası: ' + (await r.text())); return; }
       const idx = DATA.findIndex(x => x.id === id || x.id === parseInt(id));
@@ -2253,9 +2308,11 @@ async function saveChords(id) {
   } else {
     // KİŞİSEL: sadece bu kullanıcı görür, ortak works.chords'a dokunulmaz
     try {
-      const ok = _hasCh ? await savePersonalChordsRow(id, chords) : await deletePersonalChordsRow(id);
+      // 2026-07-28: ölçüt _hasCh değil, metnin DOLU olması. Parantezsiz metin de
+      // saklanır; satır yalnızca kutu tamamen boşaltıldığında silinir.
+      const ok = chords ? await savePersonalChordsRow(id, chords) : await deletePersonalChordsRow(id);
       if (!ok) { alert('Kaydedilemedi, tekrar dene.'); return; }
-      if (_hasCh) PERSONAL_CHORDS[String(id)] = chords; else delete PERSONAL_CHORDS[String(id)];
+      if (chords) PERSONAL_CHORDS[String(id)] = chords; else delete PERSONAL_CHORDS[String(id)];
       _afterChordsSaved(id, _hasCh, chords, false);
     } catch(err) { alert('Bağlantı hatası: ' + err.message); }
   }
