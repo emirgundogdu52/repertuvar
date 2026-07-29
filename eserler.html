@@ -2,6 +2,30 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-29 (12): AKOR HİZASI SÜRGÜSÜ BAZI ESERLERDE ÖLÜYDÜ. Emir Kara Tren'de
+    "sürgü çalışmıyor" dedi. SEBEP: _cpScaleK yalnızca _cpColToIndex içinden
+    geçiyor, o da yalnızca kaynak ORANTILI sayıldığında çağrılıyor. Karar
+    _cpIsProportional'da oranların ORTALAMASIYLA veriliyordu ve tek akorluk bir
+    satır ortalamayı devirebiliyor: Kara Tren'de dört satırın oranı ~1.30 (bariz
+    orantılı) ama yalnız başına duran "D#m" satırının oranı 0.13 → ortalama 1.071,
+    eşik 1.10, karar "monospace" → sürgü sayıyı değiştiriyor, metni değiştirmiyor.
+    İKİ DÜZELTME: (a) _cpIsProportional artık hizadan BİLGİ TAŞIMAYAN satırları
+    eliyor (akor satırı güftenin yarısına uzanmıyorsa) ve kalanların ORTANCASINA
+    bakıyor; iki bilgi taşıyan satır yoksa eski ortalama yöntemine düşüyor.
+    (b) Ölçek monospace dalda da uygulanıyor (col = round(index * k)), böylece
+    sürgü hiçbir kaynak tipinde ölü kalmıyor; k=1'de çıktı birebir eski davranış.
+    TEST: Kara Tren artık orantılı okunuyor (akorlar hecelere yayıldı, satır sonu
+    kümeleri gitti), Gönül Dağı çıktısı k=1'de BİREBİR AYNI, saf monospace örnek
+    k=1'de BİREBİR AYNI ve hâlâ monospace sayılıyor, üçünde de sürgü canlı.
+  - 2026-07-29 (11): METİN KUTUSU EKRANI KULLANIYOR. Emir: "aşağıda o kadar boş
+    alan varken metni yapıştırdığımız kutu neden küçücük?" min-height 300px
+    sabitti; altındaki paneller kapalıyken ekranın yarısı boş kalıyor, uzun
+    güftelerde 300px'lik pencereden kaydırarak çalışmak gerekiyordu.
+    (a) min-height: 300px → min(58vh,760px). (b) _cpGrow(ta): içerik taştığında
+    kutu scrollHeight'a büyür → İÇ KAYDIRMA ÇUBUĞU ÇIKMAZ, sayfa kayar.
+    KÜÇÜLTMEZ (grow-only): elle sürükleyip genişlettiysen tuş vuruşu geri almaz;
+    resize:vertical duruyor. Çağrı yerleri: textarea oninput, updateChordsPreview
+    başı (ta.value'yu değiştiren tüm yollar oradan geçiyor) ve eser açılışı.
   - 2026-07-29 (10): DÜĞME SİSTEMİ. Emir: "Kaydet ve Önizle butonları çok
     eskilerden, demode, bu kadar güzel bir sisteme yakışmıyor" — haklı: gradyan
     dolgu + 💾/👁 emoji + iki ayrı vurgu rengi (Önizle gri çerçeve, Çevir amber
@@ -1991,7 +2015,7 @@ function selectWork(id, silent) {
           <span id="karar_lbl_${w.id}" style="font-size:12px;font-weight:700;color:var(--text2);margin-left:4px;"></span>
           <span style="font-size:11px;color:var(--text3);">sadece görünümü kaydırır, kayıtlı akoru değiştirmez</span>
         </div>
-        <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="updateChordsPreview(${w.id})" style="width:100%;min-height:300px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
+        <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="_cpGrow(this);updateChordsPreview(${w.id})" style="width:100%;min-height:min(58vh,760px);padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
           placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm"></textarea>
         <div class="rbtn-row" style="margin-top:10px;">
           <button onclick="saveChords(${w.id})" class="rbtn rbtn-primary">Kaydet</button>
@@ -2076,6 +2100,7 @@ function selectWork(id, silent) {
   if (getUserId() && document.getElementById('inline_chords_'+w.id)) setChordScope(w.id, _defaultScope);
   setupNotaDropzone(w.id);   // 2026-07-19: sürükle-bırak + panodan yapıştır
   updateTonBadge(w.id);
+  _cpGrow(document.getElementById('inline_chords_'+w.id));   // kutuyu içeriğe göre aç
 
   // Mobile: detail panel top offset
   function setDetailTop() {
@@ -2245,13 +2270,33 @@ function _cpColToIndex(chordLine, col, lyric){
 // (Monospace kaynakta akor satırı güfteyi kayda değer biçimde aşmaz.)
 function _cpIsProportional(pairs){
   if (!pairs.length) return false;
-  let sum = 0, over = 0;
+  // 2026-07-29 (12): eskiden oranların ORTALAMASI bakılıyordu ve tek akorluk bir
+  // satır ("D#m" tek başına, oran 0.13) kararı ters çevirebiliyordu: Kara Tren'de
+  // dört satırın oranı ~1.30 (bariz orantılı) ama ortalama 1.071 → monospace
+  // sanılıyor, _cpColToIndex hiç çağrılmıyor, dolayısıyla AKOR HİZASI SÜRGÜSÜ
+  // ÖLÜ kalıyordu. Artık: hizadan bilgi taşımayan satırlar (akor satırı güftenin
+  // yarısına bile uzanmıyorsa) elenir, karar kalanların ORTANCASIYLA verilir.
+  const rs = []; let over = 0;
   for (const p of pairs) {
     const last = p.chord.replace(/\s+$/,'').length, len = p.lyric.replace(/\s+$/,'').length;
     if (!len) continue;
-    const r = last / len; sum += r; if (r > 1.15) over++;
+    const r = last / len;
+    if (r < 0.5) continue;                     // tek akorluk / çok kısa satır: bilgi yok
+    rs.push(r); if (r > 1.15) over++;
   }
-  return (sum / pairs.length) > 1.10 && over >= Math.ceil(pairs.length / 3);
+  if (rs.length < 2) {                         // yeterli kanıt yok → eski (ortalama) yöntem
+    let sum = 0, n = 0, ov = 0;
+    for (const p of pairs) {
+      const last = p.chord.replace(/\s+$/,'').length, len = p.lyric.replace(/\s+$/,'').length;
+      if (!len) continue;
+      const r = last / len; sum += r; n++; if (r > 1.15) ov++;
+    }
+    return n ? ((sum / n) > 1.10 && ov >= Math.ceil(n / 3)) : false;
+  }
+  rs.sort((a, b) => a - b);
+  const mid = rs.length >> 1;
+  const med = (rs.length % 2) ? rs[mid] : (rs[mid - 1] + rs[mid]) / 2;
+  return med > 1.10 && over >= Math.ceil(rs.length / 3);
 }
 
 function _mergeChordLyric(chordLine, lyricLine, prop){
@@ -2264,7 +2309,12 @@ function _mergeChordLyric(chordLine, lyricLine, prop){
       const m = _cpColToIndex(chordLine, cm.index, lyric);
       chords.push({col: m.idx, name: cm[0], past: m.past, over: m.over});
     } else {
-      chords.push({col: cm.index, name: cm[0], past: cm.index >= lyric.length, over: cm.index - lyric.length});
+      // 2026-07-29 (12): ölçek burada da geçerli. Eskiden sürgü yalnızca orantılı
+      // kaynakta iş yapıyordu; monospace kararı verilen bir eserde kullanıcı
+      // sürgüyü oynatıyor, sayı değişiyor, metin hiç değişmiyordu. k=1'de çıktı
+      // birebir eski davranış (Math.round(x*1) === x).
+      const col = (_cpScaleK === 1) ? cm.index : Math.round(cm.index * _cpScaleK);
+      chords.push({col: col, name: cm[0], past: col >= lyric.length, over: col - lyric.length});
     }
   }
   if (!words.length) return chords.map(c => '[' + c.name + ']').join(' ');
@@ -2740,7 +2790,15 @@ document.addEventListener('keydown', function(e){
   else if (e.key === 'ArrowRight') { e.preventDefault(); nudgeChord(_cpNudge.id, 1); }
 });
 
+// 2026-07-29 (11): metin kutusu içeriğe göre BÜYÜR (küçültmez — elle
+// sürükleyip genişlettiğini geri almasın). Uzun güftelerde kutunun içinde
+// kaydırmak zorunda kalmıyorsun, sayfa kayıyor.
+function _cpGrow(ta){
+  if (!ta) return;
+  if (ta.scrollHeight > ta.clientHeight) ta.style.height = (ta.scrollHeight + 2) + 'px';
+}
 function updateChordsPreview(id){
+  _cpGrow(document.getElementById('inline_chords_'+id));   // her metin değişiminden sonra
   const prev = document.getElementById('chords_preview_'+id);
   const ta = document.getElementById('inline_chords_'+id);
   if(!prev || !ta) return;
