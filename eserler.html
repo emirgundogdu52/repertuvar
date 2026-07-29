@@ -2013,25 +2013,38 @@ function _mergeChordLyric(chordLine, lyricLine){
   while((wm = wre.exec(lyric)) !== null) words.push({start: wm.index, end: wm.index + wm[0].length, text: wm[0]});
   const chords = []; let cm; const cre = /\S+/g;
   while((cm = cre.exec(chordLine)) !== null) chords.push({col: cm.index, name: cm[0]});
+  if (!words.length) return chords.map(c => '[' + c.name + ']').join(' ');
   const ins = chords.map(c => {
-    if (!words.length) return {col: 0, name: c.name};
     const inW = words.find(w => c.col >= w.start && c.col < w.end);
-    let target;
     if (inW) {
       // Akor kelimenin İÇİNE düşüyor → o sütunu içeren hecenin başına yuvarla
       const off = c.col - inW.start;
       const ss = _cpSyllableStarts(inW.text);
       let best = 0; for (const s of ss) { if (s <= off) best = s; }
-      target = inW.start + best;
-    } else {
-      // Boşluğa düşüyor → bir sonraki kelimenin başı (yoksa satır sonu)
-      const next = words.find(w => w.start >= c.col);
-      if (next) target = next.start;
-      else target = (c.col > words[words.length-1].end) ? lyric.length : words[words.length-1].start;
+      return {col: inW.start + best, name: c.name};
     }
-    return {col: target, name: c.name};
+    // Boşluğa düşüyor → bir sonraki kelimenin başı
+    const next = words.find(w => w.start >= c.col);
+    if (next) return {col: next.start, name: c.name};
+    // Son kelimeden sonra → son kelimenin SON hecesine (satır sonuna YIĞMA yok)
+    const last = words[words.length-1];
+    const ss = _cpSyllableStarts(last.text);
+    return {col: last.start + ss[ss.length-1], name: c.name};
   });
   ins.sort((a,b) => a.col - b.col);
+  // ÇAKIŞMA ÖNLEME: aynı konuma düşen akorları bir sonraki hece başına kaydır
+  const starts = [];
+  for (const w of words) for (const s of _cpSyllableStarts(w.text)) starts.push(w.start + s);
+  starts.push(lyric.length);
+  starts.sort((a,b)=>a-b);
+  let prev = -1;
+  for (const x of ins) {
+    if (x.col <= prev) {
+      const nx = starts.find(s => s > prev);
+      x.col = (nx !== undefined) ? nx : Math.min(prev + 1, lyric.length);
+    }
+    prev = x.col;
+  }
   let out = lyric, off = 0;
   for (const x of ins) { const at = Math.min(x.col, lyric.length) + off; const tag = '[' + x.name + ']'; out = out.slice(0, at) + tag + out.slice(at); off += tag.length; }
   return out;
