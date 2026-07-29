@@ -2,6 +2,18 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-29 (3): AKORLARIN ÜST ÜSTE BİNMESİ ÇÖZÜLDÜ (render sonrası ölçüm).
+    (2)'deki width:0 güfteyi kurtardı ama akor metni artık layout'ta yer
+    kaplamadığı için dar hecelerin üstünde iki akor görsel olarak çakışıyordu
+    ("CmDb", "Bbm"+"Cm" iç içe). CSS ile çözülemez — akora genişlik verirsek
+    kelime yine yarılır. ÇÖZÜM: renderChords'tan sonra çalışan bir koruyucu
+    (window.cpFixChordOverlaps): her .cp-line içindeki akorların GERÇEK metin
+    genişliğini Range.getBoundingClientRect ile ölçüp çakışanları
+    transform:translateX ile sağa kaydırıyor. transform layout'u değiştirmediği
+    için güfte etkilenmez, ResizeObserver döngüsü oluşmaz. MutationObserver
+    (yeni render), ResizeObserver (yazı boyutu/ölçek değişimi), resize,
+    orientationchange ve document.fonts.ready ile tetikleniyor; mobilde satır
+    sarmasında her görsel satır için sayaç sıfırlanıyor.
   - 2026-07-29 (2): AKOR ARTIK GÜFTEYİ BÖLMÜYOR. Aynı gün (1)'deki padding
     çözümü akorların bitişmesini bitirdi ama kelimeleri ortadan yarıyordu
     ("varıl maz", "gizli giz li") — referansta güfte hep bütündü. Kök sebep aynı:
@@ -2132,6 +2144,75 @@ function renderChords(text) {
     return html;
   }).join('');
 }
+
+/* ── 2026-07-29 (3): AKOR ÇAKIŞMA KORUYUCUSU ──────────────────────────────────
+   .cp-chord width:0 olduğu için akor metni segmentten TAŞAR; tarayıcı bu taşan
+   metni layout'ta görmediğinden iki akor görsel olarak üst üste binebiliyor
+   ("CmDb", "Bbm"+"Cm"). CSS ile çözülemez: akora genişlik verirsek güfte
+   ortadan yarılıyor (eski hata). Çözüm: render'dan sonra akorların GERÇEK metin
+   genişliğini Range ile ölçüp çakışanları sağa kaydırmak (transform:translateX).
+   transform layout'u değiştirmediği için güfte hiç etkilenmez ve ResizeObserver
+   döngüsü oluşmaz. Akor kendi hecesinden en fazla birkaç piksel kayar; kelime
+   bütünlüğü korunur. Satır kaydığında (mobilde sarma) üst koordinat değişir,
+   o yüzden her görsel satır için sayaç sıfırlanır. */
+(function(){
+  if (window.__cpOverlapGuard) return; window.__cpOverlapGuard = true;
+  var scheduled = false, ro = null, seen = null;
+  function textRect(el){
+    var r = document.createRange();
+    r.selectNodeContents(el);
+    var rect = r.getBoundingClientRect();
+    if (r.detach) r.detach();
+    return rect;
+  }
+  function fixLine(line){
+    if (!line.getClientRects().length) return;   // görünmeyen (display:none) satırı ölçme
+    var all = line.querySelectorAll('.cp-chord'), chords = [], i;
+    for (i = 0; i < all.length; i++) if (all[i].textContent.trim()) chords.push(all[i]);
+    for (i = 0; i < chords.length; i++) chords[i].style.transform = '';
+    if (chords.length < 2) return;
+    var rects = [];
+    for (i = 0; i < chords.length; i++) rects.push(textRect(chords[i]));
+    var prevRight = -1e9, prevTop = null, shifts = [], gap, s, r;
+    for (i = 0; i < chords.length; i++) {
+      r = rects[i];
+      if (prevTop === null || Math.abs(r.top - prevTop) > 2) prevRight = -1e9; // yeni görsel satır
+      gap = Math.max(4, r.height * 0.35);
+      s = prevRight + gap - r.left;
+      if (s < 0) s = 0;
+      shifts.push(s);
+      prevRight = r.left + s + r.width;
+      prevTop = r.top;
+    }
+    for (i = 0; i < chords.length; i++)
+      if (shifts[i] > 0.5) chords[i].style.transform = 'translateX(' + shifts[i].toFixed(1) + 'px)';
+  }
+  function run(){
+    scheduled = false;
+    var lines = document.querySelectorAll('.cp-line'), i, p;
+    if (!lines.length) return;
+    if (!ro && window.ResizeObserver && window.WeakSet) { ro = new ResizeObserver(schedule); seen = new WeakSet(); }
+    for (i = 0; i < lines.length; i++) {
+      fixLine(lines[i]);
+      if (ro) { p = lines[i].parentElement; if (p && !seen.has(p)) { seen.add(p); ro.observe(p); } }
+    }
+  }
+  function schedule(){
+    if (scheduled) return;
+    scheduled = true;
+    if (window.requestAnimationFrame) window.requestAnimationFrame(run); else setTimeout(run, 0);
+  }
+  window.cpFixChordOverlaps = schedule;
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule); else schedule();
+  if (window.MutationObserver) {
+    new MutationObserver(function(muts){
+      for (var i = 0; i < muts.length; i++) if (muts[i].addedNodes && muts[i].addedNodes.length) { schedule(); return; }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  }
+  window.addEventListener('resize', schedule);
+  window.addEventListener('orientationchange', schedule);
+  if (document.fonts && document.fonts.ready && document.fonts.ready.then) document.fonts.ready.then(schedule);
+})();
 
 function updateChordsPreview(id){
   const prev = document.getElementById('chords_preview_'+id);
