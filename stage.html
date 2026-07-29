@@ -4,6 +4,17 @@
   taşıyıp taşımadığını satır satır okumadan tek bakışta anlamak. Yapıştırılan kodda
   aşağıdaki son maddenin karşılığı yoksa, bu muhtemelen eski bir kopya demektir —
   GitHub'daki gerçek dosyayı tekrar çekip öyle paylaş.
+  - 2026-07-29: AKOR ARTIK GÜFTEYİ BOZMUYOR. Belirti: sahnede kelimeler ortadan
+    yarılıyordu ("varıl maz", "gizli giz li", "öter ken") ve yer yer akorlar
+    birbirine yapışıyordu. SEBEP CSS: .cp-seg inline-block olduğu için genişliği
+    max(akor, hece) idi — akor heceden genişse segment akor kadar genişliyor,
+    hece ile sonraki hece arasında boşluk açılıyor, sonraki akor da bitişikte
+    başlıyordu. Çevirici (_mergeChordLyric) masum: akor dizileri kaynakla birebir
+    aynıydı. DÜZELTME: .cp-chord{width:0} → akor genişliğe katkı vermez, metni
+    sağa taşar, dikey yeri min-height ile durur; güfte hiç bozulmaz.
+    renderChords artık heceye bağlı OLMAYAN akorlara (lyric boş/boşluk)
+    .cp-tail sınıfı basıyor; o segmentlerde akor genişliğini + .7em boşluğu
+    korur, böylece satır sonundaki ardışık akorlar yapışmaz.
   - 2026-07-28: GÜFTENİN ÜST ÜSTE BİNMESİ DÜZELTİLDİ (sahneye ilk girişte üstteki
     2-3 satır ortalanmış+büyük, altı sola yaslı+küçük görünüyor ve çakışıyordu;
     sayfa yenilenince geçiyordu). SEBEP çift render DEĞİL — renderStage zaten
@@ -308,7 +319,12 @@ body.stage-light .nota-count{background:rgba(255,255,255,.75);color:#1a1a1a;bord
 .wlyrics .cp-blank{display:block;height:.9em;}
 .wlyrics .cp-comment{display:block;text-align:left;color:var(--accent,#4DA3FF);font-style:italic;font-size:.7em;margin:10px 0 2px;opacity:.85;}
 .wlyrics .cp-seg{display:inline-block;position:relative;vertical-align:bottom;}
-.wlyrics .cp-chord{display:block;font-size:.62em;font-weight:700;color:var(--chord-color,#FFC83D);line-height:1.15;min-height:1.2em;white-space:nowrap;font-family:'SF Mono',ui-monospace,monospace;letter-spacing:.02em;}
+/* 2026-07-29: akor genişliğe katkı vermesin (width:0) — yoksa .cp-seg genişliği
+   max(akor, hece) olduğu için akor heceden genişken kelime ortadan yarılıyordu
+   ("varıl maz") ve akorlar yapışıyordu. Heceye bağlı olmayan akorlar (.cp-tail)
+   genişliği korur ki yan yana geldiklerinde araları açık kalsın. */
+.wlyrics .cp-chord{display:block;width:0;overflow:visible;font-size:.62em;font-weight:700;color:var(--chord-color,#FFC83D);line-height:1.15;min-height:1.2em;white-space:nowrap;font-family:'SF Mono',ui-monospace,monospace;letter-spacing:.02em;}
+.wlyrics .cp-seg.cp-tail .cp-chord{width:auto;padding-right:.7em;}
 /* Akor rengi — temaya duyarlı altın/amber, güfteden ayrışsın (2026-07-17) */
 :root{--chord-color:#FFC83D;}            /* karanlık: parlak altın */
 body.day-theme{--chord-color:#B26A00;}   /* açık: koyu amber (beyaz zeminde kontrast) */
@@ -1183,7 +1199,8 @@ function renderChordPro(text) {
     while ((m = re.exec(scan)) !== null) {
       const chord = esc(m[1].trim());
       const lyric = esc(m[2]);
-      html += `<span class="cp-seg"><span class="cp-chord">${chord}</span><span class="cp-lyric">${lyric === '' ? '&nbsp;' : lyric}</span></span>`;
+      const tail = lyric.trim() === '';
+      html += `<span class="cp-seg${tail ? ' cp-tail' : ''}"><span class="cp-chord">${chord}</span><span class="cp-lyric">${lyric === '' ? '&nbsp;' : lyric}</span></span>`;
     }
     html += '</div>';
     return html;

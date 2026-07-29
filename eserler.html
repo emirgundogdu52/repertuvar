@@ -2,6 +2,15 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-29 (2): AKOR ARTIK GÜFTEYİ BÖLMÜYOR. Aynı gün (1)'deki padding
+    çözümü akorların bitişmesini bitirdi ama kelimeleri ortadan yarıyordu
+    ("varıl maz", "gizli giz li") — referansta güfte hep bütündü. Kök sebep aynı:
+    .cp-seg genişliği = max(akor, hece). Yeni çözüm: .cp-chord'a width:0 →
+    akor genişliğe katkı vermez, hecesinin üstünde durur, güfte hiç bozulmaz.
+    Heceye bağlı olmayan akorlar için renderChords artık .cp-tail sınıfı basıyor
+    (lyric boş/boşluk); o segmentlerde akor genişliğini + .7em boşluğunu korur,
+    böylece satır sonundaki ardışık akorlar yapışmaz. (1)'deki padding-right
+    kaldırıldı.
   - 2026-07-29: AKORLARIN BİTİŞMESİ DÜZELTİLDİ ("Gönül Dağı" karşılaştırması).
     Belirti: çıktıda bazı akorlar arasında hiç boşluk kalmıyordu ("CmDb",
     "BbmCm") ve aynı yerde güftede kelime ortasında boşluk açılıyordu
@@ -314,13 +323,16 @@
   .cp-blank { display:block; height:.8em; }
   .cp-comment { display:block; color:var(--accent,#58A6FF); font-style:italic; font-size:.8em; margin:10px 0 2px; opacity:.85; }
   .cp-seg { display:inline-block; position:relative; vertical-align:bottom; }
-  /* 2026-07-29: padding-right = akorlar arası GARANTİ boşluk. .cp-seg inline-block
-     olduğu için genişliği max(akor, hece) kadardır; akor heceden genişse iki akor
-     yan yana yapışıp "CmDb" gibi okunuyordu. Sağ dolgu, segmentin akor tarafındaki
-     asgari genişliğini "akor + boşluk" yapar → akorlar asla bitişmez. Hece akordan
-     genişse segment genişliği yine heceye göre belirlenir, yani fazladan boşluk
-     oluşmaz. */
-  .cp-chord { display:block; font-size:.72em; font-weight:700; color:var(--chord-color,#FFC83D); line-height:1.15; min-height:1.25em; white-space:nowrap; letter-spacing:.02em; padding-right:.75em; }
+  /* 2026-07-29 (2): AKOR ARTIK GÜFTEYİ İTMİYOR. .cp-seg inline-block olduğu için
+     genişliği max(akor, hece) idi; akor heceden genişse segment akor kadar
+     genişleyip kelimeyi ortasından yarıyordu ("varıl maz", "giz li") ve bir
+     sonraki akor bitişikte başlıyordu ("CmDb"). width:0 ile akor kutusu genişliğe
+     HİÇ katkı vermiyor (metni sağa taşıyor, dikey yeri min-height ile duruyor):
+     güfte hiç bozulmuyor, akor hecesinin tam üstünde kalıyor. Heceye bağlı
+     OLMAYAN akorlar (satır sonu/ara akorları, .cp-tail) genişliği korur ki yan
+     yana geldiklerinde yapışmasınlar. */
+  .cp-chord { display:block; width:0; overflow:visible; font-size:.72em; font-weight:700; color:var(--chord-color,#FFC83D); line-height:1.15; min-height:1.25em; white-space:nowrap; letter-spacing:.02em; }
+  .cp-seg.cp-tail .cp-chord { width:auto; padding-right:.7em; }
   /* Akor rengi — temaya duyarlı altın/amber, güfteden ayrışsın (2026-07-17) */
   :root { --chord-color:#FFC83D; }              /* karanlık: parlak altın */
   [data-theme="light"] { --chord-color:#B26A00; } /* açık: koyu amber (beyaz zeminde kontrast) */
@@ -2112,7 +2124,9 @@ function renderChords(text) {
     while ((m = re.exec(scan)) !== null) {
       const chord = esc(m[1].trim());
       const lyric = esc(m[2]);
-      html += `<span class="cp-seg"><span class="cp-chord">${chord}</span><span class="cp-lyric">${lyric === '' ? '&nbsp;' : lyric}</span></span>`;
+      // Heceye bağlı olmayan akor (satır sonu / ardışık akorlar) genişliğini korusun
+      const tail = lyric.trim() === '';
+      html += `<span class="cp-seg${tail ? ' cp-tail' : ''}"><span class="cp-chord">${chord}</span><span class="cp-lyric">${lyric === '' ? '&nbsp;' : lyric}</span></span>`;
     }
     html += '</div>';
     return html;
