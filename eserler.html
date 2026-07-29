@@ -2,6 +2,57 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-29 (10): DÜĞME SİSTEMİ. Emir: "Kaydet ve Önizle butonları çok
+    eskilerden, demode, bu kadar güzel bir sisteme yakışmıyor" — haklı: gradyan
+    dolgu + 💾/👁 emoji + iki ayrı vurgu rengi (Önizle gri çerçeve, Çevir amber
+    çerçeve) 2010'ların dilini konuşuyordu ve hangisinin asıl eylem olduğu
+    okunmuyordu. CSS'e .rbtn ailesi eklendi (uygulamanın kendi belirteçlerinden
+    türetildi, yeni renk YOK): tek yükseklik 34px / yarıçap 8px / ağırlık 600;
+    .rbtn-primary (TEK dolu düğme = Kaydet, düz amber, gradyan yok),
+    .rbtn-danger, .rbtn-sm, .rbtn-ico (kare glif düğmeleri), .rbtn-group
+    (yardımcı eylemler tek gövdede, inset box-shadow ile saç teli bölme),
+    .rbtn-row, .rslider (varsayılan range yerine amber tutamaklı sürgü).
+    ÖNEMLİ KURAL: amber artık dekor değil DURUM — .is-on açık/etkin kip demek
+    (Önizle açık, taşıyıcı açık, ± Ton kaydırılmış). Bu yüzden durum artık inline
+    stille değil tek yardımcıyla veriliyor: _rbtnOn(el,on) → classList.toggle
+    ('is-on'); dağınık style.borderColor atamaları (7 yer) kaldırıldı.
+    Emoji sadece bilgi taşıyan geometrik gliflerde kaldı: ◀ ▶ ⟪ ⟫ ⇄ ↔.
+    Erişilebilirlik tabanı: :focus-visible halkası, prefers-reduced-motion.
+    EK: yön glifleri etiketle aynı boyutta cılız kaldığı için .rgl sınıfı
+    (1.35em, kendi line-height'ı, .5px taban düzeltmesi) — ⇄ ChordPro'ya çevir,
+    ↔ Akoru kaydır, ↔ Elle kaydır'da glif <span class="rgl"> içine alındı.
+    Not: ◀ ▶ ⟪ ⟫ zaten .rbtn-ico ile büyük, onlara dokunulmadı.
+    KAPSAM: yalnızca Akorlar sekmesi + ± Ton satırı. Ortak/Kişisel hap düğmeleri
+    (setBtn) ve favori düğmesi eski stilde bırakıldı — ayrı iş.
+  - 2026-07-29 (9): TEK TUVAL + KUMANDALAR YUKARIDA + İKON. Emir'in üç itirazı:
+    (i) taşıyıcı aşağıda İKİNCİ bir pencere açıyordu — aynı içerik iki yerde
+    çiziliyordu; (ii) ✋ ikonu "merhaba ben buradayım" gibi duruyordu; (iii)
+    sürgü ve düğmeler aşağıda dağınıktı. YAPILAN: (a) taşıyıcının kendi gövde
+    çizimi KALDIRILDI — ÖNİZLEME KUTUSU ortak tuval oldu. Yeni _cpPickBody(text,id)
+    önizlemeyi "seçilebilir akor" kipinde çiziyor; updateChordsPreview kipi
+    (_cpNudge.id === id && şerit açık) kendisi anlıyor, taşıyıcı açılırken
+    önizleme kapalıysa zorla açılıyor, Bitti'de normal kipe dönüyor. Not: tuval
+    ± Ton uygulanmış metni gösteriyor, kaydırma indeksleri birebir eşlendiği için
+    seçim doğru akora gidiyor. (b) DOM sırası: textarea → düğme sırası → Akor
+    hizası → kumanda şeridi → önizleme. Sürgü ve ◀ ▶ ⟪Tümü artık Kaydet'in hemen
+    altında, iş yapılan yerde. (c) İkon ✋ → ↔ ("↔ Akoru kaydır", panelde
+    "↔ Elle kaydır"); toggle etkinken düğme accent rengine geçiyor.
+  - 2026-07-29 (8): TAŞIYICIYI BULUNABİLİR YAPMA + GERİ DÖNÜLEMEZLİK UYARISI.
+    Gerekçe: "✋ Akorları taşı" Kaydet/Önizle/Çevir sırasının sonundaydı, satır
+    taşınca tek başına yukarıda kalıyordu ve YAPILAN İŞTEN KOPUKTU — geliştiricisi
+    bile aradı. (a) Düğme o sıradan çıkarıldı, önizleme + Akor hizası panelinin
+    HEMEN ALTINA, açıklama yazısıyla birlikte taşındı; kayıtlı eserlerde de tek
+    giriş noktası olduğu için her zaman görünür. (b) Sürgü paneline "✋ Elle
+    rötuş" (handoffToNudge) eklendi: hizayı kilitler (paneli kapatır), taşıyıcıyı
+    açar, oraya kaydırır — doğru sıra (sürgü → elle → kaydet) böylece akışın
+    kendisinden okunuyor. (c) SIRALAMA TUZAĞI KAPATILDI: sürgü metni ham
+    kaynaktan yeniden çevirdiği için elle yapılan rötuşları siliyordu, sessizce.
+    _cpNudged[id] izleniyor; rötuş varken sürgü oynatılırsa onay soruluyor, iptalde
+    sürgü eski değerine dönüyor (_cpLastK[id]). (d) UYARI POP-UP DEĞİL: açılışta
+    çıkan uyarı refleksle kapatılır. Kalıcı satır panelde duruyor, geri dönülemez
+    adımın TAM ANINDA (sürgü açıkken Kaydet'e basıldığında) confirm çıkıyor:
+    kaydedince ölçek bir daha değişmez, değiştirmek için kaynak metni yeniden
+    yapıştırmak gerekir; elle rötuş her zaman yapılabilir.
   - 2026-07-29 (7): AKOR HİZASI SÜRGÜSÜ + TOPLU KAYDIRMA. Gerekçe: elle akor
     taşımak bir eserin %30'unda uğraştırıcı; kaymanın çoğu TEK bir ölçek
     hatasından geliyor. Otomatik kalibrasyon denendi ve YETMEDİĞİ ölçüldü —
@@ -768,6 +819,47 @@
   .font-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,.35); cursor:pointer; border:none; }
   .font-slider::-moz-range-thumb { width:18px; height:18px; border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,.35); cursor:pointer; border:none; }
   .font-slider::-moz-range-track { height:4px; border-radius:2px; background:transparent; }
+  /* ── DÜĞME SİSTEMİ (2026-07-29 (10)) ─────────────────────────────────────────
+     Dert: emoji + gradyan dolgulu düğmeler işletim sisteminden değil 2010'lardan
+     geliyordu. Kural: TEK dolu düğme (asıl eylem), geri kalan her şey sessiz;
+     tek yükseklik (34px), tek yarıçap (8px), emoji YOK — sadece yön/işlev
+     anlatan geometrik glif (◀ ▶ ⇄ ↔) kalıyor çünkü onlar bilgi taşıyor. */
+  .rbtn { height:34px; padding:0 14px; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--text2);
+    font-family:inherit; font-size:13px; font-weight:600; letter-spacing:.005em; white-space:nowrap;
+    cursor:pointer; transition:background .12s ease, border-color .12s ease, color .12s ease; }
+  .rbtn:hover { border-color:var(--border2); background:rgba(255,255,255,.04); color:var(--text); }
+  .rbtn:focus-visible { outline:2px solid var(--accent2); outline-offset:2px; }
+  .rbtn:disabled, .rbtn[disabled] { color:var(--text3); cursor:default; opacity:.5; }
+  .rbtn:disabled:hover, .rbtn[disabled]:hover { background:transparent; border-color:var(--border); color:var(--text3); }
+  /* açık/etkin kip — düğmenin kendisi durumunu söyler, ayrı bir gösterge gerekmez */
+  .rbtn.is-on { border-color:var(--accent); color:var(--accent); background:rgba(255,200,61,.10); }
+  .rbtn-primary { background:var(--accent); border-color:var(--accent); color:#0B1020; font-weight:700; }
+  .rbtn-primary:hover { background:#FFD469; border-color:#FFD469; color:#0B1020; }
+  .rbtn-danger { border-color:rgba(239,68,68,.38); color:#ef4444; }
+  .rbtn-danger:hover { border-color:#ef4444; background:rgba(239,68,68,.10); color:#ef4444; }
+  .rbtn-sm { height:30px; padding:0 10px; font-size:12px; }
+  .rbtn-ico { width:34px; padding:0; font-size:15px; font-weight:700; }
+  .rbtn-ico.rbtn-sm { width:30px; }
+  /* Segmentli grup: yardımcı eylemler tek gövde içinde, saç teli bölmelerle —
+     dört ayrı çerçeve yerine tek nesne, gürültü düşüyor. */
+  .rbtn-group { display:inline-flex; flex-wrap:wrap; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .rbtn-group > .rbtn { border:none; border-radius:0; }
+  .rbtn-group > .rbtn + .rbtn { box-shadow:inset 1px 0 0 var(--border); }
+  .rbtn-group > .rbtn.is-on { background:rgba(255,200,61,.12); }
+  .rbtn-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  /* Akor hizası sürgüsü: tarayıcının varsayılan range'i sistemin geri kalanına ait değil */
+  .rslider { -webkit-appearance:none; appearance:none; flex:1; min-width:150px; height:4px; border-radius:2px;
+    background:linear-gradient(90deg,var(--border),var(--border2)); outline:none; cursor:pointer; }
+  .rslider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%;
+    background:var(--accent); box-shadow:0 2px 6px rgba(0,0,0,.45); border:none; cursor:pointer; }
+  .rslider::-moz-range-thumb { width:18px; height:18px; border-radius:50%; background:var(--accent);
+    box-shadow:0 2px 6px rgba(0,0,0,.45); border:none; cursor:pointer; }
+  .rslider::-moz-range-track { height:4px; border-radius:2px; background:var(--border); }
+  /* Yön glifleri (⇄ ↔) etiket yazısıyla aynı boyutta cılız kalıyordu — bir tık
+     büyütülüyor, taban çizgisi kaymasın diye kendi satır yüksekliğiyle. */
+  .rgl { display:inline-block; font-size:1.35em; line-height:1; transform:translateY(.5px); }
+  @media (prefers-reduced-motion: reduce) { .rbtn { transition:none; } }
 </style>
 <script src="auth.js"></script>
 <script src="topnav.js" defer></script>
@@ -1893,24 +1985,26 @@ function selectWork(id, silent) {
         <div id="scope_help_${w.id}" style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;"></div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
           <span style="font-size:12px;color:var(--text3);">Ton:</span>
-          <button onclick="stepTranspose(${w.id},-1)" title="Yarım ton pes" style="width:32px;height:30px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text2);font-size:15px;font-weight:700;cursor:pointer;">−</button>
-          <button id="ton_badge_${w.id}" onclick="resetTranspose(${w.id})" title="Orijinal tona dön" style="min-width:52px;height:30px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text2);font-size:12px;font-weight:800;cursor:pointer;">Orijinal</button>
-          <button onclick="stepTranspose(${w.id},1)" title="Yarım ton tiz" style="width:32px;height:30px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text2);font-size:15px;font-weight:700;cursor:pointer;">+</button>
+          <button onclick="stepTranspose(${w.id},-1)" title="Yarım ton pes" class="rbtn rbtn-sm rbtn-ico">−</button>
+          <button id="ton_badge_${w.id}" onclick="resetTranspose(${w.id})" title="Orijinal tona dön" class="rbtn rbtn-sm" style="min-width:56px;">Orijinal</button>
+          <button onclick="stepTranspose(${w.id},1)" title="Yarım ton tiz" class="rbtn rbtn-sm rbtn-ico">+</button>
           <span id="karar_lbl_${w.id}" style="font-size:12px;font-weight:700;color:var(--text2);margin-left:4px;"></span>
           <span style="font-size:11px;color:var(--text3);">sadece görünümü kaydırır, kayıtlı akoru değiştirmez</span>
         </div>
         <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="updateChordsPreview(${w.id})" style="width:100%;min-height:300px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
           placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm"></textarea>
-        <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
-          <button onclick="saveChords(${w.id})" style="padding:8px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;color:#1a1200;font-size:13px;font-weight:600;cursor:pointer;">💾 Kaydet</button>
-          <button id="chords_preview_btn_${w.id}" onclick="toggleChordsPreview(${w.id})" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:13px;cursor:pointer;">👁 Önizle</button>
-          <button onclick="convertChordsInEditor(${w.id})" title="Akorlar sözlerin üstünde ayrı satırdaysa [Am] biçimine çevirir" style="padding:8px 14px;background:none;border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:13px;cursor:pointer;">⇄ ChordPro'ya çevir</button>
-          <button id="chords_nudge_btn_${w.id}" onclick="toggleNudgeEditor(${w.id})" title="Akora dokun, ok tuşlarıyla hece hece kaydır" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:13px;cursor:pointer;">✋ Akorları taşı</button>
-          <button id="delpc_${w.id}" onclick="deletePersonalChords(${w.id})" style="display:none;padding:8px 14px;background:none;border:1px solid rgba(239,68,68,.4);border-radius:6px;color:#ef4444;font-size:12px;cursor:pointer;">Kişiseli sil</button>
+        <div class="rbtn-row" style="margin-top:10px;">
+          <button onclick="saveChords(${w.id})" class="rbtn rbtn-primary">Kaydet</button>
+          <span class="rbtn-group">
+            <button id="chords_preview_btn_${w.id}" onclick="toggleChordsPreview(${w.id})" class="rbtn">Önizle</button>
+            <button onclick="convertChordsInEditor(${w.id})" title="Akorlar sözlerin üstünde ayrı satırdaysa [Am] biçimine çevirir" class="rbtn"><span class="rgl">⇄</span> ChordPro'ya çevir</button>
+            <button id="chords_nudge_btn_${w.id}" onclick="toggleNudgeEditor(${w.id})" title="Akora dokun, ◀ ▶ veya ok tuşlarıyla hece hece kaydır" class="rbtn"><span class="rgl">↔</span> Akoru kaydır</button>
+          </span>
+          <button id="delpc_${w.id}" onclick="deletePersonalChords(${w.id})" class="rbtn rbtn-danger rbtn-sm" style="display:none;">Kişiseli sil</button>
         </div>
+        <div id="chords_scale_${w.id}" style="display:none;margin-top:10px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
+        <div id="chords_nudge_${w.id}" style="display:none;margin-top:10px;padding:10px 12px;border:1px solid var(--accent);border-radius:8px;"></div>
         <div id="chords_preview_${w.id}" class="lyrics-box" style="display:none;margin-top:12px;"></div>
-        <div id="chords_scale_${w.id}" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
-        <div id="chords_nudge_${w.id}" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
       ` : `
         <div class="lyrics-box">
           ${dispChords && dispChords.trim()
@@ -2129,6 +2223,8 @@ const _CP_CHAR_W = {' ':.278,'!':.278,'"':.355,"'":.191,'(':.333,')':.333,',':.2
 const _CP_NORM = {'ğ':'g','ı':'i','ş':'s','ç':'c','ö':'o','ü':'u','â':'a','î':'i','û':'u','Ğ':'G','İ':'I','Ş':'S','Ç':'C','Ö':'O','Ü':'U'};
 let _cpScaleK = 1;        // Akor hizası sürgüsünün değeri (çevirme adımında ayarlanır)
 const _cpConvSrc = {};    // eser id -> çevirmeden önceki ham metin (geri alma + yeniden ölçekleme için)
+const _cpNudged = {};     // eser id -> elle akor taşındı mı (sürgü bunları silmeden önce uyarır)
+const _cpLastK = {};      // eser id -> sürgünün son onaylanan değeri (iptalde geri dönmek için)
 function _cpCharW(ch){ const c = _CP_NORM[ch] || ch; const w = _CP_CHAR_W[c]; return w === undefined ? 0.5 : w; }
 function _cpTextW(s){ let w = 0; for (const ch of s) w += _cpCharW(ch); return w; }
 // Akor satırındaki `col` sütununun güftede denk geldiği karakter indeksi.
@@ -2289,10 +2385,29 @@ function _cpAutoScale(src){
   }
   return best;
 }
+// Sürgüden elle rötuşa geçiş: sürgü kaynaktan YENİDEN çevirdiği için elle yapılan
+// kaydırmaları siler → sıra zorunlu olarak önce sürgü, sonra elle. Bu düğme hizayı
+// kilitler (paneli kapatır) ve taşıyıcıyı açar.
+function handoffToNudge(id){
+  closeConvScale(id);
+  const host = document.getElementById('chords_nudge_' + id);
+  if (host && host.style.display === 'none') toggleNudgeEditor(id);
+  if (host) host.scrollIntoView({behavior:'smooth', block:'center'});
+  toastMsg('Hiza kilitlendi — önizlemede akora dokun, ◀ ▶ ile kaydır');
+}
 function applyConvScale(id, val){
   const ta = document.getElementById('inline_chords_' + id);
   const src = _cpConvSrc[id];
   if (!ta || src === undefined) return;
+  if (_cpNudged[id]) {                                // elle rötuş yapılmış: sürgü onları silecek
+    if (!confirm('Elle taşıdığın akorlar var.\n\nSürgü metni kaynaktan baştan çevirir, yani o rötuşlar SİLİNİR.\n\nTAMAM: sürgüyle devam et (rötuşlar gider)\nİPTAL: rötuşları koru')) {
+      const sl = document.getElementById('conv_scale_' + id);
+      if (sl) sl.value = Math.round((_cpLastK[id] || 1) * 100);
+      return;
+    }
+    delete _cpNudged[id];
+  }
+  _cpLastK[id] = (+val) / 100;
   _cpScaleK = (+val) / 100;
   const lbl = document.getElementById('conv_scale_lbl_' + id);
   if (lbl) lbl.textContent = _cpScaleK.toFixed(2);
@@ -2344,6 +2459,7 @@ function nudgeAll(id, dir){
     lines[li] = _cpSerializeLine(p).replace(/\s+$/, '');
   }
   ta.value = lines.join('\n');
+  _cpNudged[id] = true;
   renderNudgeEditor(id);
   if (typeof updateChordsPreview === 'function') updateChordsPreview(id);
 }
@@ -2356,22 +2472,25 @@ function convertChordsInEditor(id){
   const converted=convertChordsAboveToChordPro(src);
   if(!hasRealChords(converted)){ alert('Çevrilecek akor satırı bulunamadı. Akorların sözlerin üstünde ayrı satırda olduğundan emin olun.'); return; }
   _cpConvSrc[id]=src;                       // ham kaynağı sakla: sürgü ve geri alma bunu kullanır
+  delete _cpNudged[id]; _cpLastK[id]=1;     // yeni çevirme: rötuş geçmişi ve ölçek sıfır
   ta.value=converted;
   const prev=document.getElementById('chords_preview_'+id);
-  if(prev){ prev.style.display='block'; const pb=document.getElementById('chords_preview_btn_'+id); if(pb) pb.style.borderColor='var(--accent)'; }
+  if(prev){ prev.style.display='block'; _rbtnOn(document.getElementById('chords_preview_btn_'+id), true); }
   const sh=document.getElementById('chords_scale_'+id);
   if(sh){
     sh.style.display='block';
     sh.innerHTML =
       '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
       + '<span style="font-size:13px;font-weight:600;color:var(--text2);">Akor hizası</span>'
-      + '<input id="conv_scale_'+id+'" type="range" min="70" max="130" value="100" oninput="applyConvScale('+id+',this.value)" style="flex:1;min-width:170px;">'
-      + '<span id="conv_scale_lbl_'+id+'" style="font-size:12px;font-weight:700;color:var(--accent);min-width:34px;">1.00</span>'
-      + '<button onclick="suggestConvScale('+id+')" style="padding:6px 12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer;">Öner</button>'
-      + '<button onclick="undoConvert('+id+')" style="padding:6px 12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer;">Geri al</button>'
-      + '<button onclick="closeConvScale('+id+')" style="padding:6px 12px;background:none;border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:12px;cursor:pointer;">Bitti</button>'
+      + '<input id="conv_scale_'+id+'" class="rslider" type="range" min="70" max="130" value="100" oninput="applyConvScale('+id+',this.value)">'
+      + '<span id="conv_scale_lbl_'+id+'" style="font-size:12px;font-weight:700;color:var(--accent);min-width:34px;font-variant-numeric:tabular-nums;">1.00</span>'
+      + '<button onclick="suggestConvScale('+id+')" class="rbtn rbtn-sm">Öner</button>'
+      + '<button onclick="undoConvert('+id+')" class="rbtn rbtn-sm">Geri al</button>'
+      + '<button onclick="handoffToNudge('+id+')" title="Hizayı kilitle ve kalan akorları elle düzelt" class="rbtn rbtn-sm is-on"><span class=\'rgl\'>↔</span> Elle kaydır</button>'
+      + '<button onclick="closeConvScale('+id+')" class="rbtn rbtn-sm">Bitti</button>'
       + '</div>'
-      + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">Sürgüyü çekerken akorlar güftenin üstünde birlikte kayar — önizlemeye bakarak doğru yerde bırak. Kaynaktaki hiza tek bir ölçekten kaymışsa bu tek hareket bütün eseri düzeltir.</div>';
+      + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">Sürgüyü çekerken akorlar güftenin üstünde birlikte kayar — önizlemeye bakarak doğru yerde bırak. Kaynaktaki hiza tek bir ölçekten kaymışsa bu tek hareket bütün eseri düzeltir.</div>'
+      + '<div style="margin-top:8px;padding:8px 10px;background:rgba(245,158,11,.10);border-left:3px solid var(--accent);border-radius:4px;font-size:12px;color:var(--text2);line-height:1.55;">⚠️ <b>Bu sürgü yalnızca şimdi, çevirme sırasında çalışır.</b> Kaydettikten sonra bu eserde ölçeği değiştiremezsin — değiştirmek için kaynak metni yeniden yapıştırıp baştan çevirmen gerekir. Sıra: <b>önce sürgü</b>, sonra <b>↔ Elle kaydır</b>, en son <b>Kaydet</b>. Elle rötuş kaydettikten sonra da her zaman yapılabilir.</div>';
   }
   updateChordsPreview(id);
   toastMsg('✓ Çevrildi — hiza kaymışsa sürgüyle ayarla, sonra Kaydet');
@@ -2505,15 +2624,29 @@ function _cpCandidates(plain){
   for (let i = lastEnd; i <= plain.length; i++) set.add(i);
   return [...set].sort((a, b) => a - b);
 }
+// Düğme durumu tek yerden: inline stil yazmak yerine .is-on sınıfı
+function _rbtnOn(el, on){ if (el) el.classList.toggle('is-on', !!on); }
 function toggleNudgeEditor(id){
   const host = document.getElementById('chords_nudge_' + id);
   const btn = document.getElementById('chords_nudge_btn_' + id);
   if (!host) return;
   const open = host.style.display !== 'none';
-  if (open) { host.style.display = 'none'; if (btn) btn.style.borderColor = 'var(--border)'; _cpNudge = {id:null, line:-1, chord:-1}; return; }
+  if (open) {
+    host.style.display = 'none';
+    _rbtnOn(btn, false);
+    _cpNudge = {id:null, line:-1, chord:-1};
+    updateChordsPreview(id);                     // önizlemeyi normal kipe döndür
+    return;
+  }
   host.style.display = 'block';
-  if (btn) btn.style.borderColor = 'var(--accent)';
+  _rbtnOn(btn, true);
   _cpNudge = {id: id, line: -1, chord: -1};
+  // önizleme kutusu artık taşıyıcının tuvali: kapalıysa aç
+  const prev = document.getElementById('chords_preview_' + id);
+  if (prev && prev.style.display !== 'block') {
+    prev.style.display = 'block';
+    _rbtnOn(document.getElementById('chords_preview_btn_' + id), true);
+  }
   renderNudgeEditor(id);
 }
 function selectNudgeChord(id, li, ci){
@@ -2538,17 +2671,17 @@ function nudgeChord(id, dir){
   if (prevC && target <= prevC.at) return;      // komşu akorun üstüne binme
   if (nextC && target >= nextC.at) return;
   c.at = target;
+  _cpNudged[id] = true;                         // sürgü bu rötuşu silmeden önce sorsun
   // sola taşırken sonda artık boşluk kalmasın
   lines[_cpNudge.line] = _cpSerializeLine(p).replace(/\s+$/, '');
   ta.value = lines.join('\n');
   renderNudgeEditor(id);
   if (typeof updateChordsPreview === 'function') updateChordsPreview(id);
 }
-function renderNudgeEditor(id){
-  const ta = document.getElementById('inline_chords_' + id);
-  const host = document.getElementById('chords_nudge_' + id);
-  if (!ta || !host) return;
-  const lines = ta.value.split('\n');
+// Önizlemeyi "seçilebilir akor" kipinde çizer — taşıyıcının ayrı tuvali YOK,
+// aynı içeriği iki yerde çizmemek için önizleme kutusu ortak kullanılıyor.
+function _cpPickBody(text, id){
+  const lines = text.split('\n');
   let body = '';
   lines.forEach((line, li) => {
     const p = _cpParseLine(line);
@@ -2572,19 +2705,30 @@ function renderNudgeEditor(id){
     });
     body += html + '</div>';
   });
+  return body;
+}
+// Taşıyıcı = yalnızca kumanda şeridi (Kaydet sırasının hemen altında).
+function renderNudgeEditor(id){
+  const host = document.getElementById('chords_nudge_' + id);
+  if (!host) return;
   const has = _cpNudge.line >= 0;
+  const btn = (label, act, on, ico) => '<button onclick="' + act + '" ' + (on ? '' : 'disabled ')
+    + 'class="rbtn rbtn-sm' + (ico ? ' rbtn-ico' : '') + '">' + label + '</button>';
   host.innerHTML =
-    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">'
-    + '<button onclick="nudgeChord(' + id + ',-1)" ' + (has ? '' : 'disabled ') + 'style="width:40px;height:34px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text' + (has ? '' : '3') + ');font-size:16px;font-weight:700;cursor:' + (has ? 'pointer' : 'default') + ';">◀</button>'
-    + '<button onclick="nudgeChord(' + id + ',1)" ' + (has ? '' : 'disabled ') + 'style="width:40px;height:34px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text' + (has ? '' : '3') + ');font-size:16px;font-weight:700;cursor:' + (has ? 'pointer' : 'default') + ';">▶</button>'
-    + '<span style="width:1px;height:26px;background:var(--border);margin:0 4px;"></span>'
-    + '<button onclick="nudgeAll(' + id + ',-1)" title="Eserdeki TÜM akorları bir hece sola" style="height:34px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">⟪ Tümü</button>'
-    + '<button onclick="nudgeAll(' + id + ',1)" title="Eserdeki TÜM akorları bir hece sağa" style="height:34px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">Tümü ⟫</button>'
-    + '<span style="font-size:12px;color:var(--text3);">' + (has ? 'Seçili akoru bir hece kaydırır (ok tuşları da çalışır)' : 'Taşımak istediğin akora dokun') + '</span>'
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+    + '<span style="font-size:12px;font-weight:600;color:var(--text2);">Akoru kaydır</span>'
+    + btn('◀', 'nudgeChord(' + id + ',-1)', has, true)
+    + btn('▶', 'nudgeChord(' + id + ',1)', has, true)
+    + '<span style="width:1px;height:24px;background:var(--border);margin:0 2px;"></span>'
+    + btn('⟪ Tümü', 'nudgeAll(' + id + ',-1)', true)
+    + btn('Tümü ⟫', 'nudgeAll(' + id + ',1)', true)
+    + '<span style="flex:1;min-width:8px;"></span>'
+    + '<button onclick="toggleNudgeEditor(' + id + ')" class="rbtn rbtn-sm is-on">Bitti</button>'
     + '</div>'
-    + '<div class="lyrics-box" style="margin:0;">' + body + '</div>'
-    + '<div style="margin-top:8px;font-size:12px;color:var(--text3);">Değişiklikler yukarıdaki metin kutusuna yazıldı — <b>💾 Kaydet</b>\'e basmayı unutma.</div>';
-  if (typeof window.cpFixChordOverlaps === 'function') window.cpFixChordOverlaps();
+    + '<div style="margin-top:7px;font-size:12px;color:var(--text3);line-height:1.5;">'
+    + (has ? 'Seçili akoru bir hece kaydırır — ok tuşları da çalışır.' : '<b>Aşağıdaki önizlemede taşımak istediğin akora dokun.</b>')
+    + ' Değişiklikler metin kutusuna yazılır, <b>Kaydet</b>\'e basmayı unutma.</div>';
+  updateChordsPreview(id);
 }
 document.addEventListener('keydown', function(e){
   if (_cpNudge.id === null || _cpNudge.line < 0) return;
@@ -2602,9 +2746,15 @@ function updateChordsPreview(id){
   if(!prev || !ta) return;
   if(prev.style.display !== 'block') return; // gizliyken boşuna render etme
   const val = ta.value.trim();
-  prev.innerHTML = hasRealChords(val)
-    ? renderChords(transposeChordPro(val, getTranspose(id)))
-    : '<span style="color:var(--text3);font-size:12px;">Önizlemek için akor ([Am]) ekleyin.</span>';
+  if(!hasRealChords(val)){
+    prev.innerHTML = '<span style="color:var(--text3);font-size:12px;">Önizlemek için akor ([Am]) ekleyin.</span>';
+    return;
+  }
+  const nh = document.getElementById('chords_nudge_'+id);
+  const picking = (_cpNudge.id === id) && nh && nh.style.display !== 'none';
+  const shown = transposeChordPro(val, getTranspose(id));
+  prev.innerHTML = picking ? _cpPickBody(shown, id) : renderChords(shown);
+  if (typeof window.cpFixChordOverlaps === 'function') window.cpFixChordOverlaps();
 }
 // ± Ton — eser başına, kişisel katmanda saklanır (stage.html ile aynı davranış)
 function updateTonBadge(id){
@@ -2613,7 +2763,7 @@ function updateTonBadge(id){
   if(b){
     b.textContent = v > 0 ? '+'+v : (v < 0 ? String(v) : 'Orijinal');
     b.style.color = v ? 'var(--accent)' : 'var(--text2)';
-    b.style.borderColor = v ? 'var(--accent)' : 'var(--border)';
+    b.classList.toggle('is-on', !!v);
   }
   // Karar sesi: kaydırılmış güncel değer (örn. "A (La)")
   const kl = document.getElementById('karar_lbl_'+id);
@@ -2641,8 +2791,7 @@ function _afterTonChange(id){
   if (prev && document.getElementById('inline_chords_'+id)) {
     if (prev.style.display !== 'block') {
       prev.style.display = 'block';
-      const pb = document.getElementById('chords_preview_btn_'+id);
-      if (pb) pb.style.borderColor = 'var(--accent)';
+      _rbtnOn(document.getElementById('chords_preview_btn_'+id), true);
     }
     updateChordsPreview(id);
   }
@@ -2682,7 +2831,7 @@ function toggleChordsPreview(id){
   if(!prev) return;
   const show = prev.style.display !== 'block';
   prev.style.display = show ? 'block' : 'none';
-  if(btn) btn.style.borderColor = show ? 'var(--accent)' : 'var(--border)';
+  _rbtnOn(btn, show);
   if(show) updateChordsPreview(id);
 }
 
@@ -2755,7 +2904,7 @@ function setChordScope(id, scope){
     ? 'Bu akoru <b>gruptaki herkes</b> görür. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.'
     : 'Bu akoru <b>sadece sen</b> görürsün; ortak akor değişmez. <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.';
   const del=document.getElementById('delpc_'+id);
-  if(del) del.style.display = (scope==='kisisel' && personal) ? 'inline-block' : 'none';
+  if(del) del.style.display = (scope==='kisisel' && personal) ? 'inline-flex' : 'none';
   updateChordsPreview(id);
 }
 function toastMsg(text){
@@ -2771,21 +2920,28 @@ function _afterChordsSaved(id, hasCh, chords, isShared){
       ? renderChords(chords)
       : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi yok.</span>';
     prev.style.display = 'block';
-    const pb = document.getElementById('chords_preview_btn_'+id);
-    if (pb) pb.style.borderColor = 'var(--accent)';
+    _rbtnOn(document.getElementById('chords_preview_btn_'+id), true);
   }
   // Bu kullanıcının GEÇERLİ akoru (kişisel varsa o) → güfte tab'ını tazele
   const eff = PERSONAL_CHORDS[String(id)] || (DATA.find(x=>x.id===id||x.id===parseInt(id))||{}).chords || '';
   const gbox = document.getElementById('lyricsBoxDisplay');
   if (gbox && hasRealChords(eff)) gbox.innerHTML = renderLyricsHtml(chordsToLyrics(eff));
   const del=document.getElementById('delpc_'+id);
-  if(del) del.style.display = (!isShared && PERSONAL_CHORDS[String(id)]) ? 'inline-block' : 'none';
+  if(del) del.style.display = (!isShared && PERSONAL_CHORDS[String(id)]) ? 'inline-flex' : 'none';
   toastMsg(isShared ? '✓ Ortak akor kaydedildi' : '✓ Kişisel akor kaydedildi');
 }
 
 async function saveChords(id) {
   const ta = document.getElementById('inline_chords_'+id);
   if (!ta) { console.error('textarea bulunamadı: inline_chords_'+id); return; }
+  // 2026-07-29: geri dönülemez adım tam burada — sürgü paneli açıkken kaydetmek
+  // ham kaynağa dayalı ölçek ayarını kapatıyor. Uyarıyı riskin olduğu ana koyuyoruz
+  // (açılışta çıkan pop-up refleksle kapatılır, buradaki kapatılamaz).
+  const _sh = document.getElementById('chords_scale_' + id);
+  if (_sh && _sh.style.display !== 'none') {
+    if (!confirm('AKOR HİZASI SÜRGÜSÜ HÂLÂ AÇIK\n\nKaydedince sürgü kapanır: bu eserde ölçeği bir daha değiştiremezsin. Değiştirmek istersen kaynak metni yeniden yapıştırıp baştan çevirmen gerekir.\n\nElle kaydırma (↔ Akoru kaydır) kaydettikten sonra da her zaman yapılabilir.\n\nTAMAM: bu hizayla kaydet\nİPTAL: sürgüye dön')) return;
+    closeConvScale(id);
+  }
   const scope = ta.dataset.scope || 'kisisel';
   const raw = ta.value.trim();
   const _hasCh = hasRealChords(raw);

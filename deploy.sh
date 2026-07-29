@@ -35,12 +35,61 @@ if [ -f service-worker.js ]; then
 fi
 
 # --- 2) Git ---
+# 2026-07-29: push HATASINDA ARTIK DURUYOR. Eski hali "git push && echo" idi:
+# push reddedilince && kısa devre yapıyor, hata mesajı basılmıyor, script www/ ve
+# native sync'e devam edip "N dosya doğrulandı" yeşil mesajını veriyordu. Kök,
+# www/ ve native aynı olduğu için doğrulama teknik olarak haklıydı ama WEB'in
+# güncellenmediğini söylemiyordu → yanıltıcı yarım deploy.
 git add -A
 if git diff --cached --quiet; then
   echo "ℹ️  Commit edilecek değişiklik yok."
 else
-  git commit -m "$MSG" && echo "✅ Commit: $MSG"
-  git push origin main && echo "🚀 Push edildi (repertuvar.app ~1-2 dk)"
+  if ! git commit -m "$MSG"; then
+    echo "❌ Commit başarısız — deploy durduruldu."; exit 1
+  fi
+  echo "✅ Commit: $MSG"
+fi
+
+if git rev-parse --verify --quiet origin/main >/dev/null; then
+  git fetch origin main --quiet || echo "⚠️  git fetch başarısız (ağ?) — ayrışma kontrolü eski bilgiyle yapılıyor"
+  AHEAD=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
+  BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
+else
+  echo "ℹ️  origin/main henüz yok — ilk push."
+  AHEAD=1; BEHIND=0
+fi
+
+# Ayrışma: uzakta burada olmayan commit varsa push zaten reddedilir ("fetch first").
+# Tek sebebi GitHub WEB ARAYÜZÜNDEN dosya yüklemek. Push'u denemeden dur ve yolu söyle.
+if [ "$BEHIND" -gt 0 ]; then
+  echo ""
+  echo "❌ AYRIŞMA: origin/main'de bu klasörde olmayan $BEHIND commit var."
+  echo "   Sebebi neredeyse her zaman: GitHub web arayüzünden dosya yüklemek."
+  echo ""
+  echo "   Çözüm (sırayla):"
+  echo "     git branch yedek-$(date '+%d%b%H%M')     # güvenlik ağı"
+  echo "     git merge origin/main                    # REBASE DEĞİL: rebase'te --ours karşı tarafı seçer"
+  echo "     git checkout --ours <çakışan dosya> && git add <çakışan dosya>"
+  echo "     git commit --no-edit"
+  echo "     ./deploy.sh \"$MSG\""
+  echo ""
+  echo "   Deploy DURDURULDU — www/ ve native'e dokunulmadı."
+  exit 1
+fi
+
+if [ "$AHEAD" -gt 0 ]; then
+  if git push origin main; then
+    echo "🚀 Push edildi ($AHEAD commit) — repertuvar.app ~1-2 dk"
+  else
+    echo ""
+    echo "❌ PUSH BAŞARISIZ — WEB SÜRÜMÜ GÜNCELLENMEDİ (repertuvar.app eski kalır)."
+    echo "   Deploy DURDURULDU: www/ ve native'e bilerek dokunulmadı, yoksa"
+    echo "   'dosyalar doğrulandı' mesajı yarım deploy'u başarı gibi gösteriyor."
+    echo "   Yukarıdaki git hatasını oku; ayrışma diyorsa: git fetch && git merge origin/main"
+    exit 1
+  fi
+else
+  echo "ℹ️  Push gerekmiyor — uzak sürüm zaten güncel."
 fi
 
 if $WEB_ONLY; then
@@ -102,7 +151,7 @@ done
 
 echo ""
 if [ "$FAIL" -eq 0 ]; then
-  echo "✅ $OK dosya doğrulandı — kök, www/ ve native aynı."
+  echo "✅ $OK dosya doğrulandı — kök, www/ ve native aynı (web push da tamam)."
 else
   echo "⚠️  $FAIL dosya eşleşmedi, $OK dosya tamam."
   echo "    Bunlar cihazda ESKİ kalır — tekrar çalıştır ya da elle kontrol et."
