@@ -2,6 +2,78 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-29 (6): GÖRSEL AKOR TAŞIYICI EKLENDİ (Akorlar sekmesi → "✋ Akorları
+    taşı"). Gerekçe: içe aktarma her zaman "en iyi tahmin"dir — ChordPro'nun
+    kendi belgeleri de a2crd çıktısının elden geçirilmesi gerektiğini söyler;
+    son %10'u ancak müzisyenin kulağı bilir. Akora dokun → ◀ ▶ (veya ok
+    tuşları) ile hece hece kaydır. Metin kutusuna anında yazılır, kaydetme
+    akışı değişmedi. Fonksiyonlar: _cpParseLine / _cpSerializeLine /
+    _cpCandidates (hece başları + satır sonu boşluk bölgesi) / nudgeChord
+    (komşu akorun üstüne binmeyi engeller, satır sonunda gerekirse boşluk
+    açar, sola dönüşte artık boşluğu temizler) / renderNudgeEditor.
+    CSS: .cp-pick (tıklanabilir), .cp-sel (seçili akor vurgusu).
+  - 2026-07-29 (5): ÇEVİRİCİ ARTIK ORANTILI KAYNAK HİZASINI ANLIYOR — (4)'teki
+    teşhis eksikti. Akor-üstte kaynakların çoğu monospace değil, orantılı fontta
+    göz kararı hizalanmış; akor satırı neredeyse hep boşluk ve boşluk harften çok
+    dar olduğu için aynı piksel konumuna ulaşmak daha fazla KARAKTER gerektiriyor.
+    Sütun birebir okununca akor sağa kayıyor, hatta güfteyi aşmış gibi
+    görünüyordu (Gönül Dağı 1. satır: Cm sütun 43, güfte 37 karakter — ama piksel
+    olarak 13.68em, yani tam "boran"ın üstü). Emir "kaynakta güftenin ötesine
+    yazılmamış, eseri iyi biliyorum" diye itiraz etti ve haklıydı.
+    DÜZELTME: _cpColToIndex — akorun kaynak satırındaki piksel genişliği
+    (Helvetica/Arial em tablosu, Türkçe harfler taban harflere eşlenir, akor
+    adları kalın olduğu için 1.15 katsayısı) hesaplanıp güftede aynı genişliğe
+    denk gelen karakter bulunuyor; sonra yine hece başına yuvarlanıyor.
+    _cpIsProportional ile kaynak tipi BELGE düzeyinde otomatik seçiliyor (akor
+    satırı güfteden sistematik uzunsa orantılı), monospace kaynaklarda eski
+    davranış korunuyor. Gerçekten güfteyi aşan akorlar (dönüş akorları) hâlâ
+    satır sonuna tail olarak gidiyor, aralık em farkından hesaplanıyor.
+  - 2026-07-29 (4): ÇEVİRİCİDE SATIR SONU AKORLARI DÜZELTİLDİ — asıl hata buydu.
+    Belirti: her satırın son iki akoru son kelimenin bitişik iki hecesine
+    çakılıyordu (olun[Cm]ca[Db], va[Cm]rıl[Db]maz, ö[Cm]ter[Db]ken) ve ekranda
+    sağ uçta küme halinde görünüyordu; kaynakta ise güfteye yayılmış duruyorlar.
+    SEBEP: _mergeChordLyric'in "son kelimeden sonra → son hecesine kelepçele"
+    kuralı. Kaynakta güfte sonunu AŞAN dönüş akorları (turnaround) böylece tek
+    heceye toplanıyordu. Sentetik kaynakla birebir yeniden üretildi.
+    DÜZELTME: o daldaki akor artık tail olarak işaretlenip kaynaktaki sıra ve
+    aralığı korunarak güftenin SAĞINA yerleşiyor (aralık 2..6 boşluğa
+    sıkıştırılıyor, yoksa 20+ boşlukla satır telefonda sarardı); taban metin
+    boşlukla uzatılıyor. renderChords bunları zaten cp-tail segmenti olarak
+    basıyor. DİKKAT: yalnız YENİ dönüşümleri etkiler — mevcut eserlerin akorları
+    eski çapalarla kayıtlı, düzelmesi için kaynak metnin yeniden yapıştırılması
+    gerekir.
+  - 2026-07-29 (3): AKORLARIN ÜST ÜSTE BİNMESİ ÇÖZÜLDÜ (render sonrası ölçüm).
+    (2)'deki width:0 güfteyi kurtardı ama akor metni artık layout'ta yer
+    kaplamadığı için dar hecelerin üstünde iki akor görsel olarak çakışıyordu
+    ("CmDb", "Bbm"+"Cm" iç içe). CSS ile çözülemez — akora genişlik verirsek
+    kelime yine yarılır. ÇÖZÜM: renderChords'tan sonra çalışan bir koruyucu
+    (window.cpFixChordOverlaps): her .cp-line içindeki akorların GERÇEK metin
+    genişliğini Range.getBoundingClientRect ile ölçüp çakışanları
+    transform:translateX ile sağa kaydırıyor. transform layout'u değiştirmediği
+    için güfte etkilenmez, ResizeObserver döngüsü oluşmaz. MutationObserver
+    (yeni render), ResizeObserver (yazı boyutu/ölçek değişimi), resize,
+    orientationchange ve document.fonts.ready ile tetikleniyor; mobilde satır
+    sarmasında her görsel satır için sayaç sıfırlanıyor.
+  - 2026-07-29 (2): AKOR ARTIK GÜFTEYİ BÖLMÜYOR. Aynı gün (1)'deki padding
+    çözümü akorların bitişmesini bitirdi ama kelimeleri ortadan yarıyordu
+    ("varıl maz", "gizli giz li") — referansta güfte hep bütündü. Kök sebep aynı:
+    .cp-seg genişliği = max(akor, hece). Yeni çözüm: .cp-chord'a width:0 →
+    akor genişliğe katkı vermez, hecesinin üstünde durur, güfte hiç bozulmaz.
+    Heceye bağlı olmayan akorlar için renderChords artık .cp-tail sınıfı basıyor
+    (lyric boş/boşluk); o segmentlerde akor genişliğini + .7em boşluğunu korur,
+    böylece satır sonundaki ardışık akorlar yapışmaz. (1)'deki padding-right
+    kaldırıldı.
+  - 2026-07-29: AKORLARIN BİTİŞMESİ DÜZELTİLDİ ("Gönül Dağı" karşılaştırması).
+    Belirti: çıktıda bazı akorlar arasında hiç boşluk kalmıyordu ("CmDb",
+    "BbmCm") ve aynı yerde güftede kelime ortasında boşluk açılıyordu
+    ("varıl maz"). Sebep ÇEVİRİCİ DEĞİL, RENDER'dı: .cp-seg inline-block ve
+    genişliği max(akor, hece); akor heceden genişse segment akor kadar
+    genişliyor → bir sonraki akor hemen bitişiğinde başlıyor + hece ile sonraki
+    hece arasında görünür boşluk oluşuyor. Tek satır düzeltme: .cp-chord'a
+    padding-right:.75em (akorlar arası asgari boşluk garantisi). Akor
+    içeriği/hizası değişmedi — karşılaştırmada akor dizileri zaten birebir
+    doğruydu. NOT: aynı .cp-chord kuralı stage.html'de (ve akor gösteren diğer
+    sayfalarda) ayrıca tanımlıysa aynı dolgu oraya da eklenmeli.
   - 2026-07-28 (2): ÇEVİRİCİDE AKOR KAYMASI DÜZELTİLDİ. _mergeChordLyric akoru
     sütununa en yakın KELİME BAŞINA taşıyordu; kelimenin ortasına/sonuna denk
     gelen akorlar başa çekilip hiza kayıyordu (kaynakta "Her yer loş
@@ -303,7 +375,20 @@
   .cp-blank { display:block; height:.8em; }
   .cp-comment { display:block; color:var(--accent,#58A6FF); font-style:italic; font-size:.8em; margin:10px 0 2px; opacity:.85; }
   .cp-seg { display:inline-block; position:relative; vertical-align:bottom; }
-  .cp-chord { display:block; font-size:.72em; font-weight:700; color:var(--chord-color,#FFC83D); line-height:1.15; min-height:1.25em; white-space:nowrap; letter-spacing:.02em; }
+  /* 2026-07-29 (2): AKOR ARTIK GÜFTEYİ İTMİYOR. .cp-seg inline-block olduğu için
+     genişliği max(akor, hece) idi; akor heceden genişse segment akor kadar
+     genişleyip kelimeyi ortasından yarıyordu ("varıl maz", "giz li") ve bir
+     sonraki akor bitişikte başlıyordu ("CmDb"). width:0 ile akor kutusu genişliğe
+     HİÇ katkı vermiyor (metni sağa taşıyor, dikey yeri min-height ile duruyor):
+     güfte hiç bozulmuyor, akor hecesinin tam üstünde kalıyor. Heceye bağlı
+     OLMAYAN akorlar (satır sonu/ara akorları, .cp-tail) genişliği korur ki yan
+     yana geldiklerinde yapışmasınlar. */
+  .cp-chord { display:block; width:0; overflow:visible; font-size:.72em; font-weight:700; color:var(--chord-color,#FFC83D); line-height:1.15; min-height:1.25em; white-space:nowrap; letter-spacing:.02em; }
+  .cp-seg.cp-tail .cp-chord { width:auto; padding-right:.7em; }
+  /* Görsel akor taşıyıcıda akorlar tıklanabilir */
+  .cp-chord.cp-pick { cursor:pointer; }
+  .cp-chord.cp-pick:hover { text-decoration:underline; }
+  .cp-chord.cp-sel { color:var(--bg,#111); background:var(--chord-color,#FFC83D); border-radius:4px; padding:0 3px; margin-left:-3px; }
   /* Akor rengi — temaya duyarlı altın/amber, güfteden ayrışsın (2026-07-17) */
   :root { --chord-color:#FFC83D; }              /* karanlık: parlak altın */
   [data-theme="light"] { --chord-color:#B26A00; } /* açık: koyu amber (beyaz zeminde kontrast) */
@@ -1804,9 +1889,11 @@ function selectWork(id, silent) {
           <button onclick="saveChords(${w.id})" style="padding:8px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;color:#1a1200;font-size:13px;font-weight:600;cursor:pointer;">💾 Kaydet</button>
           <button id="chords_preview_btn_${w.id}" onclick="toggleChordsPreview(${w.id})" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:13px;cursor:pointer;">👁 Önizle</button>
           <button onclick="convertChordsInEditor(${w.id})" title="Akorlar sözlerin üstünde ayrı satırdaysa [Am] biçimine çevirir" style="padding:8px 14px;background:none;border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:13px;cursor:pointer;">⇄ ChordPro'ya çevir</button>
+          <button id="chords_nudge_btn_${w.id}" onclick="toggleNudgeEditor(${w.id})" title="Akora dokun, ok tuşlarıyla hece hece kaydır" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:13px;cursor:pointer;">✋ Akorları taşı</button>
           <button id="delpc_${w.id}" onclick="deletePersonalChords(${w.id})" style="display:none;padding:8px 14px;background:none;border:1px solid rgba(239,68,68,.4);border-radius:6px;color:#ef4444;font-size:12px;cursor:pointer;">Kişiseli sil</button>
         </div>
         <div id="chords_preview_${w.id}" class="lyrics-box" style="display:none;margin-top:12px;"></div>
+        <div id="chords_nudge_${w.id}" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
       ` : `
         <div class="lyrics-box">
           ${dispChords && dispChords.trim()
@@ -2007,43 +2094,137 @@ function _cpSyllableStarts(word){
   }
   return out;
 }
-function _mergeChordLyric(chordLine, lyricLine){
+
+/* ── 2026-07-29 (5): ORANTILI KAYNAK HİZASI ──────────────────────────────────
+   Akor-üstte kaynakların çoğu monospace DEĞİL, orantılı fontta göz kararı
+   hizalanmış oluyor: akor satırı neredeyse hep boşluk, boşluk da harften çok
+   dar olduğu için aynı piksel konumuna ulaşmak için çok daha fazla KARAKTER
+   gerekiyor. Sütunu birebir okursak akor sağa kayıyor, hatta güftenin sonunu
+   aşıyor gibi görünüyor (Gönül Dağı 1. satır: Cm sütun 43, güfte 37 karakter —
+   ama piksel olarak 13.68em ve tam "boran"ın üstüne düşüyor).
+   Çözüm: akorun kaynak satırındaki PİKSEL genişliğini hesaplayıp güftede aynı
+   genişliğe denk gelen karakteri bulmak. Genişlikler Helvetica/Arial em
+   değerleri; Türkçe harfler taban harflerine eşleniyor. */
+const _CP_CHAR_W = {' ':.278,'!':.278,'"':.355,"'":.191,'(':.333,')':.333,',':.278,'-':.333,'.':.278,'/':.278,':':.278,';':.278,'?':.556,
+  '0':.556,'1':.556,'2':.556,'3':.556,'4':.556,'5':.556,'6':.556,'7':.556,'8':.556,'9':.556,
+  'A':.667,'B':.667,'C':.722,'D':.722,'E':.667,'F':.611,'G':.778,'H':.722,'I':.278,'J':.5,'K':.667,'L':.556,'M':.833,'N':.722,'O':.778,'P':.667,'Q':.778,'R':.722,'S':.667,'T':.611,'U':.722,'V':.667,'W':.944,'X':.667,'Y':.667,'Z':.611,
+  'a':.556,'b':.556,'c':.5,'d':.556,'e':.556,'f':.278,'g':.556,'h':.556,'i':.222,'j':.222,'k':.5,'l':.222,'m':.833,'n':.556,'o':.556,'p':.556,'q':.556,'r':.333,'s':.5,'t':.278,'u':.556,'v':.5,'w':.722,'x':.5,'y':.5,'z':.5};
+const _CP_NORM = {'ğ':'g','ı':'i','ş':'s','ç':'c','ö':'o','ü':'u','â':'a','î':'i','û':'u','Ğ':'G','İ':'I','Ş':'S','Ç':'C','Ö':'O','Ü':'U'};
+function _cpCharW(ch){ const c = _CP_NORM[ch] || ch; const w = _CP_CHAR_W[c]; return w === undefined ? 0.5 : w; }
+function _cpTextW(s){ let w = 0; for (const ch of s) w += _cpCharW(ch); return w; }
+// Akor satırındaki `col` sütununun güftede denk geldiği karakter indeksi.
+// past=true ise akor güftenin gerçekten sonrasına düşüyor (dönüş akoru).
+function _cpColToIndex(chordLine, col, lyric){
+  // Akor adları kaynakta kalın (bold) basıldığı için boşluklardan biraz daha
+  // geniş yer kaplıyor; bunu 1.15 katsayısıyla hesaba katıyoruz.
+  let target = 0;
+  for (let i = 0; i < col; i++) { const ch = chordLine[i]; target += ch === ' ' ? _cpCharW(ch) : _cpCharW(ch) * 1.15; }
+  const total = _cpTextW(lyric);
+  if (target > total) return {idx: lyric.length, past: true, over: target - total};
+  let acc = 0, i = 0;
+  for (; i < lyric.length; i++) { const w = _cpCharW(lyric[i]); if (acc + w / 2 > target) break; acc += w; }
+  return {idx: i, past: false, over: 0};
+}
+// Kaynak orantılı mı yazılmış? Akor satırı güfteden sistematik olarak uzunsa evet.
+// (Monospace kaynakta akor satırı güfteyi kayda değer biçimde aşmaz.)
+function _cpIsProportional(pairs){
+  if (!pairs.length) return false;
+  let sum = 0, over = 0;
+  for (const p of pairs) {
+    const last = p.chord.replace(/\s+$/,'').length, len = p.lyric.replace(/\s+$/,'').length;
+    if (!len) continue;
+    const r = last / len; sum += r; if (r > 1.15) over++;
+  }
+  return (sum / pairs.length) > 1.10 && over >= Math.ceil(pairs.length / 3);
+}
+
+function _mergeChordLyric(chordLine, lyricLine, prop){
   const lyric = lyricLine.replace(/\s+$/,'');
   const words = []; let wm; const wre = /\S+/g;
   while((wm = wre.exec(lyric)) !== null) words.push({start: wm.index, end: wm.index + wm[0].length, text: wm[0]});
   const chords = []; let cm; const cre = /\S+/g;
-  while((cm = cre.exec(chordLine)) !== null) chords.push({col: cm.index, name: cm[0]});
+  while((cm = cre.exec(chordLine)) !== null) {
+    if (prop) {
+      const m = _cpColToIndex(chordLine, cm.index, lyric);
+      chords.push({col: m.idx, name: cm[0], past: m.past, over: m.over});
+    } else {
+      chords.push({col: cm.index, name: cm[0], past: cm.index >= lyric.length, over: cm.index - lyric.length});
+    }
+  }
+  if (!words.length) return chords.map(c => '[' + c.name + ']').join(' ');
   const ins = chords.map(c => {
-    if (!words.length) return {col: 0, name: c.name};
+    if (c.past) return {col: c.col, name: c.name, tail: true, src: c.over};
     const inW = words.find(w => c.col >= w.start && c.col < w.end);
-    let target;
     if (inW) {
       // Akor kelimenin İÇİNE düşüyor → o sütunu içeren hecenin başına yuvarla
       const off = c.col - inW.start;
       const ss = _cpSyllableStarts(inW.text);
       let best = 0; for (const s of ss) { if (s <= off) best = s; }
-      target = inW.start + best;
-    } else {
-      // Boşluğa düşüyor → bir sonraki kelimenin başı (yoksa satır sonu)
-      const next = words.find(w => w.start >= c.col);
-      if (next) target = next.start;
-      else target = (c.col > words[words.length-1].end) ? lyric.length : words[words.length-1].start;
+      return {col: inW.start + best, name: c.name};
     }
-    return {col: target, name: c.name};
+    // Boşluğa düşüyor → bir sonraki kelimenin başı
+    const next = words.find(w => w.start >= c.col);
+    if (next) return {col: next.start, name: c.name};
+    // Son kelimeden sonra ama güftenin içinde sayılıyorsa son heceye yuvarla
+    const lastW = words[words.length-1];
+    if (c.col >= lastW.end) { const ls = _cpSyllableStarts(lastW.text); return {col: lastW.start + ls[ls.length-1], name: c.name}; }
+    // 2026-07-29: Son kelimeden SONRA düşen akor artık son heceye KELEPÇELENMİYOR.
+    // Eskiden son hecenin başına çekiliyordu; kaynakta satır sonunda duran dönüş
+    // akorları böylece tek hecede kümeleniyordu (olun[Cm]ca[Db]) ve ekranda yan
+    // yana yapışık görünüyordu. Artık satır sonu akoru olarak işaretlenip
+    // aşağıda kaynaktaki SIRA ve ARALIĞI korunarak güftenin sağına yerleşiyor.
+    return {col: c.col, name: c.name, tail: true, src: c.col};
   });
   ins.sort((a,b) => a.col - b.col);
-  let out = lyric, off = 0;
-  for (const x of ins) { const at = Math.min(x.col, lyric.length) + off; const tag = '[' + x.name + ']'; out = out.slice(0, at) + tag + out.slice(at); off += tag.length; }
+  // Satır sonu akorları: kaynaktaki aralığı koru ama 2..6 boşluğa sıkıştır
+  // (kaynakta 20+ boşluk olabiliyor; birebir alınsa satır telefonda sarardı).
+  {
+    let prevSrc = 0, prevCol = lyric.length;
+    for (const x of ins) {
+      if (!x.tail) continue;
+      const g = Math.max(2, Math.min(6, Math.round((x.src - prevSrc) / 0.278)));
+      x.col = prevCol + g;
+      prevSrc = x.src; prevCol = x.col;
+    }
+  }
+  // ÇAKIŞMA ÖNLEME: aynı konuma düşen akorları bir sonraki hece başına kaydır
+  const starts = [];
+  for (const w of words) for (const s of _cpSyllableStarts(w.text)) starts.push(w.start + s);
+  starts.push(lyric.length);
+  starts.sort((a,b)=>a-b);
+  let prev = -1;
+  for (const x of ins) {
+    if (x.tail) { prev = x.col; continue; }   // satır sonu akorları zaten sıralı
+    if (x.col <= prev) {
+      const nx = starts.find(s => s > prev);
+      x.col = (nx !== undefined) ? nx : Math.min(prev + 1, lyric.length);
+    }
+    prev = x.col;
+  }
+  // Satır sonu akorları güftenin ötesine düştüğü için taban metni boşlukla uzat
+  const need = ins.reduce((m, x) => Math.max(m, x.col), lyric.length);
+  const base = lyric + (need > lyric.length ? ' '.repeat(need - lyric.length) : '');
+  let out = base, off = 0;
+  for (const x of ins) { const at = Math.min(x.col, base.length) + off; const tag = '[' + x.name + ']'; out = out.slice(0, at) + tag + out.slice(at); off += tag.length; }
   return out;
 }
 function convertChordsAboveToChordPro(text){
   const lines=(text||'').replace(/\r\n?/g,'\n').split('\n');
+  // 1. geçiş: kaynak monospace mi orantılı mı hizalanmış, belirle
+  const pairs=[];
+  for(let i=0;i<lines.length;i++){
+    if(_isChordLine(lines[i])){
+      const n=lines[i+1];
+      if(n!==undefined && n.trim()!=='' && !_isChordLine(n)){ pairs.push({chord:lines[i], lyric:n}); i++; }
+    }
+  }
+  const prop=_cpIsProportional(pairs);
   const out=[];
   for(let i=0;i<lines.length;i++){
     const line=lines[i];
     if(_isChordLine(line)){
       const next=lines[i+1];
-      if(next!==undefined && next.trim()!=='' && !_isChordLine(next)){ out.push(_mergeChordLyric(line,next)); i++; }
+      if(next!==undefined && next.trim()!=='' && !_isChordLine(next)){ out.push(_mergeChordLyric(line,next,prop)); i++; }
       else out.push(line.trim().split(/\s+/).map(c=>'['+c+']').join(' '));
     } else out.push(line);
   }
@@ -2082,12 +2263,203 @@ function renderChords(text) {
     while ((m = re.exec(scan)) !== null) {
       const chord = esc(m[1].trim());
       const lyric = esc(m[2]);
-      html += `<span class="cp-seg"><span class="cp-chord">${chord}</span><span class="cp-lyric">${lyric === '' ? '&nbsp;' : lyric}</span></span>`;
+      // Heceye bağlı olmayan akor (satır sonu / ardışık akorlar) genişliğini korusun
+      const tail = lyric.trim() === '';
+      html += `<span class="cp-seg${tail ? ' cp-tail' : ''}"><span class="cp-chord">${chord}</span><span class="cp-lyric">${lyric === '' ? '&nbsp;' : lyric}</span></span>`;
     }
     html += '</div>';
     return html;
   }).join('');
 }
+
+/* ── 2026-07-29 (3): AKOR ÇAKIŞMA KORUYUCUSU ──────────────────────────────────
+   .cp-chord width:0 olduğu için akor metni segmentten TAŞAR; tarayıcı bu taşan
+   metni layout'ta görmediğinden iki akor görsel olarak üst üste binebiliyor
+   ("CmDb", "Bbm"+"Cm"). CSS ile çözülemez: akora genişlik verirsek güfte
+   ortadan yarılıyor (eski hata). Çözüm: render'dan sonra akorların GERÇEK metin
+   genişliğini Range ile ölçüp çakışanları sağa kaydırmak (transform:translateX).
+   transform layout'u değiştirmediği için güfte hiç etkilenmez ve ResizeObserver
+   döngüsü oluşmaz. Akor kendi hecesinden en fazla birkaç piksel kayar; kelime
+   bütünlüğü korunur. Satır kaydığında (mobilde sarma) üst koordinat değişir,
+   o yüzden her görsel satır için sayaç sıfırlanır. */
+(function(){
+  if (window.__cpOverlapGuard) return; window.__cpOverlapGuard = true;
+  var scheduled = false, ro = null, seen = null;
+  function textRect(el){
+    var r = document.createRange();
+    r.selectNodeContents(el);
+    var rect = r.getBoundingClientRect();
+    if (r.detach) r.detach();
+    return rect;
+  }
+  function fixLine(line){
+    if (!line.getClientRects().length) return;   // görünmeyen (display:none) satırı ölçme
+    var all = line.querySelectorAll('.cp-chord'), chords = [], i;
+    for (i = 0; i < all.length; i++) if (all[i].textContent.trim()) chords.push(all[i]);
+    for (i = 0; i < chords.length; i++) chords[i].style.transform = '';
+    if (chords.length < 2) return;
+    var rects = [];
+    for (i = 0; i < chords.length; i++) rects.push(textRect(chords[i]));
+    var prevRight = -1e9, prevTop = null, shifts = [], gap, s, r;
+    for (i = 0; i < chords.length; i++) {
+      r = rects[i];
+      if (prevTop === null || Math.abs(r.top - prevTop) > 2) prevRight = -1e9; // yeni görsel satır
+      gap = Math.max(4, r.height * 0.35);
+      s = prevRight + gap - r.left;
+      if (s < 0) s = 0;
+      shifts.push(s);
+      prevRight = r.left + s + r.width;
+      prevTop = r.top;
+    }
+    for (i = 0; i < chords.length; i++)
+      if (shifts[i] > 0.5) chords[i].style.transform = 'translateX(' + shifts[i].toFixed(1) + 'px)';
+  }
+  function run(){
+    scheduled = false;
+    var lines = document.querySelectorAll('.cp-line'), i, p;
+    if (!lines.length) return;
+    if (!ro && window.ResizeObserver && window.WeakSet) { ro = new ResizeObserver(schedule); seen = new WeakSet(); }
+    for (i = 0; i < lines.length; i++) {
+      fixLine(lines[i]);
+      if (ro) { p = lines[i].parentElement; if (p && !seen.has(p)) { seen.add(p); ro.observe(p); } }
+    }
+  }
+  function schedule(){
+    if (scheduled) return;
+    scheduled = true;
+    if (window.requestAnimationFrame) window.requestAnimationFrame(run); else setTimeout(run, 0);
+  }
+  window.cpFixChordOverlaps = schedule;
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule); else schedule();
+  if (window.MutationObserver) {
+    new MutationObserver(function(muts){
+      for (var i = 0; i < muts.length; i++) if (muts[i].addedNodes && muts[i].addedNodes.length) { schedule(); return; }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  }
+  window.addEventListener('resize', schedule);
+  window.addEventListener('orientationchange', schedule);
+  if (document.fonts && document.fonts.ready && document.fonts.ready.then) document.fonts.ready.then(schedule);
+})();
+
+/* ── 2026-07-29 (6): GÖRSEL AKOR TAŞIYICI ────────────────────────────────────
+   İçe aktarma her zaman "en iyi tahmin"dir (ChordPro'nun kendi belgeleri de
+   çıktının elden geçirilmesi gerektiğini söyler). Son %10'u ancak müzisyenin
+   kulağı bilir. Bu yüzden düzenleme ekranına akoru heceden heceye taşıma
+   aracı eklendi: akora dokun, ◀ ▶ ile bir hece kaydır. Değişiklik doğrudan
+   metin kutusuna yazılır, kaydetme akışı aynı kalır. */
+let _cpNudge = { id: null, line: -1, chord: -1 };
+function _cpEsc(s){ return (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// Satırı düz güfte + konumlu akorlara ayır
+function _cpParseLine(line){
+  let plain = '', chords = [], re = /\[([^\]]+)\]|([^\[]+)/g, m;
+  while ((m = re.exec(line)) !== null) {
+    if (m[1] !== undefined) chords.push({at: plain.length, name: m[1]});
+    else plain += m[2];
+  }
+  return {plain, chords};
+}
+function _cpSerializeLine(p){
+  let out = '', cur = 0;
+  for (const c of p.chords) { out += p.plain.slice(cur, c.at) + '[' + c.name + ']'; cur = c.at; }
+  return out + p.plain.slice(cur);
+}
+// Akorun durabileceği konumlar: her hece başı + satır sonundaki boşluk bölgesi
+function _cpCandidates(plain){
+  const set = new Set([0]); const wre = /\S+/g; let wm, lastEnd = 0;
+  while ((wm = wre.exec(plain)) !== null) {
+    for (const s of _cpSyllableStarts(wm[0])) set.add(wm.index + s);
+    lastEnd = wm.index + wm[0].length;
+  }
+  for (let i = lastEnd; i <= plain.length; i++) set.add(i);
+  return [...set].sort((a, b) => a - b);
+}
+function toggleNudgeEditor(id){
+  const host = document.getElementById('chords_nudge_' + id);
+  const btn = document.getElementById('chords_nudge_btn_' + id);
+  if (!host) return;
+  const open = host.style.display !== 'none';
+  if (open) { host.style.display = 'none'; if (btn) btn.style.borderColor = 'var(--border)'; _cpNudge = {id:null, line:-1, chord:-1}; return; }
+  host.style.display = 'block';
+  if (btn) btn.style.borderColor = 'var(--accent)';
+  _cpNudge = {id: id, line: -1, chord: -1};
+  renderNudgeEditor(id);
+}
+function selectNudgeChord(id, li, ci){
+  _cpNudge = {id: id, line: li, chord: ci};
+  renderNudgeEditor(id);
+}
+function nudgeChord(id, dir){
+  const ta = document.getElementById('inline_chords_' + id);
+  if (!ta || _cpNudge.line < 0) return;
+  const lines = ta.value.split('\n');
+  const p = _cpParseLine(lines[_cpNudge.line]);
+  const c = p.chords[_cpNudge.chord];
+  if (!c) return;
+  const prevC = p.chords[_cpNudge.chord - 1], nextC = p.chords[_cpNudge.chord + 1];
+  let cand = _cpCandidates(p.plain), target = null;
+  if (dir < 0) { for (let i = cand.length - 1; i >= 0; i--) if (cand[i] < c.at) { target = cand[i]; break; } }
+  else {
+    for (let i = 0; i < cand.length; i++) if (cand[i] > c.at) { target = cand[i]; break; }
+    if (target === null) { p.plain += ' '; target = p.plain.length; }   // satır sonunda yer aç
+  }
+  if (target === null) return;
+  if (prevC && target <= prevC.at) return;      // komşu akorun üstüne binme
+  if (nextC && target >= nextC.at) return;
+  c.at = target;
+  // sola taşırken sonda artık boşluk kalmasın
+  lines[_cpNudge.line] = _cpSerializeLine(p).replace(/\s+$/, '');
+  ta.value = lines.join('\n');
+  renderNudgeEditor(id);
+  if (typeof updateChordsPreview === 'function') updateChordsPreview(id);
+}
+function renderNudgeEditor(id){
+  const ta = document.getElementById('inline_chords_' + id);
+  const host = document.getElementById('chords_nudge_' + id);
+  if (!ta || !host) return;
+  const lines = ta.value.split('\n');
+  let body = '';
+  lines.forEach((line, li) => {
+    const p = _cpParseLine(line);
+    if (!p.chords.length) {
+      body += '<div class="cp-line">' + (p.plain.trim()
+        ? '<span class="cp-seg"><span class="cp-chord"></span><span class="cp-lyric">' + _cpEsc(p.plain) + '</span></span>'
+        : '&nbsp;') + '</div>';
+      return;
+    }
+    let html = '<div class="cp-line">';
+    const head = p.plain.slice(0, p.chords[0].at);
+    if (head) html += '<span class="cp-seg"><span class="cp-chord"></span><span class="cp-lyric">' + _cpEsc(head) + '</span></span>';
+    p.chords.forEach((c, ci) => {
+      const end = (ci + 1 < p.chords.length) ? p.chords[ci + 1].at : p.plain.length;
+      const lyr = p.plain.slice(c.at, end);
+      const tail = lyr.trim() === '';
+      const sel = (_cpNudge.line === li && _cpNudge.chord === ci);
+      html += '<span class="cp-seg' + (tail ? ' cp-tail' : '') + '">'
+            + '<span class="cp-chord cp-pick' + (sel ? ' cp-sel' : '') + '" onclick="selectNudgeChord(' + id + ',' + li + ',' + ci + ')">' + _cpEsc(c.name) + '</span>'
+            + '<span class="cp-lyric">' + (lyr === '' ? '&nbsp;' : _cpEsc(lyr)) + '</span></span>';
+    });
+    body += html + '</div>';
+  });
+  const has = _cpNudge.line >= 0;
+  host.innerHTML =
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">'
+    + '<button onclick="nudgeChord(' + id + ',-1)" ' + (has ? '' : 'disabled ') + 'style="width:40px;height:34px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text' + (has ? '' : '3') + ');font-size:16px;font-weight:700;cursor:' + (has ? 'pointer' : 'default') + ';">◀</button>'
+    + '<button onclick="nudgeChord(' + id + ',1)" ' + (has ? '' : 'disabled ') + 'style="width:40px;height:34px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text' + (has ? '' : '3') + ');font-size:16px;font-weight:700;cursor:' + (has ? 'pointer' : 'default') + ';">▶</button>'
+    + '<span style="font-size:12px;color:var(--text3);">' + (has ? 'Seçili akoru bir hece kaydırır (ok tuşları da çalışır)' : 'Taşımak istediğin akora dokun') + '</span>'
+    + '</div>'
+    + '<div class="lyrics-box" style="margin:0;">' + body + '</div>'
+    + '<div style="margin-top:8px;font-size:12px;color:var(--text3);">Değişiklikler yukarıdaki metin kutusuna yazıldı — <b>💾 Kaydet</b>\'e basmayı unutma.</div>';
+  if (typeof window.cpFixChordOverlaps === 'function') window.cpFixChordOverlaps();
+}
+document.addEventListener('keydown', function(e){
+  if (_cpNudge.id === null || _cpNudge.line < 0) return;
+  const host = document.getElementById('chords_nudge_' + _cpNudge.id);
+  if (!host || host.style.display === 'none') return;
+  const t = e.target;
+  if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT')) return;
+  if (e.key === 'ArrowLeft') { e.preventDefault(); nudgeChord(_cpNudge.id, -1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); nudgeChord(_cpNudge.id, 1); }
+});
 
 function updateChordsPreview(id){
   const prev = document.getElementById('chords_preview_'+id);
