@@ -2,6 +2,25 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-30 (13): iPAD'DE ESERLER GÖRÜNMÜYORDU ("bi gelir gibi oluyor,
+    kayboluyor"). iPhone çalışıyor, repertuvarlar çalışıyor. ÖNCE YANLIŞ İZ:
+    769–1023px bandında .layout yükseklik matematiğinin eksik olduğunu düşündüm;
+    iPad konsolunda ölçüm bunu ÇÜRÜTTÜ (#listPanel 271→1070, h799, görünür;
+    .layout 76→1070; viewport 810x1080) — ama aynı ölçüm gerçek yeri gösterdi:
+    listPanel çocuk sayısı 1. renderList 414 kart yazsaydı 414 çocuk olurdu;
+    1 çocuk = "Eser bulunamadı", yani filteredData boş. KÖK SEBEP: parseWorksRows
+    KOŞULSUZ `DATA = rows.map(...)` yapıyor. Sıra şu: local'den 414 eser çizilir
+    → syncWorksFromServer 200 OK + 0 KAYIT döner (oturum/RLS; istek başarısız
+    değil, boş — bu yüzden catch dalı da çalışmıyor) → DATA sıfırlanır → liste
+    "Eser bulunamadı"ya düşer. Kardeş belirti: personal_chords isteği WKWebView'de
+    "access control checks" ile reddediliyor (auth.js:119). DÜZELTME: sunucu 0
+    kayıt dönerse ve yerelde veri VARSA senkron veriyi yazmadan çıkıyor, uyarı
+    logluyor ve kullanıcıya "yerel kopya gösteriliyor" toast'ı veriyor. Gerçek
+    boşalma ile yetki sorunu ayırt edilemez; 400+ eserin bir anda silinmesi
+    neredeyse her zaman hata olduğu için yereli korumak doğru taraf. Doğruluk
+    tablosu test edildi: (0,414)→414 korunur, (0,0)→0, (500,414)→500, (500,0)→500.
+    NOT: bu bir KALKAN, asıl sebep hâlâ iPad'de oturumun/CORS'un bozuk olması —
+    auth.js + db.js incelenmeli.
   - 2026-07-29 (12): AKOR HİZASI SÜRGÜSÜ BAZI ESERLERDE ÖLÜYDÜ. Emir Kara Tren'de
     "sürgü çalışmıyor" dedi. SEBEP: _cpScaleK yalnızca _cpColToIndex içinden
     geçiyor, o da yalnızca kaynak ORANTILI sayıldığında çağrılıyor. Karar
@@ -1089,6 +1108,19 @@ async function syncWorksFromServer(hadLocalData) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const rows = await r.json();
     if (!Array.isArray(rows)) throw new Error('Unexpected response');
+    // 2026-07-30: BOŞ SUNUCU YANITI YEREL LİSTEYİ SİLMESİN.
+    // iPad'de görülen hata: yerelden 414 eser çiziliyor, sonra bu senkron 200 OK
+    // ile 0 KAYIT dönüyor (oturum/RLS/CORS sorunu — istek başarısız değil, boş),
+    // parseWorksRows koşulsuz DATA=rows yaptığı için liste "Eser bulunamadı"ya
+    // düşüyordu. Sunucunun gerçekten boşalması ile yetki sorunu ayırt edilemez;
+    // ikisi arasında YERELİ KORUMAK doğru taraf, çünkü 400+ eserin bir anda
+    // silinmesi neredeyse her zaman hatadır.
+    if (rows.length === 0 && (hadLocalData || DATA.length > 0)) {
+      console.warn('[eserler] sunucu 0 kayıt döndü ama yerelde ' + DATA.length +
+        ' eser var — YEREL KORUNUYOR (oturum/yetki sorunu olabilir)');
+      toastMsg('⚠️ Sunucudan liste alınamadı — yerel kopya gösteriliyor');
+      return;
+    }
     // Tam o an bir eseri kaydırıyorsa/panel açıksa görünümü yeniden çizmeyi ertele.
     parseWorksRows(rows, !!(_weSwipe || _weOpenCard));
     // Solistler sayfası için önbelleği tazele (DATA artık güncel — hafif alanlar yeter)
