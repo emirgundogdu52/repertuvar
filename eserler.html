@@ -2,6 +2,22 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-07-29 (7): AKOR HİZASI SÜRGÜSÜ + TOPLU KAYDIRMA. Gerekçe: elle akor
+    taşımak bir eserin %30'unda uğraştırıcı; kaymanın çoğu TEK bir ölçek
+    hatasından geliyor. Otomatik kalibrasyon denendi ve YETMEDİĞİ ölçüldü —
+    Gönül Dağı'nda k=0.90 (rms 0.290, hiç satır sonu akoru yok) ile k=1.10
+    (rms 0.323, her satırın son akoru dışarıda) neredeyse eşit iyi; ayrımı
+    yapan ölçüm değil müzisyenin bilgisi. Bu yüzden otomatik seçim YOK.
+    (a) ÇEVİRME ADIMINDA sürgü: ⇄ ChordPro'ya çevir sonrası "Akor hizası"
+    paneli açılıyor (0.70–1.30, varsayılan 1.00 = bugünkü onaylanmış davranış);
+    sürgü çekilirken ham kaynak (_cpConvSrc[id]) yeniden çevriliyor ve
+    önizleme canlı güncelleniyor. "Öner" düğmesi _cpAutoScale ile en iyi uyum
+    veren değere atlıyor (öneri, karar değil), "Geri al" ham metne dönüyor.
+    Ölçek _cpScaleK ile _cpColToIndex'e çarpan olarak giriyor, işlem sonrası
+    hep 1'e dönüyor. (b) KAYITLI ESERLER için sürgü çalışamaz (kaynak metin
+    yok) — onun yerine taşıyıcı panele "⟪ Tümü / Tümü ⟫" eklendi: tüm akorları
+    birlikte bir hece kaydırır (sağa giderken satırı sondan işler ki yer
+    açılsın; gidiş-dönüş testi birebir aynı metni veriyor).
   - 2026-07-29 (6): GÖRSEL AKOR TAŞIYICI EKLENDİ (Akorlar sekmesi → "✋ Akorları
     taşı"). Gerekçe: içe aktarma her zaman "en iyi tahmin"dir — ChordPro'nun
     kendi belgeleri de a2crd çıktısının elden geçirilmesi gerektiğini söyler;
@@ -1893,6 +1909,7 @@ function selectWork(id, silent) {
           <button id="delpc_${w.id}" onclick="deletePersonalChords(${w.id})" style="display:none;padding:8px 14px;background:none;border:1px solid rgba(239,68,68,.4);border-radius:6px;color:#ef4444;font-size:12px;cursor:pointer;">Kişiseli sil</button>
         </div>
         <div id="chords_preview_${w.id}" class="lyrics-box" style="display:none;margin-top:12px;"></div>
+        <div id="chords_scale_${w.id}" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
         <div id="chords_nudge_${w.id}" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
       ` : `
         <div class="lyrics-box">
@@ -2110,6 +2127,8 @@ const _CP_CHAR_W = {' ':.278,'!':.278,'"':.355,"'":.191,'(':.333,')':.333,',':.2
   'A':.667,'B':.667,'C':.722,'D':.722,'E':.667,'F':.611,'G':.778,'H':.722,'I':.278,'J':.5,'K':.667,'L':.556,'M':.833,'N':.722,'O':.778,'P':.667,'Q':.778,'R':.722,'S':.667,'T':.611,'U':.722,'V':.667,'W':.944,'X':.667,'Y':.667,'Z':.611,
   'a':.556,'b':.556,'c':.5,'d':.556,'e':.556,'f':.278,'g':.556,'h':.556,'i':.222,'j':.222,'k':.5,'l':.222,'m':.833,'n':.556,'o':.556,'p':.556,'q':.556,'r':.333,'s':.5,'t':.278,'u':.556,'v':.5,'w':.722,'x':.5,'y':.5,'z':.5};
 const _CP_NORM = {'ğ':'g','ı':'i','ş':'s','ç':'c','ö':'o','ü':'u','â':'a','î':'i','û':'u','Ğ':'G','İ':'I','Ş':'S','Ç':'C','Ö':'O','Ü':'U'};
+let _cpScaleK = 1;        // Akor hizası sürgüsünün değeri (çevirme adımında ayarlanır)
+const _cpConvSrc = {};    // eser id -> çevirmeden önceki ham metin (geri alma + yeniden ölçekleme için)
 function _cpCharW(ch){ const c = _CP_NORM[ch] || ch; const w = _CP_CHAR_W[c]; return w === undefined ? 0.5 : w; }
 function _cpTextW(s){ let w = 0; for (const ch of s) w += _cpCharW(ch); return w; }
 // Akor satırındaki `col` sütununun güftede denk geldiği karakter indeksi.
@@ -2119,6 +2138,7 @@ function _cpColToIndex(chordLine, col, lyric){
   // geniş yer kaplıyor; bunu 1.15 katsayısıyla hesaba katıyoruz.
   let target = 0;
   for (let i = 0; i < col; i++) { const ch = chordLine[i]; target += ch === ' ' ? _cpCharW(ch) : _cpCharW(ch) * 1.15; }
+  target *= _cpScaleK;   // kullanıcı ölçeği (Akor hizası sürgüsü); 1 = varsayılan
   const total = _cpTextW(lyric);
   if (target > total) return {idx: lyric.length, past: true, over: target - total};
   let acc = 0, i = 0;
@@ -2231,6 +2251,103 @@ function convertChordsAboveToChordPro(text){
   return out.join('\n');
 }
 // Editördeki metni yerinde çevir, önizlemeyi aç (kullanıcı sonucu görüp kaydeder)
+
+/* ── 2026-07-29 (7): AKOR HİZASI SÜRGÜSÜ ─────────────────────────────────────
+   Kaynağın hangi ölçekte hizalandığını veri tek başına söylemiyor: Gönül Dağı
+   üzerinde ölçtüğümüzde k=0.90 (rms 0.290, hiç satır sonu akoru yok) ile
+   k=1.10 (rms 0.323, her satırın son akoru dışarıda) neredeyse eşit iyilikte
+   çıktı. Ayrımı yapan şey ölçüm değil, müzisyenin bilgisi. Bu yüzden otomatik
+   seçim YOK; onun yerine tek sürgü + canlı önizleme, ve istenirse "öner"
+   düğmesiyle en iyi uyumu veren değere atlama. */
+function _cpAutoScale(src){
+  const lines = (src||'').replace(/\r\n?/g,'\n').split('\n'), ps = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (_isChordLine(lines[i])) { const n = lines[i+1];
+      if (n !== undefined && n.trim() !== '' && !_isChordLine(n)) { ps.push({c: lines[i], l: n.replace(/\s+$/,'')}); i++; } }
+  }
+  if (!ps.length) return 1;
+  const prep = ps.map(p => {
+    const starts = new Set([0]); const wre = /\S+/g; let m;
+    while ((m = wre.exec(p.l)) !== null) for (const t of _cpSyllableStarts(m[0])) starts.add(m.index + t);
+    const xs = []; let acc = 0;
+    for (let i = 0; i < p.l.length; i++) { if (starts.has(i)) xs.push(acc); acc += _cpCharW(p.l[i]); }
+    const cols = [...p.c.matchAll(/\S+/g)].map(mm => { let w = 0;
+      for (let i = 0; i < mm.index; i++) w += p.c[i] === ' ' ? _cpCharW(p.c[i]) : _cpCharW(p.c[i]) * 1.15; return w; });
+    return {xs, total: acc, cols};
+  });
+  let best = 1, bestRms = Infinity;
+  for (let k = 0.70; k <= 1.3001; k += 0.01) {
+    let sum = 0, n = 0, tails = 0, all = 0;
+    for (const q of prep) { if (!q.xs.length) continue;
+      for (const c of q.cols) { all++; const t = k * c;
+        if (t > q.total) { tails++; continue; }
+        let b = Infinity; for (const x of q.xs) b = Math.min(b, Math.abs(x - t));
+        sum += b * b; n++; } }
+    if (!n || tails > 0.40 * all) continue;          // çoğu akor dışarı taşıyorsa bu ölçek geçersiz
+    const rms = Math.sqrt(sum / n);
+    if (rms < bestRms) { bestRms = rms; best = +k.toFixed(2); }
+  }
+  return best;
+}
+function applyConvScale(id, val){
+  const ta = document.getElementById('inline_chords_' + id);
+  const src = _cpConvSrc[id];
+  if (!ta || src === undefined) return;
+  _cpScaleK = (+val) / 100;
+  const lbl = document.getElementById('conv_scale_lbl_' + id);
+  if (lbl) lbl.textContent = _cpScaleK.toFixed(2);
+  ta.value = convertChordsAboveToChordPro(src);
+  _cpScaleK = 1;                                     // genel durumu varsayılana döndür
+  updateChordsPreview(id);
+  const nh = document.getElementById('chords_nudge_' + id);
+  if (nh && nh.style.display !== 'none') renderNudgeEditor(id);
+}
+function suggestConvScale(id){
+  const src = _cpConvSrc[id]; if (src === undefined) return;
+  const k = _cpAutoScale(src);
+  const sl = document.getElementById('conv_scale_' + id);
+  if (sl) sl.value = Math.round(k * 100);
+  applyConvScale(id, Math.round(k * 100));
+  toastMsg('En iyi uyum: ' + k.toFixed(2) + ' — kulağına doğru gelmezse sürgüyle ayarla');
+}
+function undoConvert(id){
+  const ta = document.getElementById('inline_chords_' + id);
+  if (!ta || _cpConvSrc[id] === undefined) return;
+  ta.value = _cpConvSrc[id];
+  closeConvScale(id);
+  updateChordsPreview(id);
+}
+function closeConvScale(id){
+  const h = document.getElementById('chords_scale_' + id);
+  if (h) { h.style.display = 'none'; h.innerHTML = ''; }
+}
+// Tüm akorları birlikte bir hece kaydır (kayıtlı eserler için — kaynak metin gerekmez)
+function nudgeAll(id, dir){
+  const ta = document.getElementById('inline_chords_' + id); if (!ta) return;
+  const lines = ta.value.split('\n');
+  for (let li = 0; li < lines.length; li++) {
+    const p = _cpParseLine(lines[li]);
+    if (!p.chords.length) continue;
+    const idx = p.chords.map((_, i) => i);
+    const order = dir < 0 ? idx : idx.slice().reverse();   // sağa giderken sondan başla ki yer açılsın
+    for (const ci of order) {
+      const c = p.chords[ci], prevC = p.chords[ci-1], nextC = p.chords[ci+1];
+      const cand = _cpCandidates(p.plain); let target = null;
+      if (dir < 0) { for (let i = cand.length - 1; i >= 0; i--) if (cand[i] < c.at) { target = cand[i]; break; } }
+      else { for (let i = 0; i < cand.length; i++) if (cand[i] > c.at) { target = cand[i]; break; }
+             if (target === null) { p.plain += ' '; target = p.plain.length; } }
+      if (target === null) continue;
+      if (prevC && target <= prevC.at) continue;
+      if (nextC && target >= nextC.at) continue;
+      c.at = target;
+    }
+    lines[li] = _cpSerializeLine(p).replace(/\s+$/, '');
+  }
+  ta.value = lines.join('\n');
+  renderNudgeEditor(id);
+  if (typeof updateChordsPreview === 'function') updateChordsPreview(id);
+}
+
 function convertChordsInEditor(id){
   const ta=document.getElementById('inline_chords_'+id);
   if(!ta) return;
@@ -2238,11 +2355,26 @@ function convertChordsInEditor(id){
   if(hasRealChords(src)){ alert('Bu metin zaten ChordPro biçiminde ([Am]) görünüyor.'); return; }
   const converted=convertChordsAboveToChordPro(src);
   if(!hasRealChords(converted)){ alert('Çevrilecek akor satırı bulunamadı. Akorların sözlerin üstünde ayrı satırda olduğundan emin olun.'); return; }
+  _cpConvSrc[id]=src;                       // ham kaynağı sakla: sürgü ve geri alma bunu kullanır
   ta.value=converted;
   const prev=document.getElementById('chords_preview_'+id);
   if(prev){ prev.style.display='block'; const pb=document.getElementById('chords_preview_btn_'+id); if(pb) pb.style.borderColor='var(--accent)'; }
+  const sh=document.getElementById('chords_scale_'+id);
+  if(sh){
+    sh.style.display='block';
+    sh.innerHTML =
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+      + '<span style="font-size:13px;font-weight:600;color:var(--text2);">Akor hizası</span>'
+      + '<input id="conv_scale_'+id+'" type="range" min="70" max="130" value="100" oninput="applyConvScale('+id+',this.value)" style="flex:1;min-width:170px;">'
+      + '<span id="conv_scale_lbl_'+id+'" style="font-size:12px;font-weight:700;color:var(--accent);min-width:34px;">1.00</span>'
+      + '<button onclick="suggestConvScale('+id+')" style="padding:6px 12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer;">Öner</button>'
+      + '<button onclick="undoConvert('+id+')" style="padding:6px 12px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer;">Geri al</button>'
+      + '<button onclick="closeConvScale('+id+')" style="padding:6px 12px;background:none;border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:12px;cursor:pointer;">Bitti</button>'
+      + '</div>'
+      + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">Sürgüyü çekerken akorlar güftenin üstünde birlikte kayar — önizlemeye bakarak doğru yerde bırak. Kaynaktaki hiza tek bir ölçekten kaymışsa bu tek hareket bütün eseri düzeltir.</div>';
+  }
   updateChordsPreview(id);
-  toastMsg('✓ ChordPro biçimine çevrildi — kontrol edip Kaydet');
+  toastMsg('✓ Çevrildi — hiza kaymışsa sürgüyle ayarla, sonra Kaydet');
 }
 
 function renderChords(text) {
@@ -2445,6 +2577,9 @@ function renderNudgeEditor(id){
     '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">'
     + '<button onclick="nudgeChord(' + id + ',-1)" ' + (has ? '' : 'disabled ') + 'style="width:40px;height:34px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text' + (has ? '' : '3') + ');font-size:16px;font-weight:700;cursor:' + (has ? 'pointer' : 'default') + ';">◀</button>'
     + '<button onclick="nudgeChord(' + id + ',1)" ' + (has ? '' : 'disabled ') + 'style="width:40px;height:34px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text' + (has ? '' : '3') + ');font-size:16px;font-weight:700;cursor:' + (has ? 'pointer' : 'default') + ';">▶</button>'
+    + '<span style="width:1px;height:26px;background:var(--border);margin:0 4px;"></span>'
+    + '<button onclick="nudgeAll(' + id + ',-1)" title="Eserdeki TÜM akorları bir hece sola" style="height:34px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">⟪ Tümü</button>'
+    + '<button onclick="nudgeAll(' + id + ',1)" title="Eserdeki TÜM akorları bir hece sağa" style="height:34px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">Tümü ⟫</button>'
     + '<span style="font-size:12px;color:var(--text3);">' + (has ? 'Seçili akoru bir hece kaydırır (ok tuşları da çalışır)' : 'Taşımak istediğin akora dokun') + '</span>'
     + '</div>'
     + '<div class="lyrics-box" style="margin:0;">' + body + '</div>'
