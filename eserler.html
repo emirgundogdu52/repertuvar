@@ -21,7 +21,8 @@
     alan varken metni yapıştırdığımız kutu neden küçücük?" min-height 300px
     sabitti; altındaki paneller kapalıyken ekranın yarısı boş kalıyor, uzun
     güftelerde 300px'lik pencereden kaydırarak çalışmak gerekiyordu.
-    (a) min-height: 300px → min(58vh,760px). (b) _cpGrow(ta): içerik taştığında
+    (a) min-height: 300px → min(58vh,760px), sonra Emir'in isteğiyle beşte bir
+    kısaldı → min(46vh,608px). (b) _cpGrow(ta): içerik taştığında
     kutu scrollHeight'a büyür → İÇ KAYDIRMA ÇUBUĞU ÇIKMAZ, sayfa kayar.
     KÜÇÜLTMEZ (grow-only): elle sürükleyip genişlettiysen tuş vuruşu geri almaz;
     resize:vertical duruyor. Çağrı yerleri: textarea oninput, updateChordsPreview
@@ -2015,7 +2016,7 @@ function selectWork(id, silent) {
           <span id="karar_lbl_${w.id}" style="font-size:12px;font-weight:700;color:var(--text2);margin-left:4px;"></span>
           <span style="font-size:11px;color:var(--text3);">sadece görünümü kaydırır, kayıtlı akoru değiştirmez</span>
         </div>
-        <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="_cpGrow(this);updateChordsPreview(${w.id})" style="width:100%;min-height:min(58vh,760px);padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
+        <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="_cpGrow(this);updateChordsPreview(${w.id})" style="width:100%;min-height:min(46vh,608px);padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
           placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm"></textarea>
         <div class="rbtn-row" style="margin-top:10px;">
           <button onclick="saveChords(${w.id})" class="rbtn rbtn-primary">Kaydet</button>
