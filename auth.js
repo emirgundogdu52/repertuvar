@@ -187,18 +187,20 @@ function _authzOf(input, init) {
   } catch (e) {}
   return '';
 }
-// Mevcut davranış korunuyor: YALNIZCA zaten Authorization taşıyan istekler
-// güncellenir; başlığı olmayanlara yenisi eklenmez.
-function _setAuthz(init, value) {
+// Varsayılan: YALNIZCA zaten Authorization taşıyan istekler güncellenir.
+// addIfMissing:true ise başlığı olmayana yenisi EKLENİR — çağıran bunu yalnızca
+// veri uçları (/rest/v1, /storage) için geçirir. /auth/v1/signup, /recover,
+// /verify gibi uçlara bayat kullanıcı token'ı iliştirmek girişi bozardı.
+function _setAuthz(init, value, addIfMissing) {
   try {
     if (!init) return false;
     var h = init.headers;
     if (h instanceof Headers) {
-      if (!h.has('Authorization')) return false;
+      if (!h.has('Authorization') && !addIfMissing) return false;
       h.set('Authorization', value); return true;
     }
     if (h && typeof h === 'object') {
-      if (!h.Authorization && !h.authorization) return false;
+      if (!h.Authorization && !h.authorization && !addIfMissing) return false;
       h.Authorization = value;
       if (h.authorization) delete h.authorization;
       init.headers = h; return true;
@@ -274,9 +276,17 @@ if (!window._supaFetchPatched) {
         var st = await ensureValidTokenState();
         if (st.token) {
           // Taze ya da stale (çevrimdışı/ağ/5xx) — her iki durumda da istek gider.
-          _setAuthz(init, 'Bearer ' + st.token);
-        } else if (isData && authz && st.reason !== 'no_token') {
-          // Kullanıcı token'lı istek + oturum KALICI olarak ölü.
+          // Veri ucunda başlık hiç yoksa da EKLENİR: authHeaders() token yokken
+          // Authorization koymuyor, ama refresh token'dan taze token türetilmişse
+          // istek onu taşımalı — yoksa sessizce anon rolüyle gider.
+          _setAuthz(init, 'Bearer ' + st.token, isData);
+        } else if (isData) {
+          // Veri ucu + oturum KALICI olarak ölü ya da token hiç yok.
+          // 'no_token' de buraya dahil: requireAuth her sayfanın başında çalışıyor,
+          // yani buraya kadar gelip token'ı OLMAYAN kullanıcı girişsiz biri değil,
+          // token'ı düşmüş/silinmiş kullanıcıdır — "süreniz doldu" doğru mesaj.
+          // Başlıksız istek de [B] sayılır: _isAnonAuthz() yalnızca AÇIKÇA
+          // 'Bearer ' + SUPA_KEY taşıyanı anon sayar (bkz. anonHeaders()).
           var suspended = authGuardSuspended();
           if (suspended) {
             console.warn('[auth] oturum ölü (' + st.reason + ') ama ' + suspended + ' — istek engellenmiyor: ' + url);
@@ -294,10 +304,10 @@ if (!window._supaFetchPatched) {
     // (4) Merkezî 401. SADECE 401 — PostgREST'te 403 "RLS izin vermedi" demek,
     // oturum sorunu değil; 403'te logout etmek masum kullanıcıyı atardı.
     try {
-      if (isData && res.status === 401 && authz && !_isAnonAuthz(authz) && !authGuardSuspended()) {
+      if (isData && res.status === 401 && !_isAnonAuthz(authz) && !authGuardSuspended()) {
         var st2 = await ensureValidTokenState(true); // zorla yenile
         var bodyOk = !init || init.body == null || typeof init.body === 'string';
-        if (st2.ok && st2.token && bodyOk && _setAuthz(init, 'Bearer ' + st2.token)) {
+        if (st2.ok && st2.token && bodyOk && _setAuthz(init, 'Bearer ' + st2.token, true)) {
           console.warn('[auth] 401 — token yenilendi, istek bir kez tekrarlanıyor: ' + url);
           res = await _origFetch(input, init);
         } else if (!st2.token && !st2.stale) {
@@ -344,13 +354,14 @@ if (typeof document !== 'undefined' && !window._tokenVisListener) {
 //       oturumu görünür kılmak için yazdığımız mekanizmayı tam da en çok
 //       gerektiği yerde devre dışı bırakıyordu.
 // Artık ölü/eksik oturum görünür 401 üretir.
+// Token yoksa Authorization HİÇ konmaz — boş değerli bozuk bir başlık değil.
+// Başlıksız istek yine [B]'dir: yama veri ucunda hem token ekler hem kapıya tabi
+// tutar (bkz. _setAuthz addIfMissing ve engelleme dalı).
 function authHeaders() {
   const token = getToken();
-  return {
-    'apikey': SUPA_KEY,
-    'Authorization': 'Bearer ' + (token || ''),
-    'Content-Type': 'application/json'
-  };
+  const h = { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' };
+  if (token) h['Authorization'] = 'Bearer ' + token;
+  return h;
 }
 
 // Paylaşılan referans verisi (works liste okuması, makams, regions, composers,
