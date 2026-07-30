@@ -9,14 +9,16 @@
   var SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
   var SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 
-  function tok() { return localStorage.getItem('sb_token') || SUPA_KEY; }
-  async function freshTok() {
-    if (typeof window.ensureValidToken === 'function') {
-      try { return (await window.ensureValidToken()) || tok(); } catch (e) {}
-    }
-    return tok();
-  }
-  function hdr(t) { return { apikey: SUPA_KEY, Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }; }
+  // ── [A]/[B] AYRIMI ──
+  // Tek bir hdr(t) yardimcisi iki farkli sinifa hizmet ediyordu:
+  //   load()    -> makams/regions/composers/lyricists OKUMASI. Paylasilan referans
+  //                verisi, RLS'te herkese acik  ->  [A] anonHeaders().
+  //   suggest() -> "+ ekle" ile status='suggested' YAZMASI. Giris yapmis kullanici
+  //                gerektirir                    ->  [B] authHeaders().
+  // Eski tok() 'sb_token || SUPA_KEY' donduruyordu; token olunce oneri POST'u
+  // sessizce anon gidip RLS'e takiliyor, kullanici "eklenemedi" bile goremiyordu.
+  // freshTok() da kaldirildi: auth.js'in fetch yamasi zaten her istekten once
+  // token'i tazeliyor ve [B] isteklerini kapiya tabi tutuyor.
 
   // her alan icin: input id, tablo, kapali mi
   var FIELDS = [
@@ -30,11 +32,10 @@
 
   async function load(table) {
     if (cache[table]) return cache[table];
-    var t = await freshTok();
     var col = table === 'makams' ? 'ad' : 'ad,status';
     var url = SUPA_URL + '/rest/v1/' + table + '?select=' + col + '&order=ad.asc';
     try {
-      var r = await fetch(url, { headers: hdr(t) });
+      var r = await fetch(url, { headers: anonHeaders() });
       if (!r.ok) { console.warn('[secici] ' + table + ' okunamadı', r.status); return []; }
       var rows = await r.json();
       // makams'ta status yok -> hepsi approved say
@@ -44,14 +45,13 @@
   }
 
   async function suggest(table, ad) {
-    var t = await freshTok();
     var uid = null;
     try { uid = JSON.parse(localStorage.getItem('sb_user') || 'null'); uid = uid && uid.id; } catch (e) {}
     var body = { ad: ad, status: 'suggested' };
     if (uid) body.added_by = uid;
     try {
       var r = await fetch(SUPA_URL + '/rest/v1/' + table, {
-        method: 'POST', headers: hdr(t), body: JSON.stringify(body)
+        method: 'POST', headers: authHeaders(), body: JSON.stringify(body)
       });
       if (r.ok) {
         if (cache[table]) cache[table].push({ ad: ad, status: 'suggested' });
