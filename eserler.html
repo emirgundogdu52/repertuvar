@@ -1088,14 +1088,18 @@ async function loadWorksFromSupabase() {
 
 async function syncWorksFromServer(hadLocalData) {
   try {
-    const token = localStorage.getItem('sb_token') || SUPA_KEY;
     // Admin ve editör tüm eserleri görür, üye sadece onaylananları
     const groupId = getGroupId();
     const groupFilter = groupId ? '&group_id=eq.'+groupId : '';
     const uid = getUserId();
     const statusFilter = (isAdmin() || isEditor()) ? '' : '&or=(status.eq.approved,and(status.eq.pending,submitted_by.eq.'+uid+'))';
     const base = '/rest/v1/works?order=name&limit=10000'+groupFilter+statusFilter;
-    const hdr = {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token};
+    // [B] Sorgu tanım gereği kullanıcıya özel: group_id=eq.<gid> ve
+    // submitted_by.eq.<uid> taşıyor, admin/editörde ise statusFilter boş kalıyor.
+    // Anon fallback altında admin/editör bekleyen eserleri, grup üyesi de grup
+    // kapsamlı satırları SESSİZCE kaybediyordu. 2026-07-17 riski burada geçerli
+    // değil: yukarıdaki 0-kayıt koruması yerel listeyi silinmekten koruyor.
+    const hdr = authHeaders();
 
     // ── FAZ 1: HAFİF liste (güfte/akor/nota HARİÇ) — ilk boyama hızlı olsun.
     //    Liste ve filtreler bu alanlara ihtiyaç duymaz; ağır güfte/akor metnini
