@@ -13,7 +13,7 @@
 # ────────────────────────────────────────────────────────────
 set -uo pipefail
 
-REPO="$HOME/Desktop/Yeni Repertuvar/Repertuvar App Claude/Repertuvar"
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$REPO" || { echo "❌ Repo bulunamadı: $REPO"; exit 1; }
 
 MSG=""; RUN_IOS=false; WEB_ONLY=false
