@@ -1022,9 +1022,9 @@ let PERSONAL_CHORDS = {}; // {String(work_id): ChordPro metni} — kullanıcın�
 let USER_NAMES = {};
 async function loadUserNames(){
   try{
-    const token = localStorage.getItem('sb_token') || SUPA_KEY;
+    // [A] public_profiles paylasilan referans verisi — bilerek anon (bkz. anonHeaders).
     const r = await fetch(SUPA_URL + '/rest/v1/public_profiles?select=id,full_name', {
-      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
+      headers: anonHeaders()
     });
     if(!r.ok) return; // görünüm yoksa/erişilemezse sessizce geç
     const rows = await r.json();
@@ -1298,8 +1298,7 @@ function openRepAddSheet(workId) {
   overlay.classList.add('open');
   sheet.classList.add('open');
 
-  const token = localStorage.getItem('sb_token') || SUPA_KEY;
-  const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token };
+  const headers = authHeaders();
   const gid = localStorage.getItem('user_group_id');
   const savedUser = (() => { try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; } })();
   const uid = savedUser?.id;
@@ -1334,8 +1333,7 @@ function closeRepAddSheet() {
 
 async function pickRepertoireForAdd(repId, repName) {
   const msg = document.getElementById('repAddMsg');
-  const token = localStorage.getItem('sb_token') || SUPA_KEY;
-  const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=representation' };
+  const headers = { ...authHeaders(), Prefer: 'return=representation' };
   msg.style.display = 'block';
   msg.style.color = 'var(--text3)';
   msg.textContent = 'Ekleniyor...';
@@ -1449,7 +1447,8 @@ async function openSharedWork(rawId) {
   // 2) Tek kaydı doğrudan sunucudan çek (liste senkronunu beklemeden)
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + encodeURIComponent(id) + '&select=*', {
-      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) },
+      // [A] Paylasilan baglanti oturumdan bagimsiz acilmali.
+      headers: anonHeaders(),
       signal: AbortSignal.timeout(6000)
     });
     if (r.ok) {
@@ -1510,8 +1509,7 @@ function toggleFavorite(id, ev) {
 // ── Her eserin kaç repertuvarda kullanıldığı (Supabase repertoire_items) ──
 async function loadRepertoireCounts() {
   try {
-    const token = localStorage.getItem('sb_token') || SUPA_KEY;
-    const headers = {'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token};
+    const headers = authHeaders();
     const [itemsRes, repsRes] = await Promise.all([
       fetch(SUPA_URL + '/rest/v1/repertoire_items?select=work_id,repertoire_id', { headers }),
       fetch(SUPA_URL + '/rest/v1/repertoires?select=id,group_id', { headers }),
@@ -1823,8 +1821,7 @@ async function bulkCreateRepertoire() {
   if (!bulkSelectedIds.size) return;
   const name = prompt('Yeni repertuvarın adı:');
   if (!name || !name.trim()) return;
-  const token = localStorage.getItem('sb_token') || SUPA_KEY;
-  const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=representation' };
+  const headers = { ...authHeaders(), Prefer: 'return=representation' };
   const gid = localStorage.getItem('user_group_id');
   const savedUser = (() => { try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; } })();
   const uid = savedUser?.id;
@@ -1867,8 +1864,7 @@ function bulkAddToRepertoire() {
   overlay.classList.add('open');
   sheet.classList.add('open');
 
-  const token = localStorage.getItem('sb_token') || SUPA_KEY;
-  const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token };
+  const headers = authHeaders();
   const gid = localStorage.getItem('user_group_id');
   const savedUser = (() => { try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; } })();
   const uid = savedUser?.id;
@@ -1896,8 +1892,7 @@ function bulkAddToRepertoire() {
 
 async function pickRepertoireForBulkAdd(repId, repName) {
   const msg = document.getElementById('repAddMsg');
-  const token = localStorage.getItem('sb_token') || SUPA_KEY;
-  const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=representation' };
+  const headers = { ...authHeaders(), Prefer: 'return=representation' };
   msg.style.display = 'block';
   msg.style.color = 'var(--text3)';
   msg.textContent = 'Ekleniyor...';
@@ -2908,10 +2903,9 @@ function resetTranspose(id){
 async function savePersonalTranspose(id, val){
   try {
     const uid = getUserId(); if(!uid) return;
-    const token = localStorage.getItem('sb_token') || SUPA_KEY;
     await fetch(SUPA_URL+'/rest/v1/personal_chords?on_conflict=user_id,work_id', {
       method:'POST',
-      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+      headers:{...authHeaders(),'Prefer':'resolution=merge-duplicates,return=minimal'},
       body: JSON.stringify({ user_id: uid, work_id: parseInt(id), transpose: val, updated_at: new Date().toISOString() })
     });
   } catch(e){ console.warn('[eserler] ton kaydedilemedi:', e.message); }
@@ -2931,8 +2925,7 @@ async function loadPersonalChords(){
   try{
     const uid = (typeof getUserId==='function') ? getUserId() : null;
     if(!uid) return;
-    const token = localStorage.getItem('sb_token') || SUPA_KEY;
-    const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+token};
+    const H = authHeaders();
     // transpose sütunu henüz eklenmemişse istek 400 döner — o durumda sütunsuz tekrar
     // dene, yoksa kişisel AKORLAR da yüklenemez (sessiz yan hasar).
     let r = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, { headers:H });
@@ -2951,20 +2944,18 @@ async function loadPersonalChords(){
 }
 async function savePersonalChordsRow(id, chords){
   const uid = getUserId();
-  const token = localStorage.getItem('sb_token') || SUPA_KEY;
   const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?on_conflict=user_id,work_id', {
     method:'POST',
-    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+    headers:{...authHeaders(),'Prefer':'resolution=merge-duplicates,return=minimal'},
     body: JSON.stringify({ user_id: uid, work_id: parseInt(id), chords: chords, updated_at: new Date().toISOString() })
   });
   return r.ok || r.status===201 || r.status===204;
 }
 async function deletePersonalChordsRow(id){
   const uid = getUserId();
-  const token = localStorage.getItem('sb_token') || SUPA_KEY;
   const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id), {
     method:'DELETE',
-    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Prefer':'return=minimal'}
+    headers:{...authHeaders(),'Prefer':'return=minimal'}
   });
   return r.ok || r.status===204;
 }
@@ -3045,11 +3036,10 @@ async function saveChords(id) {
 
   if (scope === 'ortak') {
     if (!(isAdmin() || isEditor())) { alert('Ortak akoru sadece editör düzenleyebilir.'); return; }
-    const token = localStorage.getItem('sb_token') || SUPA_KEY;
     try {
       const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
         method: 'PATCH',
-        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
         // 2026-07-28: parantezsiz ama DOLU metin artık AYNEN kaydedilir (eskiden
         // burada {chords:''} yazılıyordu → kullanıcı "kaydetmiyor" diye görüyordu).
         body: JSON.stringify(_hasCh ? {chords: chords, lyrics: chordsToLyrics(chords)} : {chords: chords})
@@ -3118,7 +3108,7 @@ function isNotaImage(u) { return /\.(jpe?g|png|gif|webp|heic|tiff?)(\?|$)/i.test
 async function currentNotaPages(id) {
   try {
     const r = await fetch(`${SUPA_URL}/rest/v1/works?id=eq.${id}&select=nota_pages,nota_url`, {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY},
+      headers: authHeaders(),
       signal: AbortSignal.timeout(6000)
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -3134,12 +3124,11 @@ async function currentNotaPages(id) {
 
 // Tek PATCH: nota_pages + nota_url(1. sayfa). Başarıda YEREL kaydı da günceller.
 async function saveNotaPages(id, pages) {
-  const token = localStorage.getItem('sb_token') || SUPA_KEY;
   const clean = (pages || []).filter(Boolean);
   const first = clean[0] || null;
   const r = await fetch(`${SUPA_URL}/rest/v1/works?id=eq.${id}`, {
     method: 'PATCH',
-    headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
+    headers: {...authHeaders(), 'Prefer':'return=minimal'},
     body: JSON.stringify({nota_pages: clean, nota_url: first})
   });
   if (!(r.ok || r.status === 204)) {
@@ -3292,13 +3281,13 @@ async function _notaUploadToStorage(id, file) {
                  || /\.(jpe?g|png|gif|webp|heic|tiff?|pdf)$/i.test(file.name || '');
   if (!okType) throw new Error('Yalnızca görsel veya PDF yükleyebilirsin.');
   if (file.size > NOTA_MAX_BYTES) throw new Error('Dosya çok büyük (' + (file.size/1048576).toFixed(1) + ' MB) — en fazla 15 MB.');
-  const token = localStorage.getItem('sb_token') || SUPA_KEY;
+  const token = getToken();
   const ext = notaExtOf(file);
   // _notaSeq: aynı milisaniyede yüklenen iki dosya birbirinin üstüne yazmasın
   const path = `works/${id}/nota_${Date.now()}_${++_notaSeq}.${ext}`;
   const uploadRes = await fetch(`${SUPA_URL}/storage/v1/object/notalar/${path}`, {
     method: 'POST',
-    headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': file.type || 'application/octet-stream', 'x-upsert': 'true'},
+    headers: Object.assign({'apikey': SUPA_KEY, 'Content-Type': file.type || 'application/octet-stream', 'x-upsert': 'true'}, token ? {'Authorization': 'Bearer ' + token} : {}),
     body: file
   });
   if (!uploadRes.ok) throw new Error('Yükleme hatası (Storage).');
@@ -3623,13 +3612,10 @@ function saveNewEser() {
       closing_note: fields.closingNote,
       is_public: fields.isPublic
     };
-    const token = localStorage.getItem('sb_token') || SUPA_KEY;
     fetch(SUPA_URL + '/rest/v1/works?id=eq.' + editingWorkId, {
       method: 'PATCH',
       headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json',
+        ...authHeaders(),
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify(patchFields)
@@ -3680,9 +3666,7 @@ function saveNewEser() {
     fetch(SUPA_URL + '/rest/v1/works', {
       method: 'POST',
       headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
-        'Content-Type': 'application/json',
+        ...authHeaders(),
         'Prefer': 'return=representation'
       },
       body: JSON.stringify(saveFields)
@@ -3911,7 +3895,7 @@ async function showPendingWorks() {
   list.innerHTML = '<div class="pm-empty">Yükleniyor...</div>';
   document.getElementById('pendingModal').style.display = 'flex';
   const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&order=id.desc', {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) }
+    headers: authHeaders()
   });
   const pendingWorks = r.ok ? await r.json() : [];
   if (!pendingWorks.length) {
@@ -3982,7 +3966,7 @@ async function rejectWork(id) {
 
 async function updatePendingCount() {
   const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&select=id', {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY) }
+    headers: authHeaders()
   });
   const data = r.ok ? await r.json() : [];
   const cnt = data.length;
