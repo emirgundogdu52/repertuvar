@@ -48,13 +48,11 @@
 
 
 <script>
-function H() {
-  return {
-    'apikey': SUPA_KEY,
-    'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
-    'Content-Type': 'application/json'
-  };
-}
+// [B] Bu sayfanin iki cagrisi da kullaniciya ozel: kendi onerilerini listeleme
+// (works?submitted_by=eq.<uid>) ve kendi onerisini geri cekme (works DELETE).
+// Anon anahtarla RLS 0 satir donduruyor, kullanici hata yerine "Henuz bir eser
+// onermediniz" goruyordu. Yerel H() kaldirildi; auth.js'in authHeaders()'i
+// kullaniliyor (token yoksa Authorization hic konmuyor, kapi devrede).
 
 function timeAgo(dateStr) {
   if (!dateStr) return '';
@@ -74,7 +72,7 @@ async function loadSuggestions() {
   try {
     const r = await fetch(
       SUPA_URL + '/rest/v1/works?submitted_by=eq.' + uid + '&order=id.desc&select=id,name,composer,makam,status,visibility,submitted_at',
-      { headers: H() }
+      { headers: authHeaders() }
     );
     const data = await r.json();
     if (!Array.isArray(data) || !data.length) {
@@ -108,7 +106,7 @@ async function retractWork(id) {
   if (!confirm('Bu öneriyi geri çekmek istiyor musunuz?')) return;
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
-      method: 'DELETE', headers: H()
+      method: 'DELETE', headers: authHeaders()
     });
     if (r.ok || r.status === 204) {
       loadSuggestions();
