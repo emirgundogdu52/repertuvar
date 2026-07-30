@@ -50,34 +50,43 @@
 //             (3) Arka plan sync timeout 6000→3500ms (ağ geçişinde asılı kalma azaldı).
 // ============================================================================
 
-const H = {
-  get apikey() { return SUPA_KEY; },
-  get Authorization() { return 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY); },
-  'Content-Type': 'application/json',
-  'Prefer': 'return=representation'
-};
+// ── [A]/[B] AYRIMI ──
+// Bu dosyanin db* yardimcilari jeneriktir: ayni fonksiyon hem paylasilan referans
+// tablosunu (makams) hem kullaniciya ozel tablolari (repertoires, repertoire_items,
+// solistler, personal_chords) okuyor. Tek bir baslikla ikisini birden dogru
+// yapmak mumkun degil, o yuzden basligi TABLO belirliyor.
+//   [A] referans  -> anonHeaders(): oturumdan bagimsiz, engelleme/401 disinda.
+//   [B] digerleri -> authHeaders(): fallback yok; olu oturumda gorunur 401.
+// Eskiden hepsi 'Bearer ' + (sb_token || SUPA_KEY) ile gidiyordu; token olunce
+// repertuvarlar/solistler RLS altinda 0 satir donuyor, kullanici hata degil BOS
+// LISTE goruyordu.
+const REFERENCE_TABLES = new Set(['makams','regions','composers','lyricists','public_profiles']);
+function hdrFor(table) {
+  const base = REFERENCE_TABLES.has(table) ? anonHeaders() : authHeaders();
+  return { ...base, 'Prefer': 'return=representation' };
+}
 async function dbGet(table, qs='', signal) {
-  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?'+qs, {headers:H, signal});
+  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?'+qs, {headers: hdrFor(table), signal});
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function dbPost(table, data) {
-  const r = await fetch(SUPA_URL+'/rest/v1/'+table, {method:'POST',headers:H,body:JSON.stringify(data)});
+  const r = await fetch(SUPA_URL+'/rest/v1/'+table, {method:'POST',headers:hdrFor(table),body:JSON.stringify(data)});
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function dbPatch(table, id, data) {
-  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {method:'PATCH',headers:H,body:JSON.stringify(data)});
+  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {method:'PATCH',headers:hdrFor(table),body:JSON.stringify(data)});
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function dbDel(table, id) {
-  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {method:'DELETE',headers:H});
+  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {method:'DELETE',headers:hdrFor(table)});
   if (!r.ok) throw new Error(await r.text());
   return true;
 }
 async function dbDelWhere(table, col, val) {
-  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?'+col+'=eq.'+val, {method:'DELETE',headers:H});
+  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?'+col+'=eq.'+val, {method:'DELETE',headers:hdrFor(table)});
   if (!r.ok) throw new Error(await r.text());
   return true;
 }
@@ -248,7 +257,9 @@ async function loadWorksData() {
   // ── 2) ARKA PLANDA sunucudan tazele (asılı kalmasın diye kısa timeout) ──
   try {
     const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000', {
-      headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY},
+      // [A] works liste okumasi bilerek anon — 2026-07-17'de token dolunca eser
+      // adlari kaybolup yerine numara ciktigi icin.
+      headers: anonHeaders(),
       signal: AbortSignal.timeout(3500)
     });
     if (!r.ok) throw new Error('works fetch '+r.status);
@@ -1292,7 +1303,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeRM();closeWM()
 async function dbPatch(table, id, data) {
   const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {
     method: 'PATCH',
-    headers: {...H, 'Prefer': 'return=minimal'},
+    headers: {...hdrFor(table), 'Prefer': 'return=minimal'},
     body: JSON.stringify(data)
   });
   if (!r.ok) throw new Error(await r.text());
