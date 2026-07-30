@@ -20,7 +20,45 @@ function getGroupId() {
 // ya da <60sn kalmışsa refresh token ile yeniler. Refresh token'ı önce
 // Supabase'in standart anahtarından (sb-<ref>-auth-token JSON'u), yoksa eski
 // sb_refresh anahtarından okur. Data isteklerinden önce çağrılmalı.
+//
+// (2026-07-30) SÖZLEŞME — eskiden bu fonksiyon HER başarısızlıkta ölü token'ı
+// geri veriyordu; yenileme başarısı ile başarısızlığı çağıran hiçbir şekilde
+// ayırt edemiyordu. İstek yine de yola çıkıyor, RLS altında 0 satır ya da 401
+// dönüyor, kullanıcı hata değil BOŞ LİSTE görüyordu. Artık:
+//   ensureValidToken()       → string | null   (eski sözleşme; çağrı yerleri bozulmasın)
+//   ensureValidTokenState()  → { token, ok, stale, reason, status }
+// Ayrım:
+//   ok:true                 → token taze/yenilendi
+//   stale:true, token dolu  → GEÇİCİ sorun (ağ, timeout, çevrimdışı, 5xx).
+//                             Oturum ölü DEĞİL; eski token'la devam edilir.
+//   token:null              → KALICI sorun; auth:expired olayı yayılır.
+//
+// MUTLAK KURAL (bunu tüketecek olan 3. ve 5. adımlar için):
+// navigator.onLine === false iken, ağ hatası/timeout'ta, veya stage.html'de
+// ASLA istek engellenmez ve ASLA logout/yönlendirme yapılmaz. Uygulama
+// local-first; sahnede sinyalsiz kalan müzisyen giriş ekranına atılamaz.
+// Oturum yalnızca sunucunun KESİN reddinde sonlandırılır — bu dosyada o durum
+// reason:'server_rejected' (refresh isteğine 400/401/403) olarak işaretlenir.
+// stale:true veya reason:'offline'/'network'/'server_error' asla logout sebebi
+// değildir.
 var _refreshInFlight = null;
+var _expiredNotified = false; // auth:expired her "ölü oturum" epizodunda bir kez
+
+function _authState(token, ok, stale, reason, status) {
+  return { token: token || null, ok: !!ok, stale: !!stale, reason: reason, status: status || 0 };
+}
+// Yalnızca KALICI başarısızlıkta çağrılır. Dinleyicisi olmasa da zararsız —
+// bu adımda sadece sinyali üretiyoruz, davranışı 3/4/5 değiştirecek.
+function _emitAuthExpired(reason, status) {
+  if (_expiredNotified) return;         // aynı epizotta tekrar tekrar yayma (yönlendirme döngüsü olmasın)
+  _expiredNotified = true;
+  console.warn('[auth] oturum yenilenemedi (' + reason + (status ? ' ' + status : '') + ') — istekler yetkisiz gidiyor');
+  try {
+    window.dispatchEvent(new CustomEvent('auth:expired', {
+      detail: { reason: reason, status: status || 0, serverRejected: reason === 'server_rejected' }
+    }));
+  } catch (e) {}
+}
 function _decodeExp(jwt) {
   try {
     var payload = JSON.parse(atob(jwt.split('.')[1]));
@@ -53,14 +91,30 @@ function _persistNewSession(data) {
     localStorage.setItem(key, JSON.stringify(obj));
   } catch (e) {}
 }
-async function ensureValidToken() {
+// force:true — exp'e bakma, koşulsuz yenile. 401 yakalayıcısı (4) kullanır:
+// token kâğıt üstünde taze görünse de sunucu reddetmiş olabilir (hesap silinmiş,
+// JWT secret döndürülmüş, oturum iptal edilmiş).
+async function ensureValidTokenState(force) {
   var token = localStorage.getItem('sb_token');
-  if (!token) return null;
+  // Hiç oturum yok — bu "süresi doldu" değil, girişsizlik. auth:expired YAYMA;
+  // bu durumu requireAuth ele alıyor.
+  if (!token) return _authState(null, false, false, 'no_token');
   var exp = _decodeExp(token);
-  if (exp && exp - Date.now() > 60000) return token; // 60sn'den fazla var — taze
+  if (!force && exp && exp - Date.now() > 60000) {     // 60sn'den fazla var — taze
+    _expiredNotified = false;                          // sağlıklı oturum: mandalı sıfırla
+    return _authState(token, true, false, 'fresh');
+  }
   if (_refreshInFlight) return _refreshInFlight;      // zaten yenileniyor
   var refresh = _findRefreshToken();
-  if (!refresh) return token;                          // yenileyemiyoruz
+  if (!refresh) {                                     // yenileyemiyoruz — kalıcı
+    _emitAuthExpired('no_refresh', 0);
+    return _authState(null, false, false, 'no_refresh');
+  }
+  // Çevrimdışıyken denemenin anlamı yok: 8sn timeout'u boşuna bekleriz ve daha
+  // önemlisi bunu "oturum öldü" sanmak yasak (MUTLAK KURAL). Eski token'la devam.
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return _authState(token, false, true, 'offline');
+  }
   _refreshInFlight = (async function() {
     try {
       var r = await fetch(SUPA_URL + '/auth/v1/token?grant_type=refresh_token', {
@@ -69,54 +123,191 @@ async function ensureValidToken() {
         body: JSON.stringify({ refresh_token: refresh }),
         signal: AbortSignal.timeout(8000)
       });
-      if (!r.ok) return token;
+      if (!r.ok) {
+        // 400/401/403 → sunucu refresh token'ı KESİN reddetti. GoTrue geçersiz/
+        // iptal edilmiş refresh token için invalid_grant'i 400 ile döndürür, bu
+        // yüzden 400 de kalıcı sayılır; status detayda taşınıyor ki 5. adım
+        // isterse yalnız 401/403'e daha sert davranabilsin.
+        if (r.status === 400 || r.status === 401 || r.status === 403) {
+          _emitAuthExpired('server_rejected', r.status);
+          return _authState(null, false, false, 'server_rejected', r.status);
+        }
+        // 5xx/429 → sunucu sorunu. Oturum ölü değil, geçici.
+        return _authState(token, false, true, 'server_error', r.status);
+      }
       var data = await r.json();
       _persistNewSession(data);
+      _expiredNotified = false;
       console.log('[auth] token yenilendi');
-      return data.access_token || token;
+      return _authState(data.access_token || token, true, false, 'refreshed');
     } catch (e) {
-      return token;
+      // Ağ hatası / timeout / abort — KESİN ret DEĞİL. Eski token'la devam.
+      return _authState(token, false, true, 'network');
     } finally {
       _refreshInFlight = null;
     }
   })();
   return _refreshInFlight;
 }
+// Eski sözleşme (string | null) — mevcut çağrı yerleri 'Bearer ' + sonuç yapıyor,
+// bu yüzden şekli korunuyor. Ayrıntı gerekenler ensureValidTokenState() kullanır.
+async function ensureValidToken() {
+  var st = await ensureValidTokenState();
+  return st.token;
+}
 window.ensureValidToken = ensureValidToken;
+window.ensureValidTokenState = ensureValidTokenState;
+
+// ── SAYFA MUAFİYETİ ──
+// stage.html sahne görünümü: müzisyen çalarken ekranda. Orada ASLA istek
+// engellenmez, ASLA yönlendirme yapılmaz — sinyal gitse bile eser ekranda kalır.
+function isStagePage() {
+  try { return /(^|\/)stage\.html$/i.test(location.pathname); } catch (e) { return false; }
+}
+window.isStagePage = isStagePage;
+
+// Yönlendirme/engelleme yapmanın yasak olduğu durumlar tek yerde (MUTLAK KURAL).
+// 5. adım (requireAuth) da bunu kullanacak.
+function authGuardSuspended() {
+  if (isStagePage()) return 'stage';
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'offline';
+  return null;
+}
+window.authGuardSuspended = authGuardSuspended;
+
+// ── Authorization başlığı okuma/yazma yardımcıları ──
+function _authzOf(input, init) {
+  try {
+    var h = init && init.headers;
+    if (h instanceof Headers) { var v = h.get('Authorization'); if (v) return v; }
+    else if (h && typeof h === 'object') { var v2 = h.Authorization || h.authorization; if (v2) return v2; }
+    if (input && typeof input !== 'string' && input.headers && typeof input.headers.get === 'function') {
+      return input.headers.get('Authorization') || '';
+    }
+  } catch (e) {}
+  return '';
+}
+// Mevcut davranış korunuyor: YALNIZCA zaten Authorization taşıyan istekler
+// güncellenir; başlığı olmayanlara yenisi eklenmez.
+function _setAuthz(init, value) {
+  try {
+    if (!init) return false;
+    var h = init.headers;
+    if (h instanceof Headers) {
+      if (!h.has('Authorization')) return false;
+      h.set('Authorization', value); return true;
+    }
+    if (h && typeof h === 'object') {
+      if (!h.Authorization && !h.authorization) return false;
+      h.Authorization = value;
+      if (h.authorization) delete h.authorization;
+      init.headers = h; return true;
+    }
+  } catch (e) {}
+  return false;
+}
+// Paylaşılan referans verisi (works, makams, regions, composers, lyricists,
+// public_profiles) bilerek anon anahtarla çekiliyor — 2026-07-17'de stage.html'de
+// token dolunca eser listesi boşalıp eser adı yerine numara çıktığı için. Bu
+// istekler oturumdan bağımsız: ne token yazılır, ne engellenir, ne 401 sayılır.
+function _isAnonAuthz(v) { return !!v && v === 'Bearer ' + SUPA_KEY; }
+
+// (3) Gönderilmeyen istek için sentetik yanıt. Throw ETMİYORUZ: çağrı yerlerinin
+// çoğu .catch()'siz; throw yakalanmamış promise reddi üretirdi. 401 + JSON gövde
+// mevcut `if (!r.ok)` dallarıyla uyumlu.
+function _blockedResponse(reason) {
+  return new Response(
+    JSON.stringify({ code: 'PGRST301', message: 'Oturum geçersiz — istek gönderilmedi.', reason: reason }),
+    { status: 401, statusText: 'Unauthorized', headers: { 'Content-Type': 'application/json' } }
+  );
+}
+
+// (4) Oturumu sonlandır. Yalnızca sunucunun KESİN reddinde çağrılır ve
+// authGuardSuspended() geçerliyse hiçbir şey yapmaz.
+var _sessionEndHandled = false;
+function endDeadSession(reason, status) {
+  if (_sessionEndHandled) return;
+  var suspended = authGuardSuspended();
+  if (suspended) {
+    console.warn('[auth] oturum ölü (' + reason + ') ama ' + suspended + ' — yönlendirme YOK');
+    return;
+  }
+  _sessionEndHandled = true;
+  console.warn('[auth] oturum sonlandırılıyor (' + reason + (status ? ' ' + status : '') + ')');
+  try { logoutSilent(); } catch (e) {}
+  try { location.replace('login.html?expired=1'); } catch (e) {}
+}
+window.endDeadSession = endDeadSession;
 
 // ── TÜM SUPABASE FETCH'LERİNE OTOMATİK TOKEN YENİLEME ──
 // window.fetch'i sarmalıyoruz: Supabase'e giden her istek, gitmeden önce
 // taze token alır. Böylece sayfaların kendi fetch'leri (token yenilemeyi
 // bilmeyenler dahil) 401 almaz. Tek noktadan tüm çağrılar korunur.
+//
+// (2026-07-30) Buraya iki davranış eklendi:
+//   (3) Token KALICI olarak yenilenemiyorsa kullanıcı token'lı istek hiç
+//       gönderilmez — yetki hatasının "boş liste"ye dönüşmesi böyle kesiliyor.
+//   (4) Gerçek 401 gelirse bir kez zorla yenile + bir kez tekrar dene; yenileme
+//       de kalıcı olarak başarısızsa oturumu sonlandır.
+// Her ikisi de MUTLAK KURAL'a tabi: çevrimdışıyken, ağ hatasında ve stage.html'de
+// ne engelleme ne yönlendirme olur. /auth/v1/* tamamen muaf — requireAuth kendi
+// kararını verebilsin (5. adımın alanı).
 if (!window._supaFetchPatched) {
   window._supaFetchPatched = true;
   var _origFetch = window.fetch.bind(window);
   window.fetch = async function(input, init) {
+    var url = '', isSupa = false, isTokenReq = false, isData = false, authz = '';
     try {
-      var url = (typeof input === 'string') ? input : (input && input.url) || '';
-      // Sadece Supabase REST/diğer istekleri; refresh'in KENDİSİ muaf (sonsuz döngü olmasın).
-      var isSupa = url.indexOf('supabase.co') !== -1;
-      var isTokenReq = url.indexOf('/auth/v1/token') !== -1;
-      if (isSupa && !isTokenReq && typeof ensureValidToken === 'function') {
-        var fresh = await ensureValidToken();
-        if (fresh) {
-          init = init || {};
-          var h = init.headers;
-          // headers Headers nesnesi olabilir ya da düz obje — ikisini de yönet.
-          if (h instanceof Headers) {
-            // Yalnızca zaten Authorization taşıyan istekleri güncelle (SUPA_KEY-only olanlara dokunma).
-            if (h.has('Authorization')) h.set('Authorization', 'Bearer ' + fresh);
-          } else if (h && typeof h === 'object') {
-            if (h.Authorization || h.authorization) {
-              h.Authorization = 'Bearer ' + fresh;
-              if (h.authorization) delete h.authorization;
-            }
-            init.headers = h;
+      url = (typeof input === 'string') ? input : (input && input.url) || '';
+      isSupa = url.indexOf('supabase.co') !== -1;
+      isTokenReq = url.indexOf('/auth/v1/token') !== -1;  // refresh'in KENDİSİ — sonsuz döngü olmasın
+      // Engelleme (3) ve 401 politikası (4) YALNIZCA veri uçlarında. /auth/v1/user
+      // ve /auth/v1/logout token tazelemesini almaya devam eder (requireAuth buna
+      // güveniyor) ama kendi 401'ini kendi yorumlar — orası 5. adımın alanı.
+      isData = isSupa && url.indexOf('/auth/v1/') === -1;
+    } catch (e) {}
+    if (!isSupa || isTokenReq) return _origFetch(input, init);
+
+    try {
+      authz = _authzOf(input, init);
+      if (!_isAnonAuthz(authz) && typeof ensureValidTokenState === 'function') {
+        var st = await ensureValidTokenState();
+        if (st.token) {
+          // Taze ya da stale (çevrimdışı/ağ/5xx) — her iki durumda da istek gider.
+          _setAuthz(init, 'Bearer ' + st.token);
+        } else if (isData && authz && st.reason !== 'no_token') {
+          // Kullanıcı token'lı istek + oturum KALICI olarak ölü.
+          var suspended = authGuardSuspended();
+          if (suspended) {
+            console.warn('[auth] oturum ölü (' + st.reason + ') ama ' + suspended + ' — istek engellenmiyor: ' + url);
+          } else {
+            console.warn('[auth] istek gönderilmedi (' + st.reason + '): ' + url);
+            endDeadSession(st.reason, st.status);
+            return _blockedResponse(st.reason);
           }
         }
       }
     } catch (e) { /* patch hatası olsa bile isteği engelleme */ }
-    return _origFetch(input, init);
+
+    var res = await _origFetch(input, init);
+
+    // (4) Merkezî 401. SADECE 401 — PostgREST'te 403 "RLS izin vermedi" demek,
+    // oturum sorunu değil; 403'te logout etmek masum kullanıcıyı atardı.
+    try {
+      if (isData && res.status === 401 && authz && !_isAnonAuthz(authz) && !authGuardSuspended()) {
+        var st2 = await ensureValidTokenState(true); // zorla yenile
+        var bodyOk = !init || init.body == null || typeof init.body === 'string';
+        if (st2.ok && st2.token && bodyOk && _setAuthz(init, 'Bearer ' + st2.token)) {
+          console.warn('[auth] 401 — token yenilendi, istek bir kez tekrarlanıyor: ' + url);
+          res = await _origFetch(input, init);
+        } else if (!st2.token && !st2.stale) {
+          // Yenileme KALICI olarak başarısız (sunucu reddetti / refresh yok) →
+          // 401 kesin. Yenileme geçici sebeple (ağ/5xx) başarısızsa DOKUNMA.
+          endDeadSession('rest_401_' + st2.reason, 401);
+        }
+      }
+    } catch (e) {}
+    return res;
   };
 }
 
