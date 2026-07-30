@@ -333,11 +333,35 @@ if (typeof document !== 'undefined' && !window._tokenVisListener) {
   });
 }
 
+// ── (1) BAŞLIK POLİTİKASI ──
+// Kullanıcıya özel istekler için başlık. FALLBACK YOK — bilerek.
+// Eskiden token yok/ölü iken 'Bearer ' + SUPA_KEY gidiyordu. Bu iki şeyi birden
+// bozuyordu:
+//   (a) RLS altında istek 0 satır döndürüyor, kullanıcı hata değil BOŞ LİSTE
+//       görüyordu ("Henüz bir eser önermediniz", "Bekleyen eser yok 🎉");
+//   (b) _isAnonAuthz() bu isteği "paylaşılan referans verisi" sanıp hem engelleme
+//       kapısından (3) hem 401 politikasından (4) muaf tutuyordu — yani ölü
+//       oturumu görünür kılmak için yazdığımız mekanizmayı tam da en çok
+//       gerektiği yerde devre dışı bırakıyordu.
+// Artık ölü/eksik oturum görünür 401 üretir.
 function authHeaders() {
   const token = getToken();
   return {
     'apikey': SUPA_KEY,
-    'Authorization': 'Bearer ' + (token || SUPA_KEY),
+    'Authorization': 'Bearer ' + (token || ''),
+    'Content-Type': 'application/json'
+  };
+}
+
+// Paylaşılan referans verisi (works liste okuması, makams, regions, composers,
+// lyricists, public_profiles) için kanonik başlık — bilerek anon. _isAnonAuthz()
+// tam bu değeri tanıyıp isteği oturum mantığının tamamen dışında tutar; bu
+// istekler ne token alır, ne engellenir, ne 401 sayılır.
+// (2026-07-17: token dolunca stage.html'de eser adı yerine numara çıkıyordu.)
+function anonHeaders() {
+  return {
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + SUPA_KEY,
     'Content-Type': 'application/json'
   };
 }
@@ -432,7 +456,7 @@ async function ensureProfile(user) {
   try {
     // Mevcut profili kontrol et — display_name email dışında bir şeyse koru
     const check = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + user.id + '&select=display_name', {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) },
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || '') },
       signal: AbortSignal.timeout(6000)
     });
     const existing = check.ok ? await check.json() : [];
@@ -449,7 +473,7 @@ async function ensureProfile(user) {
       method: 'POST',
       headers: {
         'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + (getToken() || SUPA_KEY),
+        'Authorization': 'Bearer ' + (getToken() || ''),
         'Content-Type': 'application/json',
         'Prefer': 'resolution=merge-duplicates'
       },
@@ -470,7 +494,7 @@ async function loadUserRole() {
     localStorage.setItem('user_role', 'admin');
     try {
       const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=group_id', {
-        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) },
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || '') },
         signal: AbortSignal.timeout(6000)
       });
       if (r.ok) {
@@ -483,7 +507,7 @@ async function loadUserRole() {
   }
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=role,status,group_id', {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || SUPA_KEY) },
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || '') },
       signal: AbortSignal.timeout(6000)
     });
     if (r.ok) {
