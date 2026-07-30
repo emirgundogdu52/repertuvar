@@ -19,3 +19,5 @@ www/
 node_modules/
 repertuvar/
 client_secret*.json
+.DS_Store
+**/.DS_Store
