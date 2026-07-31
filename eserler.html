@@ -1054,7 +1054,10 @@ function mapWorkRow(w) {
     chords: w.chords || '', notaUrl: w.nota_url || '',
     notaPages: Array.isArray(w.nota_pages) ? w.nota_pages.filter(Boolean) : (w.nota_url ? [w.nota_url] : []),
     status: w.status || 'approved', submitted_by: w.submitted_by || '',
-    submitter_email: w.submitter_email || '', submitted_at: w.submitted_at || ''
+    submitter_email: w.submitter_email || '', submitted_at: w.submitted_at || '',
+    // Tek doğruluk kaynağı: visibility ('public' | 'private'). is_public ÖLÜ
+    // sütun (hiç false yok), artık yazılmıyor ama geri dönüş için siliNMEdi.
+    visibility: w.visibility || 'public'
   };
 }
 
@@ -1099,7 +1102,10 @@ async function syncWorksFromServer(hadLocalData) {
     const groupExpr = groupId ? 'or(group_id.is.null,group_id.eq.'+groupId+')' : null;
     const statusExpr = (isAdmin() || isEditor()) ? null
       : 'or(status.eq.approved,and(status.eq.pending,submitted_by.eq.'+uid+'))';
-    const parts = [groupExpr, statusExpr].filter(Boolean);
+    // Gizli eseri YALNIZCA sahibi görür — admin/editör dahil kimse başkasının
+    // gizlisini görmez, o yüzden burada rol ayrımı yok.
+    const visExpr = 'or(visibility.eq.public,submitted_by.eq.'+uid+')';
+    const parts = [groupExpr, statusExpr, visExpr].filter(Boolean);
     const filter = parts.length ? '&and=('+parts.join(',')+')' : '';
     const base = '/rest/v1/works?order=name&limit=10000'+filter;
     // [B] Sorgu tanım gereği kullanıcıya özel: groupExpr <gid>, statusExpr ise
@@ -1112,7 +1118,7 @@ async function syncWorksFromServer(hadLocalData) {
     // ── FAZ 1: HAFİF liste (güfte/akor/nota HARİÇ) — ilk boyama hızlı olsun.
     //    Liste ve filtreler bu alanlara ihtiyaç duymaz; ağır güfte/akor metnini
     //    ilk yükte çekmek soğuk açılışı yavaşlatan asıl sebepti. ──
-    const lightSel = 'select=id,name,composer,lyric_writer,makam,form,measurement,instrument,tuning,closing_note,region,source_person,video_link,status,submitted_by,submitter_email,submitted_at';
+    const lightSel = 'select=id,name,composer,lyric_writer,makam,form,measurement,instrument,tuning,closing_note,region,source_person,video_link,status,submitted_by,submitter_email,submitted_at,visibility';
     const r = await fetch(SUPA_URL+base+'&'+lightSel, {
       headers: hdr,
       signal: AbortSignal.timeout(hadLocalData ? 8000 : 5000)
@@ -3444,7 +3450,7 @@ function openEditEserModal(id) {
   setLyricsValue(w.lyrics || '');
   // Akoru olan eserde güfte akordan türetiliyor → güfte editörünü kilitle + uyar
   applyLyricsLockState(hasRealChords(w.chords));
-  if (w.is_public === false) document.getElementById('ne_visPrivate').checked = true;
+  if (w.visibility === 'private') document.getElementById('ne_visPrivate').checked = true;
   else document.getElementById('ne_visPublic').checked = true;
   switchNeTab('lyrics');
   document.getElementById('newEserModal').style.display = 'flex';
@@ -3622,7 +3628,7 @@ function saveNewEser() {
       lyrics: fields.lyrics,
       chords: fields.chords,
       closing_note: fields.closingNote,
-      is_public: fields.isPublic
+      visibility: fields.isPublic ? 'public' : 'private'
     };
     fetch(SUPA_URL + '/rest/v1/works?id=eq.' + editingWorkId, {
       method: 'PATCH',
@@ -3636,7 +3642,7 @@ function saveNewEser() {
       if (r.ok || r.status === 204) {
         // DATA'yı güncelle
         const idx = DATA.findIndex(x => x.id === editingWorkId);
-        if (idx > -1) Object.assign(DATA[idx], fields, { is_public: fields.isPublic });
+        if (idx > -1) Object.assign(DATA[idx], fields, { visibility: fields.isPublic ? 'public' : 'private' });
         closeNewEserModal();
         buildFilters();
         applyFilters();
@@ -3667,7 +3673,7 @@ function saveNewEser() {
       lyrics: fields.lyrics,
       chords: fields.chords,
       closing_note: fields.closingNote,
-      is_public: fields.isPublic,
+      visibility: fields.isPublic ? 'public' : 'private',
       status,
       submitted_by: getUserId(),
       submitter_email: getUser()?.email || '',
