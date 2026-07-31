@@ -3719,7 +3719,7 @@ function hideDeleteConfirm(id) {
 async function deleteWork(id) {
   const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
     method: 'DELETE',
-    headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+(getToken()||SUPA_KEY)}
+    headers: authHeaders()
   });
   if (!r.ok && r.status !== 204) { alert('Silme hatası: ' + await r.text()); return; }
   const customs = getCustomWorks().filter(w => w.id !== id);
@@ -3845,7 +3845,7 @@ async function showEditorManager() {
   const list = document.getElementById('editorList');
   list.innerHTML = '<div style="color:var(--text3);font-size:13px;">Yükleniyor...</div>';
   const r = await fetch(SUPA_URL + '/rest/v1/profiles?role=eq.editor&select=id,email,role', {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
+    headers: authHeaders()
   });
   const editors = await r.json();
   if (!editors.length) {
@@ -3869,7 +3869,7 @@ async function assignEditor() {
 
   // 1. profiles'dan email ile UUID bul
   const rUser = await fetch(SUPA_URL + '/rest/v1/profiles?email=eq.' + encodeURIComponent(email) + '&select=id,role', {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
+    headers: authHeaders()
   });
   const users = rUser.ok ? await rUser.json() : [];
 
@@ -3878,7 +3878,7 @@ async function assignEditor() {
     const uid = users[0].id;
     await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
       method: 'PATCH',
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
       body: JSON.stringify({ role: 'editor' })
     });
     msg.style.color = '#3FB950';
@@ -3896,7 +3896,7 @@ async function assignEditor() {
 async function removeEditor(id) {
   await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + id, {
     method: 'PATCH',
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
     body: JSON.stringify({ role: 'member' })
   });
   showEditorManager();
@@ -3943,7 +3943,7 @@ async function approveWork(id) {
   if (btn) { btn.disabled = true; btn.textContent = '...'; }
   const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
     method: 'PATCH',
-    headers: {...{'apikey':SUPA_KEY,'Authorization':'Bearer '+localStorage.getItem('sb_token'),'Content-Type':'application/json','Prefer':'return=minimal'}},
+    headers: {...authHeaders(), 'Prefer':'return=minimal'},
     body: JSON.stringify({ status: 'approved', reviewed_by: getUserId(), reviewed_at: new Date().toISOString() })
   });
   if (r.ok || r.status === 204) {
@@ -3962,7 +3962,7 @@ async function rejectWork(id) {
   if (!confirm('Bu eseri reddetmek ve silmek istiyor musunuz?')) return;
   const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
     method: 'DELETE',
-    headers: {'apikey':SUPA_KEY,'Authorization':'Bearer '+localStorage.getItem('sb_token'),'Content-Type':'application/json'}
+    headers: authHeaders()
   });
   if (r.ok || r.status === 204) {
     const idx = DATA.findIndex(x => x.id === id);
