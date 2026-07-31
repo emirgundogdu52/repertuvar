@@ -1090,12 +1090,20 @@ async function syncWorksFromServer(hadLocalData) {
   try {
     // Admin ve editör tüm eserleri görür, üye sadece onaylananları
     const groupId = getGroupId();
-    const groupFilter = groupId ? '&group_id=eq.'+groupId : '';
     const uid = getUserId();
-    const statusFilter = (isAdmin() || isEditor()) ? '' : '&or=(status.eq.approved,and(status.eq.pending,submitted_by.eq.'+uid+'))';
-    const base = '/rest/v1/works?order=name&limit=10000'+groupFilter+statusFilter;
-    // [B] Sorgu tanım gereği kullanıcıya özel: group_id=eq.<gid> ve
-    // submitted_by.eq.<uid> taşıyor, admin/editörde ise statusFilter boş kalıyor.
+    // works ORTAK KATALOG (2026-07-31): group_id IS NULL = herkesin katalogu,
+    // group_id=<gid> = o gruba özel. Gruba üye OLMAYANA hiç grup kısıtı konmaz
+    // (is.null bile) — bugün NULL satır yok, konsaydı listesi boşalırdı.
+    // PostgREST'te iki ayrı or= parametresi çakışır: tek and=(...) içinde
+    // birleştiriliyor, iç içe operatörler '=' almaz. Ayrıntı: _not.md
+    const groupExpr = groupId ? 'or(group_id.is.null,group_id.eq.'+groupId+')' : null;
+    const statusExpr = (isAdmin() || isEditor()) ? null
+      : 'or(status.eq.approved,and(status.eq.pending,submitted_by.eq.'+uid+'))';
+    const parts = [groupExpr, statusExpr].filter(Boolean);
+    const filter = parts.length ? '&and=('+parts.join(',')+')' : '';
+    const base = '/rest/v1/works?order=name&limit=10000'+filter;
+    // [B] Sorgu tanım gereği kullanıcıya özel: groupExpr <gid>, statusExpr ise
+    // submitted_by.eq.<uid> taşıyor; admin/editörde statusExpr hiç eklenmiyor.
     // Anon fallback altında admin/editör bekleyen eserleri, grup üyesi de grup
     // kapsamlı satırları SESSİZCE kaybediyordu. 2026-07-17 riski burada geçerli
     // değil: yukarıdaki 0-kayıt koruması yerel listeyi silinmekten koruyor.
