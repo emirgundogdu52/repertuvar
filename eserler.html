@@ -1057,7 +1057,7 @@ function mapWorkRow(w) {
     submitter_email: w.submitter_email || '', submitted_at: w.submitted_at || '',
     // Tek doğruluk kaynağı: visibility ('public' | 'private'). is_public ÖLÜ
     // sütun (hiç false yok), artık yazılmıyor ama geri dönüş için siliNMEdi.
-    visibility: w.visibility || 'public'
+    visibility: w.visibility || 'public', group_id: w.group_id || null
   };
 }
 
@@ -1118,7 +1118,7 @@ async function syncWorksFromServer(hadLocalData) {
     // ── FAZ 1: HAFİF liste (güfte/akor/nota HARİÇ) — ilk boyama hızlı olsun.
     //    Liste ve filtreler bu alanlara ihtiyaç duymaz; ağır güfte/akor metnini
     //    ilk yükte çekmek soğuk açılışı yavaşlatan asıl sebepti. ──
-    const lightSel = 'select=id,name,composer,lyric_writer,makam,form,measurement,instrument,tuning,closing_note,region,source_person,video_link,status,submitted_by,submitter_email,submitted_at,visibility';
+    const lightSel = 'select=id,name,composer,lyric_writer,makam,form,measurement,instrument,tuning,closing_note,region,source_person,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id';
     const r = await fetch(SUPA_URL+base+'&'+lightSel, {
       headers: hdr,
       signal: AbortSignal.timeout(hadLocalData ? 8000 : 5000)
@@ -1173,7 +1173,10 @@ async function syncWorksFromServer(hadLocalData) {
             form:w.form, measurement:w.measurement, instrument:w.instrument, tuning:w.tuning,
             closing_note:w.closingNote, region:w.region, source_person:w.sourcePerson, video_link:w.videoLink,
             lyrics:w.lyrics, chords:w.chords, nota_url:w.notaUrl, nota_pages:w.notaPages||[], status:w.status,
-            submitted_by:w.submitted_by, submitter_email:w.submitter_email, submitted_at:w.submitted_at
+            submitted_by:w.submitted_by, submitter_email:w.submitter_email, submitted_at:w.submitted_at,
+            // Bunlar düşerse önbellekteki her eser 'public' + gruba aitsiz sayılır
+            // ve yerel-önce boyama gizliyi ayırt edemez.
+            visibility:w.visibility, group_id:w.group_id
           }));
           db.works.replaceAll(full).catch(()=>{});
         }
@@ -1249,6 +1252,10 @@ function applyFilters() {
   const favs = favOnly ? getFavs() : null;
   filteredData = DATA.filter(w => {
     if (w.status === 'pending' && w.submitted_by !== getUserId()) return false; // Sadece kendi pending eserlerini göster
+    // Gizli eser yalnızca sahibine görünür. Kayıt IndexedDB'de KALIR, sadece
+    // listede gösterilmez — repertuvar kalemleri eser adını kaybetmesin
+    // (2026-07-17 "ad yerine #37" regresyonu).
+    if (w.visibility === 'private' && w.submitted_by !== getUserId()) return false;
     if (favOnly && !favs.has(w.id)) return false;
     if (activeFilters.form && w.form !== activeFilters.form) return false;
     if (activeFilters.tuning && w.tuning !== activeFilters.tuning) return false;
