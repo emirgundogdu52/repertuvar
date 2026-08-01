@@ -1469,48 +1469,84 @@ document.addEventListener('click',function(e){
 // ── PAYLAŞIM ──
 let shareRepId = null;
 
-// ── PAYLAŞ (2026-07-19 düzeltme) ────────────────────────────────────────────
-// ESKİ HATA: shareRep() sayfada HİÇ OLMAYAN #shareModal/#shareRepName/#shareLink/
-// #copyBtn elemanlarını arıyordu → getElementById(...).textContent TypeError atıyor,
-// menüye basınca hiçbir şey olmuyordu. Modal artık JS ile kuruluyor, HTML'e bağımlı
-// değil. Telefonda önce yerel paylaşım sayfası (navigator.share) denenir.
-function shareLinkFor(repId){
-  const token = btoa(repId).replace(/=/g,'');
-  const base = window.location.origin.startsWith('http')
+// ── PAYLAŞ (2026-08-01: SÜRELİ MİSAFİR BAĞLANTISI) ─────────────────────────
+// ESKİ HAL: link = stage.html?share=btoa(repId) — yani "token" repertuvar id'sinin
+// base64'ü, sır değil, herkes üretebilir; üstelik stage.html giriş istediği için
+// misafirde zaten çalışmıyordu.
+// YENİ: repertoire_links tablosunda gerçek rastgele token + son kullanma zamanı.
+// Misafir paylas.html?t=<token> açar, sunucudaki get_shared_repertoire(token) RPC'si
+// token/iptal/süre kontrolünü yapıp içeriği döndürür (akor DAHİL DEĞİL).
+// Repertuvar başına TEK aktif bağlantı: yeni üretilince eskiler revoked=true olur.
+function randomToken(){
+  const a = new Uint8Array(24);
+  (window.crypto || window.msCrypto).getRandomValues(a);
+  return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function shareBaseUrl(){
+  return window.location.origin.startsWith('http')
     ? window.location.origin + window.location.pathname.replace(/repertoires\.html.*$/,'')
     : 'https://app.repertuvar.app/';
-  return base + 'stage.html?share=' + token;
 }
 
 async function shareRep(repId) {
   const rep = getRep(repId);
   if (!rep) return;
   shareRepId = repId;
-  const link = shareLinkFor(repId);
-  // Telefon/tablet: sistemin kendi paylaşım sayfası
-  if (navigator.share) {
-    try { await navigator.share({ title: rep.name, text: rep.name + ' — Repertuvar', url: link }); return; }
-    catch(e) { if (e && e.name === 'AbortError') return; }   // kullanıcı vazgeçti
-  }
-  openShareModal(rep.name, link);
+  openShareModal(rep.name);
 }
 
-function openShareModal(name, link){
+function openShareModal(name){
   let ov = document.getElementById('shareOverlay');
   if(!ov){ ov = document.createElement('div'); ov.id='shareOverlay'; document.body.appendChild(ov);
            ov.addEventListener('click', e=>{ if(e.target===ov) closeShare(); }); }
   ov.innerHTML = `
     <div class="share-box">
-      <div class="share-head"><span>🔗 Repertuvarı Paylaş</span><button class="sort-x" onclick="closeShare()">✕</button></div>
+      <div class="share-head"><span>🔗 Misafir Bağlantısı</span><button class="sort-x" onclick="closeShare()">✕</button></div>
       <div class="share-name">${name}</div>
+      <div class="share-note">Bağlantıyı açan kişi repertuvarı <b>salt okunur</b> görür — giriş yapmasına gerek yok. Süre dolunca bağlantı ölür. Akorlar paylaşılmaz.</div>
+      <div class="share-foot" style="justify-content:flex-start;gap:8px;">
+        <button class="bi" onclick="createShareLink(12)">12 saat</button>
+        <button class="baw" onclick="createShareLink(24)">24 saat</button>
+      </div>
+      <div id="shareResult"></div>
+    </div>`;
+  ov.style.display='flex';
+}
+
+async function createShareLink(hours){
+  const repId = shareRepId;
+  if(!repId) return;
+  const box = document.getElementById('shareResult');
+  if(box) box.innerHTML = '<div class="share-note">Bağlantı oluşturuluyor…</div>';
+  try{
+    // Tek aktif bağlantı: bu repertuvarın eski bağlantılarını iptal et
+    await fetch(SUPA_URL+'/rest/v1/repertoire_links?repertoire_id=eq.'+repId+'&revoked=is.false', {
+      method:'PATCH', headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({revoked:true})
+    });
+    const token = randomToken();
+    const expires = new Date(Date.now() + hours*3600*1000).toISOString();
+    const r = await fetch(SUPA_URL+'/rest/v1/repertoire_links', {
+      method:'POST', headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({repertoire_id:repId, token:token, created_by:getUserId(), expires_at:expires})
+    });
+    if(!r.ok) throw new Error(await r.text());
+    const link = shareBaseUrl() + 'paylas.html?t=' + token;
+    if(box) box.innerHTML = `
       <div class="share-link" id="shareLink" data-url="${link}">${link}</div>
-      <div class="share-note">Bu bağlantıyı açan kişi repertuvarı sahne modunda görüntüleyebilir.</div>
+      <div class="share-note">${hours} saat geçerli — ${new Date(expires).toLocaleString('tr-TR')}</div>
       <div class="share-foot">
         <button class="bi" onclick="closeShare()">Kapat</button>
         <button class="baw" id="copyBtn" onclick="copyShareLink()">Kopyala</button>
-      </div>
-    </div>`;
-  ov.style.display='flex';
+      </div>`;
+    if(navigator.share){
+      const rp = getRep(repId);
+      try{ await navigator.share({title:(rp&&rp.name)||'Repertuvar', url:link}); }catch(e){}
+    }
+  }catch(e){
+    if(box) box.innerHTML = '<div class="share-note" style="color:var(--red);">Bağlantı oluşturulamadı: '+e.message+'</div>';
+  }
 }
 
 function closeShare() {
