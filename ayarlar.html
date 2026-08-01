@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- build: 2026-08-01 — "Oturumu Kapat" satiri Hesap bolumunden KALDIRILDI; cikis artik
+     yalnizca avatar/hesap menusunde (sidebar'da tema dugmesinin ustu, mobilde ust cubuk).
+     logout() fonksiyonu dosyada duruyor. Ilgili: topnav.js v2026-08-01-sidebar-account. -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -372,13 +375,10 @@ body{padding-top:var(--topnav-h, 66px);}
         </div>
         <button class="setting-btn" onclick="openEmailModal()">Değiştir</button>
       </div>
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Oturumu Kapat</div>
-          <div class="setting-desc">Bu cihazdan çıkış yap</div>
-        </div>
-        <button class="setting-btn danger" onclick="logout()">Çıkış Yap</button>
-      </div>
+      <!-- Oturumu Kapat satırı 2026-08-01'de KALDIRILDI — çıkış artık sidebar'daki
+           avatar/hesap menüsünde (masaüstü) ve mobil üst çubuktaki avatar menüsünde.
+           Tek yerde durması "çıkış nerede?" karışıklığını bitiriyor. logout() fonksiyonu
+           dosyada duruyor, silinmedi. -->
       <div class="setting-row">
         <div>
           <div class="setting-label" style="color:var(--red);">Hesabımı Sil</div>

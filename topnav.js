@@ -652,7 +652,8 @@
       { divider: true },
       { href: 'mesajlar.html',    icon: 'ti-message',     label: 'Mesajlar' },
       { href: 'uyeler.html',      icon: 'ti-users',       label: 'Üyeler', adminOnly: true },
-      { href: 'ayarlar.html',     icon: 'ti-settings',    label: 'Ayarlar' },
+      // Ayarlar buradan KALDIRILDI (2026-08-01): artık alttaki avatar/hesap menüsünde.
+      // Aynı bağlantının hem listede hem menüde durması gereksiz tekrardı.
     ];
 
     const navHtml = navItems.map(item => {
