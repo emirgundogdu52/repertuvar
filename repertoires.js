@@ -1,5 +1,17 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-08-01 (d): GRUP YÖNETİCİSİ ARTIK GRUP REPERTUVARINI DÜZENLEYEBİLİYOR (arayüz,
+//             sunucudaki repertoires_group_write + items_group_manage'in karşılığı).
+//             Sorun: tüm düğmeler rep.isOwner'a bakıyordu, bu yüzden grup kurucusu/
+//             admini başkasının oluşturduğu grup repertuvarında yalnızca "Kopyala"
+//             görüyordu. Yeni: MY_GROUP_ROLE (group_members'tan çekilir, localStorage'a
+//             yazılır — çevrimdışı ilk çizimde düğmeler kaybolmasın), isGroupManager(),
+//             ve her repertuvarda canManage = isOwner || (grup yöneticisiyim &&
+//             r.group_id === grubum). canManage'e bağlananlar: 🎼 Sırala, ⋯ Diğer menüsü
+//             (Düzenle/Paylaş/Yazdır/Kopyala), satır işlem düğmeleri (↑↓/🔗/düzenle/sil),
+//             sürükle-bırak + tutamaç, "+ Eser Ekle". SİLME ve görünürlük çipi (Public/
+//             Private) yalnızca SAHİPTE kaldı — RLS'te de DELETE owner_id'ye bağlı.
+//             Sahibi olmayan yönetici Kopyala'yı menü içinden görür.
 // 2026-08-01 (c): GÖRÜNÜRLÜK ÜÇE ÇIKTI — Kişisel / Grup / Genel (repertoires.html v14).
 //             Sorun: "Private" yalnızca is_public=false yapıyordu, group_id yine
 //             otomatik doluyordu ⇒ gruba üye olan herkesin HER repertuvarı grup
@@ -313,11 +325,29 @@ function toast(m,t='ok'){const e=document.createElement('div');e.className='toas
 
 let SOLISTLER = []; // sanatçı listesi
 
+// ── Grup rolü: grup owner/admin'i, sahibi olmasa da grup repertuvarını yönetebilir ──
+// (sunucuda karşılığı: repertoires_group_write + items_group_manage politikaları)
+// localStorage'da tutuluyor ki çevrimdışı/ilk çizimde düğmeler kaybolmasın.
+let MY_GROUP_ROLE = localStorage.getItem('myGroupRole') || null;
+function isGroupManager(){ return MY_GROUP_ROLE==='owner' || MY_GROUP_ROLE==='admin'; }
+async function loadMyGroupRole(){
+  const uid=getUserId(), gid=getGroupId();
+  if(!uid||!gid){ MY_GROUP_ROLE=null; localStorage.removeItem('myGroupRole'); return; }
+  try{
+    const rows=await dbGet('group_members','select=role&user_id=eq.'+uid+'&group_id=eq.'+gid, AbortSignal.timeout(3500));
+    const role=(rows&&rows[0]&&rows[0].role)||null;
+    if(role){ MY_GROUP_ROLE=role; localStorage.setItem('myGroupRole',role); }
+  }catch(e){ /* rolü tazeleyemedik — localStorage'daki son değerle devam */ }
+}
+
 function applyRepsData(r, i, s) {
   SOLISTLER = (s||[]).map(x=>x.name).filter(Boolean);
   const uid = getUserId() || '';
+  const myGid = getGroupId() || '';
   // linkedPrev: ilk satırda her zaman false — zincir listenin başında başlayamaz.
-  reps = (r||[]).map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map((t,ix)=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||'',linkedPrev: ix>0 && !!t.linked_prev}))}));
+  // canManage: sahibiyim VEYA bu benim grubumun repertuvarı ve ben grup owner/admin'iyim.
+  // Silme buna DAHİL DEĞİL — silme sahibinde kalır (RLS'te de öyle).
+  reps = (r||[]).map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, canManage: (x.owner_id===uid || x.user_id===uid) || (isGroupManager() && !!x.group_id && x.group_id===myGid), items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map((t,ix)=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||'',linkedPrev: ix>0 && !!t.linked_prev}))}));
 }
 
 function selectUrlRepIfPresent() {
@@ -328,6 +358,7 @@ function selectUrlRepIfPresent() {
 async function load(){
   dbg('load() başladı');
   let localHadData = false;
+  loadMyGroupRole(); // fire-and-forget: rol gelince bir sonraki çizimde düğmeler doğrulanır
 
   // ── 1) ÖNCELİKLE LOCAL'DEN ANINDA GÖSTER (sinyal zayıf/yokken bile beklemeden) ──
   if (window.db) {
@@ -533,6 +564,7 @@ function renderDetail(){
   for(let i=1;i<items.length;i++){ if(items[i].linkedPrev && !items[i-1].linkedPrev) _medleyN++; }
   const _no = []; let _n = 0;
   items.forEach((it,ix)=>{ if(!(ix>0 && it.linkedPrev)) _n++; _no[ix] = (ix>0 && it.linkedPrev) ? null : _n; });
+  const _canM = !!rep.canManage;
   const rows=items.length?items.map((it,idx)=>{
     const w=WL[it.workId]||{};
     const cn=it.closingNote||w.closingNote||'';
@@ -543,11 +575,11 @@ function renderDetail(){
     const inChain  = linked || hasNext;
     const chainCls = inChain ? (linked && hasNext ? ' medley-mid' : (linked ? ' medley-end' : ' medley-head')) : '';
     const rowClasses=[idx%2===1?'zebra-tr':'',isActive?'item-active':'',inChain?'medley-row':'',chainCls.trim()].filter(Boolean).join(' ');
-    return `<tr draggable="true" data-idx="${idx}" data-rep="${rep.id}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" style="touch-action:pan-y;"${rowClasses?' class="'+rowClasses+'"':''}>
+    return `<tr ${_canM?`draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)"`:''} data-idx="${idx}" data-rep="${rep.id}" style="touch-action:pan-y;"${rowClasses?' class="'+rowClasses+'"':''}>
       <td class="sq" style="text-align:center;user-select:none;padding:0 2px;vertical-align:middle;width:48px;">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
           <span style="color:${isActive?'var(--accent)':(linked?'var(--accent2)':'var(--text3)')};font-size:11px;font-weight:${isActive?'700':'600'};min-width:16px;" title="${linked?'Potpuri — bir öncekiyle kesintisiz':''}">${isActive?'▶ ':''}${linked?'↳':_no[idx]}</span>
-          <span class="drag-handle" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)">⠿</span>
+          ${_canM?`<span class="drag-handle" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)">⠿</span>`:''}
         </div>
       </td>
       <td style="padding-left:16px;">
@@ -557,13 +589,13 @@ function renderDetail(){
       </td>
       <td class="col-kapanis">${cn?'<span class="cn">'+cn+'</span>':''}</td>
       <td class="col-not" style="color:var(--text3);font-size:12px;">${it.note||''}</td>
-      <td><div class="ra">
+      <td>${_canM?`<div class="ra">
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
         <button class="br bl${linked?' linked':''}" onclick="toggleLink('${rep.id}','${it.id}')" ${idx===0?'disabled':''} title="${linked?'Potpuri bağını çöz':'Bir öncekiyle potpuri yap (kesintisiz devam)'}">🔗</button>
         <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
         <button class="br dl" onclick="rmItem('${rep.id}','${it.id}','${(w.name||'Bu eser').replace(/'/g,"\\'")}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
-      </div></td>
+      </div>`:''}</td>
     </tr>`;
   }).join(''):`<tr><td colspan="5" class="ei">Henüz eser eklenmedi.</td></tr>`;
 
@@ -573,15 +605,16 @@ function renderDetail(){
       <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:8px;">${rep.name}</div>
       <div class="cta-row">
         <a href="stage.html" class="bstage-primary" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:15px;" aria-hidden="true"></i> Sahneye Çık</a>
-        ${rep.isOwner && (rep.items||[]).length>2 ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openSortSheet('${rep.id}')" title="Makam geçişlerine göre sıralama önerisi">🎼 Sırala</button>` : ''}
-        ${rep.isOwner ? `
+        ${rep.canManage && (rep.items||[]).length>2 ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openSortSheet('${rep.id}')" title="Makam geçişlerine göre sıralama önerisi">🎼 Sırala</button>` : ''}
+        ${rep.canManage ? `
         <details class="ov-menu">
           <summary class="bi" style="font-size:12px;padding:9px 12px;">⋯ Diğer</summary>
           <div class="ov-menu-body">
             <button onclick="openEdit('${rep.id}')"><i class="ti ti-edit" aria-hidden="true"></i> Düzenle</button>
             <button onclick="shareRep('${rep.id}')"><i class="ti ti-share" aria-hidden="true"></i> Paylaş</button>
             <button onclick="printR('${rep.id}')"><i class="ti ti-printer" aria-hidden="true"></i> Yazdır</button>
-            <button class="ov-danger" onclick="delRep('${rep.id}')"><i class="ti ti-trash" aria-hidden="true"></i> Sil</button>
+            <button onclick="copyRep('${rep.id}')"><i class="ti ti-copy" aria-hidden="true"></i> Kopyala</button>
+            ${rep.isOwner ? `<button class="ov-danger" onclick="delRep('${rep.id}')"><i class="ti ti-trash" aria-hidden="true"></i> Sil</button>` : ''}
           </div>
         </details>
         ` : `
@@ -598,7 +631,7 @@ function renderDetail(){
       </div>
     </div>
     <div class="is">
-      <div class="ih"><h3>${items.length} Eser</h3><button class="baw" onclick="openWM('${rep.id}')">+ Eser Ekle</button></div>
+      <div class="ih"><h3>${items.length} Eser</h3>${rep.canManage?`<button class="baw" onclick="openWM('${rep.id}')">+ Eser Ekle</button>`:''}</div>
       <table><thead><tr><th class="sq" style="text-align:center;">Sıra</th><th>Eser Adı</th><th class="col-kapanis">Kapanış</th><th class="col-not">Not</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
 }
