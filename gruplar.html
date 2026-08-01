@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <!--
   GRUPLAR.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur)
+  - 2026-08-01 (b): Kullanıcı arama search_users(q) RPC'sine taşındı. profiles'taki
+    SELECT true politikaları kaldırıldığı için doğrudan sorgu artık çalışmaz; ayrıca
+    eski hali tüm kullanıcıların e-postasını çekilebilir yapıyordu. Asgari karakter
+    2 → 3 (numaralandırmayı zorlaştırmak için).
   - 2026-08-01: Üye satırına 🎤 düğmesi eklendi — üyeyi Solistler listesine ekler
     (addMemberAsSolist). Yalnızca admin/kurucuda görünür, kalem düğmesinin yanında.
     Üye bağı YENİ `member_id` kolonunda; `user_id` bu tabloda "EKLEYEN" demek
@@ -544,9 +548,35 @@ async function addMemberAsSolist(userId) {
   const gid = (currentGroup && currentGroup.id) || null;
   if (!gid) { toast('Grup bulunamadı', 'err'); return; }
   try {
+    // 1) Bu üye zaten bağlı mı?
     const chk = await fetch(SUPA_URL + '/rest/v1/solistler?group_id=eq.' + gid + '&member_id=eq.' + userId + '&select=id,name', { headers: authHeaders() });
     const rows = chk.ok ? await chk.json() : [];
     if (Array.isArray(rows) && rows.length) { toast((rows[0].name || name) + ' zaten solist listesinde'); return; }
+
+    // 2) SAHİPLENME: aynı grupta member_id'si BOŞ, ama e-postası ya da adı tutan bir
+    //    solist varsa YENİ KAYIT AÇMA — mevcut satırı üyeye bağla. Bu olmadan elle
+    //    girilmiş kayıtların yanına ikinci bir "Emir Gundogdu" ekleniyordu.
+    const orParts = [];
+    if (m.email) orParts.push('email.eq.' + encodeURIComponent(m.email));
+    orParts.push('name.eq.' + encodeURIComponent(name));
+    const oq = await fetch(SUPA_URL + '/rest/v1/solistler?group_id=eq.' + gid + '&member_id=is.null&or=(' + orParts.join(',') + ')&select=id,name,email,phone', { headers: authHeaders() });
+    const orphans = oq.ok ? await oq.json() : [];
+    if (Array.isArray(orphans) && orphans.length) {
+      const t = orphans[0];
+      const patch = { member_id: userId };
+      if (!t.email && m.email) patch.email = m.email;
+      if (!t.phone && m.phone) patch.phone = m.phone;
+      const up = await fetch(SUPA_URL + '/rest/v1/solistler?id=eq.' + t.id, {
+        method: 'PATCH',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify(patch)
+      });
+      if (!up.ok) throw new Error(await up.text());
+      toast('🔗 ' + (t.name || name) + ' mevcut solist kaydına bağlandı');
+      return;
+    }
+
+    // 3) Gerçekten yeni
     const r = await fetch(SUPA_URL + '/rest/v1/solistler', {
       method: 'POST',
       headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
@@ -659,16 +689,22 @@ function onUserSearchInput(val) {
 
 async function searchUsers() {
   const q = document.getElementById('userSearchInput').value.trim();
-  if (q.length < 2) { toast('En az 2 karakter girin', 'err'); return; }
+  if (q.length < 3) { toast('En az 3 karakter girin', 'err'); return; }
   const resultsEl = document.getElementById('userSearchResults');
   resultsEl.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Aranıyor...</div>';
 
   try {
-    // email veya display_name ile ara
-    const r = await fetch(
-      SUPA_URL + '/rest/v1/profiles?or=(email.ilike.*' + encodeURIComponent(q) + '*,display_name.ilike.*' + encodeURIComponent(q) + '*)&select=id,email,display_name,instrument&limit=10',
-      { headers: authHeaders() }
-    );
+    // 2026-08-01: Arama artik profiles tablosuna DOGRUDAN gitmiyor.
+    // Eskiden profiles'ta SELECT true politikasi vardi ve bu sorgu tum kullanicilarin
+    // e-postasini cekebiliyordu. Artik SELECT kendisi + app admin + AYNI GRUPTAKI
+    // uyelerle sinirli; gruba HENUZ UYE OLMAYAN birini bulmak icin search_users(q)
+    // SECURITY DEFINER fonksiyonu kullaniliyor (yalnizca grup yoneticileri cagirabilir,
+    // en az 3 karakter ister, en fazla 10 satir doner).
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/search_users', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q: q })
+    });
     if (!r.ok) throw new Error(await r.text());
     const users = await r.json();
 
