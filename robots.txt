@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /paylas.html
+Disallow: /login.html
+Disallow: /ayarlar.html
+Disallow: /mesajlar.html
+Disallow: /uyeler.html
