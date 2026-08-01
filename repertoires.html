@@ -1,4 +1,11 @@
 <!DOCTYPE html>
+<!-- build: v14 - 2026-08-01 gorunurluk secimi ikiden UCE cikti: Kisisel (group_id bos) /
+     Grup (group_id=grubum) / Genel (public). Eski "Private" yanilticiydi: is_public=false
+     yapiyordu ama group_id yine doluyordu, yani "ozel" repertuvar tum gruba gorunuyordu.
+     Radyolar: fVisPrivate / fVisGroup (YENI) / fVisPublic, ortak .vis-opt sinifi, alt alta
+     dizildi (telefonda uc secenek yan yana sigmiyordu). Grubu olmayan kullanicida
+     #visGroupLabel gizleniyor (repertoires.js applyVisOptions). JS tarafi: repertoires.js
+     2026-08-01 (c). -->
 <!-- build: v13 - 2026-07-22 mobil detay kaydirma: #dc alt boslugu (onceki v12 .dc yaziyordu, o secici hicbir seyle eslesmiyordu). JS v9 orijinali. -->
 <html lang="tr">
 <head>
@@ -302,14 +309,16 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
   .share-close { float:right;background:none;border:none;color:var(--text2);
     font-size:20px;cursor:pointer;line-height:1; }
 
-  /* Görünürlük seçici */
-  #visPublicLabel:has(input:checked),
-  #visPrivateLabel:has(input:checked) {
+  /* Görünürlük seçici — Kişisel / Grup / Genel */
+  .vis-opt { display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;
+    border-radius:8px;border:1px solid var(--border);background:var(--surface2);
+    transition:all .15s; }
+  .vis-opt span { font-size:13px;color:var(--text2); }
+  .vis-opt:has(input:checked) {
     border-color: var(--accent);
     background: rgba(124,111,255,0.1);
   }
-  #visPublicLabel:has(input:checked) span,
-  #visPrivateLabel:has(input:checked) span {
+  .vis-opt:has(input:checked) span {
     color: var(--text);
   }
 
@@ -376,14 +385,18 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
     <div class="fr"><label class="fl">Notlar</label><textarea class="fi" id="fNo" rows="3"></textarea></div>
     <div class="fr">
       <label class="fl">Görünürlük</label>
-      <div style="display:flex;gap:10px;margin-top:2px;">
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);flex:1;transition:all .15s;" id="visPublicLabel">
-          <input type="radio" name="fVisibility" id="fVisPublic" value="public" checked style="accent-color:var(--accent);width:15px;height:15px;">
-          <span style="font-size:13px;color:var(--text2);">🌐 <strong>Public</strong> — Herkes görebilir</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);flex:1;transition:all .15s;" id="visPrivateLabel">
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:2px;">
+        <label class="vis-opt" id="visPrivateLabel">
           <input type="radio" name="fVisibility" id="fVisPrivate" value="private" style="accent-color:var(--accent);width:15px;height:15px;">
-          <span style="font-size:13px;color:var(--text2);">🔒 <strong>Private</strong> — Sadece sen</span>
+          <span>🔒 <strong>Kişisel</strong> — Sadece sen</span>
+        </label>
+        <label class="vis-opt" id="visGroupLabel">
+          <input type="radio" name="fVisibility" id="fVisGroup" value="group" style="accent-color:var(--accent);width:15px;height:15px;">
+          <span>👥 <strong>Grup</strong> — Grubunun üyeleri</span>
+        </label>
+        <label class="vis-opt" id="visPublicLabel">
+          <input type="radio" name="fVisibility" id="fVisPublic" value="public" checked style="accent-color:var(--accent);width:15px;height:15px;">
+          <span>🌐 <strong>Genel</strong> — Herkes görebilir</span>
         </label>
       </div>
     </div>

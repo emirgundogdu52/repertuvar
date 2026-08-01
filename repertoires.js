@@ -1,5 +1,17 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-08-01 (c): GÖRÜNÜRLÜK ÜÇE ÇIKTI — Kişisel / Grup / Genel (repertoires.html v14).
+//             Sorun: "Private" yalnızca is_public=false yapıyordu, group_id yine
+//             otomatik doluyordu ⇒ gruba üye olan herkesin HER repertuvarı grup
+//             repertuvarı oluyordu, "Repertuvarlarım" hiç dolmuyordu ve kişisel
+//             taslak tüm gruba (yeni RLS ile grup admininin DÜZENLEMESİNE) açıktı.
+//             Yeni: getVisChoice/setVisChoice/applyVisOptions yardımcıları;
+//             Kişisel→group_id null, Grup→group_id=grubum, Genel→is_public true.
+//             group_id artık DÜZENLEMEDE de gönderiliyor (eskiden editId?undefined:…),
+//             böylece repertuvar sonradan kişisel↔grup taşınabiliyor.
+//             openNew varsayılanı: grubu olan Grup, olmayan Kişisel (eskiden Genel'di).
+//             Kopyalama artık KİŞİSEL kopya üretiyor (group_id:null) — kopya çalışma
+//             nüshası, sahibinin kendi alanında başlasın.
 // 2026-08-01 (b): BÖLÜMLEME ÖNCELİĞİ "sahip > grup" iken "GRUP > SAHİP" oldu.
 //             Eskiden kendi oluşturduğum grup repertuvarım "Repertuvarlarım"da
 //             kalıyordu; kurucu/admin ile üye aynı gruba baksa bile grup listeleri
@@ -611,7 +623,7 @@ async function copyRep(repId){
     const r=await fetch(SUPA_URL+'/rest/v1/repertoires',{
       method:'POST',
       headers:{...H,'Prefer':'return=representation'},
-      body:JSON.stringify({name:rep.name+' (kopya)',status:'concept',user_id:uid,owner_id:uid,is_public:false,group_id:(getGroupId&&getGroupId())||null})
+      body:JSON.stringify({name:rep.name+' (kopya)',status:'concept',user_id:uid,owner_id:uid,is_public:false,group_id:null})
     });
     if(!r.ok)throw new Error(await r.text());
     const [newRep]=await r.json();
@@ -630,15 +642,28 @@ async function copyRep(repId){
   }catch(e){sync('err','Hata');toast(e.message,'er');}
 }
 
-function openNew(){editId=null;document.getElementById('rmt').textContent='Yeni Repertuvar';['fN','fD','fV','fNo'].forEach(x=>document.getElementById(x).value='');document.getElementById('fS').value='concept';document.getElementById('fVisPublic').checked=true;document.getElementById('rm').style.display='flex';setTimeout(()=>document.getElementById('fN').focus(),50);}
-function openEdit(id){const r=getRep(id);if(!r)return;editId=id;document.getElementById('rmt').textContent='Düzenle';document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';if(r.is_public){document.getElementById('fVisPublic').checked=true;}else{document.getElementById('fVisPrivate').checked=true;}document.getElementById('rm').style.display='flex';}
+// ── Görünürlük seçimi: Kişisel / Grup / Genel ──────────────────────────────
+// Kişisel = group_id boş, is_public false  → yalnızca sahibi görür
+// Grup    = group_id benim grubum          → grup üyeleri görür
+// Genel   = is_public true (+ grubum)      → herkes görür, üyeler GRUBUN altında
+function applyVisOptions(){ const gl=document.getElementById('visGroupLabel'); if(gl) gl.style.display = getGroupId() ? 'flex' : 'none'; }
+function setVisChoice(v){ if(v==='group' && !getGroupId()) v='private'; const el=document.getElementById(v==='public'?'fVisPublic':(v==='group'?'fVisGroup':'fVisPrivate')); if(el) el.checked=true; }
+function getVisChoice(){ const el=document.querySelector('input[name="fVisibility"]:checked'); return el?el.value:'private'; }
+
+function openNew(){editId=null;document.getElementById('rmt').textContent='Yeni Repertuvar';['fN','fD','fV','fNo'].forEach(x=>document.getElementById(x).value='');document.getElementById('fS').value='concept';applyVisOptions();setVisChoice(getGroupId()?'group':'private');document.getElementById('rm').style.display='flex';setTimeout(()=>document.getElementById('fN').focus(),50);}
+function openEdit(id){const r=getRep(id);if(!r)return;editId=id;document.getElementById('rmt').textContent='Düzenle';document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';applyVisOptions();setVisChoice(r.is_public?'public':(r.group_id?'group':'private'));document.getElementById('rm').style.display='flex';}
 function closeRM(){document.getElementById('rm').style.display='none';}
 
 async function saveRep(){
   const name=document.getElementById('fN').value.trim();
   if(!name){document.getElementById('fN').focus();return;}
-  const isPublic=document.getElementById('fVisPublic').checked;
-  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,is_public:isPublic,user_id:getUserId()||undefined,owner_id:editId?undefined:(getUserId()||undefined),group_id:editId?undefined:(getGroupId()||undefined)};
+  const vis=getVisChoice();
+  const myGid=getGroupId()||null;
+  const isPublic=(vis==='public');
+  // Kişiselde group_id BOŞ yazılır — düzenlemede de gönderiliyor ki bir repertuvar
+  // sonradan gruba taşınabilsin ya da gruptan geri çekilebilsin.
+  const groupId=(vis==='private')?null:myGid;
+  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,is_public:isPublic,group_id:groupId,user_id:getUserId()||undefined,owner_id:editId?undefined:(getUserId()||undefined)};
   sync('spin','Kaydediliyor...');
   try{
     if(editId){await dbPatch('repertoires',editId,data);}
