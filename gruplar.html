@@ -464,16 +464,25 @@ async function saveGroupEdit() {
 async function deleteGroup() {
   if (!confirm('Koroyu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) return;
   try {
-    await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + currentGroup.id, {
+    // (2026-08-01) Üç istek de yanıtsız gidiyordu: ilk ikisi RLS'te düşse bile
+    // profiller boşalıyor, ekranda "Koro silindi" yazıyordu. Artık her adım
+    // kontrol ediliyor ve önceki adım başarısızsa sonraki HİÇ çalışmıyor.
+    // NOT: profiles PATCH'inde satır sayısı KONTROL EDİLMİYOR — profiles.group_id
+    // üzerinde ON DELETE SET NULL varsa grup silinince alan zaten boşalmış olur,
+    // 0 satır dönmesi hata değildir.
+    const dm = await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + currentGroup.id, {
       method: 'DELETE', headers: authHeaders()
     });
-    await fetch(SUPA_URL + '/rest/v1/groups?id=eq.' + currentGroup.id, {
+    if (!dm.ok) throw new Error('Üyelikler silinemedi: ' + (await dm.text()));
+    const dg = await fetch(SUPA_URL + '/rest/v1/groups?id=eq.' + currentGroup.id, {
       method: 'DELETE', headers: authHeaders()
     });
-    await fetch(SUPA_URL + '/rest/v1/profiles?group_id=eq.' + currentGroup.id, {
-      method: 'PATCH', headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
+    if (!dg.ok) throw new Error('Koro silinemedi: ' + (await dg.text()));
+    const pp = await fetch(SUPA_URL + '/rest/v1/profiles?group_id=eq.' + currentGroup.id, {
+      method: 'PATCH', headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
       body: JSON.stringify({ group_id: null })
     });
+    if (!pp.ok) throw new Error('Koro silindi ama profiller güncellenemedi: ' + (await pp.text()));
     localStorage.removeItem('user_group_id');
     toast('Koro silindi');
     await loadPage();
@@ -533,21 +542,55 @@ async function saveInstrument(userId) {
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
 
+// Üyeyi gruptan çıkar.
+// (2026-08-01) ESKİ HÂLİ İKİ HEDEFİ İKİ FARKLI KAYNAKTAN ÇÖZÜYORDU:
+//   DELETE group_members?group_id=eq.<getGroupId()>&user_id=eq.<userId>   ← localStorage
+//   PATCH  profiles?id=eq.<userId> {group_id:null}                        ← gid'den bağımsız
+// getGroupId() boş/bayatsa DELETE hiçbir şeyi silmiyor, PATCH profili yine
+// boşaltıyordu: group_members'ta 'active' üye + profiles.group_id=NULL. Uygulama
+// "benim grubum"u YALNIZCA profiles.group_id'den okuduğu için (auth.js loadUserRole
+// → localStorage.user_group_id) kullanıcı sessizce grubunu kaybediyordu. İki fetch'in
+// de yanıtı kontrol edilmediğinden ekranda yine "Üye çıkarıldı" yazıyordu.
+// YENİ SÖZLEŞME: group_id üyelik SATIRININ kendisinden gelir; önce group_members
+// silinir ve gerçekten silindiği doğrulanır; profil ancak ondan sonra boşaltılır.
+// Sıra önemli — tersi tam da yukarıdaki ayrışmayı üretiyor.
 async function removeMember(userId) {
   if (!confirm('Bu üyeyi gruptan çıkarmak istediğinize emin misiniz?')) return;
-  const gid = getGroupId();
   try {
-    // group_members'dan sil
-    await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + gid + '&user_id=eq.' + userId, {
-      method: 'DELETE',
+    // 1) Üyelik satırını BUL — group_id'yi localStorage'dan değil satırdan al.
+    const q = await fetch(SUPA_URL + '/rest/v1/group_members?user_id=eq.' + userId + '&select=id,group_id', {
       headers: authHeaders()
     });
-    // profiles.group_id'yi null yap
-    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
+    if (!q.ok) throw new Error('Üyelik okunamadı: ' + (await q.text()));
+    const rows = await q.json();
+    const row = (currentGroup && rows.find(m => m.group_id === currentGroup.id))
+             || (rows.length === 1 ? rows[0] : null);
+    if (!row) {
+      toast(rows.length ? 'Birden fazla üyelik var — hangisi belirsiz' : 'Üyelik kaydı bulunamadı', 'err');
+      return;
+    }
+
+    // 2) ÖNCE group_members — return=representation ile KAÇ satır silindiğini gör.
+    //    0 satır = RLS engelledi ya da satır yok; profile HİÇ dokunmadan dur.
+    const d = await fetch(SUPA_URL + '/rest/v1/group_members?id=eq.' + row.id, {
+      method: 'DELETE',
+      headers: { ...authHeaders(), 'Prefer': 'return=representation' }
+    });
+    if (!d.ok) throw new Error('Üyelik silinemedi: ' + (await d.text()));
+    const deleted = await d.json();
+    if (!deleted.length) throw new Error('Üyelik satırı silinemedi (0 satır) — profil bilerek değiştirilmedi.');
+
+    // 3) ANCAK ŞİMDİ profiles.group_id boşaltılır.
+    const p = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
       method: 'PATCH',
-      headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({ group_id: null })
     });
+    if (!p.ok) throw new Error('Üyelik silindi ama profil güncellenemedi: ' + (await p.text()));
+    if (!(await p.json()).length)
+      throw new Error('Üyelik silindi ama profil güncellenemedi (0 satır) — kullanıcı hâlâ grup görüyor olabilir, tekrar deneyin.');
+
+    // 4) Başarı mesajı yalnızca İKİSİ DE geçtiyse.
     // Eğer çıkarılan kullanıcı kendisiyse localStorage'ı temizle
     const me = typeof getUser === 'function' && getUser();
     if (me && me.id === userId) localStorage.removeItem('user_group_id');
@@ -608,7 +651,11 @@ async function searchUsers() {
 }
 
 async function addUserToGroup(userId, displayName) {
-  const gid = getGroupId();
+  // (2026-08-01) gid ÖNCE doğrulanır: getGroupId() null dönerse eskiden
+  // group_id:null ile sahipsiz bir üyelik satırı açılıyordu. Kaynak olarak
+  // sunucudan gelen currentGroup.id tercih edilir, localStorage yedektir.
+  const gid = (currentGroup && currentGroup.id) || getGroupId();
+  if (!gid) { toast('Grup bilgisi okunamadı — sayfayı yenileyip tekrar deneyin', 'err'); return; }
   try {
     // group_members'a ekle
     const r = await fetch(SUPA_URL + '/rest/v1/group_members', {
@@ -618,12 +665,17 @@ async function addUserToGroup(userId, displayName) {
     });
     if (!r.ok) throw new Error(await r.text());
 
-    // profiles.group_id güncelle
-    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
+    // profiles.group_id güncelle — (2026-08-01) eskiden yanıtı hiç okunmuyordu:
+    // sessizce yazılmazsa üyelik satırı açılıp profil boş kalıyor, ekranda yine
+    // "gruba eklendi ✓" yazıyordu. Bugünkü ayrışmanın ekleme yönündeki yarısı.
+    const pr = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
       method: 'PATCH',
-      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
+      headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({ group_id: gid })
     });
+    if (!pr.ok) throw new Error('Üyelik açıldı ama profil güncellenemedi: ' + (await pr.text()));
+    if (!(await pr.json()).length)
+      throw new Error('Üyelik açıldı ama profil güncellenemedi (0 satır) — kullanıcı grubu göremez, tekrar deneyin.');
 
     toast((displayName || 'Kullanıcı') + ' gruba eklendi ✓');
     document.getElementById('userSearchInput').value = '';
