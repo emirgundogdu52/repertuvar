@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <!--
   GRUPLAR.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur)
+  - 2026-08-01: Üye satırına 🎤 düğmesi eklendi — üyeyi Solistler listesine ekler
+    (addMemberAsSolist). Yalnızca admin/kurucuda görünür, kalem düğmesinin yanında.
+    Üye bağı YENİ `member_id` kolonunda; `user_id` bu tabloda "EKLEYEN" demek
+    (artiesten.html grubu olmayan kullanıcıda listeyi user_id ile süzüyor), o yüzden
+    anlamı değiştirilmedi. Mükerrer kontrolü group_id + member_id ile — ad benzersiz
+    değil (iki "Ahmet" olabilir). member_id NULL = elle eklenen misafir solist.
+    name NOT NULL olduğu için ad da yazılıyor: display_name → e-postanın @ öncesi.
+    Gerekli SQL: alter table solistler add column if not exists member_id uuid
+    references auth.users(id) on delete set null;
   - 2026-07-17: Mobil düzen katmanı eklendi (@media max-width:600px) — masaüstü
     değişmedi. Kenar boşlukları küçültüldü (.page-content/.section), yatay taşma
     kesildi, rol açılır menüsü (.role-dd-menu) sağ kenara yaslandı, iOS metin
@@ -384,6 +393,7 @@ function renderMembersList(members) {
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
         <span class="role-badge ${roleClass[m.role]||'role-member'}">${roleLabels[m.role]||'Üye'}</span>
         ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="editInstrument('${m.user_id}')"><i class="ti ti-pencil" style="font-size:11px;"></i></button>` : ''}
+        ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="addMemberAsSolist('${m.user_id}')" title="Solistler listesine ekle"><i class="ti ti-microphone" style="font-size:11px;"></i></button>` : ''}
         ${(isAdmin() || userRole==='owner') && m.user_id !== uid ? `
           <div class="role-dropdown" id="rd-${m.user_id}">
             <button class="btn btn-secondary role-dd-btn" style="padding:6px 12px;font-size:12px;display:flex;align-items:center;gap:5px;" onclick="toggleRoleDD('${m.user_id}', event)">
@@ -515,6 +525,43 @@ async function changeRole(userId, newRole) {
     });
     if (!r.ok) throw new Error(await r.text());
     toast('Rol güncellendi ✓');
+  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+}
+
+// Üyeyi Solistler listesine ekle (2026-08-01).
+// DİKKAT — `solistler.user_id` BU TABLODA "EKLEYEN KİŞİ" DEMEK, "bu solist hangi üye"
+// değil (artiesten.html:211 grubu olmayan kullanıcıda listeyi user_id=eq.<uid> ile
+// süzüyor, :317 insert'te user_id=getUserId() yazıyor). Anlamını değiştirmek grubu
+// olmayan kullanıcıların solist listesini boşaltırdı. Bu yüzden üye bağı için AYRI bir
+// kolon kullanılıyor: `member_id`. Mükerrer kontrolü de onun üzerinden — ad benzersiz
+// değil (aynı grupta iki "Ahmet" olabilir), user_id ise ekleyeni gösterdiği için hiç
+// uygun değil. member_id NULL kalabilir: elle eklenen misafir/dış solistler böyle.
+async function addMemberAsSolist(userId) {
+  const m = (currentMembers || []).find(x => x.user_id === userId);
+  if (!m) { toast('Üye bulunamadı', 'err'); return; }
+  const name = (m.display_name || (m.email ? m.email.split('@')[0] : '')).trim();
+  if (!name) { toast('Bu üyenin adı yok — önce profilinde ad tanımlanmalı', 'err'); return; }
+  const gid = (currentGroup && currentGroup.id) || null;
+  if (!gid) { toast('Grup bulunamadı', 'err'); return; }
+  try {
+    const chk = await fetch(SUPA_URL + '/rest/v1/solistler?group_id=eq.' + gid + '&member_id=eq.' + userId + '&select=id,name', { headers: authHeaders() });
+    const rows = chk.ok ? await chk.json() : [];
+    if (Array.isArray(rows) && rows.length) { toast((rows[0].name || name) + ' zaten solist listesinde'); return; }
+    const r = await fetch(SUPA_URL + '/rest/v1/solistler', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        name: name,
+        member_id: userId,          // bağlı üye
+        user_id: getUserId(),       // ekleyen (artiesten.html sözleşmesi)
+        email: m.email || null,
+        phone: m.phone || null,
+        works: [],
+        group_id: gid
+      })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast('🎤 ' + name + ' solistlere eklendi');
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
 
