@@ -1,4 +1,12 @@
-/* topnav.js — v2026-06-30-switch-unified — sbThemeToggle/rThemeToggle/dtThemeToggle hepsi tek .r-theme-toggle markup'ı kullanır */
+/* topnav.js — v2026-08-01-sidebar-account — masaüstü sidebar'da tema düğmesinin ÜSTÜNE
+   avatar + hesap menüsü eklendi (.sb-user-x / .sb-user-dropdown / .sb-dd-item, yeni
+   toggleSbDropdown + updateSbUserName). "Oturumu Kapat" artık Ayarlar sayfasının içinde
+   saklı değil, iki tıkla erişilebilir; menüde Ayarlar da var. Avatar mobil topnav'daki
+   ile aynı: yuvarlak altın-mavi degrade + ti-user simgesi. Menü yukarı doğru açılıyor
+   (sidebar'ın en altında). .sb-nav'daki flex:1 bloğu zaten dibe ittiği için ek
+   konumlandırma gerekmedi.
+   Önceki: v2026-06-30-switch-unified — sbThemeToggle/rThemeToggle/dtThemeToggle hepsi
+   tek .r-theme-toggle markup'ı kullanır */
 /* 2026-07-17: SYNC BAR eklendi (dosya sonu) — Supabase /rest/v1 & /auth/v1 fetch'lerinde ekranın en üstünde ince altın ilerleme çubuğu. */
 (function() {
   // CSS inject
@@ -345,6 +353,44 @@
 
     /* Desktop topbar'daki switch'e küçük sağ boşluk */
     .v2-desktop-topbar .r-theme-toggle { margin-right: 4px; }
+
+    /* ── Sidebar kullanıcı bloğu (avatar + Ayarlar/Çıkış) — tema düğmesinin ÜSTÜNDE ── */
+    .sb-user-x {
+      display: flex; align-items: center; gap: 9px;
+      margin: 4px 12px 6px; padding: 7px 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border, rgba(140,120,255,0.28));
+      border-radius: 10px; cursor: pointer; position: relative;
+      transition: background .15s;
+    }
+    .sb-user-x:hover { background: rgba(124,111,255,0.12); }
+    .sb-user-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #FFC83D, #4DA3FF);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; flex-shrink: 0;
+    }
+    .sb-user-name {
+      font-size: 12.5px; font-weight: 600; color: var(--text2, #9d9bc4);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
+    }
+    .sb-user-dropdown {
+      display: none; position: absolute; bottom: calc(100% + 6px); left: 0; right: 0;
+      background: var(--surface, #19233F); border: 1px solid var(--border, rgba(255,200,61,0.25));
+      border-radius: 10px; padding: 5px; z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    }
+    .sb-user-dropdown.open { display: block; }
+    .sb-dd-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 11px; border-radius: 7px;
+      font-size: 12.5px; font-weight: 600; color: var(--text2, #9d9bc4);
+      text-decoration: none; cursor: pointer; background: none; border: none;
+      width: 100%; text-align: left; font-family: inherit; transition: all .15s;
+    }
+    .sb-dd-item:hover { background: rgba(124,111,255,0.14); color: var(--text, #fff); }
+    .sb-dd-item.danger { color: #f87171; }
+    .sb-dd-item.danger:hover { background: rgba(248,113,113,0.1); }
     
     @media (min-width: 1024px) { .r-topnav { display: none !important; } }
     @media (min-width: 1024px) {
@@ -487,6 +533,35 @@
     applyTheme(localStorage.getItem('r_theme') || 'dark');
     setTimeout(fillUser, 400);
   }
+  // ── Sidebar hesap menüsü (masaüstü) ──────────────────────────────────────
+  // Oturumu Kapat artık Ayarlar sayfasının içinde saklı değil; tema düğmesinin
+  // üstündeki avatara tıklayınca açılan menüde. Mobil avatar menüsüyle aynı içerik.
+  function updateSbUserName() {
+    const el = document.getElementById('sbUserName');
+    if (!el) return;
+    let n = '—';
+    try {
+      const u = (typeof getUser === 'function') ? getUser() : JSON.parse(localStorage.getItem('sb_user') || 'null');
+      if (u) n = u?.user_metadata?.full_name || (u?.email ? u.email.split('@')[0] : '—');
+    } catch (e) {}
+    el.textContent = n;
+  }
+  window.toggleSbDropdown = function(e) {
+    e.stopPropagation();
+    const dd = document.getElementById('sbUserDropdown');
+    if (!dd) return;
+    // Menü içindeki bağlantıya tıklandıysa kapatma/aç-kapa yapma, gitsin
+    if (e.target.closest && e.target.closest('.sb-dd-item')) return;
+    dd.classList.toggle('open');
+    updateSbUserName();
+    if (dd.classList.contains('open')) {
+      document.addEventListener('click', function _c() {
+        dd.classList.remove('open');
+        document.removeEventListener('click', _c);
+      });
+    }
+  };
+
   window.toggleTnDropdown = function(e) {
     e.stopPropagation();
     let dd = document.getElementById('rTnDropdown');
@@ -596,6 +671,15 @@
         <img src="${logo}" alt="repertuvar.app" style="height:42px;width:auto;max-width:230px;display:block;" data-logo="true">
       </div>
       <nav class="sb-nav">${navHtml}</nav>
+      <div class="sb-user-x" id="sbUserX" onclick="toggleSbDropdown(event)" title="Hesap">
+        <div class="sb-user-avatar"><i class="ti ti-user" style="font-size:15px;" aria-hidden="true"></i></div>
+        <span class="sb-user-name" id="sbUserName">—</span>
+        <i class="ti ti-chevron-up" style="font-size:14px;color:var(--text3,#5e5c8a);" aria-hidden="true"></i>
+        <div class="sb-user-dropdown" id="sbUserDropdown">
+          <a href="ayarlar.html" class="sb-dd-item"><i class="ti ti-settings" style="font-size:15px;" aria-hidden="true"></i> Ayarlar</a>
+          <button class="sb-dd-item danger" onclick="logout()"><i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> Oturumu Kapat</button>
+        </div>
+      </div>
       <div style="padding:8px 12px 4px;">
         ${themeToggleMarkup('sbThemeToggle', theme)}
       </div>
@@ -604,6 +688,7 @@
     document.body.insertBefore(aside, document.body.firstChild);
 
     bindThemeToggle('sbThemeToggle');
+    updateSbUserName();
 
     // Logo, tema değişiminde otomatik güncellenir (bkz. applyTheme)
   }
