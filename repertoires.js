@@ -1,5 +1,14 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-08-01 (b): BÖLÜMLEME ÖNCELİĞİ "sahip > grup" iken "GRUP > SAHİP" oldu.
+//             Eskiden kendi oluşturduğum grup repertuvarım "Repertuvarlarım"da
+//             kalıyordu; kurucu/admin ile üye aynı gruba baksa bile grup listeleri
+//             farklı görünüyordu. Artık group_id benim grubumsa kayıt — kim
+//             oluşturmuş olursa olsun — YALNIZCA "Grubun Repertuvarları"nda çıkar
+//             (mine'a !inGroup şartı eklendi, grp'den !r.isOwner kaldırıldı).
+//             "Repertuvarlarım" = gruba bağlı olmayan kişisel repertuvarlar.
+//             hiddenIds süzgeci kendi kayıtlarıma uygulanmıyor (sahip gizlemez, siler).
+//             Kart içeriği ve kaydırma (Sil/Gizle) hâlâ isOwner'a göre.
 // 2026-08-01: ÜÇÜNCÜ BÖLÜM — "👥 Grubun Repertuvarları". Sunucu sorgusu grup
 //             repertuvarlarını zaten getiriyordu (or=(owner_id,group_id,is_public))
 //             ama renderList yalnızca mine/pub diye ikiye ayırıyordu: grup üyesi,
@@ -415,12 +424,15 @@ function renderList(){
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
   const hiddenIds = getHiddenRepIds();
-  // Grup repertuvarı = benim değil, ama benim grubuma ait. Hem grup hem public olan
-  // kayıt YALNIZCA grup bölümünde çıkar (pub'da !inGroup şartı var) — iki yerde durmasın.
+  // BÖLÜMLEME ÖNCELİĞİ: grup > sahip > public (en özel ilişki kazanır).
+  // Grubuma ait bir repertuvar, KİM oluşturmuş olursa olsun (kurucu/admin dahil)
+  // "Grubun Repertuvarları" altında toplanır — grup işi tek yerde dursun.
+  // "Repertuvarlarım" = yalnızca gruba bağlı OLMAYAN kişisel repertuvarlarım.
+  // Her kayıt tek bölümde çıkar; kart içeriği/kaydırma davranışı hâlâ isOwner'a bakar.
   const myGid   = getGroupId();
   const inGroup = r => !!myGid && !!r.group_id && r.group_id === myGid;
-  const mine = filtered.filter(r => r.isOwner);
-  const grp  = filtered.filter(r => !r.isOwner && inGroup(r) && !hiddenIds.includes(r.id));
+  const mine = filtered.filter(r => r.isOwner && !inGroup(r));
+  const grp  = filtered.filter(r => inGroup(r) && (r.isOwner || !hiddenIds.includes(r.id)));
   const pub  = filtered.filter(r => !r.isOwner && r.is_public && !inGroup(r) && !hiddenIds.includes(r.id));
     // POTPURİ sayacı — repertuvarda kaç ayrı zincir var (ardışık linkedPrev blokları)
   function medleyCount(r){
