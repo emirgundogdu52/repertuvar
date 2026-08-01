@@ -1,5 +1,14 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-08-01: ÜÇÜNCÜ BÖLÜM — "👥 Grubun Repertuvarları". Sunucu sorgusu grup
+//             repertuvarlarını zaten getiriyordu (or=(owner_id,group_id,is_public))
+//             ama renderList yalnızca mine/pub diye ikiye ayırıyordu: grup üyesi,
+//             is_public=false olan grup repertuvarını HİÇ göremiyordu — satır reps'e
+//             giriyor, iki kümeye de düşmediği için html'e hiç eklenmiyordu.
+//             Sıra: Repertuvarlarım → Grubun Repertuvarları → Genel Repertuvarlar.
+//             Hem grup hem public olan kayıt YALNIZCA grup bölümünde (pub'a
+//             !inGroup(r) şartı eklendi) — aksi hâlde iki bölümde birden çıkardı.
+//             Boş bölümün başlığı hiç basılmaz (grubu olmayan boş başlık görmesin).
 // 2026-07-19 (e): "Diğer" menüsündeki PAYLAŞ ve YAZDIR düzeltildi — ikisi de
 //             sessizce TypeError atıyordu. Paylaş: sayfada hiç olmayan #shareModal
 //             /#shareRepName/#shareLink/#copyBtn elemanlarını arıyordu; modal artık
@@ -406,8 +415,13 @@ function renderList(){
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
   const hiddenIds = getHiddenRepIds();
-  const mine = filtered.filter(r=>r.isOwner);
-  const pub  = filtered.filter(r=>!r.isOwner && r.is_public && !hiddenIds.includes(r.id));
+  // Grup repertuvarı = benim değil, ama benim grubuma ait. Hem grup hem public olan
+  // kayıt YALNIZCA grup bölümünde çıkar (pub'da !inGroup şartı var) — iki yerde durmasın.
+  const myGid   = getGroupId();
+  const inGroup = r => !!myGid && !!r.group_id && r.group_id === myGid;
+  const mine = filtered.filter(r => r.isOwner);
+  const grp  = filtered.filter(r => !r.isOwner && inGroup(r) && !hiddenIds.includes(r.id));
+  const pub  = filtered.filter(r => !r.isOwner && r.is_public && !inGroup(r) && !hiddenIds.includes(r.id));
     // POTPURİ sayacı — repertuvarda kaç ayrı zincir var (ardışık linkedPrev blokları)
   function medleyCount(r){
     const its=r.items||[]; let n=0;
@@ -444,6 +458,10 @@ function renderList(){
   if(mine.length){
     html += '<div style="padding:8px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;">📁 Repertuvarlarım</div>';
     html += mine.map(repCard).join('');
+  }
+  if(grp.length){
+    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;">👥 Grubun Repertuvarları</div>';
+    html += grp.map(repCard).join('');
   }
   if(pub.length){
     html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;">🌐 Genel Repertuvarlar</div>';
