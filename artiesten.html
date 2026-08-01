@@ -1,4 +1,15 @@
 <!DOCTYPE html>
+<!-- build: 2026-08-01 — solistler RLS'inin arayuz karsiligi. Sunucuda duzenleme/silme
+     yalnizca kaydi olusturana (user_id) ve grup yoneticisine (owner/admin) acik;
+     siradan uye eklyebilir ama baskasinin kaydina dokunamaz. Arayuz artik sessiz 403
+     yerine uyari gosteriyor: canManageArtist() + denyEdit(), openEditModal /
+     deleteArtist / addWorkToArtist / removeWork girislerinde. Grup rolu
+     loadMyGroupRole() ile group_members'tan cekilip localStorage'a yaziliyor
+     (repertoires.js ile ayni 'myGroupRole' anahtari).
+     2026-08-01 (b): SESSIZ BASARI DUZELTMESI — RLS bir islemi engellediginde PostgREST
+     HATA DONDURMEZ, 0 SATIR doner. Eski kod bunu basari sayip "Silindi" diyordu, satir
+     ekranda kaliyordu. Artik delete/update cagrilarina .select('id') eklendi ve donen
+     satir sayisi 0 ise denyEdit() uyarisi gosteriliyor. -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -184,6 +195,32 @@ let editingId = null;
 let selectedWorkId = null;
 let addingToArtistId = null;
 
+// ── Yetki (2026-08-01) ────────────────────────────────────────────────────
+// Sunucudaki solistler politikalarının arayüz karşılığı: bir solist kaydını
+// OLUŞTURAN kişi ya da GRUP YÖNETİCİSİ (owner/admin) düzenleyip silebilir.
+// Sıradan üye ekleyebilir ama başkasının kaydına dokunamaz — sunucu 403 verirdi,
+// bunun yerine anlaşılır bir uyarı gösteriyoruz.
+let MY_GROUP_ROLE = localStorage.getItem('myGroupRole') || null;
+function isGroupManager(){ return MY_GROUP_ROLE === 'owner' || MY_GROUP_ROLE === 'admin'; }
+async function loadMyGroupRole(){
+  const uid = getUserId(), gid = getGroupId();
+  if (!uid || !gid) { MY_GROUP_ROLE = null; return; }
+  try {
+    const { data } = await sb.from('group_members').select('role')
+      .eq('user_id', uid).eq('group_id', gid).limit(1);
+    const role = data && data[0] && data[0].role;
+    if (role) { MY_GROUP_ROLE = role; localStorage.setItem('myGroupRole', role); }
+  } catch(e) {}
+}
+function canManageArtist(a){
+  if (!a) return false;
+  const uid = getUserId();
+  return a.user_id === uid || a.member_id === uid || isGroupManager();
+}
+function denyEdit(){
+  showToast('Bu solist kaydını grup yöneticisi ya da kaydı ekleyen kişi düzenleyebilir', 'err');
+}
+
 function setSyncStatus(state, label) {
   const dot = document.getElementById('syncDot');
   const lbl = document.getElementById('syncLabel');
@@ -203,6 +240,7 @@ function initials(name) {
 
 async function loadAll() {
   setSyncStatus('loading', 'Yükleniyor...');
+  loadMyGroupRole();   // yetki bilgisi — gelince bir sonraki çizimde doğrulanır
   try {
     const gid = getGroupId();
     const uid = getUserId();
@@ -289,6 +327,7 @@ function openNewModal() {
 function openEditModal(id) {
   const a = getArtist(id);
   if (!a) return;
+  if (!canManageArtist(a)) { denyEdit(); return; }
   editingId = id;
   document.getElementById('modalTitle').textContent = 'Solist Düzenle';
   document.getElementById('fName').value = a.name;
@@ -311,7 +350,8 @@ async function saveArtist() {
   setSyncStatus('loading', 'Kaydediliyor...');
   try {
     if (editingId) {
-      const { error } = await sb.from('solistler').update(data).eq('id', editingId);
+      const { data: upd, error } = await sb.from('solistler').update(data).eq('id', editingId).select('id');
+      if (!error && (!upd || upd.length === 0)) { denyEdit(); return; }
       if (error) throw error;
     } else {
       const { data: newA, error } = await sb.from('solistler').insert({...data, works:[], user_id: getUserId(), group_id: getGroupId()}).select().single();
@@ -325,10 +365,14 @@ async function saveArtist() {
 }
 
 async function deleteArtist(id) {
+  if (!canManageArtist(getArtist(id))) { denyEdit(); return; }
   if (!confirm('Bu solist silinsin mi?')) return;
   try {
-    const { error } = await sb.from('solistler').delete().eq('id', id);
+    // .select() ŞART: RLS engellerse PostgREST hata değil, 0 SATIR döndürür.
+    // Bunu kontrol etmezsek "Silindi ✓" deyip satır ekranda kalıyor (2026-08-01 hatası).
+    const { data, error } = await sb.from('solistler').delete().eq('id', id).select('id');
     if (error) throw error;
+    if (!data || data.length === 0) { denyEdit(); return; }
     if (selectedId === id) selectedId = null;
     showToast('Silindi');
     await loadAll();
@@ -360,14 +404,16 @@ async function addWorkToArtist() {
   if (!selectedWorkId) { alert('Lütfen bir eser seçin.'); return; }
   const a = getArtist(addingToArtistId);
   if (!a) return;
+  if (!canManageArtist(a)) { denyEdit(); return; }
   const w = WORKS_LIST.find(x => x.id === selectedWorkId);
   if (!w) return;
   const works = [...(a.works||[])];
   if (works.find(x => x.id === selectedWorkId)) { closeWorkModal(); return; }
   works.push({id: w.id, name: w.name, makam: w.makam, composer: w.composer});
   try {
-    const { error } = await sb.from('solistler').update({ works }).eq('id', addingToArtistId);
+    const { data: upd, error } = await sb.from('solistler').update({ works }).eq('id', addingToArtistId).select('id');
     if (error) throw error;
+    if (!upd || upd.length === 0) { denyEdit(); return; }
     closeWorkModal();
     showToast('Eser eklendi ✓');
     await loadAll();
@@ -377,11 +423,13 @@ async function addWorkToArtist() {
 async function removeWork(artistId, idx) {
   const a = getArtist(artistId);
   if (!a) return;
+  if (!canManageArtist(a)) { denyEdit(); return; }
   const works = [...(a.works||[])];
   works.splice(idx, 1);
   try {
-    const { error } = await sb.from('solistler').update({ works }).eq('id', artistId);
+    const { data: upd, error } = await sb.from('solistler').update({ works }).eq('id', artistId).select('id');
     if (error) throw error;
+    if (!upd || upd.length === 0) { denyEdit(); return; }
     await loadAll();
   } catch(e) { showToast('Hata: ' + e.message, 'err'); }
 }
