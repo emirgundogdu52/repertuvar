@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 <!-- DESIGN-TEST-ALT-F-FINAL -->
+<!-- build: 2026-08-01 — davet tuketimi redeem_invite(token) RPC'sine tasindi.
+     Eskiden token istemcide GET ile cozuluyordu; bu yuzden group_invites'ta
+     SELECT true politikasi vardi = herkes tum davet kodlarini gorup istedigi
+     gruba katilabiliyordu. Ayrica UPDATE politikasi olmadigi icin davet
+     "kullanildi" olarak hic isaretlenmiyordu. -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -260,40 +265,36 @@ if(!window.location.search.includes('logout=1') && !window.location.hash.include
 async function handlePendingInvite(userId) {
   const inviteToken = localStorage.getItem('pending_invite');
   if (!inviteToken) return;
+  // 2026-08-01: Davet artik ISTEMCIDE cozulmuyor. Eskiden burada
+  // GET group_invites?token=eq.<token> yapiliyordu; bunun icin group_invites'ta
+  // "Herkes okuyabilir" (SELECT true) politikasi vardi ve o politika giris yapmis
+  // HERKESIN TUM davet kodlarini listeleyip istedigi gruba katilmasina izin
+  // veriyordu. Ayrica daveti "kullanildi" isaretleyen PATCH icin UPDATE politikasi
+  // hic yoktu -> RLS sessizce 0 satir gunceller, davet linkleri suresiz yeniden
+  // kullanilabilir kaliyordu. Ikisi de tek bir SECURITY DEFINER fonksiyonla cozuldu:
+  // redeem_invite(token) kontrolleri, uyelik kaydini, profil guncellemesini ve
+  // "kullanildi" isaretini SUNUCUDA atomik yapiyor.
   try {
-    // Token ile daveti bul
-    const r = await fetch(SUPA_URL + '/rest/v1/group_invites?token=eq.' + inviteToken + '&select=*', {
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token') }
-    });
-    const invites = await r.json();
-    const invite = invites[0];
-    if (!invite) { localStorage.removeItem('pending_invite'); return; }
-    if (invite.used_by) { localStorage.removeItem('pending_invite'); return; } // zaten kullanılmış
-    if (new Date(invite.expires_at) < new Date()) { localStorage.removeItem('pending_invite'); showMsg('err', 'Davet linki süresi dolmuş.'); return; }
-
-    // Kullanıcıyı gruba ekle
-    await fetch(SUPA_URL + '/rest/v1/group_members', {
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/redeem_invite', {
       method: 'POST',
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'resolution=ignore-duplicates' },
-      body: JSON.stringify({ group_id: invite.group_id, user_id: userId, role: 'member', status: 'active' })
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + localStorage.getItem('sb_token'),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ p_token: inviteToken })
     });
-
-    // Profili güncelle
-    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
-      method: 'PATCH',
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ group_id: invite.group_id })
-    });
-
-    // Daveti kullanıldı olarak işaretle
-    await fetch(SUPA_URL + '/rest/v1/group_invites?token=eq.' + inviteToken, {
-      method: 'PATCH',
-      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('sb_token'), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ used_by: userId, used_at: new Date().toISOString() })
-    });
-
+    const d = await r.json();
     localStorage.removeItem('pending_invite');
-  } catch(e) { console.error('Invite error:', e); }
+    if (!d || d.ok !== true) {
+      if (d && d.reason === 'expired') showMsg('err', 'Davet linkinin süresi dolmuş.');
+      else if (d && d.reason === 'used') showMsg('err', 'Bu davet linki daha önce kullanılmış.');
+      else if (d && d.reason === 'notfound') showMsg('err', 'Davet linki geçersiz.');
+    }
+  } catch(e) {
+    console.error('Invite error:', e);
+    localStorage.removeItem('pending_invite');
+  }
 }
 
 function switchTab(t) {
