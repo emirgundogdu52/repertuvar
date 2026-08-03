@@ -222,9 +222,8 @@ function filterMembers() {
 
 async function loadMembers() {
   try {
-    var token = localStorage.getItem('sb_token') || SUPA_KEY;
     var r = await fetch(SUPA_URL + '/rest/v1/profiles?select=id,role,email,display_name,created_at&order=role', {
-      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
+      headers: authHeaders()
     });
     if (!r.ok) throw new Error(await r.text());
     allMembers = await r.json();
@@ -237,10 +236,9 @@ async function loadMembers() {
 async function changeRole(userId, newRole, email) {
   openConfirm('Rol Değiştir', email + ' rolü ' + (newRole === 'editor' ? 'Editör' : 'Üye') + ' olacak.', async function() {
     try {
-      var token = localStorage.getItem('sb_token') || SUPA_KEY;
       var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'PATCH',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        headers: Object.assign(authHeaders(), { Prefer: 'return=representation' }),
         body: JSON.stringify({ role: newRole })
       });
       if (!r.ok) throw new Error(await r.text());
@@ -253,10 +251,9 @@ async function changeRole(userId, newRole, email) {
 async function removeMember(userId, email) {
   openConfirm('Üyeyi Kaldır', email + ' sistemden kaldırılacak.', async function() {
     try {
-      var token = localStorage.getItem('sb_token') || SUPA_KEY;
       var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'DELETE',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
+        headers: authHeaders()
       });
       if (!r.ok) throw new Error(await r.text());
       toast('Üye kaldırıldı ✓');

@@ -6,7 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Repertuvar — Üyeler</title>
 <script src="topnav.js" defer></script>
-<script src="auth.js">function showToast(msg) {
+<script src="auth.js"></script>
+<!-- (2026-08-03) HATA DÜZELTMESİ: showToast bu blokta src="auth.js" ile AYNI
+     script etiketinin içinde tanımlıydı. Bir script etiketinde src varsa
+     tarayıcı gövdesini TAMAMEN yok sayar — yani showToast hiç tanımlanmıyordu
+     ve editName() içindeki çağrısı ReferenceError veriyordu. Ayrı etikete
+     alındı; sayfanın kendi toast() fonksiyonu da zaten var. -->
+<script>
+function showToast(msg) {
   var t = document.createElement('div');
   t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(124,111,255,.9);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:9999;pointer-events:none;';
   t.textContent = msg;
@@ -191,10 +198,9 @@ function editName(el, uid) {
   async function save() {
     var newName = input.value.trim();
     if (!newName || newName === current) { location.reload(); return; }
-    var token = localStorage.getItem('sb_token') || SUPA_KEY;
     var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
       method: 'PATCH',
-      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      headers: Object.assign(authHeaders(), { Prefer: 'return=minimal' }),
       body: JSON.stringify({ display_name: newName })
     });
     if (r.ok) {
@@ -260,10 +266,9 @@ function renderDeletionRequests(members) {
 async function hesabiAskiyaAl(userId, email) {
   openConfirm('Hesabı Askıya Al', email + ' hesabı askıya alınacak ve giriş yapamayacak.', async function() {
     try {
-      var token = localStorage.getItem('sb_token') || SUPA_KEY;
       var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'PATCH',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        headers: Object.assign(authHeaders(), { Prefer: 'return=minimal' }),
         body: JSON.stringify({ status: 'suspended' })
       });
       if (!r.ok) throw new Error(await r.text());
@@ -276,10 +281,9 @@ async function hesabiAskiyaAl(userId, email) {
 async function hesabiAktifYap(userId, email) {
   openConfirm('Askıyı Kaldır', email + ' hesabı yeniden aktif edilecek.', async function() {
     try {
-      var token = localStorage.getItem('sb_token') || SUPA_KEY;
       var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'PATCH',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        headers: Object.assign(authHeaders(), { Prefer: 'return=minimal' }),
         body: JSON.stringify({ status: 'active' })
       });
       if (!r.ok) throw new Error(await r.text());
@@ -292,21 +296,20 @@ async function hesabiAktifYap(userId, email) {
 async function hesabiSil(userId, email) {
   openConfirm('Hesabı Kalıcı Sil', email + ' hesabı ve tüm repertuvarları kalıcı olarak silinecek.', async function() {
     try {
-      var token = localStorage.getItem('sb_token') || SUPA_KEY;
       // Repertuvarları sil
       await fetch(SUPA_URL + '/rest/v1/repertoires?user_id=eq.' + userId, {
         method: 'DELETE',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
+        headers: authHeaders()
       });
       // Profiles sil
       await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'DELETE',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
+        headers: authHeaders()
       });
       // Auth sil (Edge Function ile)
       var delRes = await fetch(SUPA_URL + '/functions/v1/clever-handler', {
         method: 'POST',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ user_id: userId })
       });
       if (!delRes.ok) { var err = await delRes.json(); throw new Error(err.error || 'Auth silme hatası'); }
@@ -319,10 +322,9 @@ async function hesabiSil(userId, email) {
 async function silmeyiIptal(userId, email) {
   openConfirm('Silme Talebini İptal Et', email + ' için silme talebi iptal edilecek.', async function() {
     try {
-      var token = localStorage.getItem('sb_token') || SUPA_KEY;
       await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'PATCH',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        headers: Object.assign(authHeaders(), { Prefer: 'return=minimal' }),
         body: JSON.stringify({ deletion_requested_at: null, status: 'active' })
       });
       toast('Silme talebi iptal edildi ✓');
@@ -333,9 +335,8 @@ async function silmeyiIptal(userId, email) {
 
 async function loadMembers() {
   try {
-    var token = localStorage.getItem('sb_token') || SUPA_KEY;
     var r = await fetch(SUPA_URL + '/rest/v1/profiles?select=id,role,email,display_name,created_at,deletion_requested_at,status&order=created_at.desc', {
-      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
+      headers: authHeaders()
     });
     if (!r.ok) throw new Error(await r.text());
     allMembers = await r.json();
@@ -349,10 +350,9 @@ async function loadMembers() {
 async function changeRole(userId, newRole, email) {
   openConfirm('Rol Değiştir', email + ' rolü ' + (newRole === 'editor' ? 'Editör' : 'Üye') + ' olacak.', async function() {
     try {
-      var token = localStorage.getItem('sb_token') || SUPA_KEY;
       var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'PATCH',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        headers: Object.assign(authHeaders(), { Prefer: 'return=representation' }),
         body: JSON.stringify({ role: newRole })
       });
       if (!r.ok) throw new Error(await r.text());
@@ -365,17 +365,16 @@ async function changeRole(userId, newRole, email) {
 async function removeMember(userId, email) {
   openConfirm('Üyeyi Kaldır', email + ' sistemden tamamen kaldırılacak. Bu işlem geri alınamaz.', async function() {
     try {
-      var token = localStorage.getItem('sb_token') || SUPA_KEY;
       // 1. profiles tablosundan sil
       var r1 = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'DELETE',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
+        headers: authHeaders()
       });
       if (!r1.ok) throw new Error(await r1.text());
       // 2. auth.users tablosundan sil (admin endpoint)
       var r2 = await fetch(SUPA_URL + '/auth/v1/admin/users/' + userId, {
         method: 'DELETE',
-        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token }
+        headers: authHeaders()
       });
       if (!r2.ok) {
         var errBody = await r2.text();

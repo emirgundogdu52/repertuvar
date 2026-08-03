@@ -237,13 +237,11 @@ body { -webkit-text-size-adjust: 100%; }
 <!-- Bottom nav -->
 
 <script>
-function H() {
-  return {
-    'apikey': SUPA_KEY,
-    'Authorization': 'Bearer ' + (localStorage.getItem('sb_token') || SUPA_KEY),
-    'Content-Type': 'application/json'
-  };
-}
+// (2026-08-03) Eskiden token yoksa anon anahtara SESSİZCE düşüyordu: istek yola
+// çıkıyor, RLS altında auth.uid() NULL olduğu için 0 satır dönüyor, kullanıcı
+// hata değil BOŞ LİSTE görüyordu. Artık auth.js'teki kanonik authHeaders()
+// kullanılıyor — token yoksa Authorization hiç konmuyor ve görünür 401 üretiyor.
+function H() { return authHeaders(); }
 
 function toast(msg, type='ok') {
   const el = document.createElement('div');
