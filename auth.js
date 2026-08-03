@@ -531,7 +531,21 @@ async function loadUserRole() {
   } catch(e) { console.log('[auth] loadUserRole error:', e); }
 }
 
-// Sayfa yönlendirmesi olmadan sadece localStorage temizler
+// Çıkışta silinmesi gereken, KULLANICIYA AİT localStorage anahtarları.
+// Buraya SENKRONİZE OLMAYAN yerel veri (ör. customWorks) KONULMAZ — silmek
+// veri kaybı olur; onun çözümü anahtarı kullanıcı bazlı yapmaktır.
+var USER_SCOPED_KEYS = [
+  'sb_token', 'sb_refresh', 'sb_user',
+  'user_role', 'user_status', 'user_group_id',
+  'myGroupRole',   // repertoires.js + artiesten.html yazıyor; kullanıcı bazlı değil
+  'scope_uid'
+];
+
+// Sayfa yönlendirmesi olmadan oturumu temizler.
+// (2026-08-03) Artık localStorage'ın yanında IndexedDB'yi de temizliyor —
+// eskiden çıkış sonrası offline veri cihazda kalıyordu ve aynı cihazı paylaşan
+// ikinci kullanıcı önceki kullanıcının repertuvarlarını görebiliyordu.
+// Promise döner; temizlik 1.5sn'de bitmezse yine de resolve olur (çıkış asılmasın).
 function logoutSilent() {
   const token = getToken();
   if (token) {
@@ -540,18 +554,62 @@ function logoutSilent() {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
     }).catch(()=>{});
   }
-  localStorage.removeItem('sb_token');
-  localStorage.removeItem('sb_refresh');
-  localStorage.removeItem('sb_user');
-  localStorage.removeItem('user_role');
-  localStorage.removeItem('user_status');
-  localStorage.removeItem('user_group_id');
+  USER_SCOPED_KEYS.forEach(function(k) { localStorage.removeItem(k); });
+
+  let cleanup = Promise.resolve();
+  try {
+    if (typeof window.clearOfflineData === 'function') cleanup = window.clearOfflineData();
+  } catch (e) { console.warn('[auth] clearOfflineData çağrılamadı:', e); }
+  return Promise.race([
+    Promise.resolve(cleanup).catch(()=>{}),
+    new Promise(function(res) { setTimeout(res, 1500); })
+  ]);
 }
 
+// Çıkış: temizlik BİTTİKTEN sonra yönlendirir. Eskiden yönlendirme hemen
+// yapıldığı için IndexedDB temizliği yarıda kesilebiliyordu.
 function logout() {
-  logoutSilent();
-  window.location.href = 'login.html?logout=1';
+  logoutSilent().then(function() {
+    window.location.href = 'login.html?logout=1';
+  });
 }
+
+// ── Hesap değişimi koruması ────────────────────────────────────────────────
+// (2026-08-03) localStorage ve IndexedDB kullanıcı bazlı değil. Kullanıcı düzgün
+// çıkış yapmadan başka bir hesapla girerse (ya da çıkış yarıda kalırsa) önceki
+// kullanıcının rolü ve verisi devrediyordu: 'myGroupRole' eskiden kalınca arayüz
+// yanlışlıkla yönetici yetkisi gösterebiliyordu.
+// Bu fonksiyon her sayfa yüklemesinde çalışır; oturumdaki uid, en son kaydedilen
+// uid'den farklıysa türetilmiş yerel veriyi siler. Sunucu tarafı RLS zaten
+// koruyor; bu, arayüzün yanlış bilgiyle çizilmesini engelliyor.
+function enforceUserScope() {
+  let uid = null;
+  try { uid = getUserId(); } catch (e) { return; }
+  if (!uid) return;
+  const prev = localStorage.getItem('scope_uid');
+  if (prev === uid) return;
+  if (prev) {
+    console.warn('[auth] Hesap değişti — önceki kullanıcıdan devreden yerel veri temizleniyor');
+    ['myGroupRole', 'user_role', 'user_status', 'user_group_id'].forEach(function(k) {
+      localStorage.removeItem(k);
+    });
+    // db.js bu noktada henüz yüklenmemiş olabilir (sayfalarda script sırası
+    // sabit değil) — o zaman temizliği sayfa yüklenmesine ertele, sessizce atlama.
+    try {
+      if (typeof window.clearOfflineData === 'function') {
+        window.clearOfflineData();
+      } else {
+        window.addEventListener('load', function() {
+          if (typeof window.clearOfflineData === 'function') window.clearOfflineData();
+          else console.warn('[auth] clearOfflineData bulunamadı — offline veri temizlenemedi');
+        }, { once: true });
+      }
+    } catch (e) {}
+  }
+  localStorage.setItem('scope_uid', uid);
+}
+
+try { enforceUserScope(); } catch (e) { console.warn('[auth] enforceUserScope hatası:', e); }
 
 function renderUserBadge(containerId) {
   const el = document.getElementById(containerId);

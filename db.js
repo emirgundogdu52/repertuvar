@@ -1,5 +1,9 @@
 // db.js — IndexedDB helper (offline veri saklama)
 // Kullanım: await db.works.getAll(), await db.works.save(data)
+//
+// DEĞİŞİKLİK GÜNLÜĞÜ
+// 2026-08-03 — window.clearOfflineData() eklendi (çıkışta/hesap değişiminde
+//              tüm store'ları temizler; auth.js çağırır).
 
 const DB_NAME = 'RepertuvarDB';
 const DB_VERSION = 1;
@@ -137,6 +141,26 @@ window.db = {
 
 // Online/offline durumu
 window.isOnline = () => navigator.onLine;
+
+// ── Çıkışta / hesap değişiminde offline veriyi temizle ──────────────────────
+// (2026-08-03) Çıkış yapıldığında IndexedDB olduğu gibi kalıyordu: aynı cihazı
+// paylaşan ikinci kullanıcı, önceki kullanıcının repertuvarlarını, eserlerini ve
+// solistlerini görebiliyordu. auth.js'teki logoutSilent() ve enforceUserScope()
+// bu fonksiyonu çağırır. Söz: hata fırlatmaz, her koşulda resolve olur —
+// temizlik takılırsa çıkış yine de tamamlanmalı.
+window.clearOfflineData = function() {
+  if (!HAS_IDB) return Promise.resolve();
+  const jobs = [
+    db.works.clear(),
+    db.repertoires.clear(),
+    db.repertoire_items.clear(),
+    db.solistler.clear(),
+    storeOp('meta', 'readwrite', (s) => s.clear()).catch(() => {}),
+  ];
+  return Promise.all(jobs)
+    .then(() => { console.log('[db] Offline veri temizlendi'); })
+    .catch((e) => { console.warn('[db] clearOfflineData hatası:', e); });
+};
 
 // Sync — sunucudan veri çekip IndexedDB'ye kaydet
 window.syncOfflineData = async function() {
