@@ -611,6 +611,51 @@ function enforceUserScope() {
 
 try { enforceUserScope(); } catch (e) { console.warn('[auth] enforceUserScope hatası:', e); }
 
+// ── Sekmeler arası oturum değişimi ─────────────────────────────────────────
+// (2026-08-03) localStorage bütün sekmelerde ORTAK. İkinci bir sekmede başka bir
+// hesapla giriş yapıldığında sb_token/sb_user üzerine yazılıyor; ilk sekme bunu
+// fark etmediği için ekranda eski kullanıcı görünürken istekler yeni kullanıcının
+// token'ıyla gidiyordu — kimlik sessizce el değiştiriyordu.
+// Çözüm: sekme açıldığı andaki uid'yi hatırla; localStorage'ta oturum anahtarları
+// değişince (storage olayı YALNIZCA diğer sekmelerde tetiklenir) ya da sekme öne
+// gelince karşılaştır, farklıysa sayfayı yeniden yükle.
+// stage.html İSTİSNA: sahnedeyken zorla yeniden yükleme yapılmaz (performans
+// sırasında ekranı sıfırlamak kabul edilemez), sadece konsola uyarı yazılır.
+var BOOT_UID = (function() { try { return getUserId(); } catch (e) { return null; } })();
+
+function handleSessionSwitch() {
+  let now = null;
+  try { now = getUserId(); } catch (e) { return; }
+  if (now === BOOT_UID) return;
+
+  // Bu sekme oturumsuz açıldıysa (login sayfası vb.) gösterilen hassas bir şey
+  // yok — yeniden yüklemeye gerek kalmadan yeni kimliği benimse.
+  if (BOOT_UID === null) { BOOT_UID = now; return; }
+
+  if (/stage\.html/i.test(location.pathname)) {
+    console.warn('[auth] Başka bir sekmede oturum değişti — sahne modunda yeniden yükleme yapılmıyor');
+    return;
+  }
+  if (!now) { window.location.href = 'login.html?logout=1'; return; }
+  console.warn('[auth] Başka bir sekmede farklı bir hesapla giriş yapıldı — sayfa yenileniyor');
+  if (document.hidden) { window._pendingSessionReload = true; return; }
+  window.location.reload();
+}
+
+if (!window._sessionSwitchWatch) {
+  window._sessionSwitchWatch = true;
+  window.addEventListener('storage', function(e) {
+    if (!e.key || ['sb_user', 'sb_token', 'scope_uid'].indexOf(e.key) === -1) return;
+    handleSessionSwitch();
+  });
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) return;
+    if (window._pendingSessionReload) { window.location.reload(); return; }
+    handleSessionSwitch();
+  });
+  window.addEventListener('focus', handleSessionSwitch);
+}
+
 function renderUserBadge(containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
