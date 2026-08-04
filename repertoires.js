@@ -8,6 +8,9 @@
 //             yerine openEdit açılır — tek dokunuşla herkese açma kaldırıldı.
 //             İkonlar Tabler setinden: ti-lock / ti-users-group / ti-world.
 //             ti-users-group, sol menüdeki "Grup / Koro" ile aynı ikon.
+//             Aynı geçiş LİSTE BÖLÜM BAŞLIKLARINDA da yapıldı (Repertuvarlarım /
+//             Grubun Repertuvarları / Genel Repertuvarlar → ti-playlist /
+//             ti-users-group / ti-world) ve satırdaki "herkese açık" rozetinde.
 // 2026-08-01 (d): GRUP YÖNETİCİSİ ARTIK GRUP REPERTUVARINI DÜZENLEYEBİLİYOR (arayüz,
 //             sunucudaki repertoires_group_write + items_group_manage'in karşılığı).
 //             Sorun: tüm düğmeler rep.isOwner'a bakıyordu, bu yüzden grup kurucusu/
@@ -496,7 +499,7 @@ function renderList(){
     const medleyChip = mc ? `<span class="rep-medley" title="${mc===1?'Bu repertuvarda bir potpuri var':'Bu repertuvarda '+mc+' potpuri var'}">🔗${mc>1?' '+mc:''}</span>` : '';
     const touchAttrs = `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)" ontouchcancel="riTouchEnd(event)"`;
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
-      <div><div class="rn">${r.name}${r.is_public&&r.isOwner?' <span style="font-size:10px;color:#4ade80;font-weight:600;">🌐</span>':''}</div>
+      <div><div class="rn">${r.name}${r.is_public&&r.isOwner?' <i class="ti ti-world" style="font-size:12px;color:#4ade80;vertical-align:-1px;" title="Herkese açık" aria-hidden="true"></i>':''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${medleyChip}${r.date?'<span>'+r.date+'</span>':''}</div></div>
       <div class="rc">${(r.items||[]).length} eser</div>
     </div>`;
@@ -519,15 +522,15 @@ function renderList(){
   }
   let html = '';
   if(mine.length){
-    html += '<div style="padding:8px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;">📁 Repertuvarlarım</div>';
+    html += '<div style="padding:8px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;"><i class="ti ti-playlist" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> Repertuvarlarım</div>';
     html += mine.map(repCard).join('');
   }
   if(grp.length){
-    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;">👥 Grubun Repertuvarları</div>';
+    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-users-group" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> Grubun Repertuvarları</div>';
     html += grp.map(repCard).join('');
   }
   if(pub.length){
-    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;">🌐 Genel Repertuvarlar</div>';
+    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-world" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> Genel Repertuvarlar</div>';
     html += pub.map(repCard).join('');
   }
   el.innerHTML = html;
