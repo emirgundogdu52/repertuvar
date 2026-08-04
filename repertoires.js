@@ -1,5 +1,13 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-08-05: KARTTAKİ GÖRÜNÜRLÜK ÇİPİ ÜÇLÜ OLDU. 2026-08-01 (c)'de modal üçe
+//             çıkmıştı ama kart çipi hâlâ is_public'e bakan ikili toggle'dı:
+//             grup repertuvarı kartta "🔒 Private" görünüyordu ve kullanıcıda
+//             "grup seçeneği yok" izlenimi bırakıyordu. Yeni visChip() gerçek
+//             durumu gösterir (Kişisel / Grup / Genel); tıklayınca togglePublic
+//             yerine openEdit açılır — tek dokunuşla herkese açma kaldırıldı.
+//             İkonlar Tabler setinden: ti-lock / ti-users-group / ti-world.
+//             ti-users-group, sol menüdeki "Grup / Koro" ile aynı ikon.
 // 2026-08-01 (d): GRUP YÖNETİCİSİ ARTIK GRUP REPERTUVARINI DÜZENLEYEBİLİYOR (arayüz,
 //             sunucudaki repertoires_group_write + items_group_manage'in karşılığı).
 //             Sorun: tüm düğmeler rep.isOwner'a bakıyordu, bu yüzden grup kurucusu/
@@ -626,7 +634,7 @@ function renderDetail(){
         ${_medleyN?`<div class="mc"><span class="rep-medley" title="Potpuri: kesintisiz çalınan eser zinciri">🔗 ${_medleyN} Potpuri</span></div>`:''}
         ${rep.date?`<div class="mc" style="white-space:nowrap;">📅 <strong>${rep.date}</strong>${rep.venue?` &nbsp;📍 <strong>${rep.venue}</strong>`:''}</div>`:''}
         ${!rep.date&&rep.venue?`<div class="mc" style="white-space:nowrap;">📍 <strong>${rep.venue}</strong></div>`:''}
-        ${rep.isOwner?`<div class="mc"><span class="chip-vis ${rep.is_public?'pub':'priv'}" onclick="togglePublic('${rep.id}')" title="${rep.is_public?'Public — tıkla gizle':'Private — tıkla herkese aç'}">${rep.is_public?'🌐 Public':'🔒 Private'}</span></div>`:''}
+        ${rep.isOwner?`<div class="mc">${visChip(rep)}</div>`:''}
         ${rep.notes?`<div class="mc" style="color:var(--text3);white-space:nowrap;display:flex;align-items:center;gap:4px;"><i class="ti ti-pencil-plus" style="font-size:13px;" aria-hidden="true"></i> ${rep.notes}</div>`:''}
       </div>
     </div>
@@ -636,14 +644,22 @@ function renderDetail(){
     </div>`;
 }
 
-async function togglePublic(repId){
-  const rep=getRep(repId);if(!rep)return;
-  const newVal=!rep.is_public;
-  try{
-    await dbPatch('repertoires',repId,{is_public:newVal});
-    toast(newVal?'🌐 Repertuvar herkese açık':'🔒 Repertuvar gizlendi');
-    await load();
-  }catch(e){toast(e.message,'er');}
+// (2026-08-05) Karttaki görünürlük çipi ikili (Public/Private) kalmıştı — modaldaki
+// üçlü seçimle (Kişisel/Grup/Genel) uyumsuzdu ve grup repertuvarı "🔒 Private"
+// görünüyordu. Artık çip GERÇEK durumu gösteriyor. Tıklayınca doğrudan yayına
+// almak yerine düzenleme modalı açılıyor: yanlış paylaşım geri alınamaz (içerik
+// görülmüş olur), bu yüzden tek dokunuşla herkese açma bilerek kaldırıldı.
+function visChip(rep){
+  const v = rep.is_public ? 'public' : (rep.group_id ? 'group' : 'private');
+  // İkonlar Tabler setinden (projenin standardı) — emoji KULLANILMIYOR.
+  // ti-users-group, sol menüdeki "Grup / Koro" öğesiyle AYNI ikon (topnav.js:651).
+  const map = {
+    public:  ['pub',  'ti-world', 'Genel',   'Herkese açık — değiştirmek için tıkla'],
+    group:   ['grp',  'ti-users-group', 'Grup',    'Grup üyeleri görebilir — değiştirmek için tıkla'],
+    private: ['priv', 'ti-lock',  'Kişisel', 'Yalnızca sen görebilirsin — değiştirmek için tıkla']
+  };
+  const [cls,icon,label,title] = map[v];
+  return `<span class="chip-vis ${cls}" onclick="openEdit('${rep.id}')" title="${title}"><i class="ti ${icon}" style="font-size:13px;" aria-hidden="true"></i> ${label}</span>`;
 }
 
 async function copyRep(repId){
