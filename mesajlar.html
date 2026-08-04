@@ -124,7 +124,13 @@ body { -webkit-text-size-adjust: 100%; }
 .nm-member-item { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:7px; cursor:pointer; transition:background .12s; }
 .nm-member-item:hover { background:rgba(124,111,255,0.1); }
 .nm-member-item input[type=checkbox] { accent-color:var(--accent); width:15px; height:15px; flex-shrink:0; cursor:pointer; }
-.nm-member-item label { font-size:13px; color:var(--text); cursor:pointer; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* (2026-08-05) Üye satırındaki e-posta/ad BÜYÜK HARF görünüyordu: bu liste
+   .nm-field içinde yer aldığı için yukarıdaki ".nm-field label" kuralının
+   text-transform:uppercase + letter-spacing değerlerini miras alıyordu.
+   O kural başlık etiketleri ("ÜYE SEÇ", "MESAJ") için; burada iptal ediliyor. */
+.nm-member-item label { font-size:13px; color:var(--text); cursor:pointer; flex:1; min-width:0; text-transform:none; letter-spacing:normal; display:flex; flex-direction:column; gap:1px; }
+.nm-member-item .nm-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-member-item .nm-mail { font-size:11px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 .btn-new-msg { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--accent); font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font); margin-left:auto; transition:all .15s; }
 .btn-new-msg:hover { border-color:var(--accent); background:rgba(124,111,255,0.08); }
@@ -216,7 +222,7 @@ body { -webkit-text-size-adjust: 100%; }
     <div class="nm-field">
       <label>Üye Seç <span id="nmSelectedCount" style="color:var(--accent);font-weight:700;"></span></label>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input type="text" id="nmSearch" class="nm-textarea" style="min-height:unset;padding:8px 12px;font-size:12px;" placeholder="Ara...">
+        <input type="text" id="nmSearch" class="nm-textarea" style="min-height:unset;padding:8px 12px;font-size:12px;" placeholder="İsim veya e-posta ile ara...">
         <button onclick="toggleSelectAll()" id="nmSelectAllBtn" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">Tümü</button>
       </div>
       <div id="nmMemberList" style="max-height:200px;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:4px;">
@@ -439,14 +445,22 @@ async function openNewMsgModal() {
 
 function renderNmList(members) {
   const q = (document.getElementById('nmSearch').value || '').toLowerCase();
-  const filtered = q ? members.filter(p => (p.email || p.display_name || '').toLowerCase().includes(q)) : members;
+  // (2026-08-05) Eskiden `p.email || p.display_name` idi: e-posta doluysa isim hiç
+  // aranmıyordu. Artık İKİ alanda birden aranıyor.
+  const filtered = q ? members.filter(p =>
+    ((p.display_name || '') + ' ' + (p.email || '')).toLowerCase().includes(q)
+  ) : members;
   const list = document.getElementById('nmMemberList');
   if (!filtered.length) { list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;">Sonuç yok</div>'; return; }
   list.innerHTML = filtered.map(p => {
-    const label = p.email || p.display_name || p.id;
+    const label = p.email || p.display_name || p.id;   // data-email için (gönderim akışı bunu kullanıyor)
+    // Satırda isim üstte, e-posta altta: isimle arayan kişinin sonucu görebilmesi için.
+    const shown = p.display_name
+      ? `<span class="nm-name">${p.display_name}</span><span class="nm-mail">${p.email || ''}</span>`
+      : `<span class="nm-name">${p.email || p.id}</span>`;
     return `<div class="nm-member-item" onclick="toggleNmCheck('${p.id}')">
       <input type="checkbox" id="nmchk-${p.id}" value="${p.id}" data-email="${label}" onclick="event.stopPropagation();updateNmCount()">
-      <label for="nmchk-${p.id}">${label}</label>
+      <label for="nmchk-${p.id}">${shown}</label>
     </div>`;
   }).join('');
 }

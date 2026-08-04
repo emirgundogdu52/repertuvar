@@ -82,7 +82,7 @@ function showToast(msg) {
     </div>
     <div style="position:relative;width:340px;flex-shrink:0;">
       <i class="ti ti-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;"></i>
-      <input type="text" id="searchInput" placeholder="E-posta veya rol ile ara..." oninput="filterMembers()"
+      <input type="text" id="searchInput" placeholder="İsim, e-posta veya rol ile ara..." oninput="filterMembers()"
         style="width: 85%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 36px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s;">
     </div>
   </div>
@@ -227,7 +227,11 @@ function handleRemove(btn) {
 
 function filterMembers() {
   var q = document.getElementById('searchInput').value.toLowerCase();
-  var filtered = q ? allMembers.filter(function(m){ return (m.email||'').toLowerCase().indexOf(q) > -1 || (m.role||'').indexOf(q) > -1; }) : allMembers;
+  // (2026-08-05) Eskiden yalnızca e-posta ve rol aranıyordu; isimle arama çalışmıyordu.
+  var filtered = q ? allMembers.filter(function(m){
+    var hay = ((m.display_name || '') + ' ' + (m.email || '') + ' ' + (m.role || '')).toLowerCase();
+    return hay.indexOf(q) > -1;
+  }) : allMembers;
   renderMembers(filtered);
 }
 
