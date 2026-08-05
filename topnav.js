@@ -573,6 +573,9 @@
         <div style="padding:8px 12px 6px;border-bottom:1px solid rgba(255,200,61,0.15);margin-bottom:4px;">
           <div id="rTnUserName" style="font-size:12px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">—</div>
         </div>
+        <a href="metronom.html" class="r-tn-dd-item">
+          <i class="ti ti-metronome" style="font-size:15px;"></i> Metronom
+        </a>
         <a href="ayarlar.html" class="r-tn-dd-item">
           <i class="ti ti-settings" style="font-size:15px;"></i> Ayarlar
         </a>
@@ -649,6 +652,12 @@
       { href: 'repertoires.html', icon: 'ti-playlist',    label: 'Repertuvarlar' },
       { href: 'artiesten.html',   icon: 'ti-microphone',  label: 'Solistler' },
       { href: 'gruplar.html',     icon: 'ti-users-group', label: 'Grup / Koro' },
+      // 2026-08-05: Metronom — bağımsız çalışma aracı, eser/repertuvar kaydına bağlı değil.
+      // YERLEŞİM: masaüstü/iPad'de sidebar (burası), TELEFONDA avatar menüsünde.
+      // Sebep: alt gezinme çubuğu telefonda zaten dolu (Sahne Modu dahil 5 öğe) ve
+      // 6. öğe ikonları okunmaz hale getiriyor. Aynı YÜZEYDE tekrar YOK — sidebar
+      // görünürken avatar menüsünde ikinci bir Metronom bağlantısı çıkmıyor.
+      { href: 'metronom.html',    icon: 'ti-metronome',   label: 'Metronom' },
       { divider: true },
       { href: 'mesajlar.html',    icon: 'ti-message',     label: 'Mesajlar' },
       { href: 'uyeler.html',      icon: 'ti-users',       label: 'Üyeler', adminOnly: true },

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<!--
+  METRONOM.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur)
+  - 2026-08-05: Sayfa oluşturuldu. BAĞIMSIZ bir araç: hiçbir eser ya da repertuvar
+    kaydına bağlı DEĞİL (Emir'in kararı — "ritmik çalışırken de metronoma ihtiyaç
+    var, ölçüyü works tablosundan alırsak eksik olur"). Vuruş sayısı ve vurgular
+    tamamen elle ayarlanır. İleride bir eserden açılırsa ?bpm= ile ön doldurma
+    yapılabilir, ama zorunlu bağ kurulmaz.
+
+  - 2026-08-05 (c): FONT + RENK DİLİ uygulamayla hizalandı. style.css body'ye
+    sistem fontunu veriyor (-apple-system / SF Pro Display); sayfaya boşuna
+    yüklenen Plus Jakarta Sans bağlantısı KALDIRILDI. Renkler style.css'in
+    SEMANTİK değişkenlerine bağlandı: --tempo-color (#4DA3FF, zaten "Tempo/BPM"
+    için tanımlı) sayfanın ana rengi; --accent (#FFC83D sarı) yalnızca VURGULU
+    vuruşta. Böylece iki bilgi renkle ayrışıyor: mavi = tempo, sarı = vurgu.
+  - 2026-08-05 (b): TEMA UYUMU. Sayfa zaten style.css değişkenlerini (--bg, --surface,
+    --surface2, --border, --text*, --accent) kullandığı için tema düğmesiyle birlikte
+    dönüyordu; ancak vurgu tonları #7c6fff olarak SABİT yazılmıştı ve açık temada
+    fazla ağır duruyordu. Hepsi color-mix(in srgb, var(--accent) …%, transparent)
+    ile accent değişkenine bağlandı — hem açık/koyu temada hem accent rengi ileride
+    değişirse kendiliğinden uyum sağlıyor.
+
+  TEKNİK NOTLAR
+  - Ses, Web Audio ile ÜRETİLİYOR: hiçbir ses dosyası yok, çevrimdışı çalışır.
+  - Zamanlama setInterval ile DEĞİL, "lookahead scheduler" ile yapılıyor
+    (Chris Wilson deseni): setTimeout yalnızca 25 ms'de bir uyanıp önümüzdeki
+    ~120 ms'lik vuruşları AudioContext saatine göre planlıyor. setInterval'in
+    kayması (sekme arka plana alınınca 1 sn'ye kadar) bu sayede sesi kaydırmıyor.
+  - Görsel, planlanan vuruş zamanlarını takip eden bir kuyruktan besleniyor;
+    böylece nokta/sarkaç sesle aynı anda hareket ediyor.
+  - iOS: AudioContext yalnızca kullanıcı dokunuşuyla başlatılabilir, o yüzden
+    ilk "Başlat" dokunuşunda resume() çağrılıyor. Cihazın sessize alma anahtarı
+    açıksa iOS Web Audio'yu kısabilir — kullanıcıya not olarak yazıldı.
+  - Ayarlar KULLANICI BAZLI anahtarla saklanıyor (metronom:<uid>); ortak anahtar
+    kullanmak, aynı cihazda hesap değiştirince önceki kullanıcının ayarlarını
+    devrediyordu (bkz. 2026-08-03 myGroupRole düzeltmesi).
+-->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Metronom — Repertuvar</title>
+<link rel="stylesheet" href="style.css">
+<script src="auth.js"></script>
+<script src="topnav.js" defer></script>
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+<style>
+/* Font: style.css body'ye sistem fontunu veriyor (-apple-system / SF Pro Display).
+   Buradaki .mx-* sınıfları da onu miras alsın diye açıkça devrediliyor; düğme ve
+   input'lar tarayıcı varsayılanına düşmesin diye hepsinde font-family:inherit var. */
+.page-content { max-width: 680px; margin: 0 auto; padding: 16px 20px 90px; font-family: inherit; }
+.page-content input, .page-content button { font-family: inherit; }
+#r-topnav-container { position: sticky; top: 0; z-index: 500; background: var(--bg); }
+
+/* ── Sahne kartı: sayfanın kalbi ─────────────────────────────────────── */
+.mx-stage{
+  position:relative; overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 50% -20%, color-mix(in srgb, var(--tempo-color) 22%, transparent), transparent 60%),
+    var(--surface);
+  border:1px solid var(--border); border-radius:22px;
+  padding:26px 22px 22px; margin-bottom:18px;
+}
+/* Vuruşta hafifçe parlayan halka — "canlı" hissi veren tek dokunuş */
+.mx-stage::after{
+  content:''; position:absolute; inset:-1px; border-radius:22px; pointer-events:none;
+  box-shadow:0 0 0 0 transparent; transition:box-shadow .12s ease-out;
+}
+.mx-stage.pulse::after{ box-shadow:0 0 34px 2px color-mix(in srgb, var(--tempo-color) 30%, transparent) inset; }
+
+/* ── Sarkaç ──────────────────────────────────────────────────────────── */
+.mx-pend{ display:block; margin:0 auto 6px; width:min(280px,72vw); height:auto; }
+.mx-pend .rod{ transform-origin:100px 128px; transition:transform linear; }
+.mx-pend .body{ fill:none; stroke:var(--border); stroke-width:2; }
+.mx-pend .rod line{ stroke:var(--tempo-color); stroke-width:3; stroke-linecap:round; }
+.mx-pend .rod circle{ fill:var(--tempo-color); }
+.mx-pend .base{ fill:var(--surface2); stroke:var(--border); stroke-width:1.5; }
+
+/* ── BPM ─────────────────────────────────────────────────────────────── */
+.mx-bpm-row{ display:flex; align-items:center; justify-content:center; gap:18px; margin-top:4px; }
+.mx-bpm{ font-size:60px; font-weight:800; line-height:1; color:var(--text); letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
+.mx-bpm-unit{ font-size:13px; font-weight:700; color:var(--text3); letter-spacing:.12em; text-align:center; margin-top:6px; }
+.mx-term{ text-align:center; font-size:12px; color:var(--tempo-color); font-weight:600; margin-top:2px; min-height:16px; }
+.mx-round{
+  width:46px; height:46px; border-radius:50%; flex-shrink:0;
+  background:var(--surface2); border:1px solid var(--border); color:var(--text2);
+  font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-family:inherit; transition:background .15s, color .15s, border-color .15s;
+}
+.mx-round:hover{ border-color:var(--tempo-color); color:var(--tempo-color); }
+.mx-round:active{ background:var(--tempo-color); color:#fff; }
+
+.mx-slider{ width:100%; margin:16px 0 4px; accent-color:var(--tempo-color); height:26px; }
+
+/* ── Vuruş noktaları ─────────────────────────────────────────────────── */
+.mx-beats{ display:flex; flex-wrap:wrap; gap:9px; justify-content:center; margin:18px 0 6px; }
+.mx-beat{
+  width:34px; height:34px; border-radius:11px; cursor:pointer; border:1px solid var(--border);
+  background:var(--surface2); color:var(--text3); font-size:12px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; font-family:inherit;
+  transition:transform .09s ease-out, background .12s, color .12s, box-shadow .12s;
+}
+.mx-beat.accent{ background:color-mix(in srgb, var(--accent) 16%, transparent); border-color:color-mix(in srgb, var(--accent) 45%, transparent); color:var(--accent); }
+.mx-beat.mute{ opacity:.35; }
+.mx-beat.now{ transform:scale(1.22); box-shadow:0 0 0 3px color-mix(in srgb, var(--tempo-color) 30%, transparent); }
+.mx-beat.now.accent{ background:var(--accent); color:#fff; }
+.mx-hint{ text-align:center; font-size:11px; color:var(--text3); margin-top:8px; line-height:1.5; }
+
+/* ── Denetimler ──────────────────────────────────────────────────────── */
+.mx-main{ display:flex; gap:12px; align-items:center; margin-top:18px; }
+.mx-play{
+  flex:1; height:56px; border:none; border-radius:16px; cursor:pointer; font-family:inherit;
+  font-size:16px; font-weight:700; color:#fff;
+  background:linear-gradient(135deg, var(--tempo-color), var(--accent3));
+  color:#0b1226;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+}
+.mx-play.on{ background:linear-gradient(135deg,#e05b6a,#c0392b); }
+.mx-tap{
+  width:110px; height:56px; border-radius:16px; cursor:pointer; font-family:inherit;
+  background:var(--surface2); border:1px solid var(--border); color:var(--text2);
+  font-size:13px; font-weight:700;
+}
+.mx-tap:active{ background:var(--tempo-color); color:#0b1226; border-color:var(--tempo-color); }
+
+.mx-card{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:16px; }
+.mx-title{ font-size:12px; font-weight:700; color:var(--text3); letter-spacing:.08em; text-transform:uppercase; margin-bottom:13px; }
+.mx-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.mx-chip{
+  padding:7px 13px; border-radius:9px; cursor:pointer; font-family:inherit; font-size:12px; font-weight:600;
+  background:var(--surface2); border:1px solid var(--border); color:var(--text2);
+}
+.mx-chip:hover{ border-color:var(--tempo-color); color:var(--tempo-color); }
+.mx-chip.sel{ background:color-mix(in srgb, var(--tempo-color) 16%, transparent); border-color:color-mix(in srgb, var(--tempo-color) 45%, transparent); color:var(--tempo-color); }
+.mx-chip small{ display:block; font-size:10px; color:var(--text3); font-weight:500; margin-top:1px; }
+
+.mx-switch{ display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--border); }
+.mx-switch:last-child{ border-bottom:none; }
+.mx-switch-label{ font-size:13px; color:var(--text); display:flex; align-items:center; gap:9px; }
+.mx-switch-sub{ font-size:11px; color:var(--text3); margin-top:2px; }
+.mx-toggle{
+  width:46px; height:26px; border-radius:13px; background:var(--surface2); border:1px solid var(--border);
+  position:relative; cursor:pointer; flex-shrink:0; transition:background .18s, border-color .18s;
+}
+.mx-toggle::after{ content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--text3); transition:transform .18s, background .18s; }
+.mx-toggle.on{ background:color-mix(in srgb, var(--tempo-color) 25%, transparent); border-color:color-mix(in srgb, var(--tempo-color) 50%, transparent); }
+.mx-toggle.on::after{ transform:translateX(20px); background:var(--tempo-color); }
+
+@media (max-width:600px){
+  .mx-bpm{ font-size:52px; }
+  .mx-tap{ width:92px; }
+  .page-content{ padding:12px 14px 90px; }
+}
+</style>
+</head>
+<body>
+
+<div id="r-topnav-container"></div>
+
+<div class="main-wrap">
+<div class="page-content">
+
+  <div class="mx-stage" id="stage">
+    <svg class="mx-pend" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path class="body" d="M100 14 L146 132 L54 132 Z" stroke-linejoin="round"/>
+      <rect class="base" x="46" y="130" width="108" height="10" rx="4"/>
+      <g class="rod" id="rod">
+        <line x1="100" y1="128" x2="100" y2="34"/>
+        <circle cx="100" cy="56" r="8"/>
+      </g>
+    </svg>
+
+    <div class="mx-bpm-row">
+      <button class="mx-round" id="minus" aria-label="Yavaşlat">−</button>
+      <div>
+        <div class="mx-bpm" id="bpmView">96</div>
+        <div class="mx-bpm-unit">BPM</div>
+      </div>
+      <button class="mx-round" id="plus" aria-label="Hızlandır">+</button>
+    </div>
+    <div class="mx-term" id="term"></div>
+
+    <input type="range" class="mx-slider" id="slider" min="30" max="300" value="96">
+
+    <div class="mx-beats" id="beats"></div>
+    <div class="mx-hint">Vuruşa dokun: <b>vurgulu</b> → normal → <b>sessiz</b>. Aksak usullerde gruplamayı böyle kurarsın.</div>
+
+    <div class="mx-main">
+      <button class="mx-play" id="play"><i class="ti ti-player-play-filled"></i> <span id="playText">Başlat</span></button>
+      <button class="mx-tap" id="tap">Tempoyu<br>vur</button>
+    </div>
+  </div>
+
+  <div class="mx-card">
+    <div class="mx-title">Vuruş sayısı</div>
+    <div class="mx-chips" id="counts"></div>
+  </div>
+
+  <div class="mx-card">
+    <div class="mx-title">Hazır gruplamalar</div>
+    <div class="mx-chips" id="presets"></div>
+    <div class="mx-hint" style="text-align:left;margin-top:11px;">
+      Kısayoldur, hepsi elle değiştirilebilir. Hiçbiri eser kaydına bağlı değildir.
+    </div>
+  </div>
+
+  <div class="mx-card">
+    <div class="mx-title">Ayarlar</div>
+    <div class="mx-switch">
+      <div>
+        <div class="mx-switch-label"><i class="ti ti-volume"></i> Ses</div>
+        <div class="mx-switch-sub">Kapalıyken yalnızca görsel çalışır — prova ortamında işe yarar</div>
+      </div>
+      <div class="mx-toggle on" id="tgSound"></div>
+    </div>
+    <div class="mx-switch">
+      <div>
+        <div class="mx-switch-label"><i class="ti ti-bulb"></i> Ekran açık kalsın</div>
+        <div class="mx-switch-sub">Çalışırken ekran kendiliğinden kararmaz</div>
+      </div>
+      <div class="mx-toggle" id="tgWake"></div>
+    </div>
+  </div>
+
+  <div class="mx-hint" style="margin-bottom:10px;">
+    iPhone'da yan taraftaki sessize alma anahtarı açıksa tık sesi duyulmayabilir.
+  </div>
+
+</div>
+</div>
+
+<script>
+// ── Durum ───────────────────────────────────────────────────────────────
+// pattern: her vuruş için 2 = vurgulu, 1 = normal, 0 = sessiz
+let bpm = 96;
+let pattern = [2,1,1,1];
+let running = false;
+let soundOn = true;
+let wakeOn = false;
+let wakeLock = null;
+
+const $ = id => document.getElementById(id);
+
+// Ayarlar kullanıcı bazlı saklanır — ortak anahtar, aynı cihazda hesap
+// değiştirince önceki kullanıcının ayarlarını devrediyordu.
+function storeKey(){
+  let uid = null;
+  try { uid = (typeof getUserId === 'function') ? getUserId() : null; } catch(e) {}
+  return 'metronom:' + (uid || 'anon');
+}
+function saveState(){
+  try { localStorage.setItem(storeKey(), JSON.stringify({bpm, pattern, soundOn, wakeOn})); } catch(e) {}
+}
+function loadState(){
+  try {
+    const raw = localStorage.getItem(storeKey());
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (s.bpm) bpm = Math.min(300, Math.max(30, s.bpm|0));
+    if (Array.isArray(s.pattern) && s.pattern.length) pattern = s.pattern.slice(0,16);
+    if (typeof s.soundOn === 'boolean') soundOn = s.soundOn;
+    if (typeof s.wakeOn === 'boolean') wakeOn = s.wakeOn;
+  } catch(e) {}
+}
+
+// İtalyanca tempo terimleri — sayının müzikal karşılığını göstermek,
+// tempo seçerken kulaktan bilmeyene yol gösteriyor.
+function tempoTerm(v){
+  if (v < 40)  return 'Grave — çok ağır';
+  if (v < 60)  return 'Largo — ağır';
+  if (v < 76)  return 'Adagio — sakin';
+  if (v < 108) return 'Andante — yürüyüş temposu';
+  if (v < 120) return 'Moderato — orta';
+  if (v < 156) return 'Allegro — canlı';
+  if (v < 200) return 'Vivace — hızlı';
+  return 'Presto — çok hızlı';
+}
+
+// ── Ses motoru ──────────────────────────────────────────────────────────
+let actx = null, nextNoteTime = 0, beatIndex = 0, timerId = null;
+const LOOKAHEAD = 25;        // ms — zamanlayıcının uyanma sıklığı
+const SCHEDULE_AHEAD = 0.12; // sn — bu kadar ilerisi önceden planlanır
+let visualQueue = [];
+
+function beatSeconds(){ return 60.0 / bpm; }
+
+function click(level, when){
+  if (!soundOn || level === 0) return;
+  const osc = actx.createOscillator();
+  const gain = actx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.value = (level === 2) ? 1650 : 920;
+  gain.gain.setValueAtTime(0.0001, when);
+  gain.gain.exponentialRampToValueAtTime(level === 2 ? 0.7 : 0.45, when + 0.002);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.055);
+  osc.connect(gain); gain.connect(actx.destination);
+  osc.start(when); osc.stop(when + 0.07);
+}
+
+function scheduler(){
+  while (nextNoteTime < actx.currentTime + SCHEDULE_AHEAD) {
+    const level = pattern[beatIndex] ?? 1;
+    click(level, nextNoteTime);
+    visualQueue.push({ index: beatIndex, time: nextNoteTime });
+    nextNoteTime += beatSeconds();
+    beatIndex = (beatIndex + 1) % pattern.length;
+  }
+  timerId = setTimeout(scheduler, LOOKAHEAD);
+}
+
+async function start(){
+  if (running) return;
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') await actx.resume();   // iOS: dokunuş şart
+  running = true;
+  beatIndex = 0; visualQueue = [];
+  nextNoteTime = actx.currentTime + 0.06;
+  scheduler();
+  requestAnimationFrame(draw);
+  $('play').classList.add('on');
+  $('play').innerHTML = '<i class="ti ti-player-stop-filled"></i> <span>Durdur</span>';
+  if (wakeOn) requestWake();
+}
+
+function stop(){
+  running = false;
+  clearTimeout(timerId);
+  visualQueue = [];
+  document.querySelectorAll('.mx-beat').forEach(b => b.classList.remove('now'));
+  $('stage').classList.remove('pulse');
+  $('play').classList.remove('on');
+  $('play').innerHTML = '<i class="ti ti-player-play-filled"></i> <span>Başlat</span>';
+  releaseWake();
+}
+
+// ── Görsel ──────────────────────────────────────────────────────────────
+// Ses planlanan zamanda çalıyor; görsel de aynı zamanı bekleyerek eşleniyor.
+let pendLeft = false;
+function draw(){
+  if (!running) return;
+  const now = actx.currentTime;
+  while (visualQueue.length && visualQueue[0].time <= now) {
+    const b = visualQueue.shift();
+    showBeat(b.index);
+  }
+  requestAnimationFrame(draw);
+}
+function showBeat(i){
+  const els = document.querySelectorAll('.mx-beat');
+  els.forEach(e => e.classList.remove('now'));
+  if (els[i]) els[i].classList.add('now');
+
+  const rod = $('rod');
+  pendLeft = !pendLeft;
+  rod.style.transitionDuration = beatSeconds() + 's';
+  rod.style.transform = 'rotate(' + (pendLeft ? -17 : 17) + 'deg)';
+
+  if (pattern[i] === 2) {
+    $('stage').classList.add('pulse');
+    setTimeout(() => $('stage').classList.remove('pulse'), 110);
+  }
+}
+
+// ── Arayüz kurulumu ─────────────────────────────────────────────────────
+function renderBeats(){
+  $('beats').innerHTML = pattern.map((lv, i) =>
+    `<button class="mx-beat ${lv===2?'accent':''} ${lv===0?'mute':''}" data-i="${i}">${i+1}</button>`
+  ).join('');
+  document.querySelectorAll('.mx-beat').forEach(btn => {
+    btn.onclick = () => {
+      const i = +btn.dataset.i;
+      pattern[i] = (pattern[i] === 2) ? 1 : (pattern[i] === 1 ? 0 : 2);
+      renderBeats(); saveState();
+    };
+  });
+}
+
+function setBpm(v, skipSlider){
+  bpm = Math.min(300, Math.max(30, Math.round(v)));
+  $('bpmView').textContent = bpm;
+  $('term').textContent = tempoTerm(bpm);
+  if (!skipSlider) $('slider').value = bpm;
+  saveState();
+}
+
+function setCount(n){
+  const old = pattern.slice();
+  pattern = Array.from({length:n}, (_, i) => old[i] !== undefined ? old[i] : 1);
+  if (!pattern.includes(2)) pattern[0] = 2;
+  renderBeats(); renderCounts(); saveState();
+}
+
+function renderCounts(){
+  const opts = [2,3,4,5,6,7,8,9,10,12];
+  $('counts').innerHTML = opts.map(n =>
+    `<button class="mx-chip ${pattern.length===n?'sel':''}" data-n="${n}">${n}</button>`
+  ).join('');
+  document.querySelectorAll('#counts .mx-chip').forEach(c => c.onclick = () => setCount(+c.dataset.n));
+}
+
+// Gruplama kısayolları: aksak usullerde vurguların nereye düştüğü tempodan
+// daha belirleyicidir. Yine de hepsi elle değiştirilebilir.
+const PRESETS = [
+  { label: '2/4',  sub: '1+1',        groups: [1,1] },
+  { label: '4/4',  sub: 'düz',        groups: [4] },
+  { label: '5/8',  sub: '2+3',        groups: [2,3] },
+  { label: '7/8',  sub: '2+2+3',      groups: [2,2,3] },
+  { label: '9/8',  sub: '2+2+2+3',    groups: [2,2,2,3] },
+  { label: '9/8',  sub: '3+2+2+2',    groups: [3,2,2,2] },
+  { label: '10/8', sub: '3+2+2+3',    groups: [3,2,2,3] },
+  { label: '12/8', sub: '3+3+3+3',    groups: [3,3,3,3] },
+];
+function applyPreset(p){
+  const pat = [];
+  p.groups.forEach(g => { for (let i=0;i<g;i++) pat.push(i===0 ? 2 : 1); });
+  pattern = pat;
+  renderBeats(); renderCounts(); saveState();
+}
+function renderPresets(){
+  $('presets').innerHTML = PRESETS.map((p,i) =>
+    `<button class="mx-chip" data-p="${i}">${p.label}<small>${p.sub}</small></button>`
+  ).join('');
+  document.querySelectorAll('#presets .mx-chip').forEach(c =>
+    c.onclick = () => applyPreset(PRESETS[+c.dataset.p]));
+}
+
+// ── Tap tempo ───────────────────────────────────────────────────────────
+let taps = [];
+function tapTempo(){
+  const now = performance.now();
+  if (taps.length && now - taps[taps.length-1] > 2500) taps = [];  // ara verilince sıfırla
+  taps.push(now);
+  if (taps.length > 5) taps.shift();
+  if (taps.length < 2) return;
+  let sum = 0;
+  for (let i=1;i<taps.length;i++) sum += taps[i]-taps[i-1];
+  setBpm(60000 / (sum / (taps.length-1)));
+}
+
+// ── Ekranı açık tut ─────────────────────────────────────────────────────
+async function requestWake(){
+  try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+}
+function releaseWake(){ try { if (wakeLock) { wakeLock.release(); wakeLock = null; } } catch(e) {} }
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && running && wakeOn) requestWake();
+});
+
+// ── Bağlantılar ─────────────────────────────────────────────────────────
+$('play').onclick = () => running ? stop() : start();
+$('tap').onclick = tapTempo;
+$('slider').oninput = e => setBpm(+e.target.value, true);
+
+// Basılı tutunca hızlanan artış/azalış
+function holdable(el, delta){
+  let t1, t2;
+  const step = () => setBpm(bpm + delta);
+  const down = e => { e.preventDefault(); step(); t1 = setTimeout(() => { t2 = setInterval(step, 70); }, 420); };
+  const up = () => { clearTimeout(t1); clearInterval(t2); };
+  el.addEventListener('mousedown', down); el.addEventListener('touchstart', down, {passive:false});
+  ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev => el.addEventListener(ev, up));
+}
+holdable($('minus'), -1);
+holdable($('plus'), 1);
+
+$('tgSound').onclick = () => { soundOn = !soundOn; $('tgSound').classList.toggle('on', soundOn); saveState(); };
+$('tgWake').onclick = () => {
+  wakeOn = !wakeOn; $('tgWake').classList.toggle('on', wakeOn);
+  if (wakeOn && running) requestWake(); else releaseWake();
+  saveState();
+};
+
+// Boşluk tuşu başlat/durdur — çalışırken elin klavyedeyse pratik
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && e.target.tagName !== 'INPUT') { e.preventDefault(); running ? stop() : start(); }
+});
+
+// ── Açılış ──────────────────────────────────────────────────────────────
+(function init(){
+  if (typeof requireAuth === 'function') { try { requireAuth(); } catch(e) {} }
+  loadState();
+  // Bir eserden gelindiyse tempo ön doldurulur; yoksa hiçbir bağ kurulmaz.
+  const qs = new URLSearchParams(location.search);
+  const qbpm = parseInt(qs.get('bpm'), 10);
+  if (qbpm >= 30 && qbpm <= 300) bpm = qbpm;
+  $('tgSound').classList.toggle('on', soundOn);
+  $('tgWake').classList.toggle('on', wakeOn);
+  setBpm(bpm);
+  renderBeats(); renderCounts(); renderPresets();
+})();
+</script>
+
+</body>
+</html>
