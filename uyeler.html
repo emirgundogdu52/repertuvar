@@ -226,11 +226,11 @@ function handleRemove(btn) {
 }
 
 function filterMembers() {
-  var q = document.getElementById('searchInput').value.toLowerCase();
+  var q = document.getElementById('searchInput').value;
   // (2026-08-05) Eskiden yalnızca e-posta ve rol aranıyordu; isimle arama çalışmıyordu.
+  // Karşılaştırma auth.js'teki trMatch ile: "Hüsnü" kaydı "Husnu" yazınca da bulunur.
   var filtered = q ? allMembers.filter(function(m){
-    var hay = ((m.display_name || '') + ' ' + (m.email || '') + ' ' + (m.role || '')).toLowerCase();
-    return hay.indexOf(q) > -1;
+    return trMatch((m.display_name || '') + ' ' + (m.email || '') + ' ' + (m.role || ''), q);
   }) : allMembers;
   renderMembers(filtered);
 }

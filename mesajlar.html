@@ -444,11 +444,11 @@ async function openNewMsgModal() {
 }
 
 function renderNmList(members) {
-  const q = (document.getElementById('nmSearch').value || '').toLowerCase();
+  const q = document.getElementById('nmSearch').value || '';
   // (2026-08-05) Eskiden `p.email || p.display_name` idi: e-posta doluysa isim hiç
-  // aranmıyordu. Artık İKİ alanda birden aranıyor.
+  // aranmıyordu. Artık İKİ alanda birden ve Türkçe duyarsız aranıyor (trMatch).
   const filtered = q ? members.filter(p =>
-    ((p.display_name || '') + ' ' + (p.email || '')).toLowerCase().includes(q)
+    trMatch((p.display_name || '') + ' ' + (p.email || ''), q)
   ) : members;
   const list = document.getElementById('nmMemberList');
   if (!filtered.length) { list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;">Sonuç yok</div>'; return; }

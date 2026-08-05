@@ -357,6 +357,35 @@ if (typeof document !== 'undefined' && !window._tokenVisListener) {
 // Token yoksa Authorization HİÇ konmaz — boş değerli bozuk bir başlık değil.
 // Başlıksız istek yine [B]'dir: yama veri ucunda hem token ekler hem kapıya tabi
 // tutar (bkz. _setAuthz addIfMissing ve engelleme dalı).
+// ── Türkçe duyarsız arama normalizasyonu ───────────────────────────────────
+// (2026-08-05) "Hüsnü" yazan bir kaydı "Husnu" diye arayınca bulunamıyordu.
+// İki ayrı tuzak var:
+//   1. Aksan: ü/ö/ç/ş/ğ/â/î/û — kullanıcı çoğu zaman ASCII yazıyor (klavye,
+//      alışkanlık, ya da kaydı giren kişi öyle yazmış).
+//   2. NOKTALI/NOKTASIZ i: JavaScript'in toLowerCase()'i Türkçe bilmez —
+//      "I" harfini "ı" değil "i" yapar, "İ" içinse birleşik bir karakter üretir.
+//      Bu yüzden toLocaleLowerCase('tr') da tek başına yetmiyor: doğru küçültür
+//      ama "ı" ile "i" hâlâ farklı kalır, yani "Işık" araması "isik"i bulmaz.
+// Çözüm: her iki tarafı da (aranan metin + aranan alan) düz ASCII'ye indirmek.
+// Noktalama ve boşluk da atılıyor — "Çeşm-i Siyahım" kaydı "cesmi" ile bulunur.
+// NFD ayrıştırması Türkçe dışı aksanları da (é, ï gibi Hollandaca adlar) kapsar.
+// NOT: repertoires.js'teki makamNorm() bilerek AYRI kalıyor — o, SQL'deki
+// makam_norm() ile bire bir aynı sonucu vermek zorunda; bu ise arayüz araması.
+const _TR_FOLD = {'Â':'A','Î':'I','Û':'U','â':'a','î':'i','û':'u','İ':'I','ı':'i',
+                  'Ş':'S','ş':'s','Ğ':'G','ğ':'g','Ü':'U','ü':'u','Ö':'O','ö':'o',
+                  'Ç':'C','ç':'c'};
+function trNorm(t){
+  return (t||'').split('').map(c => _TR_FOLD[c] || c).join('')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/[^a-z0-9]/g,'');
+}
+// Aranan metin boşsa her kayıt eşleşir (süzgeç yok demektir).
+function trMatch(haystack, query){
+  const q = trNorm(query);
+  return !q || trNorm(haystack).includes(q);
+}
+window.trNorm = trNorm; window.trMatch = trMatch;
+
 function authHeaders() {
   const token = getToken();
   const h = { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' };

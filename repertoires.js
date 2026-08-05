@@ -1,5 +1,11 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-08-05 (b): TÜRKÇE DUYARSIZ ARAMA. "Hüsnü" kaydı "Husnu" yazınca
+//             bulunamıyordu. Dosyada üç ayrı yöntem vardı: toLowerCase()
+//             (eser/solist arama), toLocaleLowerCase('tr') (repertuvar arama),
+//             makamNorm (yalnız makam). Artık arama yapan yerler auth.js'teki
+//             ortak trMatch()'i kullanıyor; makamNorm SQL makam_norm() ile
+//             eşleşmek zorunda olduğu için BİLEREK dokunulmadı.
 // 2026-08-05: KARTTAKİ GÖRÜNÜRLÜK ÇİPİ ÜÇLÜ OLDU. 2026-08-01 (c)'de modal üçe
 //             çıkmıştı ama kart çipi hâlâ is_public'e bakan ikili toggle'dı:
 //             grup repertuvarı kartta "🔒 Private" görünüyordu ve kullanıcıda
@@ -156,13 +162,11 @@ function onRepSearchInput(val) {
 
 function repMatchesSearch(r, q) {
   if (!q) return true;
-  const norm = s => (s || '').toLocaleLowerCase('tr');
-  const nq = norm(q);
-  if (norm(r.name).includes(nq)) return true;
-  return (r.items || []).some(it => {
-    const w = WL[it.workId] || {};
-    return norm(w.name).includes(nq);
-  });
+  // (2026-08-05) Eskiden toLocaleLowerCase('tr') kullanılıyordu: doğru küçültüyor
+  // ama aksanı katlamıyordu ⇒ "Hüsnü" kaydı "Husnu" ile bulunamıyordu.
+  // auth.js'teki ortak trMatch artık her iki tarafı da ASCII'ye indiriyor.
+  if (trMatch(r.name, q)) return true;
+  return (r.items || []).some(it => trMatch((WL[it.workId] || {}).name, q));
 }
 
 // ── Swipe-to-delete + swipe-to-değiştir (Repertuvarlar listesi) ──
@@ -775,7 +779,7 @@ function pfKeydown(e) {
 function pfSuggest(q) {
   const dd = document.getElementById('pfDropdown');
   if (!q) { pfHideDropdown(); return; }
-  const matches = SOLISTLER.filter(n => n.toLowerCase().includes(q.toLowerCase()) && !pfSelected.includes(n));
+  const matches = SOLISTLER.filter(n => trMatch(n, q) && !pfSelected.includes(n));
   if (!matches.length) { pfHideDropdown(); return; }
   dd.innerHTML = matches.slice(0,8).map(n =>
     '<div class="pf-dd-item" onmousedown="event.preventDefault();pfAdd(\''+n+'\')">' + n + '</div>'
@@ -806,8 +810,9 @@ function closeWM(){
   var box=document.getElementById('wInfoBox');if(box)box.style.display='none';
 }
 function filterW(){
-  const q=document.getElementById('ws').value.toLowerCase().trim();
-  const list=q?WLIST.filter(w=>(w.name+w.composer+w.makam).toLowerCase().includes(q)):WLIST;
+  const q=document.getElementById('ws').value.trim();
+  // Türkçe duyarsız: "Gülşen" kaydı "gulsen", "Çeşm-i" kaydı "cesmi" ile bulunur.
+  const list=q?WLIST.filter(w=>trMatch((w.name||'')+' '+(w.composer||'')+' '+(w.makam||''), q)):WLIST;
   document.getElementById('wpl').innerHTML=list.slice(0,80).map(w=>`<div class="wpi${selWId===w.id?' sel':''}" onclick="pickW('${w.id}')"><div class="wpn">${w.name}</div><div class="wps">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--text3);">Bulunamadı</div>';
 }
 function pickW(id){
@@ -1473,7 +1478,7 @@ function iemPfKeydown(e){
 function iemPfSuggest(q){
   const dd=document.getElementById('iemPfDropdown');
   if(!q){dd.style.display='none';return;}
-  const m=SOLISTLER.filter(n=>n.toLowerCase().includes(q.toLowerCase())&&!iemPfSelected.includes(n));
+  const m=SOLISTLER.filter(n=>trMatch(n,q)&&!iemPfSelected.includes(n));
   if(!m.length){dd.style.display='none';return;}
   dd.innerHTML=m.slice(0,8).map(n=>'<div class="pf-dd-item" onmousedown="event.preventDefault();iemPfAdd(\''+n+'\')">'+n+'</div>').join('');
   dd.style.display='block';
