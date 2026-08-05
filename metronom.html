@@ -7,6 +7,10 @@
     tamamen elle ayarlanır. İleride bir eserden açılırsa ?bpm= ile ön doldurma
     yapılabilir, ama zorunlu bağ kurulmaz.
 
+  - 2026-08-05 (d): BPM elle yazılabilir hale getirildi (dev sayı artık bir girdi
+    alanı; Enter/odak kaybında 30-300 aralığına oturuyor, ok tuşlarıyla ±1, Shift
+    ile ±10). Ayrıca −/+ düğmeleri basılı tutulunca adım kademeli büyüyor
+    (1 → 2 → 5), 200'den 100'e inmek saniyeler sürmüyor.
   - 2026-08-05 (c): FONT + RENK DİLİ uygulamayla hizalandı. style.css body'ye
     sistem fontunu veriyor (-apple-system / SF Pro Display); sayfaya boşuna
     yüklenen Plus Jakarta Sans bağlantısı KALDIRILDI. Renkler style.css'in
@@ -80,7 +84,14 @@
 
 /* ── BPM ─────────────────────────────────────────────────────────────── */
 .mx-bpm-row{ display:flex; align-items:center; justify-content:center; gap:18px; margin-top:4px; }
-.mx-bpm{ font-size:60px; font-weight:800; line-height:1; color:var(--text); letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
+/* (2026-08-05 d) BPM artık ELLE YAZILABİLİR: 200'den 100'e inmek için düğmeyi
+   uzun süre basılı tutmak gerekiyordu. Görünüm eskisiyle aynı — çerçevesiz,
+   ortalanmış, dev punto — ama dokununca klavye açılıyor. */
+.mx-bpm{ font-size:60px; font-weight:800; line-height:1; color:var(--text); letter-spacing:-.03em; font-variant-numeric:tabular-nums;
+  width:3.1ch; text-align:center; background:transparent; border:none; border-bottom:2px dashed transparent;
+  padding:0; font-family:inherit; -webkit-appearance:none; outline:none; cursor:text; }
+.mx-bpm:hover{ border-bottom-color:var(--border); }
+.mx-bpm:focus{ border-bottom-color:var(--tempo-color); }
 .mx-bpm-unit{ font-size:13px; font-weight:700; color:var(--text3); letter-spacing:.12em; text-align:center; margin-top:6px; }
 .mx-term{ text-align:center; font-size:12px; color:var(--tempo-color); font-weight:600; margin-top:2px; min-height:16px; }
 .mx-round{
@@ -175,7 +186,7 @@
     <div class="mx-bpm-row">
       <button class="mx-round" id="minus" aria-label="Yavaşlat">−</button>
       <div>
-        <div class="mx-bpm" id="bpmView">96</div>
+        <input class="mx-bpm" id="bpmView" type="text" inputmode="numeric" maxlength="3" value="96" aria-label="Tempo (BPM)">
         <div class="mx-bpm-unit">BPM</div>
       </div>
       <button class="mx-round" id="plus" aria-label="Hızlandır">+</button>
@@ -377,13 +388,31 @@ function renderBeats(){
   });
 }
 
-function setBpm(v, skipSlider){
+function setBpm(v, skipSlider, skipField){
   bpm = Math.min(300, Math.max(30, Math.round(v)));
-  $('bpmView').textContent = bpm;
+  if (!skipField) $('bpmView').value = bpm;
   $('term').textContent = tempoTerm(bpm);
   if (!skipSlider) $('slider').value = bpm;
   saveState();
 }
+
+// Elle yazma: rakam dışını ele, yazarken tempoyu canlı uygula (çalarken de
+// duraksamadan değişsin), alandan çıkınca 30-300 aralığına oturt.
+(function wireBpmField(){
+  const f = $('bpmView');
+  f.addEventListener('input', () => {
+    f.value = f.value.replace(/[^0-9]/g, '');
+    const v = parseInt(f.value, 10);
+    if (v >= 30 && v <= 300) setBpm(v, false, true);
+  });
+  f.addEventListener('blur', () => setBpm(parseInt(f.value, 10) || bpm));
+  f.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); f.blur(); }
+    if (e.key === 'ArrowUp')   { e.preventDefault(); setBpm(bpm + (e.shiftKey ? 10 : 1)); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setBpm(bpm - (e.shiftKey ? 10 : 1)); }
+  });
+  f.addEventListener('focus', () => f.select());
+})();
 
 function setCount(n){
   const old = pattern.slice();
@@ -454,10 +483,16 @@ $('tap').onclick = tapTempo;
 $('slider').oninput = e => setBpm(+e.target.value, true);
 
 // Basılı tutunca hızlanan artış/azalış
+// Basılı tutunca adım büyür: ilk saniye 1'er, sonra 2'şer, sonra 5'er.
+// Eskiden sabit 1'er gidiyordu ve 200'den 100'e inmek ~7 saniye sürüyordu.
 function holdable(el, delta){
-  let t1, t2;
-  const step = () => setBpm(bpm + delta);
-  const down = e => { e.preventDefault(); step(); t1 = setTimeout(() => { t2 = setInterval(step, 70); }, 420); };
+  let t1, t2, ticks = 0;
+  const step = () => {
+    ticks++;
+    const size = ticks < 14 ? 1 : (ticks < 30 ? 2 : 5);
+    setBpm(bpm + delta * size);
+  };
+  const down = e => { e.preventDefault(); ticks = 0; setBpm(bpm + delta); t1 = setTimeout(() => { t2 = setInterval(step, 60); }, 400); };
   const up = () => { clearTimeout(t1); clearInterval(t2); };
   el.addEventListener('mousedown', down); el.addEventListener('touchstart', down, {passive:false});
   ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev => el.addEventListener(ev, up));
