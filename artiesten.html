@@ -388,12 +388,13 @@ function openWorkModal(artistId) {
   setTimeout(() => document.getElementById('workSearch').focus(), 50);
 }
 function closeWorkModal() { document.getElementById('workModal').style.display = 'none'; }
-function filterWorks() { renderWorkPicker(document.getElementById('workSearch').value.toLowerCase().trim()); }
+// (2026-08-05) Türkçe duyarsız arama: ham sorgu geçiliyor, trMatch (auth.js) kendi normalize ediyor.
+function filterWorks() { renderWorkPicker(document.getElementById('workSearch').value.trim()); }
 function renderWorkPicker(q) {
-  const list = q ? WORKS_LIST.filter(w => (w.name+w.composer+w.makam).toLowerCase().includes(q)) : WORKS_LIST;
+  const list = q ? WORKS_LIST.filter(w => trMatch((w.name||'')+' '+(w.composer||'')+' '+(w.makam||''), q)) : WORKS_LIST;
   const el = document.getElementById('workPickerList');
   el.innerHTML = list.slice(0,80).map(w =>
-    `<div class="work-pick-item${selectedWorkId===w.id?' selected':''}" onclick="selectedWorkId='${w.id}';renderWorkPicker(document.getElementById('workSearch').value.toLowerCase())">
+    `<div class="work-pick-item${selectedWorkId===w.id?' selected':''}" onclick="selectedWorkId='${w.id}';renderWorkPicker(document.getElementById('workSearch').value)">
       <div class="work-pick-name">${w.name}</div>
       <div class="work-pick-sub">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div>
     </div>`

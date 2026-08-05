@@ -1248,7 +1248,8 @@ function clearFilters() {
 }
 
 function applyFilters() {
-  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  // (2026-08-05) Ham sorgu — küçültme/aksan katlama trMatch'te (auth.js).
+  const q = document.getElementById('searchInput').value.trim();
   const favs = favOnly ? getFavs() : null;
   filteredData = DATA.filter(w => {
     if (w.status === 'pending' && w.submitted_by !== getUserId()) return false; // Sadece kendi pending eserlerini göster
@@ -1262,8 +1263,8 @@ function applyFilters() {
     if (activeFilters.region && w.region !== activeFilters.region) return false;
     if (activeFilters.makam && w.makam !== activeFilters.makam) return false;
     if (q) {
-      const search = (w.name+w.composer+w.lyricWriter+w.makam+w.region+w.sourcePerson+w.lyrics).toLowerCase();
-      if (!search.includes(q)) return false;
+      const search = [w.name,w.composer,w.lyricWriter,w.makam,w.region,w.sourcePerson,w.lyrics].filter(Boolean).join(' ');
+      if (!trMatch(search, q)) return false;
     }
     return true;
   });

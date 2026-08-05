@@ -505,12 +505,11 @@ async function deleteGroup() {
 
 // Üye arama
 function filterMembers(q) {
-  const lq = q.toLowerCase();
+  // (2026-08-05) Türkçe duyarsız arama (auth.js trMatch): "Hüsnü" kaydı "Husnu"
+  // yazınca da bulunur. Dört alan tek metinde birleştirilip aranıyor.
+  const lq = (q||'').trim();
   const filtered = lq ? currentMembers.filter(m =>
-    (m.display_name||'').toLowerCase().includes(lq) ||
-    (m.email||'').toLowerCase().includes(lq) ||
-    (m.instrument||'').toLowerCase().includes(lq) ||
-    (m.phone||'').toLowerCase().includes(lq)
+    trMatch([m.display_name, m.email, m.instrument, m.phone].filter(Boolean).join(' '), lq)
   ) : currentMembers;
   if (lq && filtered.length === 0) {
     document.getElementById('membersList').innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Sonuç bulunamadı.</div>';
