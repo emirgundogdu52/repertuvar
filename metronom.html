@@ -7,6 +7,10 @@
     tamamen elle ayarlanır. İleride bir eserden açılırsa ?bpm= ile ön doldurma
     yapılabilir, ama zorunlu bağ kurulmaz.
 
+  - 2026-08-05 (g): iOS'ta gruplama alanı inputmode="numeric" olduğu için yalnızca
+    rakam tuş takımı açılıyordu ve + yazılamıyordu. Üç önlem: inputmode="tel"
+    (iOS'ta "+*#" tuşu var), alanın yanına bir + düğmesi, ve ayırıcı olarak
+    boşluk/virgül/tire kabulü ("2 2 3" da "2+2+3" sayılıyor).
   - 2026-08-05 (f): GRUPLAMA ELLE YAZILABİLİR. Listede olmayan bir usul (ör. 15/8)
     için kullanıcı önce zaman sayısını girip sonra 15 vuruşa tek tek dokunmak
     zorundaydı. Artık "2+2+3+3+3+2" yazıp Uygula'ya basmak yeterli; alan mevcut
@@ -137,6 +141,9 @@
 .mx-group-field{ width:132px; text-align:center; font-family:inherit; font-size:13px; font-weight:700;
   background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:7px 8px; color:var(--text); outline:none; }
 .mx-group-field:focus{ border-color:var(--tempo-color); }
+.mx-group-plus{ font-family:inherit; font-size:17px; font-weight:700; width:38px; padding:7px 0; border-radius:9px; cursor:pointer;
+  background:var(--surface2); border:1px solid var(--border); color:var(--text2); }
+.mx-group-plus:active{ background:var(--tempo-color); color:#0b1226; }
 .mx-group-go{ font-family:inherit; font-size:12px; font-weight:700; padding:8px 12px; border-radius:9px; cursor:pointer;
   background:color-mix(in srgb, var(--tempo-color) 16%, transparent);
   border:1px solid color-mix(in srgb, var(--tempo-color) 45%, transparent); color:var(--tempo-color); }
@@ -233,8 +240,9 @@
 
     <div class="mx-group-row">
       <span class="mx-group" id="groupView">—</span>
-      <input type="text" id="groupField" class="mx-group-field" inputmode="numeric"
+      <input type="text" id="groupField" class="mx-group-field" inputmode="tel"
              placeholder="2+2+2+3" aria-label="Gruplamayı yaz">
+      <button class="mx-group-plus" id="groupPlus" aria-label="Artı ekle">+</button>
       <button class="mx-group-go" id="groupGo">Uygula</button>
     </div>
     <div class="mx-beats" id="beats"></div>
@@ -482,7 +490,8 @@ function groupText(){ return pattern.length + ' zamanlı · ' + groupsOf().join(
 
 // Yazılan gruplamayı uygula: "2+2+3+3+3+2" → 15 zamanlı desen
 function applyGroupText(txt){
-  const parts = (txt || '').split('+').map(x => parseInt(x.trim(), 10));
+  // iOS'ta rakam tuş takımında + yok; boşluk, virgül ve tire de ayırıcı sayılıyor.
+  const parts = (txt || '').replace(/[\s,\-]+/g, '+').split('+').filter(Boolean).map(x => parseInt(x, 10));
   if (!parts.length || parts.some(n => !(n >= 1 && n <= 16))) return false;
   const total = parts.reduce((a,b) => a+b, 0);
   if (total < 1 || total > 64) return false;
@@ -669,9 +678,16 @@ $('tgWake').onclick = () => {
     if (!applyGroupText(f.value)) { f.value = groupsOf().join('+'); }
     f.blur();
   };
-  f.addEventListener('input', () => { f.value = f.value.replace(/[^0-9+]/g, ''); });
+  f.addEventListener('input', () => { f.value = f.value.replace(/[^0-9+,\-\s]/g, ''); });
   f.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
   f.addEventListener('blur', () => { if (!applyGroupText(f.value)) f.value = groupsOf().join('+'); });
+  $('groupPlus').onclick = () => {
+    const pos = f.selectionStart ?? f.value.length;
+    f.value = f.value.slice(0, pos) + '+' + f.value.slice(f.selectionEnd ?? pos);
+    f.focus();
+    const np = pos + 1;
+    try { f.setSelectionRange(np, np); } catch(e) {}
+  };
   $('groupGo').onclick = go;
 })();
 
