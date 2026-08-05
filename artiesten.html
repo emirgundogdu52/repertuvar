@@ -75,6 +75,10 @@ html{background:var(--bg);}
   .work-chip span{color:var(--text3);font-size:10px;}
   .btn-add-work-chip{background:none;border:1px dashed var(--border2);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
   .btn-add-work-chip:hover{border-color:var(--accent);color:var(--accent);}
+  /* (2026-08-05) "+ Eser Ekle" düğmesi: openWorkModal() tanımlıydı ama onu
+     çağıran düğme kartta yoktu — özellik erişilemez durumdaydı. */
+  .work-chip-add{background:transparent;border:1px dashed var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text3);cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit;}
+  .work-chip-add:hover{border-color:var(--accent);color:var(--accent);}
   .work-chip-remove{color:var(--text3);cursor:pointer;font-size:11px;margin-left:2px;}
   .work-chip-remove:hover{color:var(--red);}
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;}
@@ -312,7 +316,7 @@ function renderDetail() {
       </div>
       <div class="works-chips">
         ${workChips}
-        
+        <button class="work-chip-add" onclick="openWorkModal('${a.id}')"><i class="ti ti-plus" style="font-size:13px;"></i> Eser Ekle</button>
       </div>
     </div>`;
 }
@@ -380,6 +384,9 @@ async function deleteArtist(id) {
 }
 
 function openWorkModal(artistId) {
+  // (2026-08-05) Kapı burada da: eskiden uyarı ancak "Ekle"ye basınca geliyordu,
+  // yani kullanıcı eseri seçtikten SONRA reddediliyordu.
+  if (!canManageArtist(getArtist(artistId))) { denyEdit(); return; }
   addingToArtistId = artistId;
   selectedWorkId = null;
   document.getElementById('workSearch').value = '';
