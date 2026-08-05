@@ -7,6 +7,10 @@
     tamamen elle ayarlanır. İleride bir eserden açılırsa ?bpm= ile ön doldurma
     yapılabilir, ama zorunlu bağ kurulmaz.
 
+  - 2026-08-05 (f): GRUPLAMA ELLE YAZILABİLİR. Listede olmayan bir usul (ör. 15/8)
+    için kullanıcı önce zaman sayısını girip sonra 15 vuruşa tek tek dokunmak
+    zorundaydı. Artık "2+2+3+3+3+2" yazıp Uygula'ya basmak yeterli; alan mevcut
+    gruplamayı da gösteriyor, yani desen değiştikçe kendini tazeliyor.
   - 2026-08-05 (e): TÜRK MÜZİĞİNE ÖZEL USUL YAPISI (Emir'in dağarı). Tek tık yerine
     DÜM (kalın, perdesi düşen sinüs) / TEK (ince) / BOŞ (sessiz) üç sesli vuruş.
     Vuruşa dokundukça bu üçü arasında döner; her DÜM yeni grup başlatır, bu yüzden
@@ -126,7 +130,16 @@
 .mx-beat.now{ transform:scale(1.22); box-shadow:0 0 0 3px color-mix(in srgb, var(--tempo-color) 30%, transparent); }
 .mx-beat.now.dum{ background:var(--accent); color:#0b1226; }
 .mx-hint{ text-align:center; font-size:11px; color:var(--text3); margin-top:8px; line-height:1.5; }
-.mx-group{ text-align:center; font-size:12px; font-weight:700; color:var(--text2); letter-spacing:.04em; margin-top:14px; }
+/* (2026-08-05 f) Gruplamayı ELLE YAZMA. Listede olmayan bir usul (ör. 15/8)
+   için tek tek vuruşa dokunmak işkenceydi: "2+2+3+3+3+2" yazıp Uygula yeter. */
+.mx-group-row{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
+.mx-group{ font-size:12px; font-weight:700; color:var(--text2); letter-spacing:.04em; }
+.mx-group-field{ width:132px; text-align:center; font-family:inherit; font-size:13px; font-weight:700;
+  background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:7px 8px; color:var(--text); outline:none; }
+.mx-group-field:focus{ border-color:var(--tempo-color); }
+.mx-group-go{ font-family:inherit; font-size:12px; font-weight:700; padding:8px 12px; border-radius:9px; cursor:pointer;
+  background:color-mix(in srgb, var(--tempo-color) 16%, transparent);
+  border:1px solid color-mix(in srgb, var(--tempo-color) 45%, transparent); color:var(--tempo-color); }
 .mx-legend{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; font-size:11px; color:var(--text3); margin-top:10px; }
 .mx-legend .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:0; }
 .mx-legend .dum{ background:var(--accent); }
@@ -218,14 +231,19 @@
 
     <input type="range" class="mx-slider" id="slider" min="30" max="300" value="96">
 
-    <div class="mx-group" id="groupView">—</div>
+    <div class="mx-group-row">
+      <span class="mx-group" id="groupView">—</span>
+      <input type="text" id="groupField" class="mx-group-field" inputmode="numeric"
+             placeholder="2+2+2+3" aria-label="Gruplamayı yaz">
+      <button class="mx-group-go" id="groupGo">Uygula</button>
+    </div>
     <div class="mx-beats" id="beats"></div>
     <div class="mx-legend">
       <span><i class="dot dum"></i> DÜM — kalın vuruş</span>
       <span><i class="dot tek"></i> Tek — ince vuruş</span>
       <span><i class="dot bos"></i> Boş — sessiz</span>
     </div>
-    <div class="mx-hint">Vuruşa dokundukça <b>DÜM → Tek → Boş</b> arasında döner. Her DÜM yeni bir grup başlatır, gruplamayı böyle kurarsın.</div>
+    <div class="mx-hint">Vuruşa dokundukça <b>DÜM → Tek → Boş</b> arasında döner. Listede olmayan bir usul için gruplamayı doğrudan yaz: <b>15/8</b> istiyorsan üstteki kutuya <b>2+2+3+3+3+2</b> yazıp Uygula'ya bas.</div>
 
     <div class="mx-main">
       <button class="mx-play" id="play"><i class="ti ti-player-play-filled"></i> <span id="playText">Başlat</span></button>
@@ -439,7 +457,9 @@ function renderBeats(){
     const label = lv === 2 ? 'D' : (lv === 1 ? 'T' : '·');
     return `<button class="mx-beat ${lv===2?'dum':''} ${lv===0?'bos':''}${gap}${big?' sm':''}" data-i="${i}" title="${i+1}. vuruş">${label}</button>`;
   }).join('');
-  $('groupView').textContent = groupText();
+  $('groupView').textContent = pattern.length + ' zamanlı ·';
+  const gf = $('groupField');
+  if (gf && document.activeElement !== gf) gf.value = groupsOf().join('+');
   document.querySelectorAll('.mx-beat').forEach(btn => {
     btn.onclick = () => {
       const i = +btn.dataset.i;
@@ -449,14 +469,26 @@ function renderBeats(){
   });
 }
 
-// "9/8 · 2+2+2+3" biçiminde okunur özet
-function groupText(){
+// Desenden grup uzunluklarını çıkarır: [2,2,2,3] gibi
+function groupsOf(){
   const gr = []; let n = 0;
   pattern.forEach((lv, i) => {
     if (lv === 2 && i > 0) { gr.push(n); n = 1; } else n++;
   });
   gr.push(n);
-  return pattern.length + ' zamanlı · ' + gr.join('+');
+  return gr;
+}
+function groupText(){ return pattern.length + ' zamanlı · ' + groupsOf().join('+'); }
+
+// Yazılan gruplamayı uygula: "2+2+3+3+3+2" → 15 zamanlı desen
+function applyGroupText(txt){
+  const parts = (txt || '').split('+').map(x => parseInt(x.trim(), 10));
+  if (!parts.length || parts.some(n => !(n >= 1 && n <= 16))) return false;
+  const total = parts.reduce((a,b) => a+b, 0);
+  if (total < 1 || total > 64) return false;
+  pattern = fromGroups(parts);
+  renderBeats(); renderCounts(); renderPresets(); saveState();
+  return true;
 }
 
 function setBpm(v, skipSlider, skipField){
@@ -629,6 +661,19 @@ $('tgWake').onclick = () => {
   if (wakeOn && running) requestWake(); else releaseWake();
   saveState();
 };
+
+// Gruplama alanı: Enter ya da Uygula
+(function wireGroupField(){
+  const f = $('groupField');
+  const go = () => {
+    if (!applyGroupText(f.value)) { f.value = groupsOf().join('+'); }
+    f.blur();
+  };
+  f.addEventListener('input', () => { f.value = f.value.replace(/[^0-9+]/g, ''); });
+  f.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+  f.addEventListener('blur', () => { if (!applyGroupText(f.value)) f.value = groupsOf().join('+'); });
+  $('groupGo').onclick = go;
+})();
 
 // Usul sekmeleri
 document.querySelectorAll('#usulTabs .mx-tab').forEach(t => {
