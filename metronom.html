@@ -7,6 +7,14 @@
     tamamen elle ayarlanır. İleride bir eserden açılırsa ?bpm= ile ön doldurma
     yapılabilir, ama zorunlu bağ kurulmaz.
 
+  - 2026-08-05 (h): SES SEVİYESİ. Metronom telefonda cılız duyuluyordu. Üç neden,
+    üç önlem: (1) DÜM'ün gövdesi 78-190 Hz'de kalıyordu ve küçük hoparlörler bu
+    bandı basamıyor → üstüne bir oktav yukarıdan ikinci bir katman bindirildi,
+    kalın karakter korunarak telefonda duyulur hale geldi; (2) TEK'in seviyesi
+    0.42'den 0.75'e çıkarıldı; (3) tüm ses artık bir ana kazanç düğümünden ve
+    yumuşak bir sınırlayıcıdan geçiyor — seviye yükseldiğinde çatlamıyor.
+    Ayarlar kartına 0-100 arası SES SEVİYESİ kaydırıcısı eklendi (varsayılan %85,
+    kullanıcı bazlı olarak saklanıyor, çalarken de anında etki ediyor).
   - 2026-08-05 (g): iOS'ta gruplama alanı inputmode="numeric" olduğu için yalnızca
     rakam tuş takımı açılıyordu ve + yazılamıyordu. Üç önlem: inputmode="tel"
     (iOS'ta "+*#" tuşu var), alanın yanına bir + düğmesi, ve ayırıcı olarak
@@ -292,6 +300,10 @@
       </div>
       <div class="mx-toggle on" id="tgSound"></div>
     </div>
+    <div class="mx-switch" style="display:block;">
+      <div class="mx-switch-label" style="margin-bottom:9px;"><i class="ti ti-volume-2"></i> Ses seviyesi <span id="volView" style="margin-left:auto;color:var(--text3);font-size:12px;">85%</span></div>
+      <input type="range" id="volSlider" min="0" max="100" value="85" style="width:100%;accent-color:var(--tempo-color);height:24px;">
+    </div>
     <div class="mx-switch">
       <div>
         <div class="mx-switch-label"><i class="ti ti-bulb"></i> Ekran açık kalsın</div>
@@ -315,6 +327,7 @@ let bpm = 96;
 let pattern = [2,1,1,1];
 let running = false;
 let soundOn = true;
+let vol = 0.85;   // 0-1 arası ses seviyesi (kullanıcı ayarlar kartından değiştirir)
 let wakeOn = false;
 let wakeLock = null;
 
@@ -328,7 +341,7 @@ function storeKey(){
   return 'metronom:' + (uid || 'anon');
 }
 function saveState(){
-  try { localStorage.setItem(storeKey(), JSON.stringify({bpm, pattern, soundOn, wakeOn})); } catch(e) {}
+  try { localStorage.setItem(storeKey(), JSON.stringify({bpm, pattern, soundOn, wakeOn, vol})); } catch(e) {}
 }
 function loadState(){
   try {
@@ -339,6 +352,7 @@ function loadState(){
     if (Array.isArray(s.pattern) && s.pattern.length) pattern = s.pattern.slice(0,16);
     if (typeof s.soundOn === 'boolean') soundOn = s.soundOn;
     if (typeof s.wakeOn === 'boolean') wakeOn = s.wakeOn;
+    if (typeof s.vol === 'number' && s.vol >= 0 && s.vol <= 1) vol = s.vol;
   } catch(e) {}
 }
 
@@ -357,6 +371,8 @@ function tempoTerm(v){
 
 // ── Ses motoru ──────────────────────────────────────────────────────────
 let actx = null, nextNoteTime = 0, beatIndex = 0, timerId = null;
+let master = null;   // tüm sesin geçtiği ana kazanç düğümü (ses seviyesi buradan)
+let limiter = null;  // yumuşak sınırlayıcı — seviye yükseldiğinde çatlamayı önler
 const LOOKAHEAD = 25;        // ms — zamanlayıcının uyanma sıklığı
 const SCHEDULE_AHEAD = 0.12; // sn — bu kadar ilerisi önceden planlanır
 let visualQueue = [];
@@ -372,22 +388,36 @@ function click(level, when){
   const osc = actx.createOscillator();
   const gain = actx.createGain();
   if (level === 2) {                       // DÜM
+    // Gövde: alçak, perdesi düşen sinüs. TEK BAŞINA telefonda neredeyse duyulmaz —
+    // küçük hoparlörler 80 Hz civarını basamıyor. Bu yüzden üstüne bir oktav
+    // yukarıdan ikinci bir katman bindiriliyor: kalın karakter korunuyor ama ses
+    // telefonun hoparlöründen de çıkıyor.
     osc.type = 'sine';
     osc.frequency.setValueAtTime(190, when);
     osc.frequency.exponentialRampToValueAtTime(78, when + 0.09);
     gain.gain.setValueAtTime(0.0001, when);
-    gain.gain.exponentialRampToValueAtTime(0.95, when + 0.004);
+    gain.gain.exponentialRampToValueAtTime(1.0, when + 0.004);
     gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.16);
-    osc.connect(gain); gain.connect(actx.destination);
+    osc.connect(gain); gain.connect(master);
     osc.start(when); osc.stop(when + 0.18);
+
+    const up = actx.createOscillator(), ug = actx.createGain();
+    up.type = 'triangle';
+    up.frequency.setValueAtTime(380, when);
+    up.frequency.exponentialRampToValueAtTime(165, when + 0.07);
+    ug.gain.setValueAtTime(0.0001, when);
+    ug.gain.exponentialRampToValueAtTime(0.55, when + 0.003);
+    ug.gain.exponentialRampToValueAtTime(0.0001, when + 0.10);
+    up.connect(ug); ug.connect(master);
+    up.start(when); up.stop(when + 0.12);
   } else {                                 // TEK
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(1180, when);
     gain.gain.setValueAtTime(0.0001, when);
-    gain.gain.exponentialRampToValueAtTime(0.42, when + 0.002);
-    gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.045);
-    osc.connect(gain); gain.connect(actx.destination);
-    osc.start(when); osc.stop(when + 0.06);
+    gain.gain.exponentialRampToValueAtTime(0.75, when + 0.002);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.05);
+    osc.connect(gain); gain.connect(master);
+    osc.start(when); osc.stop(when + 0.07);
   }
 }
 
@@ -404,7 +434,15 @@ function scheduler(){
 
 async function start(){
   if (running) return;
-  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!actx) {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    master = actx.createGain();
+    master.gain.value = vol;
+    limiter = actx.createDynamicsCompressor();     // seviye yüksekken çatlamasın
+    limiter.threshold.value = -8; limiter.ratio.value = 6;
+    limiter.attack.value = 0.002; limiter.release.value = 0.12;
+    master.connect(limiter); limiter.connect(actx.destination);
+  }
   if (actx.state === 'suspended') await actx.resume();   // iOS: dokunuş şart
   running = true;
   beatIndex = 0; visualQueue = [];
@@ -663,6 +701,20 @@ function holdable(el, delta){
 }
 holdable($('minus'), -1);
 holdable($('plus'), 1);
+
+// Ses seviyesi: çalarken de anında etki eder (master gain doğrudan güncelleniyor)
+(function wireVolume(){
+  const sl = $('volSlider');
+  const apply = v => {
+    vol = Math.min(1, Math.max(0, v / 100));
+    $('volView').textContent = Math.round(vol * 100) + '%';
+    if (master) master.gain.setTargetAtTime(vol, actx.currentTime, 0.01);
+  };
+  sl.addEventListener('input', () => apply(+sl.value));
+  sl.addEventListener('change', saveState);
+  sl.value = Math.round(vol * 100);
+  apply(+sl.value);
+})();
 
 $('tgSound').onclick = () => { soundOn = !soundOn; $('tgSound').classList.toggle('on', soundOn); saveState(); };
 $('tgWake').onclick = () => {
