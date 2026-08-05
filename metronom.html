@@ -7,6 +7,14 @@
     tamamen elle ayarlanır. İleride bir eserden açılırsa ?bpm= ile ön doldurma
     yapılabilir, ama zorunlu bağ kurulmaz.
 
+  - 2026-08-05 (e): TÜRK MÜZİĞİNE ÖZEL USUL YAPISI (Emir'in dağarı). Tek tık yerine
+    DÜM (kalın, perdesi düşen sinüs) / TEK (ince) / BOŞ (sessiz) üç sesli vuruş.
+    Vuruşa dokundukça bu üçü arasında döner; her DÜM yeni grup başlatır, bu yüzden
+    gruplama ayrı bir veri değil — desenden türetiliyor ve noktalar arasına boşluk
+    olarak yansıyor. Üç sekmeli usul kütüphanesi: En çok kullanılan / Sanat müziği /
+    Halk müziği. Zaman sayısı çipleri 16'ya kadar, ayrıca 1-64 arası SERBEST giriş
+    (Devr-i Kebir 28 zamanlı gibi büyük usuller için). ?usul=2+2+2+3 ile eserden
+    ön doldurma desteği eklendi (zorunlu bağ değil, her şey elle değiştirilebilir).
   - 2026-08-05 (d): BPM elle yazılabilir hale getirildi (dev sayı artık bir girdi
     alanı; Enter/odak kaybında 30-300 aralığına oturuyor, ok tuşlarıyla ±1, Shift
     ile ±10). Ayrıca −/+ düğmeleri basılı tutulunca adım kademeli büyüyor
@@ -113,11 +121,26 @@
   display:flex; align-items:center; justify-content:center; font-family:inherit;
   transition:transform .09s ease-out, background .12s, color .12s, box-shadow .12s;
 }
-.mx-beat.accent{ background:color-mix(in srgb, var(--accent) 16%, transparent); border-color:color-mix(in srgb, var(--accent) 45%, transparent); color:var(--accent); }
-.mx-beat.mute{ opacity:.35; }
+.mx-beat.dum{ background:color-mix(in srgb, var(--accent) 18%, transparent); border-color:color-mix(in srgb, var(--accent) 50%, transparent); color:var(--accent); }
+.mx-beat.bos{ opacity:.4; }
 .mx-beat.now{ transform:scale(1.22); box-shadow:0 0 0 3px color-mix(in srgb, var(--tempo-color) 30%, transparent); }
-.mx-beat.now.accent{ background:var(--accent); color:#fff; }
+.mx-beat.now.dum{ background:var(--accent); color:#0b1226; }
 .mx-hint{ text-align:center; font-size:11px; color:var(--text3); margin-top:8px; line-height:1.5; }
+.mx-group{ text-align:center; font-size:12px; font-weight:700; color:var(--text2); letter-spacing:.04em; margin-top:14px; }
+.mx-legend{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; font-size:11px; color:var(--text3); margin-top:10px; }
+.mx-legend .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:0; }
+.mx-legend .dum{ background:var(--accent); }
+.mx-legend .tek{ background:var(--tempo-color); }
+.mx-legend .bos{ background:var(--surface2); border:1px solid var(--border); }
+.mx-beat.grp{ margin-left:14px; }
+.mx-beat.sm{ width:26px; height:26px; border-radius:9px; font-size:10px; }
+.mx-tabs{ display:flex; gap:6px; margin-bottom:13px; flex-wrap:wrap; }
+.mx-tab{ flex:1; min-width:96px; padding:8px 6px; border-radius:9px; cursor:pointer; font-family:inherit;
+  font-size:12px; font-weight:600; background:var(--surface2); border:1px solid var(--border); color:var(--text3); }
+.mx-tab.on{ background:color-mix(in srgb, var(--tempo-color) 16%, transparent); border-color:color-mix(in srgb, var(--tempo-color) 45%, transparent); color:var(--tempo-color); }
+.mx-count-field{ width:64px; text-align:center; font-size:15px; font-weight:700; font-family:inherit;
+  background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:7px 0; color:var(--text); outline:none; }
+.mx-count-field:focus{ border-color:var(--tempo-color); }
 
 /* ── Denetimler ──────────────────────────────────────────────────────── */
 .mx-main{ display:flex; gap:12px; align-items:center; margin-top:18px; }
@@ -195,8 +218,14 @@
 
     <input type="range" class="mx-slider" id="slider" min="30" max="300" value="96">
 
+    <div class="mx-group" id="groupView">—</div>
     <div class="mx-beats" id="beats"></div>
-    <div class="mx-hint">Vuruşa dokun: <b>vurgulu</b> → normal → <b>sessiz</b>. Aksak usullerde gruplamayı böyle kurarsın.</div>
+    <div class="mx-legend">
+      <span><i class="dot dum"></i> DÜM — kalın vuruş</span>
+      <span><i class="dot tek"></i> Tek — ince vuruş</span>
+      <span><i class="dot bos"></i> Boş — sessiz</span>
+    </div>
+    <div class="mx-hint">Vuruşa dokundukça <b>DÜM → Tek → Boş</b> arasında döner. Her DÜM yeni bir grup başlatır, gruplamayı böyle kurarsın.</div>
 
     <div class="mx-main">
       <button class="mx-play" id="play"><i class="ti ti-player-play-filled"></i> <span id="playText">Başlat</span></button>
@@ -205,15 +234,26 @@
   </div>
 
   <div class="mx-card">
-    <div class="mx-title">Vuruş sayısı</div>
+    <div class="mx-title">Zaman sayısı</div>
     <div class="mx-chips" id="counts"></div>
+    <div style="display:flex;align-items:center;gap:9px;margin-top:12px;">
+      <span style="font-size:12px;color:var(--text3);">Serbest:</span>
+      <input type="text" inputmode="numeric" maxlength="2" id="countField" class="mx-count-field" value="4">
+      <span style="font-size:12px;color:var(--text3);">zaman (1-64)</span>
+    </div>
   </div>
 
   <div class="mx-card">
-    <div class="mx-title">Hazır gruplamalar</div>
+    <div class="mx-title">Usuller</div>
+    <div class="mx-tabs" id="usulTabs">
+      <button class="mx-tab on" data-t="yaygin">En çok kullanılan</button>
+      <button class="mx-tab" data-t="tsm">Sanat müziği</button>
+      <button class="mx-tab" data-t="thm">Halk müziği</button>
+    </div>
     <div class="mx-chips" id="presets"></div>
-    <div class="mx-hint" style="text-align:left;margin-top:11px;">
-      Kısayoldur, hepsi elle değiştirilebilir. Hiçbiri eser kaydına bağlı değildir.
+    <div class="mx-hint" style="text-align:left;margin-top:12px;">
+      Hepsi kısayoldur; seçtikten sonra vuruşlara dokunup kendi kalıbını kurabilirsin.
+      Sanat müziği usullerinde zaman sayıları esastır, düm-tek dağılımı icra geleneğine göre değişebilir.
     </div>
   </div>
 
@@ -297,17 +337,32 @@ let visualQueue = [];
 
 function beatSeconds(){ return 60.0 / bpm; }
 
+// DÜM ve TEK ayrı seslerle üretiliyor — düz metronom tıkı usulü hissettirmiyor.
+// DÜM: kalın, tokmak gibi (perdesi hızla düşen sinüs — darbuka göbeğinin taklidi).
+// TEK: ince, kenar vuruşu (yüksek üçgen dalga + çok kısa zarf).
+// BOŞ (0): hiç ses yok ama görselde yeri durur, usulün nefesi böyle sayılır.
 function click(level, when){
   if (!soundOn || level === 0) return;
   const osc = actx.createOscillator();
   const gain = actx.createGain();
-  osc.type = 'triangle';
-  osc.frequency.value = (level === 2) ? 1650 : 920;
-  gain.gain.setValueAtTime(0.0001, when);
-  gain.gain.exponentialRampToValueAtTime(level === 2 ? 0.7 : 0.45, when + 0.002);
-  gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.055);
-  osc.connect(gain); gain.connect(actx.destination);
-  osc.start(when); osc.stop(when + 0.07);
+  if (level === 2) {                       // DÜM
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(190, when);
+    osc.frequency.exponentialRampToValueAtTime(78, when + 0.09);
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.exponentialRampToValueAtTime(0.95, when + 0.004);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.16);
+    osc.connect(gain); gain.connect(actx.destination);
+    osc.start(when); osc.stop(when + 0.18);
+  } else {                                 // TEK
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(1180, when);
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.exponentialRampToValueAtTime(0.42, when + 0.002);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.045);
+    osc.connect(gain); gain.connect(actx.destination);
+    osc.start(when); osc.stop(when + 0.06);
+  }
 }
 
 function scheduler(){
@@ -375,17 +430,33 @@ function showBeat(i){
 }
 
 // ── Arayüz kurulumu ─────────────────────────────────────────────────────
+// Gruplama ayrı bir veri değil: her DÜM yeni bir grup başlatır, bu yüzden
+// DÜM'den önce boşluk bırakmak 2+2+2+3'ü ekranda kendiliğinden gösterir.
 function renderBeats(){
-  $('beats').innerHTML = pattern.map((lv, i) =>
-    `<button class="mx-beat ${lv===2?'accent':''} ${lv===0?'mute':''}" data-i="${i}">${i+1}</button>`
-  ).join('');
+  const big = pattern.length > 16;
+  $('beats').innerHTML = pattern.map((lv, i) => {
+    const gap = (i > 0 && lv === 2) ? ' grp' : '';
+    const label = lv === 2 ? 'D' : (lv === 1 ? 'T' : '·');
+    return `<button class="mx-beat ${lv===2?'dum':''} ${lv===0?'bos':''}${gap}${big?' sm':''}" data-i="${i}" title="${i+1}. vuruş">${label}</button>`;
+  }).join('');
+  $('groupView').textContent = groupText();
   document.querySelectorAll('.mx-beat').forEach(btn => {
     btn.onclick = () => {
       const i = +btn.dataset.i;
       pattern[i] = (pattern[i] === 2) ? 1 : (pattern[i] === 1 ? 0 : 2);
-      renderBeats(); saveState();
+      renderBeats(); renderCounts(); saveState();
     };
   });
+}
+
+// "9/8 · 2+2+2+3" biçiminde okunur özet
+function groupText(){
+  const gr = []; let n = 0;
+  pattern.forEach((lv, i) => {
+    if (lv === 2 && i > 0) { gr.push(n); n = 1; } else n++;
+  });
+  gr.push(n);
+  return pattern.length + ' zamanlı · ' + gr.join('+');
 }
 
 function setBpm(v, skipSlider, skipField){
@@ -415,44 +486,96 @@ function setBpm(v, skipSlider, skipField){
 })();
 
 function setCount(n){
+  n = Math.min(64, Math.max(1, n|0));
   const old = pattern.slice();
   pattern = Array.from({length:n}, (_, i) => old[i] !== undefined ? old[i] : 1);
-  if (!pattern.includes(2)) pattern[0] = 2;
-  renderBeats(); renderCounts(); saveState();
+  if (pattern[0] !== 2) pattern[0] = 2;
+  renderBeats(); renderCounts(); renderPresets(); saveState();
 }
 
 function renderCounts(){
-  const opts = [2,3,4,5,6,7,8,9,10,12];
+  const opts = [2,3,4,5,6,7,8,9,10,11,12,13,16];
   $('counts').innerHTML = opts.map(n =>
     `<button class="mx-chip ${pattern.length===n?'sel':''}" data-n="${n}">${n}</button>`
   ).join('');
   document.querySelectorAll('#counts .mx-chip').forEach(c => c.onclick = () => setCount(+c.dataset.n));
+  const f = $('countField');
+  if (f && document.activeElement !== f) f.value = pattern.length;
 }
 
-// Gruplama kısayolları: aksak usullerde vurguların nereye düştüğü tempodan
-// daha belirleyicidir. Yine de hepsi elle değiştirilebilir.
-const PRESETS = [
-  { label: '2/4',  sub: '1+1',        groups: [1,1] },
-  { label: '4/4',  sub: 'düz',        groups: [4] },
-  { label: '5/8',  sub: '2+3',        groups: [2,3] },
-  { label: '7/8',  sub: '2+2+3',      groups: [2,2,3] },
-  { label: '9/8',  sub: '2+2+2+3',    groups: [2,2,2,3] },
-  { label: '9/8',  sub: '3+2+2+2',    groups: [3,2,2,2] },
-  { label: '10/8', sub: '3+2+2+3',    groups: [3,2,2,3] },
-  { label: '12/8', sub: '3+3+3+3',    groups: [3,3,3,3] },
-];
-function applyPreset(p){
+// ── USUL KÜTÜPHANESİ ────────────────────────────────────────────────────
+// Emir'in (2026-08-05) verdiği üç seviyeli dağar. Kısayoldur; her kalıp
+// seçildikten sonra vuruşlara dokunarak elle değiştirilebilir.
+// g: grup uzunlukları — her grubun ilk vuruşu DÜM, kalanı TEK olur.
+const USUL = {
+  yaygin: [
+    { ad:'2/4',  g:[1,1],        not:'Oyun havaları' },
+    { ad:'3/4',  g:[1,1,1],      not:'Semai' },
+    { ad:'4/4',  g:[2,2],        not:'Pop, ilahi, sanat müziği' },
+    { ad:'5/8',  g:[2,3],        not:'Türküler' },
+    { ad:'5/8',  g:[3,2],        not:'Türküler' },
+    { ad:'6/8',  g:[3,3],        not:'Halay, Roman' },
+    { ad:'7/8',  g:[2,2,3],      not:'Karadeniz, Ege' },
+    { ad:'8/8',  g:[3,2,3],      not:'Türküler' },
+    { ad:'8/8',  g:[2,3,3],      not:'Türküler' },
+    { ad:'9/8',  g:[2,2,2,3],    not:'Zeybek' },
+    { ad:'9/8',  g:[3,2,2,2],    not:'Karşılama' },
+    { ad:'10/8', g:[3,2,2,3],    not:'Sanat müziği' },
+    { ad:'12/8', g:[3,3,3,3],    not:'Blues, halk müziği' },
+  ],
+  tsm: [
+    { ad:'Semai',        g:[1,1,1],           not:'3 zamanlı' },
+    { ad:'Sofyan',       g:[2,2],             not:'4 zamanlı' },
+    { ad:'Türk Aksağı',  g:[2,3],             not:'5 zamanlı' },
+    { ad:'Yürük Semai',  g:[3,3],             not:'6 zamanlı' },
+    { ad:'Devr-i Hindi', g:[3,2,2],           not:'7 zamanlı' },
+    { ad:'Devr-i Turan', g:[2,2,3],           not:'7 zamanlı' },
+    { ad:'Aksak',        g:[2,2,2,3],         not:'9 zamanlı' },
+    { ad:'Ağır Aksak',   g:[2,2,2,3],         not:'9 zamanlı' },
+    { ad:'Evfer',        g:[2,2,2,3],         not:'9 zamanlı' },
+    { ad:'Raks Aksağı',  g:[2,2,2,3],         not:'9 zamanlı' },
+    { ad:'Curcuna',      g:[3,2,2,3],         not:'10 zamanlı' },
+    { ad:'Muhammes',     g:[4,4,4,4],         not:'16 zamanlı' },
+    { ad:'Çifte Düyek',  g:[4,4,4,4],         not:'16 zamanlı' },
+    { ad:'Devr-i Kebir', g:[4,4,4,4,4,4,4],   not:'28 zamanlı' },
+  ],
+  thm: [
+    { ad:'5/8',  g:[2,3] },      { ad:'5/8',  g:[3,2] },
+    { ad:'7/8',  g:[2,2,3] },    { ad:'7/8',  g:[2,3,2] },    { ad:'7/8',  g:[3,2,2] },
+    { ad:'8/8',  g:[3,2,3] },    { ad:'8/8',  g:[2,3,3] },    { ad:'8/8',  g:[3,3,2] },
+    { ad:'8/8',  g:[2,2,2,2] },
+    { ad:'9/8',  g:[2,2,2,3] },  { ad:'9/8',  g:[2,2,3,2] },  { ad:'9/8',  g:[2,3,2,2] },
+    { ad:'9/8',  g:[3,2,2,2] },
+    { ad:'10/8', g:[3,2,2,3] },  { ad:'10/8', g:[2,3,2,3] },  { ad:'10/8', g:[3,3,2,2] },
+    { ad:'10/8', g:[2,2,3,3] },
+    { ad:'11/8', g:[3,2,3,3] },  { ad:'11/8', g:[2,3,3,3] },  { ad:'11/8', g:[2,2,2,2,3] },
+    { ad:'13/8', g:[3,2,3,2,3] },{ ad:'13/8', g:[2,3,2,3,3] },
+  ]
+};
+let usulTab = 'yaygin';
+
+// Grup uzunluklarından vuruş desenine: her grubun başı DÜM, kalanı TEK.
+function fromGroups(g){
   const pat = [];
-  p.groups.forEach(g => { for (let i=0;i<g;i++) pat.push(i===0 ? 2 : 1); });
-  pattern = pat;
-  renderBeats(); renderCounts(); saveState();
+  g.forEach(len => { for (let i=0;i<len;i++) pat.push(i===0 ? 2 : 1); });
+  return pat;
+}
+function applyUsul(u){
+  pattern = fromGroups(u.g);
+  renderBeats(); renderCounts(); renderPresets(); saveState();
 }
 function renderPresets(){
-  $('presets').innerHTML = PRESETS.map((p,i) =>
-    `<button class="mx-chip" data-p="${i}">${p.label}<small>${p.sub}</small></button>`
-  ).join('');
+  const cur = groupText();
+  $('presets').innerHTML = USUL[usulTab].map((u,i) => {
+    const sel = fromGroups(u.g).length === pattern.length &&
+                (u.g.join('+') === cur.split('· ')[1]) ? ' sel' : '';
+    const alt = u.not ? `<small>${u.g.join('+')} · ${u.not}</small>` : `<small>${u.g.join('+')}</small>`;
+    return `<button class="mx-chip${sel}" data-u="${i}">${u.ad}${alt}</button>`;
+  }).join('');
   document.querySelectorAll('#presets .mx-chip').forEach(c =>
-    c.onclick = () => applyPreset(PRESETS[+c.dataset.p]));
+    c.onclick = () => applyUsul(USUL[usulTab][+c.dataset.u]));
+  document.querySelectorAll('#usulTabs .mx-tab').forEach(t =>
+    t.classList.toggle('on', t.dataset.t === usulTab));
 }
 
 // ── Tap tempo ───────────────────────────────────────────────────────────
@@ -507,6 +630,24 @@ $('tgWake').onclick = () => {
   saveState();
 };
 
+// Usul sekmeleri
+document.querySelectorAll('#usulTabs .mx-tab').forEach(t => {
+  t.onclick = () => { usulTab = t.dataset.t; renderPresets(); };
+});
+
+// Serbest zaman sayısı (1-64): büyük usuller çip listesine sığmıyor
+(function wireCountField(){
+  const f = $('countField');
+  f.addEventListener('input', () => {
+    f.value = f.value.replace(/[^0-9]/g,'');
+    const v = parseInt(f.value,10);
+    if (v >= 1 && v <= 64) setCount(v);
+  });
+  f.addEventListener('blur', () => { f.value = pattern.length; });
+  f.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); f.blur(); } });
+  f.addEventListener('focus', () => f.select());
+})();
+
 // Boşluk tuşu başlat/durdur — çalışırken elin klavyedeyse pratik
 document.addEventListener('keydown', e => {
   if (e.code === 'Space' && e.target.tagName !== 'INPUT') { e.preventDefault(); running ? stop() : start(); }
@@ -520,6 +661,13 @@ document.addEventListener('keydown', e => {
   const qs = new URLSearchParams(location.search);
   const qbpm = parseInt(qs.get('bpm'), 10);
   if (qbpm >= 30 && qbpm <= 300) bpm = qbpm;
+  // Eserden gelindiyse usul de ön doldurulur: metronom.html?bpm=72&usul=2+2+2+3
+  // Kullanıcı yine de her şeyi elle değiştirebilir — bağ zorunlu değil.
+  const qusul = (qs.get('usul') || '').trim();
+  if (/^[0-9]+(\+[0-9]+)*$/.test(qusul)) {
+    const g = qusul.split('+').map(Number).filter(n => n > 0 && n <= 16);
+    if (g.length && g.reduce((a,b)=>a+b,0) <= 64) pattern = fromGroups(g);
+  }
   $('tgSound').classList.toggle('on', soundOn);
   $('tgWake').classList.toggle('on', wakeOn);
   setBpm(bpm);
