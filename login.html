@@ -259,7 +259,21 @@ if (_inviteToken) localStorage.setItem('pending_invite', _inviteToken);
 
 if(!window.location.search.includes('logout=1') && !window.location.hash.includes('type=recovery')) {
   const token = localStorage.getItem('sb_token');
-  if(token) window.location.href = 'index.html';
+  if (token) {
+    // (2026-08-06) ZATEN GİRİŞLİ KULLANICI + DAVET LİNKİ.
+    // Eskiden burada koşulsuz index.html'e gidiliyordu; davet token'ı
+    // localStorage'a yazılıyor ama redeem_invite hiç çağrılmıyordu, yani
+    // hesabı olan biri davet linkine tıkladığında HİÇBİR ŞEY olmuyordu.
+    // Artık davet önce burada kullanılır, sonra yönlendirilir.
+    if (_inviteToken) {
+      handlePendingInvite().then(function(d) {
+        if (d && d.ok === true) window.location.href = 'index.html?joined=1';
+        // Hata varsa sayfada kal — handlePendingInvite mesajı gösterdi.
+      });
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
 }
 
 async function handlePendingInvite(userId) {
@@ -290,10 +304,14 @@ async function handlePendingInvite(userId) {
       if (d && d.reason === 'expired') showMsg('err', 'Davet linkinin süresi dolmuş.');
       else if (d && d.reason === 'used') showMsg('err', 'Bu davet linki daha önce kullanılmış.');
       else if (d && d.reason === 'notfound') showMsg('err', 'Davet linki geçersiz.');
+      else showMsg('err', 'Davet kullanılamadı.');
     }
+    return d;   // çağıran (girişli kullanıcı yolu) sonuca göre yönlendirir
   } catch(e) {
     console.error('Invite error:', e);
     localStorage.removeItem('pending_invite');
+    showMsg('err', 'Davet işlenemedi — bağlantınızı kontrol edip linke tekrar tıklayın.');
+    return null;
   }
 }
 

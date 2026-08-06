@@ -490,11 +490,43 @@ function anonHeaders() {
   };
 }
 
+// ── BEKLEYEN DAVETİ TÜKET (2026-08-06) ─────────────────────────────────────
+// KUSUR: login.html davet token'ını `pending_invite`e yazıyor, ama ZATEN GİRİŞLİ
+// bir kullanıcı davet linkine tıklarsa sayfa hemen index.html'e yönlendiriyordu
+// ve redeem_invite HİÇ çağrılmıyordu — davet localStorage'da sonsuza kadar asılı
+// kalıyor, kişi gruba katılamıyordu. Bu süpürücü, hangi sayfaya düşerse düşsün
+// bekleyen daveti kullanır. Ağ isteği YALNIZCA anahtar doluysa yapılır.
+async function redeemPendingInvite() {
+  const tk = localStorage.getItem('pending_invite');
+  if (!tk || !getToken()) return null;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/redeem_invite', {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + getToken(),
+                 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_token: tk }),
+      signal: AbortSignal.timeout(8000)
+    });
+    const d = await r.json().catch(() => null);
+    localStorage.removeItem('pending_invite');   // tek deneme — döngüye girmesin
+    if (d && d.ok === true) {
+      await loadMyGroups();                      // yeni üyelik listeye girsin
+      try { window.dispatchEvent(new CustomEvent('invite-redeemed', { detail: d })); } catch(e) {}
+    }
+    return d;
+  } catch(e) {
+    console.warn('[auth] redeemPendingInvite:', e);
+    return null;   // anahtar DURUYOR — ağ hatasıysa bir sonraki sayfada denenir
+  }
+}
+
 async function requireAuth() {
   const token = getToken();
   if (!token) { window.location.href = 'login.html'; return false; }
   // Cached user varsa hemen authReady — UI beklemez
   if (getUser()) window.dispatchEvent(new CustomEvent('authReady'));
+  // Bekleyen davet varsa arka planda tüket (anahtar boşsa hiç istek gitmez).
+  redeemPendingInvite();
   try {
     const r = await fetch(SUPA_URL+'/auth/v1/user', {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token},
