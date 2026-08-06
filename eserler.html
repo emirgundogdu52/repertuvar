@@ -1070,10 +1070,11 @@ function mapWorkRow(w) {
     id: w.id, name: w.name || '', composer: w.composer || '',
     lyricWriter: w.lyric_writer || '', makam: w.makam || '',
     form: w.form || '', measurement: w.measurement || '',
-    metronom: '', genre: '', instrument: w.instrument || '',
+    metronom: (w.metronom == null ? '' : String(w.metronom)), genre: '', instrument: w.instrument || '',
     tuning: w.tuning || '', closingNote: w.closing_note || '',
     area: '', region: w.region || '', sourcePerson: w.source_person || '',
     collector: w.collector || '', story: w.story || '',
+    ritim: w.ritim || '',
     videoLink: w.video_link || '', lyrics: w.lyrics || '',
     chords: w.chords || '', notaUrl: w.nota_url || '',
     notaPages: Array.isArray(w.nota_pages) ? w.nota_pages.filter(Boolean) : (w.nota_url ? [w.nota_url] : []),
@@ -1142,7 +1143,7 @@ async function syncWorksFromServer(hadLocalData) {
     // ── FAZ 1: HAFİF liste (güfte/akor/nota HARİÇ) — ilk boyama hızlı olsun.
     //    Liste ve filtreler bu alanlara ihtiyaç duymaz; ağır güfte/akor metnini
     //    ilk yükte çekmek soğuk açılışı yavaşlatan asıl sebepti. ──
-    const lightSel = 'select=id,name,composer,lyric_writer,makam,form,measurement,instrument,tuning,closing_note,region,source_person,collector,story,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id';
+    const lightSel = 'select=id,name,composer,lyric_writer,makam,form,measurement,instrument,tuning,closing_note,region,source_person,collector,story,metronom,ritim,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id';
     const r = await fetch(SUPA_URL+base+'&'+lightSel, {
       headers: hdr,
       signal: AbortSignal.timeout(hadLocalData ? 8000 : 5000)
@@ -1675,7 +1676,8 @@ function renderList() {
     // Admin/editör her eseri düzenleyebilir; üye sadece kendi eklediği eseri (submitted_by) düzenleyebilir.
     const canEdit = swipeAllowedContext && (isAdmin() || isEditor() || w.submitted_by === uidNow);
     const cardOnclick = canEdit ? `weCardClick(event, ${w.id})` : clickHandler;
-    const touchAttrs = canEdit ? `ontouchstart="weTouchStart(event)" ontouchmove="weTouchMove(event)" ontouchend="weTouchEnd(event)" ontouchcancel="weTouchEnd(event)"` : '';
+    // (2026-08-06) onmousedown eklendi — kaydırma artık masaüstünde de çalışıyor.
+    const touchAttrs = canEdit ? `ontouchstart="weTouchStart(event)" ontouchmove="weTouchMove(event)" ontouchend="weTouchEnd(event)" ontouchcancel="weTouchEnd(event)" onmousedown="weMouseStart(event)"` : '';
     const cardHtml = `<div class="work-item${stripeClass}${isChecked?' selected':(selectedId===w.id&&!bulkMode?' selected':_zi%2===1?' zebra':'')}" onclick="${cardOnclick}" data-id="${w.id}" ${touchAttrs}>
       ${checkbox}
       <div class="work-icon">🎵</div>
@@ -1727,8 +1729,16 @@ function weTouchStart(e) {
 function weTouchMove(e) {
   if (!_weSwipe || _weSwipe.card !== e.currentTarget) return;
   const t = e.touches[0];
-  const dx = t.clientX - _weSwipe.startX;
-  const dy = t.clientY - _weSwipe.startY;
+  _weMove(t.clientX, t.clientY, function(){ e.preventDefault(); });
+}
+
+// (2026-08-06) Kaydırma çekirdeği — hem parmak hem FARE bunu kullanıyor.
+// Eskiden yalnızca ontouchstart/move/end bağlıydı: telefonda çalışıyor,
+// MASAÜSTÜNDE HİÇBİR ŞEY OLMUYORDU (Emir bildirdi). Mantık tek yerde dursun
+// diye gövde buraya alındı; iki giriş yolu da aynı hesabı çalıştırıyor.
+function _weMove(cx, cy, prevent) {
+  const dx = cx - _weSwipe.startX;
+  const dy = cy - _weSwipe.startY;
   if (_weSwipe.dir === null) {
     if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
       _weSwipe.dir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
@@ -1736,7 +1746,7 @@ function weTouchMove(e) {
   }
   if (_weSwipe.dir === 'v') { _weSwipe = null; return; }
   if (_weSwipe.dir === 'h') {
-    e.preventDefault();
+    if (prevent) prevent();
     let base = 0;
     if (_weSwipe.card.classList.contains('swiped-open-right')) base = -WE_SWIPE_MAX; // sil paneli açıktı
     else if (_weSwipe.card.classList.contains('swiped-open-left')) base = WE_SWIPE_MAX; // değiştir paneli açıktı
@@ -1749,7 +1759,9 @@ function weTouchMove(e) {
   }
 }
 
-function weTouchEnd(e) {
+function weTouchEnd(e) { _weEnd(); }
+
+function _weEnd() {
   if (!_weSwipe || _weSwipe.dir !== 'h') { _weSwipe = null; return; }
   const card = _weSwipe.card;
   card.style.transition = 'transform .2s ease';
@@ -1774,6 +1786,50 @@ function weTouchEnd(e) {
     if (_weOpenCard === card) _weOpenCard = null;
   }
   _weSwipe = null;
+}
+
+// ── FARE İLE KAYDIRMA (2026-08-06) ───────────────────────────────────
+// Masaüstünde parmak yok; kartı fareyle tutup sürükleyince de Değiştir/Sil
+// panelleri açılmalı. Dinleyiciler mousedown'da DOKÜMANA bağlanıyor: imleç
+// kartın dışına taşsa bile hareket takip edilsin, düğme bırakılınca çözülsün.
+function weMouseStart(e) {
+  if (e.button !== 0) return;                       // yalnızca sol tuş
+  if (e.target.closest('button, a, input, .we-act')) return;  // düğmeye basıldıysa karışma
+  if (_weOpenCard && _weOpenCard !== e.currentTarget) weCloseOpenCard();
+  _weSwipe = { card: e.currentTarget, startX: e.clientX, startY: e.clientY, dx: 0, dir: null };
+  document.addEventListener('mousemove', _weMouseMove);
+  document.addEventListener('mouseup', _weMouseUp);
+}
+
+function _weMouseMove(e) {
+  if (!_weSwipe) { _weMouseUp(); return; }
+  // Yatay sürüklemede metin seçilmesin — imleç kart üstünde gezinirken
+  // tarayıcı satırları maviye boyarsa hareket "kırık" hissettiriyor.
+  _weMove(e.clientX, e.clientY, function(){ e.preventDefault(); });
+  if (_weSwipe && _weSwipe.dir === 'h') document.body.style.userSelect = 'none';
+}
+
+function _weMouseUp() {
+  document.removeEventListener('mousemove', _weMouseMove);
+  document.removeEventListener('mouseup', _weMouseUp);
+  document.body.style.userSelect = '';
+  // (2026-08-06) Panel açık kalsın: fare bırakılınca tarayıcı hemen bir `click`
+  // gönderiyor, o da weCardClick'e düşüp AÇILAN paneli anında kapatıyordu
+  // ("çekiyorum, bırakınca geri kaçıyor"). Dokunmada bu yaşanmıyor çünkü
+  // touchmove'daki preventDefault sahte tıklamayı zaten engelliyor.
+  // Gerçek bir sürükleme olduysa SIRADAKİ tek click'i yakalama aşamasında yutuyoruz.
+  const suruklendi = !!(_weSwipe && _weSwipe.dir === 'h' && Math.abs(_weSwipe.dx) > 5);
+  _weEnd();
+  if (suruklendi) {
+    const yut = function(ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+      document.removeEventListener('click', yut, true);
+    };
+    document.addEventListener('click', yut, true);
+    // Click hiç gelmezse (bazı tarayıcılarda gelmiyor) dinleyici asılı kalmasın.
+    setTimeout(function(){ document.removeEventListener('click', yut, true); }, 350);
+  }
 }
 
 function weCardClick(e, id) {
@@ -3469,12 +3525,93 @@ function fillFormDatalist() {
     .map(v => '<option value="' + v.replace(/"/g,'&quot;') + '">').join('');
 }
 
+// ── AKOR GÖSTERİM SİSTEMİ (2026-08-06) ───────────────────────────────
+// Çevirici fonksiyonlar auth.js'e taşındı (cevirAkorMetni / getAkorYazim /
+// setAkorYazim) — stage.html de aynı kopyayı kullanıyor. Burada yalnızca
+// modaldaki radyonun davranışı var. Depolama her zaman HARF (bkz. auth.js).
+let _neNotation = 'abc';
+
+function setChordNotation(yon) {
+  const ta = document.getElementById('ne_chords');
+  if (!ta || yon === _neNotation) { _neNotation = yon; return; }
+  ta.value = cevirAkorMetni(ta.value, yon);
+  _neNotation = yon;
+  setAkorYazim(yon);
+}
+
+// Modal açılırken: kayıtlı tercihi uygula (metin kutusuna HARF olarak geldi).
+function applyChordNotationPref() {
+  const yon = (typeof getAkorYazim === 'function') ? getAkorYazim() : 'abc';
+  _neNotation = 'abc';
+  const r = document.querySelector('input[name="ne_notation"][value="' + yon + '"]');
+  if (r) r.checked = true;
+  if (yon === 'solfej') setChordNotation('solfej'); else _neNotation = 'abc';
+}
+
 // ── NOTA (modal) ─────────────────────────────────────────────────────
 // Nota yükleme MEVCUT bir eser kaydı gerektiriyor (dosya doğrudan o esere
 // bağlanıp works satırına yazılıyor). Yeni eserde henüz id yok — dosyayı
 // bellekte biriktirip sonra yüklemek yerine kullanıcıya AÇIK SÖYLÜYORUZ:
 // önce kaydet, sonra düzenlemeye girip notayı yükle. (Emir'in kararı: gizli
 // mekanizma yerine tek cümlelik uyarı.)
+// Modalın kendi sürükle-bırak/yapıştır kutuları. Detay panelindekiyle AYNI
+// CSS ve aynı yükleme fonksiyonunu kullanır; id'ler ayrı ("_ne") çünkü aynı
+// eserin detayı arkada açıkken id çakışması olurdu.
+function setupNeNotaZone() {
+  const zone = document.getElementById('notaDrop_ne');
+  const box  = document.getElementById('notaPaste_ne');
+  const al = files => {
+    if (!files || !files.length) return;
+    if (editingWorkId === null) { renderNeNotaList(); return; }
+    uploadNotaFiles(editingWorkId, files);
+    renderNeNotaList('⏳ Yükleniyor — bittiğinde eser detayındaki Nota sekmesinde görünecek.');
+  };
+  if (zone && zone.dataset.wired !== '1') {
+    zone.dataset.wired = '1';
+    ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation(); zone.classList.add('drag');
+    }));
+    ['dragleave','dragend'].forEach(ev => zone.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation(); zone.classList.remove('drag');
+    }));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation(); zone.classList.remove('drag');
+      al(e.dataTransfer && e.dataTransfer.files ? Array.from(e.dataTransfer.files) : []);
+    });
+  }
+  if (box && box.dataset.wired !== '1') {
+    box.dataset.wired = '1';
+    box.addEventListener('paste', e => {
+      e.preventDefault(); e.stopPropagation();
+      const dt = e.clipboardData;
+      let fs = (dt && dt.files && dt.files.length) ? Array.from(dt.files) : [];
+      if (!fs.length && dt && dt.items) {          // iOS bazen files yerine items veriyor
+        for (const it of dt.items) {
+          if (it.type && it.type.indexOf('image/') === 0) { const g = it.getAsFile(); if (g) fs.push(g); }
+        }
+      }
+      box.innerHTML = ''; box.blur();
+      if (fs.length) al(fs);
+      else if (editingWorkId === null) renderNeNotaList();
+      else renderNeNotaList('❌ Panoda görsel yok. Önce bir görsel/ekran görüntüsü kopyala.');
+    });
+    box.addEventListener('input', () => { box.innerHTML = ''; });
+    box.addEventListener('keydown', e => {
+      if (e.key && e.key.length === 1 && !e.metaKey && !e.ctrlKey) e.preventDefault();
+    });
+    ['dragenter','dragover'].forEach(ev => box.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation(); box.classList.add('drag');
+    }));
+    ['dragleave','dragend'].forEach(ev => box.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation(); box.classList.remove('drag');
+    }));
+    box.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation(); box.classList.remove('drag');
+      al(e.dataTransfer && e.dataTransfer.files ? Array.from(e.dataTransfer.files) : []);
+    });
+  }
+}
+
 function neNotaPick(input) {
   const files = Array.from(input.files || []);
   input.value = '';
@@ -3506,13 +3643,15 @@ function openNewEserModal() {
   editingWorkId = null;
   document.getElementById('modalTitle').textContent = '+ Yeni Eser Ekle';
   ['ne_name','ne_composer','ne_lyricWriter','ne_makam','ne_measurement','ne_form',
-   'ne_tuning','ne_instrument','ne_region','ne_sourcePerson','ne_collector','ne_story',
+   'ne_tuning','ne_instrument','ne_region','ne_sourcePerson','ne_collector','ne_story','ne_ritim','ne_metronom',
    'ne_videoLink','ne_lyrics','ne_chords','ne_closingNote']
     .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   setLyricsValue('');
   applyLyricsLockState();
   fillFormDatalist();
+  applyChordNotationPref();
   renderNeNotaList();
+  setupNeNotaZone();
   document.getElementById('ne_visPublic').checked = true;
   switchNeTab('lyrics');
   document.getElementById('newEserModal').style.display = 'flex';
@@ -3529,6 +3668,7 @@ function openEditEserModal(id) {
     ne_tuning: w.tuning, ne_instrument: w.instrument, ne_region: w.region,
     ne_sourcePerson: w.sourcePerson, ne_videoLink: w.videoLink, ne_lyrics: w.lyrics,
     ne_closingNote: w.closingNote, ne_collector: w.collector, ne_story: w.story,
+    ne_ritim: w.ritim, ne_metronom: w.metronom,
     ne_chords: w.chords || ''
   };
   Object.entries(fields).forEach(([id, val]) => {
@@ -3538,7 +3678,9 @@ function openEditEserModal(id) {
   setLyricsValue(w.lyrics || '');
   applyLyricsLockState();   // kilit yok — söz her zaman düzenlenebilir (2026-08-06)
   fillFormDatalist();
+  applyChordNotationPref();
   renderNeNotaList();
+  setupNeNotaZone();
   if (w.visibility === 'private') document.getElementById('ne_visPrivate').checked = true;
   else document.getElementById('ne_visPublic').checked = true;
   switchNeTab('lyrics');
@@ -3668,9 +3810,74 @@ function lyricsInsert(text) {
   }
 }
 
+// ── BENZER ESER ADI BULMA (2026-08-06) ────────────────────────────────
+// Neden yalnızca birebir eşleşme yetmiyor: halk dilinde ve edebiyatta aynı
+// eser farklı yazılıyor — "Bahçe/Bahça", "Bahçada/Bahçede", "yârim/yarim".
+// trNorm aksanı katlıyor ama DEĞİŞEN SESLİ HARFİ katlamıyor; o yüzden
+// düzenleme uzaklığı (Levenshtein) kullanıyoruz.
+// Bu bir UYARI eşiği, engel değil — yanlış pozitif yalnızca bir soru penceresi
+// demek, o yüzden gevşek tutmak kaçırmaktan iyidir.
+function _duzenlemeUzakligi(a, b) {
+  if (a === b) return 0;
+  const n = a.length, m = b.length;
+  if (Math.abs(n - m) > 3) return 99;          // uzunluk çok farklıysa boşuna sayma
+  let onceki = Array.from({ length: m + 1 }, (_, j) => j);
+  for (let i = 1; i <= n; i++) {
+    const simdi = [i];
+    for (let j = 1; j <= m; j++) {
+      simdi[j] = Math.min(
+        onceki[j] + 1,                          // silme
+        simdi[j - 1] + 1,                       // ekleme
+        onceki[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)  // değiştirme
+      );
+    }
+    onceki = simdi;
+  }
+  return onceki[m];
+}
+
+function benzerEserler(ad) {
+  const nrm = t => (typeof trNorm === 'function')
+    ? trNorm(t) : String(t || '').toLocaleLowerCase('tr');
+  const hedef = nrm(ad);
+  if (!hedef) return [];
+  // Kısa adlarda tek harf bile çok şey değiştirir ("Kara"/"Kare"), uzun adlarda
+  // iki harf sapma hâlâ aynı türküdür ("Bahçada"/"Bahçede Yeşil Çınar").
+  const esik = hedef.length <= 10 ? 1 : 2;
+  return (DATA || []).filter(w => {
+    if (!w || !w.name) return false;
+    const d = _duzenlemeUzakligi(hedef, nrm(w.name));
+    return d <= esik;
+  });
+}
+
 function saveNewEser() {
   const name = document.getElementById('ne_name').value.trim();
   if (!name) { switchNeTab('lyrics'); alert('Eser adı zorunludur.'); return; }
+
+  // (2026-08-06) AYNI ADLA MÜKERRER KAYIT UYARISI.
+  // works ORTAK katalog; aynı türkü ikinci kez girilince liste ikiye bölünüyor,
+  // repertuvarlar farklı kayıtlara bağlanıyor ve hangisinin doğru olduğu
+  // anlaşılmıyor. Kaydı ENGELLEMİYORUZ (aynı adı taşıyan farklı eserler
+  // gerçekten var — yöresi, makamı, sözü başka olabilir), yalnızca soruyoruz.
+  // Karşılaştırma trNorm üzerinden: "Bahça Duvarindan" ile "Bahça Duvarından"
+  // aynı sayılsın (auth.js).
+  if (editingWorkId === null) {
+    const _benzer = benzerEserler(name);
+    if (_benzer.length) {
+      const _liste = _benzer.slice(0, 4).map(w => {
+        const d = [w.composer, w.region, w.makam].filter(Boolean).join(' · ');
+        return '  • ' + w.name + (d ? '  (' + d + ')' : '');
+      }).join('\n');
+      const _fazla = _benzer.length > 4 ? '\n  • … ve ' + (_benzer.length - 4) + ' tane daha' : '';
+      if (!confirm('Benzer adla ' + _benzer.length + ' eser zaten kayıtlı:\n\n' + _liste + _fazla
+        + '\n\nYine de yeni bir kayıt oluşturulsun mu?'
+        + '\n\nMevcut esere ekleme yapacaksanız İptal deyin, listeden o eseri açıp Düzenle deyin.')) {
+        return;
+      }
+    }
+  }
+
   const isPublic = document.getElementById('ne_visPublic').checked;
 
   // TEK KAYNAK: akorda gerçek akor satırı varsa akor ana kaynaktır, güfte ondan
@@ -3680,7 +3887,9 @@ function saveNewEser() {
   // türetiliyor ve kullanıcının yazdığı EZİLİYORDU — nakarat/tekrar işaretleri
   // bu yüzden kayboluyordu. Yeni kural tek cümle: söz boşsa akordan bir kez
   // doldurulur, doluysa asla dokunulmaz.
-  const _chordsRaw = (document.getElementById('ne_chords')?.value || '').trim();
+  // Kutuda solfej yazılmış olabilir — depolama her zaman harf (bkz. setChordNotation)
+  let _chordsRaw = (document.getElementById('ne_chords')?.value || '').trim();
+  if (_neNotation === 'solfej') _chordsRaw = cevirAkorMetni(_chordsRaw, 'abc');
   const _realChords = hasRealChords(_chordsRaw);
   const _lyricsTyped = getLyricsValue().trim();
   const _lyricsVal = _lyricsTyped || (_realChords ? chordsToLyrics(_chordsRaw) : '');
@@ -3698,13 +3907,16 @@ function saveNewEser() {
     region:       document.getElementById('ne_region').value.trim(),
     sourcePerson: document.getElementById('ne_sourcePerson').value.trim(),
     collector:    document.getElementById('ne_collector').value.trim(),
+    ritim:        document.getElementById('ne_ritim').value.trim(),
+    // Tempo sayısal kolon (smallint) — boşsa null gitmeli, '' hata verir
+    metronom:     (document.getElementById('ne_metronom').value.trim() || null),
     story:        document.getElementById('ne_story').value.trim(),
     videoLink:    document.getElementById('ne_videoLink').value.trim(),
     lyrics:       _lyricsVal,
     chords:       _chordsVal,
     closingNote:  document.getElementById('ne_closingNote').value.trim(),
     isPublic,
-    metronom: '', area: '', genre: '', _custom: true
+    area: '', genre: '', _custom: true
   };
 
   if (editingWorkId !== null) {
@@ -3722,6 +3934,8 @@ function saveNewEser() {
       source_person: fields.sourcePerson,
       collector: fields.collector,
       story: fields.story,
+      ritim: fields.ritim,
+      metronom: fields.metronom ? Number(fields.metronom) : null,
       video_link: fields.videoLink,
       lyrics: fields.lyrics,
       chords: fields.chords,
@@ -3769,6 +3983,8 @@ function saveNewEser() {
       source_person: fields.sourcePerson,
       collector: fields.collector,
       story: fields.story,
+      ritim: fields.ritim,
+      metronom: fields.metronom ? Number(fields.metronom) : null,
       video_link: fields.videoLink,
       lyrics: fields.lyrics,
       chords: fields.chords,
@@ -4008,6 +4224,16 @@ async function removeEditor(id) {
   showEditorManager();
 }
 
+// (2026-08-06) Yönetim sayfasından ?pending=1 ile gelindiğinde onay kuyruğu
+// doğrudan açılır — admin iki tık yerine tek tıkla işe girsin.
+window.addEventListener('load', function() {
+  try {
+    if (new URLSearchParams(location.search).get('pending') !== '1') return;
+    if (!(isAdmin() || isEditor())) return;
+    setTimeout(function(){ if (typeof showPendingWorks === 'function') showPendingWorks(); }, 600);
+  } catch(e) {}
+});
+
 async function showPendingWorks() {
   const list = document.getElementById('pendingList');
   list.innerHTML = '<div class="pm-empty">Yükleniyor...</div>';
@@ -4233,7 +4459,7 @@ function openSuggestModal() {
           <button type="button" onclick="lyricsInsert('\n— Bağlantı —\n')" title="Bağlantı bölümü" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#4DA3FF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">Bağlantı</button>
         </div>
         <!-- Editable area -->
-        <div id="ne_lyrics_editor" contenteditable="true" placeholder="Söz metni... (nakarat, tekrar ve dönüşleri buraya yazabilirsin)" 
+        <div id="ne_lyrics_editor" contenteditable="true" placeholder="Eserin sözlerini (nakarat, tekrar ve dönüşleri buraya yazabilir veya yapıştırabilirsiniz)" 
           style="min-height:280px;max-height:480px;overflow-y:auto;padding:12px;background:var(--surface2);color:var(--text);font-size:14px;line-height:1.8;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;outline:none;white-space:pre-wrap;">
         </div>
       </div>
@@ -4245,7 +4471,17 @@ function openSuggestModal() {
          Temel Bilgiler'e taşındı; bu sekme yalnızca akor metni için. -->
     <div id="neTabPanel_details" class="ne-tab-panel" style="display:none;grid-template-columns:1fr;gap:12px;min-height:460px;align-content:start;">
       <div>
-        <label style="font-size:12px;color:var(--text2);">Akorlar <span style="color:var(--text3);font-weight:300;">(opsiyonel — akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz)</span></label>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <label style="font-size:12px;color:var(--text2);">Akorlar <span style="color:var(--text3);font-weight:300;">(opsiyonel — akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz)</span></label>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;">
+              <input type="radio" name="ne_notation" value="abc" checked onchange="setChordNotation('abc')" style="accent-color:var(--accent);width:14px;height:14px;"> A B C
+            </label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;">
+              <input type="radio" name="ne_notation" value="solfej" onchange="setChordNotation('solfej')" style="accent-color:var(--accent);width:14px;height:14px;"> Do Re Mi
+            </label>
+          </div>
+        </div>
         <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:430px;resize:vertical;"></textarea>
       </div>
     </div>
@@ -4258,11 +4494,15 @@ function openSuggestModal() {
         <label style="font-size:12px;color:var(--text2);">Nota Sayfaları</label>
         <div style="margin-top:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;">
           <input type="file" id="ne_notaFile" accept="image/*,.pdf" multiple style="display:none;" onchange="neNotaPick(this)">
-          <div onclick="if (editingWorkId === null) { renderNeNotaList(); } else { document.getElementById('ne_notaFile').click(); }" style="border:1px dashed var(--border);border-radius:8px;padding:22px 14px;text-align:center;cursor:pointer;">
-            <div style="font-size:26px;line-height:1;margin-bottom:8px;">🎼</div>
-            <div style="font-size:13px;color:var(--text2);font-weight:600;">Nota sayfası seç</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5;">JPG, PNG, WEBP veya PDF · her biri en fazla 15 MB<br>Sahne modunda sayfa geçişi için her sayfayı ayrı görsel olarak yükle</div>
+          <div class="nota-drop" id="notaDrop_ne"
+               onclick="if (editingWorkId === null) { renderNeNotaList(); } else { document.getElementById('ne_notaFile').click(); }">
+            <div class="nota-drop-icon">🎼</div>
+            <div class="nota-drop-main">Notayı buraya sürükle, yapıştır ya da tıklayıp seç</div>
+            <div class="nota-drop-sub">Yeni dosyalar mevcut sayfaların SONUNA eklenir<br>(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)</div>
           </div>
+          <div class="nota-paste" id="notaPaste_ne" contenteditable="true" inputmode="none" role="button"
+               aria-label="Panodaki görseli yapıştır" onclick="event.stopPropagation()"></div>
+          <div class="nota-paste-hint">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
           <div id="ne_notaList" style="margin-top:12px;font-size:12px;color:var(--text2);"></div>
         </div>
       </div>
@@ -4270,17 +4510,28 @@ function openSuggestModal() {
 
     <!-- TAB 3 (gösterim sırası): TEMEL BİLGİLER -->
     <div id="neTabPanel_basic" class="ne-tab-panel" style="display:none;grid-template-columns:1fr 1fr;gap:12px;min-height:460px;align-content:start;">
-      <div><label style="font-size:12px;color:var(--text2);">Besteci</label><input id="ne_composer" placeholder="Besteci..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Söz Yazarı</label><input id="ne_lyricWriter" placeholder="Söz yazarı..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Makam</label><input id="ne_makam" placeholder="Makam..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Usul</label><input id="ne_measurement" placeholder="Usul..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label style="font-size:12px;color:var(--text2);">Karar Sesi</label><input id="ne_closingNote" placeholder="Karar sesi..." style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;"></div>
-      <div><label class="ne-lbl">Yöre/Bölge</label><input id="ne_region" class="ne-inp" placeholder="Yöre..."></div>
+      <!-- (2026-08-06) Alan sırası Emir'in belirlediği eşleşmelere göre:
+           Söz Yazarı-Besteci / Kaynak Kişi-Derleyen / Makam-Usul /
+           Akort-Karar Sesi / Enstrüman-Yöre / Tempo-Ritim / Youtube -->
+      <div><label class="ne-lbl">Söz Yazarı</label><input id="ne_lyricWriter" class="ne-inp" placeholder="Söz yazarı..."></div>
+      <div><label class="ne-lbl">Besteci</label><input id="ne_composer" class="ne-inp" placeholder="Besteci..."></div>
+
       <div><label class="ne-lbl">Kaynak Kişi</label><input id="ne_sourcePerson" class="ne-inp" placeholder="Kaynak kişi..."></div>
       <div><label class="ne-lbl">Derleyen</label><input id="ne_collector" class="ne-inp" placeholder="Derleyen..."></div>
+
+      <div><label class="ne-lbl">Makam</label><input id="ne_makam" class="ne-inp" placeholder="Makam..."></div>
+      <div><label class="ne-lbl">Usul</label><input id="ne_measurement" class="ne-inp" placeholder="Usul..."></div>
+
       <div><label class="ne-lbl">Akort</label><input id="ne_tuning" class="ne-inp" placeholder="Akort..."></div>
+      <div><label class="ne-lbl">Karar Sesi</label><input id="ne_closingNote" class="ne-inp" placeholder="Karar sesi..."></div>
+
       <div><label class="ne-lbl">Enstrüman</label><input id="ne_instrument" class="ne-inp" placeholder="Enstrüman..."></div>
-      <div style="grid-column:1/-1;"><label class="ne-lbl">Video Linki</label><input id="ne_videoLink" class="ne-inp" placeholder="https://..."></div>
+      <div><label class="ne-lbl">Yöre/Bölge</label><input id="ne_region" class="ne-inp" placeholder="Yöre..."></div>
+
+      <div><label class="ne-lbl">Tempo <span style="color:var(--text3);font-weight:400;">(vuruş/dk)</span></label><input id="ne_metronom" class="ne-inp" inputmode="numeric" maxlength="3" placeholder="örn. 72"></div>
+      <div><label class="ne-lbl">Ritim</label><input id="ne_ritim" class="ne-inp" placeholder="örn. Düyek, Çiftetelli..."></div>
+
+      <div style="grid-column:1/-1;"><label class="ne-lbl">Youtube</label><input id="ne_videoLink" class="ne-inp" placeholder="https://..."></div>
       <div style="grid-column:1/-1;">
         <label class="ne-lbl">Eserin Hikâyesi</label>
         <textarea id="ne_story" class="ne-inp" placeholder="Eserin hikâyesi, derlendiği ortam, anlatılan olay..." style="min-height:120px;resize:vertical;line-height:1.6;"></textarea>

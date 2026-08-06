@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Repertuvar — Yönetim</title>
+<!-- yonetim.html — 2026-08-06
+     Yönetim işleri şimdiye kadar üç ayrı sayfaya dağılmıştı: üyeler ve roller
+     uyeler.html'de, eser onay kuyruğu eserler.html'in içinde gizli, grup
+     yönetimi gruplar.html'de. Bu sayfa TEK GİRİŞ NOKTASI: üstte sayılar,
+     altında ilgili sayfalara giden kartlar. Üyeler artık sol menüde değil,
+     buranın altında (Emir'in kararı).
+     NOT: Mesajlar BİLEREK burada değil — yönetim işi değil, her kullanıcının
+     günlük aracı; yeri sol menü ve alt çubuk.
+     KAPSAM: bu sayfa kendi başına veri DÜZENLEMİYOR — yalnızca sayıyor ve
+     yönlendiriyor. Düzenleme hep ilgili sayfada kalıyor ki tek bir işin iki
+     ayrı yerde iki farklı kodu olmasın. -->
+<script src="topnav.js" defer></script>
+<script src="auth.js"></script>
+<link rel="stylesheet" href="style.css">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+<style>
+.page-content{padding:24px 32px;}
+@media(max-width:767px){.page-content{padding:16px;}}
+.page-title{font-size:20px;font-weight:700;color:var(--text);}
+.page-sub{font-size:13px;color:var(--text3);margin-top:4px;}
+
+/* Sayı kartları */
+.y-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0 26px;}
+.y-stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+.y-stat-lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:700;}
+.y-stat-val{font-size:26px;font-weight:800;color:var(--text);margin-top:6px;line-height:1;font-variant-numeric:tabular-nums;}
+.y-stat.alert .y-stat-val{color:var(--accent);}
+.y-stat.alert{border-color:var(--accent);}
+
+/* Bölüm kartları */
+.y-sec-title{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:700;margin:0 0 12px;}
+.y-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
+.y-card{display:flex;align-items:flex-start;gap:14px;background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:16px 18px;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s;}
+.y-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+.y-card-ico{width:38px;height:38px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--accent);flex-shrink:0;}
+.y-card-name{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.y-card-desc{font-size:12.5px;color:var(--text2);line-height:1.5;margin-top:4px;}
+.y-badge{background:var(--accent);color:#1a1200;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:800;}
+.y-note{font-size:12px;color:var(--text3);line-height:1.6;margin-top:20px;}
+</style>
+</head>
+<body>
+<div id="r-topnav-container"></div>
+
+<div class="main-wrap">
+<div class="page-content">
+  <div>
+    <div class="page-title">Yönetim</div>
+    <div class="page-sub">Uygulama geneli işler tek yerde.</div>
+  </div>
+
+  <div class="y-stats">
+    <div class="y-stat" id="stPendingBox">
+      <div class="y-stat-lbl">Onay Bekleyen</div>
+      <div class="y-stat-val" id="stPending">—</div>
+    </div>
+    <div class="y-stat">
+      <div class="y-stat-lbl">Kullanıcı</div>
+      <div class="y-stat-val" id="stUsers">—</div>
+    </div>
+    <div class="y-stat">
+      <div class="y-stat-lbl">Eser</div>
+      <div class="y-stat-val" id="stWorks">—</div>
+    </div>
+    <div class="y-stat">
+      <div class="y-stat-lbl">Repertuvar</div>
+      <div class="y-stat-val" id="stReps">—</div>
+    </div>
+    <div class="y-stat">
+      <div class="y-stat-lbl">Grup / Koro</div>
+      <div class="y-stat-val" id="stGroups">—</div>
+    </div>
+  </div>
+
+  <div class="y-sec-title">Bölümler</div>
+  <div class="y-cards">
+    <a class="y-card" href="uyeler.html">
+      <div class="y-card-ico"><i class="ti ti-users" aria-hidden="true"></i></div>
+      <div>
+        <div class="y-card-name">Üyeler</div>
+        <div class="y-card-desc">Kullanıcı listesi, rol değiştirme, hesap askıya alma ve silme talepleri.</div>
+      </div>
+    </a>
+
+    <a class="y-card" href="eserler.html?pending=1" id="cardPending">
+      <div class="y-card-ico"><i class="ti ti-checkbox" aria-hidden="true"></i></div>
+      <div>
+        <div class="y-card-name">Eser Onayı <span class="y-badge" id="pendingBadge" style="display:none;">0</span></div>
+        <div class="y-card-desc">Kullanıcıların önerdiği eserleri inceleyip ortak kataloğa alın.</div>
+      </div>
+    </a>
+
+    <a class="y-card" href="gruplar.html">
+      <div class="y-card-ico"><i class="ti ti-users-group" aria-hidden="true"></i></div>
+      <div>
+        <div class="y-card-name">Grup / Koro</div>
+        <div class="y-card-desc">Grup bilgileri, üyeler ve davet bağlantıları.</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="y-note" id="yNote"></div>
+</div>
+</div>
+
+<script>
+// Sayılar tek seferde, PostgREST'in count başlığıyla alınıyor: satırları
+// çekmiyoruz (limit=1 + head yerine select=id), yalnızca Content-Range'deki
+// toplamı okuyoruz — 400+ eserlik tabloyu boşuna indirmemek için.
+async function sayac(path) {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/' + path, {
+      headers: { ...authHeaders(), 'Prefer': 'count=exact', 'Range': '0-0' },
+      signal: AbortSignal.timeout(8000)
+    });
+    const cr = r.headers.get('content-range') || '';
+    const n = cr.split('/')[1];
+    return (n && n !== '*') ? Number(n) : null;
+  } catch (e) { return null; }
+}
+
+function yaz(id, deger) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = (deger == null) ? '—' : deger;
+}
+
+async function panoYukle() {
+  const [pending, users, works, reps, groups] = await Promise.all([
+    sayac('works?select=id&status=eq.pending'),
+    sayac('profiles?select=id'),
+    sayac('works?select=id'),
+    sayac('repertoires?select=id'),
+    sayac('groups?select=id')
+  ]);
+
+  yaz('stPending', pending); yaz('stUsers', users); yaz('stWorks', works);
+  yaz('stReps', reps); yaz('stGroups', groups);
+
+  // Bekleyen varsa kart ve sayı vurgulanır — asıl iş bu, göze çarpsın.
+  const box = document.getElementById('stPendingBox');
+  const badge = document.getElementById('pendingBadge');
+  if (pending) {
+    if (box) box.classList.add('alert');
+    if (badge) { badge.textContent = pending; badge.style.display = ''; }
+  }
+}
+
+(async function () {
+  const ok = await requireAuth();
+  if (!ok) return;
+
+  // Bu sayfa uygulama geneli yetki ister. isAdmin()/isEditor() localStorage'daki
+  // role bakıyor; loadUserRole ile tazeleyip öyle karar veriyoruz ki yeni
+  // atanmış bir rol bir sonraki açılışa kalmasın.
+  try { if (typeof loadUserRole === 'function') await loadUserRole(); } catch (e) {}
+
+  if (!(isAdmin() || isEditor())) {
+    document.querySelector('.page-content').innerHTML =
+      '<div style="text-align:center;padding:60px 20px;color:var(--text3);">'
+      + '<div style="font-size:34px;margin-bottom:12px;">🔒</div>'
+      + '<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;">Bu sayfa yönetim içindir</div>'
+      + '<div style="font-size:13px;">Erişim yetkiniz yok. Ana sayfaya dönebilirsiniz.</div></div>';
+    return;
+  }
+
+  // Editör yalnızca eser onayından sorumlu — kullanıcı yönetimi admin işi.
+  if (!isAdmin()) {
+    const uyeKart = document.querySelector('.y-card[href="uyeler.html"]');
+    if (uyeKart) uyeKart.remove();
+    const not = document.getElementById('yNote');
+    if (not) not.textContent = 'Editör yetkisiyle görüntülüyorsunuz: eser onayı size açık, kullanıcı yönetimi yalnızca yöneticilerde.';
+  }
+
+  panoYukle();
+})();
+</script>
+</body>
+</html>

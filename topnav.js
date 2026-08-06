@@ -605,11 +605,28 @@
     return '<div class="r-grp-head">Aktif grup</div>' + rows + '<div class="r-grp-sep"></div>';
   }
 
+  // (2026-08-06) TELEFONDA YÖNETİM. Sol menü yalnızca >=1024px'te çiziliyor ve
+  // alt çubuk zaten dolu; Yönetim girişi telefonda hiçbir yerde görünmüyordu.
+  // Metronom'da uygulanan çözümün aynısı: avatar/hesap menüsüne konuyor.
+  // Aynı YÜZEYDE tekrar yok — sol menü görünürken bu menüye eklenmiyor.
+  function adminMenuHtml() {
+    const ADMIN_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
+    let u = null;
+    try { u = JSON.parse(localStorage.getItem('sb_user')); } catch(e) {}
+    const rol = localStorage.getItem('user_role') || '';
+    const yetkili = (u && u.id === ADMIN_ID) || rol === 'admin' || rol === 'editor';
+    if (!yetkili) return '';
+    return '<a href="yonetim.html" class="r-tn-dd-item">'
+         + '<i class="ti ti-shield-lock" style="font-size:15px;"></i> Yönetim</a>';
+  }
+
   function refreshGroupMenus() {
     const sb = document.getElementById('sbGroups');
     if (sb) sb.innerHTML = groupMenuHtml('sb-dd-item');
     const tn = document.getElementById('rTnGroups');
     if (tn) tn.innerHTML = groupMenuHtml('r-tn-dd-item');
+    const ad = document.getElementById('rTnAdmin');
+    if (ad) ad.innerHTML = adminMenuHtml();
   }
   window.refreshGroupMenus = refreshGroupMenus;
 
@@ -637,6 +654,7 @@
           <div id="rTnUserName" style="font-size:12px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">—</div>
         </div>
         <div id="rTnGroups"></div>
+        <div id="rTnAdmin"></div>
         <a href="metronom.html" class="r-tn-dd-item">
           <i class="ti ti-metronome" style="font-size:15px;"></i> Metronom
         </a>
@@ -725,7 +743,10 @@
       { href: 'metronom.html',    icon: 'ti-metronome',   label: 'Metronom' },
       { divider: true },
       { href: 'mesajlar.html',    icon: 'ti-message',     label: 'Mesajlar' },
-      { href: 'uyeler.html',      icon: 'ti-users',       label: 'Üyeler', adminOnly: true },
+      // (2026-08-06) "Üyeler" menüden ÇIKARILDI, yerine YÖNETİM geldi. Üyeler
+      // artık Yönetim sayfasının altındaki bir bölüm — yönetim işleri tek
+      // giriş noktasında toplansın diye (Emir'in kararı).
+      { href: 'yonetim.html',     icon: 'ti-shield-lock', label: 'Yönetim', adminOnly: true },
       // Ayarlar buradan KALDIRILDI (2026-08-01): artık alttaki avatar/hesap menüsünde.
       // Aynı bağlantının hem listede hem menüde durması gereksiz tekrardı.
     ];
