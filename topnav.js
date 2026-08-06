@@ -401,6 +401,17 @@
       color: var(--text3, #78829A); padding: 6px 11px 4px; text-transform: uppercase;
     }
     .r-grp-sep { height: 1px; background: var(--border, rgba(255,200,61,0.18)); margin: 5px 6px; }
+    /* Nokta İKON DEĞİL, CSS ile çiziliyor: ti-circle-check-filled webfont
+       sürümümüzde yok ve aktif grupta hiçbir şey görünmüyordu (2026-08-06). */
+    .r-grp-dot {
+      width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0;
+      border: 2px solid var(--text3, #78829A); box-sizing: border-box;
+    }
+    .r-grp-dot.on {
+      border-color: var(--accent, #FFC83D);
+      background: var(--accent, #FFC83D);
+      box-shadow: 0 0 0 3px rgba(255,200,61,0.18);
+    }
     
     @media (min-width: 1024px) { .r-topnav { display: none !important; } }
     @media (min-width: 1024px) {
@@ -587,7 +598,7 @@
     const rows = groups.map(g => {
       const on = g.id === active;
       return '<button class="' + itemClass + '" onclick="rSwitchGroup(\'' + g.id + '\')" title="' + _grpEsc(g.name) + '">'
-           + '<i class="ti ' + (on ? 'ti-circle-check-filled' : 'ti-circle') + '" style="font-size:15px;' + (on ? 'color:var(--accent,#FFC83D);' : '') + '" aria-hidden="true"></i>'
+           + '<span class="r-grp-dot' + (on ? ' on' : '') + '" aria-hidden="true"></span>'
            + '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + _grpEsc(g.name) + '</span>'
            + '</button>';
     }).join('');

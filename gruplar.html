@@ -77,6 +77,11 @@
 .grp-chip.active { background: color-mix(in srgb, var(--accent) 16%, transparent);
   border-color: var(--accent); color: var(--text); cursor: default; }
 .grp-chip .grp-role { font-size:11px; font-weight:600; color: var(--text3); }
+/* Nokta CSS ile çiziliyor — ti-circle-check-filled webfont sürümünde yok. */
+.grp-dot { width:13px; height:13px; border-radius:50%; flex-shrink:0; box-sizing:border-box;
+  border:2px solid var(--text3); }
+.grp-dot.on { border-color: var(--accent); background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
 .invite-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 16px; }
 .invite-link { font-size: 12px; color: var(--text2); font-family: monospace; word-break: break-all; line-height: 1.6; }
 .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all .15s; }
@@ -362,7 +367,7 @@ function renderMyGroups() {
     const on = g.id === active;
     const roleTxt = g.role === 'owner' ? 'kurucu' : (g.role === 'admin' ? 'yönetici' : 'üye');
     return `<button class="grp-chip${on ? ' active' : ''}" ${on ? '' : `onclick="switchGroup('${g.id}')"`}>
-      <i class="ti ${on ? 'ti-circle-check-filled' : 'ti-circle'}" style="font-size:14px;${on ? 'color:var(--accent);' : ''}"></i>
+      <span class="grp-dot${on ? ' on' : ''}" aria-hidden="true"></span>
       ${esc(g.name)} <span class="grp-role">${roleTxt}</span>
     </button>`;
   }).join('');
