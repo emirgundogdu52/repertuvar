@@ -15,6 +15,90 @@ function getGroupId() {
   return localStorage.getItem('user_group_id') || null;
 }
 
+// ── ÇOKLU GRUP ÜYELİĞİ (2026-08-06) ────────────────────────────────────────
+// SÖZLEŞME DEĞİŞİKLİĞİ: `profiles.group_id` artık "üyelik" DEĞİL, yalnızca
+// AKTİF/SEÇİLİ GRUP anlamına gelir. Üyeliğin TEK kaynağı `group_members`.
+// Sebep (2026-08-05 olayı): bir kullanıcı birden fazla gruba üye olabilmeli;
+// eskiden group_members'a satır eklenince trigger profiles.group_id'yi
+// koşulsuz eziyordu ve kişi kendi grubunu göremez oluyordu. Trigger düzeltildi
+// (artık yalnızca NULL ise yazıyor); bu blok da arayüz tarafını tamamlıyor.
+//
+// getMyGroups()      → localStorage'daki liste (ağ beklemeden, anında çizim için)
+// loadMyGroups()     → sunucudan tazeler, aktif grup geçersizse kendini onarır
+// setActiveGroup(id) → aktif grubu değiştirir (profiles PATCH + sync + olay)
+function getMyGroups() {
+  try { return JSON.parse(localStorage.getItem('user_groups')) || []; } catch(e) { return []; }
+}
+
+async function loadMyGroups() {
+  const uid = getUserId();
+  if (!uid) return [];
+  const h = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || '') };
+  try {
+    const mr = await fetch(SUPA_URL + '/rest/v1/group_members?user_id=eq.' + uid + '&select=group_id,role,status', {
+      headers: h, signal: AbortSignal.timeout(6000)
+    });
+    if (!mr.ok) return getMyGroups();          // ağ/RLS sorunu — eski listeyi koru
+    const rows = await mr.json();
+    const active = (rows || []).filter(m => !m.status || m.status === 'active');
+    if (!active.length) {
+      localStorage.setItem('user_groups', '[]');
+      return [];
+    }
+    const ids = active.map(m => m.group_id).filter(Boolean);
+    let nameMap = {};
+    try {
+      const gr = await fetch(SUPA_URL + '/rest/v1/groups?id=in.(' + ids.join(',') + ')&select=id,name', {
+        headers: h, signal: AbortSignal.timeout(6000)
+      });
+      if (gr.ok) (await gr.json()).forEach(g => { nameMap[g.id] = g.name; });
+    } catch(e) {}
+    const list = active.map(m => ({
+      id: m.group_id,
+      name: nameMap[m.group_id] || 'Grup',
+      role: m.role || 'member'
+    })).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr'));
+    localStorage.setItem('user_groups', JSON.stringify(list));
+
+    // KENDİNİ ONARMA: aktif grup boşsa ya da artık üye OLMADIĞIN bir gruba
+    // işaret ediyorsa (gruptan çıkarıldın, grup silindi), ilk üyeliğe düş.
+    const cur = getGroupId();
+    if (!cur || !list.some(g => g.id === cur)) {
+      await setActiveGroup(list[0].id, { silent: true, noSync: true });
+    }
+    try { window.dispatchEvent(new CustomEvent('groups-loaded', { detail: { groups: list } })); } catch(e) {}
+    return list;
+  } catch(e) { console.warn('[auth] loadMyGroups:', e); return getMyGroups(); }
+}
+
+async function setActiveGroup(gid, opts) {
+  opts = opts || {};
+  const uid = getUserId();
+  if (!uid || !gid) return false;
+  try {
+    // return=representation: PATCH sessizce 0 satır yazarsa (RLS) bunu GÖRELİM.
+    // 2026-08-01 dersi: yanıtı okunmayan profiles PATCH'i "başarılı" sanılıyordu.
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || ''),
+                 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ group_id: gid }),
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    if (!(await r.json()).length) throw new Error('0 satır güncellendi');
+    localStorage.setItem('user_group_id', gid);
+    // Önbellek hâlâ ESKİ grubun repertuvarlarını tutuyor; sync'in replaceAll'ı
+    // kapsam dışı kalanları siler. Bu yüzden geçiş sync bitmeden tamamlanmış
+    // sayılmaz (noSync yalnızca açılıştaki sessiz onarımda kullanılır).
+    if (!opts.noSync && typeof window.syncOfflineData === 'function') {
+      try { await window.syncOfflineData(); } catch(e) {}
+    }
+    try { window.dispatchEvent(new CustomEvent('group-changed', { detail: { groupId: gid } })); } catch(e) {}
+    return true;
+  } catch(e) { console.warn('[auth] setActiveGroup:', e); return false; }
+}
+
 // ── Otomatik token yenileme ──
 // Access token 1 saatte doluyor. Bu fonksiyon token'ın exp'ine bakar; dolmuş
 // ya da <60sn kalmışsa refresh token ile yeniler. Refresh token'ı önce
@@ -543,6 +627,9 @@ async function loadUserRole() {
         else localStorage.removeItem('user_group_id');
       }
     } catch(e) {}
+    // Çoklu grup: üyelik listesi group_members'tan gelir, profiles.group_id
+    // yalnızca AKTİF grubu söyler. Liste boş/geçersizse loadMyGroups onarır.
+    try { await loadMyGroups(); } catch(e) {}
     return;
   }
   try {
@@ -558,6 +645,7 @@ async function loadUserRole() {
       else localStorage.removeItem('user_group_id');
     }
   } catch(e) { console.log('[auth] loadUserRole error:', e); }
+  try { await loadMyGroups(); } catch(e) {}
 }
 
 // Çıkışta silinmesi gereken, KULLANICIYA AİT localStorage anahtarları.
@@ -566,6 +654,7 @@ async function loadUserRole() {
 var USER_SCOPED_KEYS = [
   'sb_token', 'sb_refresh', 'sb_user',
   'user_role', 'user_status', 'user_group_id',
+  'user_groups',   // çoklu grup üyelik listesi — cihazı paylaşan 2. kullanıcıya sızmasın
   'myGroupRole',   // repertoires.js + artiesten.html yazıyor; kullanıcı bazlı değil
   'scope_uid'
 ];

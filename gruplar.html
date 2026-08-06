@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <!--
   GRUPLAR.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur)
+  - 2026-08-06: ÇOKLU GRUP ÜYELİĞİ. Bir kullanıcı birden fazla gruba üye olabilir;
+    üyeliğin tek kaynağı group_members, profiles.group_id yalnızca AKTİF grubu tutar.
+    Sayfanın başına "Gruplarım" çipleri eklendi (aktif grup seçimi + Yeni Grup).
+    "Kullanıcı Ara & Gruba Ekle" bölümü tamamen KALDIRILDI — search_users(q) sistemdeki
+    herkesi ad/e-posta parçasıyla bulunabilir kılıyordu; katılım artık yalnızca davet
+    linkiyle ve davet edilenin kabulüyle.
   - 2026-08-01 (b): Kullanıcı arama search_users(q) RPC'sine taşındı. profiles'taki
     SELECT true politikaları kaldırıldığı için doğrudan sorgu artık çalışmaz; ayrıca
     eski hali tüm kullanıcıların e-postasını çekilebilir yapıyordu. Asgari karakter
@@ -63,6 +69,14 @@
 .role-owner { background: rgba(124,111,255,.2); color: var(--accent2); border: 1px solid rgba(124,111,255,.3); }
 .role-admin { background: rgba(74,222,128,.15); color: var(--green); border: 1px solid rgba(74,222,128,.2); }
 .role-member { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+/* Grup çipleri (2026-08-06) — çoklu grup üyeliğinde aktif grubu seçmek için */
+.grp-chip { display:flex; align-items:center; gap:7px; padding:8px 13px; border-radius:999px;
+  background: var(--surface2); border:1px solid var(--border); color: var(--text2);
+  font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition: all .15s; }
+.grp-chip:hover { border-color: var(--accent); color: var(--text); }
+.grp-chip.active { background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-color: var(--accent); color: var(--text); cursor: default; }
+.grp-chip .grp-role { font-size:11px; font-weight:600; color: var(--text3); }
 .invite-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 16px; }
 .invite-link { font-size: 12px; color: var(--text2); font-family: monospace; word-break: break-all; line-height: 1.6; }
 .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all .15s; }
@@ -117,7 +131,9 @@ html { -webkit-text-size-adjust: 100%; }
       <p>Henüz bir grup veya koroya üye değilsiniz.</p>
       <button class="btn btn-primary" onclick="showCreateGroup()">+ Yeni Grup / Koro Oluştur</button>
     </div>
-    <div class="section" id="createGroupForm" style="display:none;">
+  </div>
+
+  <div class="section" id="createGroupForm" style="display:none;">
       <div class="section-title">Yeni Grup / Koro Oluştur</div>
       <div style="margin-bottom:14px;">
         <label class="fl">Koro Adı *</label>
@@ -132,9 +148,21 @@ html { -webkit-text-size-adjust: 100%; }
         <button class="btn btn-primary" onclick="createGroup()">Koroyu Oluştur</button>
       </div>
     </div>
-  </div>
 
   <div id="groupState" style="display:none;">
+    <!-- Gruplarım — çoklu grup üyeliği (2026-08-06).
+         Üyelik group_members'ta tutulur; buradaki seçim yalnızca AKTİF grubu
+         (profiles.group_id) değiştirir. Aktif grup, repertuvar/solist
+         listelerinin hangi gruba göre çekileceğini belirler. -->
+    <div class="section" id="myGroupsSection">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
+        <div class="section-title" style="margin-bottom:0;">Gruplarım</div>
+        <button class="btn btn-secondary" style="padding:5px 11px;font-size:12px;flex-shrink:0;" onclick="showCreateGroup()"><i class="ti ti-plus" style="font-size:13px;"></i> Yeni Grup</button>
+      </div>
+      <div id="myGroupsChips" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+      <div id="myGroupsHint" style="font-size:12px;color:var(--text3);margin-top:10px;"></div>
+    </div>
+
     <!-- Grup Bilgisi -->
     <div class="section">
       <div class="group-header">
@@ -185,19 +213,11 @@ html { -webkit-text-size-adjust: 100%; }
       </div>
     </div>
 
-    <!-- Kullanıcı Ara & Gruba Ekle (sadece owner/admin) -->
-    <div class="section" id="addUserSection" style="display:none;">
-      <div class="section-title">Kullanıcı Ara &amp; Gruba Ekle</div>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Sisteme kayıtlı kullanıcıları e-posta veya isimle arayarak gruba ekleyin.</p>
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <div style="position:relative;flex:1;">
-          <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text3);"></i>
-          <input class="fi" id="userSearchInput" style="padding-left:32px;font-size:13px;" placeholder="E-posta veya isim..." oninput="onUserSearchInput(this.value)">
-        </div>
-        <button class="btn btn-primary" onclick="searchUsers()"><i class="ti ti-search" style="font-size:14px;"></i> Ara</button>
-      </div>
-      <div id="userSearchResults"></div>
-    </div>
+    <!-- (2026-08-06) "Kullanıcı Ara & Gruba Ekle" bölümü KALDIRILDI.
+         Sebep: search_users(q) RPC'si herhangi bir grup yöneticisinin sistemdeki
+         kullanıcıları ad/e-posta parçasıyla taramasına izin veriyordu (kullanıcı
+         keşfi / enumeration). Yeni kural: gruba katılım YALNIZCA davet linkiyle
+         ve davet edilenin KABULÜYLE olur — kimse kimseyi habersiz gruba ekleyemez. -->
 
     <!-- Üyeler -->
     <div class="section">
@@ -221,6 +241,7 @@ let currentGroup = null;
 let currentMembers = [];
 let userRole = null;
 let currentInviteLink = null;
+let myGroups = [];   // group_members'tan gelen üyelik listesi (çoklu grup)
 
 function toast(msg, type='ok') {
   const t = document.createElement('div');
@@ -264,27 +285,20 @@ async function createGroup() {
     });
 
     localStorage.setItem('user_group_id', group.id);
+    document.getElementById('newGroupName').value = '';
+    document.getElementById('newGroupDesc').value = '';
+    hideCreateGroup();
     toast('Koro oluşturuldu ✓');
-    await loadPage();
+    await loadPage();   // loadMyGroups üyelik listesini tazeler
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
 
 async function loadPage() {
-  // Önce localStorage'dan dene, yoksa DB'den çek
+  // (2026-08-06) ÜYELİK LİSTESİ ÖNCE — çoklu grup üyeliğinde tek doğru kaynak
+  // group_members'tır. loadMyGroups() listeyi tazeler ve profiles.group_id
+  // boş ya da artık üye olmadığın bir gruba işaret ediyorsa kendini onarır.
+  myGroups = await loadMyGroups();
   let gid = getGroupId();
-  if (!gid) {
-    try {
-      const uid = getUserId();
-      const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=group_id', {
-        headers: authHeaders()
-      });
-      const data = await r.json();
-      if (data[0]?.group_id) {
-        gid = data[0].group_id;
-        localStorage.setItem('user_group_id', gid);
-      }
-    } catch(e) {}
-  }
 
   document.getElementById('loadingState').style.display = 'none';
 
@@ -333,8 +347,38 @@ async function loadPage() {
     const me = currentMembers.find(m => m.user_id === getUserId());
     userRole = me?.role || 'member';
 
+    renderMyGroups();
     renderGroup();
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
+}
+
+// Gruplarım çipleri — aktif grubu değiştirir (profiles.group_id).
+function renderMyGroups() {
+  const box = document.getElementById('myGroupsChips');
+  const hint = document.getElementById('myGroupsHint');
+  if (!box) return;
+  const active = getGroupId();
+  box.innerHTML = (myGroups || []).map(g => {
+    const on = g.id === active;
+    const roleTxt = g.role === 'owner' ? 'kurucu' : (g.role === 'admin' ? 'yönetici' : 'üye');
+    return `<button class="grp-chip${on ? ' active' : ''}" ${on ? '' : `onclick="switchGroup('${g.id}')"`}>
+      <i class="ti ${on ? 'ti-circle-check-filled' : 'ti-circle'}" style="font-size:14px;${on ? 'color:var(--accent);' : ''}"></i>
+      ${esc(g.name)} <span class="grp-role">${roleTxt}</span>
+    </button>`;
+  }).join('');
+  if (hint) hint.textContent = (myGroups || []).length > 1
+    ? 'Aktif grubu değiştirdiğinizde repertuvarlar, solistler ve üyeler o gruba göre yüklenir.'
+    : '';
+}
+
+function esc(t) { return (t == null ? '' : String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function switchGroup(gid) {
+  if (gid === getGroupId()) return;
+  toast('Grup değiştiriliyor...');
+  const ok = await setActiveGroup(gid);   // profiles PATCH + offline sync
+  if (!ok) { toast('Grup değiştirilemedi — tekrar deneyin', 'err'); return; }
+  location.reload();   // repertuvar/solist önbellekleri aktif gruba göre tazelenir
 }
 
 function renderGroup() {
@@ -352,12 +396,6 @@ function renderGroup() {
   const inviteSection = document.getElementById('inviteSection');
   if (userRole === 'owner' || userRole === 'admin') {
     inviteSection.style.display = '';
-  }
-
-  // Kullanıcı ekleme bölümü sadece owner/admin'e
-  const addUserSection = document.getElementById('addUserSection');
-  if (addUserSection && (isAdmin() || userRole === 'owner' || userRole === 'admin')) {
-    addUserSection.style.display = '';
   }
 
   // Düzenle/sil butonları sadece owner/admin'e
@@ -656,15 +694,17 @@ async function removeMember(userId) {
     const deleted = await d.json();
     if (!deleted.length) throw new Error('Üyelik satırı silinemedi (0 satır) — profil bilerek değiştirilmedi.');
 
-    // 3) ANCAK ŞİMDİ profiles.group_id boşaltılır.
-    const p = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
+    // 3) ANCAK ŞİMDİ profiles.group_id boşaltılır — ve (2026-08-06) YALNIZCA
+    //    çıkarılan grup o kişinin AKTİF grubuysa. Çoklu grup üyeliğinde koşulsuz
+    //    NULL'lamak, kişinin BAŞKA bir gruptaki aktif seçimini de siliyordu.
+    const p = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId + '&group_id=eq.' + row.group_id, {
       method: 'PATCH',
       headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({ group_id: null })
     });
     if (!p.ok) throw new Error('Üyelik silindi ama profil güncellenemedi: ' + (await p.text()));
-    if (!(await p.json()).length)
-      throw new Error('Üyelik silindi ama profil güncellenemedi (0 satır) — kullanıcı hâlâ grup görüyor olabilir, tekrar deneyin.');
+    // 0 satır ARTIK HATA DEĞİL: kişinin aktif grubu başka bir grup olabilir,
+    // o zaman bu filtre hiçbir satır tutmaz ve bu DOĞRU davranıştır.
 
     // 4) Başarı mesajı yalnızca İKİSİ DE geçtiyse.
     // Eğer çıkarılan kullanıcı kendisiyse localStorage'ı temizle
@@ -677,94 +717,11 @@ async function removeMember(userId) {
 
 // Kullanıcı arama (tüm profiles tablosunda)
 let searchDebounce = null;
-function onUserSearchInput(val) {
-  clearTimeout(searchDebounce);
-  if (val.trim().length < 2) {
-    document.getElementById('userSearchResults').innerHTML = '';
-    return;
-  }
-  searchDebounce = setTimeout(() => searchUsers(), 400);
-}
-
-async function searchUsers() {
-  const q = document.getElementById('userSearchInput').value.trim();
-  if (q.length < 3) { toast('En az 3 karakter girin', 'err'); return; }
-  const resultsEl = document.getElementById('userSearchResults');
-  resultsEl.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Aranıyor...</div>';
-
-  try {
-    // 2026-08-01: Arama artik profiles tablosuna DOGRUDAN gitmiyor.
-    // Eskiden profiles'ta SELECT true politikasi vardi ve bu sorgu tum kullanicilarin
-    // e-postasini cekebiliyordu. Artik SELECT kendisi + app admin + AYNI GRUPTAKI
-    // uyelerle sinirli; gruba HENUZ UYE OLMAYAN birini bulmak icin search_users(q)
-    // SECURITY DEFINER fonksiyonu kullaniliyor (yalnizca grup yoneticileri cagirabilir,
-    // en az 3 karakter ister, en fazla 10 satir doner).
-    const r = await fetch(SUPA_URL + '/rest/v1/rpc/search_users', {
-      method: 'POST',
-      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: q })
-    });
-    if (!r.ok) throw new Error(await r.text());
-    const users = await r.json();
-
-    // Zaten grupta olanları çıkar
-    const memberIds = new Set(currentMembers.map(m => m.user_id));
-    const filtered = users.filter(u => !memberIds.has(u.id));
-
-    if (filtered.length === 0) {
-      resultsEl.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0;">Kayıtlı kullanıcı bulunamadı veya tümü zaten grupta.</div>';
-      return;
-    }
-
-    resultsEl.innerHTML = filtered.map(u => `
-      <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
-        <div class="member-avatar">${(u.display_name || u.email || '?').charAt(0).toUpperCase()}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:600;color:var(--text);">${u.display_name || '—'}</div>
-          <div style="font-size:11px;color:var(--text3);">${u.email || ''}</div>
-          ${u.instrument ? `<div style="font-size:11px;color:var(--accent2);"><i class="ti ti-guitar-pick" style="font-size:11px;"></i> ${u.instrument}</div>` : ''}
-        </div>
-        <button class="btn btn-primary" style="padding:5px 12px;font-size:12px;flex-shrink:0;" onclick="addUserToGroup('${u.id}', '${(u.display_name||u.email||'').replace(/'/g,"\\'")}')">
-          <i class="ti ti-user-plus" style="font-size:13px;"></i> Ekle
-        </button>
-      </div>
-    `).join('');
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
-}
-
-async function addUserToGroup(userId, displayName) {
-  // (2026-08-01) gid ÖNCE doğrulanır: getGroupId() null dönerse eskiden
-  // group_id:null ile sahipsiz bir üyelik satırı açılıyordu. Kaynak olarak
-  // sunucudan gelen currentGroup.id tercih edilir, localStorage yedektir.
-  const gid = (currentGroup && currentGroup.id) || getGroupId();
-  if (!gid) { toast('Grup bilgisi okunamadı — sayfayı yenileyip tekrar deneyin', 'err'); return; }
-  try {
-    // group_members'a ekle
-    const r = await fetch(SUPA_URL + '/rest/v1/group_members', {
-      method: 'POST',
-      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ group_id: gid, user_id: userId, role: 'member', status: 'active' })
-    });
-    if (!r.ok) throw new Error(await r.text());
-
-    // profiles.group_id güncelle — (2026-08-01) eskiden yanıtı hiç okunmuyordu:
-    // sessizce yazılmazsa üyelik satırı açılıp profil boş kalıyor, ekranda yine
-    // "gruba eklendi ✓" yazıyordu. Bugünkü ayrışmanın ekleme yönündeki yarısı.
-    const pr = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
-      method: 'PATCH',
-      headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-      body: JSON.stringify({ group_id: gid })
-    });
-    if (!pr.ok) throw new Error('Üyelik açıldı ama profil güncellenemedi: ' + (await pr.text()));
-    if (!(await pr.json()).length)
-      throw new Error('Üyelik açıldı ama profil güncellenemedi (0 satır) — kullanıcı grubu göremez, tekrar deneyin.');
-
-    toast((displayName || 'Kullanıcı') + ' gruba eklendi ✓');
-    document.getElementById('userSearchInput').value = '';
-    document.getElementById('userSearchResults').innerHTML = '';
-    await loadPage();
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
-}
+// (2026-08-06) onUserSearchInput / searchUsers / addUserToGroup KALDIRILDI.
+// Kullanıcı arayıp gruba ekleme akışı kapatıldı: search_users(q) RPC'si sistemdeki
+// herkesi ad ya da e-posta parçasıyla bulunabilir kılıyordu ve bir kişi izni
+// olmadan başkasının grubuna eklenebiliyordu. Tek yol artık davet linki
+// (generateInvite → login.html?invite=<token>), kabul edenin kendi eylemiyle.
 
 // Rol dropdown
 function toggleRoleDD(userId, e) {

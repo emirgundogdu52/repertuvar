@@ -391,6 +391,16 @@
     .sb-dd-item:hover { background: rgba(124,111,255,0.14); color: var(--text, #fff); }
     .sb-dd-item.danger { color: #f87171; }
     .sb-dd-item.danger:hover { background: rgba(248,113,113,0.1); }
+
+    /* ── Grup değiştirici (2026-08-06) — çoklu grup üyeliği ──
+       Bir kullanıcı birden fazla gruba üye olabilir; menüdeki bu bölüm
+       AKTİF grubu seçer (profiles.group_id). İki grup ya da fazlası yoksa
+       hiç çizilmez. */
+    .r-grp-head {
+      font-size: 10px; font-weight: 700; letter-spacing: .06em;
+      color: var(--text3, #78829A); padding: 6px 11px 4px; text-transform: uppercase;
+    }
+    .r-grp-sep { height: 1px; background: var(--border, rgba(255,200,61,0.18)); margin: 5px 6px; }
     
     @media (min-width: 1024px) { .r-topnav { display: none !important; } }
     @media (min-width: 1024px) {
@@ -554,6 +564,7 @@
     if (e.target.closest && e.target.closest('.sb-dd-item')) return;
     dd.classList.toggle('open');
     updateSbUserName();
+    try { refreshGroupMenus(); } catch(e) {}
     if (dd.classList.contains('open')) {
       document.addEventListener('click', function _c() {
         dd.classList.remove('open');
@@ -561,6 +572,47 @@
       });
     }
   };
+
+  // ── GRUP DEĞİŞTİRİCİ (2026-08-06) ──────────────────────────────────────
+  // Çoklu grup üyeliği: üyelik group_members'ta, AKTİF grup profiles.group_id'de.
+  // Menüde yalnızca 2+ grup varsa görünür. Seçim auth.js'teki setActiveGroup()
+  // üzerinden gider (profiles PATCH + offline sync), sonra sayfa yenilenir —
+  // repertuvar/solist listeleri aktif gruba göre çekildiği için tam tazeleme şart.
+  function _grpEsc(s) { return (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function groupMenuHtml(itemClass) {
+    const groups = (typeof getMyGroups === 'function') ? getMyGroups() : [];
+    if (!groups || groups.length < 2) return '';
+    const active = (typeof getGroupId === 'function') ? getGroupId() : null;
+    const rows = groups.map(g => {
+      const on = g.id === active;
+      return '<button class="' + itemClass + '" onclick="rSwitchGroup(\'' + g.id + '\')" title="' + _grpEsc(g.name) + '">'
+           + '<i class="ti ' + (on ? 'ti-circle-check-filled' : 'ti-circle') + '" style="font-size:15px;' + (on ? 'color:var(--accent,#FFC83D);' : '') + '" aria-hidden="true"></i>'
+           + '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + _grpEsc(g.name) + '</span>'
+           + '</button>';
+    }).join('');
+    return '<div class="r-grp-head">Aktif grup</div>' + rows + '<div class="r-grp-sep"></div>';
+  }
+
+  function refreshGroupMenus() {
+    const sb = document.getElementById('sbGroups');
+    if (sb) sb.innerHTML = groupMenuHtml('sb-dd-item');
+    const tn = document.getElementById('rTnGroups');
+    if (tn) tn.innerHTML = groupMenuHtml('r-tn-dd-item');
+  }
+  window.refreshGroupMenus = refreshGroupMenus;
+
+  window.rSwitchGroup = async function(gid) {
+    if (typeof setActiveGroup !== 'function') return;
+    if (typeof getGroupId === 'function' && getGroupId() === gid) return;
+    document.querySelectorAll('.sb-user-dropdown, .r-tn-dropdown').forEach(function(d) { d.classList.remove('open'); });
+    const ok = await setActiveGroup(gid);
+    if (ok) location.reload();
+    else alert('Grup değiştirilemedi. Bağlantınızı kontrol edip tekrar deneyin.');
+  };
+
+  // Üyelik listesi arka planda tazelenince menüyü yeniden çiz.
+  window.addEventListener('groups-loaded', function() { try { refreshGroupMenus(); } catch(e) {} });
 
   window.toggleTnDropdown = function(e) {
     e.stopPropagation();
@@ -573,6 +625,7 @@
         <div style="padding:8px 12px 6px;border-bottom:1px solid rgba(255,200,61,0.15);margin-bottom:4px;">
           <div id="rTnUserName" style="font-size:12px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">—</div>
         </div>
+        <div id="rTnGroups"></div>
         <a href="metronom.html" class="r-tn-dd-item">
           <i class="ti ti-metronome" style="font-size:15px;"></i> Metronom
         </a>
@@ -594,6 +647,7 @@
       dd.style.right = (window.innerWidth - rect.right) + 'px';
     }
     dd.classList.toggle('open');
+    try { refreshGroupMenus(); } catch(e) {}
     // User adını güncelle
     const un = document.getElementById('rTnUserName');
     if (un && typeof getUser === 'function') {
@@ -686,6 +740,7 @@
         <span class="sb-user-name" id="sbUserName">—</span>
         <i class="ti ti-chevron-up" style="font-size:14px;color:var(--text3,#5e5c8a);" aria-hidden="true"></i>
         <div class="sb-user-dropdown" id="sbUserDropdown">
+          <div id="sbGroups"></div>
           <a href="ayarlar.html" class="sb-dd-item"><i class="ti ti-settings" style="font-size:15px;" aria-hidden="true"></i> Ayarlar</a>
           <button class="sb-dd-item danger" onclick="logout()"><i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> Oturumu Kapat</button>
         </div>
