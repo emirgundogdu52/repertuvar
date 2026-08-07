@@ -380,12 +380,11 @@ body.stage-active #r-bottom-nav{display:none !important;}
 
 /* (2026-08-06) Kart alçaltıldı, genişlik tavanı kaldırıldı ve YATAY kuruldu:
    solda ad, ortada ayraç, sağda iki satır bilgi. ⚙ düğmesine kadar uzanıyor. */
-.np{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;padding:6px 14px;flex:1 1 auto;min-width:0;max-width:none;opacity:0;animation:fi .5s ease .4s forwards;display:flex;flex-wrap:nowrap;align-items:center;gap:12px;}
-.np-main{flex:1 1 auto;min-width:0;}
-.np-sep{width:1px;align-self:stretch;background:var(--border);flex-shrink:0;}
-.np-side{flex:0 1 auto;max-width:52%;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:8px;overflow:hidden;}
-.nl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:2px;font-weight:600;}
-.nn{font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;}
+.np{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;padding:6px 14px;flex:1 1 auto;min-width:0;max-width:none;opacity:0;animation:fi .5s ease .4s forwards;display:flex;flex-direction:column;gap:2px;justify-content:center;}
+.np-top{display:flex;align-items:baseline;gap:9px;min-width:0;}
+.np-side{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;}
+.nl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);font-weight:600;flex:0 0 auto;}
+.nn{font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;flex:1 1 auto;min-width:0;}
 .nmv{font-size:12px;color:var(--text2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 .nmx{width:1px;height:13px;background:var(--border);flex-shrink:0;display:block;}
 .th{font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;line-height:1.5;opacity:0;animation:fi .5s ease .5s forwards;}
@@ -740,14 +739,16 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
          ayraç çizgisi, sağda iki satır bilgi (makam/usul ve karar sesi).
          Böylece kartın yüksekliği iki satır kadar — eskiden üç satır alt
          alta diziliyordu. -->
+    <!-- (2026-08-06) Kart İKİ SATIR: üstte "Sıradaki" etiketi + eser adı YAN YANA,
+         altta makam · usul · karar sesi TAM GENİŞLİKTE. Önceki denemede bilgiler
+         sağda dar bir sütuna sıkışıp üçü birden kırpılıyordu ("Uş… | 4/4 - … | D..").
+         Etiket yazmıyoruz: Karcığar'ın makam, 4/4'ün usul, La'nın karar sesi
+         olduğu belli; değerler ince dikey çizgilerle ayrılıyor. -->
     <div class="np" id="np" style="display:none;">
-      <div class="np-main">
-        <div class="nl">Sıradaki</div>
-        <div class="nn" id="nn">—</div>
+      <div class="np-top">
+        <span class="nl">Sıradaki</span>
+        <span class="nn" id="nn">—</span>
       </div>
-      <div class="np-sep" aria-hidden="true"></div>
-      <!-- Etiket yazmıyoruz: Karcığar'ın makam, 3/4'ün usul, La'nın karar sesi
-           olduğu zaten belli. Değerler ince dikey çizgilerle ayrılıyor. -->
       <div class="np-side" id="npSide"></div>
     </div>
     <!-- (2026-08-06) Yazı boyutu kontrolü alt şeritten Görünüm Ayarları
