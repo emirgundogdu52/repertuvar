@@ -394,10 +394,12 @@ body.stage-active #r-bottom-nav{display:none !important;}
    tek bir düz sıradaydı (hiza + ton + akor yazımı + tema + liste yan yana) ve
    sahnede hangi düğmenin ne yaptığı okunmuyordu. Artık her işlev kendi
    başlıklı bloğunda; blok yoksa (ör. eserde akor yoksa) hiç çizilmiyor. */
-.st-grp{display:flex;flex-direction:column;gap:6px;padding:8px 2px;}
+.st-grp{display:flex;flex-direction:column;gap:6px;padding:8px 2px;align-items:flex-end;}
 .st-grp + .st-grp{border-top:1px solid var(--border);}
-.st-grp-lbl{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);}
-.st-grp-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.st-grp-lbl{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);text-align:right;}
+/* Düğmeler SAĞA toplanıyor: panel sağ alttaki ⚙'nin üstünde açılıyor, başparmak
+   oraya yakın duruyor (2026-08-06). */
+.st-grp-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
 .align-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:44px;height:44px;font-size:20px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
 .align-btn:disabled{opacity:.35;cursor:not-allowed;}
 .align-btn:hover{border-color:var(--accent);color:var(--accent);}
@@ -1755,7 +1757,17 @@ function closeInfoSheet(){
   if (backdrop) backdrop.classList.remove('open');
 }
 
-function exitStage(e){e.stopPropagation();if(confirm('Sahne modundan çıkmak istiyor musunuz?')){window._stageActive=false;window.dispatchEvent(new Event('stageExit'));applyStageTheme('picker');backToPicker();}}
+// (2026-08-06) ONAY PENCERESİ KALDIRILDI. "Sahne modundan çıkmak istiyor
+// musunuz?" fazladan bir adımdı; çıkmak yıkıcı bir işlem değil, tek dokunuşla
+// sahneye geri dönülüyor. Onay yalnızca geri alınamayan işlerde kalmalı
+// (ör. repertuvar silme, :1065).
+function exitStage(e){
+  if (e) e.stopPropagation();
+  window._stageActive=false;
+  window.dispatchEvent(new Event('stageExit'));
+  applyStageTheme('picker');
+  backToPicker();
+}
 function showEndScreen(){
   applyStageTheme('picker');
   showScreen('endScreen');
