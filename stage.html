@@ -420,6 +420,14 @@ body.stage-active #r-bottom-nav{display:none !important;}
 .stage-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;} .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
 .stage-nav a:hover{border-color:var(--accent);color:var(--accent);}
 
+/* (2026-08-06) YAN OKLAR ARTIK YALNIZCA MASAÜSTÜNDE.
+   Telefon/tablette swipe zaten çalışıyor ve oklar söz metninin üstüne biniyordu.
+   Masaüstünde ise dokunmatik yok, swipe yok — klavye dışında tek gezinme yolu
+   bunlar, o yüzden orada kalıyorlar (geçmiş: oklar "söze dokununca kazara eser
+   atlama" sorununun çözümü olarak büyütülmüştü). */
+@media (max-width:1023px), (hover:none) and (pointer:coarse) {
+  .side-nav-btn { display:none !important; }
+}
 .side-nav-btn {
   position: fixed;
   top: 50%;
@@ -684,12 +692,10 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="nn" id="nn">—</div>
       <div class="nm" id="nm">—</div>
     </div>
-    <div class="font-slider-wrap" style="margin-left:auto;" title="Yazı Boyutu">
-      <button type="button" class="fs-a-sm fs-step" onclick="event.stopPropagation();stepLyricsFont(-0.1)" title="Yazıyı küçült">A−</button>
-      <input type="range" id="lyricsFontSlider" class="font-slider" min="0.75" max="1.6" step="0.1" value="1"
-        oninput="setLyricsFontScale(this.value)">
-      <button type="button" class="fs-a-lg fs-step" onclick="event.stopPropagation();stepLyricsFont(0.1)" title="Yazıyı büyüt">A+</button>
-    </div>
+    <!-- (2026-08-06) Yazı boyutu kontrolü alt şeritten Görünüm Ayarları
+         paneline taşındı ("Yazı Boyutu" bloğu). Burada A−, kaydırıcı ve A+
+         diye ÜÇ kontrol aynı işi yapıyordu; panelde tek kaydırıcı kaldı.
+         Alt şerit böylece yalnızca "Sıradaki" bilgisini taşıyor. -->
     <div class="th" style="display:none;">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
 </div>
@@ -1715,6 +1721,17 @@ function buildStageToolsRow(mode) {
     ? `<div class="st-grp"><div class="st-grp-lbl">${baslik}</div><div class="st-grp-row">${icerik}</div></div>`
     : '';
 
+  // Yazı boyutu: tek kaydırıcı. Panel her açılışta yeniden kurulduğu için
+  // değer kayıtlı ölçekten okunuyor (setLyricsFontScale zaten saklıyor).
+  const _olcek = parseFloat(localStorage.getItem('stageLyricsScale') || '1') || 1;
+  const fontBlok = `
+      <div class="font-slider-wrap" title="Yazı Boyutu">
+        <span class="fs-a-sm">A</span>
+        <input type="range" id="lyricsFontSlider" class="font-slider" min="0.75" max="1.6" step="0.05" value="${_olcek}"
+          onclick="event.stopPropagation()" oninput="setLyricsFontScale(this.value)">
+        <span class="fs-a-lg">A</span>
+      </div>`;
+
   if (mode === 'nota') {
     row.innerHTML = grup('Görünüm', themeBtn + navBtn);
   } else {
@@ -1724,9 +1741,18 @@ function buildStageToolsRow(mode) {
       <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>`;
     row.innerHTML = grup('Hizalama', alignBtns)
+                  + grup('Yazı Boyutu', fontBlok)
                   + grup('Ton', tonBtns)
                   + grup('Akor Yazımı', yazimBtns)
                   + grup('Görünüm', themeBtn + navBtn);
+    // Panel her yeniden kurulduğunda kaydırıcının dolgu rengi ve hiza
+    // düğmelerinin aktif hâli sıfırlanır — kayıtlı değerlerden geri yazılır.
+    updateFontSliderUI(_olcek);
+    const _hiza = localStorage.getItem('stageLyricsAlign') || 'left';
+    ['left','center','right'].forEach(a => {
+      const b = document.getElementById('align' + a.charAt(0).toUpperCase() + a.slice(1));
+      if (b) b.classList.toggle('active', a === _hiza);
+    });
   }
 }
 
