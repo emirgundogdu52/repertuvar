@@ -246,10 +246,12 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .bback:hover{color:var(--text2);}
 .loading{text-align:center;color:var(--text2);padding:24px;font-size:13px;}
 
-.stb{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:8px;position:relative;z-index:401;}
+.stb{display:flex;flex-direction:column;align-items:stretch;padding:8px 16px 7px;padding-top:calc(8px + env(safe-area-inset-top));border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:7px;position:relative;z-index:401;}
+.stb-r1{display:flex;align-items:center;justify-content:center;}
+.stb-r2{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;}
 #v2StageBotNav .v2-bn-exit { color: #c05444 !important; }
 #v2StageBotNav .v2-bn-exit:hover { color: #e06655 !important; }
-.strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:32%;min-width:0;flex:0 1 auto;}
+.strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 auto;}
 .stp{display:flex;align-items:center;gap:10px;}
 .pds{display:flex;gap:5px;align-items:center;}
 .pd{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;flex-shrink:0;}
@@ -370,10 +372,12 @@ body.stage-active .r-topnav,
 body.stage-active #r-topnav-container .r-topnav,
 body.stage-active #r-bottom-nav{display:none !important;}
 
-.np{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;padding:6px 16px;flex:1;min-width:0;max-width:400px;opacity:0;animation:fi .5s ease .4s forwards;}
-.nl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:4px;font-weight:600;}
-.nn{font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;}
-.nm{font-size:12px;color:var(--text2);margin-top:3px;font-weight:500;}
+/* (2026-08-06) Kart alçaltıldı ve genişlik tavanı kaldırıldı: ⚙ düğmesine
+   kadar tüm satırı kaplıyor, sahnede daha az yer kaplasın diye dikeyde ince. */
+.np{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;padding:4px 14px;flex:1 1 auto;min-width:0;max-width:none;opacity:0;animation:fi .5s ease .4s forwards;}
+.nl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:2px;font-weight:600;}
+.nn{font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;}
+.nm{font-size:11px;color:var(--text2);margin-top:1px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .th{font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;line-height:1.5;opacity:0;animation:fi .5s ease .5s forwards;}
 .th kbd{display:inline-block;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;font-family:'DM Sans',sans-serif;color:var(--text3);}
 
@@ -491,7 +495,7 @@ body.stage-active #r-bottom-nav{display:none !important;}
     .side-nav-btn { width:50px; height:120px; padding:0; }
     .snb-label { font-size:9px; }
     .snb-arrow { font-size:22px; }
-    .np { max-width:200px; }
+    .np { max-width:none; }
   }
   @media (max-width: 480px) {
     .wtitle { font-size:clamp(18px,5vw,26px); }
@@ -672,13 +676,11 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 </div>
 
 <div class="screen hidden" id="stageScreen">
+  <!-- (2026-08-06) Üst bar İKİ SATIR: üstte görünüm menüsü (Söz/Akor/Nota + i),
+       altında repertuvar adı ve sayfa noktaları. Eskiden üçü tek satırdaydı;
+       ad kısalıp (%32 tavan) noktalar sıkışıyordu. -->
   <div class="stb">
-    <div class="strn" id="strn">—</div>
-    <div class="stp">
-      <div class="pds" id="pds"></div>
-      <div class="stc" id="stc">1/1</div>
-      <div class="medley-badge" id="medleyBadge"></div>
-    </div>
+    <div class="stb-r1">
     <!-- (2026-08-06) Bilgi (i) düğmesi ARTIK SEKME ÇERÇEVESİNİN İÇİNDE.
          Dışarıda tek başına dururken öksüz görünüyordu ve tıklanabilir olduğu
          belli olmuyordu; şimdi Söz/Akor/Nota ile aynı kutunun içinde, aralarında
@@ -691,6 +693,15 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <button class="stage-info-btn" onclick="event.stopPropagation();openInfoSheet()" title="Eser Bilgileri" aria-label="Eser Bilgileri">
         <i class="ti ti-info-circle" aria-hidden="true"></i>
       </button>
+    </div>
+    </div>
+    <div class="stb-r2">
+      <div class="strn" id="strn">—</div>
+      <div class="stp">
+        <div class="pds" id="pds"></div>
+        <div class="stc" id="stc">1/1</div>
+        <div class="medley-badge" id="medleyBadge"></div>
+      </div>
     </div>
   </div>
   <div class="info-sheet-backdrop" id="infoSheetBackdrop" onclick="closeInfoSheet()"></div>
