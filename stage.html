@@ -376,14 +376,14 @@ body.stage-active #r-bottom-nav{display:none !important;}
 
 /* (2026-08-06) Kart alçaltıldı, genişlik tavanı kaldırıldı ve YATAY kuruldu:
    solda ad, ortada ayraç, sağda iki satır bilgi. ⚙ düğmesine kadar uzanıyor. */
-.np{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;padding:6px 14px;flex:1 1 auto;min-width:0;max-width:none;opacity:0;animation:fi .5s ease .4s forwards;display:flex;align-items:center;gap:12px;}
+.np{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;padding:6px 14px;flex:1 1 auto;min-width:0;max-width:none;opacity:0;animation:fi .5s ease .4s forwards;display:flex;flex-wrap:nowrap;align-items:center;gap:12px;}
 .np-main{flex:1 1 auto;min-width:0;}
 .np-sep{width:1px;align-self:stretch;background:var(--border);flex-shrink:0;}
-.np-side{flex:0 0 auto;max-width:44%;text-align:right;min-width:0;}
+.np-side{flex:0 1 auto;max-width:52%;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:8px;overflow:hidden;}
 .nl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:2px;font-weight:600;}
 .nn{font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;}
-.nm{font-size:11px;color:var(--text2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35;}
-.nm2{font-size:11px;color:var(--text3);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35;}
+.nmv{font-size:12px;color:var(--text2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.nmx{width:1px;height:13px;background:var(--border);flex-shrink:0;display:block;}
 .th{font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;line-height:1.5;opacity:0;animation:fi .5s ease .5s forwards;}
 .th kbd{display:inline-block;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;font-family:'DM Sans',sans-serif;color:var(--text3);}
 
@@ -740,10 +740,9 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
         <div class="nn" id="nn">—</div>
       </div>
       <div class="np-sep" aria-hidden="true"></div>
-      <div class="np-side">
-        <div class="nm" id="nm">—</div>
-        <div class="nm2" id="nm2"></div>
-      </div>
+      <!-- Etiket yazmıyoruz: Karcığar'ın makam, 3/4'ün usul, La'nın karar sesi
+           olduğu zaten belli. Değerler ince dikey çizgilerle ayrılıyor. -->
+      <div class="np-side" id="npSide"></div>
     </div>
     <!-- (2026-08-06) Yazı boyutu kontrolü alt şeritten Görünüm Ayarları
          paneline taşındı ("Yazı Boyutu" bloğu). Burada A−, kaydırıcı ve A+
@@ -1574,15 +1573,18 @@ function renderStage(){
     document.getElementById('nn').textContent=nw.name || (WL_loaded ? next.workId : '…');
     // Üst satır: makam ve usul. Alt satır: karar sesi (varsa) — kartın
     // yüksekliği bu iki satır kadar, ad ne kadar uzun olursa olsun.
-    const _kr = next.closingNote || nw.closingNote;
-    document.getElementById('nm').textContent=[nw.makam,nw.measurement].filter(Boolean).join(' · ');
-    document.getElementById('nm2').textContent=_kr ? ('Karar: ' + _kr) : '';
+    // Makam · usul · karar sesi — etiketsiz, aralarında ince dikey çizgi.
+    const _bilgi = [nw.makam, nw.measurement, next.closingNote || nw.closingNote]
+      .filter(Boolean)
+      .map(v => `<span class="nmv">${String(v).replace(/</g,'&lt;')}</span>`)
+      .join('<i class="nmx" aria-hidden="true"></i>');
+    document.getElementById('npSide').innerHTML = _bilgi;
     // Sonraki eser bu esere BAĞLIYSA kart potpuri görünümüne geçer (ara vermeden devam)
     const linkedNext = !!next.linked_prev;
     np.classList.toggle('medley', linkedNext);
     const nl = np.querySelector('.nl');
     if (nl) nl.textContent = linkedNext ? '🔗 POTPURİ — DEVAMI' : 'Sıradaki';
-    np.style.display='block';
+    np.style.display='flex';   // (2026-08-06) 'block' CSS'teki yatay dizilimi eziyordu
   }
   else np.style.display='none';
 }
