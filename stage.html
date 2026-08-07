@@ -356,8 +356,12 @@ body.day-theme{--chord-color:#B26A00;}   /* açık: koyu amber (beyaz zeminde ko
    "Sıradaki" kartıyla (.np) kendiliğinden aynı seviyede — her ekran boyutunda,
    safe-area dahil. Eskiden bottom:calc(100% + 6px) ile kartın üstünde duruyordu.
    Panel position:fixed olduğu için bu değişiklikten etkilenmiyor. */
-.sb-menu{position:relative;order:2;margin-left:auto;z-index:11;}
-.sb-menu-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s,border-color .15s;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.sb-menu{position:relative;order:2;margin-left:auto;z-index:11;align-self:stretch;display:flex;}
+/* (2026-08-06) Düğme "Sıradaki" kartıyla ORANTILI: aynı yükseklikte
+   (align-self:stretch), aynı köşe yarıçapı (10px) ve aynı sarı çerçeve —
+   yan yana durdukları için ikisi tek bir şeritmiş gibi görünüyor. */
+.sb-menu-btn{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;width:46px;min-height:100%;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s,border-color .15s;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.sb-menu-btn .ti{font-size:20px;}
 .sb-menu-btn:hover{color:var(--text);border-color:var(--accent);}
 .sb-menu-btn i{font-size:18px;}
 
@@ -485,7 +489,9 @@ body.stage-active #r-bottom-nav{display:none !important;}
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     .stb { padding:8px 10px; padding-top:calc(8px + env(safe-area-inset-top)); height:auto; min-height:48px; }
-    .strn { font-size:12px; max-width:88px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    /* (2026-08-06) 88px tavanı KALDIRILDI: repertuvar adı artık kendi satırında
+       (.stb-r2), tek satırda sıkışmıyor — telefonda da tam genişlik kullanabilir. */
+    .strn { font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .bex, .stage-nav a { font-size:10px; padding:4px 8px; }
     .stage-nav { gap:4px; }
     .sm { padding:20px 14px calc(60px + env(safe-area-inset-bottom)); }
