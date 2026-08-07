@@ -257,6 +257,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .pd{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;flex-shrink:0;}
 .pd.done{background:var(--text3);}
 .pd.cur{background:var(--accent);transform:scale(1.4);}
+.pbar{width:96px;height:4px;border-radius:999px;background:var(--border);overflow:hidden;}
+.pbar span{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s;}
 .stc{display:inline;font-size:11px;font-weight:600;color:var(--text2);margin-left:6px;}
 .bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
 .bex:hover{color:var(--red);border-color:var(--red);}
@@ -372,12 +374,16 @@ body.stage-active .r-topnav,
 body.stage-active #r-topnav-container .r-topnav,
 body.stage-active #r-bottom-nav{display:none !important;}
 
-/* (2026-08-06) Kart alçaltıldı ve genişlik tavanı kaldırıldı: ⚙ düğmesine
-   kadar tüm satırı kaplıyor, sahnede daha az yer kaplasın diye dikeyde ince. */
-.np{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;padding:4px 14px;flex:1 1 auto;min-width:0;max-width:none;opacity:0;animation:fi .5s ease .4s forwards;}
+/* (2026-08-06) Kart alçaltıldı, genişlik tavanı kaldırıldı ve YATAY kuruldu:
+   solda ad, ortada ayraç, sağda iki satır bilgi. ⚙ düğmesine kadar uzanıyor. */
+.np{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;padding:6px 14px;flex:1 1 auto;min-width:0;max-width:none;opacity:0;animation:fi .5s ease .4s forwards;display:flex;align-items:center;gap:12px;}
+.np-main{flex:1 1 auto;min-width:0;}
+.np-sep{width:1px;align-self:stretch;background:var(--border);flex-shrink:0;}
+.np-side{flex:0 0 auto;max-width:44%;text-align:right;min-width:0;}
 .nl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:2px;font-weight:600;}
 .nn{font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;}
-.nm{font-size:11px;color:var(--text2);margin-top:1px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nm{font-size:11px;color:var(--text2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35;}
+.nm2{font-size:11px;color:var(--text3);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35;}
 .th{font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;line-height:1.5;opacity:0;animation:fi .5s ease .5s forwards;}
 .th kbd{display:inline-block;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;font-family:'DM Sans',sans-serif;color:var(--text3);}
 
@@ -724,10 +730,20 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
         <div id="stageToolsRow"></div>
       </div>
     </div>
+    <!-- (2026-08-06) Kart yatay kuruldu: solda "Sıradaki" + eser adı, dikey
+         ayraç çizgisi, sağda iki satır bilgi (makam/usul ve karar sesi).
+         Böylece kartın yüksekliği iki satır kadar — eskiden üç satır alt
+         alta diziliyordu. -->
     <div class="np" id="np" style="display:none;">
-      <div class="nl">Sıradaki</div>
-      <div class="nn" id="nn">—</div>
-      <div class="nm" id="nm">—</div>
+      <div class="np-main">
+        <div class="nl">Sıradaki</div>
+        <div class="nn" id="nn">—</div>
+      </div>
+      <div class="np-sep" aria-hidden="true"></div>
+      <div class="np-side">
+        <div class="nm" id="nm">—</div>
+        <div class="nm2" id="nm2"></div>
+      </div>
     </div>
     <!-- (2026-08-06) Yazı boyutu kontrolü alt şeritten Görünüm Ayarları
          paneline taşındı ("Yazı Boyutu" bloğu). Burada A−, kaydırıcı ve A+
@@ -1470,7 +1486,10 @@ function renderStage(){
   document.getElementById('stc').textContent=(curIdx+1)+'/'+total;
   const pds=document.getElementById('pds');
   if(total<=20){pds.innerHTML=items.map((_,i)=>`<div class="pd ${i<curIdx?'done':i===curIdx?'cur':''}"></div>`).join('');}
-  else pds.innerHTML='';
+  // (2026-08-06) 20'den uzun repertuvarda nokta çizmek okunmuyordu ve alan
+  // yetmiyordu; eskiden hiçbir şey gösterilmiyordu (Emir "noktalar görünmüyor"
+  // dedi). Artık ince bir ilerleme çubuğu var — nerede olduğun yine belli.
+  else pds.innerHTML=`<div class="pbar"><span style="width:${total?Math.round(((curIdx+1)/total)*100):0}%"></span></div>`;
   // Info paneli güncelle
   const panel = document.getElementById('stageInfoPanel');
   if (panel) {
@@ -1553,7 +1572,11 @@ function renderStage(){
   if(next){
     const nw=WL[next.workId]||{};
     document.getElementById('nn').textContent=nw.name || (WL_loaded ? next.workId : '…');
-    document.getElementById('nm').textContent=[nw.makam,nw.measurement,next.closingNote||nw.closingNote].filter(Boolean).join(' · ');
+    // Üst satır: makam ve usul. Alt satır: karar sesi (varsa) — kartın
+    // yüksekliği bu iki satır kadar, ad ne kadar uzun olursa olsun.
+    const _kr = next.closingNote || nw.closingNote;
+    document.getElementById('nm').textContent=[nw.makam,nw.measurement].filter(Boolean).join(' · ');
+    document.getElementById('nm2').textContent=_kr ? ('Karar: ' + _kr) : '';
     // Sonraki eser bu esere BAĞLIYSA kart potpuri görünümüne geçer (ara vermeden devam)
     const linkedNext = !!next.linked_prev;
     np.classList.toggle('medley', linkedNext);
