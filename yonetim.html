@@ -36,6 +36,14 @@
 .y-stat.alert{border-color:var(--accent);}
 
 /* Bölüm kartları */
+/* Alt kırılımlar — büyük sayı kartlarının altında, daha küçük ve gruplu */
+.y-break{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.y-break h4{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:700;margin:0 0 10px;}
+.y-rows{display:flex;flex-direction:column;gap:7px;}
+.y-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:13px;}
+.y-row-lbl{color:var(--text2);}
+.y-row-val{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;}
+.y-row.warn .y-row-val{color:var(--accent);}
 .y-sec-title{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);font-weight:700;margin:0 0 12px;}
 .y-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
 .y-card{display:flex;align-items:flex-start;gap:14px;background:var(--surface);border:1px solid var(--border);
@@ -79,6 +87,60 @@
     <div class="y-stat">
       <div class="y-stat-lbl">Grup / Koro</div>
       <div class="y-stat-val" id="stGroups">—</div>
+    </div>
+  </div>
+
+  <div class="y-sec-title">Kırılım</div>
+  <div class="y-cards" style="margin-bottom:26px;">
+    <div class="y-break">
+      <h4>Eserler</h4>
+      <div class="y-rows">
+        <div class="y-row"><span class="y-row-lbl">Yayında</span><span class="y-row-val" id="brApproved">—</span></div>
+        <div class="y-row warn"><span class="y-row-lbl">Onay bekleyen</span><span class="y-row-val" id="brPending">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Gizli (yalnız sahibi)</span><span class="y-row-val" id="brPrivate">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Sözü olan</span><span class="y-row-val" id="brLyrics">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Akoru olan</span><span class="y-row-val" id="brChords">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Notası olan</span><span class="y-row-val" id="brNota">—</span></div>
+      </div>
+    </div>
+
+    <div class="y-break">
+      <h4>Kullanıcılar</h4>
+      <div class="y-rows">
+        <div class="y-row"><span class="y-row-lbl">Yönetici</span><span class="y-row-val" id="brAdmin">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Editör</span><span class="y-row-val" id="brEditor">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Üye</span><span class="y-row-val" id="brMember">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Bir gruba bağlı</span><span class="y-row-val" id="brInGroup">—</span></div>
+      </div>
+    </div>
+
+    <div class="y-break">
+      <h4>Repertuvarlar</h4>
+      <div class="y-rows">
+        <div class="y-row"><span class="y-row-lbl">Gruba ait</span><span class="y-row-val" id="brRepGroup">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Kişisel</span><span class="y-row-val" id="brRepOwn">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Herkese açık</span><span class="y-row-val" id="brRepPublic">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Solist kaydı</span><span class="y-row-val" id="brSolist">—</span></div>
+      </div>
+    </div>
+
+    <div class="y-break">
+      <h4>Kullanım</h4>
+      <div class="y-rows">
+        <div class="y-row"><span class="y-row-lbl">Bugün giren</span><span class="y-row-val" id="brAct1">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Son 7 günde giren</span><span class="y-row-val" id="brAct7">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Son 30 günde giren</span><span class="y-row-val" id="brAct30">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Hiç girmemiş</span><span class="y-row-val" id="brActNever">—</span></div>
+      </div>
+    </div>
+
+    <div class="y-break">
+      <h4>Son Hareket</h4>
+      <div class="y-rows">
+        <div class="y-row"><span class="y-row-lbl">Son 7 günde eklenen eser</span><span class="y-row-val" id="br7">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Son 30 günde eklenen eser</span><span class="y-row-val" id="br30">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Aktif davet bağlantısı</span><span class="y-row-val" id="brInvite">—</span></div>
+      </div>
     </div>
   </div>
 
@@ -153,6 +215,57 @@ async function panoYukle() {
     if (box) box.classList.add('alert');
     if (badge) { badge.textContent = pending; badge.style.display = ''; }
   }
+
+  kirilimYukle(pending);
+}
+
+// Alt kırılımlar. Hepsi aynı ucuz sayaçla (satır indirmeden) alınıyor ve
+// PARALEL gidiyor; üstteki büyük sayılar zaten ekrana gelmiş oluyor, bunlar
+// arkadan doluyor. Bir sorgu düşerse yalnızca o satır "—" kalır.
+async function kirilimYukle(pending) {
+  const gun = n => new Date(Date.now() - n * 864e5).toISOString();
+
+  const [
+    approved, priv, lyrics, chords, nota,
+    admin, editor, member, inGroup,
+    repGroup, repPublic, solist,
+    son7, son30, davet,
+    act1, act7, act30, actNever
+  ] = await Promise.all([
+    sayac('works?select=id&status=eq.approved'),
+    sayac('works?select=id&visibility=eq.private'),
+    sayac('works?select=id&lyrics=not.is.null&lyrics=neq.'),
+    sayac('works?select=id&chords=not.is.null&chords=neq.'),
+    sayac('works?select=id&nota_url=not.is.null&nota_url=neq.'),
+    sayac('profiles?select=id&role=eq.admin'),
+    sayac('profiles?select=id&role=eq.editor'),
+    sayac('profiles?select=id&role=eq.member'),
+    sayac('profiles?select=id&group_id=not.is.null'),
+    sayac('repertoires?select=id&group_id=not.is.null'),
+    sayac('repertoires?select=id&is_public=eq.true'),
+    sayac('solistler?select=id'),
+    sayac('works?select=id&submitted_at=gte.' + gun(7)),
+    sayac('works?select=id&submitted_at=gte.' + gun(30)),
+    sayac('group_invites?select=id&used_by=is.null&expires_at=gte.' + new Date().toISOString()),
+    // Kullanım: profiles.last_seen_at (auth.js günde bir kez damgalıyor)
+    sayac('profiles?select=id&last_seen_at=gte.' + gun(1)),
+    sayac('profiles?select=id&last_seen_at=gte.' + gun(7)),
+    sayac('profiles?select=id&last_seen_at=gte.' + gun(30)),
+    sayac('profiles?select=id&last_seen_at=is.null')
+  ]);
+
+  yaz('brApproved', approved); yaz('brPending', pending); yaz('brPrivate', priv);
+  yaz('brLyrics', lyrics); yaz('brChords', chords); yaz('brNota', nota);
+  yaz('brAdmin', admin); yaz('brEditor', editor); yaz('brMember', member);
+  yaz('brInGroup', inGroup);
+  yaz('brRepGroup', repGroup); yaz('brRepPublic', repPublic); yaz('brSolist', solist);
+  yaz('br7', son7); yaz('br30', son30); yaz('brInvite', davet);
+  yaz('brAct1', act1); yaz('brAct7', act7); yaz('brAct30', act30);
+  yaz('brActNever', actNever);
+
+  // "Kişisel" = gruba bağlı OLMAYAN repertuvarlar; ayrı sorgu yerine çıkarma.
+  const repTop = Number(document.getElementById('stReps').textContent);
+  if (!isNaN(repTop) && repGroup != null) yaz('brRepOwn', repTop - repGroup);
 }
 
 (async function () {

@@ -15,6 +15,59 @@ function getGroupId() {
   return localStorage.getItem('user_group_id') || null;
 }
 
+// ── AKOR YAZIM SİSTEMİ — ORTAK ÇEVİRİCİ (2026-08-06) ──────────────────────
+// İki yazım: A B C (harf) ve Do Re Mi (solfej).
+// MUTLAK KURAL — DEPOLAMA HER ZAMAN HARFTİR: ton kaydırma motoru
+// (transposeChordPro), akor çizici ve sahne gösterimi harf bekliyor. Solfej
+// yalnızca GÖSTERİM/GİRİŞ katmanında yaşar; veriye asla solfej yazılmaz.
+// Burada duruyor çünkü hem eserler.html hem stage.html kullanıyor — aynı işi
+// iki dosyada ayrı yazmanın bedeli 2026-08-05'te trMatch ile görülmüştü.
+// Çeviri YALNIZCA köşeli parantez içindeki simgelere uygulanır; söz metnine,
+// akor dışı hiçbir şeye dokunulmaz. "[Bb/D]" gibi bas notalı yazımda iki taraf
+// da çevrilir, "m7 / sus4 / add9" gibi ekler olduğu gibi korunur.
+var _AKOR_HARF   = { C:'Do', D:'Re', E:'Mi', F:'Fa', G:'Sol', A:'La', B:'Si' };
+var _AKOR_SOLFEJ = { Do:'C', Re:'D', Mi:'E', Fa:'F', Sol:'G', La:'A', Si:'B' };
+
+function _cevirSimge(tok, yon) {
+  var parcala = function(t) {
+    var m;
+    if (yon === 'solfej') {
+      m = t.match(/^([A-G])([#b]?)(.*)$/);
+      return m ? (_AKOR_HARF[m[1]] + m[2] + m[3]) : t;
+    }
+    m = t.match(/^(Do|Re|Mi|Fa|Sol|La|Si)([#b]?)(.*)$/);
+    return m ? (_AKOR_SOLFEJ[m[1]] + m[2] + m[3]) : t;
+  };
+  return String(tok).split('/').map(parcala).join('/');
+}
+
+function cevirAkorMetni(metin, yon) {
+  return (metin || '').replace(/\[([^\]]*)\]/g, function(tam, ic) {
+    return '[' + _cevirSimge(ic.trim(), yon) + ']';
+  });
+}
+
+// Tercih KULLANICI BAZLI anahtar (ortak anahtar tuzağı için bkz. 2026-08-01).
+// Eser düzenleme ekranında seçilen yazım sahnede de geçerli olsun diye tek anahtar.
+function getAkorYazim() {
+  try { return localStorage.getItem('akorYazim:' + (getUserId() || 'anon')) || 'abc'; }
+  catch(e) { return 'abc'; }
+}
+function setAkorYazim(yon) {
+  try { localStorage.setItem('akorYazim:' + (getUserId() || 'anon'), yon === 'solfej' ? 'solfej' : 'abc'); }
+  catch(e) {}
+}
+// Gösterim kısayolu: kayıtlı harf metnini kullanıcının tercihine çevirir.
+function akorGoster(metin) {
+  return getAkorYazim() === 'solfej' ? cevirAkorMetni(metin, 'solfej') : (metin || '');
+}
+try {
+  window.cevirAkorMetni = cevirAkorMetni;
+  window.getAkorYazim = getAkorYazim;
+  window.setAkorYazim = setAkorYazim;
+  window.akorGoster = akorGoster;
+} catch(e) {}
+
 // ── ÇOKLU GRUP ÜYELİĞİ (2026-08-06) ────────────────────────────────────────
 // SÖZLEŞME DEĞİŞİKLİĞİ: `profiles.group_id` artık "üyelik" DEĞİL, yalnızca
 // AKTİF/SEÇİLİ GRUP anlamına gelir. Üyeliğin TEK kaynağı `group_members`.
@@ -520,6 +573,30 @@ async function redeemPendingInvite() {
   }
 }
 
+// ── SON GÖRÜLME (2026-08-06) ──────────────────────────────────────────────
+// Uygulamada hiçbir kullanım ölçümü yoktu; Yönetim sayfası yalnızca satır
+// sayıyordu. Bu en ucuz ölçüm: profiles.last_seen_at, kullanıcı başına GÜNDE
+// BİR KEZ güncelleniyor ⇒ "son 24 saat / 7 gün / 30 günde kaç kişi girdi"
+// sorusu cevaplanıyor, ek tablo yok, büyüme yok, çerez/rıza gerekmiyor
+// (giriş yapmış kullanıcının kendi kaydı).
+// Sessiz çalışır: hata olursa yutulur, hiçbir akışı bloklamaz.
+function pingLastSeen() {
+  var uid = getUserId();
+  if (!uid) return;
+  var bugun = new Date().toISOString().slice(0, 10);
+  var anahtar = 'lastSeen:' + uid;
+  try { if (localStorage.getItem(anahtar) === bugun) return; } catch(e) {}
+  try { localStorage.setItem(anahtar, bugun); } catch(e) {}   // önce işaretle: istek düşse de gün içinde tekrar denemesin
+  try {
+    fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || ''),
+                 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ last_seen_at: new Date().toISOString() })
+    }).catch(function(){});
+  } catch(e) {}
+}
+
 async function requireAuth() {
   const token = getToken();
   if (!token) { window.location.href = 'login.html'; return false; }
@@ -527,6 +604,7 @@ async function requireAuth() {
   if (getUser()) window.dispatchEvent(new CustomEvent('authReady'));
   // Bekleyen davet varsa arka planda tüket (anahtar boşsa hiç istek gitmez).
   redeemPendingInvite();
+  pingLastSeen();     // günde bir kez; kullanım ölçümü
   try {
     const r = await fetch(SUPA_URL+'/auth/v1/user', {
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token},
