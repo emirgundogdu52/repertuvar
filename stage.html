@@ -406,14 +406,17 @@ body.stage-active #r-bottom-nav{display:none !important;}
 .st-grp-lbl{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);text-align:right;}
 /* Düğmeler SAĞA toplanıyor: panel sağ alttaki ⚙'nin üstünde açılıyor, başparmak
    oraya yakın duruyor (2026-08-06). */
-.st-grp-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+/* Satır ekrana sığmazsa sarsın; hiçbir düğme kenardan taşıp kesilmesin
+   (2026-08-06: Ton bloğunda "−" düğmesi ekran dışında kalıyordu). */
+.st-grp-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;max-width:100%;}
+.st-grp-row .ton-karar{flex-shrink:1;min-width:0;}
 .align-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:44px;height:44px;font-size:20px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
 .align-btn:disabled{opacity:.35;cursor:not-allowed;}
 .align-btn:hover{border-color:var(--accent);color:var(--accent);}
 .align-btn.active{background:rgba(168,85,247,.15);border-color:var(--accent);color:var(--accent);}
 /* (2026-08-06) Genişlik TON bloğuyla aynı: 3 düğme × 44px + 2 boşluk × 6px = 144px.
    Böylece paneldeki bloklar aynı hizada bitiyor. Kaydırıcı kalan yeri kaplıyor. */
-.font-slider-wrap{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px;flex-shrink:0;width:144px;box-sizing:border-box;}
+.font-slider-wrap{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:9px 10px;flex-shrink:0;width:144px;box-sizing:border-box;}
 .font-slider-wrap .fs-a-sm{font-size:13px;font-weight:800;color:var(--text3);line-height:1;}
 .font-slider-wrap .fs-a-lg{font-size:19px;font-weight:800;color:var(--text3);line-height:1;}
 .fs-step{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px;font-family:inherit;transition:color .15s,background .15s;flex-shrink:0;}
@@ -422,10 +425,13 @@ body.stage-active #r-bottom-nav{display:none !important;}
 /* (2026-08-06) Kaydırıcı BÜYÜTÜLDÜ — panele taşındıktan sonra parmakla tutup
    sürüklemesi zordu (Emir bildirdi). Ray kalınlaştı, tutamak 22→30px,
    dokunma alanı için dikey padding verildi. */
-.font-slider{-webkit-appearance:none;appearance:none;flex:1;min-width:0;width:auto;height:7px;border-radius:999px;background:var(--border);outline:none;cursor:pointer;padding:10px 0;box-sizing:content-box;}
-.font-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
-.font-slider::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
-.font-slider::-moz-range-track{height:7px;border-radius:999px;background:transparent;}
+/* (2026-08-06) Dikey padding KALDIRILDI: arka plan padding alanını da boyadığı
+   için kaydırıcı ince bir çizgi değil kalın bir anahtar gibi görünüyordu.
+   Dokunma payı artık sarmalayıcının iç boşluğundan geliyor. */
+.font-slider{-webkit-appearance:none;appearance:none;flex:1;min-width:0;width:auto;height:6px;border-radius:999px;background:var(--border);outline:none;cursor:pointer;padding:0;}
+.font-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
+.font-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
+.font-slider::-moz-range-track{height:6px;border-radius:999px;background:transparent;}
 /* Telefonda DARALTMIYORUZ: kontrol artık alt şeritte değil panelde, yer var. */
 @media (max-width:768px){ .font-slider-wrap .fs-a-sm{font-size:12px;} .font-slider-wrap .fs-a-lg{font-size:18px;} }
 .stage-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;} .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
@@ -703,7 +709,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   <div class="sb">
     <div class="sb-menu">
       <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" class="sb-menu-btn"><i class="ti ti-adjustments-horizontal"></i></button>
-      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;width:max-content;max-width:calc(100vw - 24px);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 12px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
+      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;overflow-x:hidden;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 12px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
         <div id="stageToolsRow"></div>
       </div>
     </div>
