@@ -1422,7 +1422,7 @@ function renderStage(){
       w.measurement ? `<div class="sip-row"><span class="sip-label">Usul</span><span class="sip-val">${w.measurement}</span></div>` : '',
       w.region ? `<div class="sip-row"><span class="sip-label">Bölge</span><span class="sip-val">${w.region}</span></div>` : '',
       w.composer ? `<div class="sip-row"><span class="sip-label">Besteci</span><span class="sip-val">${w.composer}</span></div>` : '',
-      w.lyricWriter ? `<div class="sip-row"><span class="sip-label">Güfte</span><span class="sip-val">${w.lyricWriter}</span></div>` : '',
+      w.lyricWriter ? `<div class="sip-row"><span class="sip-label">Söz Yazarı</span><span class="sip-val">${w.lyricWriter}</span></div>` : '',
       w.instrument ? `<div class="sip-row"><span class="sip-label">Enstrüman</span><span class="sip-val">${w.instrument}</span></div>` : '',
       item.note ? `<div class="sip-row"><span class="sip-label">Not</span><span class="sip-val">${item.note}</span></div>` : '',
     ].filter(Boolean).join('');
@@ -1446,7 +1446,12 @@ function renderStage(){
     if (_notaPage < 0) _notaPage = 0;
     bodyHtml = notaViewHtml(_np2, _notaPage);
   } else if (viewMode === 'chords' && w.chords) {
-    bodyHtml = `<div class="wlyrics">${renderStageChords(transposeChordPro(w.chords, getTranspose(item.workId)))}</div>`;
+    // (2026-08-06) Ton kaydırma HARF üzerinde yapılır (motor harf bekliyor);
+    // kullanıcının yazım tercihi ancak ondan SONRA, yalnızca gösterim için
+    // uygulanır. Kayıtlı akor metni asla solfeje çevrilip saklanmaz.
+    const _akorHarf = transposeChordPro(w.chords, getTranspose(item.workId));
+    const _akorGoster = (typeof akorGoster === 'function') ? akorGoster(_akorHarf) : _akorHarf;
+    bodyHtml = `<div class="wlyrics">${renderStageChords(_akorGoster)}</div>`;
   } else {
     bodyHtml = w.lyrics ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>` : '';
   }
@@ -1679,6 +1684,15 @@ function buildStageToolsRow(mode) {
         }
         return cn ? `<span class="ton-karar" style="font-size:11px;white-space:nowrap;padding:0 6px;color:var(--text3, #6b7482);">${cn}</span>` : '';
       })()}` : '';
+  // Akor yazımı: A B C / Do Re Mi. Yalnızca AKOR görünümünde gösterilir —
+  // başka görünümde etkisi olmadığı için orada durması kafa karıştırırdı.
+  // Tercih auth.js'teki ortak anahtarda (kullanıcı bazlı); eser düzenleme
+  // ekranındaki radyoyla AYNI ayardır.
+  const _yazim = (typeof getAkorYazim === 'function') ? getAkorYazim() : 'abc';
+  const yazimBtns = (mode === 'chords') ? `
+      <button onclick="event.stopPropagation();setAkorYazimi('abc')" title="Akorları A B C yaz" class="align-btn${_yazim==='abc'?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:800;">ABC</button>
+      <button onclick="event.stopPropagation();setAkorYazimi('solfej')" title="Akorları Do Re Mi yaz" class="align-btn${_yazim==='solfej'?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:800;">Do Re Mi</button>` : '';
+
   if (mode === 'nota') {
     row.innerHTML = themeBtn + navBtn;
   } else {
@@ -1687,8 +1701,15 @@ function buildStageToolsRow(mode) {
       <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>`;
-    row.innerHTML = alignBtns + tonBtns + themeBtn + navBtn;
+    row.innerHTML = alignBtns + yazimBtns + tonBtns + themeBtn + navBtn;
   }
+}
+
+// Akor yazımını değiştir ve sahneyi yeniden çiz (gösterim değişikliği; veri aynı).
+function setAkorYazimi(yon) {
+  if (typeof setAkorYazim !== 'function') return;
+  setAkorYazim(yon);
+  renderStage();
 }
 
 function goBack(e) {
@@ -2006,30 +2027,14 @@ function loadSideWork(id) {
   if(autoId){localStorage.removeItem('stageRepId');const f=reps.find(r=>r.id===autoId);if(f){pickRep(autoId);setTimeout(()=>{startStage();initBackBtn();},100);}}
 })();
 
-// ── MOBİL SWIPE DESTEĞİ ──
-(function() {
-  let touchStartX = 0, touchStartY = 0;
-  const sm = document.getElementById('sm') || document.body;
-  
-  document.addEventListener('touchstart', function(e) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-  }, {passive: true});
-
-  document.addEventListener('touchend', function(e) {
-    if (!document.getElementById('stageScreen') || 
-        document.getElementById('stageScreen').classList.contains('hidden')) return;
-    
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    const dy = e.changedTouches[0].clientY - touchStartY;
-    
-    // Yalnızca yatay swipe (dikey scroll değil)
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-      if (dx < 0) sideNavNext(); // sola swipe → sonraki
-      else sideNavPrev();         // sağa swipe → önceki
-    }
-  }, {passive: true});
-})();
+// ── MOBİL SWIPE DESTEĞİ — KALDIRILDI (2026-08-06) ──
+// Burada İKİNCİ bir document touchstart/touchend çifti vardı ve yukarıdaki
+// swipe kodundan bağımsız olarak sideNavNext/sideNavPrev çağırıyordu.
+// Sonuç: tek bir parmak hareketinde İKİ dinleyici birden tetikleniyor ve
+// eserler İKİŞER İKİŞER atlanıyordu (Emir bildirdi). Ayrıca bu kopya
+// nextWork/prevWork yerine sideNav*'i çağırdığı için nota sayfa çevirmeyi
+// de atlıyordu — çok sayfalı notada swipe sayfayı değil eseri değiştiriyordu.
+// Tek yetkili swipe kodu yukarıda (eşik 60px, nextWork/prevWork üzerinden).
 
 </script>
 
