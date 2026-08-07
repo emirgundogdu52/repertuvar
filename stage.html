@@ -606,8 +606,14 @@ body.stage-active #r-bottom-nav{display:none !important;}
   body.stage-active .sidebar { display: none !important; }
 }
 
-.stage-info-btn{background:none;border:none;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:all .15s;flex-shrink:0;}
-.stage-info-btn:hover{color:var(--text);}
+/* (2026-08-06) Bilgi düğmesi sekme kutusunun içinde: sekmelerle AYNI yükseklik
+   ve köşe yarıçapı, ama accent zemin yok (mod seçmiyor, panel açıyor).
+   Belirginlik için ikon rengi --text ve hafif bir zemin verildi. */
+.vm-sep{width:1px;height:20px;background:var(--border);margin:0 3px;flex-shrink:0;}
+.stage-info-btn{background:rgba(255,255,255,.05);border:none;width:38px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;transition:background .14s,color .14s;flex-shrink:0;padding:0;}
+.stage-info-btn .ti{font-size:19px;line-height:1;}
+.stage-info-btn:hover{background:rgba(255,255,255,.12);color:var(--accent);}
+body.stage-light .stage-info-btn{background:rgba(0,0,0,.05);}
 .info-sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:598;display:none;}
 .info-sheet-backdrop.open{display:block;}
 .info-sheet{position:fixed;left:0;right:0;bottom:0;background:#1a1a2e;border-radius:18px 18px 0 0;padding:8px 20px 24px;z-index:599;box-shadow:0 -8px 30px rgba(0,0,0,.5);transform:translateY(100%);transition:transform .25s ease;max-height:70vh;overflow-y:auto;}
@@ -667,14 +673,17 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <div class="stc" id="stc">1/1</div>
       <div class="medley-badge" id="medleyBadge"></div>
     </div>
-    <div style="display:flex;align-items:center;gap:4px;">
-      <div class="vm-tabs" id="viewModeTabs" role="tablist" aria-label="Görünüm">
-        <button class="vm-tab" data-mode="lyrics" role="tab" title="Söz" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i><span class="vm-lbl">Söz</span></button>
-        <button class="vm-tab" data-mode="chords" role="tab" title="Akor" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i><span class="vm-lbl">Akor</span></button>
-        <button class="vm-tab" data-mode="nota" role="tab" title="Nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i><span class="vm-lbl">Nota</span></button>
-      </div>
-      <button class="stage-info-btn" onclick="openInfoSheet()" title="Eser Bilgileri">
-        <i class="ti ti-info-circle" style="font-size:22px;"></i>
+    <!-- (2026-08-06) Bilgi (i) düğmesi ARTIK SEKME ÇERÇEVESİNİN İÇİNDE.
+         Dışarıda tek başına dururken öksüz görünüyordu ve tıklanabilir olduğu
+         belli olmuyordu; şimdi Söz/Akor/Nota ile aynı kutunun içinde, aralarında
+         ince bir ayraç çizgisiyle — aynı aileden ama mod seçici DEĞİL. -->
+    <div class="vm-tabs" id="viewModeTabs" role="tablist" aria-label="Görünüm">
+      <button class="vm-tab" data-mode="lyrics" role="tab" title="Söz" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i><span class="vm-lbl">Söz</span></button>
+      <button class="vm-tab" data-mode="chords" role="tab" title="Akor" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i><span class="vm-lbl">Akor</span></button>
+      <button class="vm-tab" data-mode="nota" role="tab" title="Nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i><span class="vm-lbl">Nota</span></button>
+      <span class="vm-sep" aria-hidden="true"></span>
+      <button class="stage-info-btn" onclick="event.stopPropagation();openInfoSheet()" title="Eser Bilgileri" aria-label="Eser Bilgileri">
+        <i class="ti ti-info-circle" aria-hidden="true"></i>
       </button>
     </div>
   </div>
