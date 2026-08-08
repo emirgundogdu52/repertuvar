@@ -306,8 +306,17 @@ async function showInviteConfirm(token) {
   if (bilgi && bilgi.ok === false) {
     govde = '<div style="font-size:14px;color:#e07060;">Davet bağlantısı geçersiz.</div>';
   } else if (bilgi && bilgi.already_member) {
+    // (2026-08-06) Buraya da ÇIKIŞ seçeneği kondu: davet büyük olasılıkla
+    // başkasına gönderilmiş ve o kişi bu cihazda açıyor olabilir. Eskiden
+    // yalnızca "Uygulamaya git" vardı, kullanıcı çıkışı elle aramak zorundaydı.
     govde = '<div style="font-size:14px;line-height:1.6;">Zaten <b>' + esc(grup) + '</b> grubunun üyesisiniz. '
-          + 'Bu davet kullanılmadı, dilediğiniz kişiye iletebilirsiniz.</div>';
+          + 'Bu davet <b>kullanılmadı</b>, dilediğiniz kişiye iletebilirsiniz.</div>'
+          + '<div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;">'
+          + '<button id="invNo" style="flex:1;min-width:130px;background:#FFC83D;color:#1a1200;border:none;'
+          + 'border-radius:9px;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;">Farklı hesapla gir</button>'
+          + '<button id="invClose" style="flex:1;min-width:130px;background:transparent;color:#c9d1e0;'
+          + 'border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:11px 14px;font-size:13px;'
+          + 'font-weight:600;cursor:pointer;">Uygulamaya git</button></div>';
   } else if (bilgi && (bilgi.used || bilgi.expired)) {
     govde = '<div style="font-size:14px;color:#e07060;line-height:1.6;">Bu davet '
           + (bilgi.used ? 'daha önce kullanılmış' : 'süresi dolmuş') + '. Yeni bir davet isteyin.</div>';
@@ -327,7 +336,7 @@ async function showInviteConfirm(token) {
   kutu.innerHTML = '<div style="background:#19233F;border:1px solid rgba(255,255,255,.14);border-radius:14px;'
     + 'max-width:420px;width:100%;padding:22px;color:#fff;box-shadow:0 20px 50px rgba(0,0,0,.6);">'
     + govde
-    + (govde.indexOf('invYes') === -1
+    + ((govde.indexOf('invYes') === -1 && govde.indexOf('invClose') === -1)
         ? '<div style="margin-top:18px;"><button id="invClose" style="width:100%;background:#222B45;color:#fff;'
           + 'border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:11px;font-size:13px;font-weight:600;'
           + 'cursor:pointer;">Uygulamaya git</button></div>'
@@ -349,6 +358,7 @@ async function showInviteConfirm(token) {
     try { localStorage.removeItem('sb_token'); localStorage.removeItem('sb_user'); } catch (e) {}
     if (typeof window.clearOfflineData === 'function') { try { window.clearOfflineData(); } catch (e) {} }
     kutu.remove();
+    showMsg('ok', 'Çıkış yapıldı. Davetli kişi aşağıdan giriş yapabilir ya da kayıt olabilir — davet korunuyor.');
   };
   const kapat = document.getElementById('invClose');
   if (kapat) kapat.onclick = function () {
