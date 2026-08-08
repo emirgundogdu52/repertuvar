@@ -266,15 +266,98 @@ if(!window.location.search.includes('logout=1') && !window.location.hash.include
     // hesabı olan biri davet linkine tıkladığında HİÇBİR ŞEY olmuyordu.
     // Artık davet önce burada kullanılır, sonra yönlendirilir.
     if (_inviteToken) {
-      handlePendingInvite().then(function(d) {
-        if (d && d.ok === true) window.location.href = 'index.html?joined=1';
-        // Hata varsa sayfada kal — handlePendingInvite mesajı gösterdi.
-      });
+      // (2026-08-06) ⚠️ ARTIK OTOMATİK KULLANILMIYOR — SORULUYOR.
+      // Önceki sürüm girişli kullanıcıda daveti sessizce tüketiyordu; Emir
+      // kendi ürettiği daveti WhatsApp'tan gönderip başka sekmede kendi
+      // oturumu açıkken linke tıklayınca DAVET KENDİ HESABINDA YANDI
+      // (tek kullanımlık olduğu için test kullanıcısı artık katılamıyor).
+      // Kural: davet başka birine gönderilmiş olabilir; hangi hesapla
+      // kullanılacağını kullanıcı görüp onaylamalı.
+      showInviteConfirm(_inviteToken);
     } else {
       window.location.href = 'index.html';
     }
   }
 }
+
+// Girişli kullanıcıya davet onay ekranı. Daveti TÜKETMEDEN bilgisini alır
+// (invite_preview RPC'si), sonra kararı kullanıcıya bırakır.
+async function showInviteConfirm(token) {
+  let bilgi = null;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/invite_preview', {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + localStorage.getItem('sb_token'),
+                 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_token: token })
+    });
+    bilgi = await r.json();
+  } catch (e) {}
+
+  let eposta = '';
+  try { eposta = (JSON.parse(localStorage.getItem('sb_user')) || {}).email || ''; } catch (e) {}
+  const grup = (bilgi && bilgi.group_name) ? bilgi.group_name : 'grup';
+
+  const kutu = document.createElement('div');
+  kutu.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:99999;display:flex;'
+    + 'align-items:center;justify-content:center;padding:22px;';
+
+  let govde;
+  if (bilgi && bilgi.ok === false) {
+    govde = '<div style="font-size:14px;color:#e07060;">Davet bağlantısı geçersiz.</div>';
+  } else if (bilgi && bilgi.already_member) {
+    govde = '<div style="font-size:14px;line-height:1.6;">Zaten <b>' + esc(grup) + '</b> grubunun üyesisiniz. '
+          + 'Bu davet kullanılmadı, dilediğiniz kişiye iletebilirsiniz.</div>';
+  } else if (bilgi && (bilgi.used || bilgi.expired)) {
+    govde = '<div style="font-size:14px;color:#e07060;line-height:1.6;">Bu davet '
+          + (bilgi.used ? 'daha önce kullanılmış' : 'süresi dolmuş') + '. Yeni bir davet isteyin.</div>';
+  } else {
+    govde = '<div style="font-size:14px;line-height:1.7;"><b>' + esc(grup) + '</b> grubuna davet edildiniz.<br>'
+          + '<span style="color:#9aa3b8;">Şu anda <b>' + esc(eposta) + '</b> hesabıyla girişlisiniz — '
+          + 'davet bu hesapla kullanılacak.</span><br><br>'
+          + '<span style="color:#9aa3b8;">Davet başkasına aitse aşağıdan çıkış yapın; bağlantı korunur.</span></div>'
+          + '<div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;">'
+          + '<button id="invYes" style="flex:1;min-width:130px;background:#FFC83D;color:#1a1200;border:none;'
+          + 'border-radius:9px;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;">Bu hesapla katıl</button>'
+          + '<button id="invNo" style="flex:1;min-width:130px;background:transparent;color:#c9d1e0;'
+          + 'border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:11px 14px;font-size:13px;'
+          + 'font-weight:600;cursor:pointer;">Farklı hesapla gir</button></div>';
+  }
+
+  kutu.innerHTML = '<div style="background:#19233F;border:1px solid rgba(255,255,255,.14);border-radius:14px;'
+    + 'max-width:420px;width:100%;padding:22px;color:#fff;box-shadow:0 20px 50px rgba(0,0,0,.6);">'
+    + govde
+    + (govde.indexOf('invYes') === -1
+        ? '<div style="margin-top:18px;"><button id="invClose" style="width:100%;background:#222B45;color:#fff;'
+          + 'border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:11px;font-size:13px;font-weight:600;'
+          + 'cursor:pointer;">Uygulamaya git</button></div>'
+        : '')
+    + '</div>';
+  document.body.appendChild(kutu);
+
+  const yes = document.getElementById('invYes');
+  if (yes) yes.onclick = async function () {
+    yes.disabled = true; yes.textContent = 'Katılınıyor...';
+    try { localStorage.setItem('invite_confirmed', '1'); } catch (e) {}
+    const d = await handlePendingInvite();
+    if (d && d.ok === true) window.location.href = 'index.html?joined=1';
+    else { yes.disabled = false; yes.textContent = 'Bu hesapla katıl'; }
+  };
+  const no = document.getElementById('invNo');
+  if (no) no.onclick = function () {
+    // Davet localStorage'da KALIYOR: doğru hesapla giriş yapılınca kullanılacak.
+    try { localStorage.removeItem('sb_token'); localStorage.removeItem('sb_user'); } catch (e) {}
+    if (typeof window.clearOfflineData === 'function') { try { window.clearOfflineData(); } catch (e) {} }
+    kutu.remove();
+  };
+  const kapat = document.getElementById('invClose');
+  if (kapat) kapat.onclick = function () {
+    try { localStorage.removeItem('pending_invite'); } catch (e) {}
+    window.location.href = 'index.html';
+  };
+}
+
+function esc(t) { return (t == null ? '' : String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 async function handlePendingInvite(userId) {
   const inviteToken = localStorage.getItem('pending_invite');

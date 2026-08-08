@@ -603,7 +603,17 @@ async function requireAuth() {
   // Cached user varsa hemen authReady — UI beklemez
   if (getUser()) window.dispatchEvent(new CustomEvent('authReady'));
   // Bekleyen davet varsa arka planda tüket (anahtar boşsa hiç istek gitmez).
-  redeemPendingInvite();
+  // (2026-08-06) Bekleyen davet ARTIK otomatik tüketilmiyor: hangi hesapla
+  // kullanılacağı login.html'deki onay ekranında soruluyor (girişli kullanıcı
+  // başkasının davetine tıklayıp linki yakabiliyordu). Buradaki süpürücü
+  // yalnızca giriş/kayıt akışının bıraktığı daveti işler; onay ekranı
+  // `invite_confirmed` bayrağını koyar.
+  try {
+    if (localStorage.getItem('invite_confirmed') === '1') {
+      localStorage.removeItem('invite_confirmed');
+      redeemPendingInvite();
+    }
+  } catch(e) {}
   pingLastSeen();     // günde bir kez; kullanım ölçümü
   try {
     const r = await fetch(SUPA_URL+'/auth/v1/user', {

@@ -204,6 +204,7 @@ window.syncOfflineData = async function() {
     console.log('[db] Offline sync tamamlandı:', new Date().toLocaleTimeString('tr-TR'));
     // Sync bitti — dinleyen sayfalar (repertuvarlar, sahne) kendini tazelesin.
     try { window.dispatchEvent(new CustomEvent('data-synced')); } catch (e) {}
+    if (typeof window.realtimeBaglan === 'function') window.realtimeBaglan();
   } catch (e) {
     console.warn('[db] Sync hatası:', e);
   }
@@ -288,6 +289,105 @@ window.syncOfflineData = async function() {
       Promise.resolve(window.syncOfflineData()).then(bitir, bitir);
     } else { bitir(); }
   }, { passive: true });
+})();
+
+// ── CANLI GÜNCELLEME (Supabase Realtime, 2026-08-06) ─────────────────────
+// Amaç: başka bir cihazda yapılan değişiklik (sıralama, yeni eser, potpuri)
+// kullanıcı hiçbir şey yapmadan düşsün. Aşağı çek-bırak tazeleme (yukarıda)
+// kullanıcı ŞÜPHELENİRSE işe yarıyor; ama değişiklikten haberi yoksa
+// şüphelenmiyor da — asıl çözüm bu.
+//
+// NEDEN HAM WEBSOCKET: proje supabase-js kullanmıyor, her şey düz `fetch`.
+// Kütüphane eklemek her sayfaya ~40KB bindirirdi; Realtime'ın konuştuğu
+// Phoenix protokolü ise birkaç JSON mesajından ibaret (join + heartbeat).
+//
+// SAHNE İSTİSNASI: konser sırasında listenin altından değişmesi kötü sürpriz
+// olur. Bu yüzden burada veri OTOMATİK uygulanmıyor; `remote-change` olayı
+// yayılıyor ve sahne ekranı "liste değişti" şeridi gösterip kararı kullanıcıya
+// bırakıyor. Diğer sayfalarda değişiklik doğrudan çekiliyor.
+(function () {
+  var RT_URL = 'wss://ehytkzxdhjyjuubizdnl.supabase.co/realtime/v1/websocket';
+  var RT_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+  var TABLOLAR = ['repertoires', 'repertoire_items', 'works', 'solistler', 'group_members'];
+
+  var ws = null, refNo = 0, kalpAtisi = null, yenidenDene = null, gecikme = 2000;
+  var topic = 'realtime:repertuvar';
+  var bekleyen = null;
+
+  function jetonVar() { try { return localStorage.getItem('sb_token'); } catch (e) { return null; } }
+
+  function gonder(event, payload, konu) {
+    if (!ws || ws.readyState !== 1) return;
+    ws.send(JSON.stringify({ topic: konu || topic, event: event, payload: payload || {}, ref: String(++refNo) }));
+  }
+
+  // Değişiklikler kümelenir: tek bir sürükle-bırak onlarca satır güncelleyebilir,
+  // her biri için sync başlatmak anlamsız olur.
+  function degisiklikGeldi(tablo) {
+    clearTimeout(bekleyen);
+    bekleyen = setTimeout(function () {
+      var sahnede = !!window._stageActive;
+      try { window.dispatchEvent(new CustomEvent('remote-change', { detail: { table: tablo, applied: !sahnede } })); } catch (e) {}
+      if (!sahnede && typeof window.syncOfflineData === 'function') window.syncOfflineData();
+    }, 900);
+  }
+
+  function baglan() {
+    var jeton = jetonVar();
+    if (!jeton || !navigator.onLine) return;
+    if (ws && (ws.readyState === 0 || ws.readyState === 1)) return;
+    try {
+      ws = new WebSocket(RT_URL + '?apikey=' + RT_KEY + '&vsn=1.0.0');
+    } catch (e) { return; }
+
+    ws.onopen = function () {
+      gecikme = 2000;
+      gonder('phx_join', {
+        config: {
+          broadcast: { self: false },
+          presence: { key: '' },
+          postgres_changes: TABLOLAR.map(function (t) {
+            return { event: '*', schema: 'public', table: t };
+          })
+        },
+        access_token: jetonVar()
+      });
+      clearInterval(kalpAtisi);
+      kalpAtisi = setInterval(function () { gonder('heartbeat', {}, 'phoenix'); }, 25000);
+      console.log('[rt] canlı güncelleme bağlandı');
+    };
+
+    ws.onmessage = function (ev) {
+      var m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      if (m.event === 'postgres_changes' && m.payload && m.payload.data) {
+        degisiklikGeldi(m.payload.data.table);
+      } else if (m.event === 'phx_error' || m.event === 'phx_close') {
+        console.warn('[rt] kanal kapandı:', m.event);
+      }
+    };
+
+    ws.onclose = function () {
+      clearInterval(kalpAtisi);
+      // Üstel geri çekilme: sunucu ya da ağ sorunlarında saniyede bir denemeyelim.
+      clearTimeout(yenidenDene);
+      yenidenDene = setTimeout(baglan, gecikme);
+      gecikme = Math.min(gecikme * 2, 60000);
+    };
+
+    ws.onerror = function () { try { ws.close(); } catch (e) {} };
+  }
+
+  window.realtimeBaglan = baglan;
+
+  // Jeton yenilenince Realtime'a da bildir (RLS bu jetona göre uygulanıyor).
+  window.realtimeJetonTazele = function () { gonder('access_token', { access_token: jetonVar() }); };
+
+  window.addEventListener('online', function () { gecikme = 2000; baglan(); });
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) { if (!ws || ws.readyState > 1) baglan(); }
+  });
+  // Oturum açıksa hemen başlat; değilse giriş sonrası ilk sync bunu tetikler.
+  setTimeout(baglan, 1500);
 })();
 
 // Sayfa yüklenince service worker kaydet ve sync yap
