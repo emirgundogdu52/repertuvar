@@ -4064,9 +4064,22 @@ function saveNewEser() {
       },
       body: JSON.stringify(saveFields)
     })
-    .then(r => r.json())
+    .then(async r => {
+      // (2026-08-06) HTTP durumu ARTIK KONTROL EDİLİYOR. Eskiden yanıt doğrudan
+      // json()'a veriliyor, hata gövdesi sessizce yutuluyordu.
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' — ' + (await r.text()).slice(0, 300));
+      return r.json();
+    })
     .then(data => {
-      const newWork = { ...saveFields, id: data[0]?.id || Date.now() };
+      // (2026-08-06) ⚠️ CİDDİ HATA DÜZELTİLDİ: burada `data[0]?.id || Date.now()`
+      // yazıyordu — sunucu id döndürmezse istemci SAHTE bir kimlik (zaman damgası)
+      // uyduruyordu. O eser sonradan repertuvara eklenince `repertoire_items`'a
+      // var olmayan bir esere işaret eden ÖKSÜZ satır yazılıyor, listede
+      // "#1780438185102" gibi görünüyordu. Artık id yoksa hata veriyoruz:
+      // uydurma kimlik üretmek, sessizce bozuk veri üretmekten başka bir şey değil.
+      const yeniId = data && data[0] && data[0].id;
+      if (!yeniId) throw new Error('Sunucu yeni eserin kimliğini döndürmedi — kayıt doğrulanamadı, lütfen tekrar deneyin.');
+      const newWork = { ...saveFields, id: yeniId };
       DATA.push(newWork);
       closeNewEserModal();
       buildFilters();
