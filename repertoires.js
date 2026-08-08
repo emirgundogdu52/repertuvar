@@ -1394,6 +1394,18 @@ async function mv(repId,idx,dir){
     const [moved]=merged.splice(idx,1);
     merged.splice(ni,0,moved);
     newActive=ni;
+    // (2026-08-06) POTPURİ İÇİNDE SIRA DEĞİŞTİRMEK BAĞI KOPARMASIN.
+    // Emir bildirdi: bağlı bir eseri ↑/↓ ile oynatınca eser potpuriden
+    // çıkıyordu. Sebep: ilk üye yukarı alınınca zincir BAŞININ üstüne geçmiş
+    // sayılıyor ve normalizeChains bağı çözüyordu. Oysa kullanıcının niyeti
+    // zinciri bozmak değil, içindeki sırayı değiştirmek. Hedef konum zincir
+    // aralığının İÇİNDEYSE (baş konumu dahil) üyelik korunuyor: aralığın ilk
+    // satırı zincir başı olur (linkedPrev=false), kalanlar bağlı kalır.
+    // Zincirin DIŞINA taşımak ise eskisi gibi bağı çözer — o gerçekten
+    // "potpuriden çıkar" demek.
+    if(ni>=ca && ni<=cb){
+      for(let k=ca;k<=cb;k++){ if(merged[k]) merged[k].linkedPrev = (k!==ca); }
+    }
   }
   await applyReorder(repId, orig, merged, newActive);
 }
