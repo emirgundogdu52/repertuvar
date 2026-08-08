@@ -209,6 +209,87 @@ window.syncOfflineData = async function() {
   }
 };
 
+// ── AŞAĞI ÇEKİP BIRAKARAK TAZELEME (2026-08-06) ──────────────────────────
+// Sunucudan veri yalnızca sayfa açılışında ve `online` olayında çekiliyordu;
+// başka bir cihazda yapılan değişiklik (sıralama, yeni eser, potpuri) uygulama
+// tamamen kapanıp açılana kadar görünmüyordu. Bu, telefonda beklenen hareketi
+// getiriyor: liste en üstteyken parmakla aşağı çek, bırak, tazelensin.
+// Not: bu yalnızca ÇEKİLDİĞİNDE çalışır — anlık bildirim değil. Değişikliğin
+// kendiliğinden düşmesi ayrı bir iş (Supabase Realtime).
+(function () {
+  if (typeof document === 'undefined') return;
+  var ESIK = 70;          // bu kadar piksel çekilince tazeleme tetiklenir
+  var MAKS = 110;         // göstergenin inebileceği en fazla mesafe
+  var baslangic = null, mesafe = 0, calisiyor = false, gosterge = null;
+
+  function kur() {
+    if (gosterge) return;
+    gosterge = document.createElement('div');
+    gosterge.setAttribute('aria-hidden', 'true');
+    gosterge.style.cssText =
+      'position:fixed;left:50%;top:0;transform:translate(-50%,-46px);z-index:99999;' +
+      'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;' +
+      'background:var(--surface,#19233F);border:1px solid var(--border,rgba(255,255,255,.15));' +
+      'box-shadow:0 4px 14px rgba(0,0,0,.35);pointer-events:none;opacity:0;transition:opacity .15s;';
+    gosterge.innerHTML =
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
+      'stroke-linecap="round" style="color:var(--accent,#FFC83D);"><path d="M12 5v14M5 12l7 7 7-7"/></svg>';
+    document.body.appendChild(gosterge);
+  }
+
+  function ciz(y, donuyor) {
+    if (!gosterge) return;
+    gosterge.style.opacity = y > 6 ? '1' : '0';
+    gosterge.style.transform = 'translate(-50%,' + Math.min(y, MAKS) + 'px)' +
+      (donuyor ? ' rotate(180deg)' : '');
+  }
+
+  // Sayfanın gerçekten en üstünde miyiz? (iç kaydırma kapları dahil)
+  function ustteMi(hedef) {
+    var el = hedef;
+    while (el && el !== document.body && el.nodeType === 1) {
+      var ov = '';
+      try { ov = getComputedStyle(el).overflowY; } catch (e) {}
+      if ((ov === 'auto' || ov === 'scroll') && el.scrollHeight > el.clientHeight) {
+        return el.scrollTop <= 0;
+      }
+      el = el.parentElement;
+    }
+    return (window.scrollY || document.documentElement.scrollTop || 0) <= 0;
+  }
+
+  document.addEventListener('touchstart', function (e) {
+    if (calisiyor || e.touches.length !== 1) { baslangic = null; return; }
+    baslangic = ustteMi(e.target) ? e.touches[0].clientY : null;
+    mesafe = 0;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function (e) {
+    if (baslangic === null || calisiyor) return;
+    var d = e.touches[0].clientY - baslangic;
+    if (d <= 0) { mesafe = 0; ciz(0, false); return; }
+    kur();
+    mesafe = d * 0.45;                     // direnç hissi
+    if (e.cancelable) e.preventDefault();  // sayfa zıplamasın
+    ciz(mesafe, mesafe >= ESIK);
+  }, { passive: false });
+
+  document.addEventListener('touchend', function () {
+    if (baslangic === null || calisiyor) { baslangic = null; return; }
+    baslangic = null;
+    if (mesafe < ESIK) { ciz(0, false); return; }
+    calisiyor = true;
+    ciz(46, true);
+    var bitir = function () {
+      calisiyor = false; mesafe = 0;
+      setTimeout(function () { ciz(0, false); }, 250);
+    };
+    if (typeof window.syncOfflineData === 'function') {
+      Promise.resolve(window.syncOfflineData()).then(bitir, bitir);
+    } else { bitir(); }
+  }, { passive: true });
+})();
+
 // Sayfa yüklenince service worker kaydet ve sync yap
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' }).then((reg) => {
