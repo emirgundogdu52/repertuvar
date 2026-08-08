@@ -597,7 +597,7 @@ function renderDetail(){
           ${_canM?`<span class="drag-handle" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)">⠿</span>`:''}
         </div>
       </td>
-      <td style="padding-left:16px;">
+      <td style="padding-left:16px;cursor:pointer;" onclick="openLyricsSheet('${it.workId}')" title="Sözleri göster">
         <div class="wn">${linked?'<span class="medley-chip" title="Potpuri devamı">🔗</span> ':''}${w.name||'#'+it.workId}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
         ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
@@ -836,6 +836,51 @@ function pickW(id){
   // Seçilince listeyi daralt
   document.getElementById("wpl").style.maxHeight = "60px";
   filterW();
+}
+
+// ── SÖZ PENCERESİ (2026-08-06) ────────────────────────────────────────
+// Repertuvar satırındaki esere tıklayınca sözü OKUMA amaçlı gösterir.
+// Düzenleme burada YOK — satırın sağındaki kalem düğmesi zaten o iş için.
+// Veri `WL` önbelleğinden geliyor (lyrics orada zaten yükleniyor), ek istek yok.
+function _lycEsc(t){ return (t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function openLyricsSheet(workId){
+  const w = WL[String(workId)] || {};
+  let ov = document.getElementById('lycOverlay');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'lycOverlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:none;align-items:center;justify-content:center;padding:20px;';
+    ov.onclick = (e)=>{ if(e.target===ov) closeLyricsSheet(); };
+    ov.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;max-width:620px;width:100%;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 18px 48px rgba(0,0,0,.5);">
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:16px 18px 12px;border-bottom:1px solid var(--border);">
+          <div style="flex:1;min-width:0;">
+            <div id="lycName" style="font-size:16px;font-weight:700;color:var(--text);line-height:1.35;"></div>
+            <div id="lycMeta" style="font-size:12px;color:var(--text3);margin-top:3px;"></div>
+          </div>
+          <button onclick="closeLyricsSheet()" aria-label="Kapat" style="background:none;border:none;color:var(--text3);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;">×</button>
+        </div>
+        <div id="lycBody" style="padding:16px 18px 20px;overflow:auto;font-size:15px;line-height:1.85;color:var(--text);white-space:pre-wrap;"></div>
+      </div>`;
+    document.body.appendChild(ov);
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeLyricsSheet(); });
+  }
+  document.getElementById('lycName').textContent = w.name || ('#'+workId);
+  document.getElementById('lycMeta').textContent =
+    [w.makam, w.composer, w.closingNote ? 'Karar: '+w.closingNote : ''].filter(Boolean).join(' · ');
+  const body = document.getElementById('lycBody');
+  const t = (w.lyrics||'').trim();
+  body.innerHTML = t
+    ? _lycEsc(t)
+    : '<span style="color:var(--text3);font-size:13px;">Bu eser için söz eklenmemiş.</span>';
+  body.scrollTop = 0;
+  ov.style.display = 'flex';
+}
+
+function closeLyricsSheet(){
+  const ov = document.getElementById('lycOverlay');
+  if(ov) ov.style.display = 'none';
 }
 
 async function addWork(){
