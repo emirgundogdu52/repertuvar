@@ -1402,7 +1402,11 @@ async function pickRepertoireForAdd(repId, repName) {
       method: 'POST', headers,
       body: JSON.stringify({ repertoire_id: repId, work_id: repAddWorkId, seq: nextSeq })
     });
-    if (!insRes.ok) throw new Error('insert failed');
+    // (2026-08-06) Sunucunun GERÇEK hatası gösteriliyor. Eskiden
+    // `throw new Error('insert failed')` deniyordu ve kullanıcı yalnızca
+    // "bir hata oluştu" görüyordu; RLS reddi mi, 401 mi, başka bir şey mi
+    // anlaşılmıyordu — bir eser sessizce eklenmemiş sayılıyordu.
+    if (!insRes.ok) throw new Error('HTTP ' + insRes.status + ' — ' + (await insRes.text()).slice(0, 300));
     msg.style.color = 'var(--ready-color,#34C759)';
     msg.textContent = '✓ "' + repName + '" içine eklendi.';
     // Yerel repertuvar/grup sayaçlarını da tazele
@@ -1410,7 +1414,8 @@ async function pickRepertoireForAdd(repId, repName) {
     setTimeout(closeRepAddSheet, 900);
   } catch (e) {
     msg.style.color = '#e07060';
-    msg.textContent = 'Eklenirken bir hata oluştu.';
+    msg.textContent = 'Eklenemedi: ' + (e.message || 'bilinmeyen hata');
+    console.error('[repertuvara ekle] ', e);
   }
 }
 
@@ -2012,7 +2017,7 @@ async function pickRepertoireForBulkAdd(repId, repName) {
     if (toAdd.length) {
       const items = toAdd.map(wid => ({ repertoire_id: repId, work_id: wid, seq: nextSeq++ }));
       const insRes = await fetch(SUPA_URL + '/rest/v1/repertoire_items', { method: 'POST', headers, body: JSON.stringify(items) });
-      if (!insRes.ok) throw new Error('insert failed');
+      if (!insRes.ok) throw new Error('HTTP ' + insRes.status + ' — ' + (await insRes.text()).slice(0, 300));
     }
     msg.style.color = 'var(--ready-color,#34C759)';
     msg.textContent = '✓ ' + toAdd.length + ' eser "' + repName + '" içine eklendi.' + (skipped ? ' (' + skipped + ' zaten vardı)' : '');
@@ -2020,7 +2025,8 @@ async function pickRepertoireForBulkAdd(repId, repName) {
     setTimeout(() => { closeRepAddSheet(); exitBulkMode(); }, 1100);
   } catch (e) {
     msg.style.color = '#e07060';
-    msg.textContent = 'Eklenirken bir hata oluştu.';
+    msg.textContent = 'Eklenemedi: ' + (e.message || 'bilinmeyen hata');
+    console.error('[repertuvara toplu ekle] ', e);
   }
 }
 
