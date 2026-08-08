@@ -1492,6 +1492,7 @@ async function dbPatch(table, id, data) {
   if (!r.ok) throw new Error(await r.text());
 }
 let iemRepId=null,iemItemId=null,iemPfSelected=[];
+let _iemWorkId=null;
 function openItemEdit(repId,itemId){
   iemRepId=repId;iemItemId=itemId;
   const rep=getRep(repId);if(!rep)return;
@@ -1503,11 +1504,23 @@ function openItemEdit(repId,itemId){
   if(el('iemMK')) el('iemMK').value=w.makam||'—';
   if(el('iemCN')) el('iemCN').value=it.closingNote||w.closingNote||'';
   if(el('iemNote')) el('iemNote').value=it.note||'';
+  _iemWorkId = it.workId;   // "Eser bilgilerini düzenle" düğmesi için
   iemPfSelected=it.performer?it.performer.split(', ').filter(Boolean):[];
   iemPfRender();
   if(el('iem')) el('iem').style.display='flex';
   else console.error('Modal #iem not found in DOM');
 }
+// (2026-08-06) Eserin KENDİ bilgilerini (söz, akor, nota, besteci…) düzenlemek
+// için Eserler sayfasındaki hazır formu açıyoruz — alanları burada tekrarlamak
+// yerine. `back` parametresi sayesinde form kapanınca tam bu repertuvara,
+// bu esere dönülüyor; kullanıcı için tek akış gibi görünüyor.
+function iemOpenWorkEditor(){
+  if(_iemWorkId==null) return;
+  const repId=iemRepId;
+  const back=location.pathname + (repId?('?rep='+encodeURIComponent(repId)):'');
+  location.href='eserler.html?edit='+encodeURIComponent(_iemWorkId)+'&back='+encodeURIComponent(back);
+}
+
 function closeIEM(){
   document.getElementById('iem').style.display='none';
   iemRepId=null;iemItemId=null;iemPfSelected=[];iemPfRender();

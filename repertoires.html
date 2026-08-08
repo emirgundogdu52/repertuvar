@@ -475,6 +475,19 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 
     <div class="fr"><label class="fl">Eser Notu</label><input class="fi" id="iemNote" placeholder="Sahne notu, tempo..."></div>
 
+    <!-- (2026-08-06) Eserin KENDİ bilgileri (söz, akor, nota, besteci…) burada
+         TEKRARLANMIYOR. Aynı alanların iki ayrı formda durması ikisinin
+         zamanla ayrışmasına yol açar. Bunun yerine Eserler sayfasındaki
+         hazır eser formu açılıyor ve kaydedince buraya geri dönülüyor. -->
+    <div class="fr">
+      <button type="button" onclick="iemOpenWorkEditor()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <i class="ti ti-edit" style="font-size:15px;" aria-hidden="true"></i> Eser bilgilerini düzenle (söz, akor, nota…)
+      </button>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5;">
+        Eserin kendi bilgileri her repertuvarda aynıdır. Yukarıdaki alanlar ise yalnızca bu repertuvara özeldir.
+      </div>
+    </div>
+
     <div class="fa"><button class="bc" onclick="closeIEM()">İptal</button><button class="bs" onclick="saveIEM()">Kaydet</button></div>
   </div>
 </div>

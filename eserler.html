@@ -3696,7 +3696,40 @@ function openEditEserModal(id) {
 }
 function closeNewEserModal() {
   document.getElementById('newEserModal').style.display = 'none';
+  // (2026-08-06) Başka bir sayfadan "eseri düzenle" diye gelindiyse
+  // (ör. Repertuvarlar → satır → Düzenle), modal kapanınca oraya DÖN.
+  // Böylece kullanıcı aynı bilgileri iki ayrı formda doldurmuyor:
+  // tek eser formu var, nereden çağrılırsa çağrılsın o açılıyor.
+  const geri = sessionStorage.getItem('eserEditReturn');
+  if (geri) {
+    sessionStorage.removeItem('eserEditReturn');
+    location.href = geri;
+  }
 }
+
+// ?edit=<workId> ile gelindiğinde eser düzenleme modalını doğrudan aç.
+// ?back=<url> verilmişse kapanışta oraya dönülür (yukarıdaki closeNewEserModal).
+function openEditFromQuery() {
+  try {
+    const q = new URLSearchParams(location.search);
+    const id = q.get('edit');
+    if (!id) return;
+    const back = q.get('back');
+    if (back) sessionStorage.setItem('eserEditReturn', back);
+    const ac = () => {
+      const w = (DATA || []).find(x => String(x.id) === String(id));
+      if (w) { openEditEserModal(w.id); return true; }
+      return false;
+    };
+    if (ac()) return;
+    // Liste henüz yüklenmemiş olabilir — sync bitince tekrar dene (tek sefer).
+    const t = setTimeout(() => window.removeEventListener('data-synced', h), 8000);
+    const h = () => { if (ac()) { clearTimeout(t); window.removeEventListener('data-synced', h); } };
+    window.addEventListener('data-synced', h);
+    setTimeout(ac, 1200);
+  } catch(e) { console.warn('[eserler] ?edit işlenemedi:', e); }
+}
+window.addEventListener('load', () => setTimeout(openEditFromQuery, 400));
 
 // ── GÜFTE EDİTÖR TOOLBAR ──
 function lyricsCmd(cmd) {
