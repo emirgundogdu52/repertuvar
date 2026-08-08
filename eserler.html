@@ -3800,13 +3800,26 @@ function domToPlainText(node) {
         out += '\n';
       } else {
         const inner = domToPlainText(child);
+        const blok = getComputedStyle_safe(child) !== 'inline';
+        // (2026-08-06) 🐛 İLK SATIR BİRLEŞMESİ DÜZELTİLDİ.
+        // Tarayıcı contenteditable'da İLK satırı sarmalayıcısız düz metin
+        // olarak bırakıp sonraki satırları <div> içine koyuyor:
+        //   "birinci satır"  +  <div>ikinci satır</div>  + ...
+        // Burada blok elemanlar yalnızca kendinden SONRA '\n' ekliyordu,
+        // ÖNCE eklemiyordu ⇒ birinci ve ikinci satır yapışıyordu
+        // ("KIZILCIKLAR OLDU MU" + "SELELERE DOLDU MU"). Artık blok başlarken
+        // de, yazılmış bir şey varsa ve zaten satır sonuyla bitmiyorsa,
+        // araya '\n' konuyor.
+        if (blok && out && !out.endsWith('\n')) {
+          out += '\n';
+        }
         out += inner;
         // Blok elementler (div, p vb.) kendi satırında biter — ama içeriği
         // zaten bir '\n' ile bitiyorsa (ör. son çocuğu <br> olan bir blok,
         // tarayıcının Enter'da oluşturduğu tipik boş-satır deseni) tekrar
         // '\n' eklenmez; aksi halde her blok için satır sonu ikiye katlanır
         // ve satırlar kaydettikçe aşağı/yukarı kayar.
-        if (getComputedStyle_safe(child) !== 'inline' && !inner.endsWith('\n')) {
+        if (blok && !inner.endsWith('\n')) {
           out += '\n';
         }
       }
