@@ -70,15 +70,7 @@ body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-he
 
 .logo-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:32px;}
 /* Yeni yazı logosu — splash ve üst çubuktakiyle aynı kimlik (eski logo_slogan_dark.png yerine) */
-.brand{display:flex;flex-direction:column;align-items:center;}
-.brand-row{display:flex;align-items:baseline;line-height:1;}
-.brand-rep,.brand-dot,.brand-app{font-family:'Inter',sans-serif;font-weight:900;font-size:clamp(30px,7vw,44px);letter-spacing:-.03em;}
-.brand-rep{color:#FFFFFF;}
-.brand-dot,.brand-app{color:var(--accent);}
-.brand-lines{display:flex;align-items:flex-start;margin-top:9px;}
-.brand-line-gold,.brand-line-white{height:6px;border-radius:3px;display:block;}
-.brand-line-gold{background:var(--accent);}
-.brand-line-white{background:#FFFFFF;margin-left:9px;}
+.brand-img{width:min(262px,74vw);height:auto;display:block;}
 .brand-slogan{font-size:13px;color:var(--text2);text-align:center;line-height:1.65;letter-spacing:.01em;}
 .logo-wrap h1{font-size:22px;font-weight:600;letter-spacing:-.01em;}
 .logo-wrap p{font-size:13px;color:var(--text2);}
@@ -131,10 +123,13 @@ body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-he
 </div>
 
 <div class="logo-wrap">
-  <div class="brand">
-    <div class="brand-row"><span class="brand-rep">repertuvar</span><span class="brand-dot">.</span><span class="brand-app">app</span></div>
-    <div class="brand-lines"><span class="brand-line-gold" id="brandLineGold"></span><span class="brand-line-white" id="brandLineWhite"></span></div>
-  </div>
+  <!-- (2026-08-06) Logo artık GÖRSEL DOSYA — uygulamanın geri kalanıyla aynı
+       kaynak (topnav.js da logo_dark/logo_light.png kullanıyor). Eskiden burada
+       logo CSS ile çiziliyordu (span'ler + genişliği JS ile hesaplanan iki
+       çizgi); harf aralıkları ve çizgi boyları kayıyordu. Aynı sebeple daha
+       önce de metin logodan durağan görsele dönülmüştü — giriş ekranı o
+       kararın dışında kalmış. Tek kaynak = kayma yok. -->
+  <img class="brand-img" id="brandImg" src="logo_dark.png" alt="repertuvar.app">
   <p class="brand-slogan">Modern Müzisyenler İçin<br>Akıllı Sahne ve Repertuvar Yönetimi</p>
 </div>
 
@@ -594,7 +589,7 @@ async function loginGoogle() {
   lineBlue.style.width = rep.offsetWidth + 'px';
   lineDark.style.width = (dot.offsetWidth + app.offsetWidth) + 'px';
 
-  // Toplam ~2.4 sn (eskiden ~7 sn: daktilo efekti + uzun beklemeler kaldırıldı)
+  // Toplam ~3.4 sn (2026-08-06'da 2.4'ten uzatıldı; eskiden ~7 sn'ydi)
   await anim(dot, { opacity:'1', transform:'translateY(0)' }, 380, 0, 'cubic-bezier(0.34,1.35,0.64,1)');
 
   anim(rep, { opacity:'1', transform:'translateX(0)' }, 420, 0);
@@ -609,7 +604,11 @@ async function loginGoogle() {
   slogan.style.transform = 'translateY(8px)';
   await anim(slogan, { opacity:'1', transform:'translateY(0)' }, 320, 0);
 
-  await new Promise(r => setTimeout(r, 380));
+  // (2026-08-06) Emir: "splash çok hızlı geçiyor, 1 sn uzatalım."
+  // Uzatma, animasyonların İÇİNE değil SONUNA konuyor: logo ve slogan tam
+  // oturduktan sonra ekran bir süre okunabilir kalıyor, hareketler yine
+  // eskisi kadar canlı. 380 ms → 1380 ms.
+  await new Promise(r => setTimeout(r, 1380));
   overlay.classList.add('fade-out');
   setTimeout(() => {
     overlay.remove();
@@ -618,15 +617,17 @@ async function loginGoogle() {
 })();
 </script>
 <script>
-// Logo çizgilerinin genişliğini yazıya göre ayarla (splash ile aynı görünüm)
-(async function sizeBrandLines(){
-  try { await document.fonts.ready; } catch(e){}
-  const rep=document.querySelector('.brand-rep'), dot=document.querySelector('.brand-dot'),
-        app=document.querySelector('.brand-app'), lg=document.getElementById('brandLineGold'),
-        lw=document.getElementById('brandLineWhite');
-  if(!rep||!lg||!lw) return;
-  lg.style.width = rep.offsetWidth + 'px';
-  lw.style.width = ((dot?dot.offsetWidth:0) + (app?app.offsetWidth:0)) + 'px';
+// (2026-08-06) `sizeBrandLines` KALDIRILDI — logo artık görsel dosya, çizgi
+// genişliğini yazıya göre hesaplamaya gerek yok. Açık temada logonun beyaz
+// sürümü kullanılır (uygulamayla aynı dosya adları).
+(function () {
+  try {
+    var img = document.getElementById('brandImg');
+    if (!img) return;
+    var acik = document.documentElement.getAttribute('data-theme') === 'light'
+            || localStorage.getItem('theme') === 'light';
+    if (acik) img.src = 'logo_light.png';
+  } catch (e) {}
 })();
 </script>
 </body>
