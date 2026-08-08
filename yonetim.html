@@ -275,9 +275,15 @@ async function kirilimYukle(pending) {
   // Bu sayfa uygulama geneli yetki ister. isAdmin()/isEditor() localStorage'daki
   // role bakıyor; loadUserRole ile tazeleyip öyle karar veriyoruz ki yeni
   // atanmış bir rol bir sonraki açılışa kalmasın.
-  try { if (typeof loadUserRole === 'function') await loadUserRole(); } catch (e) {}
+  // (2026-08-06) Rol TAZELENEMEZSE ERİŞİM VERİLMEZ. localStorage'daki rol
+  // önceki oturumdan kalmış olabilir (bkz. eksik çıkış hatası); bu sayfa
+  // uygulama geneli yetki istediği için tahmine dayanmamalı.
+  let rolTazelendi = false;
+  try {
+    if (typeof loadUserRole === 'function') { await loadUserRole(); rolTazelendi = true; }
+  } catch (e) { rolTazelendi = false; }
 
-  if (!(isAdmin() || isEditor())) {
+  if (!rolTazelendi || !(isAdmin() || isEditor())) {
     document.querySelector('.page-content').innerHTML =
       '<div style="text-align:center;padding:60px 20px;color:var(--text3);">'
       + '<div style="font-size:34px;margin-bottom:12px;">🔒</div>'

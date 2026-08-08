@@ -354,9 +354,23 @@ async function showInviteConfirm(token) {
   };
   const no = document.getElementById('invNo');
   if (no) no.onclick = function () {
-    // Davet localStorage'da KALIYOR: doğru hesapla giriş yapılınca kullanılacak.
-    try { localStorage.removeItem('sb_token'); localStorage.removeItem('sb_user'); } catch (e) {}
-    if (typeof window.clearOfflineData === 'function') { try { window.clearOfflineData(); } catch (e) {} }
+    // (2026-08-06) ⚠️ TAM ÇIKIŞ ŞART. İlk sürüm yalnızca sb_token ve sb_user'ı
+    // siliyordu; `user_role`, `user_group_id`, `user_groups` gibi KULLANICIYA
+    // ÖZEL anahtarlar tarayıcıda kalıyordu. Sonuç: bu cihazda sonra giriş yapan
+    // kişi ÖNCEKİ kullanıcının rolünü devralıyordu — test1 (member) sol menüde
+    // "Yönetim" görüp sayfayı açabildi. Artık auth.js'teki logoutSilent()
+    // kullanılıyor: sunucu oturumunu da kapatır, USER_SCOPED_KEYS'in tamamını
+    // temizler, offline veriyi siler. `pending_invite` bu listede DEĞİL,
+    // bilerek: davet korunmalı ki doğru hesapla girilince kullanılabilsin.
+    try {
+      if (typeof logoutSilent === 'function') { logoutSilent(); }
+      else {
+        ['sb_token','sb_refresh','sb_user','user_role','user_status',
+         'user_group_id','user_groups','myGroupRole','scope_uid']
+          .forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+        if (typeof window.clearOfflineData === 'function') window.clearOfflineData();
+      }
+    } catch (e) {}
     kutu.remove();
     showMsg('ok', 'Çıkış yapıldı. Davetli kişi aşağıdan giriş yapabilir ya da kayıt olabilir — davet korunuyor.');
   };
