@@ -787,7 +787,13 @@ var USER_SCOPED_KEYS = [
 function logoutSilent() {
   const token = getToken();
   if (token) {
-    fetch(SUPA_URL+'/auth/v1/logout', {
+    // (2026-08-06) 🐛 `?scope=local` EKLENDİ. Supabase'in çıkış uç noktası
+    // VARSAYILAN OLARAK KÜRESEL çalışıyor: kullanıcının TÜM cihazlardaki
+    // yenileme jetonlarını iptal ediyor. Emir masaüstünde hesap değiştirince
+    // önündeki iPad de düşüp "Oturumunuzun süresi doldu" uyarısı verdi —
+    // oysa orada hiçbir şey yapılmamıştı. Çıkış YALNIZCA bu cihazı
+    // kapatmalı; sahnede duran ikinci cihazın oturumu düşerse felaket olur.
+    fetch(SUPA_URL+'/auth/v1/logout?scope=local', {
       method: 'POST',
       headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+token}
     }).catch(()=>{});
