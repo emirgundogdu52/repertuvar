@@ -1335,16 +1335,24 @@ function normalizeChains(origItems, merged){
 
 // Yeni sıralamayı uygula: normalize et, seq'leri yaz, DEĞİŞEN linked_prev'leri yaz.
 async function applyReorder(repId, origItems, merged, newActiveIdx){
-  const before = new Map(origItems.map(it => [String(it.id), !!it.linkedPrev]));
   normalizeChains(origItems, merged);
+  // Güvenlik ağı: zincir HİÇBİR ZAMAN ilk satırdan başlayamaz.
+  if (merged[0]) merged[0].linkedPrev = false;
   merged.forEach((it,i)=> it.seq = i+1);
   sync('spin','...');
   try{
-    const patches = merged.map(it => {
-      const body = { seq: it.seq };
-      if (before.get(String(it.id)) !== !!it.linkedPrev) body.linked_prev = !!it.linkedPrev;
-      return dbPatch('repertoire_items', it.id, body);
-    });
+    // (2026-08-06) 🐛 linked_prev ARTIK HER SATIRA YAZILIYOR.
+    // Eskiden yalnızca "önceki duruma göre DEĞİŞMİŞSE" gönderiliyordu. Bu,
+    // sunucudaki gerçek değerin elimizdeki anlık görüntüyle aynı olduğunu
+    // varsayıyordu — canlı güncelleme açıldıktan sonra araya giren bir
+    // tazeleme listeyi eskitince karşılaştırma yanlış çıkıyor ve o satır hiç
+    // güncellenmiyordu. Sonuç: veritabanında İLK SATIRIN linked_prev'i true
+    // kalabiliyordu (öncesi olmayan bir satır "bir öncekine bağlı" olamaz) ve
+    // zincir kopuk görünüyordu. Artık son durum tamamen `merged`'den
+    // belirleniyor; ek maliyet yok, aynı sayıda PATCH gidiyor.
+    const patches = merged.map(it =>
+      dbPatch('repertoire_items', it.id, { seq: it.seq, linked_prev: !!it.linkedPrev })
+    );
     await Promise.all(patches);
     if (activeItemRepId === repId && newActiveIdx != null) activeItemIdx = newActiveIdx;
     await load();
