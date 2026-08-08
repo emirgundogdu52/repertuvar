@@ -597,7 +597,7 @@ function renderDetail(){
           ${_canM?`<span class="drag-handle" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)">⠿</span>`:''}
         </div>
       </td>
-      <td style="padding-left:16px;cursor:pointer;" onclick="openLyricsSheet('${it.workId}')" title="Sözleri göster">
+      <td style="padding-left:16px;cursor:pointer;" onclick="openLyricsSheet('${it.workId}','${rep.id}','${it.id}')" title="Sözleri göster — düzenlemek için pencerede Düzenle">
         <div class="wn">${linked?'<span class="medley-chip" title="Potpuri devamı">🔗</span> ':''}${w.name||'#'+it.workId}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
         ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
@@ -844,7 +844,15 @@ function pickW(id){
 // Veri `WL` önbelleğinden geliyor (lyrics orada zaten yükleniyor), ek istek yok.
 function _lycEsc(t){ return (t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function openLyricsSheet(workId){
+// Düzenle düğmesi için: pencere hangi satırdan açıldıysa onu hatırlıyoruz.
+// (2026-08-06) Emir'in geri bildirimi: satır düğmeleri yalnızca üstüne gelince
+// beliriyor ve "bulmak için aramak gerekiyor" — esere zaten tıklanmış olduğu
+// için düzenlemenin doğru yeri burası.
+let _lycRepId = null, _lycItemId = null;
+
+function openLyricsSheet(workId, repId, itemId){
+  _lycRepId = repId || null;
+  _lycItemId = itemId || null;
   const w = WL[String(workId)] || {};
   let ov = document.getElementById('lycOverlay');
   if(!ov){
@@ -859,7 +867,12 @@ function openLyricsSheet(workId){
             <div id="lycName" style="font-size:16px;font-weight:700;color:var(--text);line-height:1.35;"></div>
             <div id="lycMeta" style="font-size:12px;color:var(--text3);margin-top:3px;"></div>
           </div>
-          <button onclick="closeLyricsSheet()" aria-label="Kapat" style="background:none;border:none;color:var(--text3);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;">×</button>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <button id="lycEditBtn" onclick="lycEdit()" style="display:none;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">
+              <i class="ti ti-edit" style="font-size:13px;" aria-hidden="true"></i> Düzenle
+            </button>
+            <button onclick="closeLyricsSheet()" aria-label="Kapat" style="background:none;border:none;color:var(--text3);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;">×</button>
+          </div>
         </div>
         <div id="lycBody" style="padding:16px 18px 20px;overflow:auto;font-size:15px;line-height:1.85;color:var(--text);white-space:pre-wrap;"></div>
       </div>`;
@@ -875,7 +888,20 @@ function openLyricsSheet(workId){
     ? _lycEsc(t)
     : '<span style="color:var(--text3);font-size:13px;">Bu eser için söz eklenmemiş.</span>';
   body.scrollTop = 0;
+
+  // Düzenle yalnızca yetki varsa ve satır bilgisi elimizdeyse görünür
+  const eb = document.getElementById('lycEditBtn');
+  if (eb) {
+    const rep = _lycRepId ? getRep(_lycRepId) : null;
+    eb.style.display = (rep && rep.canManage && _lycItemId) ? 'inline-flex' : 'none';
+  }
   ov.style.display = 'flex';
+}
+
+function lycEdit(){
+  const repId = _lycRepId, itemId = _lycItemId;
+  closeLyricsSheet();
+  if (repId && itemId) openItemEdit(repId, itemId);
 }
 
 function closeLyricsSheet(){

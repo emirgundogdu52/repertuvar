@@ -442,6 +442,43 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
   </div>
 </div>
 
+<!-- (2026-08-06) SATIR DÜZENLEME MODALI GERİ EKLENDİ.
+     Kalem düğmesi hiçbir şey yapmıyordu: `openItemEdit()` verileri hazırlayıp
+     `#iem`i açmaya çalışıyor, bulamayınca konsola "Modal #iem not found in DOM"
+     yazıp sessizce çıkıyordu (konsolda 37 kez görüldü). Modal bir noktada
+     sayfadan düşmüş; CSS'i (:286 #iemCN/#iemMK) hâlâ duruyordu.
+     Alan adları repertoires.js'teki openItemEdit/saveIEM ile birebir aynı. -->
+<div class="mo" id="iem" style="display:none;">
+  <div class="md">
+    <h2 style="margin-bottom:2px;">Eseri Düzenle</h2>
+    <div id="iemWorkName" style="font-size:15px;font-weight:700;color:var(--text);margin-top:6px;"></div>
+    <div id="iemWorkInfo" style="font-size:12px;color:var(--text3);margin-top:2px;"></div>
+
+    <div class="fr" style="margin-top:14px;">
+      <div style="grid-column:1/-1;width:100%;">
+        <label class="fl">İcracı Sanatçılar</label>
+        <div id="iemPfTags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;align-items:center;cursor:text;" onclick="document.getElementById('iemPfInput').focus()">
+          <input id="iemPfInput" placeholder="Sanatçı ekle..." autocomplete="off"
+            style="border:none;background:none;color:var(--text);font-size:13px;outline:none;min-width:140px;flex:1;"
+            oninput="iemPfSuggest(this.value)" onkeydown="iemPfKeydown(event)">
+        </div>
+        <div id="iemPfDropdown" style="display:none;position:absolute;z-index:100;background:var(--surface);border:1px solid var(--border);border-radius:7px;max-height:160px;overflow-y:auto;width:280px;margin-top:2px;"></div>
+      </div>
+    </div>
+
+    <div class="fr">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
+        <div><label class="fl">Karar Sesi</label><input class="fi" id="iemCN" placeholder="La, Do, Si..."></div>
+        <div><label class="fl">Makam <span style="color:var(--text3);font-size:11px;">(değişmez)</span></label><input class="fi" id="iemMK" placeholder="—" readonly style="opacity:.5;cursor:not-allowed;"></div>
+      </div>
+    </div>
+
+    <div class="fr"><label class="fl">Eser Notu</label><input class="fi" id="iemNote" placeholder="Sahne notu, tempo..."></div>
+
+    <div class="fa"><button class="bc" onclick="closeIEM()">İptal</button><button class="bs" onclick="saveIEM()">Kaydet</button></div>
+  </div>
+</div>
+
 <script src="repertoires.js"></script>
 
 </div><!-- /main-wrap -->
