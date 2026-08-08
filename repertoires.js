@@ -365,9 +365,29 @@ function applyRepsData(r, i, s) {
   reps = (r||[]).map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, canManage: (x.owner_id===uid || x.user_id===uid) || (isGroupManager() && !!x.group_id && x.group_id===myGid), items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map((t,ix)=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||'',linkedPrev: ix>0 && !!t.linked_prev}))}));
 }
 
+// (2026-08-06) 🐛 `?rep=` YALNIZCA İLK YÜKLEMEDE UYGULANIR.
+// Eskiden `load()` HER çağrıldığında adres çubuğundaki `?rep=` okunup seçili
+// repertuvar ona çevriliyordu. Adres çubuğu değişmediği için, kullanıcı
+// arayüzden başka bir repertuvara geçse bile potpuri bağlama/çözme, sıralama
+// ya da eser ekleme gibi `load()` tetikleyen her işlemden sonra ekran ESKİ
+// repertuvara ATLIYORDU. Daha kötüsü: atlamayı fark etmeden basılan sonraki
+// düğmeler ARTIK O REPERTUVARIN satırlarına uygulanıyordu — potpuri bağının
+// başka bir repertuvara "sızması" böyle oluyordu.
+let _urlRepUygulandi = false;
 function selectUrlRepIfPresent() {
+  if (_urlRepUygulandi) return;
   const urlRep=new URLSearchParams(window.location.search).get('rep');
   if(urlRep&&reps.find(x=>x.id===urlRep)){selId=urlRep;}
+  _urlRepUygulandi = true;
+  // Parametreyi adres çubuğundan da temizle: sayfa yenilense bile artık
+  // kullanıcının o an seçtiği repertuvar korunur (geçmişe yeni kayıt eklemez).
+  try {
+    if (urlRep && window.history && history.replaceState) {
+      const u = new URL(window.location.href);
+      u.searchParams.delete('rep');
+      history.replaceState({}, '', u.pathname + (u.search || '') + u.hash);
+    }
+  } catch(e) {}
 }
 
 async function load(){
@@ -921,7 +941,9 @@ async function addWork(){
   const nextSeq=items.length?Math.max(...items.map(i=>i.seq))+1:1;
   sync('spin','Ekleniyor...');
   try{
-    await dbPost('repertoire_items',{repertoire_id:addRepId,work_id:selWId,seq:nextSeq,closing_note:document.getElementById('fCN').value.trim()||null,note:document.getElementById('fIN').value.trim()||null,performer:pfSelected.length?pfSelected.join(', '):null});
+    // linked_prev açıkça false: kolon varsayılanı `true` olduğu için alan
+    // gönderilmezse yeni eser kendiliğinden potpuriye bağlı doğuyordu (2026-08-06)
+    await dbPost('repertoire_items',{repertoire_id:addRepId,work_id:selWId,seq:nextSeq,linked_prev:false,closing_note:document.getElementById('fCN').value.trim()||null,note:document.getElementById('fIN').value.trim()||null,performer:pfSelected.length?pfSelected.join(', '):null});
     closeWM();toast('Eser eklendi ✓');await load();
   }catch(e){toast(e.message,'er');}
 }
