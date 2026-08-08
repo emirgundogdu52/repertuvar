@@ -747,6 +747,7 @@ async function loadUserRole() {
         else localStorage.removeItem('user_group_id');
       }
     } catch(e) {}
+    try { window.dispatchEvent(new CustomEvent('user-role-loaded')); } catch(e) {}
     // Çoklu grup: üyelik listesi group_members'tan gelir, profiles.group_id
     // yalnızca AKTİF grubu söyler. Liste boş/geçersizse loadMyGroups onarır.
     try { await loadMyGroups(); } catch(e) {}
@@ -765,6 +766,9 @@ async function loadUserRole() {
       else localStorage.removeItem('user_group_id');
     }
   } catch(e) { console.log('[auth] loadUserRole error:', e); }
+  // Menü rolü localStorage'dan okuyor ve ilk çizimde bu anahtar henüz boş
+  // olabiliyor — rol netleşince haber ver, topnav kendini yeniden çizsin.
+  try { window.dispatchEvent(new CustomEvent('user-role-loaded')); } catch(e) {}
   try { await loadMyGroups(); } catch(e) {}
 }
 

@@ -714,6 +714,25 @@
   window.addEventListener('orientationchange', reevaluateNav);
 
   // ── Sidebar render — tüm sayfalarda otomatik ──
+  // (2026-08-06) ROL GEÇ GELİRSE MENÜYÜ YENİDEN ÇİZ.
+  // Menü ağ beklememek için `localStorage.user_role`'e bakıyor; ama giriş
+  // sonrası ilk çizimde bu anahtar HENÜZ YAZILMAMIŞ olabiliyor ve admin
+  // "Yönetim" girişini göremiyordu (Emir bildirdi; rol sorulduğunda 'admin'
+  // çıkıyordu, yani yalnızca zamanlama sorunuydu). auth.js rolü çekince
+  // `user-role-loaded` yayıyor, burada menü tazeleniyor. Ters yön de önemli:
+  // rol düşerse (üye olarak giriş) yanlışlıkla görünen giriş kalkıyor.
+  let _sonRol = null;
+  window.addEventListener('user-role-loaded', function () {
+    const yeni = (localStorage.getItem('user_role') || '') + '|' +
+                 ((JSON.parse(localStorage.getItem('sb_user') || '{}') || {}).id || '');
+    if (yeni === _sonRol) return;          // değişmediyse boşuna çizme
+    _sonRol = yeni;
+    const eski = document.getElementById('r-sidebar');
+    if (eski) { eski.remove(); renderSidebar(); }
+    const alt = document.getElementById('r-bottom-nav');   // gerçek id (renderBottomNav :815)
+    if (alt && typeof renderBottomNav === 'function') { alt.remove(); renderBottomNav(); }
+  });
+
   function renderSidebar() {
     if (window.innerWidth < 1024) return;
     if (document.getElementById('r-sidebar')) return;
