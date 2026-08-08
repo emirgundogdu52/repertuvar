@@ -3656,6 +3656,7 @@ function openNewEserModal() {
   applyLyricsLockState();
   fillFormDatalist();
   applyChordNotationPref();
+  setupLyricsPlainPaste();
   renderNeNotaList();
   setupNeNotaZone();
   document.getElementById('ne_visPublic').checked = true;
@@ -3685,6 +3686,7 @@ function openEditEserModal(id) {
   applyLyricsLockState();   // kilit yok — söz her zaman düzenlenebilir (2026-08-06)
   fillFormDatalist();
   applyChordNotationPref();
+  setupLyricsPlainPaste();
   renderNeNotaList();
   setupNeNotaZone();
   if (w.visibility === 'private') document.getElementById('ne_visPrivate').checked = true;
@@ -3781,6 +3783,57 @@ function domToPlainText(node) {
 }
 function getComputedStyle_safe(el) {
   try { return window.getComputedStyle(el).display; } catch(e) { return 'block'; }
+}
+
+// ── SÖZ EDİTÖRÜNE DÜZ METİN YAPIŞTIRMA (2026-08-06) ──────────────────
+// Sorun: contenteditable kutuya Word/PDF/web'den kopyalanan metin BİÇİMİYLE
+// birlikte geliyordu (serif font, renkler, arka plan) — Emir bildirdi.
+// Söz metni biçim taşımamalı: sahnede ve yazdırmada tek tip görünmeli, ayrıca
+// gömülü stiller sonradan `domToPlainText`'i de zorlaştırıyor.
+// Çözüm: yapıştırma ve sürükle-bırakta yalnızca `text/plain` alınıp
+// `insertText` ile konuyor — geri alma (⌘Z) zinciri korunuyor.
+function setupLyricsPlainPaste() {
+  const ed = document.getElementById('ne_lyrics_editor');
+  if (!ed || ed.dataset.plainPaste === '1') return;
+  ed.dataset.plainPaste = '1';
+
+  const koy = (txt) => {
+    if (!txt) return;
+    // Satır sonlarını sadeleştir (Windows \r\n ve tek \r dahil)
+    const temiz = String(txt).replace(/\r\n?/g, '\n');
+    if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {
+      document.execCommand('insertText', false, temiz);
+      return;
+    }
+    // Yedek yol: seçimi kaldırıp metin düğümü + <br> olarak ekle
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) { ed.appendChild(document.createTextNode(temiz)); return; }
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    const frag = document.createDocumentFragment();
+    temiz.split('\n').forEach((satir, i) => {
+      if (i) frag.appendChild(document.createElement('br'));
+      frag.appendChild(document.createTextNode(satir));
+    });
+    range.insertNode(frag);
+    range.collapse(false);
+    sel.removeAllRanges(); sel.addRange(range);
+  };
+
+  ed.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const dt = e.clipboardData || window.clipboardData;
+    koy(dt ? dt.getData('text/plain') : '');
+  });
+
+  ed.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    if (!dt) return;
+    const txt = dt.getData('text/plain');
+    if (!txt) return;              // dosya sürüklendiyse karışma
+    e.preventDefault();
+    koy(txt);
+  });
 }
 
 function getLyricsValue() {
