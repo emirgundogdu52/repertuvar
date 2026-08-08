@@ -129,17 +129,28 @@ async function dbGet(table, qs='', signal) {
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
+// (2026-08-06) Her yazmadan sonra kısa bir "kendi yankını yut" penceresi.
+// Realtime bizim yazdığımızı da bize bildiriyor; sıralama gibi çok satırlı
+// işlemlerde araya giren tazeleme listeyi eskitip zincir bozulmasına yol
+// açıyordu (bkz. db.js/degisiklikGeldi).
+function _rtSustur(ms) {
+  try { window._rtSuppressUntil = Date.now() + (ms || 2500); } catch (e) {}
+}
+
 async function dbPost(table, data) {
+  _rtSustur();
   const r = await fetch(SUPA_URL+'/rest/v1/'+table, {method:'POST',headers:hdrFor(table),body:JSON.stringify(data)});
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function dbPatch(table, id, data) {
+  _rtSustur();
   const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {method:'PATCH',headers:hdrFor(table),body:JSON.stringify(data)});
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function dbDel(table, id) {
+  _rtSustur();
   const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {method:'DELETE',headers:hdrFor(table)});
   if (!r.ok) throw new Error(await r.text());
   return true;
@@ -1340,6 +1351,7 @@ async function applyReorder(repId, origItems, merged, newActiveIdx){
   if (merged[0]) merged[0].linkedPrev = false;
   merged.forEach((it,i)=> it.seq = i+1);
   sync('spin','...');
+  _rtSustur(6000);   // çok satırlı işlem: pencere daha geniş
   try{
     // (2026-08-06) 🐛 linked_prev ARTIK HER SATIRA YAZILIYOR.
     // Eskiden yalnızca "önceki duruma göre DEĞİŞMİŞSE" gönderiliyordu. Bu,
@@ -1354,6 +1366,7 @@ async function applyReorder(repId, origItems, merged, newActiveIdx){
       dbPatch('repertoire_items', it.id, { seq: it.seq, linked_prev: !!it.linkedPrev })
     );
     await Promise.all(patches);
+    _rtSustur(2500);   // yazma bitti; yankı bir süre daha yok sayılsın
     if (activeItemRepId === repId && newActiveIdx != null) activeItemIdx = newActiveIdx;
     await load();
   }catch(e){

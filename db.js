@@ -324,6 +324,17 @@ window.syncOfflineData = async function() {
   // Değişiklikler kümelenir: tek bir sürükle-bırak onlarca satır güncelleyebilir,
   // her biri için sync başlatmak anlamsız olur.
   function degisiklikGeldi(tablo) {
+    // (2026-08-06) KENDİ YAZDIĞIMIZ DEĞİŞİKLİĞİN YANKISINI YUT.
+    // Realtime, bizim gönderdiğimiz PATCH/POST'ları da bize geri bildiriyor.
+    // Sıralama gibi ÇOK SATIRLI işlemlerde bu, işlem daha bitmeden sync +
+    // yeniden çizim tetikliyordu; ekrandaki liste yarım durumu gösteriyor ve
+    // hemen ardından yapılan ikinci taşıma ESKİMİŞ listeye göre hesaplanıp
+    // potpuri zincirini bozuyordu. İstemci yazma yaptığında
+    // `window._rtSuppressUntil` ileri bir zamana kuruluyor (bkz. repertoires.js
+    // dbPost/dbPatch/dbDel); o ana kadar gelen bildirimler yok sayılıyor.
+    // Başkasının yaptığı değişiklikler bu pencerenin dışında kaldığı için
+    // etkilenmiyor.
+    try { if (Date.now() < (window._rtSuppressUntil || 0)) return; } catch (e) {}
     clearTimeout(bekleyen);
     bekleyen = setTimeout(function () {
       var sahnede = !!window._stageActive;
