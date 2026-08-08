@@ -597,6 +597,10 @@ function renderDetail(){
   // Sıra numarası yalnızca zincir BAŞLARINDA artar; devam satırları "↳" gösterir.
   let _medleyN = 0;
   for(let i=1;i<items.length;i++){ if(items[i].linkedPrev && !items[i-1].linkedPrev) _medleyN++; }
+  // (2026-08-06) Başlıkta İKİ SAYI: kaç ESER var ve kaç SIRA (program maddesi).
+  // Potpuri zinciri tek madde sayıldığı için bağlı satırlar numara almıyor;
+  // "18 eser" yazarken listenin 16'da bitmesi kafa karıştırıyordu (Emir).
+  // Fark yoksa ikinci sayı hiç yazılmıyor.
   const _no = []; let _n = 0;
   items.forEach((it,ix)=>{ if(!(ix>0 && it.linkedPrev)) _n++; _no[ix] = (ix>0 && it.linkedPrev) ? null : _n; });
   const _canM = !!rep.canManage;
@@ -666,7 +670,7 @@ function renderDetail(){
       </div>
     </div>
     <div class="is">
-      <div class="ih"><h3>${items.length} Eser</h3>${rep.canManage?`<button class="baw" onclick="openWM('${rep.id}')">+ Eser Ekle</button>`:''}</div>
+      <div class="ih"><h3>${items.length} Eser${_no.filter(n=>n!==null).length!==items.length?` <span style="font-weight:500;color:var(--text3);font-size:12px;">· ${_no.filter(n=>n!==null).length} sıra</span>`:''}</h3>${rep.canManage?`<button class="baw" onclick="openWM('${rep.id}')">+ Eser Ekle</button>`:''}</div>
       <table><thead><tr><th class="sq" style="text-align:center;">Sıra</th><th>Eser Adı</th><th class="col-kapanis">Kapanış</th><th class="col-not">Not</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
 }
