@@ -1430,6 +1430,14 @@ async function mvTo(repId, srcIdx, destIdx){
   if (ins < 0) ins = Math.min(from, rest.length);      // hedef, sürüklenen bloğun içindeyse
   else if (destIdx > from) ins = ins + 1;
   const merged=[...rest.slice(0,ins),...block,...rest.slice(ins)];
+  // (2026-08-06) SÜRÜKLE-BIRAKTA DA POTPURİ ÜYELİĞİ KORUNUYOR.
+  // ↑/↓ düğmeleri için konan kuralın aynısı (bkz. mv): zincir ÜYESİ, zincirin
+  // kendi aralığı İÇİNDE bir yere bırakıldıysa (baş konumu dahil) bu "sırayı
+  // değiştirmek"tir, "potpuriden çıkmak" değil. Emir'in bildirdiği durum:
+  // 2. ya da 3. eseri 1. sıraya taşıyınca bağ kopuyordu.
+  if(!moveBlock && ins>=ca && ins<=cb){
+    for(let k=ca;k<=cb;k++){ if(merged[k]) merged[k].linkedPrev = (k!==ca); }
+  }
   await applyReorder(repId, orig, merged, ins);
 }
 
