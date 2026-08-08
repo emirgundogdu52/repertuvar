@@ -617,7 +617,11 @@ function renderDetail(){
     return `<tr ${_canM?`draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)"`:''} data-idx="${idx}" data-rep="${rep.id}" style="touch-action:pan-y;"${rowClasses?' class="'+rowClasses+'"':''}>
       <td class="sq" style="text-align:center;user-select:none;padding:0 2px;vertical-align:middle;width:48px;">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
-          <span style="color:${isActive?'var(--accent)':(linked?'var(--accent2)':'var(--text3)')};font-size:11px;font-weight:${isActive?'700':'600'};min-width:16px;" title="${linked?'Potpuri — bir öncekiyle kesintisiz':''}">${isActive?'▶ ':''}${linked?'↳':_no[idx]}</span>
+          <!-- (2026-08-06) Aktif satırdaki ▶ işareti KALDIRILDI: potpuri zincirinin
+               sarı köşeli çizgisiyle aynı dar hücreye binince okunmayan bir şekil
+               çıkıyordu (Emir bildirdi). Aktiflik zaten satır vurgusu + accent
+               renkli kalın numarayla belli oluyor. -->
+          <span style="color:${isActive?'var(--accent)':(linked?'var(--accent2)':'var(--text3)')};font-size:11px;font-weight:${isActive?'800':'600'};min-width:16px;" title="${linked?'Potpuri — bir öncekiyle kesintisiz':''}">${linked?'↳':_no[idx]}</span>
           ${_canM?`<span class="drag-handle" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)">⠿</span>`:''}
         </div>
       </td>
