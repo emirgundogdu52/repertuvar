@@ -1280,6 +1280,16 @@ function renderChordPro(text) {
     const dir = line.match(/^\s*\{\s*(?:c|comment|comment_italic|ci)?\s*:?\s*([^}]*)\}\s*$/i);
     if (dir) { const l = esc((dir[1]||'').trim()); return l ? `<div class="cp-comment">${l}</div>` : ''; }
     if (line.trim() === '') return '<div class="cp-blank"></div>';
+    // (2026-08-09) ÇIPLAK YAZILMIŞ İŞARETLER de bölüm başlığı sayılır.
+    // Kullanıcı `{Nakarat}` yerine sadece "Nakarat" ya da "2X" yazmış olabilir
+    // (söz alanında öyle yazıyordu, kopyala-yapıştırla akora da öyle geliyor).
+    // Liste bilerek DAR tutuldu: yalnızca akor içermeyen ve tam eşleşen kısa
+    // satırlar; bir söz dizesinin yanlışlıkla başlığa dönüşmesini istemiyoruz.
+    const _m = line.trim().replace(/[:：]\s*$/, '');
+    if (/^(nakarat|bağlantı|baglanti|kıta|kita|ara saz|ara|giriş|giris|coda|final|intro)$/i.test(_m)
+        || /^[0-9]{1,2}\s*[xX]$/.test(_m) || /^[xX]\s*[0-9]{1,2}$/.test(_m)) {
+      return `<div class="cp-comment">${esc(_m)}</div>`;
+    }
     if (line.indexOf('[') === -1) {
       return `<div class="cp-line"><span class="cp-seg"><span class="cp-chord"></span><span class="cp-lyric">${esc(line)}</span></span></div>`;
     }

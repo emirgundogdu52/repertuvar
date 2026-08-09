@@ -1345,27 +1345,11 @@ function normalizeChains(origItems, merged){
 }
 
 // Yeni sıralamayı uygula: normalize et, seq'leri yaz, DEĞİŞEN linked_prev'leri yaz.
-// (2026-08-09) TEŞHİS GÜNLÜĞÜ. Potpuri zinciri taşımalarda hâlâ bozuluyor ve
-// mantık sahte veriyle doğru sonuç verdiği için gerçek girdileri görmemiz
-// gerekiyor: hangi satır nereye taşındı, öncesi/sonrası ne. Konsola tek satır
-// yazar, kullanıcı akışını etkilemez. Sorun kapanınca kaldırılacak.
-function _pLog(nerede, orig, merged, ek){
-  try {
-    const g = a => (a||[]).map((x,i)=> (i+1) + ':' + String(x.name||x.workId||'?').slice(0,12)
-                   + (x.linkedPrev ? '*' : '')).join(' | ');
-    console.log('[potpuri] ' + nerede + (ek ? ' ' + JSON.stringify(ek) : '')
-      + '\n   ÖNCE : ' + g(orig)
-      + '\n   SONRA: ' + g(merged));
-  } catch(e) {}
-}
-
 async function applyReorder(repId, origItems, merged, newActiveIdx){
-  _pLog('applyReorder-giris', origItems, merged, {aktif:newActiveIdx});
   normalizeChains(origItems, merged);
   // Güvenlik ağı: zincir HİÇBİR ZAMAN ilk satırdan başlayamaz.
   if (merged[0]) merged[0].linkedPrev = false;
   merged.forEach((it,i)=> it.seq = i+1);
-  _pLog('applyReorder-yazilacak', origItems, merged);
   sync('spin','...');
   _rtSustur(6000);   // çok satırlı işlem: pencere daha geniş
   try{
@@ -1449,7 +1433,6 @@ async function mv(repId,idx,dir){
     if(ni>=ca && ni<=cb){
       for(let k=ca;k<=cb;k++){ if(merged[k]) merged[k].linkedPrev = (k!==ca); }
     }
-    _pLog('mv-ok', origSnap, merged, {idx, dir, ca, cb, ni});
   }
   await applyReorder(repId, origSnap, merged, newActive);
 }
@@ -1488,7 +1471,6 @@ async function mvTo(repId, srcIdx, destIdx){
   if(!moveBlock && ins>=ca && ins<=cb){
     for(let k=ca;k<=cb;k++){ if(merged[k]) merged[k].linkedPrev = (k!==ca); }
   }
-  _pLog('mvTo', origSnap, merged, {srcIdx, destIdx, ca, cb, ins, moveBlock});
   await applyReorder(repId, origSnap, merged, ins);
 }
 
