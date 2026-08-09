@@ -1412,6 +1412,8 @@ async function toggleLink(repId, itemId){
 async function mv(repId,idx,dir){
   const rep=getRep(repId);if(!rep)return;
   const orig=[...rep.items];
+  // Bayraklar aşağıda değiştirilmeden ÖNCE geçmişin kopyası (bkz. mvTo notu).
+  const origSnap = orig.map(o => ({ id:o.id, name:o.name, linkedPrev: !!o.linkedPrev }));
   const [ca,cb]=chainRange(orig,idx);
   const isHead=isChainHead(orig,idx);
   let merged, newActive;
@@ -1447,9 +1449,9 @@ async function mv(repId,idx,dir){
     if(ni>=ca && ni<=cb){
       for(let k=ca;k<=cb;k++){ if(merged[k]) merged[k].linkedPrev = (k!==ca); }
     }
-    _pLog('mv-ok', orig, merged, {idx, dir, ca, cb, ni});
+    _pLog('mv-ok', origSnap, merged, {idx, dir, ca, cb, ni});
   }
-  await applyReorder(repId, orig, merged, newActive);
+  await applyReorder(repId, origSnap, merged, newActive);
 }
 
 // SÜRÜKLE-BIRAK — kaynak satırı hedef sıraya taşır.
@@ -1472,7 +1474,12 @@ async function mvTo(repId, srcIdx, destIdx){
   if (ins < 0) ins = Math.min(from, rest.length);      // hedef, sürüklenen bloğun içindeyse
   else if (destIdx > from) ins = ins + 1;
   const merged=[...rest.slice(0,ins),...block,...rest.slice(ins)];
-  _pLog('mvTo', orig, merged, {srcIdx, destIdx, ca, cb, ins, moveBlock});
+  // (2026-08-09) 🐛 ORİJİNALİN ANLIK KOPYASI. `merged` ile `orig` AYNI nesneleri
+  // paylaşıyor; aşağıda zincir bayraklarını düzeltince `orig` de değişiyordu ve
+  // `normalizeChains` "bu satır eskiden hangi zincirdeydi" sorusuna BOZULMUŞ bir
+  // geçmişe bakarak cevap verip zincirin son halkasını koparıyordu (teşhis
+  // günlüğüyle görüldü). Kopya, geçmişi değişmez kılıyor.
+  const origSnap = orig.map(o => ({ id:o.id, name:o.name, linkedPrev: !!o.linkedPrev }));
   // (2026-08-06) SÜRÜKLE-BIRAKTA DA POTPURİ ÜYELİĞİ KORUNUYOR.
   // ↑/↓ düğmeleri için konan kuralın aynısı (bkz. mv): zincir ÜYESİ, zincirin
   // kendi aralığı İÇİNDE bir yere bırakıldıysa (baş konumu dahil) bu "sırayı
@@ -1481,7 +1488,8 @@ async function mvTo(repId, srcIdx, destIdx){
   if(!moveBlock && ins>=ca && ins<=cb){
     for(let k=ca;k<=cb;k++){ if(merged[k]) merged[k].linkedPrev = (k!==ca); }
   }
-  await applyReorder(repId, orig, merged, ins);
+  _pLog('mvTo', origSnap, merged, {srcIdx, destIdx, ca, cb, ins, moveBlock});
+  await applyReorder(repId, origSnap, merged, ins);
 }
 
 async function chSeq(repId,idx,val){
