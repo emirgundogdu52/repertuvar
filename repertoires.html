@@ -98,8 +98,19 @@ tr:nth-child(even) td{background:var(--surface);}tr.zebra-tr td{background:var(-
 .wn{color:var(--text);font-weight:500;}
 .ws{font-size:11px;color:var(--text3);margin-top:2px;}
 .cn{display:inline-block;background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--text2);}
-.ra{display:flex;gap:4px;opacity:0;transition:opacity .15s;}
+/* (2026-08-09) SATIR DÜĞMELERİ ARTIK HEP GÖRÜNÜR.
+   Eskiden `opacity:0` idi ve yalnızca satırın üstüne gelince beliriyordu.
+   Sorunları: (a) dokunmatik cihazda "hover" yok, düğmeleri bulmak için
+   deneme yanılma gerekiyordu; (b) Emir "aramak zorunda kalıyorum" dedi;
+   (c) geliştirici araçları açıkken imleç yakalanınca düğmeler hiç
+   görünmüyordu; (d) beliren düğmelere nişan alırken imleç kayıp YANLIŞ
+   SATIRIN düğmesine basma riski vardı — potpuri karışıklıklarının bir
+   kısmı bundan olabilir.
+   Şimdi: her zaman görünür ama SOLUK; satırın üstüne gelince tam belirginlik. */
+.ra{display:flex;gap:4px;opacity:.45;transition:opacity .15s;}
 tr:hover .ra{opacity:1;}
+tr.item-active .ra{opacity:1;}
+@media (hover:none){ .ra{opacity:.8;} }   /* dokunmatikte daha okunur */
 .br{background:none;border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:11px;color:var(--text3);cursor:pointer;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;transition:all .12s;}
 .br.active{border-color:var(--accent);color:var(--accent);}
 .br:hover{color:var(--text);border-color:var(--border2);}
