@@ -134,6 +134,20 @@
       </div>
     </div>
 
+    <!-- (2026-08-09) Landing trafiği. Üçüncü taraf analitik yerine kendi
+         sayacımız: landing/index.html `log_hit` RPC'sini çağırıyor, buradaki
+         sayılar `landing_stats()` RPC'sinden geliyor (yalnızca admin okuyabilir). -->
+    <div class="y-break">
+      <h4>Tanıtım Sayfası</h4>
+      <div class="y-rows">
+        <div class="y-row"><span class="y-row-lbl">Bugün</span><span class="y-row-val" id="lhBugun">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Son 7 gün</span><span class="y-row-val" id="lhGun7">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Son 30 gün</span><span class="y-row-val" id="lhGun30">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Toplam</span><span class="y-row-val" id="lhToplam">—</span></div>
+      </div>
+      <div id="lhKaynak" style="margin-top:12px;"></div>
+    </div>
+
     <div class="y-break">
       <h4>Son Hareket</h4>
       <div class="y-rows">
@@ -217,11 +231,42 @@ async function panoYukle() {
   }
 
   kirilimYukle(pending);
+  trafikYukle();
 }
 
 // Alt kırılımlar. Hepsi aynı ucuz sayaçla (satır indirmeden) alınıyor ve
 // PARALEL gidiyor; üstteki büyük sayılar zaten ekrana gelmiş oluyor, bunlar
 // arkadan doluyor. Bir sorgu düşerse yalnızca o satır "—" kalır.
+// Landing trafiği — sayılar `landing_stats()` RPC'sinden tek çağrıda gelir.
+// Fonksiyon admin değilse `ok:false` döner, o zaman kart "—" kalır.
+async function trafikYukle() {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/landing_stats', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: '{}',
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d || d.ok !== true) return;
+    yaz('lhBugun', d.bugun); yaz('lhGun7', d.gun7);
+    yaz('lhGun30', d.gun30); yaz('lhToplam', d.toplam);
+
+    const box = document.getElementById('lhKaynak');
+    const ks = d.kaynaklar || [];
+    if (box && ks.length) {
+      box.innerHTML = '<div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;'
+        + 'color:var(--text3);font-weight:700;margin-bottom:7px;">Nereden geldiler (30 gün)</div>'
+        + '<div class="y-rows">' + ks.map(function (k) {
+            return '<div class="y-row"><span class="y-row-lbl" style="overflow:hidden;'
+              + 'text-overflow:ellipsis;white-space:nowrap;">' + String(k.kaynak).replace(/</g,'&lt;')
+              + '</span><span class="y-row-val">' + k.n + '</span></div>';
+          }).join('') + '</div>';
+    }
+  } catch (e) { /* sessiz: kart "—" kalır */ }
+}
+
 async function kirilimYukle(pending) {
   const gun = n => new Date(Date.now() - n * 864e5).toISOString();
 
