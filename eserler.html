@@ -3575,6 +3575,30 @@ function fillFormDatalist() {
 // Tekrar işareti: imlecin bulunduğu satırın SONUNA eklenir ("2X").
 // Bölüm başlığından farkı bu — satırı zaten okuyorsun, sonundaki işaret
 // "bir kez daha" demek (Emir'in gerçek kullanımı).
+// Modaldaki akor kutusunu "akor üstte" biçiminden ChordPro'ya çevirir.
+// Detaydaki satır içi düzenleyicideki `convertChordsInEditor` ile AYNI motoru
+// kullanır (convertChordsAboveToChordPro) — mantık tek yerde kalsın diye.
+// Geri alma: kullanıcı ⌘Z ile ya da İptal ile çıkabilir; yine de değiştirmeden
+// önce onay soruyoruz, çünkü kutunun tamamı yeniden yazılıyor.
+function neConvertChords() {
+  const ta = document.getElementById('ne_chords');
+  if (!ta) return;
+  const src = ta.value;
+  if (!src.trim()) { alert('Akor kutusu boş.'); return; }
+  if (typeof hasRealChords === 'function' && hasRealChords(src)) {
+    alert('Bu metin zaten ChordPro biçiminde görünüyor ([Am] gibi).');
+    return;
+  }
+  const cevrilmis = convertChordsAboveToChordPro(src);
+  if (typeof hasRealChords === 'function' && !hasRealChords(cevrilmis)) {
+    alert('Çevrilecek akor satırı bulunamadı.\n\nAkorların sözlerin ÜSTÜNDE ayrı bir satırda olduğundan emin olun.');
+    return;
+  }
+  if (!confirm('Akorlar hecelerin önüne taşınacak ve kutunun içeriği değişecek.\n\nDevam edilsin mi?')) return;
+  ta.value = cevrilmis;
+  ta.focus();
+}
+
 function chordRepeat(etiket) {
   const ta = document.getElementById('ne_chords');
   if (!ta) return;
@@ -4691,6 +4715,19 @@ function openSuggestModal() {
           <button type="button" onclick="chordMark('Kıta')" style="padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Kıta</button>
           <button type="button" onclick="chordMark('Ara Saz')" style="padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;">Ara Saz</button>
           <span style="font-size:11px;color:var(--text3);margin-left:2px;">— Nakarat/Kıta satır başına, 2X satır sonuna</span>
+        </div>
+        <!-- (2026-08-10) "AKOR ÜSTTE" BİÇİMİNİ ÇEVİRME DÜĞMESİ.
+             Emir sordu: "burada ChordPro seçeneği neden yok, yanlış mı yapıyorum?"
+             Yanlış yapmıyordu: uygulamada bu çevirici ZATEN var
+             (convertChordsAboveToChordPro) ama yalnızca eser DETAYINDAKİ satır içi
+             akor düzenleyicisine bağlıydı; Eseri Düzenle modalında yoktu. Kullanıcı
+             akorları sözlerin üstünde ayrı satır olarak yapıştırınca bir çıkış yolu
+             göremiyordu. Aynı çevirici artık burada da. -->
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 6px;">
+          <button type="button" onclick="neConvertChords()" style="padding:5px 12px;border-radius:6px;border:1px solid var(--accent2,#4DA3FF);background:transparent;color:var(--accent2,#4DA3FF);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">
+            Akorlar sözün üstünde mi? ChordPro'ya çevir
+          </button>
+          <span style="font-size:11px;color:var(--text3);">Akor satırı üstte, söz altta yazılmışsa hecelerin önüne taşır</span>
         </div>
         <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:430px;resize:vertical;"></textarea>
       </div>
