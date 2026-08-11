@@ -482,7 +482,12 @@
   .lyrics-box::-webkit-scrollbar { width:3px; }
   .lyrics-box::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
   /* ChordPro: akor hecenin üstünde */
-  /* (2026-08-09) UZUN SATIRLARDA AKOR KAYMASI DÜZELTİLDİ.
+  /* (2026-08-10) GERİ ALINDI — bu deneme sahnede ciddi bozulma yaptı:
+   `text-indent:-1.4em` ilk satırı kabın soluna taşıyıp KIRPIYOR, `nowrap`
+   ise segmentleri üst üste bindiriyordu (Emir ekran görüntüsü).
+   Uzun satır sorunu başka yoldan çözülecek (yazı boyutu uyarlama ya da
+   kaynakta satır bölme). Aşağıdaki kurallar ESKİ, ÇALIŞAN hâline döndürüldü.
+   Eski deneme notu:
    Sorun: bir `.cp-seg` (akor + onu takip eden heceler) kendi İÇİNDE de
    kırılabiliyordu; kırılma parçanın ortasına gelince akor üstte kalıyor,
    sözün devamı alta iniyor ve akor kaymış görünüyordu.
@@ -490,14 +495,14 @@
    ARASINDAN kırılıyor, akor hecesinden hiç ayrılmıyor.
    Ayrıca alta inen devam satırı içeri girintili (asılı girinti) ki yeni bir
    dize mi yoksa devam mı olduğu bir bakışta anlaşılsın. */
-.cp-line { display:block;  padding-left:1.4em; text-indent:-1.4em; }
+.cp-line { display:block; }
   .cp-blank { display:block; height:.8em; }
 /* (2026-08-09) Satır sonu tekrar rozeti — "2X". Akor değil, satıra ait not. */
 .cp-rep{display:inline-block;margin-left:10px;padding:0 7px;border-radius:10px;font-size:.62em;font-weight:800;
   letter-spacing:.04em;vertical-align:middle;color:var(--accent,#FFC83D);border:1px solid var(--accent,#FFC83D);
   background:color-mix(in srgb, var(--accent,#FFC83D) 12%, transparent);white-space:nowrap;}
   .cp-comment { display:block; color:var(--accent,#58A6FF); font-style:italic; font-size:.8em; margin:10px 0 2px; opacity:.85; }
-  .cp-seg { display:inline-block; position:relative; vertical-align:bottom; white-space:nowrap;}
+  .cp-seg { display:inline-block; position:relative; vertical-align:bottom; }
   /* 2026-07-29 (2): AKOR ARTIK GÜFTEYİ İTMİYOR. .cp-seg inline-block olduğu için
      genişliği max(akor, hece) idi; akor heceden genişse segment akor kadar
      genişleyip kelimeyi ortasından yarıyordu ("varıl maz", "giz li") ve bir
