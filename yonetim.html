@@ -148,6 +148,22 @@
       <div id="lhKaynak" style="margin-top:12px;"></div>
     </div>
 
+    <!-- (2026-08-11) Uygulama içi kullanım. Kaynak: `page_views` tablosu —
+         landing sayacından (landing_hits) AYRI: bu, giriş yapmış kullanıcının
+         uygulama içindeki gezinmesini kaydediyor ve zaten aylardır dolu.
+         Sayılar `app_usage_stats()` RPC'sinden (yalnızca admin okuyabilir). -->
+    <div class="y-break">
+      <h4>Uygulama Kullanımı</h4>
+      <div class="y-rows">
+        <div class="y-row"><span class="y-row-lbl">Bugün açılan sayfa</span><span class="y-row-val" id="pvBugun">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Son 7 gün</span><span class="y-row-val" id="pvGun7">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Son 30 gün</span><span class="y-row-val" id="pvGun30">—</span></div>
+        <div class="y-row"><span class="y-row-lbl">Son 7 gün oturum</span><span class="y-row-val" id="pvOturum">—</span></div>
+      </div>
+      <div id="pvSayfa" style="margin-top:12px;"></div>
+      <div id="pvCihaz" style="margin-top:12px;"></div>
+    </div>
+
     <div class="y-break">
       <h4>Son Hareket</h4>
       <div class="y-rows">
@@ -232,6 +248,7 @@ async function panoYukle() {
 
   kirilimYukle(pending);
   trafikYukle();
+  kullanimYukle();
 }
 
 // Alt kırılımlar. Hepsi aynı ucuz sayaçla (satır indirmeden) alınıyor ve
@@ -265,6 +282,38 @@ async function trafikYukle() {
           }).join('') + '</div>';
     }
   } catch (e) { /* sessiz: kart "—" kalır */ }
+}
+
+// Uygulama içi kullanım — `app_usage_stats()` tek çağrıda özet döndürür.
+async function kullanimYukle() {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/app_usage_stats', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: '{}',
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d || d.ok !== true) return;
+    yaz('pvBugun', d.bugun); yaz('pvGun7', d.gun7);
+    yaz('pvGun30', d.gun30); yaz('pvOturum', d.oturum7);
+
+    const liste = (baslik, dizi, alan) => {
+      if (!dizi || !dizi.length) return '';
+      return '<div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);'
+        + 'font-weight:700;margin-bottom:7px;">' + baslik + '</div><div class="y-rows">'
+        + dizi.map(function (k) {
+            return '<div class="y-row"><span class="y-row-lbl" style="overflow:hidden;text-overflow:ellipsis;'
+              + 'white-space:nowrap;">' + String(k[alan] || '—').replace(/</g,'&lt;')
+              + '</span><span class="y-row-val">' + k.n + '</span></div>';
+          }).join('') + '</div>';
+    };
+    const s1 = document.getElementById('pvSayfa');
+    if (s1) s1.innerHTML = liste('En çok açılan sayfa (30 gün)', d.sayfalar, 'sayfa');
+    const s2 = document.getElementById('pvCihaz');
+    if (s2) s2.innerHTML = liste('Cihaz (30 gün)', d.cihazlar, 'cihaz');
+  } catch (e) { /* sessiz */ }
 }
 
 async function kirilimYukle(pending) {
