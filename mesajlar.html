@@ -161,6 +161,26 @@ body { -webkit-text-size-adjust: 100%; }
     margin-right: auto;
   }
   body { overflow-x: hidden; }
+
+  /* ── (2026-08-12) MESAJ KUTUSU BÜYÜTÜLDÜ ──────────────────────────────
+     Emir: "Admin'e Mesaj Gönder kutusu çok küçük." Sayfa 424px'lik bir
+     sütuna sıkışmıştı; bu genişlik telefon için seçilmişti ama masaüstünde
+     de uygulanıyordu, üstelik metin alanı 100px'lik dar bir şeritti —
+     birkaç cümle yazınca kaydırmak gerekiyordu.
+     Yeni ölçüler: sayfa 520→720px, kutular 424→680px, metin alanı 100→180px
+     (dikey büyütülebilir), yazı 13→14px ve satır aralığı açıldı.
+     Liste öğeleri (.conv-item, .ann-card) da aynı genişliği alıyor ki
+     sayfa tek sütun hâlinde hizalı kalsın. Telefonda değişen bir şey yok:
+     `width:100%` zaten ekranı dolduruyor, üst sınır devreye girmiyor. */
+  .page { max-width: 720px; }
+  .tabs, .compose-box, .ann-card, .conv-item { max-width: 680px; }
+  .compose-box { padding: 22px 24px; }
+  .compose-box h3 { font-size: 15px; margin-bottom: 14px; }
+  .compose-box textarea {
+    min-height: 180px; font-size: 14px; line-height: 1.6; padding: 14px;
+  }
+  .compose-box input { font-size: 14px; padding: 12px 14px; }
+  .btn-send { font-size: 14px; padding: 11px 20px; }
 </style>
 </head>
 <body>
@@ -175,7 +195,7 @@ body { -webkit-text-size-adjust: 100%; }
   <!-- Üye: Mesaj gönder -->
   <div id="composeSection" class="compose-box" style="display:none;">
     <h3>✉️ Admin'e Mesaj Gönder</h3>
-    <textarea id="composeText" placeholder="Sorunuz veya talebinizi yazın..."></textarea>
+    <textarea id="composeText" placeholder="Sorunuzu, talebinizi ya da geri bildiriminizi yazın. Ne kadar ayrıntı verirseniz o kadar hızlı yardımcı olabiliriz."></textarea>
     <button class="btn-send" onclick="sendMessage()" id="sendBtn">Gönder</button>
   </div>
 
