@@ -903,14 +903,23 @@ function getHiddenRepIds() {
 
 function buildRepsFromRaw(r, items) {
   const uid = getUserId();
+  const gid = (typeof getGroupId === 'function') ? getGroupId() : null;
   const hiddenIds = getHiddenRepIds();
   return (r||[])
     .filter(x => {
       const isOwner = x.owner_id === uid || x.user_id === uid;
-      // repertoires.js'deki renderList ile BİREBİR aynı görünürlük: ya kendi repertuvarın,
-      // ya da başkasına ait AMA açıkça "public" işaretli VE gizlenmemiş olmalı.
-      // Grup içindeki private (is_public=false) repertuvarlar, sahibi olmayanlara hiç gösterilmez.
-      return isOwner || (x.is_public === true && !hiddenIds.includes(x.id));
+      // (2026-08-12) 🐛 GRUBUN REPERTUVARLARI SAHNEDE GÖRÜNMÜYORDU.
+      // Bu süzgeç yalnızca "kendi repertuvarın ya da herkese açık" diyordu;
+      // aynı dosyadaki `repVisibilityFilterFn()` ise grup koşulunu İÇERİYOR.
+      // İki kural çeliştiği için grubun üyesi olan ama SAHİBİ OLMAYAN biri
+      // (test1) Sahneye Çık dediğinde yalnızca Genel Repertuvarlar'ı görüyor,
+      // "Ezgi Harmanı Çalışma Repertuvarı" ve "Test" listede çıkmıyordu.
+      // Doğru kural repertuvarlar sayfasındakiyle aynı: kendi + AKTİF GRUBUN +
+      // herkese açık. Gizleme (hiddenRepIds) yalnızca kendinin OLMAYANLARA
+      // uygulanır — orada gizlediğini burada da görmeyesin diye.
+      const isGroup = !!gid && x.group_id === gid;
+      if (isOwner) return true;
+      return (isGroup || x.is_public === true) && !hiddenIds.includes(x.id);
     })
     .map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
 }
