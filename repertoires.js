@@ -1290,10 +1290,15 @@ function dragPointerStart(e) {
   document.body.style.userSelect = 'none';
   _dragKonumla(e.clientX, e.clientY);
 
-  try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+  try {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    // Yakalama düşerse (ör. satır yeniden çizimle silindi) sürükleme biter.
+    e.currentTarget.addEventListener('lostpointercapture', _dragIptal, { once: true });
+  } catch (err) {}
   document.addEventListener('pointermove', _dragPointerMove, { passive: false });
   document.addEventListener('pointerup', _dragPointerEnd);
   document.addEventListener('pointercancel', _dragPointerEnd);
+  window.addEventListener('blur', _dragIptal);
 }
 
 function _dragKonumla(x, y) {
@@ -1316,27 +1321,59 @@ function _dragPointerMove(e) {
   if (hedef && hedef !== _dragTr) hedef.classList.add('drag-over');
 }
 
-async function _dragPointerEnd(e) {
+// (2026-08-12) 🐛 SÜRÜKLENEN KOPYA EKRANDA ASILI KALIYORDU.
+// Emir masaüstünde bir satırı uzunca basılı tutup bıraktı; yarı saydam kopya
+// ekranın ortasında takılı kaldı. Konsol sebebi gösterdi: sürükleme sırasında
+// arka arkaya `postgres_changes` olayları düşmüş ve liste YENİDEN ÇİZİLMİŞ.
+// Tutulan satır DOM'dan silinince pointer yakalaması düşüyor ve bitirici
+// hiç çağrılmıyordu. Üç katmanlı savunma: (1) sürükleme sürerken yeniden
+// çizim ERTELENİYOR (aşağıdaki _refresh), (2) bitirme birden çok olaydan
+// tetikleniyor (pointerup/cancel + lostpointercapture + pencere blur +
+// sekme gizlenmesi), (3) temizlik TEK yerde ve her koşulda çalışıyor.
+function _dragTemizle() {
   document.removeEventListener('pointermove', _dragPointerMove);
   document.removeEventListener('pointerup', _dragPointerEnd);
   document.removeEventListener('pointercancel', _dragPointerEnd);
+  window.removeEventListener('blur', _dragIptal);
   _dragHiz = 0;
   if (_dragRaf) { cancelAnimationFrame(_dragRaf); _dragRaf = null; }
   document.body.style.userSelect = '';
-  if (!_touchClone) return;
-
-  _touchClone.remove(); _touchClone = null;
-  if (_touchSrcTr) { _touchSrcTr.style.opacity = ''; _touchSrcTr = null; }
+  if (_touchClone) { _touchClone.remove(); _touchClone = null; }
+  if (_touchSrcTr) { try { _touchSrcTr.style.opacity = ''; } catch (e) {} _touchSrcTr = null; }
   document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
+  // Artık DOM'da olmayan bir satırdan kalmış olabilecek kopyaları da süpür.
+  document.querySelectorAll('tr[style*="position:fixed"]').forEach(el => {
+    if (el.style.zIndex === '9999') el.remove();
+  });
+  _dragTr = null; _dragScroller = null;
+}
 
-  const el = document.elementFromPoint(e.clientX, e.clientY);
-  const hedef = el ? el.closest('tr[data-idx]') : null;
+function _dragIptal() {
+  if (!_dragTr && !_touchClone) return;
+  _dragSrcIdx = null;
+  _dragTemizle();
+  if (typeof _dragBeklemedeTazele === 'function') _dragBeklemedeTazele();
+}
+
+async function _dragPointerEnd(e) {
+  if (!_touchClone) { _dragTemizle(); return; }
+  const nokta = (e && e.clientX != null) ? { x: e.clientX, y: e.clientY } : null;
   const src = _dragSrcIdx;
-  _dragTr = null; _dragSrcIdx = null; _dragScroller = null;
-  if (!hedef || src === null) return;
-  const destIdx = parseInt(hedef.dataset.idx);
-  if (src === destIdx) return;
-  await mvTo(_dragRepId, src, destIdx);
+  _dragSrcIdx = null;
+  _dragTemizle();
+
+  try {
+    if (!nokta || src === null) return;
+    const el = document.elementFromPoint(nokta.x, nokta.y);
+    const hedef = el ? el.closest('tr[data-idx]') : null;
+    if (!hedef) return;
+    const destIdx = parseInt(hedef.dataset.idx);
+    if (src === destIdx) return;
+    await mvTo(_dragRepId, src, destIdx);
+  } finally {
+    // Sürükleme sırasında ertelenen tazeleme varsa şimdi çalışsın.
+    if (typeof _dragBeklemedeTazele === 'function') _dragBeklemedeTazele();
+  }
 }
 
 function mvActive(repId, idx, dir) {
@@ -1838,13 +1875,23 @@ function shareViaWhatsApp() {
 // dinleyiciler o durumda listeyi otomatik tazeler. load() local-first
 // olduğundan tekrar çağrılması güvenli.
 (function() {
-  let _refreshT;
+  let _refreshT, _bekleyen = false;
   function _refresh() {
+    // (2026-08-12) SÜRÜKLEME SÜRERKEN YENİDEN ÇİZME. Canlı güncelleme açıldıktan
+    // sonra araya giren bir tazeleme, tutulan satırı DOM'dan siliyor ve sürükleme
+    // yarıda kalıyordu (kopya ekranda asılı kalıyor). Tazeleme sürükleme bitene
+    // ertelenir; `_dragBeklemedeTazele` bitişte çağrılır.
+    if (_dragTr || _touchClone) { _bekleyen = true; return; }
     clearTimeout(_refreshT);
     _refreshT = setTimeout(function() {
       if (typeof load === 'function') load();
     }, 150);
   }
+  window._dragBeklemedeTazele = function () {
+    if (!_bekleyen) return;
+    _bekleyen = false;
+    _refresh();
+  };
   window.addEventListener('data-synced', _refresh);
 
   // (2026-08-12) ÜYELİK/ROL DEĞİŞİKLİĞİ. Bir üyenin rolü değişince (ör. üye →
