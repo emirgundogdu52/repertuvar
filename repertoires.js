@@ -1237,15 +1237,29 @@ function _scrollKabi(el) {
 function _dragKaydir() {
   _dragRaf = null;
   if (!_dragTr || !_dragHiz) return;
-  if (_dragScroller) _dragScroller.scrollTop += _dragHiz;
-  else window.scrollBy(0, _dragHiz);
+  // (2026-08-12) Kap SINIRA gelince PENCEREYE devrediyoruz. Emir bildirdi:
+  // "listenin başına ve sonuna gelince tablette scroll çalışmıyor" — iç kap
+  // (tablo kabı) en üste/en alta dayandığında scrollTop artık değişmiyordu ve
+  // sayfa kaydırılmadığı için sürükleme orada takılıyordu.
+  var hareket = false;
+  if (_dragScroller) {
+    var once = _dragScroller.scrollTop;
+    _dragScroller.scrollTop += _dragHiz;
+    hareket = (_dragScroller.scrollTop !== once);
+  }
+  if (!hareket) window.scrollBy(0, _dragHiz);
   _dragRaf = requestAnimationFrame(_dragKaydir);
 }
 
 function _dragKenarKontrol(y) {
   // Görünür alanın üst/alt 90 pikselinde kaydır; kenara yaklaştıkça hızlan.
-  const kutu = _dragScroller ? _dragScroller.getBoundingClientRect()
-                             : { top: 0, bottom: window.innerHeight };
+  // Hem kabın hem pencerenin kenarı sayılır: parmak ekranın en altındayken
+  // kap kutusu daha yukarıda bitiyorsa da kaydırma başlamalı.
+  const k = _dragScroller ? _dragScroller.getBoundingClientRect() : null;
+  const kutu = {
+    top:    k ? Math.max(0, k.top) : 0,
+    bottom: k ? Math.min(window.innerHeight, k.bottom) : window.innerHeight
+  };
   const esik = 90, maks = 18;
   let hiz = 0;
   if (y < kutu.top + esik)         hiz = -Math.ceil(maks * (kutu.top + esik - y) / esik);
@@ -1832,5 +1846,17 @@ function shareViaWhatsApp() {
     }, 150);
   }
   window.addEventListener('data-synced', _refresh);
+
+  // (2026-08-12) ÜYELİK/ROL DEĞİŞİKLİĞİ. Bir üyenin rolü değişince (ör. üye →
+  // yönetici) sayfadaki düğmeler `canManage`'e bağlı ve bu değer ROLDEN geliyor;
+  // ama rol localStorage'da önbellekli ve normal sync onu tazelemiyordu ⇒
+  // karşı taraf yeni yetkisini ancak yeniden girdiğinde görüyordu.
+  window.addEventListener('remote-change', function (e) {
+    const t = e.detail && e.detail.table;
+    if (t !== 'group_members' && t !== 'profiles') return;
+    try { if (typeof loadMyGroupRole === 'function') loadMyGroupRole(); } catch (err) {}
+    try { if (typeof loadMyGroups === 'function') loadMyGroups(); } catch (err) {}
+    setTimeout(function () { if (typeof load === 'function') load(); }, 600);
+  });
   window.addEventListener('online', _refresh);
 })();

@@ -338,6 +338,15 @@ window.syncOfflineData = async function() {
     clearTimeout(bekleyen);
     bekleyen = setTimeout(function () {
       var sahnede = !!window._stageActive;
+      // (2026-08-12) ROL VE ÜYELİK DEĞİŞİKLİKLERİ ÖNBELLEKTE KALIYORDU.
+      // `syncOfflineData` yalnızca works/repertoires/items/solistler çekiyor;
+      // kullanıcının rolü ve grup listesi localStorage'da duruyor ve hiç
+      // tazelenmiyordu ⇒ biri "üye"yi "yönetici" yaptığında karşı taraf yeni
+      // yetkisini ancak yeniden giriş yapınca görüyordu (Emir bildirdi).
+      if (tablo === 'group_members' || tablo === 'profiles') {
+        try { if (typeof window.loadUserRole === 'function') window.loadUserRole(); } catch (e) {}
+        try { if (typeof window.loadMyGroups === 'function') window.loadMyGroups(); } catch (e) {}
+      }
       try { window.dispatchEvent(new CustomEvent('remote-change', { detail: { table: tablo, applied: !sahnede } })); } catch (e) {}
       if (!sahnede && typeof window.syncOfflineData === 'function') window.syncOfflineData();
     }, 900);
