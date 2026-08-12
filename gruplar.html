@@ -767,6 +767,32 @@ async function pickRole(userId, newRole) {
 
   await loadPage();
 })();
+
+// ── CANLI TAZELEME (2026-08-12) ──────────────────────────────────────────
+// Bu sayfa hiçbir tazeleme olayını dinlemiyordu: bir üyenin rolü başka bir
+// cihazdan değiştirildiğinde (ör. üye → yönetici) ekran eski hâlinde kalıyor,
+// hem "Gruplarım" çipindeki rol etiketi hem üye listesindeki rozet
+// güncellenmiyordu — Emir bunu tabletten +test1'i admin yapıp masaüstünde
+// bekleyerek gördü. Rol bilgisi localStorage'da önbellekli olduğu için önce
+// `loadMyGroups()` ile o önbellek tazeleniyor, sonra sayfa yeniden çiziliyor.
+// Kümeleme: art arda gelen olaylarda tek tazeleme yapılsın.
+(function () {
+  let _t;
+  function tazele() {
+    clearTimeout(_t);
+    _t = setTimeout(async function () {
+      try { if (typeof loadUserRole === 'function') await loadUserRole(); } catch (e) {}
+      try { if (typeof loadMyGroups === 'function') await loadMyGroups(); } catch (e) {}
+      try { await loadPage(); } catch (e) {}
+    }, 500);
+  }
+  window.addEventListener('remote-change', function (e) {
+    const t = e.detail && e.detail.table;
+    if (t === 'group_members' || t === 'groups' || t === 'profiles') tazele();
+  });
+  // Sekmeye geri dönüldüğünde de bir kez tazele (canlı bağlantı kopmuş olabilir).
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) tazele(); });
+})();
 </script>
 </div><!-- /main-wrap -->
 </body>
