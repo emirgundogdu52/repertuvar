@@ -370,10 +370,26 @@ window.syncOfflineData = async function() {
 
     ws.onmessage = function (ev) {
       var m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      // (2026-08-12) TEŞHİS: `phx_reply` HİÇ OKUNMUYORDU. Abonelik sunucuda
+      // reddedilirse (RLS, yayın listesi, hatalı yapılandırma) soket "bağlı"
+      // görünür ama TEK BİR OLAY BİLE GELMEZ — Emir'in yaşadığı tam bu.
+      // Katılma yanıtını ve gelen her olayı konsola yazıyoruz; sorun
+      // kapanınca bu blok kaldırılacak.
+      if (m.event === 'phx_reply') {
+        console.log('[rt] katilma yaniti:', m.payload && m.payload.status,
+                    JSON.stringify(m.payload && m.payload.response).slice(0, 400));
+      } else if (m.event && m.event !== 'heartbeat') {
+        console.log('[rt] olay:', m.event, (m.payload && m.payload.data)
+                    ? (m.payload.data.table + '/' + m.payload.data.type) : '');
+      }
       if (m.event === 'postgres_changes' && m.payload && m.payload.data) {
         degisiklikGeldi(m.payload.data.table);
       } else if (m.event === 'phx_error' || m.event === 'phx_close') {
-        console.warn('[rt] kanal kapandı:', m.event);
+        // (2026-08-12) Kanal hatası artık SESSİZ KALMIYOR: soketi kapatıp
+        // yeniden kuruyoruz. Eskiden yalnızca konsola yazılıyordu ve kanal
+        // ölü kalıyordu — sayfa yenilenene kadar hiçbir değişiklik düşmüyordu.
+        console.warn('[rt] kanal kapandı, yeniden bağlanılıyor:', m.event);
+        try { ws.close(); } catch (e) {}
       }
     };
 
@@ -390,12 +406,32 @@ window.syncOfflineData = async function() {
 
   window.realtimeBaglan = baglan;
 
-  // Jeton yenilenince Realtime'a da bildir (RLS bu jetona göre uygulanıyor).
-  window.realtimeJetonTazele = function () { gonder('access_token', { access_token: jetonVar() }); };
+  // (2026-08-12) 🐛 JETON TAZELEME ARTIK GERÇEKTEN ÇALIŞIYOR.
+  // Bu fonksiyon tanımlıydı ama HİÇBİR YERDEN ÇAĞRILMIYORDU. Erişim jetonu
+  // 1 saatlik; Realtime kanalı RLS'i o jetona göre uyguladığı için süre
+  // dolunca sunucu o kanala DEĞİŞİKLİK GÖNDERMEYİ KESİYOR — soket "bağlı"
+  // görünüyor, kanal sessizleşiyor. Uzun süre açık kalan sekmede
+  // (Emir'in masaüstü) tablette yapılan değişiklik hiç düşmüyordu.
+  window.realtimeJetonTazele = async function () {
+    try {
+      if (typeof window.ensureValidToken === 'function') await window.ensureValidToken();
+    } catch (e) {}
+    gonder('access_token', { access_token: jetonVar() });
+  };
+
+  // Jetonun ömrü dolmadan düzenli olarak tazele (20 dk < 1 saat).
+  setInterval(function () {
+    if (ws && ws.readyState === 1) window.realtimeJetonTazele();
+  }, 20 * 60 * 1000);
 
   window.addEventListener('online', function () { gecikme = 2000; baglan(); });
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) { if (!ws || ws.readyState > 1) baglan(); }
+    if (document.hidden) return;
+    if (!ws || ws.readyState > 1) { baglan(); return; }
+    // Sekmeye dönüldü ve soket ayakta: jeton bu arada dolmuş olabilir.
+    // Ayrıca kaçırılmış değişiklik varsa diye bir kez eşitle.
+    window.realtimeJetonTazele();
+    if (typeof window.syncOfflineData === 'function') window.syncOfflineData();
   });
   // Oturum açıksa hemen başlat; değilse giriş sonrası ilk sync bunu tetikler.
   setTimeout(baglan, 1500);
