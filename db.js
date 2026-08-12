@@ -345,7 +345,15 @@ window.syncOfflineData = async function() {
 
   function baglan() {
     var jeton = jetonVar();
-    if (!jeton || !navigator.onLine) return;
+    // (2026-08-12) 🐛 `navigator.onLine` KONTROLÜ KALDIRILDI.
+    // Emir'in masaüstünde `navigator.onLine === false` dönüyordu (Brave/ağ
+    // yapılandırması yanlış rapor ediyor) — oysa ham WebSocket denemesi
+    // sorunsuz açıldı ve abonelik `status:"ok"` + "Subscribed to PostgreSQL"
+    // döndü. Bu kontrol yüzünden `baglan()` ilk satırda geri dönüyor, kanal
+    // HİÇ KURULMUYORDU (konsolda tek bir [rt] satırı bile yoktu).
+    // Gerçekten çevrimdışıysak soket zaten açılmaz; `onclose` üstel geri
+    // çekilmeyle yeniden dener. Yanlış "offline" raporu artık engel değil.
+    if (!jeton) return;
     if (ws && (ws.readyState === 0 || ws.readyState === 1)) return;
     try {
       ws = new WebSocket(RT_URL + '?apikey=' + RT_KEY + '&vsn=1.0.0');
@@ -435,6 +443,13 @@ window.syncOfflineData = async function() {
   });
   // Oturum açıksa hemen başlat; değilse giriş sonrası ilk sync bunu tetikler.
   setTimeout(baglan, 1500);
+
+  // Bekçi: soket herhangi bir sebeple kapalı kaldıysa dakikada bir dene.
+  // `onclose` zaten yeniden bağlanıyor ama hiç açılamamış (ya da sessizce
+  // düşmüş) durumlar için ikinci bir güvence.
+  setInterval(function () {
+    if (!ws || ws.readyState > 1) baglan();
+  }, 60000);
 })();
 
 // Sayfa yüklenince service worker kaydet ve sync yap
