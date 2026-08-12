@@ -625,7 +625,9 @@ function renderDetail(){
     const inChain  = linked || hasNext;
     const chainCls = inChain ? (linked && hasNext ? ' medley-mid' : (linked ? ' medley-end' : ' medley-head')) : '';
     const rowClasses=[idx%2===1?'zebra-tr':'',isActive?'item-active':'',inChain?'medley-row':'',chainCls.trim()].filter(Boolean).join(' ');
-    return `<tr ${_canM?`draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)"`:''} data-idx="${idx}" data-rep="${rep.id}" style="touch-action:pan-y;"${rowClasses?' class="'+rowClasses+'"':''}>
+    // (2026-08-12) HTML5 drag öznitelikleri KALDIRILDI — sürükleme artık
+    // yalnızca ⠿ tutamacından, tek bir pointer tabanlı kodla yapılıyor.
+    return `<tr data-idx="${idx}" data-rep="${rep.id}" style="touch-action:pan-y;"${rowClasses?' class="'+rowClasses+'"':''}>
       <td class="sq" style="text-align:center;user-select:none;padding:0 2px;vertical-align:middle;width:48px;">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
           <!-- (2026-08-06) Aktif satırdaki ▶ işareti KALDIRILDI: potpuri zincirinin
@@ -633,7 +635,7 @@ function renderDetail(){
                çıkıyordu (Emir bildirdi). Aktiflik zaten satır vurgusu + accent
                renkli kalın numarayla belli oluyor. -->
           <span style="color:${isActive?'var(--accent)':(linked?'var(--accent2)':'var(--text3)')};font-size:11px;font-weight:${isActive?'800':'600'};min-width:16px;" title="${linked?'Potpuri — bir öncekiyle kesintisiz':''}">${linked?'↳':_no[idx]}</span>
-          ${_canM?`<span class="drag-handle" ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)">⠿</span>`:''}
+          ${_canM?`<span class="drag-handle" onpointerdown="dragPointerStart(event)" title="Sürükleyerek taşı">⠿</span>`:''}
         </div>
       </td>
       <td style="padding-left:16px;cursor:pointer;" onclick="openLyricsSheet('${it.workId}','${rep.id}','${it.id}')" title="Sözleri göster — düzenlemek için pencerede Düzenle">
@@ -1210,88 +1212,117 @@ async function applySort(){
   toast('Sıralama uygulandı');
 }
 
-// ── Desktop drag ──
-function dragStart(e) {
-  const tr = e.currentTarget;
+// ── SÜRÜKLE-BIRAK (2026-08-12) — TEK KOD, HEM FARE HEM PARMAK ──────────────
+// Eskiden İKİ AYRI yol vardı: masaüstü için HTML5 drag (draggable/ondragstart),
+// dokunmatik için ontouchstart/move/end. İkisinin de sorunu vardı:
+//   1) Masaüstünde sürükleme hiç çalışmıyordu (Emir bildirdi).
+//   2) Dokunmatikte ekranın üstünde/altında kalan satırlara ulaşılamıyordu —
+//      liste kaymadığı için eseri bırakıp kaydırıp yeniden tutmak gerekiyordu.
+// Pointer olayları fare, parmak ve kalemi aynı arayüzle verdiği için tek kod
+// yeterli; ayrıca kenara yaklaşınca OTOMATİK KAYDIRMA eklendi.
+// Sürükleme yalnızca ⠿ tutamacından başlar: satırın kendisi serbest kalır,
+// böylece esere tıklayıp söz penceresini açmak bozulmaz.
+let _dragTr = null, _dragScroller = null, _dragRaf = null, _dragHiz = 0;
+
+function _scrollKabi(el) {
+  // Tabloyu içeren, gerçekten kaydırılabilir en yakın ata; yoksa sayfa.
+  for (let p = el; p && p !== document.body; p = p.parentElement) {
+    let ov = '';
+    try { ov = getComputedStyle(p).overflowY; } catch (e) {}
+    if ((ov === 'auto' || ov === 'scroll') && p.scrollHeight > p.clientHeight + 4) return p;
+  }
+  return null;   // null = pencere
+}
+
+function _dragKaydir() {
+  _dragRaf = null;
+  if (!_dragTr || !_dragHiz) return;
+  if (_dragScroller) _dragScroller.scrollTop += _dragHiz;
+  else window.scrollBy(0, _dragHiz);
+  _dragRaf = requestAnimationFrame(_dragKaydir);
+}
+
+function _dragKenarKontrol(y) {
+  // Görünür alanın üst/alt 90 pikselinde kaydır; kenara yaklaştıkça hızlan.
+  const kutu = _dragScroller ? _dragScroller.getBoundingClientRect()
+                             : { top: 0, bottom: window.innerHeight };
+  const esik = 90, maks = 18;
+  let hiz = 0;
+  if (y < kutu.top + esik)         hiz = -Math.ceil(maks * (kutu.top + esik - y) / esik);
+  else if (y > kutu.bottom - esik) hiz =  Math.ceil(maks * (y - (kutu.bottom - esik)) / esik);
+  _dragHiz = Math.max(-maks, Math.min(maks, hiz));
+  if (_dragHiz && !_dragRaf) _dragRaf = requestAnimationFrame(_dragKaydir);
+}
+
+function dragPointerStart(e) {
+  if (e.button != null && e.button !== 0) return;   // yalnızca sol tuş
+  e.preventDefault();
+  e.stopPropagation();
+  const tr = e.currentTarget.closest('tr[data-idx]');
+  if (!tr) return;
+
+  _dragTr = tr;
   _dragSrcIdx = parseInt(tr.dataset.idx);
   _dragRepId  = tr.dataset.rep;
-  e.dataTransfer.effectAllowed = 'move';
-  setTimeout(() => tr.style.opacity = '0.4', 0);
-}
-function dragEnd(e) {
-  e.currentTarget.style.opacity = '';
-  document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
-}
-function dragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
-  e.currentTarget.classList.add('drag-over');
-}
-async function dragDrop(e) {
-  e.preventDefault();
-  const tr = e.currentTarget;
-  const destIdx = parseInt(tr.dataset.idx);
-  tr.classList.remove('drag-over');
-  if (_dragSrcIdx === null || _dragSrcIdx === destIdx) return;
-  await mvTo(_dragRepId, _dragSrcIdx, destIdx);
-  _dragSrcIdx = null;
+  _dragScroller = _scrollKabi(tr);
+
+  _touchSrcTr = tr;
+  _touchClone = tr.cloneNode(true);
+  _touchClone.style.cssText = 'position:fixed;z-index:9999;opacity:.9;pointer-events:none;'
+    + 'background:var(--surface2);border:1px solid var(--accent);border-radius:6px;'
+    + 'box-shadow:0 8px 24px rgba(0,0,0,.45);width:' + tr.offsetWidth + 'px;transition:none;';
+  document.body.appendChild(_touchClone);
+  tr.style.opacity = '.3';
+  document.body.style.userSelect = 'none';
+  _dragKonumla(e.clientX, e.clientY);
+
+  try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+  document.addEventListener('pointermove', _dragPointerMove, { passive: false });
+  document.addEventListener('pointerup', _dragPointerEnd);
+  document.addEventListener('pointercancel', _dragPointerEnd);
 }
 
-// ── Touch drag ──
-let _touchTimer = null;
-function touchDragStart(e) {
-  e.stopPropagation();
-  const handle = e.currentTarget;
-  const tr = handle.closest('tr[data-idx]');
-  const t = e.touches[0];
-  const startX = t.clientX, startY = t.clientY;
-
-  _touchTimer = setTimeout(() => {
-    _dragSrcIdx = parseInt(tr.dataset.idx);
-    _dragRepId  = tr.dataset.rep;
-    _touchSrcTr = tr;
-
-    _touchClone = tr.cloneNode(true);
-    _touchClone.style.cssText = 'position:fixed;z-index:9999;opacity:0.85;pointer-events:none;background:var(--surface2);border:1px solid var(--accent);border-radius:6px;width:'+tr.offsetWidth+'px;transition:none;';
-    document.body.appendChild(_touchClone);
-    tr.style.opacity = '0.3';
-    _touchClone.style.left = (startX - tr.offsetWidth/2) + 'px';
-    _touchClone.style.top  = (startY - 20) + 'px';
-  }, 300);
+function _dragKonumla(x, y) {
+  if (!_touchClone) return;
+  _touchClone.style.left = (x - _touchClone.offsetWidth / 2) + 'px';
+  _touchClone.style.top  = (y - 20) + 'px';
 }
 
-function touchDragMove(e) {
+function _dragPointerMove(e) {
   if (!_touchClone) return;
   e.preventDefault();
-  const t = e.touches[0];
-  _touchClone.style.left = (t.clientX - _touchClone.offsetWidth/2) + 'px';
-  _touchClone.style.top  = (t.clientY - 20) + 'px';
+  _dragKonumla(e.clientX, e.clientY);
+  _dragKenarKontrol(e.clientY);
 
-  // Altındaki satırı bul
   _touchClone.style.display = 'none';
-  const el = document.elementFromPoint(t.clientX, t.clientY);
+  const el = document.elementFromPoint(e.clientX, e.clientY);
   _touchClone.style.display = '';
-  const targetTr = el ? el.closest('tr[data-idx]') : null;
+  const hedef = el ? el.closest('tr[data-idx]') : null;
   document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
-  if (targetTr) targetTr.classList.add('drag-over');
+  if (hedef && hedef !== _dragTr) hedef.classList.add('drag-over');
 }
 
-async function touchDragEnd(e) {
-  clearTimeout(_touchTimer);
+async function _dragPointerEnd(e) {
+  document.removeEventListener('pointermove', _dragPointerMove);
+  document.removeEventListener('pointerup', _dragPointerEnd);
+  document.removeEventListener('pointercancel', _dragPointerEnd);
+  _dragHiz = 0;
+  if (_dragRaf) { cancelAnimationFrame(_dragRaf); _dragRaf = null; }
+  document.body.style.userSelect = '';
   if (!_touchClone) return;
+
   _touchClone.remove(); _touchClone = null;
-  if (_touchSrcTr) _touchSrcTr.style.opacity = '';
+  if (_touchSrcTr) { _touchSrcTr.style.opacity = ''; _touchSrcTr = null; }
   document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
 
-  const t = e.changedTouches[0];
-  const el = document.elementFromPoint(t.clientX, t.clientY);
-  const targetTr = el ? el.closest('tr[data-idx]') : null;
-  if (!targetTr) { _dragSrcIdx = null; return; }
-  const destIdx = parseInt(targetTr.dataset.idx);
-  if (_dragSrcIdx === null || _dragSrcIdx === destIdx) { _dragSrcIdx = null; return; }
-  await mvTo(_dragRepId, _dragSrcIdx, destIdx);
-  _dragSrcIdx = null;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const hedef = el ? el.closest('tr[data-idx]') : null;
+  const src = _dragSrcIdx;
+  _dragTr = null; _dragSrcIdx = null; _dragScroller = null;
+  if (!hedef || src === null) return;
+  const destIdx = parseInt(hedef.dataset.idx);
+  if (src === destIdx) return;
+  await mvTo(_dragRepId, src, destIdx);
 }
 
 function mvActive(repId, idx, dir) {
