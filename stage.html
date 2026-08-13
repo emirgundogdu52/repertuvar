@@ -5,6 +5,15 @@
   akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
   Yani "son madde eski görünüyor" diye dosyayı eski sanma — kontrol için
   st-grp / setAkorYazimi / showStageChangeBar aranmalı.
+  - 2026-08-13 (5): SAHNEDEN ÇIKIŞ TEK DOKUNUŞ. Görünüm Ayarları paneline
+    "SAHNE" bloğu eklendi: Geri Dön · Ana Sayfa · Sahneden Çık (kırmızı),
+    dikey ve YAZILI (.st-grp-col + .st-act / .st-act-exit, grup()'a üçüncü
+    "dikey" parametresi). "Görünüm" bloğundaki ☰ düğmesi (navBtn) KALDIRILDI —
+    o düğme alttaki v2StageBotNav şeridini açıyordu, yani çıkmak için ikinci bir
+    dokunuş gerekiyordu ve ikon ne yaptığını anlatmıyordu (Emir: "bilmeyen için
+    muamma"). openStageNav / #v2StageBotNav dosyada DURUYOR (Escape yolu +
+    :818'deki gizli yedek düğme); yalnızca panelden çağrılmıyor.
+    Panel blok sırası: Hizalama · Yazı Boyutu · Ton · Akor Yazımı · Görünüm · Sahne.
   - 2026-08-13 (4): iOS SAFARI'DE ÇİFT DOKUNUŞ YAKINLAŞTIRMASI KAPATILDI. Ton
     düğmesine hızlı iki kez basınca sayfa yakınlaşıp yazılar büyüyordu; sebep
     Safari'nin user-scalable=no'yu yok sayması. Etkileşimli öğelere (düğmeler,
@@ -342,7 +351,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
    çalışmaya devam eder. KASITLI OLARAK sahne gövdesine/nota alanına
    uygulanmıyor: notaya çift dokunup yakınlaştırmak işe yarıyor. */
 button, .align-btn, .ton-btn, .ton-step, .vm-tab, .fs-step, .side-nav-btn,
-.sb-menu-btn, .stage-info-btn, .nota-pager button, .bex,
+.sb-menu-btn, .stage-info-btn, .nota-pager button, .bex, .st-act,
 input[type="range"], #stageToolsPanel, .stage-nav a{ touch-action:manipulation; }
 /* (2026-08-13) PANEL ARTIK YARI SAYDAM + BULANIK ZEMİN.
    Emir: "açılan menünün zemini eserin sözlerini tamamen kapatıyor."
@@ -389,6 +398,13 @@ body.day-theme #stageToolsPanel{
 #stageToolsPanel .font-slider-wrap,
 #stageToolsPanel .ton-slider-wrap{ background:rgba(255,255,255,.06); }
 #stageToolsPanel .st-grp + .st-grp{ border-top-color:rgba(255,255,255,.14); }
+/* (2026-08-13) Sahne bloğu da aynı okunaklılık kuralına tabi: --text3 panel
+   zemininde okunmuyor. Çıkış satırı KIRMIZI kalıyor (kasıtlı ayrım) ama
+   karanlıkta seçilebilsin diye açık kırmızıya alındı. */
+#stageToolsPanel .st-act:not(.st-act-exit){ color:#d3d1e6; border-color:rgba(255,255,255,.22); }
+#stageToolsPanel .st-act-exit{ color:#f08878; border-color:rgba(240,136,120,.45); }
+body.day-theme #stageToolsPanel .st-act:not(.st-act-exit){ color:#3d3a52; border-color:rgba(0,0,0,.18); }
+body.day-theme #stageToolsPanel .st-act-exit{ color:#b8402c; border-color:rgba(184,64,44,.4); }
 body.day-theme #stageToolsPanel .st-grp-lbl{ color:#5a5670; }
 body.day-theme #stageToolsPanel .align-btn:not(.active),
 body.day-theme #stageToolsPanel .ton-step,
@@ -558,6 +574,20 @@ body.stage-active #r-bottom-nav{display:none !important;}
    (2026-08-06: Ton bloğunda "−" düğmesi ekran dışında kalıyordu). */
 .st-grp-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;max-width:100%;}
 .st-grp-row .ton-karar{flex-shrink:1;min-width:0;}
+/* (2026-08-13) SAHNE BLOĞU — dikey, YAZILI eylem satırları.
+   Eskiden sahneden çıkış yolu "Görünüm" bloğundaki ☰ düğmesiydi: ona dokununca
+   ALTTAN ikinci bir şerit (#v2StageBotNav) açılıyor, asıl Geri Dön / Ana Sayfa /
+   Çık orada duruyordu. İki adımlıydı ve ikon ne yaptığını anlatmıyordu — bunu
+   bilmeyen sahneden nasıl çıkacağını bulamıyordu (Emir bildirdi). Artık üç eylem
+   doğrudan panelde, YAZIYLA ve tek dokunuşla. Genişlik 144px: diğer bloklarla
+   (yazı boyutu, hizalama) aynı hizada bitsin. */
+.st-grp-col{flex-direction:column;align-items:stretch;gap:5px;width:144px;flex-wrap:nowrap;}
+.st-act{display:flex;align-items:center;gap:9px;width:100%;height:38px;padding:0 11px;box-sizing:border-box;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);font-family:inherit;font-size:13px;font-weight:700;line-height:1;text-align:left;text-decoration:none;cursor:pointer;transition:all .15s;}
+.st-act .ti{font-size:17px;flex-shrink:0;opacity:.85;}
+.st-act:hover{border-color:var(--accent);color:var(--accent);}
+.st-act:active{transform:scale(.97);}
+.st-act-exit{color:#c05444;border-color:rgba(192,84,68,.45);}
+.st-act-exit:hover{color:#e06655;border-color:#e06655;}
 .align-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:44px;height:44px;font-size:20px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
 .align-btn:disabled{opacity:.35;cursor:not-allowed;}
 .align-btn:hover{border-color:var(--accent);color:var(--accent);}
@@ -2040,7 +2070,15 @@ function buildStageToolsRow(mode) {
   if (_tonAcik && _tonAcikWid !== _tonWid) { _tonAcik = false; clearTimeout(_tonKapatT); }
   _tonAcikWid = _tonWid;
   const themeBtn = `<button onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn2" title="Gece/Gündüz" class="align-btn"><i class="ti ti-sun"></i></button>`;
-  const navBtn = `<button onclick="event.stopPropagation();openStageNav()" title="Navigasyon" class="align-btn" style="color:var(--accent);border-color:var(--accent);"><i class="ti ti-list"></i></button>`;
+  // (2026-08-13) ☰ (openStageNav) DÜĞMESİ KALDIRILDI — sahneden çıkmak iki
+  // dokunuş istiyordu ve ikon ne yaptığını anlatmıyordu (Emir bildirdi:
+  // "bilmeyen için muamma"). Eylemler artık YAZIYLA, doğrudan panelde.
+  // openStageNav / #v2StageBotNav dosyada duruyor (Escape yolu ve :818'deki
+  // gizli yedek düğme için) — sadece panelden çağrılmıyor.
+  const sahneBtns = `
+      <a href="#" onclick="event.stopPropagation();goBack(event)" class="st-act" title="Geldiğin sayfaya dön"><i class="ti ti-arrow-left"></i>Geri Dön</a>
+      <a href="index.html" onclick="event.stopPropagation()" class="st-act" title="Ana sayfa"><i class="ti ti-home"></i>Ana Sayfa</a>
+      <button onclick="event.stopPropagation();exitStage(event)" class="st-act st-act-exit" title="Sahne modundan çık"><i class="ti ti-x"></i>Sahneden Çık</button>`;
   // Akor modunda ton kaydırma (± yarım ton) — eser başına saklanır
   const item = (curRep && (curRep.items||[])[curIdx]) || null;
   const tVal = item ? getTranspose(item.workId) : 0;
@@ -2092,8 +2130,10 @@ function buildStageToolsRow(mode) {
       <button onclick="event.stopPropagation();setAkorYazimi('solfej')" title="Akorları Do Re Mi yaz" class="align-btn${_yazim==='solfej'?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:800;">Do Re Mi</button>` : '';
 
   // Başlıklı blok; içi boşsa hiç çizilmez (ör. akoru olmayan eserde Ton bloğu).
-  const grup = (baslik, icerik) => icerik
-    ? `<div class="st-grp"><div class="st-grp-lbl">${baslik}</div><div class="st-grp-row">${icerik}</div></div>`
+  // (2026-08-13) Üçüncü parametre: blok DİKEY dizilsin mi (Sahne bloğu gibi
+  // yazılı eylem satırları için; ikon düğmeleri yatay kalıyor).
+  const grup = (baslik, icerik, dikey) => icerik
+    ? `<div class="st-grp"><div class="st-grp-lbl">${baslik}</div><div class="st-grp-row${dikey ? ' st-grp-col' : ''}">${icerik}</div></div>`
     : '';
 
   // Yazı boyutu: tek kaydırıcı. Panel her açılışta yeniden kurulduğu için
@@ -2108,7 +2148,7 @@ function buildStageToolsRow(mode) {
       </div>`;
 
   if (mode === 'nota') {
-    row.innerHTML = grup('Görünüm', themeBtn + navBtn);
+    row.innerHTML = grup('Görünüm', themeBtn) + grup('Sahne', sahneBtns, true);
   } else {
     // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama ikisinde de geçerli
     const alignBtns = `
@@ -2119,7 +2159,8 @@ function buildStageToolsRow(mode) {
                   + grup('Yazı Boyutu', fontBlok)
                   + grup('Ton', tonBtns)
                   + grup('Akor Yazımı', yazimBtns)
-                  + grup('Görünüm', themeBtn + navBtn);
+                  + grup('Görünüm', themeBtn)
+                  + grup('Sahne', sahneBtns, true);
     // Panel her yeniden kurulduğunda kaydırıcının dolgu rengi ve hiza
     // düğmelerinin aktif hâli sıfırlanır — kayıtlı değerlerden geri yazılır.
     updateFontSliderUI(_olcek);
