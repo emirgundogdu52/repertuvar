@@ -5,6 +5,19 @@
   akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
   Yani "son madde eski görünüyor" diye dosyayı eski sanma — kontrol için
   st-grp / setAkorYazimi / showStageChangeBar aranmalı.
+  - 2026-08-13 (3): İŞARET RENGİ AKORDAN AYRILDI. "2X" rozeti (.cp-rep) ve bölüm
+    başlıkları (.cp-comment) var(--accent) kullanıyordu ve sahnede akorlarla aynı
+    okunuyordu. Yeni değişken: --marker-color (karanlık #8FA6FF, açık #3F3BC0).
+    Artık üç katman üç renk: SÖZ beyaz, AKOR altın, İŞARET mavi-mor. NOT: aynı
+    sınıflar eserler.html'de de var, orada da değiştirilmeli.
+  - 2026-08-13 (2): PANEL YARI SAYDAM + YAZILAR AÇILDI. Görünüm Ayarları paneli
+    artık sözleri tamamen örtmüyor: zemin rgba(14,14,26,.78) + backdrop-filter
+    blur(16px) (gündüz teması ayrı; bulanıklık desteklenmiyorsa .94'e düşer).
+    Zemin/çerçeve INLINE stilden CSS'e taşındı (inline sınıfı ezdiği için).
+    Blok başlıkları (#stageToolsPanel .st-grp-lbl) --text3 (#3d3d58, kontrast
+    1.8:1 — karanlıkta okunmuyordu) yerine #bfbdd6; düğme ikonları #d3d1e6.
+    Renkler ölçülerek seçildi: panel beyaz söz metninin üstüne geldiğinde bile
+    etiket 5.6:1, ikon 6.8:1 (WCAG AA üstü). --text3 başka yerlerde aynı kaldı.
   - 2026-08-13: TON KONTROLÜ RAKAM DEĞİL SES ADI. Görünüm Ayarları'ndaki Ton
     bloğu artık kapalıyken TEK DÜĞME ve üstünde o an çalınan karar sesi yazıyor
     ("La" / "A"); dokununca ◀ kaydırıcı ▶ + canlı ses adı kutusu açılıyor,
@@ -314,6 +327,65 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2px 16px calc(58px + env(safe-area-inset-bottom));position:relative;overflow-y:auto;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
+/* (2026-08-13) PANEL ARTIK YARI SAYDAM + BULANIK ZEMİN.
+   Emir: "açılan menünün zemini eserin sözlerini tamamen kapatıyor."
+   Şeffaflık tek başına okunaklılığı bozardı (arkadaki söz satırları düğme
+   yazılarıyla karışır); bu yüzden backdrop-filter ile ARKASI BULANIKLAŞTIRILIYOR
+   — söz "var" ama okunmuyor, panel yazısı net kalıyor. Bulanıklığı desteklemeyen
+   tarayıcıda (eski Firefox vb.) zemin neredeyse opak hâle düşürülüyor.
+   SAYDAMLIK ORANI ÖLÇÜLEREK SEÇİLDİ (0.78): en kötü hâlde (panel BEYAZ söz
+   metninin üstüne denk gelince) etiket kontrastı 5.6:1, ikonlar 6.8:1 —
+   WCAG AA (4.5) üstünde. 0.72'de etiket 4.5'in altına düşüyordu.
+   Zemin/çerçeve artık inline stilde DEĞİL — inline stil sınıf kuralını ezdiği
+   için tema değişimi ve saydamlık burada yönetiliyor (bkz. 2026-08-12 dersi). */
+#stageToolsPanel{
+  background:rgba(14,14,26,.78);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 8px 28px rgba(0,0,0,.55);
+  -webkit-backdrop-filter:blur(16px) saturate(130%);
+  backdrop-filter:blur(16px) saturate(130%);
+}
+body.day-theme #stageToolsPanel{
+  background:rgba(252,251,249,.82);
+  border-color:rgba(0,0,0,.14);
+  box-shadow:0 8px 28px rgba(0,0,0,.18);
+}
+@supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
+  #stageToolsPanel{ background:rgba(14,14,26,.94); }
+  body.day-theme #stageToolsPanel{ background:rgba(252,251,249,.96); }
+}
+/* (2026-08-13) PANEL YAZILARI AÇILDI. --text3 gece temasında #3d3d58 —
+   panel zemininde kontrastı ~2:1, sahnede karanlıkta okunmuyordu (Emir bildirdi).
+   Yalnızca panel içinde açık ton kullanılıyor; --text3 başka yerlerde (ipucu,
+   pasif metin) olduğu gibi kalıyor. */
+#stageToolsPanel .st-grp-lbl{ color:#bfbdd6; }
+#stageToolsPanel .align-btn:not(.active),
+#stageToolsPanel .ton-step,
+#stageToolsPanel .ton-btn:not(.shifted),
+#stageToolsPanel .font-slider-wrap .fs-a-sm,
+#stageToolsPanel .font-slider-wrap .fs-a-lg{ color:#d3d1e6; }
+#stageToolsPanel .align-btn:not(.active),
+#stageToolsPanel .ton-step,
+#stageToolsPanel .ton-btn:not(.shifted),
+#stageToolsPanel .font-slider-wrap,
+#stageToolsPanel .ton-slider-wrap{ border-color:rgba(255,255,255,.22); }
+#stageToolsPanel .font-slider-wrap,
+#stageToolsPanel .ton-slider-wrap{ background:rgba(255,255,255,.06); }
+#stageToolsPanel .st-grp + .st-grp{ border-top-color:rgba(255,255,255,.14); }
+body.day-theme #stageToolsPanel .st-grp-lbl{ color:#5a5670; }
+body.day-theme #stageToolsPanel .align-btn:not(.active),
+body.day-theme #stageToolsPanel .ton-step,
+body.day-theme #stageToolsPanel .ton-btn:not(.shifted),
+body.day-theme #stageToolsPanel .font-slider-wrap .fs-a-sm,
+body.day-theme #stageToolsPanel .font-slider-wrap .fs-a-lg{ color:#3d3a52; }
+body.day-theme #stageToolsPanel .align-btn:not(.active),
+body.day-theme #stageToolsPanel .ton-step,
+body.day-theme #stageToolsPanel .ton-btn:not(.shifted),
+body.day-theme #stageToolsPanel .font-slider-wrap,
+body.day-theme #stageToolsPanel .ton-slider-wrap{ border-color:rgba(0,0,0,.18); }
+body.day-theme #stageToolsPanel .font-slider-wrap,
+body.day-theme #stageToolsPanel .ton-slider-wrap{ background:rgba(0,0,0,.04); }
+body.day-theme #stageToolsPanel .st-grp + .st-grp{ border-top-color:rgba(0,0,0,.12); }
 /* Görünüm Ayarları şeridi (#stageToolsPanel) inline stilde left:12px + right:12px
    olduğu için masaüstünde ekran boyu uzuyordu. Geniş ekranda butonlar kadar geniş
    olsun, sağ kenara yaslansın; telefonda tam genişlik kalsın (butonlar sarabilsin).
@@ -366,7 +438,7 @@ body.stage-light .nota-count{background:rgba(255,255,255,.75);color:#1a1a1a;bord
    dize mi yoksa devam mı olduğu bir bakışta anlaşılsın. */
 .wlyrics .cp-line{display:block;text-align:left;}
 .wlyrics .cp-blank{display:block;height:.9em;}
-.wlyrics .cp-comment{display:block;text-align:left;color:var(--accent,#4DA3FF);font-style:italic;font-size:.7em;margin:10px 0 2px;opacity:.85;}
+.wlyrics .cp-comment{display:block;text-align:left;color:var(--marker-color,#8FA6FF);font-style:italic;font-size:.7em;margin:10px 0 2px;opacity:.9;}
 .wlyrics .cp-seg{display:inline-block;position:relative;vertical-align:bottom;}
 /* 2026-07-29: akor genişliğe katkı vermesin (width:0) — yoksa .cp-seg genişliği
    max(akor, hece) olduğu için akor heceden genişken kelime ortadan yarılıyordu
@@ -375,12 +447,22 @@ body.stage-light .nota-count{background:rgba(255,255,255,.75);color:#1a1a1a;bord
 .wlyrics .cp-chord{display:block;width:0;overflow:visible;font-size:.62em;font-weight:700;color:var(--chord-color,#FFC83D);line-height:1.15;min-height:1.2em;white-space:nowrap;font-family:'SF Mono',ui-monospace,monospace;letter-spacing:.02em;}
 .wlyrics .cp-seg.cp-tail .cp-chord{width:auto;padding-right:.7em;}
 /* (2026-08-09) Satır sonu tekrar rozeti — "2X". Akor değil, satıra ait not. */
+/* (2026-08-13) RENK AYRILDI: işaretler (2X, Nakarat, Bağlantı) akorlarla aynı
+   renkteydi ve sahnede karışıyordu (Emir bildirdi). Artık kendi değişkenleri var:
+   --marker-color, mavi-mora yakın. Böylece üç katman üç renk oluyor —
+   SÖZ beyaz (--text), AKOR altın (--chord-color), İŞARET mavi-mor. Rozet
+   çerçevesi/zemini de aynı değişkenden türüyor. */
 .cp-rep{display:inline-block;margin-left:10px;padding:0 7px;border-radius:10px;font-size:.62em;font-weight:800;
-  letter-spacing:.04em;vertical-align:middle;color:var(--accent,#FFC83D);border:1px solid var(--accent,#FFC83D);
-  background:color-mix(in srgb, var(--accent,#FFC83D) 12%, transparent);white-space:nowrap;}
+  letter-spacing:.04em;vertical-align:middle;color:var(--marker-color,#8FA6FF);border:1px solid var(--marker-color,#8FA6FF);
+  background:color-mix(in srgb, var(--marker-color,#8FA6FF) 14%, transparent);white-space:nowrap;}
 /* Akor rengi — temaya duyarlı altın/amber, güfteden ayrışsın (2026-07-17) */
 :root{--chord-color:#FFC83D;}            /* karanlık: parlak altın */
 body.day-theme{--chord-color:#B26A00;}   /* açık: koyu amber (beyaz zeminde kontrast) */
+/* İşaret rengi (2X, Nakarat, Bağlantı…) — akordan da sözden de ayrı. Marka
+   mavisine (#3522C9) yakın ama sahne karanlığında okunacak kadar açık. */
+:root{--marker-color:#8FA6FF;}           /* karanlık: soğuk lavanta-mavi */
+body.day-theme{--marker-color:#3F3BC0;}  /* açık: koyu indigo */
+[data-theme="light"]{--marker-color:#3F3BC0;}
 [data-theme="light"]{--chord-color:#B26A00;}
 .wlyrics .cp-lyric{display:block;white-space:pre-wrap;}
 
@@ -783,7 +865,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   <div class="sb">
     <div class="sb-menu">
       <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" class="sb-menu-btn"><i class="ti ti-adjustments-horizontal"></i></button>
-      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;overflow-x:hidden;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 12px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
+      <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;overflow-x:hidden;border-radius:12px;padding:8px 12px;z-index:9999;">
         <div id="stageToolsRow"></div>
       </div>
     </div>
