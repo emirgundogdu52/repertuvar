@@ -2,6 +2,15 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-13: İŞARET RENGİ AKORDAN AYRILDI (stage.html ile aynı düzenleme).
+    Satır sonu tekrar rozeti (.cp-rep, "2X") ve bölüm başlıkları (.cp-comment,
+    {Nakarat}/{Bağlantı}/{Kıta}) var(--accent) kullanıyordu, yani akorlarla aynı
+    altın renkteydi ve ikisi karışıyordu. Yeni değişken --marker-color:
+    karanlıkta #8FA6FF (soğuk lavanta-mavi), açıkta #3F3BC0 (koyu indigo).
+    Rozetin çerçevesi ve color-mix zemini de aynı değişkenden türüyor.
+    Artık üç katman üç renk: söz beyaz, akor altın, işaret mavi-mor.
+    UYARI: işaret köşeli parantez içine yazılırsa ([2X]) o bir AKOR jetonudur,
+    altın kalır — CSS ile değil metni düzelterek çözülür.
   - 2026-07-30 (13): iPAD'DE ESERLER GÖRÜNMÜYORDU ("bi gelir gibi oluyor,
     kayboluyor"). iPhone çalışıyor, repertuvarlar çalışıyor. ÖNCE YANLIŞ İZ:
     769–1023px bandında .layout yükseklik matematiğinin eksik olduğunu düşündüm;
@@ -499,9 +508,9 @@
   .cp-blank { display:block; height:.8em; }
 /* (2026-08-09) Satır sonu tekrar rozeti — "2X". Akor değil, satıra ait not. */
 .cp-rep{display:inline-block;margin-left:10px;padding:0 7px;border-radius:10px;font-size:.62em;font-weight:800;
-  letter-spacing:.04em;vertical-align:middle;color:var(--accent,#FFC83D);border:1px solid var(--accent,#FFC83D);
-  background:color-mix(in srgb, var(--accent,#FFC83D) 12%, transparent);white-space:nowrap;}
-  .cp-comment { display:block; color:var(--accent,#58A6FF); font-style:italic; font-size:.8em; margin:10px 0 2px; opacity:.85; }
+  letter-spacing:.04em;vertical-align:middle;color:var(--marker-color,#8FA6FF);border:1px solid var(--marker-color,#8FA6FF);
+  background:color-mix(in srgb, var(--marker-color,#8FA6FF) 14%, transparent);white-space:nowrap;}
+  .cp-comment { display:block; color:var(--marker-color,#8FA6FF); font-style:italic; font-size:.8em; margin:10px 0 2px; opacity:.9; }
   .cp-seg { display:inline-block; position:relative; vertical-align:bottom; }
   /* 2026-07-29 (2): AKOR ARTIK GÜFTEYİ İTMİYOR. .cp-seg inline-block olduğu için
      genişliği max(akor, hece) idi; akor heceden genişse segment akor kadar
@@ -543,6 +552,13 @@
 /* Akor rengi — temaya duyarlı altın/amber, güfteden ayrışsın (2026-07-17) */
   :root { --chord-color:#FFC83D; }              /* karanlık: parlak altın */
   [data-theme="light"] { --chord-color:#B26A00; } /* açık: koyu amber (beyaz zeminde kontrast) */
+  /* İşaret rengi (2026-08-13) — 2X rozeti ve {Nakarat} gibi bölüm başlıkları
+     akorla AYNI renkteydi, ikisi karışıyordu. Artık üç katman üç renk:
+     söz (--text), akor altın (--chord-color), işaret mavi-mor (--marker-color).
+     stage.html ile birebir aynı değerler. */
+  :root { --marker-color:#8FA6FF; }               /* karanlık: soğuk lavanta-mavi */
+  [data-theme="light"] { --marker-color:#3F3BC0; } /* açık: koyu indigo */
+  body.day-theme { --marker-color:#3F3BC0; }
   .cp-lyric { display:block; white-space:pre-wrap; }
   .video-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; background:rgba(88,166,255,.1); border:1px solid rgba(88,166,255,.3); border-radius:6px; color:var(--accent); font-size:13px; text-decoration:none; transition:all .15s; }
   .video-btn:hover { background:rgba(88,166,255,.2); }
