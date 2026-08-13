@@ -1,5 +1,23 @@
 <!--
   STAGE.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur; her önemli özellik değişikliğinde güncellenir)
+  ⚠️ NOT (2026-08-13): Bu başlık 07-29'dan 08-13'e kadar GÜNCELLENMEMİŞTİ; oysa
+  dosyada 08-06 (panelin bloklara ayrılması, yazı boyutunun panele taşınması,
+  akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
+  Yani "son madde eski görünüyor" diye dosyayı eski sanma — kontrol için
+  st-grp / setAkorYazimi / showStageChangeBar aranmalı.
+  - 2026-08-13: TON KONTROLÜ RAKAM DEĞİL SES ADI. Görünüm Ayarları'ndaki Ton
+    bloğu artık kapalıyken TEK DÜĞME ve üstünde o an çalınan karar sesi yazıyor
+    ("La" / "A"); dokununca ◀ kaydırıcı ▶ + canlı ses adı kutusu açılıyor,
+    seçimden ~3 sn sonra kendiliğinden kapanıyor (tonKaydiriciAc /
+    tonSliderInput / tonSliderCommit / tonNudge / tonKapanmayiPlanla, durum:
+    _tonAcik + _tonAcikWid). Kaydırıcı KROMATİK (−6…+6), rayın ORTASI eserin
+    özgün tonu, dolgu ortadan başlıyor. Ses adının yazımı akorlarla aynı
+    tercihe bağlı (akorYazim → ABC / Do Re Mi). SÜRÜKLERKEN AKORLAR YENİDEN
+    ÇİZİLMEZ (yalnızca kutu + dolgu); asıl uygulama parmak kalkınca (change).
+    Karar sesi yok/tanınmıyorsa eski ± adımlayıcıya düşülür. AYRICA: panelde
+    başlayan dokunuşlar artık swipe sayılmıyor (_swipeYoksay) — kaydırıcıyı
+    60px'den fazla çekmek ESER ATLATIYORDU, yazı boyutu kaydırıcısında da
+    aynı hata vardı, ikisi birden düzeldi.
   Bu bloğun amacı: Claude'a dosya yapıştırıldığında, kodun BEKLENEN en güncel halini
   taşıyıp taşımadığını satır satır okumadan tek bakışta anlamak. Yapıştırılan kodda
   aşağıdaki son maddenin karşılığı yoksa, bu muhtemelen eski bir kopya demektir —
@@ -459,10 +477,26 @@ body.stage-active #r-bottom-nav{display:none !important;}
 /* (2026-08-06) Dikey padding KALDIRILDI: arka plan padding alanını da boyadığı
    için kaydırıcı ince bir çizgi değil kalın bir anahtar gibi görünüyordu.
    Dokunma payı artık sarmalayıcının iç boşluğundan geliyor. */
-.font-slider{-webkit-appearance:none;appearance:none;flex:1;min-width:0;width:auto;height:6px;border-radius:999px;background:var(--border);outline:none;cursor:pointer;padding:0;}
-.font-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
-.font-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
-.font-slider::-moz-range-track{height:6px;border-radius:999px;background:transparent;}
+.font-slider,.ton-slider{-webkit-appearance:none;appearance:none;flex:1;min-width:0;width:auto;height:6px;border-radius:999px;background:var(--border);outline:none;cursor:pointer;padding:0;}
+.font-slider::-webkit-slider-thumb,.ton-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
+.font-slider::-moz-range-thumb,.ton-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer;border:none;}
+.font-slider::-moz-range-track,.ton-slider::-moz-range-track{height:6px;border-radius:999px;background:transparent;}
+/* (2026-08-13) TON KAYDIRICISI — yazı boyutu kaydırıcısıyla aynı görsel dil.
+   Kapalıyken tek düğme (o anki karar sesi yazılı), dokununca bu satır açılıyor,
+   seçim yapılınca kendiliğinden kapanıyor. Genişlik font bloğundan fazla (214px)
+   çünkü 13 adımlı bir kaydırıcı 144px'e sığdırılırsa adım başına 9px kalıyor ve
+   sahnede parmakla bir adım şaşırmak kolay — bu yüzden iki yanına tek adım
+   düğmesi kondu; blok geçici olduğu için panelin dar hâlini kalıcı bozmuyor. */
+.ton-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);height:44px;min-width:64px;padding:0 12px;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.ton-btn:hover{border-color:var(--accent);color:var(--accent);}
+.ton-btn.shifted{color:var(--accent);border-color:var(--accent);}
+.ton-btn .ti{font-size:16px;opacity:.7;}
+.ton-slider-wrap{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:7px 8px;flex-shrink:0;width:214px;max-width:100%;box-sizing:border-box;}
+.ton-step{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);width:30px;height:30px;flex-shrink:0;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.ton-step:hover{border-color:var(--accent);color:var(--accent);}
+.ton-step:active{transform:scale(.94);}
+.ton-nota{min-width:50px;flex-shrink:0;text-align:center;font-size:14px;font-weight:800;color:var(--accent);white-space:nowrap;}
+.ton-nota small{display:block;font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.04em;}
 /* Telefonda DARALTMIYORUZ: kontrol artık alt şeritte değil panelde, yer var. */
 @media (max-width:768px){ .font-slider-wrap .fs-a-sm{font-size:12px;} .font-slider-wrap .fs-a-lg{font-size:18px;} }
 .stage-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;} .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
@@ -1251,8 +1285,17 @@ const _KARAR_IN = {
   'g':7,'g#':8,'ab':8,'a':9,'a#':10,'bb':10,'b':11
 };
 function parseKararNote(s){
-  const k = (s||'').toString().trim().toLowerCase().replace(/\s+/g,'').replace('♭','b').replace('♯','#');
-  return (k in _KARAR_IN) ? _KARAR_IN[k] : null;
+  let t = (s||'').toString().toLowerCase().replace('♭','b').replace('♯','#');
+  const k = t.trim().replace(/\s+/g,'');
+  if (k in _KARAR_IN) return _KARAR_IN[k];
+  // (2026-08-13) Çift yazımı da tanı: "La (A)", "A (La)", "Sol / G", "Re - Neva".
+  // Eskiden bunlar tanınmadığı için ses adı üretilemiyor, Ton kontrolü rakamsal
+  // ± hâline düşüyordu. Parantez içi atılır, ilk anlamlı jetona bakılır.
+  t = t.replace(/\([^)]*\)/g, ' ');
+  for (const tok of t.split(/[^a-z#b]+/)) {
+    if (tok && (tok in _KARAR_IN)) return _KARAR_IN[tok];
+  }
+  return null;
 }
 function kararLabel(closingNote, n){
   const i = parseKararNote(closingNote);
@@ -1281,6 +1324,91 @@ function resetTranspose() {
   renderStage();
   savePersonalTranspose(id, 0);
 }
+// ── (2026-08-13) TON KAYDIRICISI: rakam değil SES ADI ──────────────────────
+// Sahnede "−3" hiçbir şey söylemiyor, "La" söylüyor. Kaydırıcı kromatik
+// (−6…+6 yarım ton, ortası eserin ÖZGÜN tonu); ekranda görünen ise varılan
+// karar sesinin ADI. Yazım biçimi kullanıcının ortak tercihine bağlı
+// (akorYazim:<uid> → ABC ya da Do Re Mi), yani akorlarla hep aynı dilde.
+// Karar sesi girilmemiş / tanınmayan (koma sesleri) eserlerde ad hesaplanamaz;
+// orada eski ± adımlayıcıya düşülür — bkz. buildStageToolsRow.
+let _tonAcik = false;          // Ton bloğu kaydırıcı hâlinde mi
+let _tonKapatT = null;         // seçimden sonra kendiliğinden kapanma sayacı
+let _tonSonMode = 'lyrics';    // panel yeniden kurulurken kullanılacak görünüm
+let _tonAcikWid = '';          // kaydırıcının açık olduğu eser (esere geçilince kapanır)
+const TON_MIN = -6, TON_MAX = 6;
+// Varılan sesin adı: 'solfej' tercihinde "La", değilse "A". Bilinmiyorsa null.
+function tonSesAdi(closingNote, n) {
+  const i = parseKararNote(closingNote);
+  if (i === null) return null;
+  const j = ((i + (n||0)) % 12 + 12) % 12;
+  const yazim = (typeof getAkorYazim === 'function') ? getAkorYazim() : 'abc';
+  return (yazim === 'solfej') ? _KARAR_TR[j] : _KARAR_LATIN[j];
+}
+function _tonAktifItem() { return (curRep && (curRep.items||[])[curIdx]) || null; }
+function _tonKararSesi() {
+  const item = _tonAktifItem();
+  if (!item) return '';
+  return item.closingNote || (WL[String(item.workId)]||{}).closingNote || '';
+}
+// Kaydırıcının dolgu rengi (yazı boyutu kaydırıcısıyla aynı yöntem)
+function updateTonSliderUI(v) {
+  const s = document.getElementById('tonSlider');
+  if (!s) return;
+  s.value = v;
+  // Dolgu ORTADAN başlar: rayın ortası eserin özgün tonu, dolgu ne kadar
+  // uzaklaştığını gösterir (yazı boyutunda soldan dolduruyoruz, burada anlamı bu).
+  const pct = ((v - TON_MIN) / (TON_MAX - TON_MIN)) * 100;
+  const a = Math.min(50, pct), b = Math.max(50, pct);
+  s.style.background = `linear-gradient(to right, var(--border) 0%, var(--border) ${a}%, var(--accent) ${a}%, var(--accent) ${b}%, var(--border) ${b}%, var(--border) 100%)`;
+}
+function tonKaydiriciAc(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  clearTimeout(_tonKapatT);
+  _tonAcik = true;
+  buildStageToolsRow(_tonSonMode);
+}
+function tonKapanmayiPlanla(ms) {
+  clearTimeout(_tonKapatT);
+  // Seçimden HEMEN sonra kapatmıyoruz: yanlış sese düştüğünü fark eden kişi
+  // düğmeye yeniden basmak zorunda kalmasın, birkaç saniye düzeltebilsin.
+  _tonKapatT = setTimeout(() => { _tonAcik = false; buildStageToolsRow(_tonSonMode); }, ms || 3000);
+}
+// Sürüklerken YALNIZCA ses adı ve dolgu güncellenir — akorlar yeniden ÇİZİLMEZ.
+// Sebep: renderChordPro sonrası çalışan cpFixChordOverlaps her akoru
+// getBoundingClientRect ile ölçüyor; 13 adımda 13 ölçüm sahnede takılma yapar.
+function tonSliderInput(v) {
+  const n = parseInt(v) || 0;
+  const kutu = document.getElementById('tonNota');
+  if (kutu) kutu.innerHTML = _tonKutuIcerik(n);
+  updateTonSliderUI(n);
+}
+function _tonKutuIcerik(n) {
+  const ad = tonSesAdi(_tonKararSesi(), n);
+  const fark = n > 0 ? '+' + n : (n < 0 ? String(n) : 'özgün');
+  return (ad || (n ? fark : 'Ton')) + '<small>' + fark + '</small>';
+}
+// Parmak kalkınca uygulanır (change olayı): kaydet, sahneyi tazele, sonra kapan.
+function tonSliderCommit(v) {
+  const item = _tonAktifItem();
+  if (!item) return;
+  const id = String(item.workId);
+  let n = parseInt(v) || 0;
+  n = Math.max(TON_MIN, Math.min(TON_MAX, n));
+  if (getTranspose(id) !== n) {
+    TRANSPOSE[id] = n;
+    renderStage();            // panel de yeniden kurulur; _tonAcik açık kaldığı için kaydırıcı yerinde durur
+    savePersonalTranspose(id, n);
+  }
+  tonKapanmayiPlanla(3000);
+}
+// Kaydırıcının iki yanındaki tek adım düğmeleri: 13 adım dar bir rayda sığdığı
+// için ince ayar parmakla değil dokunarak yapılsın.
+function tonNudge(delta) {
+  const s = document.getElementById('tonSlider');
+  const cur = s ? (parseInt(s.value) || 0) : getTranspose(String((_tonAktifItem()||{}).workId));
+  tonSliderCommit(Math.max(TON_MIN, Math.min(TON_MAX, cur + delta)));
+}
+
 // personal_chords satırına yaz (eser başına, kullanıcıya özel, cihazlar arası senkron).
 // Kayıtlı akor metnine DOKUNULMAZ — sadece transpose alanı güncellenir.
 async function savePersonalTranspose(workId, val) {
@@ -1804,6 +1932,14 @@ function updateViewToggleUI(w) {
 function buildStageToolsRow(mode) {
   const row = document.getElementById('stageToolsRow');
   if (!row) return;
+  // (2026-08-13) Ton kaydırıcısı açıkken panel yeniden kurulabilir (renderStage);
+  // hangi görünümde olduğumuzu saklıyoruz ki kapanma sayacı doğru yeniden kursun.
+  // Esere geçilirse kaydırıcı kapanır — bir sonraki eserde açık gelmesi şaşırtır.
+  _tonSonMode = mode;
+  const _tonItem = (curRep && (curRep.items||[])[curIdx]) || null;
+  const _tonWid = _tonItem ? String(_tonItem.workId) : '';
+  if (_tonAcik && _tonAcikWid !== _tonWid) { _tonAcik = false; clearTimeout(_tonKapatT); }
+  _tonAcikWid = _tonWid;
   const themeBtn = `<button onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn2" title="Gece/Gündüz" class="align-btn"><i class="ti ti-sun"></i></button>`;
   const navBtn = `<button onclick="event.stopPropagation();openStageNav()" title="Navigasyon" class="align-btn" style="color:var(--accent);border-color:var(--accent);"><i class="ti ti-list"></i></button>`;
   // Akor modunda ton kaydırma (± yarım ton) — eser başına saklanır
@@ -1812,19 +1948,41 @@ function buildStageToolsRow(mode) {
   // ± Ton, eserde AKOR VARSA görünür (eskiden yalnızca Akor görünümündeyken
   // gelirdi; Söz görünümüne geçilince "motor kayboldu" sanılıyordu).
   const _hasChords = !!(item && (WL[String(item.workId)]||{}).chords);
-  const tonBtns = (_hasChords && mode !== 'nota') ? `
+  // (2026-08-13) Ton kontrolü artık RAKAM değil SES ADI üzerinden.
+  // Kapalı hâl: tek düğme, üstünde o an çalınan karar sesi ("La" / "A").
+  // Açık hâl: ◀ kaydırıcı ▶ + canlı ses adı kutusu; seçimden birkaç saniye
+  // sonra kendiliğinden kapanır (tonKapanmayiPlanla).
+  // Karar sesi yoksa veya tanınmıyorsa (koma sesleri 12'liye oturmaz) ad
+  // üretilemez → eski ± adımlayıcı gösterilir, özellik kaybolmaz.
+  const _cnTon = (item && (item.closingNote || (WL[String(item.workId)]||{}).closingNote)) || '';
+  const _sesVar = tonSesAdi(_cnTon, 0) !== null;
+  let tonBtns = '';
+  if (_hasChords && mode !== 'nota') {
+    if (!_sesVar) {
+      tonBtns = `
       <button onclick="event.stopPropagation();stepTranspose(-1)" title="Yarım ton pes" class="align-btn"><i class="ti ti-minus"></i></button>
       <button onclick="event.stopPropagation();resetTranspose()" id="tonBadge" title="Tonu sıfırla" class="align-btn" style="min-width:44px;font-size:12px;font-weight:800;${tVal?'color:var(--accent);border-color:var(--accent);':''}">${tVal>0?'+'+tVal:(tVal||'Ton')}</button>
       <button onclick="event.stopPropagation();stepTranspose(1)" title="Yarım ton tiz" class="align-btn"><i class="ti ti-plus"></i></button>
-      ${(() => {
-        const cn = (item && (item.closingNote || (WL[String(item.workId)]||{}).closingNote)) || '';
-        const cur = kararLabel(cn, tVal);
-        if (cur) {
-          const orig = tVal ? kararLabel(cn, 0) : '';
-          return `<span class="ton-karar" title="${orig?('Orijinal karar: '+orig):''}" style="font-size:11px;font-weight:700;white-space:nowrap;padding:0 6px;color:${tVal?'var(--accent)':'var(--text2, #9aa4b2)'};">${cur}</span>`;
-        }
-        return cn ? `<span class="ton-karar" style="font-size:11px;white-space:nowrap;padding:0 6px;color:var(--text3, #6b7482);">${cn}</span>` : '';
-      })()}` : '';
+      ${_cnTon ? `<span class="ton-karar" style="font-size:11px;white-space:nowrap;padding:0 6px;color:var(--text3, #6b7482);">${_cnTon}</span>` : ''}`;
+    } else if (!_tonAcik) {
+      const _ad = tonSesAdi(_cnTon, tVal);
+      const _org = tonSesAdi(_cnTon, 0);
+      tonBtns = `
+      <button onclick="tonKaydiriciAc(event)" id="tonBtn" class="ton-btn${tVal?' shifted':''}"
+        title="${tVal ? ('Özgün karar: ' + _org + ' — değiştirmek için dokun') : 'Tonu değiştir'}">
+        <i class="ti ti-music"></i>${_ad}${tVal ? `<span style="font-size:10px;font-weight:700;opacity:.75;">${tVal>0?'+'+tVal:tVal}</span>` : ''}
+      </button>`;
+    } else {
+      tonBtns = `
+      <div class="ton-slider-wrap" onclick="event.stopPropagation()">
+        <button onclick="event.stopPropagation();tonNudge(-1)" class="ton-step" title="Yarım ton pes"><i class="ti ti-minus"></i></button>
+        <input type="range" id="tonSlider" class="ton-slider" min="${TON_MIN}" max="${TON_MAX}" step="1" value="${tVal}"
+          onclick="event.stopPropagation()" oninput="tonSliderInput(this.value)" onchange="tonSliderCommit(this.value)">
+        <button onclick="event.stopPropagation();tonNudge(1)" class="ton-step" title="Yarım ton tiz"><i class="ti ti-plus"></i></button>
+        <span class="ton-nota" id="tonNota">${_tonKutuIcerik(tVal)}</span>
+      </div>`;
+    }
+  }
   // Akor yazımı: A B C / Do Re Mi. Yalnızca AKOR görünümünde gösterilir —
   // başka görünümde etkisi olmadığı için orada durması kafa karıştırırdı.
   // Tercih auth.js'teki ortak anahtarda (kullanıcı bazlı); eser düzenleme
@@ -1866,6 +2024,7 @@ function buildStageToolsRow(mode) {
     // Panel her yeniden kurulduğunda kaydırıcının dolgu rengi ve hiza
     // düğmelerinin aktif hâli sıfırlanır — kayıtlı değerlerden geri yazılır.
     updateFontSliderUI(_olcek);
+    if (_tonAcik) updateTonSliderUI(tVal);   // ray dolgusu da her kurulumda geri yazılır
     const _hiza = localStorage.getItem('stageLyricsAlign') || 'left';
     ['left','center','right'].forEach(a => {
       const b = document.getElementById('align' + a.charAt(0).toUpperCase() + a.slice(1));
@@ -2049,13 +2208,21 @@ function scheduleStageNavHide(){
   // ve menü sürekli ekranda kalıyordu. Fare/parmak üzerindeyken sayaç durur.
   _navTimer=setTimeout(()=>bnav.classList.add('stage-hidden'),10000);
 }
+// (2026-08-13) Görünüm Ayarları panelinde başlayan dokunuşlar swipe SAYILMAZ.
+// Sebep: paneldeki kaydırıcıları (yazı boyutu, ton) yatayda 60px'den fazla
+// sürüklemek bu dinleyiciyi tetikliyor ve ayar yaparken ESER ATLIYORDU.
+// Panelin mevcut 'stay' dinleyicisi yalnızca otomatik gizlemeyi durduruyor,
+// olayı durdurmuyordu.
+let _swipeYoksay=false;
 document.addEventListener('touchstart',e=>{
   if(document.getElementById('stageScreen').classList.contains('hidden'))return;
+  _swipeYoksay = !!(e.target && e.target.closest && e.target.closest('#stageToolsPanel, input[type="range"]'));
   txStart=e.touches[0].clientX;
   tyStart=e.touches[0].clientY;
 },{passive:true});
 document.addEventListener('touchend',e=>{
   if(document.getElementById('stageScreen').classList.contains('hidden'))return;
+  if(_swipeYoksay){ _swipeYoksay=false; return; }
   const dx=e.changedTouches[0].clientX-txStart;
   const dy=e.changedTouches[0].clientY-tyStart;
   // Yalnızca yatay swipe → eser geçişi. Yukarı swipe ile alt navbar AÇMA kaldırıldı:
