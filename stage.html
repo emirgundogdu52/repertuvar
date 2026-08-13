@@ -5,6 +5,16 @@
   akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
   Yani "son madde eski görünüyor" diye dosyayı eski sanma — kontrol için
   st-grp / setAkorYazimi / showStageChangeBar aranmalı.
+  - 2026-08-13 (7): KARAR SESİ ARTIK KULLANICININ YAZIMIYLA GÖSTERİLİYOR.
+    F# girilmiş bir eserde akorlar F#m/Bm/E görünürken rozette "Gb (Solb)"
+    yazıyordu — aynı ekranda iki yazım. Sebep: _KARAR_LATIN/_KARAR_TR yalnızca
+    bemol tablosuydu, indeks 6 her hâlükârda Gb'ye çevriliyordu. Yeni diyez
+    tabloları (_KARAR_LATIN_D/_KARAR_TR_D) + _kararJeton/_kararDiyezMi ile
+    KAYDIRMA YOKKEN kullanıcının diyez/bemol tercihi korunuyor; ton
+    kaydırıldığında bemol tablosuna dönülüyor, çünkü kaydırılmış akorlar da
+    bemolle yazılıyor (transposeNote → _CHROM_FLAT) ve ikisi tutarlı kalmalı.
+    Etkilenen yerler: kararLabel (başlık altı rozeti) ve tonSesAdi (Ton düğmesi
+    + kaydırıcı kutusu).
   - 2026-08-13 (6): SÖZ ALANI ARTIK GERÇEKTEN KAYDIRILIYOR. Masaüstünde fare
     tekerleği çalışmıyordu, uzun eserin başına/sonuna gidilemiyordu. Sebep CSS:
     .sm bir flex öğesi ve flex öğelerinin varsayılan min-height'ı AUTO, yani öğe
@@ -1443,24 +1453,48 @@ const _KARAR_IN = {
   'c':0,'c#':1,'db':1,'d':2,'d#':3,'eb':3,'e':4,'f':5,'f#':6,'gb':6,
   'g':7,'g#':8,'ab':8,'a':9,'a#':10,'bb':10,'b':11
 };
-function parseKararNote(s){
+// (2026-08-13) Eşleşen HAM jetonu döndürür ('f#', 'solb'...). Hem indeks hem de
+// kullanıcının diyez/bemol tercihi buradan türetiliyor — aynı ayrıştırma iki
+// yerde tekrar edilmesin.
+function _kararJeton(s){
   let t = (s||'').toString().toLowerCase().replace('♭','b').replace('♯','#');
   const k = t.trim().replace(/\s+/g,'');
-  if (k in _KARAR_IN) return _KARAR_IN[k];
-  // (2026-08-13) Çift yazımı da tanı: "La (A)", "A (La)", "Sol / G", "Re - Neva".
+  if (k in _KARAR_IN) return k;
+  // Çift yazımı da tanı: "La (A)", "A (La)", "Sol / G", "Re - Neva".
   // Eskiden bunlar tanınmadığı için ses adı üretilemiyor, Ton kontrolü rakamsal
   // ± hâline düşüyordu. Parantez içi atılır, ilk anlamlı jetona bakılır.
   t = t.replace(/\([^)]*\)/g, ' ');
   for (const tok of t.split(/[^a-z#b]+/)) {
-    if (tok && (tok in _KARAR_IN)) return _KARAR_IN[tok];
+    if (tok && (tok in _KARAR_IN)) return tok;
   }
   return null;
 }
+function parseKararNote(s){
+  const k = _kararJeton(s);
+  return (k === null) ? null : _KARAR_IN[k];
+}
+// (2026-08-13) Kullanıcı karar sesini DİYEZLE mi yazmış? ("F#", "Fa#")
+function _kararDiyezMi(s){
+  const k = _kararJeton(s);
+  return !!(k && k.charAt(k.length - 1) === '#');
+}
+// (2026-08-13) TON KAYDIRILMAMIŞKEN KULLANICININ YAZIMINA SADIK KAL.
+// Belirti (Emir): karar sesi F# girilmiş, akorlar da F#m/Bm/E görünüyor ama
+// rozette "Gb (Solb)" yazıyordu — aynı ekranda iki farklı yazım.
+// Sebep: _KARAR_LATIN/_KARAR_TR yalnızca BEMOL tablosu; indeks 6 her hâlükârda
+// Gb'ye çevriliyordu. Akor motoru ise n=0 iken metne HİÇ dokunmuyor
+// (transposeChordPro'da `if(!text||!n) return text`), yazım olduğu gibi kalıyor.
+// Artık karar rozeti de aynı kurala uyuyor: kaydırma yokken kullanıcının
+// diyez/bemol tercihi korunur, KAYDIRILDIĞINDA bemol tablosuna dönülür —
+// çünkü kaydırılmış akorlar da bemolle yazılıyor, ikisi tutarlı kalsın.
+const _KARAR_LATIN_D = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const _KARAR_TR_D    = ['Do','Do#','Re','Re#','Mi','Fa','Fa#','Sol','Sol#','La','La#','Si'];
 function kararLabel(closingNote, n){
   const i = parseKararNote(closingNote);
   if (i === null) return null;
   const j = ((i + (n||0)) % 12 + 12) % 12;
-  return _KARAR_LATIN[j] + ' (' + _KARAR_TR[j] + ')';
+  const d = !n && _kararDiyezMi(closingNote);
+  return (d ? _KARAR_LATIN_D : _KARAR_LATIN)[j] + ' (' + (d ? _KARAR_TR_D : _KARAR_TR)[j] + ')';
 }
 
 // ± butonları: tonu kaydır, ekranı hemen tazele, sonra arka planda kaydet
@@ -1501,7 +1535,10 @@ function tonSesAdi(closingNote, n) {
   if (i === null) return null;
   const j = ((i + (n||0)) % 12 + 12) % 12;
   const yazim = (typeof getAkorYazim === 'function') ? getAkorYazim() : 'abc';
-  return (yazim === 'solfej') ? _KARAR_TR[j] : _KARAR_LATIN[j];
+  // Kaydırma yokken kullanıcının diyez yazımı korunur (bkz. kararLabel notu).
+  const d = !n && _kararDiyezMi(closingNote);
+  if (yazim === 'solfej') return (d ? _KARAR_TR_D : _KARAR_TR)[j];
+  return (d ? _KARAR_LATIN_D : _KARAR_LATIN)[j];
 }
 function _tonAktifItem() { return (curRep && (curRep.items||[])[curIdx]) || null; }
 function _tonKararSesi() {
