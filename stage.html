@@ -5,6 +5,11 @@
   akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
   Yani "son madde eski görünüyor" diye dosyayı eski sanma — kontrol için
   st-grp / setAkorYazimi / showStageChangeBar aranmalı.
+  - 2026-08-13 (4): iOS SAFARI'DE ÇİFT DOKUNUŞ YAKINLAŞTIRMASI KAPATILDI. Ton
+    düğmesine hızlı iki kez basınca sayfa yakınlaşıp yazılar büyüyordu; sebep
+    Safari'nin user-scalable=no'yu yok sayması. Etkileşimli öğelere (düğmeler,
+    kaydırıcılar, panel) touch-action:manipulation eklendi. Pinch zoom ve nota
+    alanında çift dokunuş bilerek korundu.
   - 2026-08-13 (3): İŞARET RENGİ AKORDAN AYRILDI. "2X" rozeti (.cp-rep) ve bölüm
     başlıkları (.cp-comment) var(--accent) kullanıyordu ve sahnede akorlarla aynı
     okunuyordu. Yeni değişken: --marker-color (karanlık #8FA6FF, açık #3F3BC0).
@@ -327,6 +332,18 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2px 16px calc(58px + env(safe-area-inset-bottom));position:relative;overflow-y:auto;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
+/* (2026-08-13) iOS SAFARI ÇİFT DOKUNUŞ YAKINLAŞTIRMASI KAPATILDI.
+   Belirti (Emir, iPhone Safari): ton düğmesine arka arkaya iki kez basınca sayfa
+   "zoom in" yapıyor, yazılar büyüyor. SEBEP: iOS 10'dan beri Safari
+   `user-scalable=no` meta ayarını YOK SAYIYOR (erişilebilirlik gerekçesiyle);
+   bir düğmeye 300 ms içinde iki kez dokunmak çift dokunuş sayılıp yakınlaştırma
+   tetikliyor. ÇÖZÜM: etkileşimli öğelerde `touch-action:manipulation` — çift
+   dokunuş yakınlaştırmasını kapatır, kaydırma ve PARMAKLA (pinch) yakınlaştırma
+   çalışmaya devam eder. KASITLI OLARAK sahne gövdesine/nota alanına
+   uygulanmıyor: notaya çift dokunup yakınlaştırmak işe yarıyor. */
+button, .align-btn, .ton-btn, .ton-step, .vm-tab, .fs-step, .side-nav-btn,
+.sb-menu-btn, .stage-info-btn, .nota-pager button, .bex,
+input[type="range"], #stageToolsPanel, .stage-nav a{ touch-action:manipulation; }
 /* (2026-08-13) PANEL ARTIK YARI SAYDAM + BULANIK ZEMİN.
    Emir: "açılan menünün zemini eserin sözlerini tamamen kapatıyor."
    Şeffaflık tek başına okunaklılığı bozardı (arkadaki söz satırları düğme
