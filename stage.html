@@ -5,6 +5,15 @@
   akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
   Yani "son madde eski görünüyor" diye dosyayı eski sanma — kontrol için
   st-grp / setAkorYazimi / showStageChangeBar aranmalı.
+  - 2026-08-13 (6): SÖZ ALANI ARTIK GERÇEKTEN KAYDIRILIYOR. Masaüstünde fare
+    tekerleği çalışmıyordu, uzun eserin başına/sonuna gidilemiyordu. Sebep CSS:
+    .sm bir flex öğesi ve flex öğelerinin varsayılan min-height'ı AUTO, yani öğe
+    içeriğinden kısa olamıyor — .sm içerik kadar uzuyor, overflow-y:auto hiç
+    devreye girmiyor, taşan kısım body'nin overflow:hidden'ı ile kırpılıyordu.
+    .sm'ye min-height:0 eklendi (aynı düzeltme .pi-scroll'da zaten vardı) +
+    overscroll-behavior:contain. Ayrıca @media(pointer:fine) ile fareli
+    cihazlarda ince kaydırma çubuğu görünür yapıldı (dokunmatikte gizli kalır);
+    çubuk gizliyken kaydırılabildiği anlaşılmıyordu.
   - 2026-08-13 (5): SAHNEDEN ÇIKIŞ TEK DOKUNUŞ. Görünüm Ayarları paneline
     "SAHNE" bloğu eklendi: Geri Dön · Ana Sayfa · Sahneden Çık (kırmızı),
     dikey ve YAZILI (.st-grp-col + .st-act / .st-act-exit, grup()'a üçüncü
@@ -338,7 +347,28 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
    satırın yeri kayıyordu. Artık içerik SOL ÜSTTEN başlıyor, büyüdükçe sağa
    ve aşağı doğru genişliyor — göz aynı noktada kalıyor. Yatay hiza kullanıcı
    tercihinde (Görünüm Ayarları → sola/ortala/sağa), varsayılan artık SOL. */
-.sm{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2px 16px calc(58px + env(safe-area-inset-bottom));position:relative;overflow-y:auto;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
+.sm{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2px 16px calc(58px + env(safe-area-inset-bottom));position:relative;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;}.sm::-webkit-scrollbar{display:none;}
+/* (2026-08-13) SÖZ ALANI KAYDIRILAMIYORDU (fare tekerleği çalışmıyor, uzun
+   eserin başına/sonuna gidilemiyor). SEBEP: .sm bir flex öğesi ve flex
+   öğelerinin varsayılan min-height değeri AUTO — yani öğe içeriğinden daha
+   kısa olamıyor. Bu yüzden .sm içerik kadar UZUYORDU, overflow-y:auto hiç
+   devreye girmiyordu ve taşan kısım body'nin overflow:hidden'ı tarafından
+   kırpılıyordu. min-height:0 öğenin küçülmesine izin verir, kaydırma
+   böylece gerçekten çalışır. (Aynı düzeltme .pi-scroll'da zaten vardı.)
+   FARE İLE KULLANILAN CİHAZLARDA İNCE ÇUBUK GÖSTERİLİYOR: dokunmatikte
+   çubuk gereksiz ve sahnede dikkat dağıtıcı, ama masaüstünde kaydırma
+   imkânının GÖRÜNÜR olması gerekiyor — yoksa kullanıcı kaydırılabileceğini
+   bilmiyor (Emir bildirdi). */
+@media (pointer:fine){
+  .sm{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent;}
+  .sm::-webkit-scrollbar{display:block;width:8px;}
+  .sm::-webkit-scrollbar-track{background:transparent;}
+  .sm::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:8px;}
+  .sm::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.34);}
+  body.day-theme .sm{scrollbar-color:rgba(0,0,0,.24) transparent;}
+  body.day-theme .sm::-webkit-scrollbar-thumb{background:rgba(0,0,0,.24);}
+  body.day-theme .sm::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.36);}
+}
 .sm::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;} .sm>*{position:relative;z-index:1;}
 .wnum{font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;opacity:0;animation:si .4s ease forwards;}
 /* (2026-08-13) iOS SAFARI ÇİFT DOKUNUŞ YAKINLAŞTIRMASI KAPATILDI.
