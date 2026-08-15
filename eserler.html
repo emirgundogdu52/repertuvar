@@ -2,6 +2,21 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (6): 🐞 KULLANICI KENDİ ESERİNİN AKORUNU DÜZENLEYEMİYORDU.
+    Emir test1 ile bildirdi: gizli taslağının akorunda {Nakarat} değişikliği
+    yapıp Kaydet'e bastı, works.chords hiç değişmedi ("kaydetmiyor").
+    SEBEP: akor kutusundaki kapsam (Ortak/Kişisel) yetkisi yalnızca ROLE
+    bakıyordu — isAdmin()||isEditor(). Düz üyeye "🌐 Ortak" düğmesi hiç
+    çizilmiyor, kapsam zorla 'kisisel' kalıyor ve yazı works.chords yerine
+    personal_chords'a gidiyordu. Kendi eserinde, üstelik yalnız kendisinin
+    gördüğü GİZLİ TASLAKTA, "kişisel kopya" katmanı anlamsız.
+    DÜZELTME: üç yerde de sahiplik yetki sayılıyor —
+    selectWork'teki _canShared, setChordScope() ve saveChords() ortak dalı
+    (w.submitted_by === getUserId()). Böylece sahibin varsayılan kapsamı
+    'ortak' oluyor ve düzenlemesi eserin kendisine yazılıyor.
+    Ayrıca kapsam açıklaması gizli eserde doğru cümleyi gösteriyor:
+    "herkes görür" yerine "eserin kendi akoru, eser gizli olduğu için
+    yalnızca siz görürsünüz".
   - 2026-08-15 (5): 🐞 DÜZENLEME MODALINDA SÖZ/AKOR BOŞ GELİYORDU (VERİ KAYBI
     RİSKİ). Emir test1 ile bildirdi: gizli esere söz+akor kaydedildi, Düzenle'ye
     basınca kutular boş açıldı — ama bir keresinde doluydu, ve eser listesinde
@@ -2186,7 +2201,15 @@ function selectWork(id, silent) {
 
   // ── KİŞİSEL AKOR ÇÖZÜMLEME ── kullanıcının kişisel akoru varsa onun görünümü ondan türer
   const _pc = (typeof PERSONAL_CHORDS!=='undefined' && PERSONAL_CHORDS[String(w.id)]) || '';
-  const _canShared = (isAdmin() || isEditor());
+  // (2026-08-15) KENDİ ESERİNİN ORTAK AKORUNU DÜZENLEYEMEME HATASI.
+  // Belirti (Emir, test1): gizli taslağının akorunu düzenleyip kaydetti,
+  // works.chords hiç değişmedi — "kaydetmiyor" görünüyordu. Sebep: kapsam
+  // yetkisi YALNIZCA role bakıyordu (isAdmin||isEditor), SAHİPLİĞE bakmıyordu.
+  // Düz üyeye "🌐 Ortak" düğmesi hiç çizilmiyor, kapsam zorla 'kisisel' kalıyor
+  // ve yazı personal_chords'a gidiyordu. Kendi eserinde — üstelik yalnızca
+  // kendisinin gördüğü GİZLİ TASLAKTA — "kişisel kopya" katmanı anlamsız:
+  // düzenlediği şey zaten kendi eseri. Artık sahibi de ortak metni düzenler.
+  const _canShared = (isAdmin() || isEditor() || (w.submitted_by && w.submitted_by === getUserId()));
   const _defaultScope = _pc ? 'kisisel' : (_canShared ? 'ortak' : 'kisisel');
   const dispChords = _pc || (w.chords || '');
   const dispLyrics = _pc ? chordsToLyrics(_pc) : (w.lyrics || '');
@@ -3214,10 +3237,11 @@ async function deletePersonalChords(id){
 function setChordScope(id, scope){
   const ta = document.getElementById('inline_chords_'+id);
   if(!ta) return;
-  const canShared = (isAdmin() || isEditor());
+  const w = DATA.find(x=>x.id===id || x.id===parseInt(id)) || {};
+  // (2026-08-15) Sahiplik de yetki verir — bkz. selectWork'teki _canShared notu.
+  const canShared = (isAdmin() || isEditor() || (w.submitted_by && w.submitted_by === getUserId()));
   if(scope==='ortak' && !canShared) scope='kisisel';
   ta.dataset.scope = scope;
-  const w = DATA.find(x=>x.id===id || x.id===parseInt(id)) || {};
   const shared = w.chords || '';
   const personal = PERSONAL_CHORDS[String(id)] || '';
   ta.value = scope==='ortak' ? (shared || w.lyrics || '') : (personal || shared || w.lyrics || '');
@@ -3225,9 +3249,13 @@ function setChordScope(id, scope){
   const setBtn=(b,on)=>{ if(!b)return; b.style.background=on?'var(--accent)':'transparent'; b.style.color=on?'#1a1200':'var(--text2)'; b.style.borderColor=on?'var(--accent)':'var(--border)'; };
   setBtn(bo, scope==='ortak'); setBtn(bk, scope==='kisisel');
   const help=document.getElementById('scope_help_'+id);
+  // Gizli eserde "herkes görür" cümlesi YANLIŞ olur — eseri zaten kimse görmüyor.
+  // Metin görünürlüğe göre değişiyor ki kullanıcı ne yaptığını bilsin.
   if(help) help.innerHTML = scope==='ortak'
-    ? 'Bu akoru <b>gruptaki herkes</b> görür. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.'
-    : 'Bu akoru <b>sadece sen</b> görürsün; ortak akor değişmez. <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.';
+    ? (w.visibility === 'private'
+        ? 'Eserin <b>kendi akoru</b> — kaydedince eserde saklanır. Eser gizli olduğu için yalnızca siz görürsünüz. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.'
+        : 'Bu akoru <b>eseri gören herkes</b> görür. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.')
+    : 'Bu akoru <b>sadece sen</b> görürsün; eserin kendi akoru değişmez. <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.';
   const del=document.getElementById('delpc_'+id);
   if(del) del.style.display = (scope==='kisisel' && personal) ? 'inline-flex' : 'none';
   updateChordsPreview(id);
@@ -3278,7 +3306,12 @@ async function saveChords(id) {
   const chords = raw; // dolu metin her zaman korunur; boşsa zaten '' kaydedilir
 
   if (scope === 'ortak') {
-    if (!(isAdmin() || isEditor())) { alert('Ortak akoru sadece editör düzenleyebilir.'); return; }
+    // (2026-08-15) Sahiplik de yetki verir: kendi eserinin akorunu herkes
+    // düzenleyebilmeli. Eskiden yalnız rol bakılıyordu ve kullanıcı kendi
+    // taslağını değiştiremiyordu.
+    const _wOwn = DATA.find(x => x.id === id || x.id === parseInt(id));
+    const _sahip = _wOwn && _wOwn.submitted_by && _wOwn.submitted_by === getUserId();
+    if (!(isAdmin() || isEditor() || _sahip)) { alert('Bu eserin ortak akorunu yalnızca eseri ekleyen kişi ya da editör düzenleyebilir.'); return; }
     try {
       const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
         method: 'PATCH',
