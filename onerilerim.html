@@ -4,7 +4,37 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Repertuvar — Önerilerim</title>
+<title>Repertuvar — Eserlerim</title>
+<!--
+  DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15: 🐞 "GERİ ÇEK" ESERİ SİLİYORDU — VERİ KAYBINA YOL AÇAN HATA.
+    Emir test1 ile yeniden üretti: bir eseri önerdikten sonra "Geri Çek"e
+    basınca eser TAMAMEN SİLİNİYORDU (retractWork -> DELETE /works?id=eq.N).
+    Bir eser bu şekilde kalıcı olarak kaybedildi (id 539 "Gülpembe").
+    Kod, "öneri = katalog başvurusu" varsayımıyla yazılmıştı: geri çekmek
+    başvuruyu iptal etmek, yani kaydı silmek demekti. 2026-08-15'te getirilen
+    modelde ise eser ÖNCE kullanıcının kendi kaydıdır (gizli taslak), sonra
+    isteğe bağlı olarak öneri olur. Dolayısıyla geri çekmek eseri yok etmemeli,
+    yalnızca paylaşımı geri almalı.
+    YENİ DAVRANIŞ: "Öneriyi Geri Çek" artık DELETE atmıyor; PATCH ile
+    visibility='private' + status='approved' yazıyor ⇒ eser sahibinde gizli
+    taslak olarak KALIYOR, onay kuyruğundan düşüyor. status'un 'approved'
+    yapılması bilinçli: gizli eserler bu modelde onay akışına girmez
+    (bkz. eserler.html 2026-08-15 günlüğü), 'pending' kalsaydı Önerilerim
+    rozeti hayalet sayı gösterirdi.
+  - 2026-08-15: GİZLİ TASLAKLAR ÖNERİ SANILIYORDU. Sayfa kullanıcının TÜM
+    eserlerini tek liste hâlinde gösteriyordu; gizli taslaklar da "Önerilerim /
+    Gönderdiğiniz eser önerileri" başlığı altında görünüyordu (Emir: "Private
+    kaydettiğimde Önerilerim'de görünüyor, aslında önermedim"). Artık üç ayrı
+    bölüm var: Onay Bekleyen Önerilerim · Taslaklarım (yalnız siz) ·
+    Yayımlanan Eserlerim. Sayfa adı "Eserlerim" oldu.
+    Not: gizli taslakta "Geri Çek" düğmesi artık HİÇ gösterilmiyor — eser zaten
+    gizli, geri çekilecek bir paylaşım yok. Düzenleme için eserler.html'e
+    ?edit=<id>&back= ile gidiliyor.
+    Not 2: taslağı kalıcı silme düğmesi bilinçli olarak EKLENMEDİ — yumuşak
+    silme (works.deleted_at + "Geri al") kararı beklemede; ikinci bir kalıcı
+    silme yolu açmak bugünkü kaybın tekrarını davet eder. Silme eserler.html'de.
+-->
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
@@ -16,21 +46,29 @@
 .page{padding:24px;max-width:800px;margin:0;}
 .page-title{font-size:18px;font-weight:700;margin-bottom:4px;}
 .page-sub{font-size:13px;color:var(--text2);margin-bottom:24px;}
+.sec{margin-bottom:28px;}
+.sec-head{display:flex;align-items:baseline;gap:8px;margin-bottom:4px;}
+.sec-title{font-size:14px;font-weight:700;color:var(--text);}
+.sec-count{font-size:12px;color:var(--text3);font-variant-numeric:tabular-nums;}
+.sec-desc{font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.5;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:12px;-webkit-user-select:none;-webkit-touch-callout:none;user-select:none;}
 .card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;}
 .card-name{font-size:15px;font-weight:600;color:var(--text);}
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
 .badge.pending{background:rgba(249,160,74,.15);border:1px solid rgba(249,160,74,.4);color:#F9A04A;}
 .badge.approved{background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.3);color:#3FB950;}
 .badge.private{background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.3);color:#58A6FF;}
 .card-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--text3);}
-.card-actions{display:flex;gap:8px;margin-top:12px;}
-.btn-delete{padding:5px 14px;border-radius:7px;background:rgba(192,84,68,.1);border:1px solid rgba(192,84,68,.3);color:#e07060;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
-.btn-delete:hover{background:rgba(192,84,68,.2);}
+.card-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.btn-retract{padding:5px 14px;border-radius:7px;background:rgba(249,160,74,.1);border:1px solid rgba(249,160,74,.35);color:#F9A04A;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-retract:hover{background:rgba(249,160,74,.2);}
 .btn-add{padding:5px 14px;border-radius:7px;background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.3);color:var(--accent2);font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;}
 .btn-add:hover{background:rgba(124,111,255,.2);}
+.btn-edit{padding:5px 14px;border-radius:7px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;}
+.btn-edit:hover{color:var(--text);}
 .empty{text-align:center;color:var(--text3);padding:48px 16px;font-size:13px;}
 .empty a{color:var(--accent);text-decoration:none;}
+.sec-empty{font-size:12px;color:var(--text3);padding:14px 16px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;}
 .admin-only{display:none;}
 </style>
 </head>
@@ -40,16 +78,16 @@
 
 <div class="main-wrap">
 <div class="page">
-  <div class="page-title">📋 Önerilerim</div>
-  <div class="page-sub">Gönderdiğiniz eser önerileri ve onay durumları</div>
+  <div class="page-title">📋 Eserlerim</div>
+  <div class="page-sub">Gizli taslaklarınız, onay bekleyen önerileriniz ve yayımlanan eserleriniz</div>
   <div id="listPanel"><div class="empty">Yükleniyor...</div></div>
 </div>
 </div>
 
 
 <script>
-// [B] Bu sayfanin iki cagrisi da kullaniciya ozel: kendi onerilerini listeleme
-// (works?submitted_by=eq.<uid>) ve kendi onerisini geri cekme (works DELETE).
+// [B] Bu sayfanin iki cagrisi da kullaniciya ozel: kendi eserlerini listeleme
+// (works?submitted_by=eq.<uid>) ve kendi onerisini geri cekme (works PATCH).
 // Anon anahtarla RLS 0 satir donduruyor, kullanici hata yerine "Henuz bir eser
 // onermediniz" goruyordu. Yerel H() kaldirildi; auth.js'in authHeaders()'i
 // kullaniliyor (token yoksa Authorization hic konmuyor, kapi devrede).
@@ -65,6 +103,54 @@ function timeAgo(dateStr) {
   return Math.floor(h / 24) + ' gün önce';
 }
 
+function esc(s) {
+  return (s == null ? '' : String(s))
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Düzenleme her zaman eserler.html'deki tek modalda yapılır — görünürlük
+// kuralları (onaya düşme, varsayılan seçim, açıklama metni) orada tek yerde
+// duruyor; burada ikinci bir kopya tutmuyoruz.
+function editUrl(id) {
+  return 'eserler.html?edit=' + encodeURIComponent(id)
+       + '&back=' + encodeURIComponent('onerilerim.html');
+}
+
+function cardHtml(w, kind) {
+  const badge = (kind === 'draft')
+    ? '<span class="badge private">🔒 Gizli taslak</span>'
+    : (kind === 'pending'
+        ? '<span class="badge pending">⏳ Onay bekliyor</span>'
+        : '<span class="badge approved">✓ Yayımlandı</span>');
+  let actions = '<a href="' + editUrl(w.id) + '" class="btn-edit">Düzenle</a>';
+  if (kind === 'pending') {
+    actions += '<a href="repertoires.html?add_work=' + w.id + '" class="btn-add">📋 Repertuvara Ekle</a>'
+             + '<button class="btn-retract" onclick="retractSuggestion(' + w.id + ')">Öneriyi Geri Çek</button>';
+  }
+  return '<div class="card">'
+    + '<div class="card-header"><div class="card-name">' + esc(w.name || '—') + '</div>' + badge + '</div>'
+    + '<div class="card-meta">'
+    +   (w.composer ? '<span>🎼 ' + esc(w.composer) + '</span>' : '')
+    +   (w.makam ? '<span>🎵 ' + esc(w.makam) + '</span>' : '')
+    +   (w.submitted_at ? '<span>🕐 ' + timeAgo(w.submitted_at) + '</span>' : '')
+    + '</div>'
+    + '<div class="card-actions">' + actions + '</div>'
+    + '</div>';
+}
+
+function section(title, desc, items, kind, emptyText) {
+  let body;
+  if (items.length) body = items.map(w => cardHtml(w, kind)).join('');
+  else if (emptyText) body = '<div class="sec-empty">' + emptyText + '</div>';
+  else return '';
+  return '<div class="sec">'
+    + '<div class="sec-head"><span class="sec-title">' + title + '</span>'
+    + (items.length ? '<span class="sec-count">' + items.length + '</span>' : '')
+    + '</div>'
+    + '<div class="sec-desc">' + desc + '</div>'
+    + body + '</div>';
+}
+
 async function loadSuggestions() {
   const panel = document.getElementById('listPanel');
   const uid = getUserId();
@@ -76,37 +162,42 @@ async function loadSuggestions() {
     );
     const data = await r.json();
     if (!Array.isArray(data) || !data.length) {
-      panel.innerHTML = '<div class="empty">Henüz bir eser önermediniz.<br><a href="eserler.html">Eserler sayfasından öneri gönderebilirsiniz →</a></div>';
+      panel.innerHTML = '<div class="empty">Henüz eser eklemediniz.<br><a href="eserler.html">Eserler sayfasından ekleyebilirsiniz →</a></div>';
       return;
     }
-    panel.innerHTML = data.map(w => `
-      <div class="card">
-        <div class="card-header">
-          <div class="card-name">${w.name || '—'}</div>
-          <span class="badge ${w.visibility === 'private' ? 'private' : (w.status === 'approved' ? 'approved' : 'pending')}">
-            ${w.visibility === 'private' ? '🔒 Gizli' : (w.status === 'approved' ? '✓ Onaylandı' : '⏳ Bekliyor')}
-          </span>
-        </div>
-        <div class="card-meta">
-          ${w.composer ? '<span>🎼 ' + w.composer + '</span>' : ''}
-          ${w.makam ? '<span>🎵 ' + w.makam + '</span>' : ''}
-          ${w.submitted_at ? '<span>🕐 ' + timeAgo(w.submitted_at) + '</span>' : ''}
-        </div>
-        <div class="card-actions">
-          ${w.status === 'pending' ? `<a href="repertoires.html?add_work=${w.id}" class="btn-add">📋 Repertuvara Ekle</a>` : ''}
-          ${w.status === 'pending' || w.visibility === 'private' ? `<button class="btn-delete" onclick="retractWork(${w.id})">Geri Çek</button>` : ''}
-        </div>
-      </div>`).join('');
+    // Gizli taslaklar öneri DEĞİLDİR — ayrı bölümde. Bir eser hem gizli hem
+    // "onay bekliyor" olamaz (gizliye geçince status 'approved' yazılıyor),
+    // ama eski kayıtlarda öyle satırlar olabilir: gizlilik önce gelir.
+    const drafts   = data.filter(w => w.visibility === 'private');
+    const pending  = data.filter(w => w.visibility !== 'private' && w.status === 'pending');
+    const approved = data.filter(w => w.visibility !== 'private' && w.status !== 'pending');
+
+    panel.innerHTML =
+        section('⏳ Onay Bekleyen Önerilerim',
+                'Herkese açık olarak paylaştığınız, yöneticinin onayını bekleyen eserler. Geri çekerseniz eser silinmez — gizli taslağınıza döner.',
+                pending, 'pending', '')
+      + section('🔒 Taslaklarım',
+                'Yalnızca siz görürsünüz. Onay gerekmez; hazır olduğunuzda Düzenle’den herkese açabilirsiniz.',
+                drafts, 'draft', '')
+      + section('✓ Yayımlanan Eserlerim',
+                'Kataloğa girmiş, herkesin görebildiği eserleriniz.',
+                approved, 'approved', '');
   } catch(e) {
-    panel.innerHTML = '<div class="empty">Yüklenemedi: ' + e.message + '</div>';
+    panel.innerHTML = '<div class="empty">Yüklenemedi: ' + esc(e.message) + '</div>';
   }
 }
 
-async function retractWork(id) {
-  if (!confirm('Bu öneriyi geri çekmek istiyor musunuz?')) return;
+// (2026-08-15) ÖNERİYİ GERİ ÇEKMEK ESERİ SİLMEZ. Eskiden burada
+// DELETE /works?id=eq.N vardı ve kullanıcının eseri kalıcı olarak yok oluyordu
+// (bkz. dosya başındaki günlük). Artık yalnızca paylaşım geri alınıyor: eser
+// gizli taslak olarak sahibinde kalır, onay kuyruğundan düşer.
+async function retractSuggestion(id) {
+  if (!confirm('Öneri geri çekilsin mi?\n\nEser SİLİNMEZ — yalnızca size görünen gizli taslağınıza döner. İstediğiniz zaman yeniden paylaşabilirsiniz.')) return;
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
-      method: 'DELETE', headers: authHeaders()
+      method: 'PATCH',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ visibility: 'private', status: 'approved' })
     });
     if (r.ok || r.status === 204) {
       loadSuggestions();
