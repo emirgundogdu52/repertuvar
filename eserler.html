@@ -2,6 +2,22 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (13): AKOR KAPSAMI ARTIK GÖRÜNÜRLÜKLE KARIŞMIYOR + KİŞİSEL
+    KAYITTA DÜRÜST GERİ BİLDİRİM + kişisel yazmalarda 204 denetimi.
+    (a) Kapsam düğmeleri yeniden adlandırıldı: "🌐 Ortak (herkes)" →
+        "🎼 Eserin akoru", "👤 Kişisel (sadece ben)" → "👤 Kişisel kopyam".
+        Eski adlar eserin GÖRÜNÜRLÜĞÜ sanılıyordu; Emir gizli bir taslakta
+        "herkes" yazısını görüp eserin yayımlandığını sandı. Yardım metinleri de
+        aynı dile çekildi.
+    (b) Kişisel kapsamda kaydedince artık kısa bir "kaydedildi" değil, ne olduğunu
+        söyleyen bir bildirim çıkıyor: "Kişisel kopyanıza kaydedildi — eserin
+        akoru değişmedi" + tek dokunuşla eserin akoruna geçiren düğme. Bugün
+        saatler kaybettiren yanlış anlama tam buydu.
+    (c) personal_chords yazmaları da return=representation ile dönen satıra
+        bakıyor (savePersonalChordsRow); ton tercihi sessizce düşerse konsola
+        uyarı basılıyor. Silmede 0 satır BAŞARI sayılıyor (kişisel kopya hiç
+        oluşmamış olabilir).
+    (d) toastGeriAl artık üçüncü parametreyle düğme yazısını değiştirebiliyor.
   - 2026-08-15 (12): MOBİL DENETİMİ — bugünkü eklemeler dar ekranda gözden
     geçirildi (Emir sordu: "mobil taraf dağılmış olabilir mi?"). Üç yer
     düzeltildi: (a) "Tümü / ★ Favoriler / 🔒 Taslaklarım" şeridi üç düğmeye
@@ -2414,8 +2430,8 @@ function selectWork(id, silent) {
     <div id="tab-akorlar" class="detail-tab-content detail-body${lastTab==='akorlar'?' active':''}">
       ${getUserId() ? `
         <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-          ${_canShared ? `<button id="scope_ortak_${w.id}" onclick="setChordScope(${w.id},'ortak')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">🌐 Ortak (herkes)</button>` : ''}
-          <button id="scope_kisisel_${w.id}" onclick="setChordScope(${w.id},'kisisel')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">👤 Kişisel (sadece ben)</button>
+          ${_canShared ? `<button id="scope_ortak_${w.id}" onclick="setChordScope(${w.id},'ortak')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">🎼 Eserin akoru</button>` : ''}
+          <button id="scope_kisisel_${w.id}" onclick="setChordScope(${w.id},'kisisel')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">👤 Kişisel kopyam</button>
         </div>
         <div id="scope_help_${w.id}" style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;"></div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
@@ -3312,11 +3328,17 @@ function resetTranspose(id){
 async function savePersonalTranspose(id, val){
   try {
     const uid = getUserId(); if(!uid) return;
-    await fetch(SUPA_URL+'/rest/v1/personal_chords?on_conflict=user_id,work_id', {
+    const _r = await fetch(SUPA_URL+'/rest/v1/personal_chords?on_conflict=user_id,work_id', {
       method:'POST',
-      headers:{...authHeaders(),'Prefer':'resolution=merge-duplicates,return=minimal'},
+      headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'},
       body: JSON.stringify({ user_id: uid, work_id: parseInt(id), transpose: val, updated_at: new Date().toISOString() })
     });
+    let _rows = []; try { _rows = await _r.json(); } catch(e) {}
+    if (!Array.isArray(_rows) || !_rows.length) {
+      // Ton tercihi süs bir ayar; kullanıcıyı uyarı penceresiyle rahatsız etmiyoruz
+      // ama sessiz kalmıyoruz da — konsola düşsün, teşhis kolay olsun.
+      console.warn('[eserler] ton tercihi kaydedilemedi (0 satır) — yetki sorunu olabilir');
+    }
   } catch(e){ console.warn('[eserler] ton kaydedilemedi:', e.message); }
 }
 function toggleChordsPreview(id){
@@ -3351,17 +3373,24 @@ async function loadPersonalChords(){
     });
   }catch(e){ console.warn('[eserler] kişisel akorlar yüklenemedi:', e.message); }
 }
+// (2026-08-15) Kişisel akor yazmaları da artık DÖNEN SATIRA bakıyor — bkz.
+// yazVeDogrula notu. Burada `Prefer` iki değer taşıyor (upsert + temsil), o
+// yüzden ortak yardımcı yerine yerinde denetim yapılıyor.
 async function savePersonalChordsRow(id, chords){
   const uid = getUserId();
   const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?on_conflict=user_id,work_id', {
     method:'POST',
-    headers:{...authHeaders(),'Prefer':'resolution=merge-duplicates,return=minimal'},
+    headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'},
     body: JSON.stringify({ user_id: uid, work_id: parseInt(id), chords: chords, updated_at: new Date().toISOString() })
   });
-  return r.ok || r.status===201 || r.status===204;
+  if (!r.ok && r.status !== 204) return false;
+  let rows = []; try { rows = await r.json(); } catch(e) {}
+  return Array.isArray(rows) && rows.length > 0;
 }
 async function deletePersonalChordsRow(id){
   const uid = getUserId();
+  // Silinecek satır olmayabilir (kişisel kopya hiç oluşmamışsa) — bu bir hata
+  // değil, o yüzden burada 0 satır BAŞARI sayılıyor; yalnız HTTP hatası önemli.
   const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id), {
     method:'DELETE',
     headers:{...authHeaders(),'Prefer':'return=minimal'}
@@ -3394,11 +3423,15 @@ function setChordScope(id, scope){
   const help=document.getElementById('scope_help_'+id);
   // Gizli eserde "herkes görür" cümlesi YANLIŞ olur — eseri zaten kimse görmüyor.
   // Metin görünürlüğe göre değişiyor ki kullanıcı ne yaptığını bilsin.
+  // (2026-08-15) Metinler kapsam adlarıyla aynı dili konuşuyor: "Eserin akoru"
+  // eseri değiştirir, "Kişisel kopyam" yalnız bu kullanıcıyı ilgilendirir.
+  // Eski adlar ("Ortak (herkes)") eserin GÖRÜNÜRLÜĞÜ sanılıyordu — Emir de
+  // gizli bir taslakta "herkes" yazısını görüp eserin yayımlandığını sandı.
   if(help) help.innerHTML = scope==='ortak'
     ? (w.visibility === 'private'
-        ? 'Eserin <b>kendi akoru</b> — kaydedince eserde saklanır. Eser gizli olduğu için yalnızca siz görürsünüz. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.'
-        : 'Bu akoru <b>eseri gören herkes</b> görür. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.')
-    : 'Bu akoru <b>sadece sen</b> görürsün; eserin kendi akoru değişmez. <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.';
+        ? '<b>Eserin kendi akorunu</b> düzenliyorsunuz — kaydedince eserde saklanır. Eser gizli olduğu için yine yalnızca siz görürsünüz. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.'
+        : '<b>Eserin kendi akorunu</b> düzenliyorsunuz — eseri gören herkes bu akoru görür. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.')
+    : '<b>Kendi kopyanızı</b> düzenliyorsunuz — yalnız siz görürsünüz, eserin akoru değişmez. <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.';
   const del=document.getElementById('delpc_'+id);
   if(del) del.style.display = (scope==='kisisel' && personal) ? 'inline-flex' : 'none';
   updateChordsPreview(id);
@@ -3417,12 +3450,12 @@ async function undoDeleteWork(id) {
 
 // Eylemli bildirim: düz toastMsg'den farkı, içinde bir düğme taşıması ve
 // kullanıcı karar verene kadar daha uzun durması (8 sn).
-function toastGeriAl(text, onUndo){
+function toastGeriAl(text, onUndo, btnText){
   const m=document.createElement('div');
-  m.style.cssText='position:fixed;bottom:24px;right:24px;background:#3d2b2b;border:1px solid rgba(224,112,96,.5);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
+  m.style.cssText='position:fixed;bottom:24px;right:24px;background:#2b3340;border:1px solid rgba(88,166,255,.45);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
   const sp=document.createElement('span'); sp.textContent=text; m.appendChild(sp);
   const b=document.createElement('button');
-  b.textContent='Geri al';
+  b.textContent = btnText || 'Geri al';
   b.style.cssText='background:none;border:1px solid rgba(255,255,255,.45);color:#fff;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;';
   b.onclick=()=>{ m.remove(); try{ onUndo(); }catch(e){} };
   m.appendChild(b);
@@ -3450,7 +3483,16 @@ function _afterChordsSaved(id, hasCh, chords, isShared){
   if (gbox && hasRealChords(eff)) gbox.innerHTML = renderLyricsHtml(chordsToLyrics(eff));
   const del=document.getElementById('delpc_'+id);
   if(del) del.style.display = (!isShared && PERSONAL_CHORDS[String(id)]) ? 'inline-flex' : 'none';
-  toastMsg(isShared ? '✓ Ortak akor kaydedildi' : '✓ Kişisel akor kaydedildi');
+  // (2026-08-15) Kaydettikten sonra NE OLDUĞU açıkça söyleniyor. Emir kendi
+  // gizli taslağını "Kişisel" kapsamda düzenleyip kaydetmiş, eserin akoru
+  // değişmediği için "kaydetmiyor" sanmıştı — oysa kayıt kişisel katmana
+  // gitmişti. Kısa "✓ Kişisel akor kaydedildi" bunu anlatmıyordu.
+  if (isShared) {
+    toastMsg('✓ Eserin akoru kaydedildi');
+  } else {
+    toastGeriAl('✓ Kişisel kopyanıza kaydedildi — eserin akoru değişmedi',
+      () => setChordScope(id, 'ortak'), 'Eserin akorunu düzenle');
+  }
 }
 
 async function saveChords(id) {
