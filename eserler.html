@@ -2,6 +2,17 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (9): 🔒 TASLAKLARIM GÖRÜNÜMÜ + LİSTEDE TASLAK ROZETİ.
+    Emir: "Private eserlerin sıralandığı bir başlık açalım, bestecilere veya
+    eserlerini yayınlamak istemeyenlere; Önerilerim altında durması doğru değil."
+    Ayrı sayfa yerine ANA LİSTEDE görünüm seçildi — bestekârın araçları (sahne,
+    akor editörü, repertuvara ekleme, nota) zaten burada; ayrı sayfa hepsini
+    kopyalamak zorunda kalırdı. Eklenenler: (a) arama altındaki şeride üçüncü
+    düğme "🔒 Taslaklarım" + sayaç; kullanıcının gizli eseri YOKSA hiç
+    görünmüyor, (b) draftOnly filtresi (yalnız kendi private eserleri) —
+    Tümü/Favoriler ile birbirini dışlıyor, (c) liste kartında sahibine
+    "🔒 Taslak" rozeti, (d) "📋 Önerilerim" düğmesi "📋 Eserlerim" oldu ve artık
+    admin/editör dahil HERKESE görünüyor (onların da taslakları var).
   - 2026-08-15 (8): 🔴 "204 BAŞARI DEĞİLDİR" — YAZMALAR ARTIK DOĞRULANIYOR.
     Günün kök sebebi: works_update RLS politikasında güncelleme izni TEK BİR
     admin kimliğine sabit yazılmıştı; başka hiç kimse hiçbir eseri
@@ -1138,6 +1149,9 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
           style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Tümü</button>
         <button id="favToggleFav" class="fav-toggle-btn" onclick="setFavOnly(true)"
           style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;">★ Favoriler</button>
+        <!-- (2026-08-15) Taslaklarım — gizli eseri olmayan kullanıcıda hiç görünmez. -->
+        <button id="draftToggle" class="fav-toggle-btn" onclick="setDraftOnly(!draftOnly)"
+          style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:none;align-items:center;justify-content:center;gap:5px;">🔒 Taslaklarım <span id="draftCount" style="background:rgba(88,166,255,.2);color:#58A6FF;border-radius:10px;padding:0 6px;font-size:10px;">0</span></button>
       </div>
     </div>
     <div class="toolbar">
@@ -1146,7 +1160,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
       <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:none;align-items:center;gap:5px;background:rgba(249,160,74,.12);border:1px solid rgba(249,160,74,.3);border-radius:20px;padding:4px 10px 4px 8px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);">⏳ Onay Bekleyen <span id="pendingCountDesktop" style="background:#F9A04A;color:#1a1000;border-radius:10px;padding:1px 7px;font-size:10px;">0</span></button>
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;margin-left:auto;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);">🎵 Öner</button>
       <button id="btnUserSuggest" onclick="openSuggestModal()" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">🎵 Eser Öner</button>
-      <button id="btnOnerilerim" onclick="window.location.href='onerilerim.html'" style="display:none;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">📋 Önerilerim <span id="onerilerimCount" style="display:none;background:var(--accent);color:#111;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;">0</span></button>
+      <button id="btnOnerilerim" onclick="window.location.href='onerilerim.html'" style="display:none;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">📋 Eserlerim <span id="onerilerimCount" style="display:none;background:var(--accent);color:#111;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;">0</span></button>
     </div>
     <div class="list-panel" id="listPanel"></div>
     <div id="bulkActionBar" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:600;background:var(--surface);border-top:1px solid var(--border);padding:10px 14px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(0,0,0,.28);align-items:center;gap:10px;">
@@ -1364,6 +1378,13 @@ let selectedId = null;
 let sortMode = 'name';
 let activeFilters = { form: null, tuning: null, region: null, makam: null };
 let favOnly = false;               // "Tümü / Favoriler" toggle durumu
+// (2026-08-15) "🔒 Taslaklarım" görünümü. Gerekçe (Emir): "Private eserlerin
+// sıralandığı bir başlık açalım, bestecilere veya eserlerini yayınlamak
+// istemeyenlere; Önerilerim altında durması doğru değil." Ayrı bir sayfa yerine
+// ANA LİSTEDE bir görünüm: bestekârın bütün araçları (sahne modu, akor
+// editörü, repertuvara ekleme, nota yükleme) zaten burada; ayrı sayfa hepsini
+// kopyalamak ya da kullanıcıyı sürekli oraya buraya göndermek zorunda kalırdı.
+let draftOnly = false;
 let bulkMode = false;               // Uzun-basma ile toplu seçim modu (2026-07-19: tüm filtrelerde)
 let bulkSelectedIds = new Set();    // Toplu seçimde işaretli eser id'leri
 let longPressTimer = null;
@@ -1422,6 +1443,8 @@ function applyFilters() {
     // (2026-07-17 "ad yerine #37" regresyonu).
     if (w.visibility === 'private' && w.submitted_by !== getUserId()) return false;
     if (favOnly && !favs.has(w.id)) return false;
+    // Taslaklarım: yalnızca KENDİ gizli eserlerim (başkasınınki zaten yukarıda elendi)
+    if (draftOnly && !(w.visibility === 'private' && w.submitted_by === getUserId())) return false;
     if (activeFilters.form && w.form !== activeFilters.form) return false;
     if (activeFilters.tuning && w.tuning !== activeFilters.tuning) return false;
     if (activeFilters.region && w.region !== activeFilters.region) return false;
@@ -1434,12 +1457,48 @@ function applyFilters() {
   });
   sortData();
   renderList();
+  updateDraftToggle();
   const countBadgeEl = document.getElementById('countBadge');
   if (countBadgeEl) countBadgeEl.textContent = filteredData.length + ' eser';
 }
 
+// ── Taslaklarım görünümü (2026-08-15) ──
+// Düğme yalnızca kullanıcının gizli eseri VARSA çıkar; yoksa arayüzde yer kaplamaz.
+function myDrafts() {
+  const uid = getUserId();
+  if (!uid) return [];
+  return (DATA || []).filter(w => w.visibility === 'private' && w.submitted_by === uid);
+}
+function updateDraftToggle() {
+  const btn = document.getElementById('draftToggle');
+  const cnt = document.getElementById('draftCount');
+  if (!btn) return;
+  const n = myDrafts().length;
+  btn.style.display = n > 0 ? 'flex' : 'none';
+  if (cnt) cnt.textContent = n;
+  if (n === 0 && draftOnly) setDraftOnly(false);
+}
+function setDraftOnly(on) {
+  draftOnly = on;
+  if (on) favOnly = false;          // iki görünüm birbirini dışlar
+  const btn = document.getElementById('draftToggle');
+  if (btn) {
+    btn.style.background = on ? 'rgba(88,166,255,.16)' : 'none';
+    btn.style.color = on ? '#58A6FF' : 'var(--text2)';
+    btn.style.borderColor = on ? 'rgba(88,166,255,.45)' : 'var(--border)';
+  }
+  const allBtn = document.getElementById('favToggleAll');
+  const favBtn = document.getElementById('favToggleFav');
+  if (allBtn) { allBtn.classList.toggle('active', !on && !favOnly); allBtn.style.background = (!on && !favOnly) ? 'var(--surface2)' : 'none'; allBtn.style.color = (!on && !favOnly) ? 'var(--text)' : 'var(--text2)'; }
+  if (favBtn && on) { favBtn.classList.remove('active'); favBtn.style.background = 'none'; favBtn.style.color = 'var(--text2)'; }
+  applyFilters();
+}
+
 // ── Tümü / Favoriler toggle ──
 function setFavOnly(on) {
+  if (on || !on) draftOnly = false;   // Tümü/Favoriler'e geçince taslak görünümü kapanır
+  const _db = document.getElementById('draftToggle');
+  if (_db) { _db.style.background = 'none'; _db.style.color = 'var(--text2)'; _db.style.borderColor = 'var(--border)'; }
   favOnly = on;
   // 2026-07-19: filtre değişince toplu seçim ARTIK kapanmıyor — seçim id bazlı,
   // Tümü ↔ Favoriler arasında gezerken işaretlenenler korunur.
@@ -1828,7 +1887,7 @@ function renderList() {
       <div class="work-icon">🎵</div>
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
-        <div class="work-name">${w.name||'(isimsiz)'}</div>
+        <div class="work-name">${w.name||'(isimsiz)'}${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="Yalnızca siz görürsünüz" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">🔒 Taslak</span>' : ''}</div>
         ${w.composer ? `<div class="work-composer">${w.composer}</div>` : ''}
         <div class="work-title-divider"></div>
         <div class="work-rep-count"><span class="status-dot"></span> Offline</div>
@@ -4737,8 +4796,11 @@ document.addEventListener('keydown', function(e) {
     if (suggestBtn) suggestBtn.style.display = 'none';
     const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
     if (mobileSuggestBtn) mobileSuggestBtn.style.display = 'none';
+    // (2026-08-15) "Eserlerim" artık HERKESTE — admin ve editörün de gizli
+    // taslakları var; sayfa yalnız öneri listesi değil, kişinin kendi eserleri.
     const onerilerimBtn = document.getElementById('btnOnerilerim');
-    if (onerilerimBtn) onerilerimBtn.style.display = 'none';
+    if (onerilerimBtn) onerilerimBtn.style.display = 'inline-flex';
+    updateMySuggestionsCount();
     updatePendingCount();
   } else if (isEditor()) {
     const adminNewBtn = document.getElementById('btnAdminNewEser');
@@ -4749,8 +4811,11 @@ document.addEventListener('keydown', function(e) {
     if (suggestBtn) suggestBtn.style.display = 'none';
     const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
     if (mobileSuggestBtn) mobileSuggestBtn.style.display = 'none';
+    // (2026-08-15) "Eserlerim" artık HERKESTE — admin ve editörün de gizli
+    // taslakları var; sayfa yalnız öneri listesi değil, kişinin kendi eserleri.
     const onerilerimBtn = document.getElementById('btnOnerilerim');
-    if (onerilerimBtn) onerilerimBtn.style.display = 'none';
+    if (onerilerimBtn) onerilerimBtn.style.display = 'inline-flex';
+    updateMySuggestionsCount();
     updatePendingCount();
   } else {
     // (2026-08-15) ESER EKLEME ARTIK HERKESTE. Eskiden düz üyeye "+" yerine
