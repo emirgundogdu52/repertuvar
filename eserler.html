@@ -2,6 +2,18 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (5): 🐞 DÜZENLEME MODALINDA SÖZ/AKOR BOŞ GELİYORDU (VERİ KAYBI
+    RİSKİ). Emir test1 ile bildirdi: gizli esere söz+akor kaydedildi, Düzenle'ye
+    basınca kutular boş açıldı — ama bir keresinde doluydu, ve eser listesinde
+    her ikisi de görünüyordu. SEBEP yarış durumu: yükleme iki fazlı; FAZ 1
+    hafif listeyi çekiyor (lightSel'de lyrics/chords YOK), FAZ 2 ağır alanları
+    arka planda getiriyor. Modal DATA'dan okuduğu için FAZ 2 inmeden açılırsa
+    boş geliyordu. mapWorkRow bu alanları '' yaptığından "boş eser" ile "henüz
+    yüklenmedi" ayırt edilemiyordu. TEHLİKE: boş kutuyla Kaydet denirse gerçek
+    güfte/akor EZİLİRDİ. ÇÖZÜM: mapWorkRow'a `_full` bayrağı (ham satırda
+    lyrics/chords anahtarı var mıydı), FAZ 2 birleşiminde `_full=true`, ve yeni
+    `ensureFullWork(id)` — openEditEserModal artık async, modalı açmadan önce
+    eksikse o tek kaydın ağır alanlarını sunucudan çekiyor.
   - 2026-08-15 (4): "📋 ÖNERİLERİM" DÜĞMESİNE SAYI ROZETİ. Emir test1 ile
     bildirdi: üye eseri herkese açık yapınca öneri Önerilerim'e düşüyor ama
     düğmede sayı yok — bekleyen önerin olup olmadığı hiç belli olmuyordu.
@@ -1157,6 +1169,13 @@ function mapWorkRow(w) {
     ritim: w.ritim || '',
     videoLink: w.video_link || '', lyrics: w.lyrics || '',
     chords: w.chords || '', notaUrl: w.nota_url || '',
+    // (2026-08-15) AĞIR ALANLAR GERÇEKTEN GELDİ Mİ? FAZ 1 (lightSel) güfte/akor
+    // ÇEKMİYOR; mapWorkRow bunları '' yaptığı için "boş eser" ile "henüz
+    // yüklenmedi" ayırt edilemiyordu. Düzenleme modalı bu farkı bilmeden
+    // açılınca söz/akor kutuları BOŞ geliyor, kullanıcı kaydederse gerçek
+    // metni EZİYORDU. Bu bayrak satırın ham hâlinde lyrics/chords anahtarı
+    // var mıydı sorusunu saklar.
+    _full: ('lyrics' in w) || ('chords' in w),
     notaPages: Array.isArray(w.nota_pages) ? w.nota_pages.filter(Boolean) : (w.nota_url ? [w.nota_url] : []),
     status: w.status || 'approved', submitted_by: w.submitted_by || '',
     submitter_email: w.submitter_email || '', submitted_at: w.submitted_at || '',
@@ -1269,6 +1288,7 @@ async function syncWorksFromServer(hadLocalData) {
           if (h) {
             w.lyrics = h.lyrics||''; w.chords = h.chords||''; w.notaUrl = h.nota_url||'';
             w.notaPages = Array.isArray(h.nota_pages) ? h.nota_pages.filter(Boolean) : (h.nota_url ? [h.nota_url] : []);
+            w._full = true;
           }
         });
         // IndexedDB'ye TAM veriyi yaz (sonraki soğuk açılış güfte/akorla birlikte gelsin)
@@ -3969,7 +3989,41 @@ function openNewEserModal() {
   document.getElementById('newEserModal').style.display = 'flex';
 }
 
-function openEditEserModal(id) {
+// (2026-08-15) DÜZENLEME MODALINDA SÖZ/AKOR BOŞ GELİYORDU (veri kaybı riski).
+// Belirti (Emir, test1): gizli bir esere söz+akor kaydedildi; Taslaklarım'dan
+// Düzenle'ye basınca kutular BOŞ açıldı, bir keresinde doluydu — tutarsız.
+// Eser listesinde ise söz de akor da görünüyordu.
+// SEBEP: yükleme iki fazlı. FAZ 1 hafif listeyi çekiyor (lightSel'de lyrics ve
+// chords YOK), FAZ 2 ağır alanları arka planda getirip DATA'ya işliyor. Modal
+// DATA'dan okuduğu için FAZ 2 daha inmemişse boş açılıyordu — yarış durumu,
+// bu yüzden "bazen dolu bazen boş". Tehlikeli kısmı: boş açılan kutuyla
+// kaydedilirse gerçek güfte/akor ezilirdi.
+// ÇÖZÜM: modal açılmadan önce o eserin ağır alanları garanti ediliyor.
+async function ensureFullWork(id) {
+  const w = DATA.find(x => x.id === id);
+  if (!w || w._full) return w;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + encodeURIComponent(id) +
+                          '&select=id,lyrics,chords,nota_url,nota_pages', {
+      headers: authHeaders(), signal: AbortSignal.timeout(8000)
+    });
+    if (r.ok) {
+      const rows = await r.json();
+      const h = Array.isArray(rows) && rows[0];
+      if (h) {
+        w.lyrics = h.lyrics || ''; w.chords = h.chords || ''; w.notaUrl = h.nota_url || '';
+        w.notaPages = Array.isArray(h.nota_pages) ? h.nota_pages.filter(Boolean) : (h.nota_url ? [h.nota_url] : []);
+        w._full = true;
+      }
+    }
+  } catch (e) {
+    console.warn('[eserler] düzenleme için güfte/akor çekilemedi:', e.message);
+  }
+  return w;
+}
+
+async function openEditEserModal(id) {
+  await ensureFullWork(id);
   const w = DATA.find(x => x.id === id);
   if (!w) return;
   editingWorkId = id;
