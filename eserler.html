@@ -2,6 +2,14 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (4): "📋 ÖNERİLERİM" DÜĞMESİNE SAYI ROZETİ. Emir test1 ile
+    bildirdi: üye eseri herkese açık yapınca öneri Önerilerim'e düşüyor ama
+    düğmede sayı yok — bekleyen önerin olup olmadığı hiç belli olmuyordu.
+    Yeni updateMySuggestionsCount() yalnız KENDİ bekleyen önerilerini sayıyor
+    (status=pending & submitted_by=<uid>); sıfırsa rozet gizli. Adminin
+    "⏳ Onay Bekleyen" rozetinin üye tarafındaki karşılığı. Sayaç sayfa
+    açılışında, yeni öneri kaydedilince ve private→public çevrilince tazeleniyor.
+    Private eserler zaten 'approved' kaydedildiği için taslaklar buraya karışmaz.
   - 2026-08-15 (3): AKOR HİZA SÜRGÜSÜ ARTIK MODALDE DE VAR. Emir bildirdi:
     "eseri düzenlerken akor sekmesinde akor kaydırma çubuğu gelmiyor". Ekran
     doğruydu — sürgü YENİ eserde de yoktu. Sebep: çevirici iki yerde, hiza
@@ -1087,7 +1095,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
       <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:none;align-items:center;gap:5px;background:rgba(249,160,74,.12);border:1px solid rgba(249,160,74,.3);border-radius:20px;padding:4px 10px 4px 8px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);">⏳ Onay Bekleyen <span id="pendingCountDesktop" style="background:#F9A04A;color:#1a1000;border-radius:10px;padding:1px 7px;font-size:10px;">0</span></button>
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;margin-left:auto;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);">🎵 Öner</button>
       <button id="btnUserSuggest" onclick="openSuggestModal()" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">🎵 Eser Öner</button>
-      <button id="btnOnerilerim" onclick="window.location.href='onerilerim.html'" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">📋 Önerilerim</button>
+      <button id="btnOnerilerim" onclick="window.location.href='onerilerim.html'" style="display:none;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">📋 Önerilerim <span id="onerilerimCount" style="display:none;background:var(--accent);color:#111;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;">0</span></button>
     </div>
     <div class="list-panel" id="listPanel"></div>
     <div id="bulkActionBar" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:600;background:var(--surface);border-top:1px solid var(--border);padding:10px 14px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(0,0,0,.28);align-items:center;gap:10px;">
@@ -4379,6 +4387,7 @@ function saveNewEser() {
         closeNewEserModal();
         buildFilters();
         applyFilters();
+        if (patchFields.status === 'pending') updateMySuggestionsCount();
         setTimeout(() => {
           const item = document.querySelector('[data-id="' + editingWorkId + '"]');
           if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
@@ -4454,6 +4463,7 @@ function saveNewEser() {
       buildFilters();
       applyFilters();
       if (status === 'pending') {
+        updateMySuggestionsCount();
         alert('Eser öneriniz iletildi! Admin onayından sonra yayınlanacak.');
       } else if (!isPublic) {
         alert('Eser özel olarak kaydedildi — yalnızca siz görebilirsiniz.');
@@ -4594,7 +4604,8 @@ document.addEventListener('keydown', function(e) {
     const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
     if (mobileSuggestBtn) mobileSuggestBtn.style.display = 'none';
     const onerilerimBtn = document.getElementById('btnOnerilerim');
-    if (onerilerimBtn) onerilerimBtn.style.display = '';
+    if (onerilerimBtn) onerilerimBtn.style.display = 'inline-flex';
+    updateMySuggestionsCount();
   }
   // Yükleniyor göstergesi
   const _lp = document.getElementById('listPanel'); if(_lp) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">Eserler yükleniyor...</div>';
@@ -4798,6 +4809,32 @@ async function updatePendingCount() {
                || (typeof isEditor === 'function' && isEditor());
   if (btnD && yetkili) { btnD.classList.remove('admin-only'); btnD.style.display = 'flex'; }
   if (countD) countD.textContent = cnt;
+}
+
+// (2026-08-15) "📋 Önerilerim" ROZETİ. Belirti (Emir, test1 ile): üye eseri
+// herkese açık yapınca öneri Önerilerim'e düşüyor ama düğmede sayı yok, yani
+// bekleyen bir önerin olduğu hiç belli olmuyordu. Adminin "⏳ Onay Bekleyen"
+// rozetinin karşılığı. Yalnız KENDİ bekleyen önerilerini sayar; private
+// eserler zaten 'approved' kaydedildiği için (bkz. 2026-08-15 günlüğü)
+// taslaklar buraya karışmaz.
+async function updateMySuggestionsCount() {
+  const btn = document.getElementById('btnOnerilerim');
+  const el  = document.getElementById('onerilerimCount');
+  if (!btn || !el) return;
+  const uid = (typeof getUserId === 'function') ? getUserId() : null;
+  if (!uid) return;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&submitted_by=eq.' + encodeURIComponent(uid) + '&select=id', {
+      headers: authHeaders()
+    });
+    const data = r.ok ? await r.json() : [];
+    const cnt = data.length;
+    el.textContent = cnt;
+    el.style.display = cnt > 0 ? '' : 'none';
+  } catch (e) {
+    // Sayaç süs; başarısız olursa düğme sayısız görünsün, akış bozulmasın.
+    el.style.display = 'none';
+  }
 }
 
 // (2026-08-15) Görünürlük seçimine göre ne olacağını kullanıcıya SEÇİM ANINDA
