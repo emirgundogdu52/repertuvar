@@ -2,6 +2,28 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (11): ONAY PENCERESİ BÜYÜTÜLDÜ + AKOR DA GÖSTERİLİYOR.
+    Emir: "Bu ekran çok küçük ve sözlerin tamamını görmek mümkün değil."
+    Haklıydı: kart 680px, söz kutusu 100px yükseklikti ve metin ilk 300
+    karakterde KIRPILIYORDU — yani onaylayan kişi eserin tamamını hiç görmeden
+    karar veriyordu. Değişenler: kart 980px, söz kutusu min(52vh,560px) ve
+    13.5px/1.75 satır aralığı, kırpma kaldırıldı (tam metin), ayrıca AKOR metni
+    ayrı bir bölümde monospace olarak gösteriliyor (akor-hece hizası ancak öyle
+    okunur). Metinler ham basıldığı için _pmEsc() ile kaçırılıyor (eser adı ve
+    içerik kullanıcıdan geliyor). Sorguya deleted_at=is.null da eklendi.
+  - 2026-08-15 (10): 🗑 SİLME ARTIK YUMUŞAK — GERİ ALINABİLİR.
+    Bugün bir kullanıcının eseri (id 539) tek yanlış dokunuşla KALICI olarak yok
+    oldu; geri getirecek hiçbir mekanizma yoktu. Artık DELETE atılmıyor,
+    works.deleted_at damgalanıyor. Veritabanı tarafı: deleted_at sütunu,
+    works_read politikası silinmiş satırı YALNIZCA sahibine ve editöre gösteriyor,
+    purge_deleted_works() + pg_cron her gece 04:30'da 30 günden eskileri kalıcı
+    siliyor. İstemci tarafı: (a) deleteWork -> PATCH {deleted_at}, (b) yeni
+    "Geri al" düğmeli bildirim (8 sn) ve undoDeleteWork() -> PATCH {deleted_at:null},
+    (c) liste sorgusuna deleted_at=is.null, lightSel'e ve mapWorkRow'a deleted_at,
+    applyFilters'ta yerel önbellekten sızan silinmişler eleniyor, (d) onay metni
+    artık doğruyu söylüyor ("çöp kutusuna taşınır, 30 gün içinde geri alınabilir").
+    AYRICA localStorage['deletedWorks'] gizleme listesi TAMAMEN KALDIRILDI —
+    cihaz başına kalıcıydı, veriyle ilgisi yoktu ve bugün teşhisi saptırdı.
   - 2026-08-15 (9): 🔒 TASLAKLARIM GÖRÜNÜMÜ + LİSTEDE TASLAK ROZETİ.
     Emir: "Private eserlerin sıralandığı bir başlık açalım, bestecilere veya
     eserlerini yayınlamak istemeyenlere; Önerilerim altında durması doğru değil."
@@ -1003,14 +1025,22 @@
 
   /* PENDING MODAL */
   #pendingModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:2000; align-items:flex-start; justify-content:flex-start; padding:40px 16px; overflow-y:auto; }
-  .pm-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; width:min(680px,96vw); padding:28px; }
+  /* (2026-08-15) Onay penceresi büyütüldü. Emir: "Bu ekran çok küçük ve
+     sözlerin tamamını görmek mümkün değil." Onay vermek için eserin tamamını
+     okumak gerekiyor; 680px genişlik ve 100px'lik söz kutusu bunu imkânsız
+     kılıyordu. */
+  .pm-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; width:min(980px,96vw); padding:28px; }
   .pm-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
   .pm-title { font-size:16px; font-weight:600; color:var(--text); }
   .pm-close { background:none; border:none; color:var(--text2); font-size:20px; cursor:pointer; }
   .pm-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:12px; }
   .pm-item-name { font-size:15px; font-weight:600; color:var(--text); margin-bottom:4px; }
   .pm-item-meta { font-size:12px; color:var(--text2); margin-bottom:10px; display:flex; gap:12px; flex-wrap:wrap; }
-  .pm-item-lyrics { font-size:12px; color:var(--text3); background:var(--bg); border-radius:6px; padding:10px; max-height:100px; overflow-y:auto; white-space:pre-wrap; margin-bottom:12px; line-height:1.6; }
+  .pm-item-lyrics { font-size:13.5px; color:var(--text2); background:var(--bg); border-radius:6px; padding:14px 16px; max-height:min(52vh,560px); overflow-y:auto; white-space:pre-wrap; margin-bottom:10px; line-height:1.75; }
+  /* Akor metni onay için ayrıca gösteriliyor — sözden farkı monospace olması,
+     akor-hece hizası ancak öyle okunabiliyor. */
+  .pm-item-chords { font-size:12.5px; color:var(--text2); background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:14px 16px; max-height:min(46vh,480px); overflow-y:auto; white-space:pre; overflow-x:auto; font-family:monospace; margin-bottom:12px; line-height:1.85; }
+  .pm-sec-lbl { font-size:11px; font-weight:700; letter-spacing:.04em; color:var(--text3); margin:0 0 5px; }
   .pm-actions { display:flex; gap:8px; flex-wrap:wrap; }
   .pm-approve { padding:6px 16px; border-radius:7px; background:#3FB950; border:none; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
   .pm-approve:hover { filter:brightness(1.15); }
@@ -1230,6 +1260,7 @@ function mapWorkRow(w) {
     // var mıydı sorusunu saklar.
     _full: ('lyrics' in w) || ('chords' in w),
     notaPages: Array.isArray(w.nota_pages) ? w.nota_pages.filter(Boolean) : (w.nota_url ? [w.nota_url] : []),
+    deleted_at: w.deleted_at || null,
     status: w.status || 'approved', submitted_by: w.submitted_by || '',
     submitter_email: w.submitter_email || '', submitted_at: w.submitted_at || '',
     // Tek doğruluk kaynağı: visibility ('public' | 'private'). is_public ÖLÜ
@@ -1284,7 +1315,8 @@ async function syncWorksFromServer(hadLocalData) {
     const visExpr = 'or(visibility.eq.public,submitted_by.eq.'+uid+')';
     const parts = [groupExpr, statusExpr, visExpr].filter(Boolean);
     const filter = parts.length ? '&and=('+parts.join(',')+')' : '';
-    const base = '/rest/v1/works?order=name&limit=10000'+filter;
+    // (2026-08-15) Silinmiş eserler listede yok — çöp kutusu ayrı bir konu.
+    const base = '/rest/v1/works?deleted_at=is.null&order=name&limit=10000'+filter;
     // [B] Sorgu tanım gereği kullanıcıya özel: groupExpr <gid>, statusExpr ise
     // submitted_by.eq.<uid> taşıyor; admin/editörde statusExpr hiç eklenmiyor.
     // Anon fallback altında admin/editör bekleyen eserleri, grup üyesi de grup
@@ -1295,7 +1327,7 @@ async function syncWorksFromServer(hadLocalData) {
     // ── FAZ 1: HAFİF liste (güfte/akor/nota HARİÇ) — ilk boyama hızlı olsun.
     //    Liste ve filtreler bu alanlara ihtiyaç duymaz; ağır güfte/akor metnini
     //    ilk yükte çekmek soğuk açılışı yavaşlatan asıl sebepti. ──
-    const lightSel = 'select=id,name,composer,lyric_writer,makam,form,measurement,instrument,tuning,closing_note,region,source_person,collector,story,metronom,ritim,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id';
+    const lightSel = 'select=id,name,composer,lyric_writer,makam,form,measurement,instrument,tuning,closing_note,region,source_person,collector,story,metronom,ritim,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id,deleted_at';
     const r = await fetch(SUPA_URL+base+'&'+lightSel, {
       headers: hdr,
       signal: AbortSignal.timeout(hadLocalData ? 8000 : 5000)
@@ -1442,6 +1474,8 @@ function applyFilters() {
     // listede gösterilmez — repertuvar kalemleri eser adını kaybetmesin
     // (2026-07-17 "ad yerine #37" regresyonu).
     if (w.visibility === 'private' && w.submitted_by !== getUserId()) return false;
+    // Yerel önbellekte kalmış silinmiş kayıt listeye sızmasın
+    if (w.deleted_at) return false;
     if (favOnly && !favs.has(w.id)) return false;
     // Taslaklarım: yalnızca KENDİ gizli eserlerim (başkasınınki zaten yukarıda elendi)
     if (draftOnly && !(w.visibility === 'private' && w.submitted_by === getUserId())) return false;
@@ -1901,7 +1935,7 @@ function renderList() {
     if (!canEdit) return cardHtml;
     return `<div class="we-wrap">
       <div class="we-edit-bg" onclick="event.stopPropagation();weCloseOpenCard();openEditEserModal(${w.id})"><i class="ti ti-edit"></i>Değiştir</div>
-      <div class="we-delete-bg" onclick="event.stopPropagation();weCloseOpenCard();if(confirm('${(w.name||'Bu eseri').replace(/'/g,"\\'")} silinsin mi?'))deleteWork(${w.id});"><i class="ti ti-trash"></i>Sil</div>
+      <div class="we-delete-bg" onclick="event.stopPropagation();weCloseOpenCard();if(confirm('${(w.name||'Bu eser').replace(/'/g,"\\'")} silinsin mi?\\n\\nEser çöp kutusuna taşınır, 30 gün içinde geri alabilirsiniz.'))deleteWork(${w.id});"><i class="ti ti-trash"></i>Sil</div>
       ${cardHtml}
     </div>`;
   }).join('');
@@ -3343,6 +3377,32 @@ function setChordScope(id, scope){
   if(del) del.style.display = (scope==='kisisel' && personal) ? 'inline-flex' : 'none';
   updateChordsPreview(id);
 }
+// (2026-08-15) Yumuşak silmeyi geri alır. 30 günlük pencere içinde her zaman
+// çalışır; kullanıcı toast'ı kaçırsa bile eser çöp kutusunda duruyor.
+async function undoDeleteWork(id) {
+  const res = await yazVeDogrula(SUPA_URL+'/rest/v1/works?id=eq.'+id, 'PATCH', { deleted_at: null });
+  if (!res.ok) { alert(res.hata); return; }
+  const w = res.rows[0];
+  if (w && !DATA.some(x => x.id === w.id)) DATA.push(mapWorkRow(w));
+  buildFilters();
+  applyFilters();
+  toastMsg('✓ Eser geri alındı');
+}
+
+// Eylemli bildirim: düz toastMsg'den farkı, içinde bir düğme taşıması ve
+// kullanıcı karar verene kadar daha uzun durması (8 sn).
+function toastGeriAl(text, onUndo){
+  const m=document.createElement('div');
+  m.style.cssText='position:fixed;bottom:24px;right:24px;background:#3d2b2b;border:1px solid rgba(224,112,96,.5);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
+  const sp=document.createElement('span'); sp.textContent=text; m.appendChild(sp);
+  const b=document.createElement('button');
+  b.textContent='Geri al';
+  b.style.cssText='background:none;border:1px solid rgba(255,255,255,.45);color:#fff;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;';
+  b.onclick=()=>{ m.remove(); try{ onUndo(); }catch(e){} };
+  m.appendChild(b);
+  document.body.appendChild(m);
+  setTimeout(()=>m.remove(), 8000);
+}
 function toastMsg(text){
   const m=document.createElement('div');
   m.style.cssText='position:fixed;bottom:24px;right:24px;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;';
@@ -4720,18 +4780,24 @@ function hideDeleteConfirm(id) {
   const bar = document.getElementById('confirm-' + id);
   if (bar) bar.classList.remove('open');
 }
+// (2026-08-15) 🗑 SİLME ARTIK YUMUŞAK. Gerekçe: bir kullanıcının eseri (id 539
+// "Gülpembe") tek bir yanlış dokunuşla KALICI olarak yok oldu ve geri getirecek
+// hiçbir mekanizma yoktu. Artık satır silinmiyor, `deleted_at` damgalanıyor;
+// veritabanı politikası silinmiş satırı yalnızca SAHİBİNE ve editöre gösteriyor,
+// 30 gün sonra pg_cron kalıcı olarak temizliyor.
+// Ayrıca eski `localStorage['deletedWorks']` gizleme listesi TAMAMEN KALDIRILDI:
+// cihaz başına kalıcıydı, veriyle ilgisi yoktu ve bugün teşhisi saptırdı
+// (eser silinmemiş olsa bile o cihazda sonsuza dek gizli kalabiliyordu).
 async function deleteWork(id) {
-  // (2026-08-15) Silme de doğrulanıyor: yetkisiz silme 0 satır etkileyip 204
-  // dönebiliyor ve eser YEREL gizleme listesine ekleniyordu — kullanıcı silindi
-  // sanıp o cihazda bir daha göremiyor, oysa kayıt duruyordu.
-  const _res = await yazVeDogrula(SUPA_URL+'/rest/v1/works?id=eq.'+id, 'DELETE');
+  const _res = await yazVeDogrula(SUPA_URL+'/rest/v1/works?id=eq.'+id, 'PATCH',
+    { deleted_at: new Date().toISOString() });
   if (!_res.ok) { alert(_res.hata); return; }
   const customs = getCustomWorks().filter(w => w.id !== id);
   saveCustomWorks(customs);
-  const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
-  if (!deleted.includes(id)) { deleted.push(id); localStorage.setItem('deletedWorks', JSON.stringify(deleted)); }
   const idx = DATA.findIndex(w => w.id === id);
+  const _ad = idx > -1 ? (DATA[idx].name || 'Eser') : 'Eser';
   if (idx > -1) DATA.splice(idx, 1);
+  toastGeriAl('🗑 "' + _ad + '" silindi', () => undoDeleteWork(id));
   buildFilters();
   applyFilters();
   // Admin için pending sayısını göster
@@ -4935,6 +5001,13 @@ window.addEventListener('load', function() {
   } catch(e) {}
 });
 
+// (2026-08-15) Onay penceresinde metinler artık KIRPILMADAN gösteriliyor
+// (eskiden ilk 300 karakter). Onay vermek için eserin tamamını okumak gerekir.
+// Metin ham basıldığı için kaçırma şart — eser adı/sözü kullanıcıdan geliyor.
+function _pmEsc(t){
+  return (t == null ? '' : String(t))
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 async function showPendingWorks() {
   const list = document.getElementById('pendingList');
   list.innerHTML = '<div class="pm-empty">Yükleniyor...</div>';
@@ -4944,7 +5017,7 @@ async function showPendingWorks() {
   // kalmış veya başka yoldan gelmiş satırlar sızmasın diye sorgu da süzüyor.
   // NULL visibility'li eski satırlar kaybolmasın diye is.null da kapsandı
   // (Postgres'te NULL <> 'private' karşılaştırması false döner).
-  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&or=(visibility.is.null,visibility.neq.private)&order=id.desc', {
+  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&or=(visibility.is.null,visibility.neq.private)&deleted_at=is.null&order=id.desc', {
     headers: authHeaders()
   });
   const pendingWorks = r.ok ? await r.json() : [];
@@ -4953,7 +5026,7 @@ async function showPendingWorks() {
   } else {
     list.innerHTML = pendingWorks.map(w => `
       <div class="pm-item" id="pm-item-${w.id}">
-        <div class="pm-item-name">${w.name || '(isimsiz)'}</div>
+        <div class="pm-item-name">${_pmEsc(w.name) || '(isimsiz)'}</div>
         <div class="pm-item-meta">
           ${w.submitter_email ? `<span>👤 ${w.submitter_email}</span>` : ''}
           ${w.submitted_at ? `<span>🕐 ${new Date(w.submitted_at).toLocaleString('tr-TR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
@@ -4962,7 +5035,8 @@ async function showPendingWorks() {
           ${w.region ? `<span>📍 ${w.region}</span>` : ''}
           ${w.measurement ? `<span>♩ ${w.measurement}</span>` : ''}
         </div>
-        ${w.lyrics ? `<div class="pm-item-lyrics">${w.lyrics.substring(0,300)}${w.lyrics.length>300?'…':''}</div>` : ''}
+        ${w.lyrics ? `<div class="pm-sec-lbl">SÖZ</div><div class="pm-item-lyrics">${_pmEsc(w.lyrics)}</div>` : ''}
+        ${w.chords ? `<div class="pm-sec-lbl">AKOR</div><div class="pm-item-chords">${_pmEsc(w.chords)}</div>` : ''}
         <div class="pm-actions">
           <button class="pm-approve" onclick="approveWork(${w.id})">✓ Onayla</button>
           <button class="pm-edit"    onclick="closePendingModal();openEditEserModal(${w.id})">✏️ Düzenle</button>
