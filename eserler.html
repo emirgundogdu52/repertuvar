@@ -2,6 +2,18 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (7): 🐞 DÜZENLEMEDE YAZILANLAR SESSİZCE GERİ ALINIYORDU (VERİ
+    KAYBI). ?edit=<id> ile açılan modalde Söz/Akor değişikliği kaydedilmiyordu.
+    Ölçüm zinciri: PATCH gidiyor ve 204 dönüyor · kaydetmeden hemen önce form
+    kutularında yeni metin VAR · veritabanında YOK. Sebep openEditFromQuery:
+    ilk deneme başarısızsa hem 'data-synced' dinleyicisi hem 1200 ms'lik
+    zamanlayıcı kuruluyordu; zamanlayıcı modalı açtığında DİNLEYİCİ
+    KALDIRILMIYORDU. Ardından FAZ 2 (güfte/akor) inip 'data-synced' yayınlayınca
+    openEditEserModal aynı eser için ikinci kez çağrılıyor ve form sunucudaki
+    eski değerlerle yeniden doldurularak kullanıcının yazdıkları siliniyordu.
+    Düzeltme: tek seferlik _editQueryHandled bayrağı + her iki yolun temizlenmesi
+    + openEditEserModal'da "aynı eser için modal zaten açıksa hiçbir şey yapma"
+    koruması; bayrak modal kapanınca sıfırlanıyor.
   - 2026-08-15 (6): 🐞 KULLANICI KENDİ ESERİNİN AKORUNU DÜZENLEYEMİYORDU.
     Emir test1 ile bildirdi: gizli taslağının akorunda {Nakarat} değişikliği
     yapıp Kaydet'e bastı, works.chords hiç değişmedi ("kaydetmiyor").
@@ -4056,6 +4068,12 @@ async function ensureFullWork(id) {
 }
 
 async function openEditEserModal(id) {
+  // (2026-08-15) AÇIK MODALI ASLA YENİDEN DOLDURMA. Yukarıdaki ?edit akışı
+  // gibi yollar bu fonksiyonu ikinci kez çağırabiliyordu; form yeniden
+  // doldurulunca kullanıcının yazdıkları sessizce siliniyordu. Aynı eser için
+  // modal zaten açıksa hiçbir şey yapma.
+  const _modal = document.getElementById('newEserModal');
+  if (_modal && _modal.style.display === 'flex' && editingWorkId === id) return;
   await ensureFullWork(id);
   const w = DATA.find(x => x.id === id);
   if (!w) return;
@@ -4088,6 +4106,7 @@ async function openEditEserModal(id) {
   document.getElementById('newEserModal').style.display = 'flex';
 }
 function closeNewEserModal() {
+  _editQueryHandled = false;   // sayfa aynı kalırken yeni bir ?edit isteği gelebilir
   // (2026-08-15) Hiza paneli açık kalırsa bir sonraki eserde eski kaynağa
   // bağlı sürgü görünür — modal kapanırken durum sıfırlanıyor.
   if (typeof neCloseConvScale === 'function') neCloseConvScale();
@@ -4106,6 +4125,23 @@ function closeNewEserModal() {
 
 // ?edit=<workId> ile gelindiğinde eser düzenleme modalını doğrudan aç.
 // ?back=<url> verilmişse kapanışta oraya dönülür (yukarıdaki closeNewEserModal).
+// (2026-08-15) 🐞 YAZILAN SÖZ/AKOR SESSİZCE GERİ ALINIYORDU — VERİ KAYBI.
+// Belirti (Emir, test1): Önerilerim → Taslaklarım → Düzenle ile açılan modalde
+// Söz ve Akor'daki "N" satırları "Nakarat" yapılıp kaydediliyor, sunucuda
+// hiçbir şey değişmiyordu. Ölçümler sırayla şunu gösterdi: PATCH GİDİYOR ve
+// 204 dönüyor; kaydetmeden hemen önce form kutularında "Nakarat" VAR; ama
+// veritabanında YOK. Yani gövde eski metinle hazırlanıyordu.
+// KÖK SEBEP BURADA: bu fonksiyon modalı açmayı BİRDEN ÇOK KEZ deneyebiliyordu.
+// Eski akış: ilk deneme başarısızsa hem 'data-synced' dinleyicisi kuruluyor
+// HEM DE 1200 ms'lik bir zamanlayıcı kuruluyordu. 1200 ms'lik deneme başarılı
+// olduğunda dinleyici KALDIRILMIYORDU (kaldırma yalnızca dinleyicinin kendi
+// içinde yapılıyordu). Sonra FAZ 2 (güfte/akor) inip 'data-synced' yayınlayınca
+// dinleyici tekrar çalışıyor, openEditEserModal AYNI eser için İKİNCİ KEZ
+// çağrılıyor ve form sunucudaki eski değerlerle YENİDEN DOLDURULUYOR —
+// kullanıcının o ana kadar yazdığı her şey sessizce siliniyordu.
+// DÜZELTME: tek seferlik bayrak + her iki yolun da temizlenmesi; ayrıca
+// openEditEserModal'da "zaten açık" koruması (aşağıda).
+let _editQueryHandled = false;
 function openEditFromQuery() {
   try {
     const q = new URLSearchParams(location.search);
@@ -4113,15 +4149,24 @@ function openEditFromQuery() {
     if (!id) return;
     const back = q.get('back');
     if (back) sessionStorage.setItem('eserEditReturn', back);
-    const ac = () => {
-      const w = (DATA || []).find(x => String(x.id) === String(id));
-      if (w) { openEditEserModal(w.id); return true; }
-      return false;
+    let t = null;
+    const temizle = () => {
+      if (t) { clearTimeout(t); t = null; }
+      window.removeEventListener('data-synced', h);
     };
+    const ac = () => {
+      if (_editQueryHandled) { temizle(); return true; }
+      const w = (DATA || []).find(x => String(x.id) === String(id));
+      if (!w) return false;
+      _editQueryHandled = true;   // ÖNCE işaretle: ikinci çağrı formu ezmesin
+      temizle();
+      openEditEserModal(w.id);
+      return true;
+    };
+    const h = () => { ac(); };
     if (ac()) return;
-    // Liste henüz yüklenmemiş olabilir — sync bitince tekrar dene (tek sefer).
-    const t = setTimeout(() => window.removeEventListener('data-synced', h), 8000);
-    const h = () => { if (ac()) { clearTimeout(t); window.removeEventListener('data-synced', h); } };
+    // Liste henüz yüklenmemiş olabilir — sync bitince tekrar dene (TEK SEFER).
+    t = setTimeout(() => window.removeEventListener('data-synced', h), 8000);
     window.addEventListener('data-synced', h);
     setTimeout(ac, 1200);
   } catch(e) { console.warn('[eserler] ?edit işlenemedi:', e); }
