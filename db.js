@@ -2,6 +2,26 @@
 // Kullanım: await db.works.getAll(), await db.works.save(data)
 //
 // DEĞİŞİKLİK GÜNLÜĞÜ
+// 2026-08-15 — CANLI KANAL ASKIYA ALINDIKTAN SONRA GERİ BAĞLANIYOR + KOPUKLUK
+//              ARTIK SESSİZ DEĞİL. Emir bildirdi: Safari sekmeyi askıya alınca
+//              konsolda "WebSocket is closed due to suspension" çıkıyor, kanal
+//              düşüyor ve kullanıcı bunu hiç fark etmiyor; ekranda eski veriyle
+//              çalışmaya devam ediyor. Mevcut kod (onclose geri çekilmesi,
+//              online, visibilitychange, dakikalık bekçi) üç durumu kaçırıyordu:
+//              (1) bfcache'ten geri/ileri ile dönüşte `visibilitychange` HİÇ
+//                  tetiklenmiyor → `pageshow` (persisted) eklendi;
+//              (2) masaüstünde pencere arkaya alınıp öne getirilince (sekme
+//                  değişmeden) hiçbir olay yoktu → `focus` eklendi;
+//              (3) `gecikme` 60 sn'ye kadar büyümüş olabiliyordu ve sekmeye
+//                  dönülse bile sıfırlanmıyordu → kullanıcı ekrandayken bir
+//                  dakikaya kadar kopuk kalabiliyordu; artık her uyanışta 2 sn'ye
+//                  çekiliyor.
+//              Ayrıca: kopukluk 15 saniyeyi geçerse sol altta küçük bir şerit
+//              çıkıyor ("Canlı güncelleme kesildi — yeniden bağlanılıyor",
+//              dokununca hemen dener), bağlanınca kayboluyor; ve kanal geri
+//              geldiğinde kaçırılan değişiklikler için bir kez syncOfflineData()
+//              çağrılıyor — yalnız yeniden bağlanmak yetmiyordu, kanal kapalıyken
+//              olan değişiklikler bildirim olarak asla gelmiyor.
 // 2026-08-03 — window.clearOfflineData() eklendi (çıkışta/hesap değişiminde
 //              tüm store'ları temizler; auth.js çağırır).
 
@@ -352,6 +372,32 @@ window.syncOfflineData = async function() {
     }, 900);
   }
 
+  // (2026-08-15) CANLI GÜNCELLEME DURUM GÖSTERGESİ.
+  // Küçük, köşede duran bir şerit; yalnızca kopukluk 15 saniyeyi geçerse çıkar.
+  // Amaç kullanıcıyı korkutmak değil, "ekrandaki veri şu an tazelenmeyebilir"
+  // bilgisini vermek — eskiden bu bilgi yalnızca konsoldaydı.
+  var kopukMu = false;      // şu an kopuk mu
+  var kopuktu = false;      // en az bir kez koptu mu (bağlanınca sync tetikler)
+  var durumZaman = null;
+  function durumGoster(gorunsun) {
+    try {
+      var el = document.getElementById('rt-durum');
+      if (!gorunsun) { if (el) el.remove(); return; }
+      if (el) return;
+      el = document.createElement('div');
+      el.id = 'rt-durum';
+      el.style.cssText = 'position:fixed;left:16px;bottom:16px;z-index:9998;' +
+        'background:rgba(249,160,74,.14);border:1px solid rgba(249,160,74,.45);' +
+        'color:#F9A04A;padding:7px 13px;border-radius:20px;font-size:12px;' +
+        'font-weight:600;font-family:inherit;display:flex;align-items:center;gap:8px;' +
+        'box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;';
+      el.textContent = '⚠️ Canlı güncelleme kesildi — yeniden bağlanılıyor';
+      el.title = 'Dokunursanız hemen yeniden denenir';
+      el.onclick = function () { gecikme = 2000; baglan(); };
+      document.body.appendChild(el);
+    } catch (e) {}
+  }
+
   function baglan() {
     var jeton = jetonVar();
     // (2026-08-12) 🐛 `navigator.onLine` KONTROLÜ KALDIRILDI.
@@ -383,6 +429,15 @@ window.syncOfflineData = async function() {
       clearInterval(kalpAtisi);
       kalpAtisi = setInterval(function () { gonder('heartbeat', {}, 'phoenix'); }, 25000);
       console.log('[rt] canlı güncelleme bağlandı');
+      // (2026-08-15) Kanal geri geldiğinde göstergeyi kaldır ve KAÇIRILAN
+      // değişiklikleri bir kez çek. Kanal kapalıyken yapılan değişiklikler
+      // hiçbir zaman bildirim olarak gelmez; yalnız yeniden bağlanmak yetmez.
+      kopukMu = false;
+      durumGoster(false);
+      if (kopuktu) {
+        kopuktu = false;
+        if (typeof window.syncOfflineData === 'function') window.syncOfflineData();
+      }
     };
 
     ws.onmessage = function (ev) {
@@ -412,6 +467,15 @@ window.syncOfflineData = async function() {
 
     ws.onclose = function () {
       clearInterval(kalpAtisi);
+      // (2026-08-15) Kopukluk artık SESSİZ DEĞİL. Emir bildirdi: Safari sekmeyi
+      // askıya alınca soket "closed due to suspension" ile düşüyor, kullanıcı
+      // bunu hiç fark etmiyor ve ekranda eski veriyle çalışmaya devam ediyor.
+      kopukMu = true;
+      kopuktu = true;
+      // Gösterge hemen çıkmasın — kısa kesintiler (sekme değişimi, ağ zıplaması)
+      // zaten saniyeler içinde toparlanıyor, uyarı gereksiz gürültü olurdu.
+      clearTimeout(durumZaman);
+      durumZaman = setTimeout(function () { if (kopukMu) durumGoster(true); }, 15000);
       // Üstel geri çekilme: sunucu ya da ağ sorunlarında saniyede bir denemeyelim.
       clearTimeout(yenidenDene);
       yenidenDene = setTimeout(baglan, gecikme);
@@ -442,8 +506,27 @@ window.syncOfflineData = async function() {
   }, 20 * 60 * 1000);
 
   window.addEventListener('online', function () { gecikme = 2000; baglan(); });
+
+  // (2026-08-15) SAFARI ASKIYA ALMA BOŞLUKLARI KAPATILDI. Üç eksik vardı:
+  // (1) Sayfa geri/ileri ile bfcache'ten dönerse `visibilitychange` HİÇ
+  //     tetiklenmiyor — `pageshow` (persisted) tek haber veren olay.
+  // (2) Sekmeye dönüldüğünde `gecikme` 60 saniyeye kadar büyümüş olabiliyordu;
+  //     sıfırlanmadığı için kullanıcı bir dakikaya kadar kopuk kalıyordu.
+  //     Kullanıcı ekrana geri döndüyse HEMEN denemek doğru.
+  // (3) Masaüstünde pencere arkaya alınıp öne getirildiğinde (sekme değişmeden)
+  //     hiçbir olay yoktu — `focus` bunu kapatıyor.
+  function uyandir() {
+    gecikme = 2000;                       // geri çekilmeyi sıfırla: kullanıcı burada
+    if (!ws || ws.readyState > 1) { baglan(); return; }
+    window.realtimeJetonTazele();
+    if (typeof window.syncOfflineData === 'function') window.syncOfflineData();
+  }
+  window.addEventListener('pageshow', function (e) { if (e && e.persisted) uyandir(); });
+  window.addEventListener('focus', uyandir);
+
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) return;
+    gecikme = 2000;                       // bkz. uyandir() notu
     if (!ws || ws.readyState > 1) { baglan(); return; }
     // Sekmeye dönüldü ve soket ayakta: jeton bu arada dolmuş olabilir.
     // Ayrıca kaçırılmış değişiklik varsa diye bir kez eşitle.
