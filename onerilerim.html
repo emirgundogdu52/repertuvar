@@ -7,6 +7,13 @@
 <title>Repertuvar — Eserlerim</title>
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (3): 🗑 SİLİNENLER BÖLÜMÜ (çöp kutusu). Silme yumuşak hâle
+    getirildi (bkz. eserler.html günlüğü) ama geri alma yalnız 8 saniyelik
+    bildirimdeydi; onu kaçıran kullanıcı, kayıt 30 gün durduğu hâlde arayüzden
+    ulaşamıyordu. Bu sayfaya dördüncü bölüm eklendi: silinmiş eserler, kalıcı
+    kaldırılmaya kaç gün kaldığı ve "↩︎ Geri Al" düğmesi. Silinmiş kartta
+    Düzenle YOK — önce geri alınmalı. Geri alma PATCH {deleted_at:null} ve
+    dönen satır sayısı denetleniyor.
   - 2026-08-15 (2): "204 BAŞARI DEĞİLDİR". Geri çekme isteği artık
     return=representation ile atılıyor ve dönen satır sayısı kontrol ediliyor;
     sıfırsa kullanıcıya "öneri geri çekilmedi" deniyor. Gerekçe: yetki yoksa
@@ -71,6 +78,9 @@
 .btn-add:hover{background:rgba(124,111,255,.2);}
 .btn-edit{padding:5px 14px;border-radius:7px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;}
 .btn-edit:hover{color:var(--text);}
+.btn-restore{padding:5px 14px;border-radius:7px;background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.35);color:#3FB950;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-restore:hover{background:rgba(63,185,80,.22);}
+.badge.deleted{background:rgba(192,84,68,.12);border:1px solid rgba(192,84,68,.35);color:#e07060;}
 .empty{text-align:center;color:var(--text3);padding:48px 16px;font-size:13px;}
 .empty a{color:var(--accent);text-decoration:none;}
 .sec-empty{font-size:12px;color:var(--text3);padding:14px 16px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;}
@@ -84,7 +94,7 @@
 <div class="main-wrap">
 <div class="page">
   <div class="page-title">📋 Eserlerim</div>
-  <div class="page-sub">Gizli taslaklarınız, onay bekleyen önerileriniz ve yayımlanan eserleriniz</div>
+  <div class="page-sub">Gizli taslaklarınız, onay bekleyen önerileriniz, yayımlanan eserleriniz ve silinenler</div>
   <div id="listPanel"><div class="empty">Yükleniyor...</div></div>
 </div>
 </div>
@@ -121,13 +131,47 @@ function editUrl(id) {
        + '&back=' + encodeURIComponent('onerilerim.html');
 }
 
+// Kalıcı silinmeye kaç gün kaldığını söyler — "30 gün" yazmak yetmez,
+// kullanıcı ne zaman sildiğini hatırlamayabilir.
+function kalanGun(silinme) {
+  if (!silinme) return '';
+  const gecen = (Date.now() - new Date(silinme)) / 86400000;
+  const kalan = Math.max(0, Math.ceil(30 - gecen));
+  return kalan > 0 ? ' · ' + kalan + ' gün kaldı' : ' · bugün kaldırılacak';
+}
+
+// (2026-08-15) Yumuşak silmeyi geri alır. Toast 8 saniye duruyor; onu kaçıran
+// kullanıcının eserine ulaşabileceği TEK yer burasıydı, o yüzden bu bölüm eklendi.
+async function restoreWork(id) {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
+      method: 'PATCH',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ deleted_at: null })
+    });
+    if (!r.ok && r.status !== 204) { alert('Hata: ' + await r.text()); return; }
+    let rows = []; try { rows = await r.json(); } catch(e) {}
+    if (!Array.isArray(rows) || !rows.length) {
+      alert('Sunucu isteği kabul etti ama hiçbir kayıt değişmedi — bu eseri geri alma yetkiniz olmayabilir.');
+      return;
+    }
+    loadSuggestions();
+  } catch(e) { alert('Hata: ' + e.message); }
+}
+
 function cardHtml(w, kind) {
-  const badge = (kind === 'draft')
-    ? '<span class="badge private">🔒 Gizli taslak</span>'
-    : (kind === 'pending'
-        ? '<span class="badge pending">⏳ Onay bekliyor</span>'
-        : '<span class="badge approved">✓ Yayımlandı</span>');
-  let actions = '<a href="' + editUrl(w.id) + '" class="btn-edit">Düzenle</a>';
+  const badge = (kind === 'deleted')
+    ? '<span class="badge deleted">🗑 Silindi' + kalanGun(w.deleted_at) + '</span>'
+    : (kind === 'draft')
+      ? '<span class="badge private">🔒 Gizli taslak</span>'
+      : (kind === 'pending'
+          ? '<span class="badge pending">⏳ Onay bekliyor</span>'
+          : '<span class="badge approved">✓ Yayımlandı</span>');
+  // Silinmiş eser DÜZENLENMEZ — önce geri alınması gerekir; yoksa kullanıcı
+  // silinmiş bir kaydı düzenleyip kaybolmasına şaşırırdı.
+  let actions = (kind === 'deleted')
+    ? '<button class="btn-restore" onclick="restoreWork(' + w.id + ')">↩︎ Geri Al</button>'
+    : '<a href="' + editUrl(w.id) + '" class="btn-edit">Düzenle</a>';
   if (kind === 'pending') {
     actions += '<a href="repertoires.html?add_work=' + w.id + '" class="btn-add">📋 Repertuvara Ekle</a>'
              + '<button class="btn-retract" onclick="retractSuggestion(' + w.id + ')">Öneriyi Geri Çek</button>';
@@ -162,7 +206,7 @@ async function loadSuggestions() {
   if (!uid) { panel.innerHTML = '<div class="empty">Giriş yapılmamış.</div>'; return; }
   try {
     const r = await fetch(
-      SUPA_URL + '/rest/v1/works?submitted_by=eq.' + uid + '&order=id.desc&select=id,name,composer,makam,status,visibility,submitted_at',
+      SUPA_URL + '/rest/v1/works?submitted_by=eq.' + uid + '&order=id.desc&select=id,name,composer,makam,status,visibility,submitted_at,deleted_at',
       { headers: authHeaders() }
     );
     const data = await r.json();
@@ -173,9 +217,14 @@ async function loadSuggestions() {
     // Gizli taslaklar öneri DEĞİLDİR — ayrı bölümde. Bir eser hem gizli hem
     // "onay bekliyor" olamaz (gizliye geçince status 'approved' yazılıyor),
     // ama eski kayıtlarda öyle satırlar olabilir: gizlilik önce gelir.
-    const drafts   = data.filter(w => w.visibility === 'private');
-    const pending  = data.filter(w => w.visibility !== 'private' && w.status === 'pending');
-    const approved = data.filter(w => w.visibility !== 'private' && w.status !== 'pending');
+    // (2026-08-15) Silinmişler AYRI: veritabanı politikası silinmiş satırı
+    // yalnızca sahibine ve editöre gösteriyor, 30 gün sonra pg_cron kalıcı
+    // siliyor. Toast'ı kaçıran kullanıcının geri alabileceği tek yer burası.
+    const deleted  = data.filter(w => w.deleted_at);
+    const canli    = data.filter(w => !w.deleted_at);
+    const drafts   = canli.filter(w => w.visibility === 'private');
+    const pending  = canli.filter(w => w.visibility !== 'private' && w.status === 'pending');
+    const approved = canli.filter(w => w.visibility !== 'private' && w.status !== 'pending');
 
     panel.innerHTML =
         section('⏳ Onay Bekleyen Önerilerim',
@@ -186,7 +235,10 @@ async function loadSuggestions() {
                 drafts, 'draft', '')
       + section('✓ Yayımlanan Eserlerim',
                 'Kataloğa girmiş, herkesin görebildiği eserleriniz.',
-                approved, 'approved', '');
+                approved, 'approved', '')
+      + section('🗑 Silinenler',
+                'Silinen eserler 30 gün burada bekler, sonra kalıcı olarak kaldırılır. Bu süre içinde geri alabilirsiniz.',
+                deleted, 'deleted', '');
   } catch(e) {
     panel.innerHTML = '<div class="empty">Yüklenemedi: ' + esc(e.message) + '</div>';
   }
