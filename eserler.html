@@ -2,6 +2,18 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (2): ESER EKLEME HERKESE AÇILDI + VARSAYILAN "SADECE BEN".
+    (a) Düz üyeye "+" düğmesi gösterilmiyordu, yerine "🎵 Eser Öner" vardı;
+        oysa openSuggestModal() zaten AYNI modalı açıyordu (tek farkı başlık
+        ve sabit bir uyarı notu). Artık "+" herkeste; öner düğmeleri gizlendi.
+        Editörlük artık "ekleyebilir" değil "onaylayabilir/düzenleyebilir".
+    (b) Yeni eser modalı artık "Sadece Ben" seçili açılıyor (eskiden Public).
+        Paylaşmak bilinçli bir hareket olsun; kimse farkında olmadan tüm
+        kataloğa yayımlamasın.
+    (c) Etiketler Türkçeleşti: "Herkese Açık" / "Sadece Ben".
+    (d) Yeni #ne_visHint — ne olacağını SEÇİM ANINDA yazıyor. Eski uyarı ROLE
+        bağlıydı; artık göreve uygun biçimde SEÇİME bağlı, çünkü onaya düşüp
+        düşmemeyi rol ile görünürlük BİRLİKTE belirliyor.
   - 2026-08-15: GİZLİ ESER ARTIK ONAY KUYRUĞUNA DÜŞMÜYOR (sızıntı kapatıldı).
     Düz üyenin eklediği her eser status='pending' oluyordu; kullanıcı "Sadece
     ben" seçse bile eser admin/editörün "⏳ Onay Bekleyen" listesinde ve rozet
@@ -3792,7 +3804,11 @@ function openNewEserModal() {
   setupLyricsPlainPaste();
   renderNeNotaList();
   setupNeNotaZone();
-  document.getElementById('ne_visPublic').checked = true;
+  // (2026-08-15) YENİ ESERDE VARSAYILAN "SADECE BEN". Karar (Emir): paylaşmak
+  // bilinçli bir hareket olsun; kullanıcı farkında olmadan tüm kataloğa
+  // yayımlamasın. Bestekârın bitmemiş taslağı da kendiliğinden korunmuş olur.
+  document.getElementById('ne_visPrivate').checked = true;
+  updateVisibilityHint();
   switchNeTab('lyrics');
   document.getElementById('newEserModal').style.display = 'flex';
 }
@@ -3824,6 +3840,7 @@ function openEditEserModal(id) {
   setupNeNotaZone();
   if (w.visibility === 'private') document.getElementById('ne_visPrivate').checked = true;
   else document.getElementById('ne_visPublic').checked = true;
+  updateVisibilityHint();
   switchNeTab('lyrics');
   document.getElementById('newEserModal').style.display = 'flex';
 }
@@ -4408,10 +4425,22 @@ document.addEventListener('keydown', function(e) {
     if (onerilerimBtn) onerilerimBtn.style.display = 'none';
     updatePendingCount();
   } else {
+    // (2026-08-15) ESER EKLEME ARTIK HERKESTE. Eskiden düz üyeye "+" yerine
+    // "🎵 Eser Öner" düğmesi veriliyordu; oysa openSuggestModal() zaten AYNI
+    // modalı açıyordu, tek farkı başlık ve bir uyarı notuydu. Karar (Emir):
+    // "bir kişiye ürünü satıp bir kısmını kendi başına kullanmasını
+    // kısıtlamış oluyoruz" — herkes eser ekleyebilmeli; ekleyip eklememeyi
+    // değil, PAYLAŞMAYI görünürlük seçimi belirler. Editörlük artık
+    // "ekleyebilir" değil "onaylayabilir/katalog düzenleyebilir" demek.
+    const adminNewBtn = document.getElementById('btnAdminNewEser');
+    if (adminNewBtn) { adminNewBtn.classList.remove('admin-only'); adminNewBtn.style.display = 'flex'; }
+    const mobileNewBtn = document.getElementById('btnMobileNewEser');
+    if (mobileNewBtn) { mobileNewBtn.classList.remove('admin-only'); mobileNewBtn.style.display = 'flex'; }
+    // Öner düğmeleri kaldırıldı: aynı işi "+" yapıyor, ikisi birden kafa karıştırırdı.
     const suggestBtn = document.getElementById('btnUserSuggest');
-    if (suggestBtn) suggestBtn.style.display = '';
+    if (suggestBtn) suggestBtn.style.display = 'none';
     const mobileSuggestBtn = document.getElementById('btnMobileUserSuggest');
-    if (mobileSuggestBtn) mobileSuggestBtn.style.display = 'flex';
+    if (mobileSuggestBtn) mobileSuggestBtn.style.display = 'none';
     const onerilerimBtn = document.getElementById('btnOnerilerim');
     if (onerilerimBtn) onerilerimBtn.style.display = '';
   }
@@ -4619,24 +4648,26 @@ async function updatePendingCount() {
   if (countD) countD.textContent = cnt;
 }
 
-function openSuggestModal() {
-  openNewEserModal();
-  const title = document.getElementById('modalTitle');
-  if (title) title.textContent = '🎵 Eser Öner';
-  setTimeout(() => {
-    const existingNote = document.getElementById('suggestNote');
-    if (!existingNote) {
-      const form = document.querySelector('#newEserModal .modal-body') || document.querySelector('#newEserModal .md');
-      if (form) {
-        const note = document.createElement('div');
-        note.id = 'suggestNote';
-        note.style.cssText = 'background:rgba(249,160,74,.1);border:1px solid rgba(249,160,74,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:#F9A04A;margin-bottom:12px;';
-        note.textContent = 'Öneriniz admin onayından sonra herkese açık olacak.';
-        form.insertBefore(note, form.firstChild);
-      }
-    }
-  }, 100);
+// (2026-08-15) Görünürlük seçimine göre ne olacağını kullanıcıya SEÇİM ANINDA
+// söyler. Onaya düşüp düşmemeyi rol + görünürlük birlikte belirlediği için
+// metin ikisine de bakıyor.
+function updateVisibilityHint() {
+  const el = document.getElementById('ne_visHint');
+  if (!el) return;
+  const pub = document.getElementById('ne_visPublic');
+  const yetkili = (typeof isAdmin === 'function' && isAdmin()) ||
+                  (typeof isEditor === 'function' && isEditor());
+  if (!pub || !pub.checked) {
+    el.textContent = '🔒 Bu eseri yalnızca siz görürsünüz. Onay gerekmez, istediğiniz zaman herkese açabilirsiniz.';
+  } else if (yetkili) {
+    el.textContent = '🌐 Eser doğrudan yayımlanacak — onay yetkiniz var.';
+  } else {
+    el.textContent = '🌐 Eser katalog önerisi olarak iletilecek; yönetici onayından sonra herkese açık olacak.';
+  }
 }
+// Eski "Eser Öner" akışı artık "+" ile aynı: modalı açar, gerisini görünürlük
+// seçimi belirler. Fonksiyon, eski çağrılar kırılmasın diye duruyor.
+function openSuggestModal() { openNewEserModal(); }
 </script>
 
 <!-- EDITOR MANAGER MODAL -->
@@ -4680,14 +4711,19 @@ function openSuggestModal() {
     <div>
     <div style="display:flex;gap:10px;margin-bottom:18px;">
       <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);flex:1;transition:all .15s;" id="ne_visPublicLabel">
-        <input type="radio" name="ne_visibility" id="ne_visPublic" value="public" checked style="accent-color:var(--accent);width:15px;height:15px;">
-        <span style="font-size:13px;color:var(--text2);">🌐 <strong>Public</strong> — Herkes görebilir</span>
+        <input type="radio" name="ne_visibility" id="ne_visPublic" value="public" onchange="updateVisibilityHint()" style="accent-color:var(--accent);width:15px;height:15px;">
+        <span style="font-size:13px;color:var(--text2);">🌐 <strong>Herkese Açık</strong> — Herkes görebilir</span>
       </label>
       <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);flex:1;transition:all .15s;" id="ne_visPrivateLabel">
-        <input type="radio" name="ne_visibility" id="ne_visPrivate" value="private" style="accent-color:var(--accent);width:15px;height:15px;">
-        <span style="font-size:13px;color:var(--text2);">🔒 <strong>Private</strong> — Sadece sen</span>
+        <input type="radio" name="ne_visibility" id="ne_visPrivate" value="private" checked style="accent-color:var(--accent);width:15px;height:15px;">
+        <span style="font-size:13px;color:var(--text2);">🔒 <strong>Sadece Ben</strong> — Kimse göremez</span>
       </label>
     </div>
+    <!-- (2026-08-15) Görünürlük seçimine bağlı canlı açıklama. Eskiden bu uyarı
+         ROLE bağlıydı (openSuggestModal düz üyeye sabit bir not basıyordu);
+         artık SEÇİME bağlı, çünkü onaya düşüp düşmemeyi rol değil görünürlük
+         belirliyor. -->
+    <div id="ne_visHint" style="margin:-4px 0 12px;font-size:12px;line-height:1.5;color:var(--text3);"></div>
 
     <!-- AD + FORM — sekmelerin ÜSTÜNDE, hangi sekmede olursan ol görünür (2026-08-06) -->
     <div class="ne-head">
