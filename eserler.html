@@ -2,6 +2,19 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (3): AKOR HİZA SÜRGÜSÜ ARTIK MODALDE DE VAR. Emir bildirdi:
+    "eseri düzenlerken akor sekmesinde akor kaydırma çubuğu gelmiyor". Ekran
+    doğruydu — sürgü YENİ eserde de yoktu. Sebep: çevirici iki yerde, hiza
+    aracı yalnız birinde; 2026-08-10'da modale sadece çevirici taşınmıştı.
+    Eklenenler (hepsi ne_chords üzerinde, aynı motorla):
+    (a) "ChordPro'ya çevir" sonrası açılan sürgü paneli — Akor hizası 70..130,
+        Öner (_cpAutoScale), Geri al, Bitti + CANLI ÖNİZLEME (renderChords),
+    (b) "↔ Akorları kaydır" düğmesi — kayıtlı eserde kaynak metin olmadığı
+        için sürgü çalışamaz, toplu ◀ ▶ kaydırma her zaman erişilebilir,
+    (c) toplu kaydırma yapılmışsa sürgüye dönüşte uyarı (sürgü kaynaktan
+        yeniden çevirdiği için kaydırmaları siler),
+    (d) modal kapanınca panel ve durum sıfırlanıyor.
+    Akoru TEK TEK seçip taşıma detay görünümünde kalıyor (eser id'sine bağlı).
   - 2026-08-15 (2): ESER EKLEME HERKESE AÇILDI + VARSAYILAN "SADECE BEN".
     (a) Düz üyeye "+" düğmesi gösterilmiyordu, yerine "🎵 Eser Öner" vardı;
         oysa openSuggestModal() zaten AYNI modalı açıyordu (tek farkı başlık
@@ -3642,8 +3655,143 @@ function neConvertChords() {
     return;
   }
   if (!confirm('Akorlar hecelerin önüne taşınacak ve kutunun içeriği değişecek.\n\nDevam edilsin mi?')) return;
+  _neConvSrc = src;                 // sürgü kaynaktan yeniden çevirecek
+  _neNudged = false;
   ta.value = cevrilmis;
+  neOpenConvScale();
   ta.focus();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// (2026-08-15) AKOR HİZASI SÜRGÜSÜ ARTIK MODALDE DE VAR.
+// Belirti (Emir): "Eseri düzenlerken akor sekmesinde akor kaydırma çubuğu
+// gelmiyor." Ekran doğruydu — sürgü YENİ eserde de yoktu. Sebep: çevirici iki
+// yerde, hiza aracı yalnız birinde. Eser DETAYINDAKİ satır içi düzenleyicide
+// convertChordsInEditor() çevirdikten sonra chords_scale_<id> kutusunu açıp
+// sürgüyü gösteriyordu; 2026-08-10'da modale yalnızca ÇEVİRİCİ taşınmış, hiza
+// aracı taşınmamıştı. Modalde hiza kaymışsa tek çıkış akorları tek tek elle
+// taşımaktı. Aynı motor (convertChordsAboveToChordPro + _cpScaleK + _cpAutoScale)
+// burada `ne_chords` üzerinde çalışıyor; kimlik bazlı sözlükler yerine tek
+// kutu olduğu için düz değişkenler yetiyor.
+// KAPSAM: sürgü + Öner + Geri al + toplu ◀ ▶ kaydırma + canlı önizleme.
+// Akoru TEK TEK seçip taşıma (renderNudgeEditor) detay görünümünde kalıyor —
+// o akış eser id'sine ve kişisel akor kaydına bağlı, modale taşınması ayrı iş.
+let _neConvSrc;                    // çevirmeden önceki ham metin
+let _neNudged = false;             // toplu kaydırma yapıldı mı (sürgü bunları siler)
+
+function neOpenConvScale(){
+  const h = document.getElementById('ne_chordScale');
+  if (!h) return;
+  h.style.display = 'block';
+  h.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+    + '<span style="font-size:13px;font-weight:600;color:var(--text2);">Akor hizası</span>'
+    + '<input id="ne_convScale" class="rslider" type="range" min="70" max="130" value="100" oninput="neApplyConvScale(this.value)">'
+    + '<span id="ne_convScaleLbl" style="font-size:12px;font-weight:700;color:var(--accent);min-width:34px;font-variant-numeric:tabular-nums;">1.00</span>'
+    + '<button type="button" onclick="neSuggestConvScale()" class="rbtn rbtn-sm">Öner</button>'
+    + '<button type="button" onclick="neNudgeAll(-1)" class="rbtn rbtn-sm" title="Tüm akorları bir hece sola">◀ Hepsi</button>'
+    + '<button type="button" onclick="neNudgeAll(1)" class="rbtn rbtn-sm" title="Tüm akorları bir hece sağa">Hepsi ▶</button>'
+    + '<button type="button" onclick="neUndoConvert()" class="rbtn rbtn-sm">Geri al</button>'
+    + '<button type="button" onclick="neCloseConvScale()" class="rbtn rbtn-sm">Bitti</button>'
+    + '</div>'
+    + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">Sürgüyü çekerken akorlar güftenin üstünde birlikte kayar — aşağıdaki önizlemeye bakarak doğru yerde bırak. Kaynaktaki hiza tek bir ölçekten kaymışsa bu tek hareket bütün eseri düzeltir.</div>'
+    + '<div id="ne_convPreview" style="margin-top:10px;max-height:260px;overflow:auto;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;"></div>';
+  neUpdateConvPreview();
+}
+function neCloseConvScale(){
+  const h = document.getElementById('ne_chordScale');
+  if (h) { h.style.display = 'none'; h.innerHTML = ''; }
+}
+function neUpdateConvPreview(){
+  const box = document.getElementById('ne_convPreview');
+  const ta = document.getElementById('ne_chords');
+  if (!box || !ta) return;
+  box.innerHTML = (typeof renderChords === 'function') ? renderChords(ta.value) : '';
+}
+function neApplyConvScale(val){
+  const ta = document.getElementById('ne_chords');
+  if (!ta || _neConvSrc === undefined) return;
+  if (_neNudged) {
+    if (!confirm('Akorları toplu kaydırdın.\n\nSürgü metni kaynaktan baştan çevirir, yani o kaydırmalar SİLİNİR.\n\nTAMAM: sürgüyle devam et\nİPTAL: kaydırmaları koru')) {
+      const sl = document.getElementById('ne_convScale');
+      if (sl) sl.value = Math.round((_neLastK || 1) * 100);
+      return;
+    }
+    _neNudged = false;
+  }
+  _neLastK = (+val) / 100;
+  _cpScaleK = (+val) / 100;
+  const lbl = document.getElementById('ne_convScaleLbl');
+  if (lbl) lbl.textContent = _neLastK.toFixed(2);
+  ta.value = convertChordsAboveToChordPro(_neConvSrc);
+  _cpScaleK = 1;                   // genel durumu varsayılana döndür
+  neUpdateConvPreview();
+}
+let _neLastK = 1;
+function neSuggestConvScale(){
+  if (_neConvSrc === undefined) return;
+  const k = _cpAutoScale(_neConvSrc);
+  const sl = document.getElementById('ne_convScale');
+  if (sl) sl.value = Math.round(k * 100);
+  neApplyConvScale(Math.round(k * 100));
+  if (typeof toastMsg === 'function') toastMsg('En iyi uyum: ' + k.toFixed(2) + ' — kulağına doğru gelmezse sürgüyle ayarla');
+}
+function neUndoConvert(){
+  const ta = document.getElementById('ne_chords');
+  if (!ta || _neConvSrc === undefined) return;
+  ta.value = _neConvSrc;
+  neCloseConvScale();
+}
+// Tüm akorları birlikte bir hece kaydırır — kaynak metin gerekmez, kayıtlı
+// eserde de çalışır. nudgeAll()'ın modal karşılığı; aynı yardımcıları kullanır.
+function neNudgeAll(dir){
+  const ta = document.getElementById('ne_chords');
+  if (!ta) return;
+  const lines = ta.value.split('\n');
+  for (let li = 0; li < lines.length; li++) {
+    const p = _cpParseLine(lines[li]);
+    if (!p.chords.length) continue;
+    const idx = p.chords.map((_, i) => i);
+    const order = dir < 0 ? idx : idx.slice().reverse();
+    for (const ci of order) {
+      const c = p.chords[ci], prevC = p.chords[ci-1], nextC = p.chords[ci+1];
+      const cand = _cpCandidates(p.plain); let target = null;
+      if (dir < 0) { for (let i = cand.length - 1; i >= 0; i--) if (cand[i] < c.at) { target = cand[i]; break; } }
+      else { for (let i = 0; i < cand.length; i++) if (cand[i] > c.at) { target = cand[i]; break; }
+             if (target === null) { p.plain += ' '; target = p.plain.length; } }
+      if (target === null) continue;
+      if (prevC && target <= prevC.at) continue;
+      if (nextC && target >= nextC.at) continue;
+      c.at = target;
+    }
+    lines[li] = _cpSerializeLine(p).replace(/\s+$/, '');
+  }
+  ta.value = lines.join('\n');
+  _neNudged = true;
+  neUpdateConvPreview();
+}
+// Kayıtlı eserde kaynak metin yok ama toplu kaydırma yine de gerekli olabilir:
+// akor sekmesinde her zaman erişilebilen küçük bir şerit.
+function neOpenNudgeOnly(){
+  const ta = document.getElementById('ne_chords');
+  if (!ta || !ta.value.trim()) { alert('Akor kutusu boş.'); return; }
+  if (typeof hasRealChords === 'function' && !hasRealChords(ta.value)) {
+    alert('Kutuda [Am] biçiminde akor yok.\n\nAkorlar sözlerin üstünde ayrı satırdaysa önce "ChordPro\'ya çevir" düğmesini kullan.');
+    return;
+  }
+  const h = document.getElementById('ne_chordScale');
+  if (!h) return;
+  h.style.display = 'block';
+  h.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+    + '<span style="font-size:13px;font-weight:600;color:var(--text2);">Akorları kaydır</span>'
+    + '<button type="button" onclick="neNudgeAll(-1)" class="rbtn rbtn-sm" title="Tüm akorları bir hece sola">◀ Hepsi sola</button>'
+    + '<button type="button" onclick="neNudgeAll(1)" class="rbtn rbtn-sm" title="Tüm akorları bir hece sağa">Hepsi sağa ▶</button>'
+    + '<button type="button" onclick="neCloseConvScale()" class="rbtn rbtn-sm">Bitti</button>'
+    + '</div>'
+    + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">Kayıtlı eserde kaynak metin olmadığı için ölçek sürgüsü yok; akorların tamamı hece hece kaydırılır. Tek tek düzeltme için eser detayındaki “↔ Akoru kaydır” aracını kullan.</div>'
+    + '<div id="ne_convPreview" style="margin-top:10px;max-height:260px;overflow:auto;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;"></div>';
+  neUpdateConvPreview();
 }
 
 function chordRepeat(etiket) {
@@ -3845,6 +3993,10 @@ function openEditEserModal(id) {
   document.getElementById('newEserModal').style.display = 'flex';
 }
 function closeNewEserModal() {
+  // (2026-08-15) Hiza paneli açık kalırsa bir sonraki eserde eski kaynağa
+  // bağlı sürgü görünür — modal kapanırken durum sıfırlanıyor.
+  if (typeof neCloseConvScale === 'function') neCloseConvScale();
+  _neConvSrc = undefined; _neNudged = false; _neLastK = 1;
   document.getElementById('newEserModal').style.display = 'none';
   // (2026-08-06) Başka bir sayfadan "eseri düzenle" diye gelindiyse
   // (ör. Repertuvarlar → satır → Düzenle), modal kapanınca oraya DÖN.
@@ -4838,8 +4990,15 @@ function openSuggestModal() { openNewEserModal(); }
           <button type="button" onclick="neConvertChords()" style="padding:5px 12px;border-radius:6px;border:1px solid var(--accent2,#4DA3FF);background:transparent;color:var(--accent2,#4DA3FF);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">
             Akorlar sözün üstünde mi? ChordPro'ya çevir
           </button>
+          <!-- (2026-08-15) Kayıtlı eserde kaynak metin olmadığı için ölçek sürgüsü
+               çalışamaz; toplu kaydırma her zaman erişilebilir olmalı. -->
+          <button type="button" onclick="neOpenNudgeOnly()" style="padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">
+            ↔ Akorları kaydır
+          </button>
           <span style="font-size:11px;color:var(--text3);">Akor satırı üstte, söz altta yazılmışsa hecelerin önüne taşır</span>
         </div>
+        <!-- Hiza sürgüsü / kaydırma paneli buraya çizilir (neOpenConvScale, neOpenNudgeOnly) -->
+        <div id="ne_chordScale" style="display:none;margin:0 0 10px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
         <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:430px;resize:vertical;"></textarea>
       </div>
     </div>
