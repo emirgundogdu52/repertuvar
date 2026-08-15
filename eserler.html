@@ -2,6 +2,18 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (8): 🔴 "204 BAŞARI DEĞİLDİR" — YAZMALAR ARTIK DOĞRULANIYOR.
+    Günün kök sebebi: works_update RLS politikasında güncelleme izni TEK BİR
+    admin kimliğine sabit yazılmıştı; başka hiç kimse hiçbir eseri
+    güncelleyemiyordu. PostgREST bunu reddetmiyor — koşula uyan satır bulamıyor,
+    sıfır satır güncelliyor ve return=minimal yüzünden yine 204 dönüyor.
+    İstemci "kaydedildi" sanıyor, veri kaybı hiçbir yerde görünmüyor.
+    Politika düzeltildi (sahip + editör/admin) ve ayrıca bu dosyada yeni
+    yazVeDogrula() yardımcısı geldi: yazma istekleri return=representation ile
+    atılıyor, DÖNEN SATIR SAYISI kontrol ediliyor, sıfırsa kullanıcıya dürüst
+    uyarı veriliyor ("hiçbir kayıt değişmedi, metninizi kopyalayın").
+    Dönüştürülen yollar: eser düzenleme PATCH, ortak akor PATCH, onaylama PATCH,
+    eser silme DELETE, nota sayfaları PATCH.
   - 2026-08-15 (7): 🐞 DÜZENLEMEDE YAZILANLAR SESSİZCE GERİ ALINIYORDU (VERİ
     KAYBI). ?edit=<id> ile açılan modalde Söz/Akor değişikliği kaydedilmiyordu.
     Ölçüm zinciri: PATCH gidiyor ve 204 dönüyor · kaydetmeden hemen önce form
@@ -3325,14 +3337,11 @@ async function saveChords(id) {
     const _sahip = _wOwn && _wOwn.submitted_by && _wOwn.submitted_by === getUserId();
     if (!(isAdmin() || isEditor() || _sahip)) { alert('Bu eserin ortak akorunu yalnızca eseri ekleyen kişi ya da editör düzenleyebilir.'); return; }
     try {
-      const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
-        method: 'PATCH',
-        headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
-        // 2026-07-28: parantezsiz ama DOLU metin artık AYNEN kaydedilir (eskiden
-        // burada {chords:''} yazılıyordu → kullanıcı "kaydetmiyor" diye görüyordu).
-        body: JSON.stringify(_hasCh ? {chords: chords, lyrics: chordsToLyrics(chords)} : {chords: chords})
-      });
-      if (!(r.ok || r.status === 204)) { alert('Kayıt hatası: ' + (await r.text())); return; }
+      // 2026-07-28: parantezsiz ama DOLU metin artık AYNEN kaydedilir (eskiden
+      // burada {chords:''} yazılıyordu → kullanıcı "kaydetmiyor" diye görüyordu).
+      const res = await yazVeDogrula(SUPA_URL + '/rest/v1/works?id=eq.' + id, 'PATCH',
+        _hasCh ? {chords: chords, lyrics: chordsToLyrics(chords)} : {chords: chords});
+      if (!res.ok) { alert(res.hata); return; }
       const idx = DATA.findIndex(x => x.id === id || x.id === parseInt(id));
       if (idx > -1) { DATA[idx].chords = chords; if (_hasCh) DATA[idx].lyrics = chordsToLyrics(chords); }
       _afterChordsSaved(id, _hasCh, chords, true);
@@ -3414,11 +3423,9 @@ async function currentNotaPages(id) {
 async function saveNotaPages(id, pages) {
   const clean = (pages || []).filter(Boolean);
   const first = clean[0] || null;
-  const r = await fetch(`${SUPA_URL}/rest/v1/works?id=eq.${id}`, {
-    method: 'PATCH',
-    headers: {...authHeaders(), 'Prefer':'return=minimal'},
-    body: JSON.stringify({nota_pages: clean, nota_url: first})
-  });
+  const _res = await yazVeDogrula(`${SUPA_URL}/rest/v1/works?id=eq.${id}`, 'PATCH',
+    {nota_pages: clean, nota_url: first});
+  const r = { ok: _res.ok, status: _res.ok ? 200 : 403, text: async () => _res.hata || '' };
   if (!(r.ok || r.status === 204)) {
     const t = await r.text();
     if (/nota_pages/.test(t)) throw new Error('nota_pages kolonu yok — Supabase SQL Editor\'de alter table komutunu çalıştır.');
@@ -4398,6 +4405,40 @@ function benzerEserler(ad) {
   });
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// (2026-08-15) 🔴 "204 BAŞARI DEĞİLDİR" — YAZMA İŞLEMLERİ ARTIK DOĞRULANIYOR.
+// Bugün altı saat kaybettiren hata buydu: `works_update` RLS politikasında
+// güncelleme izni tek bir admin kimliğine SABİT yazılmıştı; başka hiçbir
+// kullanıcı hiçbir eseri güncelleyemiyordu. PostgREST bu durumda isteği
+// reddetmiyor — koşula uyan satır bulamıyor, SIFIR satır güncelliyor ve
+// `Prefer: return=minimal` yüzünden yine **204 No Content** dönüyor. İstemci
+// "kaydedildi" sanıyor, kullanıcı da öyle. Yani sistem sessizce yalan söylüyor
+// ve veri kaybı hiçbir yerde görünmüyor.
+// ÇÖZÜM: yazma isteklerinde `return=representation` isteyip DÖNEN SATIR SAYISINI
+// kontrol ediyoruz. Sıfır satır = yazılmadı = kullanıcıya dürüstçe söyle.
+// Kural: bundan sonra hiçbir yazma yolu yalnız HTTP durum koduna güvenmesin.
+async function yazVeDogrula(url, method, body) {
+  const opt = { method, headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' } };
+  if (body !== undefined) opt.body = JSON.stringify(body);
+  let r;
+  try { r = await fetch(url, opt); }
+  catch (e) { return { ok:false, rows:[], hata:'Bağlantı hatası: ' + e.message }; }
+  if (!r.ok && r.status !== 204) {
+    let t = ''; try { t = await r.text(); } catch(e) {}
+    return { ok:false, rows:[], hata:'Sunucu hatası: ' + (t || r.status) };
+  }
+  let rows = [];
+  try { rows = await r.json(); } catch(e) { rows = []; }
+  if (!Array.isArray(rows)) rows = rows ? [rows] : [];
+  if (!rows.length) {
+    return { ok:false, rows:[], hata:
+      'Sunucu isteği kabul etti ama HİÇBİR KAYIT DEĞİŞMEDİ.\n\n' +
+      'Büyük olasılıkla bu kaydı değiştirme yetkiniz yok. ' +
+      'Değişiklikleriniz KAYDEDİLMEDİ — pencereyi kapatmadan metni bir yere kopyalayın.' };
+  }
+  return { ok:true, rows, hata:null };
+}
+
 function saveNewEser() {
   const name = document.getElementById('ne_name').value.trim();
   if (!name) { switchNeTab('lyrics'); alert('Eser adı zorunludur.'); return; }
@@ -4500,16 +4541,9 @@ function saveNewEser() {
       patchFields.status = 'pending';
       patchFields.submitted_at = new Date().toISOString();
     }
-    fetch(SUPA_URL + '/rest/v1/works?id=eq.' + editingWorkId, {
-      method: 'PATCH',
-      headers: {
-        ...authHeaders(),
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(patchFields)
-    })
-    .then(r => {
-      if (r.ok || r.status === 204) {
+    yazVeDogrula(SUPA_URL + '/rest/v1/works?id=eq.' + editingWorkId, 'PATCH', patchFields)
+    .then(res => {
+      if (res.ok) {
         // DATA'yı güncelle
         const idx = DATA.findIndex(x => x.id === editingWorkId);
         if (idx > -1) Object.assign(DATA[idx], fields, {
@@ -4525,7 +4559,7 @@ function saveNewEser() {
           if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
         }, 100);
       } else {
-        r.text().then(t => alert('Kayıt hatası: ' + t));
+        alert(res.hata);
       }
     })
     .catch(err => alert('Bağlantı hatası: ' + err.message));
@@ -4628,11 +4662,11 @@ function hideDeleteConfirm(id) {
   if (bar) bar.classList.remove('open');
 }
 async function deleteWork(id) {
-  const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
-    method: 'DELETE',
-    headers: authHeaders()
-  });
-  if (!r.ok && r.status !== 204) { alert('Silme hatası: ' + await r.text()); return; }
+  // (2026-08-15) Silme de doğrulanıyor: yetkisiz silme 0 satır etkileyip 204
+  // dönebiliyor ve eser YEREL gizleme listesine ekleniyordu — kullanıcı silindi
+  // sanıp o cihazda bir daha göremiyor, oysa kayıt duruyordu.
+  const _res = await yazVeDogrula(SUPA_URL+'/rest/v1/works?id=eq.'+id, 'DELETE');
+  if (!_res.ok) { alert(_res.hata); return; }
   const customs = getCustomWorks().filter(w => w.id !== id);
   saveCustomWorks(customs);
   const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
@@ -4880,12 +4914,9 @@ function closePendingModal() {
 async function approveWork(id) {
   const btn = document.querySelector(`#pm-item-${id} .pm-approve`);
   if (btn) { btn.disabled = true; btn.textContent = '...'; }
-  const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+id, {
-    method: 'PATCH',
-    headers: {...authHeaders(), 'Prefer':'return=minimal'},
-    body: JSON.stringify({ status: 'approved', reviewed_by: getUserId(), reviewed_at: new Date().toISOString() })
-  });
-  if (r.ok || r.status === 204) {
+  const _res = await yazVeDogrula(SUPA_URL+'/rest/v1/works?id=eq.'+id, 'PATCH',
+    { status: 'approved', reviewed_by: getUserId(), reviewed_at: new Date().toISOString() });
+  if (_res.ok) {
     const w = DATA.find(x => x.id === id);
     if (w) w.status = 'approved';
     const item = document.getElementById('pm-item-'+id);

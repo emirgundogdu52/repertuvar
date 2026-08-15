@@ -7,6 +7,11 @@
 <title>Repertuvar — Eserlerim</title>
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15 (2): "204 BAŞARI DEĞİLDİR". Geri çekme isteği artık
+    return=representation ile atılıyor ve dönen satır sayısı kontrol ediliyor;
+    sıfırsa kullanıcıya "öneri geri çekilmedi" deniyor. Gerekçe: yetki yoksa
+    PostgREST sıfır satır güncelleyip yine 204 döner (bugün works_update
+    politikası yüzünden tam olarak bu yaşandı, bkz. eserler.html günlüğü).
   - 2026-08-15: 🐞 "GERİ ÇEK" ESERİ SİLİYORDU — VERİ KAYBINA YOL AÇAN HATA.
     Emir test1 ile yeniden üretti: bir eseri önerdikten sonra "Geri Çek"e
     basınca eser TAMAMEN SİLİNİYORDU (retractWork -> DELETE /works?id=eq.N).
@@ -194,16 +199,21 @@ async function loadSuggestions() {
 async function retractSuggestion(id) {
   if (!confirm('Öneri geri çekilsin mi?\n\nEser SİLİNMEZ — yalnızca size görünen gizli taslağınıza döner. İstediğiniz zaman yeniden paylaşabilirsiniz.')) return;
   try {
+    // (2026-08-15) 204 BAŞARI DEĞİLDİR — dönen satır sayısı kontrol ediliyor.
+    // Yetki yoksa PostgREST sıfır satır günceller ve yine 204 döner; eskiden
+    // kullanıcı "geri çekildi" sanıp yanılıyordu (bkz. eserler.html günlüğü).
     const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
       method: 'PATCH',
-      headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({ visibility: 'private', status: 'approved' })
     });
-    if (r.ok || r.status === 204) {
-      loadSuggestions();
-    } else {
-      alert('Hata: ' + await r.text());
+    if (!r.ok && r.status !== 204) { alert('Hata: ' + await r.text()); return; }
+    let rows = []; try { rows = await r.json(); } catch(e) {}
+    if (!Array.isArray(rows) || !rows.length) {
+      alert('Sunucu isteği kabul etti ama hiçbir kayıt değişmedi — bu eseri değiştirme yetkiniz olmayabilir. Öneri GERİ ÇEKİLMEDİ.');
+      return;
     }
+    loadSuggestions();
   } catch(e) { alert('Hata: ' + e.message); }
 }
 
