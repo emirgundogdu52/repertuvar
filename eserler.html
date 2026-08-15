@@ -2,6 +2,20 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-15: GİZLİ ESER ARTIK ONAY KUYRUĞUNA DÜŞMÜYOR (sızıntı kapatıldı).
+    Düz üyenin eklediği her eser status='pending' oluyordu; kullanıcı "Sadece
+    ben" seçse bile eser admin/editörün "⏳ Onay Bekleyen" listesinde ve rozet
+    sayısında görünüyordu. Gerekçe (Emir): private, bestekârın bitmemiş
+    taslağı içindir, katalog önerisi değildir. Dört yerde düzeltildi:
+    (1) yeni kayıtta private → status 'approved' (kuyruğa hiç girmez),
+    (2) showPendingWorks() ve updatePendingCount() sorgularına
+        or=(visibility.is.null,visibility.neq.private) — eski/başka yoldan
+        gelmiş satırlar için çift emniyet; is.null da kapsandı çünkü
+        Postgres'te NULL <> 'private' false döner ve satır kaybolurdu,
+    (3) yerel pending rozeti sayımı da private'ları saymıyor,
+    (4) DÜZENLEMEDE private → public çevrilirse eser öneri sayılıp onaya
+        düşer (submitted_at tazelenir); ters yön status'a dokunmaz.
+    Ayrıca private kayıtta ayrı bilgi mesajı gösteriliyor.
   - 2026-08-13: İŞARET RENGİ AKORDAN AYRILDI (stage.html ile aynı düzenleme).
     Satır sonu tekrar rozeti (.cp-rep, "2X") ve bölüm başlıkları (.cp-comment,
     {Nakarat}/{Bağlantı}/{Kıta}) var(--accent) kullanıyordu, yani akorlarla aynı
@@ -4166,6 +4180,17 @@ function saveNewEser() {
       closing_note: fields.closingNote,
       visibility: fields.isPublic ? 'public' : 'private'
     };
+    // (2026-08-15) GİZLİDEN PAYLAŞIMA GEÇİŞ ÖNERİ SAYILIR. Kullanıcı taslağını
+    // herkese açtığı anda eser katalog önerisi hâline gelir ⇒ onay kuyruğuna
+    // düşer. Admin/editörde gerek yok, onlar zaten onaylıyor. Ters yön (public
+    // → private) burada status'a DOKUNMAZ: bir kez yayımlanmış eser geri
+    // çekilse bile onay geçmişi bozulmasın (Emir kararı, 2026-08-15).
+    const _prevWork = DATA.find(x => x.id === editingWorkId);
+    const _wasPrivate = _prevWork && _prevWork.visibility === 'private';
+    if (_wasPrivate && fields.isPublic && !(isAdmin() || isEditor())) {
+      patchFields.status = 'pending';
+      patchFields.submitted_at = new Date().toISOString();
+    }
     fetch(SUPA_URL + '/rest/v1/works?id=eq.' + editingWorkId, {
       method: 'PATCH',
       headers: {
@@ -4178,7 +4203,10 @@ function saveNewEser() {
       if (r.ok || r.status === 204) {
         // DATA'yı güncelle
         const idx = DATA.findIndex(x => x.id === editingWorkId);
-        if (idx > -1) Object.assign(DATA[idx], fields, { visibility: fields.isPublic ? 'public' : 'private' });
+        if (idx > -1) Object.assign(DATA[idx], fields, {
+          visibility: fields.isPublic ? 'public' : 'private',
+          ...(patchFields.status ? { status: patchFields.status } : {})
+        });
         closeNewEserModal();
         buildFilters();
         applyFilters();
@@ -4193,7 +4221,14 @@ function saveNewEser() {
     .catch(err => alert('Bağlantı hatası: ' + err.message));
   } else {
     // Yeni eser - Supabase'e kaydet
-    const status = (isAdmin() || isEditor()) ? 'approved' : 'pending';
+    // (2026-08-15) GİZLİ ESER ONAY AKIŞINA GİRMEZ. Gerekçe (Emir): private,
+    // bestekârın henüz bitmemiş taslağı içindir — katalog önerisi değildir.
+    // Eskiden düz üyenin eklediği HER eser status='pending' oluyordu; gizli
+    // seçilse bile admin/editörün "Onay Bekleyen" listesinde görünüyordu.
+    // Yeni kural: private → 'approved' (kuyruğa hiç düşmez, görünürlüğü
+    // zaten visibility kısıtlıyor); paylaşıma açılınca öneri hâline gelir.
+    const status = (!isPublic) ? 'approved'
+      : ((isAdmin() || isEditor()) ? 'approved' : 'pending');
     const saveFields = {
       name: fields.name,
       composer: fields.composer,
@@ -4251,6 +4286,12 @@ function saveNewEser() {
       applyFilters();
       if (status === 'pending') {
         alert('Eser öneriniz iletildi! Admin onayından sonra yayınlanacak.');
+      } else if (!isPublic) {
+        alert('Eser özel olarak kaydedildi — yalnızca siz görebilirsiniz.');
+        setTimeout(() => {
+          const item = document.querySelector('[data-id="' + newWork.id + '"]');
+          if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
+        }, 100);
       } else {
         alert('Eser kaydedildi.');
         setTimeout(() => {
@@ -4291,7 +4332,7 @@ async function deleteWork(id) {
   applyFilters();
   // Admin için pending sayısını göster
   if (isAdmin()) {
-    const pendingWorks = DATA.filter(w => w.status === 'pending');
+    const pendingWorks = DATA.filter(w => w.status === 'pending' && w.visibility !== 'private');
     const pendingBtn = document.getElementById('btnPendingReview');
     const pendingCount = document.getElementById('pendingCount');
     if (pendingBtn && pendingWorks.length > 0) {
@@ -4475,7 +4516,12 @@ async function showPendingWorks() {
   const list = document.getElementById('pendingList');
   list.innerHTML = '<div class="pm-empty">Yükleniyor...</div>';
   document.getElementById('pendingModal').style.display = 'flex';
-  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&order=id.desc', {
+  // (2026-08-15) ONAY KUYRUĞU GİZLİ ESERLERİ ASLA GÖSTERMEZ. Çift emniyet:
+  // kayıt tarafı private'ı zaten 'pending' yapmıyor, ama eski sürümlerden
+  // kalmış veya başka yoldan gelmiş satırlar sızmasın diye sorgu da süzüyor.
+  // NULL visibility'li eski satırlar kaybolmasın diye is.null da kapsandı
+  // (Postgres'te NULL <> 'private' karşılaştırması false döner).
+  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&or=(visibility.is.null,visibility.neq.private)&order=id.desc', {
     headers: authHeaders()
   });
   const pendingWorks = r.ok ? await r.json() : [];
@@ -4546,7 +4592,8 @@ async function rejectWork(id) {
 }
 
 async function updatePendingCount() {
-  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&select=id', {
+  // (2026-08-15) Rozet sayısı da gizli eserleri saymaz — bkz. showPendingWorks.
+  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&or=(visibility.is.null,visibility.neq.private)&select=id', {
     headers: authHeaders()
   });
   const data = r.ok ? await r.json() : [];
