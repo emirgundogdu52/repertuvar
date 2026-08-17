@@ -2,6 +2,14 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-16: 🐞 ESER FORMU DIŞARI TIKLAYINCA UÇUYORDU (VERİ KAYBI).
+    Emir: "Kaydet'e basmadan başka bir alana tıklayınca eser kayıt ekranı uçuyor
+    ve tekrar başlamak zorunda kalıyoruz." Zemine tek tıklama formu kapatıyor,
+    yazılan güfte/akor uyarısız gidiyordu. "Dışarı tıkla kapat" kısa onay
+    pencerelerine uygun bir davranış; uzun metin alan bir forma değil.
+    Artık zemine tıklamak da Escape de formu KAPATMIYOR; ikisi de kısa bir
+    hatırlatma gösteriyor ("Formu kapatmak için Kaydet ya da İptal kullanın") —
+    sessiz kalınsa kullanıcı tıkladığını sanıp tekrar tekrar denerdi.
   - 2026-08-15 (13): AKOR KAPSAMI ARTIK GÖRÜNÜRLÜKLE KARIŞMIYOR + KİŞİSEL
     KAYITTA DÜRÜST GERİ BİLDİRİM + kişisel yazmalarda 204 denetimi.
     (a) Kapsam düğmeleri yeniden adlandırıldı: "🌐 Ortak (herkes)" →
@@ -4299,6 +4307,18 @@ async function openEditEserModal(id) {
   switchNeTab('lyrics');
   document.getElementById('newEserModal').style.display = 'flex';
 }
+// (2026-08-16) Escape de formu kapatmıyor — bkz. zemine tıklama notu.
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  const m = document.getElementById('newEserModal');
+  if (!m || m.style.display !== 'flex') return;
+  e.stopPropagation();
+  e.preventDefault();
+  if (typeof toastMsg === 'function') {
+    toastMsg('Formu kapatmak için Kaydet ya da İptal kullanın');
+  }
+}, true);
+
 function closeNewEserModal() {
   _editQueryHandled = false;   // sayfa aynı kalırken yeni bir ?edit isteği gelebilir
   // (2026-08-15) Hiza paneli açık kalırsa bir sonraki eserde eski kaynağa
@@ -4883,14 +4903,25 @@ async function deleteWork(id) {
   selectedId = null;
 }
 
-// Modal overlay click to close
+// (2026-08-16) 🐞 ESER FORMU DIŞARI TIKLAYINCA UÇUYORDU — VERİ KAYBI.
+// Emir bildirdi: "Kaydet'e basmadan başka bir alana tıklayınca eser kayıt
+// ekranı uçuyor ve tekrar başlamak zorunda kalıyoruz." Zemine tek bir tıklama
+// formu kapatıyor, yazılan güfte/akor uyarısız gidiyordu. Bu form uzun metin
+// alan bir form; "dışarı tıkla kapat" kısa onay pencerelerine uygun bir davranış,
+// buraya değil. Karar (Emir): Kaydet veya İptal'e basılana kadar kapanmasın.
+// Escape de aynı kurala tabi — kaza ihtimali aynı.
 document.addEventListener('DOMContentLoaded', function() {
   const searchEl = document.getElementById('searchInput');
   if (searchEl) searchEl.addEventListener('input', applyFilters);
+  // Zemine tıklama artık KAPATMIYOR; yalnızca kısa bir hatırlatma gösteriyor,
+  // yoksa kullanıcı "tıkladım ama bir şey olmadı" diye tekrar tekrar dener.
   const overlay = document.getElementById('newEserModal');
   if (overlay) {
     overlay.addEventListener('click', function(e) {
-      if (e.target === this) closeNewEserModal();
+      if (e.target !== this) return;
+      if (typeof toastMsg === 'function') {
+        toastMsg('Formu kapatmak için Kaydet ya da İptal kullanın');
+      }
     });
   }
   // Güfte editörü hep düz bir yapı (metin + <br>) bekliyor (bkz. setLyricsValue /
