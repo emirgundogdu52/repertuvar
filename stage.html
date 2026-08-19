@@ -5,6 +5,26 @@
   akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
   Yani "son madde eski görünüyor" diye dosyayı eski sanma — kontrol için
   st-grp / setAkorYazimi / showStageChangeBar aranmalı.
+  - 2026-08-19 (2): KALAN ANON İSTEKLER DE JETONA GEÇTİ. Aynı dosyada üç yer
+    daha anon anahtarla soruyordu: (a) works referans verisi — RLS artık anon'a
+    yalnız visibility='public' eserleri verdiği için repertuvardaki gizli/gruba
+    açık eserlerin güfte-akoru sahnede BOŞ kalıyordu; artık önce jetonla
+    deneniyor, istek başarısızsa (süresi dolmuş jeton) anon'a düşülüyor, yani
+    eski dayanıklılık da korunuyor. (b,c) ?share= bağlantısı — giriş yapmış biri
+    bağlantıyı açtığında kendi yetkisiyle okuyor (kişisel paylaşım ya da grup
+    paylaşımı artık açılabiliyor); jeton yoksa H zaten anon'a düştüğü için
+    ziyaretçi davranışı değişmiyor.
+  - 2026-08-19: 🐞 SAHNE SUNUCUYA ANONİM SORUYORDU. Admin, Repertuvarlar'dan
+    kendi özel repertuvarını seçip "Sahne modunda aç" dediğinde sahnedeki
+    listede yalnızca GENEL repertuvarlar çıkıyordu. Sebep: ortak `H` başlık
+    nesnesi Authorization olarak kullanıcının oturum jetonu yerine ANON ANAHTARI
+    gönderiyordu; RLS için bu "giriş yapmamış ziyaretçi" demek, dolayısıyla
+    repertoires_read'den yalnız visibility='public' satırlar dönüyordu. Kendi
+    özel/grup repertuvarların ve kişisel paylaşımlar sunucudan hiç gelmiyordu.
+    Şimdiye kadar fark edilmemesinin sebebi loadReps()'in önce yerel IndexedDB
+    önbelleğinden dönmesi — önbellek boşsa (özel pencere, yeni cihaz, temizlenmiş
+    depo) sahne çıplak kalıyor. H artık her istekte localStorage['sb_token']
+    okuyor (aynı desen kişisel akor isteğinde zaten kullanılıyordu).
   - 2026-08-19: PEDAL DESTEĞİ GENİŞLETİLDİ. "iPad'de pedal çalışmıyor" şikâyeti;
     sahne kodunun geri kalanı sağlamdı (swipe ve ok tuşları çalışıyordu), eksik
     olan TUŞ LİSTESİYDİ. Bluetooth nota çevirme pedallarının çoğu varsayılan
@@ -1001,7 +1021,30 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 </div>
 
 <script>
-const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
+// (2026-08-19) 🐞 SAHNE SUNUCUYA ANONİM SORUYORDU — ÖZEL REPERTUVARLAR GÖRÜNMÜYORDU.
+// Belirti (Emir, admin): Repertuvarlar'dan "Emir Gündoğdu Özel Repertuvarı" seçilip
+// "Sahne modunda aç" denince sahnedeki listede YALNIZCA genel (herkese açık)
+// repertuvarlar çıkıyordu. KÖK SEBEP: bu başlık nesnesi Authorization olarak
+// kullanıcının oturum jetonunu değil ANON ANAHTARI gönderiyordu; RLS açısından
+// istek "giriş yapmamış ziyaretçi" demek, dolayısıyla `repertoires_read`
+// politikasından yalnız `visibility='public'` satırlar dönüyordu. Kendi özel
+// repertuvarların, grup repertuvarların ve kişisel paylaşımlar sunucudan HİÇ
+// gelmiyordu. Şimdiye kadar gizlenmesinin sebebi: loadReps() önce yerel
+// IndexedDB önbelleğinden dönüyor ve orada doğru veri vardı — önbellek boşsa
+// (özel pencere, yeni cihaz, temizlenmiş depo) sahne çıplak kalıyordu.
+// Aynı dosyada zaten doğru desen vardı (kişisel akor isteğinde
+// localStorage['sb_token'] kullanılıyor); burada da o kullanılıyor.
+function _stageToken(){
+  try { return localStorage.getItem('sb_token') || SUPA_KEY; } catch(e) { return SUPA_KEY; }
+}
+const H = new Proxy({}, {
+  get(_, k){
+    const t = {'apikey':SUPA_KEY,'Authorization':'Bearer '+_stageToken(),'Content-Type':'application/json'};
+    return t[k];
+  },
+  ownKeys(){ return ['apikey','Authorization','Content-Type']; },
+  getOwnPropertyDescriptor(){ return {enumerable:true, configurable:true}; }
+});
 
 let WL = {}, WL_loaded = false, _stageShowsPlaceholder = false; // WL_loaded: yükleme bitti mi; _stageShowsPlaceholder: sahnede şu an gerçek ad yerine placeholder/… gösteriliyor mu
 
@@ -1024,13 +1067,23 @@ async function loadWL() {
   try {
     let rows = [];
     try {
-      // works PAYLAŞILAN referans veri — kullanıcıya özel değil. Süresi dolmuş
-      // sb_token 401 verip WL'i boş bırakmasın diye ANON key (SUPA_KEY) ile çekiyoruz;
-      // repertuvarları da (picker) zaten anon key ile çekip sorunsuz alıyoruz.
-      const r = await fetch(SUPA_URL+'/rest/v1/works?select=*&order=id&limit=2000', {
-        headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY},
-        signal: AbortSignal.timeout(3500)
-      });
+      // (2026-08-19) ÖNCE OTURUM JETONU, GEREKİRSE ANON'A DÜŞ.
+      // Eski hâli yalnızca ANON key kullanıyordu; gerekçesi "works paylaşılan
+      // referans veri, süresi dolmuş jeton 401 verip listeyi boş bırakmasın" idi.
+      // O gerekçe görünürlük modeli gelmeden önce geçerliydi: artık RLS anon
+      // isteğe SADECE visibility='public' eserleri veriyor ⇒ repertuvardaki
+      // gizli ya da gruba açık eserlerin GÜFTE/AKORU sahnede boş kalıyordu.
+      // Doğrusu: jetonla dene, istek başarısızsa (401/süresi dolmuş) anon ile
+      // tekrar dene — böylece hem yetki hem eski dayanıklılık korunuyor.
+      const _worksUrl = SUPA_URL+'/rest/v1/works?select=*&order=id&limit=2000';
+      let r = await fetch(_worksUrl, { headers: H, signal: AbortSignal.timeout(3500) });
+      if (!r.ok) {
+        console.warn('[stage] works jetonla alınamadı ('+r.status+') — anon ile deneniyor');
+        r = await fetch(_worksUrl, {
+          headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY},
+          signal: AbortSignal.timeout(3500)
+        });
+      }
       if (!r.ok) throw new Error('works '+r.status);
       const fetched = await r.json();
       if (!Array.isArray(fetched) || !fetched.length) throw new Error('works bos/gecersiz yanit');
@@ -2580,14 +2633,15 @@ function loadSideWork(id) {
   if (shareToken) {
     try {
       const repId = atob(shareToken + '=='.slice(0, (4 - shareToken.length % 4) % 4));
-      // Supabase'den bu repertuvarı çek (public erişim)
+      // (2026-08-19) Paylaşım bağlantısı da OTURUM JETONUYLA açılıyor (H).
+      // Jeton yoksa H zaten anon anahtara düşüyor, yani giriş yapmamış ziyaretçi
+      // için davranış aynı. Ama GİRİŞ YAPMIŞ biri bağlantıyı açtığında kendi
+      // yetkisiyle okuyor: kişisel paylaşımla kendisine açılmış ya da grubuna
+      // paylaşılmış bir repertuvar artık açılabiliyor — anon istekte RLS yalnız
+      // visibility='public' verdiği için bunlar boş dönüyordu.
       const [rRes, iRes] = await Promise.all([
-        fetch(SUPA_URL+'/rest/v1/repertoires?id=eq.'+repId, {
-          headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
-        }),
-        fetch(SUPA_URL+'/rest/v1/repertoire_items?repertoire_id=eq.'+repId+'&order=seq', {
-          headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}
-        })
+        fetch(SUPA_URL+'/rest/v1/repertoires?id=eq.'+repId, { headers: H }),
+        fetch(SUPA_URL+'/rest/v1/repertoire_items?repertoire_id=eq.'+repId+'&order=seq', { headers: H })
       ]);
       const reps = await rRes.json();
       const items = await iRes.json();
