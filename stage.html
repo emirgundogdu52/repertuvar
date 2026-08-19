@@ -2505,6 +2505,23 @@ function showScreen(id){
     };
     document.addEventListener('keydown', e => yaz(e,'keydown'), true);
     document.addEventListener('keyup',   e => yaz(e,'keyup'),   true);
+    // (2026-08-19 genişletme) Emir'in ölçümü: pedal SAYFAYI KAYDIRIYOR ama
+    // şeritte hiçbir tuş görünmüyor ⇒ olay klavye olayı OLMAYABİLİR. Bazı
+    // pedallar (Lekato dâhil) belirli modlarda klavye yerine FARE TEKERLEĞİ /
+    // işaretçi taklidi yapar; o zaman keydown hiç doğmaz ama `wheel` doğar ve
+    // sayfa kayar — gözlenen tablo tam olarak bu. Bu yüzden tekerlek ve
+    // işaretçi olayları da kaydediliyor.
+    let _wn = 0;
+    document.addEventListener('wheel', e => {
+      _wn++;
+      kutu.textContent = 'wheel #' + _wn +
+        '  deltaY=' + Math.round(e.deltaY) + '  deltaX=' + Math.round(e.deltaX) +
+        '  mode=' + e.deltaMode +
+        '\nodak=' + ((document.activeElement && document.activeElement.tagName) || '-');
+    }, true);
+    document.addEventListener('pointerdown', e => {
+      kutu.textContent = 'pointerdown  type=' + e.pointerType + '  button=' + e.button;
+    }, true);
     if (document.body) document.body.appendChild(kutu);
     else document.addEventListener('DOMContentLoaded', () => document.body.appendChild(kutu));
   } catch(e) {}
