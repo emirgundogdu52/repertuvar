@@ -5,6 +5,14 @@
   akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
   Yani "son madde eski görünüyor" diye dosyayı eski sanma — kontrol için
   st-grp / setAkorYazimi / showStageChangeBar aranmalı.
+  - 2026-08-19: PEDAL DESTEĞİ GENİŞLETİLDİ. "iPad'de pedal çalışmıyor" şikâyeti;
+    sahne kodunun geri kalanı sağlamdı (swipe ve ok tuşları çalışıyordu), eksik
+    olan TUŞ LİSTESİYDİ. Bluetooth nota çevirme pedallarının çoğu varsayılan
+    modda PageDown/PageUp gönderir; bazı modlar Enter, Backspace, nokta/virgül
+    ya da a/b kullanır. Artık hepsi tanınıyor. Ayrıca 250 ms debounce (bazı
+    pedallar tek basışta iki sinyal üretiyor → iki eser atlanıyordu), e.repeat
+    yok sayılıyor (basılı tutunca repertuvarın sonuna uçuluyordu) ve imleç bir
+    metin kutusundaysa tuş sahne gezinmesine gitmiyor.
   - 2026-08-13 (7): KARAR SESİ ARTIK KULLANICININ YAZIMIYLA GÖSTERİLİYOR.
     F# girilmiş bir eserde akorlar F#m/Bm/E görünürken rozette "Gb (Solb)"
     yazıyordu — aynı ekranda iki yazım. Sebep: _KARAR_LATIN/_KARAR_TR yalnızca
@@ -2381,11 +2389,45 @@ function showScreen(id){
   document.body.classList.toggle('stage-active', id==='stageScreen');
 }
 
+// ── 2026-08-19: PEDAL DESTEĞİ GENİŞLETİLDİ ────────────────────────────────
+// Belirti (Emir): "iPad üzerinde pedal çalışmıyor." Sahne kodunun geri kalanı
+// sağlamdı (swipe ve ok tuşları çalışıyordu); eksik olan TUŞ LİSTESİYDİ.
+// Bluetooth nota çevirme pedallarının çoğu (AirTurn, PageFlip, Donner,
+// iRig BlueTurn, Coda) varsayılan modda PageDown/PageUp gönderir; bazı modlar
+// Enter, Backspace ya da nokta/virgül/a-b kullanır. Eski liste yalnızca ok
+// tuşları ve boşluktu — pedalın tuşu geliyordu ama yok sayılıyordu.
+// Üç incelik daha eklendi:
+//  (1) DEBOUNCE — bazı pedallar tek basışta iki sinyal üretiyor; 250 ms
+//      içindeki ikinci sinyal yok sayılıyor, yoksa tek dokunuşta iki eser
+//      atlanıyordu.
+//  (2) e.repeat yok sayılıyor — klavyede tuşu basılı tutunca repertuvarın
+//      sonuna uçuluyordu.
+//  (3) ODAK KONTROLÜ — imleç bir metin kutusundaysa tuş oraya aittir, sahne
+//      gezinmesi devreye girmez.
+const _PEDAL_ILERI = ['ArrowRight',' ','Spacebar','ArrowDown','PageDown','Enter','.',',','b','B'];
+const _PEDAL_GERI  = ['ArrowLeft','ArrowUp','PageUp','Backspace','a','A'];
+let _sonPedal = 0;
+
+function _yaziAlanindaMi(){
+  const el = document.activeElement;
+  if (!el) return false;
+  const t = (el.tagName||'').toUpperCase();
+  return t === 'INPUT' || t === 'TEXTAREA' || el.isContentEditable;
+}
+
 document.addEventListener('keydown',e=>{
   if(document.getElementById('stageScreen').classList.contains('hidden'))return;
-  if(e.key==='ArrowRight'||e.key===' '||e.key==='ArrowDown'){e.preventDefault();nextWork();}
-  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prevWork();}
-  if(e.key==='Escape')exitStage({stopPropagation:()=>{}});
+  if(e.key==='Escape'){exitStage({stopPropagation:()=>{}});return;}
+  if(_yaziAlanindaMi())return;
+  if(e.repeat)return;
+  const ileri = _PEDAL_ILERI.includes(e.key);
+  const geri  = _PEDAL_GERI.includes(e.key);
+  if(!ileri && !geri) return;
+  const simdi = Date.now();
+  if(simdi - _sonPedal < 250){ e.preventDefault(); return; }
+  _sonPedal = simdi;
+  e.preventDefault();
+  if(ileri) nextWork(); else prevWork();
 });
 
 // Yatay swipe → eser geçişi | Swipe up → bottom nav aç (4sn sonra kapan)
