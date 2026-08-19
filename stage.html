@@ -5,6 +5,15 @@
   akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
   Yani "son madde eski görünüyor" diye dosyayı eski sanma — kontrol için
   st-grp / setAkorYazimi / showStageChangeBar aranmalı.
+  - 2026-08-19 (4): 🐞 ODAK KONTROLÜ PEDALI YUTUYORDU. Emir: pedal (Lekato WT-6)
+    DAHA ÖNCE ÇALIŞIYORDU, bu turdan sonra durdu — yani sorun tuş listesinde
+    değil, aynı turda eklenen odak korumasındaydı. Seçici ekranındaki arama
+    kutusu odakta kalınca (sahneye geçilse bile odak orada kalabiliyor) pedalın
+    ok tuşları "metin kutusuna ait" sayılıp yok sayılıyordu. İki katmanlı
+    düzeltme: (a) _yaziAlanindaMi() artık yalnız GÖRÜNÜR bir kutuyu sayıyor
+    (gizli ekranda kalmış input'un offsetParent'ı null) ve sahne açıkken
+    yalnızca SAHNE İÇİNDEKİ kutu tuşu sahipleniyor; (b) showScreen('stageScreen')
+    geçişinde odak bırakılıyor (blur).
   - 2026-08-19 (3): SEÇİCİ EKRANI ARTIK BİR AN GÖRÜNMÜYOR + PEDAL TEŞHİS MODU.
     (a) "Sahne modunda aç" ile gelindiğinde repertuvar seçici bir an görünüp
         kapanıyordu ("kirli bir durum" — Emir). Sebep sıralamaydı: seçici
@@ -2427,6 +2436,11 @@ function startSharedRep() {
   updateSideButtons();
 }
 function showScreen(id){
+  // (2026-08-19) Sahneye geçerken odağı bırak: seçicideki arama kutusu odakta
+  // kalırsa pedal/klavye tuşları oraya gider ve sahne gezinmesi çalışmaz.
+  if (id === 'stageScreen') {
+    try { const a = document.activeElement; if (a && a.blur) a.blur(); } catch(e) {}
+  }
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
   const tnav=document.getElementById('v2StageTopnav');if(tnav)tnav.classList.toggle('hidden',id!=='pickerScreen');
   // topnav.js header'ını sahne modunda gizle
@@ -2500,11 +2514,26 @@ const _PEDAL_ILERI = ['ArrowRight',' ','Spacebar','ArrowDown','PageDown','Enter'
 const _PEDAL_GERI  = ['ArrowLeft','ArrowUp','PageUp','Backspace','a','A'];
 let _sonPedal = 0;
 
+// (2026-08-19 düzeltme) ODAK KONTROLÜ PEDALI YUTUYORDU.
+// Emir: pedal (Lekato WT-6) DAHA ÖNCE ÇALIŞIYORDU, bu turdan sonra durdu.
+// Sebep bu fonksiyonun ilk hâliydi: seçici ekranındaki ARAMA KUTUSU odakta
+// kalınca — sahneye geçilse bile odak orada kalabiliyor — pedalın gönderdiği
+// ok tuşları "metin kutusuna ait" sayılıp yok sayılıyordu. Artık yalnızca
+// GÖRÜNÜR bir metin kutusu tuşu sahiplenebiliyor: gizli ekranda kalmış bir
+// input'un `offsetParent`'ı null olur, o durumda tuş sahneye gider.
 function _yaziAlanindaMi(){
   const el = document.activeElement;
-  if (!el) return false;
+  if (!el || el === document.body) return false;
   const t = (el.tagName||'').toUpperCase();
-  return t === 'INPUT' || t === 'TEXTAREA' || el.isContentEditable;
+  const yaziKutusu = (t === 'INPUT' || t === 'TEXTAREA' || el.isContentEditable);
+  if (!yaziKutusu) return false;
+  // Gizli/ekran dışı öğe odakta kalmış olabilir — o zaman tuş sahnenindir.
+  const gorunur = !!(el.offsetParent || el.getClientRects().length);
+  if (!gorunur) return false;
+  // Sahne ekranı açıkken yalnızca SAHNE İÇİNDEKİ bir kutu tuşu sahiplenir.
+  const sahne = document.getElementById('stageScreen');
+  if (sahne && !sahne.classList.contains('hidden')) return sahne.contains(el);
+  return true;
 }
 
 document.addEventListener('keydown',e=>{
