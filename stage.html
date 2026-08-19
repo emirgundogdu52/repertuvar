@@ -2495,16 +2495,28 @@ function showScreen(id){
     kutu.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;z-index:99999;'+
       'background:rgba(0,0,0,.85);color:#0f0;font:12px/1.5 monospace;padding:8px 10px;'+
       'border-radius:8px;white-space:pre-wrap;pointer-events:none;';
-    kutu.textContent = 'PEDAL TEŞHİS — pedala bas, gelen tuş burada görünecek';
-    const yaz = (e, tur) => {
-      kutu.textContent = tur + '  key=' + JSON.stringify(e.key) +
-        '  code=' + JSON.stringify(e.code) +
-        '  keyCode=' + e.keyCode +
-        '  repeat=' + e.repeat +
-        '\nodak=' + ((document.activeElement && document.activeElement.tagName) || '-');
+    kutu.textContent = 'PEDAL TEŞHİS — pedala bas (son 8 olay listelenir)';
+    // (2026-08-19 düzeltme) Şerit ÜZERİNE YAZIYORDU, son olay öncekini siliyordu.
+    // Pedal bir KOMBİNASYON gönderiyorsa (ör. Cmd+ArrowDown) sırayla dört olay
+    // doğar (Meta ↓, Arrow ↓, Arrow ↑, Meta ↑) ve ekranda yalnız sonuncusu
+    // kalırdı — nitekim ilk ölçümde sadece `key="Meta"` görüldü. Artık son 8
+    // olay listeleniyor, dizinin tamamı görülebiliyor.
+    const kayitlar = [];
+    const yaz = (satir) => {
+      kayitlar.push(satir);
+      while (kayitlar.length > 8) kayitlar.shift();
+      kutu.textContent = kayitlar.join('\n');
     };
-    document.addEventListener('keydown', e => yaz(e,'keydown'), true);
-    document.addEventListener('keyup',   e => yaz(e,'keyup'),   true);
+    const yazTus = (e, tur) => {
+      yaz(tur + ' key=' + JSON.stringify(e.key) +
+          ' code=' + JSON.stringify(e.code) +
+          ' keyCode=' + e.keyCode +
+          (e.metaKey ? ' META' : '') + (e.ctrlKey ? ' CTRL' : '') +
+          (e.altKey ? ' ALT' : '') + (e.shiftKey ? ' SHIFT' : '') +
+          (e.repeat ? ' repeat' : ''));
+    };
+    document.addEventListener('keydown', e => yazTus(e,'↓'), true);
+    document.addEventListener('keyup',   e => yazTus(e,'↑'), true);
     // (2026-08-19 genişletme) Emir'in ölçümü: pedal SAYFAYI KAYDIRIYOR ama
     // şeritte hiçbir tuş görünmüyor ⇒ olay klavye olayı OLMAYABİLİR. Bazı
     // pedallar (Lekato dâhil) belirli modlarda klavye yerine FARE TEKERLEĞİ /
@@ -2514,13 +2526,10 @@ function showScreen(id){
     let _wn = 0;
     document.addEventListener('wheel', e => {
       _wn++;
-      kutu.textContent = 'wheel #' + _wn +
-        '  deltaY=' + Math.round(e.deltaY) + '  deltaX=' + Math.round(e.deltaX) +
-        '  mode=' + e.deltaMode +
-        '\nodak=' + ((document.activeElement && document.activeElement.tagName) || '-');
+      yaz('wheel #' + _wn + ' deltaY=' + Math.round(e.deltaY) + ' deltaX=' + Math.round(e.deltaX));
     }, true);
     document.addEventListener('pointerdown', e => {
-      kutu.textContent = 'pointerdown  type=' + e.pointerType + '  button=' + e.button;
+      yaz('pointerdown type=' + e.pointerType + ' button=' + e.button);
     }, true);
     if (document.body) document.body.appendChild(kutu);
     else document.addEventListener('DOMContentLoaded', () => document.body.appendChild(kutu));
