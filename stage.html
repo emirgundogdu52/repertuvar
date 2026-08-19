@@ -5,6 +5,17 @@
   akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
   Yani "son madde eski görünüyor" diye dosyayı eski sanma — kontrol için
   st-grp / setAkorYazimi / showStageChangeBar aranmalı.
+  - 2026-08-19 (3): SEÇİCİ EKRANI ARTIK BİR AN GÖRÜNMÜYOR + PEDAL TEŞHİS MODU.
+    (a) "Sahne modunda aç" ile gelindiğinde repertuvar seçici bir an görünüp
+        kapanıyordu ("kirli bir durum" — Emir). Sebep sıralamaydı: seçici
+        koşulsuz gösterilip çiziliyor, SONRA localStorage'daki stageRepId
+        okunup 100 ms'lik zamanlayıcıyla sahneye geçiliyordu. Artık önce hedef
+        repertuvar aranıyor; varsa seçici HİÇ gösterilmiyor ve gecikme yok.
+    (b) Pedal geniş tuş listesine rağmen çalışmıyor. iPad'de konsol açmak zor
+        olduğu için ?pedaltest=1 ile açılan bir teşhis şeridi eklendi: her
+        keydown/keyup'ta key/code/keyCode/repeat ve odaktaki öğe ekrana yazılır.
+        Pedala basınca HİÇBİR ŞEY yazmıyorsa sorun tuş listesinde değil,
+        pedalın klavye olarak eşleşmemesinde ya da odaktadır.
   - 2026-08-19 (2): KALAN ANON İSTEKLER DE JETONA GEÇTİ. Aynı dosyada üç yer
     daha anon anahtarla soruyordu: (a) works referans verisi — RLS artık anon'a
     yalnız visibility='public' eserleri verdiği için repertuvardaki gizli/gruba
@@ -2457,6 +2468,34 @@ function showScreen(id){
 //      sonuna uçuluyordu.
 //  (3) ODAK KONTROLÜ — imleç bir metin kutusundaysa tuş oraya aittir, sahne
 //      gezinmesi devreye girmez.
+// (2026-08-19) PEDAL TEŞHİS MODU — `?pedaltest=1` ile açılır.
+// Geniş tuş listesine rağmen pedal çalışmıyorsa soru şudur: pedal iPad'e HANGİ
+// tuşu gönderiyor, hatta bir şey gönderiyor mu? iPad'de konsol açmak zor
+// olduğu için ekrana basıyoruz. Açıkken her keydown/keyup olayını üstte
+// gösterir; pedala basınca bir şey yazmıyorsa sorun tuş listesinde DEĞİL,
+// pedalın klavye olarak eşleşmemesinde ya da odakta demektir.
+(function(){
+  try {
+    if (new URLSearchParams(location.search).get('pedaltest') !== '1') return;
+    const kutu = document.createElement('div');
+    kutu.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;z-index:99999;'+
+      'background:rgba(0,0,0,.85);color:#0f0;font:12px/1.5 monospace;padding:8px 10px;'+
+      'border-radius:8px;white-space:pre-wrap;pointer-events:none;';
+    kutu.textContent = 'PEDAL TEŞHİS — pedala bas, gelen tuş burada görünecek';
+    const yaz = (e, tur) => {
+      kutu.textContent = tur + '  key=' + JSON.stringify(e.key) +
+        '  code=' + JSON.stringify(e.code) +
+        '  keyCode=' + e.keyCode +
+        '  repeat=' + e.repeat +
+        '\nodak=' + ((document.activeElement && document.activeElement.tagName) || '-');
+    };
+    document.addEventListener('keydown', e => yaz(e,'keydown'), true);
+    document.addEventListener('keyup',   e => yaz(e,'keyup'),   true);
+    if (document.body) document.body.appendChild(kutu);
+    else document.addEventListener('DOMContentLoaded', () => document.body.appendChild(kutu));
+  } catch(e) {}
+})();
+
 const _PEDAL_ILERI = ['ArrowRight',' ','Spacebar','ArrowDown','PageDown','Enter','.',',','b','B'];
 const _PEDAL_GERI  = ['ArrowLeft','ArrowUp','PageUp','Backspace','a','A'];
 let _sonPedal = 0;
@@ -2698,13 +2737,30 @@ function loadSideWork(id) {
   }
 
   reps=await loadReps();
+  setTheme(localStorage.getItem('stageTheme')||'night');
+
+  // (2026-08-19) SEÇİCİ EKRANI BİR AN GÖRÜNÜP KAPANIYORDU. Emir: "repertuvarı
+  // seçip 'Sahne modunda aç' dediğimde bir an stage'in repertuvar listesi
+  // görünüp kapanıyor, kirli bir durum." Sebep sıralamaydı: seçici KOŞULSUZ
+  // gösterilip çizildikten SONRA localStorage'daki stageRepId okunuyor ve
+  // 100 ms'lik bir zamanlayıcıyla sahneye geçiliyordu. Artık önce hedef
+  // repertuvar var mı diye bakılıyor; varsa seçici HİÇ gösterilmiyor ve
+  // gecikme de gerekmiyor (pickRep/startStage aynı karede çalışıyor).
+  const autoId = localStorage.getItem('stageRepId');
+  const _hedef = autoId ? reps.find(r => r.id === autoId) : null;
+  if (autoId) localStorage.removeItem('stageRepId');
+
+  if (_hedef) {
+    renderPicker();          // seçim mantığı listeye dayandığı için çizilmeli
+    pickRep(autoId);         // ama ekran gösterilmiyor — doğrudan sahneye
+    startStage();
+    initBackBtn();
+    return;
+  }
+
   showScreen('pickerScreen');
   renderPicker();
-  setTheme(localStorage.getItem('stageTheme')||'night');
   initBackBtn();
-
-  const autoId=localStorage.getItem('stageRepId');
-  if(autoId){localStorage.removeItem('stageRepId');const f=reps.find(r=>r.id===autoId);if(f){pickRep(autoId);setTimeout(()=>{startStage();initBackBtn();},100);}}
 })();
 
 // ── MOBİL SWIPE DESTEĞİ — KALDIRILDI (2026-08-06) ──
