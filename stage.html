@@ -5,6 +5,16 @@
   akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
   Yani "son madde eski görünüyor" diye dosyayı eski sanma — kontrol için
   st-grp / setAkorYazimi / showStageChangeBar aranmalı.
+  - 2026-08-19 (5): 🐞 iPad'DE TUŞLAR SAYFAYA HİÇ ULAŞMIYORDU — ODAK BOŞTAYDI.
+    Ayırt edici gözlem: pedal iPad'de NOTLAR uygulamasında imleci oynatıyor
+    (yani iPad'e klavye olarak konuşuyor) ama tarayıcıdaki ?pedaltest=1 şeridi
+    sessiz kalıyor. iOS'ta sayfada odaklanmış bir öğe yoksa donanım klavyesi
+    olayları web sayfasına düşmüyor. Bir önceki turda sahneye geçerken
+    blur() çağırıyorduk (seçicideki arama kutusu tuşları yutmasın diye);
+    masaüstünde zararsızdı, iPad'de tuşları tamamen kesiyordu. Artık odak
+    bırakılmıyor, sahne kabına VERİLİYOR: stageScreen'e tabindex="-1" eklenip
+    focus({preventScroll:true}) çağrılıyor. Böylece hem arama kutusu odağı
+    bırakıyor hem sayfa klavye olaylarını almaya devam ediyor.
   - 2026-08-19 (4): 🐞 ODAK KONTROLÜ PEDALI YUTUYORDU. Emir: pedal (Lekato WT-6)
     DAHA ÖNCE ÇALIŞIYORDU, bu turdan sonra durdu — yani sorun tuş listesinde
     değil, aynı turda eklenen odak korumasındaydı. Seçici ekranındaki arama
@@ -2436,10 +2446,21 @@ function startSharedRep() {
   updateSideButtons();
 }
 function showScreen(id){
-  // (2026-08-19) Sahneye geçerken odağı bırak: seçicideki arama kutusu odakta
-  // kalırsa pedal/klavye tuşları oraya gider ve sahne gezinmesi çalışmaz.
+  // (2026-08-19 DÜZELTME) ODAĞI BIRAKMAK DEĞİL, SAHNEYE VERMEK GEREKİYOR.
+  // İlk hâli `blur()` çağırıyordu; masaüstünde zararsızdı ama iPad'de ters
+  // tepti: iOS'ta sayfada odaklanmış bir öğe yoksa donanım klavyesinin
+  // (Bluetooth pedal) tuşları sayfaya HİÇ düşmüyor — Notlar'da pedal imleci
+  // oynatıyor ama tarayıcıda `?pedaltest=1` şeridi sessiz kalıyordu.
+  // Çözüm: seçicideki arama kutusundan odağı almak ama boşta bırakmamak —
+  // odak sahne kabına veriliyor (stageScreen'e tabindex="-1" eklendi).
   if (id === 'stageScreen') {
-    try { const a = document.activeElement; if (a && a.blur) a.blur(); } catch(e) {}
+    try {
+      const sc = document.getElementById('stageScreen');
+      if (sc) {
+        if (!sc.hasAttribute('tabindex')) sc.setAttribute('tabindex', '-1');
+        setTimeout(function(){ try { sc.focus({ preventScroll: true }); } catch(e) { try { sc.focus(); } catch(e2) {} } }, 0);
+      }
+    } catch(e) {}
   }
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
   const tnav=document.getElementById('v2StageTopnav');if(tnav)tnav.classList.toggle('hidden',id!=='pickerScreen');
