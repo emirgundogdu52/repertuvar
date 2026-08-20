@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<!--
+  arac/video-adaylari.html — VİDEO ADAYLARI ONAY ARACI (2026-08-20)
+
+  NE İŞE YARAR: video-adaylari-tara.mjs betiğinin `work_video_candidates`
+  tablosuna yazdığı adayları gösterir; seçtiğin videoyu works.video_link'e
+  yazar. Betik works'e HİÇ dokunmuyor — karar burada, insanda.
+
+  YOUTUBE ANAHTARI YOK: küçük resimler img.youtube.com'dan anahtarsız geliyor,
+  önizleme de normal gömme. Anahtar yalnız yerel betikte duruyor, tarayıcıya
+  hiç girmiyor.
+
+  OTURUM: sayfa uygulamayla AYNI ORIGIN'de (app.repertuvar.app/arac/...), bu
+  yüzden ../auth.js yüklenince SUPA_URL / anon anahtar / authHeaders() / rol
+  yardımcıları hazır gelir ve localStorage'daki oturum paylaşılır. Ayrı bir
+  giriş ekranı yok: önce uygulamaya gir, sonra bu sayfayı aç.
+
+  YETKİ: gerçek kapı SUNUCUDA — work_video_candidates RLS'i ve works_update
+  politikası admin/editör istiyor. Buradaki rol kontrolü yalnız kullanıcıya
+  dürüst bir mesaj göstermek için; güvenlik ona dayanmıyor.
+-->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Video Adayları — Repertuvar</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+<style>
+  body{margin:0;background:var(--bg,#07071a);color:var(--text,#e2e0ff);
+       font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-text-size-adjust:100%;}
+  .wrap{max-width:820px;margin:0 auto;padding:16px 14px 60px;}
+  h1{font-size:18px;margin:0 0 4px;}
+  .alt{font-size:12.5px;color:var(--text3,#5e5c8a);line-height:1.6;margin-bottom:14px;}
+  .durum{padding:10px 12px;border-radius:9px;font-size:13px;margin-bottom:14px;line-height:1.55;}
+  .durum.bilgi{background:var(--surface2,#13132e);border:1px solid var(--border,rgba(140,120,255,.38));color:var(--text2,#9d9bc4);}
+  .durum.hata{background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.35);color:#fca5a5;}
+  .durum.ok{background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.32);color:#86efac;}
+  .kart{background:var(--surface,#0f0f2e);border:1px solid var(--border,rgba(140,120,255,.38));
+        border-radius:12px;padding:12px 13px;margin-bottom:12px;}
+  .eser{font-size:15px;font-weight:700;line-height:1.35;}
+  .eser-alt{font-size:12px;color:var(--text3,#5e5c8a);margin-top:2px;}
+  .aday{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid rgba(255,255,255,.06);}
+  .aday img{width:112px;height:63px;object-fit:cover;border-radius:6px;background:#000;flex-shrink:0;}
+  .aday-bilgi{flex:1;min-width:0;}
+  .aday-bas{font-size:13px;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+  .aday-meta{font-size:11.5px;color:var(--text3,#5e5c8a);margin-top:3px;}
+  .aday-dug{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;}
+  .b{padding:6px 11px;border-radius:7px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;border:1px solid var(--border,rgba(140,120,255,.38));background:var(--surface2,#13132e);color:var(--text,#e2e0ff);}
+  .b.sec{background:var(--accent,#7c6fff);border-color:var(--accent,#7c6fff);color:#fff;}
+  .b.izle{background:none;color:var(--text2,#9d9bc4);}
+  .b.red{background:none;color:#e07060;border-color:rgba(224,112,96,.4);}
+  .kart-alt{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:9px;border-top:1px solid rgba(255,255,255,.06);}
+  .msj{font-size:12px;min-height:16px;}
+  .onizleme{width:100%;aspect-ratio:16/9;border:0;border-radius:8px;margin-top:8px;background:#000;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎬 Video Adayları</h1>
+  <div class="alt">
+    Tarama betiğinin bulduğu adaylar. Seçtiğin video eserin <b>Video Bağlantısı</b> alanına yazılır ve
+    “🎧 Repertuvarı Dinle” listesine girer.<br>
+    <b>Not:</b> en çok izlenen kayıt öğrenmek için her zaman en doğrusu değil — modern düzenleme ya da
+    yarışma performansı öne çıkabiliyor. Makam/usul açısından doğru olanı seç.
+  </div>
+  <div id="durum" class="durum bilgi">Yükleniyor…</div>
+  <div id="liste"></div>
+</div>
+
+<script src="../auth.js"></script>
+<script>
+let ESERLER = {};   // work_id -> {ad, bilgi}
+let ADAYLAR = {};   // work_id -> [aday]
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function durum(metin, tip){ const d=document.getElementById('durum'); d.className='durum '+(tip||'bilgi'); d.innerHTML=metin; }
+function sayi(n){ return Number(n||0).toLocaleString('tr-TR'); }
+function sure(s){ const d=Math.floor((s||0)/60), k=(s||0)%60; return d+':'+String(k).padStart(2,'0'); }
+
+// auth.js yüklenmediyse sessizce boş sayfa göstermek yerine sebebini söyle.
+function ortamHazirMi(){
+  if (typeof SUPA_URL === 'undefined' || typeof authHeaders !== 'function') {
+    durum('<b>auth.js yüklenemedi.</b> Bu sayfa uygulamayla aynı adreste (app.repertuvar.app/arac/…) ' +
+          'çalışmalı; dosyayı doğrudan diskten açtıysan oturum ve anahtar bilgisi gelmez.', 'hata');
+    return false;
+  }
+  if (!localStorage.getItem('sb_token')) {
+    durum('Oturum bulunamadı. Önce <a href="../index.html" style="color:var(--accent,#7c6fff);">uygulamaya giriş yap</a>, sonra bu sayfayı yenile.', 'hata');
+    return false;
+  }
+  return true;
+}
+
+async function yukle(){
+  if (!ortamHazirMi()) return;
+  try {
+    const H = authHeaders();
+    const aRes = await fetch(SUPA_URL + '/rest/v1/work_video_candidates?select=*&karar=is.null&order=work_id,sira&limit=3000', { headers: H });
+    if (aRes.status === 401 || aRes.status === 403) {
+      durum('Bu araç için yetkin yok (admin/editör gerekiyor) ya da oturumun düşmüş. Uygulamada çıkış yapıp tekrar gir.', 'hata');
+      return;
+    }
+    if (!aRes.ok) throw new Error('HTTP ' + aRes.status + ' — ' + (await aRes.text()).slice(0,200));
+    const adaylar = await aRes.json();
+
+    if (!adaylar.length) {
+      durum('Bekleyen aday yok. Tarama betiğini çalıştırdıktan sonra burada görünecekler.', 'ok');
+      document.getElementById('liste').innerHTML = '';
+      return;
+    }
+
+    ADAYLAR = {};
+    adaylar.forEach(a => { (ADAYLAR[a.work_id] = ADAYLAR[a.work_id] || []).push(a); });
+
+    const ids = Object.keys(ADAYLAR);
+    const wRes = await fetch(SUPA_URL + '/rest/v1/works?select=id,name,composer,source_person,makam&id=in.(' + ids.join(',') + ')', { headers: H });
+    if (!wRes.ok) throw new Error('eserler alınamadı: HTTP ' + wRes.status);
+    ESERLER = {};
+    (await wRes.json()).forEach(w => { ESERLER[w.id] = w; });
+
+    durum('<b>' + ids.length + ' eser</b> karar bekliyor.', 'bilgi');
+    ciz();
+  } catch (e) {
+    durum('Yüklenemedi: ' + esc(e.message), 'hata');
+  }
+}
+
+function ciz(){
+  const el = document.getElementById('liste');
+  el.innerHTML = Object.keys(ADAYLAR).map(wid => {
+    const w = ESERLER[wid] || {};
+    const bilgi = [w.makam, w.composer || w.source_person].filter(Boolean).join(' · ');
+    return `<div class="kart" id="k_${wid}">
+      <div class="eser">${esc(w.name || ('#'+wid))}</div>
+      ${bilgi ? `<div class="eser-alt">${esc(bilgi)}</div>` : ''}
+      ${ADAYLAR[wid].map(a => `
+        <div class="aday">
+          <img src="https://img.youtube.com/vi/${esc(a.video_id)}/mqdefault.jpg" alt="" loading="lazy">
+          <div class="aday-bilgi">
+            <div class="aday-bas">${esc(a.title)}</div>
+            <div class="aday-meta">${esc(a.channel)} · ${sayi(a.view_count)} izlenme · ${sure(a.duration_seconds)}</div>
+            <div class="aday-dug">
+              <button class="b sec" onclick="sec('${wid}','${esc(a.video_id)}')">✓ Bunu seç</button>
+              <button class="b izle" onclick="onizle('${wid}','${esc(a.video_id)}')">▶ Önizle</button>
+            </div>
+          </div>
+        </div>`).join('')}
+      <div class="kart-alt">
+        <span class="msj" id="m_${wid}"></span>
+        <button class="b red" onclick="hicbiri('${wid}')">Hiçbiri uygun değil</button>
+      </div>
+      <div id="onz_${wid}"></div>
+    </div>`;
+  }).join('');
+}
+
+function onizle(wid, vid){
+  const k = document.getElementById('onz_' + wid);
+  if (!k) return;
+  // Aynı videoya ikinci kez basınca kapansın (sesin arka planda kalmaması için de).
+  if (k.dataset.vid === vid) { k.innerHTML=''; k.dataset.vid=''; return; }
+  k.dataset.vid = vid;
+  k.innerHTML = '<iframe class="onizleme" src="https://www.youtube-nocookie.com/embed/' + vid +
+    '?playsinline=1&rel=0" allow="encrypted-media" allowfullscreen></iframe>';
+}
+
+function msj(wid, metin, renk){
+  const m = document.getElementById('m_' + wid);
+  if (m) { m.textContent = metin; m.style.color = renk || 'var(--text3,#5e5c8a)'; }
+}
+
+// Seçim: önce works.video_link yazılır, TUTARSA adaylar kapatılır.
+// Sıra önemli — aday kaydını önce kapatıp works yazması başarısız olsaydı
+// eser hem bağlantısız hem "karar verilmiş" kalırdı.
+async function sec(wid, vid){
+  const H = { ...authHeaders(), 'Content-Type':'application/json', 'Prefer':'return=representation' };
+  msj(wid, 'Kaydediliyor…');
+  try {
+    const url = 'https://www.youtube.com/watch?v=' + vid;
+    const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + wid, {
+      method: 'PATCH', headers: H, body: JSON.stringify({ video_link: url })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' — ' + (await r.text()).slice(0,200));
+    // 204/0 satır = RLS reddi olabilir; "başarı" sanmayalım (log-23 539 dersi).
+    const donen = await r.json();
+    if (!Array.isArray(donen) || !donen.length) {
+      throw new Error('Sunucu isteği kabul etti ama hiçbir kayıt değişmedi — yetki sorunu olabilir.');
+    }
+    await kararYaz(wid, vid);
+    kapat(wid, '✓ Kaydedildi');
+  } catch (e) {
+    msj(wid, 'Kaydedilemedi: ' + e.message, '#e07060');
+  }
+}
+
+async function hicbiri(wid){
+  msj(wid, 'İşaretleniyor…');
+  try { await kararYaz(wid, null); kapat(wid, 'Elendi'); }
+  catch (e) { msj(wid, 'Olmadı: ' + e.message, '#e07060'); }
+}
+
+async function kararYaz(wid, secilenVid){
+  const H = { ...authHeaders(), 'Content-Type':'application/json', 'Prefer':'return=minimal' };
+  const uid = (typeof getUserId === 'function') ? getUserId() : null;
+  const simdi = new Date().toISOString();
+  // Önce hepsini 'red', sonra seçileni 'secildi' yap — tek turda tutarlı kalsın.
+  let r = await fetch(SUPA_URL + '/rest/v1/work_video_candidates?work_id=eq.' + wid, {
+    method: 'PATCH', headers: H,
+    body: JSON.stringify({ karar:'red', karar_veren: uid, karar_at: simdi })
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  if (secilenVid) {
+    r = await fetch(SUPA_URL + '/rest/v1/work_video_candidates?work_id=eq.' + wid + '&video_id=eq.' + encodeURIComponent(secilenVid), {
+      method: 'PATCH', headers: H,
+      body: JSON.stringify({ karar:'secildi', karar_veren: uid, karar_at: simdi })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  }
+}
+
+function kapat(wid, etiket){
+  const k = document.getElementById('k_' + wid);
+  if (!k) return;
+  k.style.opacity = '.45';
+  k.innerHTML = '<div class="eser">' + esc((ESERLER[wid]||{}).name || ('#'+wid)) +
+                ' <span style="font-size:12px;font-weight:600;color:var(--text3,#5e5c8a);">— ' + esc(etiket) + '</span></div>';
+  delete ADAYLAR[wid];
+  const kalan = Object.keys(ADAYLAR).length;
+  durum(kalan ? ('<b>' + kalan + ' eser</b> karar bekliyor.') : 'Hepsi bitti 👏 Betiği tekrar çalıştırıp yeni parti alabilirsin.', kalan ? 'bilgi' : 'ok');
+}
+
+window.addEventListener('load', () => setTimeout(yukle, 300));
+</script>
+</body>
+</html>
