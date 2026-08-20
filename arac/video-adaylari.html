@@ -239,6 +239,46 @@ function _ytId(url){
   return m ? m[1] : null;
 }
 
+// (2026-08-20) BAŞLIK EŞLEŞMESİ — puanın en ağır bileşeni.
+// Eski formül yalnız `log10(izlenme) × kanal çarpanı` idi ve video başlığının
+// ESER ADIYLA ilgisine HİÇ bakmıyordu; sonuç: alakasız ama çok izlenen kayıt
+// birinci sıraya çıkıyordu. Türk müziğinde aynı adda onlarca eser/cover olduğu
+// için bu eleme adımı izlenmeden daha belirleyici.
+function _sadeMetin(t){
+  return String(t||'')
+    .toLocaleLowerCase('tr')
+    .replace(/[ıİ]/g,'i').replace(/[şŞ]/g,'s').replace(/[ğĞ]/g,'g')
+    .replace(/[üÜ]/g,'u').replace(/[öÖ]/g,'o').replace(/[çÇ]/g,'c')
+    .replace(/[^a-z0-9\s]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+// 1.0 = eser adı başlıkta AYNEN geçiyor · 0..1 = kelimelerin oranı · 0 = hiç.
+// Tek harfli/çok kısa kelimeler ("al", "bir") tek başına eşleşme sayılmasın
+// diye 3 harften kısa olanlar atılıyor; hepsi kısaysa (ör. "Ah Bir") tam
+// ifadeye düşülüyor.
+function baslikUyumu(baslik, eserAdi){
+  const b = _sadeMetin(baslik), a = _sadeMetin(eserAdi);
+  if(!b || !a) return 0;
+  if(b.includes(a)) return 1;
+  const kelimeler = a.split(' ').filter(x => x.length >= 3);
+  if(!kelimeler.length) return 0;
+  const tutan = kelimeler.filter(k => b.includes(k)).length;
+  return tutan / kelimeler.length;
+}
+
+// Puan = izlenme ağırlığı × kanal çarpanı × BAŞLIK ÇARPANI.
+// Başlık çarpanı: tam eşleşme 1.0, kısmi 0.35..0.8, hiç eşleşmiyorsa 0.15 —
+// yani alakasız bir video ancak diğerlerinin hepsi elenirse listeye girer,
+// ama YİNE DE gösterilir (belki eser adı başlıkta farklı yazılmıştır; kararı
+// insan veriyor, biz yalnız sıralıyoruz).
+function adayPuani(x, w){
+  const u = baslikUyumu(x.title, w && w.name);
+  const baslikCarpan = u >= 0.999 ? 1 : (u > 0 ? 0.35 + 0.45*u : 0.15);
+  return Math.log10(x.view_count+10) * kanalCarpani(x.channel) * baslikCarpan;
+}
+
 function sorguKur(w){
   // Anonim/kaynak kişili türkülerde "Anonim" kelimesi aramayı bozuyor — eleniyor.
   const ek = [w.composer, w.source_person, w.lyric_writer]
@@ -253,8 +293,18 @@ async function adaylariBul(w, ozelSorgu){
   const _q = (ozelSorgu && ozelSorgu.trim()) || sorguKur(w);
   // videoEmbeddable=true: gömmesi kapalı videolar SUNUCUDA eleniyor ⇒ Dinle
   // özelliğinde siyah ekran çıkmıyor.
-  const s = await ytIste('search',{ part:'snippet', q:_q, type:'video', order:'viewCount',
-    maxResults:'10', regionCode:'TR', relevanceLanguage:'tr', videoEmbeddable:'true', safeSearch:'none' });
+  // (2026-08-20) `order:'viewCount'` KALDIRILDI. Belirti: "Al Fadimem" araması
+  // birinci sıraya "Şu Karşıki Dağda Lambalar Yanar"ı (29M izlenme) koyuyordu;
+  // adı birebir tutan kayıt (2,6M) ikinci kalıyordu. Sebep: viewCount sıralaması
+  // YouTube'un KENDİ alaka sıralamasını devre dışı bırakıp gevşek eşleşen ne
+  // varsa en çok izlenenleri öne alıyor. Artık alaka sıralaması (varsayılan)
+  // kullanılıyor; izlenme zaten AŞAĞIDAKİ kendi puanımızda hesaba katılıyor,
+  // yani iki kez sıralamaya gerek yok. maxResults 10→15: alaka sıralamasında
+  // doğru kayıt biraz aşağıda olabiliyor, süzgeçlerden sonra elde eleyecek
+  // malzeme kalsın (kota maliyeti aynı — search.list sonuç sayısından bağımsız
+  // 100 birim).
+  const s = await ytIste('search',{ part:'snippet', q:_q, type:'video',
+    maxResults:'15', regionCode:'TR', relevanceLanguage:'tr', videoEmbeddable:'true', safeSearch:'none' });
   kotaEkle(100);
   const ids = (s.items||[]).map(x => x.id && x.id.videoId).filter(Boolean);
   if(!ids.length) return [];
@@ -271,7 +321,7 @@ async function adaylariBul(w, ozelSorgu){
       embeddable: !(it.status && it.status.embeddable === false)
     }))
     .filter(x => x.embeddable && x.duration_seconds>=MIN_SANIYE && x.duration_seconds<=MAKS_SANIYE)
-    .map(x => ({...x, score: Math.log10(x.view_count+10)*kanalCarpani(x.channel)}))
+    .map(x => ({...x, score: adayPuani(x, w)}))
     .sort((a,b) => b.score-a.score)
     .slice(0,ADAY_SAYISI)
     .map((x,i) => ({...x, sira:i+1}));
