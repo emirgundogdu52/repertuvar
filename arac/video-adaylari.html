@@ -20,6 +20,18 @@
   arac/ gibi bir alt klasörde çalışsın diye. Göreli "../" kullanılsaydı kökten
   açıldığında site dışına çıkar ve oturum/anahtar hiç gelmezdi.
 
+  v3 EKLERİ (2026-08-20): Emir sordu — "üç adaydan birini beğenmezsem eser
+  tamamen eleniyor mu?" Cevap EVET'ti ve bu bir tasarım eksiğiydi:
+  "Hiçbiri uygun değil" üç adayı da 'red' yapıyor, tarama da adayı olan eseri
+  atladığı için o eser bir daha hiç önüne gelmiyordu. Üç ek yapıldı:
+   • "🔍 Başka ara" — sorgu kutusu hazır gelir, ELLE düzeltilip yeniden aranır
+     (ör. yöre ekle, "TRT arşiv" yaz). Sadece "tekrar tara" işe yaramazdı:
+     aynı sorgu aynı üç sonucu getirir. Eski adaylar silinip yenileri yazılır.
+   • "🔗 Bağlantı yapıştır" — YouTube'da kendin bulduğun videoyu doğrudan ver,
+     aramaya hiç girme (bazı eserlerde en hızlı yol bu).
+   • "Elenenler" bölümü — 'red' işaretliler ölmüyor; bağlantısı hâlâ boş olanlar
+     listelenip "↩︎ Geri getir" ile karar sıfırlanabiliyor.
+
   KOTA: YouTube ücretsiz kotası günde 10.000 birim. search.list=100,
   videos.list=1 ⇒ eser başına ~101 ⇒ GÜNDE ~99 ESER. Sayfa harcamayı tahmini
   olarak sayar ve gün sonunda sıfırlar; sayaç bilgi amaçlıdır, gerçek kotayı
@@ -112,6 +124,15 @@
 
   <!-- ── ONAY ── -->
   <div id="liste"></div>
+
+  <!-- ── ELENENLER ── -->
+  <div class="kutu">
+    <h2>Elenenler</h2>
+    <button class="b" id="elenenBtn" onclick="elenenler()">🗂 Elenenleri göster</button>
+    <div class="ipucu">“Hiçbiri uygun değil” dediğin eserler silinmiyor — buradan geri getirip
+      yeniden bakabilir ya da “Başka ara” ile farklı bir sorgu deneyebilirsin.</div>
+    <div id="elenenListe"></div>
+  </div>
 </div>
 
 <script src="/auth.js"></script>
@@ -206,6 +227,18 @@ function sureSaniye(iso){
 }
 function kanalCarpani(k){ let c=1; for(const [re,x] of KANAL_ONCELIK) if(re.test(k||'')) c=Math.max(c,x); return c; }
 
+// Elle yapıştırılan bağlantıdan 11 karakterlik kimliği çıkarır: youtu.be,
+// watch?v=, /embed/, /shorts/, /live/, zaman damgalı, &list= ekli ya da çıplak.
+function _ytId(url){
+  if(!url) return null;
+  const t = String(url).trim();
+  if(/^[A-Za-z0-9_-]{11}$/.test(t)) return t;
+  let m = t.match(/(?:youtube\.com|youtu\.be)\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/|v\/|e\/)?([A-Za-z0-9_-]{11})/);
+  if(m) return m[1];
+  m = t.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
 function sorguKur(w){
   // Anonim/kaynak kişili türkülerde "Anonim" kelimesi aramayı bozuyor — eleniyor.
   const ek = [w.composer, w.source_person, w.lyric_writer]
@@ -213,10 +246,14 @@ function sorguKur(w){
   return [w.name, ek].filter(Boolean).join(' ').trim();
 }
 
-async function adaylariBul(w){
+// ozelSorgu verilirse otomatik kurulan sorgu yerine O kullanılır — "Başka ara"
+// bunun için var: kötü sonuç genelde kötü sorgudan geliyor (anonim türküde
+// besteci yok, aynı adda onlarca eser var), sorguyu düzeltmek en etkili çare.
+async function adaylariBul(w, ozelSorgu){
+  const _q = (ozelSorgu && ozelSorgu.trim()) || sorguKur(w);
   // videoEmbeddable=true: gömmesi kapalı videolar SUNUCUDA eleniyor ⇒ Dinle
   // özelliğinde siyah ekran çıkmıyor.
-  const s = await ytIste('search',{ part:'snippet', q:sorguKur(w), type:'video', order:'viewCount',
+  const s = await ytIste('search',{ part:'snippet', q:_q, type:'video', order:'viewCount',
     maxResults:'10', regionCode:'TR', relevanceLanguage:'tr', videoEmbeddable:'true', safeSearch:'none' });
   kotaEkle(100);
   const ids = (s.items||[]).map(x => x.id && x.id.videoId).filter(Boolean);
@@ -324,7 +361,7 @@ async function yukle(){
     ADAYLAR={}; adaylar.forEach(a => { (ADAYLAR[a.work_id]=ADAYLAR[a.work_id]||[]).push(a); });
 
     const ids = Object.keys(ADAYLAR);
-    const wRes = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,source_person,makam&id=in.('+ids.join(',')+')',{headers:H});
+    const wRes = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,lyric_writer,source_person,makam&id=in.('+ids.join(',')+')',{headers:H});
     if(!wRes.ok) throw new Error('eserler alınamadı: HTTP '+wRes.status);
     ESERLER={}; (await wRes.json()).forEach(w => ESERLER[w.id]=w);
 
@@ -352,10 +389,13 @@ function ciz(){
             </div>
           </div>
         </div>`).join('')}
-      <div class="kart-alt">
-        <span class="msj" id="m_${wid}"></span>
+      <div class="kart-alt" style="flex-wrap:wrap;">
+        <span class="msj" id="m_${wid}" style="flex:1 1 100%;"></span>
+        <button class="b" onclick="baskaAraAc('${wid}')">🔍 Başka ara</button>
+        <button class="b" onclick="yapistirAc('${wid}')">🔗 Bağlantı yapıştır</button>
         <button class="b red" onclick="hicbiri('${wid}')">Hiçbiri uygun değil</button>
       </div>
+      <div id="ek_${wid}"></div>
       <div id="onz_${wid}"></div>
     </div>`;
   }).join('');
@@ -405,6 +445,113 @@ async function kararYaz(wid, secilen){
     if(!r.ok) throw new Error('HTTP '+r.status);
   }
 }
+// ── "Başka ara": sorguyu ELLE düzeltip yeni aday getir ────────────────────
+// Sadece "tekrar tara" demek işe yaramazdı: aynı sorgu aynı üç sonucu getirir.
+// Kutuya hazır gelen sorgu düzeltilebiliyor (ör. yöre ekle, "TRT arşiv" yaz).
+function baskaAraAc(wid){
+  const k = document.getElementById('ek_'+wid); if(!k) return;
+  if(k.dataset.mod === 'ara'){ k.innerHTML=''; k.dataset.mod=''; return; }
+  k.dataset.mod = 'ara';
+  const w = ESERLER[wid] || {};
+  k.innerHTML =
+    '<div style="padding:8px 0 2px;">' +
+      '<input class="f" id="q_'+wid+'" style="width:100%;" placeholder="Arama sorgusu" value="'+esc(sorguKur(w))+'">' +
+      '<div class="satir" style="margin-top:7px;">' +
+        '<button class="b ana" onclick="yenidenAra(\''+wid+'\')">Ara</button>' +
+        '<span style="font-size:11.5px;color:var(--text3,#5e5c8a);">Bu arama ~101 birim kota harcar.</span>' +
+      '</div>' +
+    '</div>';
+  setTimeout(()=>document.getElementById('q_'+wid)?.focus(), 60);
+}
+
+async function yenidenAra(wid){
+  if(!anahtar()){ msj(wid,'Önce YouTube API anahtarını kaydet.','#e07060'); return; }
+  const q = (document.getElementById('q_'+wid)?.value || '').trim();
+  if(!q){ msj(wid,'Sorgu boş.','#e07060'); return; }
+  msj(wid,'Aranıyor…');
+  try{
+    const adaylar = await adaylariBul(ESERLER[wid]||{}, q);
+    if(!adaylar.length){ msj(wid,'Bu sorguyla aday çıkmadı — sorguyu değiştirip tekrar dene.','#e07060'); return; }
+    // Eski adaylar SİLİNİYOR: aynı esere ait bekleyen iki takım aday kalırsa
+    // hangisinin geçerli olduğu belirsizleşir.
+    const d = await fetch(SUPA_URL+'/rest/v1/work_video_candidates?work_id=eq.'+wid,
+      { method:'DELETE', headers: authHeaders() });
+    if(!d.ok) throw new Error('eski adaylar silinemedi (HTTP '+d.status+')');
+    await adaylariYaz(wid, adaylar);
+    ADAYLAR[wid] = adaylar.map(a => ({...a, work_id: wid}));
+    ciz();
+    msj(wid,'✓ Yeni adaylar geldi');
+  }catch(e){ msj(wid,'Olmadı: '+e.message,'#e07060'); }
+}
+
+// ── "Bağlantı yapıştır": aramayı hiç kullanmadan doğrudan video ver ────────
+function yapistirAc(wid){
+  const k = document.getElementById('ek_'+wid); if(!k) return;
+  if(k.dataset.mod === 'link'){ k.innerHTML=''; k.dataset.mod=''; return; }
+  k.dataset.mod = 'link';
+  k.innerHTML =
+    '<div style="padding:8px 0 2px;">' +
+      '<input class="f" id="lnk_'+wid+'" style="width:100%;" placeholder="https://www.youtube.com/watch?v=… veya youtu.be/…" autocomplete="off">' +
+      '<div class="satir" style="margin-top:7px;">' +
+        '<button class="b ana" onclick="yapistirKaydet(\''+wid+'\')">Kaydet</button>' +
+      '</div>' +
+    '</div>';
+  setTimeout(()=>document.getElementById('lnk_'+wid)?.focus(), 60);
+}
+
+async function yapistirKaydet(wid){
+  const v = (document.getElementById('lnk_'+wid)?.value || '').trim();
+  const vid = _ytId(v);
+  if(!vid){ msj(wid,'YouTube bağlantısı tanınmadı — adresi olduğu gibi yapıştır.','#e07060'); return; }
+  await sec(wid, vid);   // works.video_link yazar, tutarsa adayları kapatır
+}
+
+// ── Elenenler: "Hiçbiri uygun değil" dediklerin ölmüyor, geri getirilebiliyor ──
+async function elenenler(){
+  const btn = document.getElementById('elenenBtn');
+  const kutu = document.getElementById('elenenListe');
+  if(kutu.dataset.acik === '1'){ kutu.innerHTML=''; kutu.dataset.acik=''; btn.textContent='🗂 Elenenleri göster'; return; }
+  btn.textContent = 'Yükleniyor…';
+  try{
+    const H = authHeaders();
+    const r = await fetch(SUPA_URL+'/rest/v1/work_video_candidates?select=work_id&karar=eq.red&limit=5000',{headers:H});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const ids = [...new Set((await r.json()).map(x=>String(x.work_id)))];
+    if(!ids.length){ kutu.innerHTML='<div class="ipucu">Elenen eser yok.</div>'; kutu.dataset.acik='1'; btn.textContent='Kapat'; return; }
+    const wr = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,video_link&id=in.('+ids.join(',')+')',{headers:H});
+    if(!wr.ok) throw new Error('HTTP '+wr.status);
+    // Bağlantısı olanlar zaten çözülmüş (seçildi ya da elle girildi) — listeye alma.
+    const bos = (await wr.json()).filter(w => !String(w.video_link||'').trim());
+    kutu.innerHTML = bos.length
+      ? bos.map(w =>
+          '<div class="satir" style="padding:7px 0;border-top:1px solid rgba(255,255,255,.06);">' +
+            '<span style="flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(w.name||('#'+w.id))+'</span>' +
+            '<button class="b" onclick="geriGetir(\''+w.id+'\')">↩︎ Geri getir</button>' +
+          '</div>').join('')
+      : '<div class="ipucu">Elenip hâlâ bağlantısız kalan eser yok.</div>';
+    kutu.dataset.acik = '1';
+    btn.textContent = 'Kapat';
+  }catch(e){
+    kutu.innerHTML = '<div class="ipucu" style="color:#e07060;">Yüklenemedi: '+esc(e.message)+'</div>';
+    kutu.dataset.acik='1'; btn.textContent='Kapat';
+  }
+}
+
+async function geriGetir(wid){
+  try{
+    const r = await fetch(SUPA_URL+'/rest/v1/work_video_candidates?work_id=eq.'+wid,{
+      method:'PATCH',
+      headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({karar:null, karar_veren:null, karar_at:null})
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const kutu = document.getElementById('elenenListe');
+    kutu.innerHTML=''; kutu.dataset.acik='';
+    document.getElementById('elenenBtn').textContent = '🗂 Elenenleri göster';
+    await yukle();
+  }catch(e){ alert('Geri getirilemedi: '+e.message); }
+}
+
 function kapat(wid, etiket){
   const k = document.getElementById('k_'+wid); if(!k) return;
   k.style.opacity='.45';
