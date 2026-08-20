@@ -3966,17 +3966,45 @@ function neTurDegisti() {
   const goster = FORMU_OLAN_TURLER.includes(sel.value);
   sar.style.display = goster ? '' : 'none';
   if (head) head.classList.toggle('formsuz', !goster);
+  // Öneri listesi türe bağlı ⇒ tür her değiştiğinde yeniden kurulmalı.
+  if (goster) fillFormDatalist();
 }
 
-const FORM_LISTESI = ['Türkü','Uzun Hava','Bozlak','Deyiş','Ağıt','Zeybek','Halay',
-  'Oyun Havası','Semah','Şarkı','Beste','Saz Semaisi','Peşrev','İlahi','Nefes',
-  'Marş','Protest Müzik','Pop','Hard Rock','Şiir','Taksim'];
+// (2026-08-20) FORM LİSTESİ TÜRE GÖRE AYRILDI. Önceden TEK düz liste vardı ve
+// THM'ye de TSM'ye de aynı seçenekler çıkıyordu — Bozlak ile Yürük Semai aynı
+// kutuda. İki dağarın form adları birbirinden ayrı; karışması veri kalitesini
+// bozuyordu. Ayrıca eski listede 'Pop', 'Hard Rock', 'Protest Müzik' vardı;
+// bunlar FORM DEĞİL TÜR — artık üst katmanda (TUR_LISTESI) oldukları için
+// buradan çıkarıldı.
+const FORM_LISTESI_THM = ['Türkü','Kırık Hava','Uzun Hava','Bozlak','Maya','Hoyrat',
+  'Divan','Gurbet Havası','Barak Havası','Ağıt','Deyiş','Nefes','Semah','Duvaz-ı İmam',
+  'Miraçlama','Zeybek','Halay','Horon','Karşılama','Bar','Oyun Havası','Koşma','Destan',
+  'Varsağı','Güzelleme','Taşlama','Rumeli Türküsü'];
 
+const FORM_LISTESI_TSM = ['Şarkı','Beste','Ağır Semai','Yürük Semai','Kâr','Kâr-ı Nâtık',
+  'Peşrev','Saz Semaisi','Taksim','Longa','Sirto','Medhal','Oyun Havası','Köçekçe',
+  'Gazel','Fantezi','Marş','İlahi','Durak','Tevşih','Şuğul','Naat','Mersiye'];
+
+// Tür seçilmemişse (ya da beklenmedik bir değerse) ikisinin birleşimi gösterilir —
+// kullanıcı yine de bir şey yazabilsin diye; alan zaten yalnız THM/TSM'de görünür.
+function formListesiIcin(tur) {
+  if (tur === 'THM') return FORM_LISTESI_THM;
+  if (tur === 'TSM') return FORM_LISTESI_TSM;
+  return [...FORM_LISTESI_THM, ...FORM_LISTESI_TSM];
+}
+
+// Öneri listesi türe göre kurulur. Kataloğun kendi form değerleri de eklenir,
+// ama YALNIZ AYNI TÜRDEKİ eserlerden — yoksa bir TSM eserine bakarken listeye
+// yine bozlak/halay sızardı.
 function fillFormDatalist() {
   const dl = document.getElementById('formListesi');
   if (!dl) return;
-  const set = new Set(FORM_LISTESI);
-  (DATA || []).forEach(w => { const f = (w.form || '').trim(); if (f) set.add(f); });
+  const selTur = (document.getElementById('ne_tur') || {}).value || '';
+  const set = new Set(formListesiIcin(selTur));
+  (DATA || []).forEach(w => {
+    if (selTur && (w.tur || '') !== selTur) return;
+    const f = (w.form || '').trim(); if (f) set.add(f);
+  });
   dl.innerHTML = [...set].sort((a,b) => a.localeCompare(b,'tr'))
     .map(v => '<option value="' + v.replace(/"/g,'&quot;') + '">').join('');
 }
