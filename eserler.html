@@ -2,6 +2,34 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-20: 👥 ESERLERDE GRUP GÖRÜNÜRLÜĞÜ + OKUMA YOLLARI YENİ MODELE
+    (3. aşamanın eserler.html ayağı). Veritabanı 1./2. aşamada
+    works.visibility'yi ('public','group','private') yapmış ve
+    work_group_shares + works_read politikasını kurmuştu; İSTEMCİ ise hâlâ
+    iki değerliydi ⇒ 'group' hiç yazılamıyordu.
+    (a) Modalde ÜÇÜNCÜ radyo: "👥 Grubumla Paylaş". Üçü ALT ALTA (telefonda
+        yan yana sığmıyor — aynı ders repertoires.html v14'te alınmıştı);
+        grubu olmayanda satır gizli (applyNeVisOptions). Tek okuma noktası
+        neVisChoice(); ipucu metnine grup dalı eklendi.
+    (b) Yeni eserGrupPaylasimiUygula(workId, vis) — grup ERİŞİMİ sütunda
+        değil work_group_shares SATIRINDA. 'group' seçilince satır ekleniyor,
+        başka bir şey seçilince siliniyor (silinmezse üyeler görmeye devam
+        ederdi). Yinelenen satır (23505) başarı sayılıyor; hata YUTULMUYOR,
+        kullanıcıya "kaydedildi ama paylaşılamadı" deniyor.
+    (c) works.group_id artık YALNIZ visibility='group' iken yazılıyor. Eskiden
+        grubu olan birinin eklediği HER eser (genel olanlar dâhil) gruba
+        damgalanıyordu.
+    (d) OKUMA: istemcideki iki görünürlük süzgeci KALDIRILDI — groupExpr
+        (or(group_id.is.null,group_id.eq.<gid>)) başka gruptaki kullanıcıdan
+        genel eserleri saklıyordu; visExpr (or(visibility.eq.public,
+        submitted_by.eq.<uid>)) gruba açılmış ama başkasının eklediği eserleri
+        eliyordu (repertoires.js'te düzeltilen hatanın ikizi). Görünürlüğü
+        artık works_read politikası belirliyor; RLS üst sınır olduğu için
+        fazladan satır gelmez. statusExpr KALDI (onay durumu görünürlük değil).
+    (e) group → public geçişi de artık katalog önerisi sayılıyor
+        (_wasPrivate → _wasNotPublic); liste kartına "👥 Grup" rozeti;
+        eserler.html içindeki İKİ repertuvar sorgusu da yeni modele geçti
+        (select=id,name,visibility, istemci süzgeci yok).
   - 2026-08-16: 🐞 ESER FORMU DIŞARI TIKLAYINCA UÇUYORDU (VERİ KAYBI).
     Emir: "Kaydet'e basmadan başka bir alana tıklayınca eser kayıt ekranı uçuyor
     ve tekrar başlamak zorunda kalıyoruz." Zemine tek tıklama formu kapatıyor,
@@ -1313,8 +1341,9 @@ function mapWorkRow(w) {
     deleted_at: w.deleted_at || null,
     status: w.status || 'approved', submitted_by: w.submitted_by || '',
     submitter_email: w.submitter_email || '', submitted_at: w.submitted_at || '',
-    // Tek doğruluk kaynağı: visibility ('public' | 'private'). is_public ÖLÜ
-    // sütun (hiç false yok), artık yazılmıyor ama geri dönüş için siliNMEdi.
+    // Tek doğruluk kaynağı: visibility ('public' | 'group' | 'private').
+    // (2026-08-20) 'group' eklendi; grup ERİŞİMİ ise work_group_shares satırında.
+    // is_public ÖLÜ sütun (hiç false yok), yazılmıyor ama geri dönüş için duruyor.
     visibility: w.visibility || 'public', group_id: w.group_id || null
   };
 }
@@ -1350,20 +1379,29 @@ async function loadWorksFromSupabase() {
 async function syncWorksFromServer(hadLocalData) {
   try {
     // Admin ve editör tüm eserleri görür, üye sadece onaylananları
-    const groupId = getGroupId();
     const uid = getUserId();
     // works ORTAK KATALOG (2026-07-31): group_id IS NULL = herkesin katalogu,
     // group_id=<gid> = o gruba özel. Gruba üye OLMAYANA hiç grup kısıtı konmaz
     // (is.null bile) — bugün NULL satır yok, konsaydı listesi boşalırdı.
     // PostgREST'te iki ayrı or= parametresi çakışır: tek and=(...) içinde
     // birleştiriliyor, iç içe operatörler '=' almaz. Ayrıntı: _not.md
-    const groupExpr = groupId ? 'or(group_id.is.null,group_id.eq.'+groupId+')' : null;
+    // (2026-08-20) YENİ MODEL — İSTEMCİ GÖRÜNÜRLÜK SÜZGEÇLERİ KALDIRILDI.
+    // Kaldırılan ikisi ve nedenleri:
+    //  • groupExpr = or(group_id.is.null, group_id.eq.<gid>) — eski "ortak katalog"
+    //    modeli. Grubu olan biri eser eklediğinde group_id HER eserde doluyordu
+    //    (genel olanlarda bile), dolayısıyla BAŞKA bir gruptaki kullanıcı o genel
+    //    eseri hiç görmüyordu. Artık group_id yalnız visibility='group' iken yazılıyor.
+    //  • visExpr = or(visibility.eq.public, submitted_by.eq.<uid>) — grup paylaşımı
+    //    eklenmeden önce doğruydu; şimdi GRUBA AÇILMIŞ ama başkasının eklediği
+    //    eserleri eliyor (repertoires.js'te düzeltilen hatanın eser tarafındaki ikizi).
+    // Görünürlüğü artık yalnız sunucudaki works_read politikası belirliyor
+    // (public / sahip / work_group_shares ∩ my_group_ids / silinmişte sahip+editör).
+    // RLS üst sınır olduğu için süzgeci kaldırmak FAZLADAN satır getirmez.
+    // statusExpr KALIYOR: onay durumu görünürlük değil iş akışı kuralı, RLS onu
+    // kapsamıyor — başkasının bekleyen önerisi listeye düşmemeli.
     const statusExpr = (isAdmin() || isEditor()) ? null
       : 'or(status.eq.approved,and(status.eq.pending,submitted_by.eq.'+uid+'))';
-    // Gizli eseri YALNIZCA sahibi görür — admin/editör dahil kimse başkasının
-    // gizlisini görmez, o yüzden burada rol ayrımı yok.
-    const visExpr = 'or(visibility.eq.public,submitted_by.eq.'+uid+')';
-    const parts = [groupExpr, statusExpr, visExpr].filter(Boolean);
+    const parts = [statusExpr].filter(Boolean);
     const filter = parts.length ? '&and=('+parts.join(',')+')' : '';
     // (2026-08-15) Silinmiş eserler listede yok — çöp kutusu ayrı bir konu.
     const base = '/rest/v1/works?deleted_at=is.null&order=name&limit=10000'+filter;
@@ -1635,10 +1673,10 @@ function openRepAddSheet(workId) {
   const gid = localStorage.getItem('user_group_id');
   const savedUser = (() => { try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; } })();
   const uid = savedUser?.id;
-  const filter = gid
-    ? '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&group_id=eq.' + gid
-    : (uid ? '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&or=(owner_id.eq.' + uid + ',is_public.eq.true)'
-           : '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&is_public=eq.true');
+  // (2026-08-20) YENİ MODEL: istemci süzgeci kaldırıldı, görünürlüğü
+  // repertoires_read politikası belirliyor. Eski sorgu yalnız group_id/is_public'e
+  // baktığı için grup-paylaşımlı ve kişisel paylaşımlı repertuvarları eliyordu.
+  const filter = '/rest/v1/repertoires?select=id,name,visibility&order=created_at.desc';
 
   fetch(SUPA_URL + filter, { headers })
     .then(r => r.json())
@@ -1971,7 +2009,7 @@ function renderList() {
       <div class="work-icon">🎵</div>
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
-        <div class="work-name">${w.name||'(isimsiz)'}${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="Yalnızca siz görürsünüz" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">🔒 Taslak</span>' : ''}</div>
+        <div class="work-name">${w.name||'(isimsiz)'}${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="Yalnızca siz görürsünüz" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">🔒 Taslak</span>' : ''}${(w.visibility === 'group') ? ' <span title="Yalnızca grup üyeleriniz görür" style="font-size:10px;font-weight:700;color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">👥 Grup</span>' : ''}</div>
         ${w.composer ? `<div class="work-composer">${w.composer}</div>` : ''}
         <div class="work-title-divider"></div>
         <div class="work-rep-count"><span class="status-dot"></span> Offline</div>
@@ -2262,10 +2300,10 @@ function bulkAddToRepertoire() {
   const gid = localStorage.getItem('user_group_id');
   const savedUser = (() => { try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; } })();
   const uid = savedUser?.id;
-  const filter = gid
-    ? '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&group_id=eq.' + gid
-    : (uid ? '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&or=(owner_id.eq.' + uid + ',is_public.eq.true)'
-           : '/rest/v1/repertoires?select=id,name,is_public&order=created_at.desc&is_public=eq.true');
+  // (2026-08-20) YENİ MODEL: istemci süzgeci kaldırıldı, görünürlüğü
+  // repertoires_read politikası belirliyor. Eski sorgu yalnız group_id/is_public'e
+  // baktığı için grup-paylaşımlı ve kişisel paylaşımlı repertuvarları eliyordu.
+  const filter = '/rest/v1/repertoires?select=id,name,visibility&order=created_at.desc';
 
   fetch(SUPA_URL + filter, { headers })
     .then(r => r.json())
@@ -4230,6 +4268,7 @@ function openNewEserModal() {
   // (2026-08-15) YENİ ESERDE VARSAYILAN "SADECE BEN". Karar (Emir): paylaşmak
   // bilinçli bir hareket olsun; kullanıcı farkında olmadan tüm kataloğa
   // yayımlamasın. Bestekârın bitmemiş taslağı da kendiliğinden korunmuş olur.
+  applyNeVisOptions();
   document.getElementById('ne_visPrivate').checked = true;
   updateVisibilityHint();
   switchNeTab('lyrics');
@@ -4301,8 +4340,10 @@ async function openEditEserModal(id) {
   setupLyricsPlainPaste();
   renderNeNotaList();
   setupNeNotaZone();
-  if (w.visibility === 'private') document.getElementById('ne_visPrivate').checked = true;
-  else document.getElementById('ne_visPublic').checked = true;
+  applyNeVisOptions();
+  const _visRadio = { public:'ne_visPublic', group:'ne_visGroup', private:'ne_visPrivate' }[w.visibility] || 'ne_visPrivate';
+  const _vr = document.getElementById(_visRadio) || document.getElementById('ne_visPrivate');
+  if (_vr) _vr.checked = true;
   updateVisibilityHint();
   switchNeTab('lyrics');
   document.getElementById('newEserModal').style.display = 'flex';
@@ -4673,7 +4714,9 @@ function saveNewEser() {
     }
   }
 
-  const isPublic = document.getElementById('ne_visPublic').checked;
+  // (2026-08-20) Görünürlük artık üç değerli — tek okuma noktası neVisChoice().
+  const visChoice = neVisChoice();
+  const isPublic = (visChoice === 'public');
 
   // TEK KAYNAK: akorda gerçek akor satırı varsa akor ana kaynaktır, güfte ondan
   // türetilir (böylece aynı metni iki kez düzenleme derdi biter). Akor yoksa
@@ -4735,7 +4778,10 @@ function saveNewEser() {
       lyrics: fields.lyrics,
       chords: fields.chords,
       closing_note: fields.closingNote,
-      visibility: fields.isPublic ? 'public' : 'private'
+      visibility: visChoice,
+      // group_id yalnız grup görünürlüğünde dolu — eski modelde grubu olan
+      // herkesin HER eseri (genel olanlar dâhil) gruba damgalanıyordu.
+      group_id: (visChoice === 'group') ? getGroupId() : null
     };
     // (2026-08-15) GİZLİDEN PAYLAŞIMA GEÇİŞ ÖNERİ SAYILIR. Kullanıcı taslağını
     // herkese açtığı anda eser katalog önerisi hâline gelir ⇒ onay kuyruğuna
@@ -4743,8 +4789,10 @@ function saveNewEser() {
     // → private) burada status'a DOKUNMAZ: bir kez yayımlanmış eser geri
     // çekilse bile onay geçmişi bozulmasın (Emir kararı, 2026-08-15).
     const _prevWork = DATA.find(x => x.id === editingWorkId);
-    const _wasPrivate = _prevWork && _prevWork.visibility === 'private';
-    if (_wasPrivate && fields.isPublic && !(isAdmin() || isEditor())) {
+    // (2026-08-20) Ölçüt "private idi" değil "PUBLIC DEĞİLDİ" — grup görünürlüğü
+    // eklendiği için group → public geçişi de katalog önerisi sayılmalı.
+    const _wasNotPublic = _prevWork && _prevWork.visibility !== 'public';
+    if (_wasNotPublic && isPublic && !(isAdmin() || isEditor())) {
       patchFields.status = 'pending';
       patchFields.submitted_at = new Date().toISOString();
     }
@@ -4754,9 +4802,13 @@ function saveNewEser() {
         // DATA'yı güncelle
         const idx = DATA.findIndex(x => x.id === editingWorkId);
         if (idx > -1) Object.assign(DATA[idx], fields, {
-          visibility: fields.isPublic ? 'public' : 'private',
+          visibility: visChoice,
+          group_id: patchFields.group_id,
           ...(patchFields.status ? { status: patchFields.status } : {})
         });
+        // Paylaşım satırı sütundan AYRI yazılıyor; hatası yutulmuyor.
+        eserGrupPaylasimiUygula(editingWorkId, visChoice)
+          .then(pay => { if (!pay.ok) toastMsg(pay.mesaj); });
         closeNewEserModal();
         buildFilters();
         applyFilters();
@@ -4799,12 +4851,13 @@ function saveNewEser() {
       lyrics: fields.lyrics,
       chords: fields.chords,
       closing_note: fields.closingNote,
-      visibility: fields.isPublic ? 'public' : 'private',
+      visibility: visChoice,
       status,
       submitted_by: getUserId(),
       submitter_email: getUser()?.email || '',
       submitted_at: new Date().toISOString(),
-      group_id: getGroupId()
+      // Yalnız grup görünürlüğünde damgalanıyor (bkz. düzenleme dalındaki not).
+      group_id: (visChoice === 'group') ? getGroupId() : null
     };
 
     fetch(SUPA_URL + '/rest/v1/works', {
@@ -4832,12 +4885,20 @@ function saveNewEser() {
       if (!yeniId) throw new Error('Sunucu yeni eserin kimliğini döndürmedi — kayıt doğrulanamadı, lütfen tekrar deneyin.');
       const newWork = { ...saveFields, id: yeniId };
       DATA.push(newWork);
+      eserGrupPaylasimiUygula(yeniId, visChoice)
+        .then(pay => { if (!pay.ok) toastMsg(pay.mesaj); });
       closeNewEserModal();
       buildFilters();
       applyFilters();
       if (status === 'pending') {
         updateMySuggestionsCount();
         alert('Eser öneriniz iletildi! Admin onayından sonra yayınlanacak.');
+      } else if (visChoice === 'group') {
+        alert('Eser grubunuzla paylaşıldı — yalnızca grup üyeleriniz görebilir.');
+        setTimeout(() => {
+          const item = document.querySelector('[data-id="' + newWork.id + '"]');
+          if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
+        }, 100);
       } else if (!isPublic) {
         alert('Eser özel olarak kaydedildi — yalnızca siz görebilirsiniz.');
         setTimeout(() => {
@@ -5241,14 +5302,72 @@ async function updateMySuggestionsCount() {
 // (2026-08-15) Görünürlük seçimine göre ne olacağını kullanıcıya SEÇİM ANINDA
 // söyler. Onaya düşüp düşmemeyi rol + görünürlük birlikte belirlediği için
 // metin ikisine de bakıyor.
+// (2026-08-20) YENİ GÖRÜNÜRLÜK MODELİ — ESER TARAFI.
+// Seçilen radyoyu tek yerden okur: 'public' | 'group' | 'private'.
+function neVisChoice() {
+  const el = document.querySelector('input[name="ne_visibility"]:checked');
+  const v = el ? el.value : 'private';
+  // Grubu olmayan biri (ör. gruptan çıkmışsa) 'group' seçili kalmasın.
+  if (v === 'group' && !getGroupId()) return 'private';
+  return (v === 'public' || v === 'group') ? v : 'private';
+}
+
+// Grubu olmayan kullanıcıda "Grubumla Paylaş" satırı hiç gösterilmiyor —
+// seçilebilir ama çalışmayan bir seçenek sunmak yanıltıcı olurdu.
+function applyNeVisOptions() {
+  const lbl = document.getElementById('ne_visGroupLabel');
+  if (lbl) lbl.style.display = getGroupId() ? 'flex' : 'none';
+}
+
+// GRUP GÖRÜNÜRLÜĞÜ SÜTUNA DEĞİL PAYLAŞIM SATIRINA BAĞLI.
+// works_read politikası grup dalını work_group_shares üzerinden çözüyor
+// (log-23 561/564/566-567): satır yoksa visibility='group' tek başına hiçbir
+// şey yapmaz, eseri yalnız sahibi görür. Gruptan geri çekerken de satır
+// silinmezse üyeler görmeye devam eder. Dönüş: {ok:true} | {ok:false, mesaj}
+async function eserGrupPaylasimiUygula(workId, vis) {
+  if (!workId) return { ok: true };
+  const gid = getGroupId();
+  const H = authHeaders();
+  try {
+    if (vis === 'group') {
+      if (!gid) return { ok:false, mesaj:'Grup bilgisi bulunamadı — eser grupla paylaşılamadı.' };
+      const r = await fetch(SUPA_URL + '/rest/v1/work_group_shares', {
+        method: 'POST', headers: { ...H, 'Prefer': 'return=representation' },
+        body: JSON.stringify({ work_id: workId, group_id: gid, shared_by: getUserId() })
+      });
+      if (!r.ok) {
+        const t = await r.text();
+        // Bileşik birincil anahtar yüzünden aynı satır varsa bu hata değil.
+        if (/duplicate key|23505|already exists/i.test(t)) return { ok: true };
+        throw new Error('HTTP ' + r.status + ' — ' + t.slice(0, 200));
+      }
+      return { ok: true };
+    }
+    const d = await fetch(SUPA_URL + '/rest/v1/work_group_shares?work_id=eq.' + workId, {
+      method: 'DELETE', headers: H
+    });
+    if (!d.ok) throw new Error('HTTP ' + d.status);
+    return { ok: true };
+  } catch (e) {
+    console.error('[eser grup paylaşımı]', e);
+    return { ok:false, mesaj: vis === 'group'
+      ? '⚠️ Eser kaydedildi ama GRUPLA PAYLAŞILAMADI — şimdilik yalnızca siz görüyorsunuz.'
+      : '⚠️ Grup paylaşımı kaldırılamadı — grup üyeleri bu eseri görmeye devam edebilir.' };
+  }
+}
+
 function updateVisibilityHint() {
   const el = document.getElementById('ne_visHint');
   if (!el) return;
-  const pub = document.getElementById('ne_visPublic');
+  const v = neVisChoice();
   const yetkili = (typeof isAdmin === 'function' && isAdmin()) ||
                   (typeof isEditor === 'function' && isEditor());
-  if (!pub || !pub.checked) {
-    el.textContent = '🔒 Bu eseri yalnızca siz görürsünüz. Onay gerekmez, istediğiniz zaman herkese açabilirsiniz.';
+  if (v === 'private') {
+    el.textContent = '🔒 Bu eseri yalnızca siz görürsünüz. Onay gerekmez, istediğiniz zaman paylaşabilirsiniz.';
+  } else if (v === 'group') {
+    // Grup paylaşımı KATALOG ÖNERİSİ DEĞİL — onay kuyruğuna düşmez, çünkü
+    // eser genel kataloğa girmiyor, yalnız grubun içinde kalıyor.
+    el.textContent = '👥 Eseri yalnızca grup üyeleriniz görür. Genel kataloğa girmez, onay gerekmez.';
   } else if (yetkili) {
     el.textContent = '🌐 Eser doğrudan yayımlanacak — onay yetkiniz var.';
   } else {
@@ -5299,12 +5418,22 @@ function openSuggestModal() { openNewEserModal(); }
       <button onclick="closeNewEserModal()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;">✕</button>
     </div>
     <div>
-    <div style="display:flex;gap:10px;margin-bottom:18px;">
-      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);flex:1;transition:all .15s;" id="ne_visPublicLabel">
+    <!-- (2026-08-20) ÜÇÜNCÜ SEÇENEK: GRUPLA PAYLAŞ. Veritabanı 1. aşamada
+         works.visibility CHECK'i ('public','group','private') olarak genişletilmiş
+         ve work_group_shares tablosu kurulmuştu, ama arayüzde yalnız iki radyo
+         vardı ⇒ 'group' hiç yazılamıyordu. Radyolar ALT ALTA dizildi: üç seçenek
+         telefonda yan yana sığmıyor (aynı ders repertoires.html v14'te alınmıştı).
+         Grubu olmayan kullanıcıda grup satırı gizleniyor (applyNeVisOptions). -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);transition:all .15s;" id="ne_visPublicLabel">
         <input type="radio" name="ne_visibility" id="ne_visPublic" value="public" onchange="updateVisibilityHint()" style="accent-color:var(--accent);width:15px;height:15px;">
         <span style="font-size:13px;color:var(--text2);">🌐 <strong>Herkese Açık</strong> — Herkes görebilir</span>
       </label>
-      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);flex:1;transition:all .15s;" id="ne_visPrivateLabel">
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);transition:all .15s;" id="ne_visGroupLabel">
+        <input type="radio" name="ne_visibility" id="ne_visGroup" value="group" onchange="updateVisibilityHint()" style="accent-color:var(--accent);width:15px;height:15px;">
+        <span style="font-size:13px;color:var(--text2);">👥 <strong>Grubumla Paylaş</strong> — Yalnız grup üyeleri görür</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);transition:all .15s;" id="ne_visPrivateLabel">
         <input type="radio" name="ne_visibility" id="ne_visPrivate" value="private" checked style="accent-color:var(--accent);width:15px;height:15px;">
         <span style="font-size:13px;color:var(--text2);">🔒 <strong>Sadece Ben</strong> — Kimse göremez</span>
       </label>
