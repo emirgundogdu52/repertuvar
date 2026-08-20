@@ -1,5 +1,23 @@
 <!--
   STAGE.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur; her önemli özellik değişikliğinde güncellenir)
+  - 2026-08-20: 🔓 SAHNE YENİ GÖRÜNÜRLÜK MODELİNE GEÇTİ (3. aşamanın stage ayağı).
+    Bu dosyadaki ÜÇ yer hâlâ eski modeli (owner_id / group_id / is_public)
+    kullanıyordu; oysa görünürlük 2. aşamada `repertoires.visibility` +
+    `repertoire_group_shares` + `repertoire_shares`'e taşınmış ve
+    `repertoires_read` politikası hepsini çözüyor.
+    (a) repVisibilityQuery() artık BOŞ dönüyor — sunucu sorgusundan istemci
+        süzgeci kalktı; RLS üst sınır olduğu için fazladan satır GELMEZ,
+        yalnız eski kuralın yanlışlıkla eledikleri geri gelir.
+    (b) repVisibilityFilterFn() pass-through oldu — IndexedDB'ye zaten yalnız
+        RLS'ten geçmiş satırlar yazılıyor. Eski kural, kişisel paylaşımla bana
+        açılmış bir repertuvarı (visibility='private' + repertoire_shares satırı)
+        önbellekte DURDUĞU HÂLDE eliyordu.
+    (c) buildRepsFromRaw'daki görünürlük süzgeci kaldırıldı; yalnız kullanıcının
+        kendi gizlediği (hiddenRepIds) BAŞKASINA AİT satırlar eleniyor.
+    Aynı düzeltmeler repertoires.js'te de yapıldı — iki sayfa yine aynı kapsamı
+    görsün diye (2026-08-12'de bu ikisinin çelişmesi zaten bir hataya yol açmıştı).
+    Works tarafına DOKUNULMADI: loadWL zaten select=* çekiyor ve 08-19'da jeton
+    öncelikli hâle getirilmişti, istemci görünürlük süzgeci yok.
   ⚠️ NOT (2026-08-13): Bu başlık 07-29'dan 08-13'e kadar GÜNCELLENMEMİŞTİ; oysa
   dosyada 08-06 (panelin bloklara ayrılması, yazı boyutunun panele taşınması,
   akor yazımı seçicisi) ve 08-12 (canlı güncelleme şeridi) değişiklikleri var.
@@ -1197,43 +1215,45 @@ function getHiddenRepIds() {
 
 function buildRepsFromRaw(r, items) {
   const uid = getUserId();
-  const gid = (typeof getGroupId === 'function') ? getGroupId() : null;
   const hiddenIds = getHiddenRepIds();
   return (r||[])
     .filter(x => {
       const isOwner = x.owner_id === uid || x.user_id === uid;
-      // (2026-08-12) 🐛 GRUBUN REPERTUVARLARI SAHNEDE GÖRÜNMÜYORDU.
-      // Bu süzgeç yalnızca "kendi repertuvarın ya da herkese açık" diyordu;
-      // aynı dosyadaki `repVisibilityFilterFn()` ise grup koşulunu İÇERİYOR.
-      // İki kural çeliştiği için grubun üyesi olan ama SAHİBİ OLMAYAN biri
-      // (test1) Sahneye Çık dediğinde yalnızca Genel Repertuvarlar'ı görüyor,
-      // "Ezgi Harmanı Çalışma Repertuvarı" ve "Test" listede çıkmıyordu.
-      // Doğru kural repertuvarlar sayfasındakiyle aynı: kendi + AKTİF GRUBUN +
-      // herkese açık. Gizleme (hiddenRepIds) yalnızca kendinin OLMAYANLARA
-      // uygulanır — orada gizlediğini burada da görmeyesin diye.
-      const isGroup = !!gid && x.group_id === gid;
+      // (2026-08-20) YENİ GÖRÜNÜRLÜK MODELİ — GÖRÜNÜRLÜK KARARI SUNUCUDA.
+      // Eski süzgeç "kendi + aktif grubun (group_id) + is_public" diyordu.
+      // 2. aşamada görünürlük `repertoires.visibility` + `repertoire_group_shares`
+      // + `repertoire_shares` (kişisel paylaşım) modeline geçti ve `repertoires_read`
+      // politikası bunların HEPSİNİ çözüyor ⇒ elimize gelen her satır tanım gereği
+      // görmeye YETKİLİ olduğumuz bir satır. Eski istemci kuralı ise ikisini
+      // eliyordu: (a) gruba PAYLAŞIM SATIRIYLA açılmış ama `group_id`'si boş
+      // repertuvarlar, (b) `repertoire_shares` ile doğrudan bana açılanlar.
+      // Bu yüzden burada artık GÖRÜNÜRLÜK süzgeci yok; yalnız kullanıcının
+      // kendi elleriyle gizlediği (hiddenRepIds) başkasına ait satırlar eleniyor.
       if (isOwner) return true;
-      return (isGroup || x.is_public === true) && !hiddenIds.includes(x.id);
+      return !hiddenIds.includes(x.id);
     })
     .map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
 }
 
-// repertoires.js ile AYNI görünürlük kapsamı — ikisi farklı mantık kullanırsa
-// (biri grup bazlı, diğeri owner/public bazlı) iki sayfa farklı repertuvar listeleri gösterir.
+// (2026-08-20) YENİ MODEL — YEREL ÖNBELLEK SÜZGECİ KALDIRILDI.
+// Bu fonksiyon IndexedDB'deki satırları süzüyordu; ama o önbelleğe zaten yalnız
+// RLS'ten geçmiş satırlar yazılıyor (hem bu dosya hem repertoires.js sunucudan
+// geleni `db.repertoires.replaceAll` ile koyuyor). Eski kural owner/group_id/
+// is_public'e bakıyordu ⇒ kişisel paylaşımla bana açılmış bir repertuvar
+// (visibility='private', repertoire_shares satırı var) önbellekte DURUYOR ama
+// bu süzgeçte eleniyordu — sahnede hiç görünmüyordu. Geçiş fonksiyonu olarak
+// bırakıldı ki çağrı yerleri değişmesin ve niyet kayda geçsin.
 function repVisibilityFilterFn() {
-  const uid = getUserId();
-  const gid = (typeof getGroupId === 'function') ? getGroupId() : null;
-  if (gid) {
-    return (x) => x.owner_id === uid || x.user_id === uid || x.group_id === gid || x.is_public === true;
-  }
-  return (x) => x.owner_id === uid || x.user_id === uid || x.is_public === true;
+  return () => true;
 }
+// Sunucu sorgusundan da istemci süzgeci kalktı: görünürlüğü artık yalnız
+// `repertoires_read` politikası belirliyor (public / sahip / visibility='group'
+// ∩ repertoire_group_shares ∩ my_group_ids() / repertoire_shares). RLS üst
+// sınır olduğu için süzgeci kaldırmak FAZLADAN satır getirmez, yalnız eski
+// kuralın yanlışlıkla eledikleri geri gelir. Aynı düzeltme repertoires.js'te
+// de yapıldı — iki sayfa yine AYNI kapsamı görsün diye.
 function repVisibilityQuery() {
-  const uid = getUserId();
-  const gid = (typeof getGroupId === 'function') ? getGroupId() : null;
-  return gid
-    ? 'or=(owner_id.eq.' + uid + ',group_id.eq.' + gid + ',is_public.eq.true)'
-    : 'or=(owner_id.eq.' + uid + ',is_public.eq.true)';
+  return '';
 }
 
 async function loadReps(){
@@ -1256,7 +1276,7 @@ async function loadReps(){
 async function refreshRepsInBackground(){
   try {
     const [r, items] = await Promise.all([
-      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at&'+repVisibilityQuery(),{headers:H, signal:AbortSignal.timeout(6000)}).then(r=>r.json()),
+      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at'+(repVisibilityQuery() ? '&'+repVisibilityQuery() : ''),{headers:H, signal:AbortSignal.timeout(6000)}).then(r=>r.json()),
       fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H, signal:AbortSignal.timeout(6000)}).then(r=>r.json())
     ]);
     if (window.db) {
