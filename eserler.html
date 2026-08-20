@@ -5530,7 +5530,11 @@ function openSuggestModal() { openNewEserModal(); }
       </div>
       <div id="ne_formSar">
         <label class="ne-lbl">Form</label>
-        <input id="ne_form" class="ne-inp" list="formListesi" placeholder="Form seç ya da yaz...">
+        <!-- autocomplete="off": tarayıcının KENDİ geçmişi (daha önce bu kutuya
+           yazdıkların) datalist önerilerinin altında ayrı bir bölüm olarak
+           çıkıyordu; TSM seçiliyken listenin dibinde "Türkü" görünmesinin
+           sebebi buydu — katalogdan gelen bir kirlilik değil. (2026-08-20) -->
+        <input id="ne_form" class="ne-inp" list="formListesi" autocomplete="off" placeholder="Form seç ya da yaz...">
         <datalist id="formListesi"></datalist>
       </div>
     </div>
