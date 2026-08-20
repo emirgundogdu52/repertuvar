@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<!--
+  arac/tur-atama.html — TÜR ATAMA (2026-08-20 v1)
+
+  NİÇİN VAR: 2026-08-20'de `works.tur` sütunu açıldı (11 kategorilik CHECK) ve
+  yöre/kaynak kişi/derleyen alanlarından biri dolu olan 457 esere toplu 'THM'
+  atandı. Geriye o üç alanı da boş olan 259 eser kaldı; bunların türüne ancak
+  İNSAN karar verebilir (pop mu, arabesk mi, sanat müziği mi). Bu sayfa o işi
+  tek dokunuşla yapmak için.
+
+  ÇALIŞMA BİÇİMİ: liste hâlinde eserler gelir, her kartta 11 kategori düğmesi
+  vardır; dokununca eser hemen güncellenir ve karttan düşer. Acele yok — Emir
+  yavaş yavaş, parti parti halledecek. "Kaldı: N" sayacı nerede kalındığını
+  gösterir.
+
+  OTURUM: sayfa uygulamayla aynı origin'de olduğu için /auth.js yüklenince
+  SUPA_URL / anon anahtar / authHeaders() hazır gelir. Ayrı giriş yok.
+  ⚠️ YOLLAR MUTLAK (/auth.js, /style.css) — sayfa hem sitenin KÖKÜNDE hem
+  arac/ altında çalışsın diye (video-adaylari.html'de bu ders yaşandı).
+
+  YAZMA GÜVENLİĞİ: her PATCH `return=representation` ile yapılır ve DÖNEN SATIR
+  SAYISI kontrol edilir. 204/0 satır BAŞARI SAYILMAZ — RLS bir güncellemeyi
+  sessizce engellerse kullanıcı yanlışlıkla "oldu" sanmasın (bu projede
+  defalarca yaşanan tuzak).
+
+  GERİ AL: son 10 atama bellekte tutulur; yanlış dokunuşta tek düğmeyle
+  `tur` tekrar NULL yapılır ve eser listeye döner.
+-->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tür Atama — Repertuvar</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  body{margin:0;background:var(--bg,#07071a);color:var(--text,#e2e0ff);
+       font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-text-size-adjust:100%;}
+  .wrap{max-width:820px;margin:0 auto;padding:16px 14px 70px;}
+  h1{font-size:18px;margin:0 0 4px;}
+  .alt{font-size:12.5px;color:var(--text3,#5e5c8a);line-height:1.6;margin-bottom:14px;}
+  .kutu{background:var(--surface,#0f0f2e);border:1px solid var(--border,rgba(140,120,255,.38));
+        border-radius:12px;padding:13px;margin-bottom:14px;}
+  .kutu h2{font-size:13px;margin:0 0 9px;color:var(--text2,#9d9bc4);text-transform:uppercase;letter-spacing:.05em;}
+  .satir{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  input.f{flex:1;min-width:170px;box-sizing:border-box;padding:10px 12px;border-radius:8px;
+          background:var(--surface2,#13132e);border:1px solid var(--border,rgba(140,120,255,.38));
+          color:var(--text,#e2e0ff);font-size:14px;font-family:inherit;}
+  .b{padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;
+     border:1px solid var(--border,rgba(140,120,255,.38));background:var(--surface2,#13132e);color:var(--text,#e2e0ff);}
+  .b.ana{background:var(--accent,#7c6fff);border-color:var(--accent,#7c6fff);color:#fff;}
+  .b:disabled{opacity:.5;cursor:default;}
+  .ipucu{font-size:11.5px;color:var(--text3,#5e5c8a);margin-top:8px;line-height:1.55;}
+  .durum{padding:10px 12px;border-radius:9px;font-size:13px;margin-bottom:14px;line-height:1.55;}
+  .durum.bilgi{background:var(--surface2,#13132e);border:1px solid var(--border,rgba(140,120,255,.38));color:var(--text2,#9d9bc4);}
+  .durum.hata{background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.35);color:#fca5a5;}
+  .durum.ok{background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.32);color:#86efac;}
+  .kart{background:var(--surface,#0f0f2e);border:1px solid var(--border,rgba(140,120,255,.38));
+        border-radius:12px;padding:12px 13px;margin-bottom:10px;}
+  .kart.gitti{opacity:.35;}
+  .eser{font-size:15px;font-weight:700;line-height:1.35;}
+  .eser-alt{font-size:12px;color:var(--text3,#5e5c8a);margin-top:3px;line-height:1.5;}
+  .rozet{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:20px;margin-left:6px;
+         background:rgba(124,111,255,.16);color:var(--accent,#7c6fff);vertical-align:middle;}
+  .turler{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .t{padding:7px 11px;border-radius:20px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;
+     border:1px solid var(--border,rgba(140,120,255,.38));background:var(--surface2,#13132e);color:var(--text,#e2e0ff);}
+  .t:hover{border-color:var(--accent,#7c6fff);}
+  .t:disabled{opacity:.45;cursor:default;}
+  .msj{font-size:12px;margin-top:8px;min-height:15px;}
+  .msj.hata{color:#fca5a5;}
+  .msj.ok{color:#86efac;}
+  .son{font-size:12px;color:var(--text2,#9d9bc4);line-height:1.9;}
+  .son .b{padding:3px 9px;font-size:11px;margin-left:6px;}
+  .sayac{font-size:13px;color:var(--text2,#9d9bc4);}
+  .sayac b{color:var(--text,#e2e0ff);font-size:15px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎼 Tür Atama</h1>
+  <div class="alt">
+    Türü henüz belli olmayan eserler. Karttaki bir kategoriye dokun, eser hemen
+    kaydedilir ve listeden düşer. Emin olmadığın esere dokunma — atlanan eser
+    bir sonraki partide yine karşına çıkar.
+  </div>
+
+  <div id="durum" class="durum bilgi">Yükleniyor…</div>
+
+  <div class="kutu">
+    <h2>Parti</h2>
+    <div class="satir">
+      <button class="b ana" id="yukleBtn" onclick="yukle()">↻ Getir</button>
+      <input class="f" id="parti" type="number" min="1" max="100" value="25" style="max-width:80px;">
+      <span style="font-size:12px;color:var(--text3,#5e5c8a);">eserlik</span>
+      <span style="flex:1;"></span>
+      <span class="sayac" id="sayac"></span>
+    </div>
+    <div class="satir" style="margin-top:9px;">
+      <input class="f" id="ara" placeholder="Ada göre süz (isteğe bağlı)" oninput="cizListe()">
+      <label style="font-size:12px;color:var(--text2,#9d9bc4);display:flex;align-items:center;gap:6px;">
+        <input type="checkbox" id="repOnce" checked onchange="yukle()">
+        Repertuvardakiler önce
+      </label>
+    </div>
+    <div class="ipucu">
+      Repertuvarlarda geçen eserler önce gelir — uygulamada asıl görünen onlar.
+    </div>
+  </div>
+
+  <div class="kutu" id="sonKutu" style="display:none;">
+    <h2>Son atananlar</h2>
+    <div class="son" id="sonListe"></div>
+  </div>
+
+  <div id="liste"></div>
+</div>
+
+<script src="/auth.js"></script>
+<script>
+// CHECK kısıtıyla BİREBİR aynı olmalı — farklı yazılırsa PostgREST 400 döner.
+const TURLER = ['THM','TSM','Türk Pop','Türk Rock','Arabesk / Fantezi','Özgün Müzik',
+                'Türkçe Rap / Hip-Hop','Yabancı Pop','Yabancı Rock','Caz / Blues','Diğer'];
+
+let ESERLER = [];      // bu partideki, türü boş eserler
+let REP_IDS = new Set();
+let SON = [];          // son atamalar (geri al için)
+
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function durum(m,t){ const d=document.getElementById('durum'); d.className='durum '+(t||'bilgi'); d.innerHTML=m; }
+function kartMsj(id,m,t){ const el=document.getElementById('msj_'+id); if(el){ el.className='msj '+(t||''); el.textContent=m; } }
+
+function ortamHazirMi(){
+  if (typeof SUPA_URL === 'undefined' || typeof authHeaders !== 'function'){
+    durum('<b>auth.js yüklenemedi.</b> Bu sayfa app.repertuvar.app üzerinden açılmalı — dosyayı doğrudan diskten açtıysan oturum bilgisi gelmez.','hata');
+    return false;
+  }
+  return true;
+}
+
+// Türkçe harfleri sadeleştirip küçültür — ada göre süzmede "Şu"/"su" ayrımı olmasın.
+function sade(t){
+  return String(t||'').toLocaleLowerCase('tr')
+    .replace(/[ıİ]/g,'i').replace(/[şŞ]/g,'s').replace(/[ğĞ]/g,'g')
+    .replace(/[üÜ]/g,'u').replace(/[öÖ]/g,'o').replace(/[çÇ]/g,'c');
+}
+
+// ── Kaç eser kaldı ───────────────────────────────────────────────────────────
+// HEAD + Prefer:count=exact ⇒ satırları indirmeden sayıyı verir.
+async function kalanSayisi(){
+  try{
+    const r = await fetch(SUPA_URL+'/rest/v1/works?select=id&tur=is.null&deleted_at=is.null',
+      { method:'HEAD', headers:{...authHeaders(),'Prefer':'count=exact','Range':'0-0'} });
+    const cr = r.headers.get('content-range') || '';
+    const n = cr.split('/')[1];
+    if(n && n !== '*') document.getElementById('sayac').innerHTML = 'Kaldı: <b>'+n+'</b>';
+  }catch(e){ /* sayaç bilgi amaçlı, hata yutuluyor */ }
+}
+
+// ── Parti getir ──────────────────────────────────────────────────────────────
+async function yukle(){
+  if(!ortamHazirMi()) return;
+  const btn = document.getElementById('yukleBtn');
+  btn.disabled = true;
+  durum('Getiriliyor…','bilgi');
+  try{
+    const H = authHeaders();
+    const parti = Math.max(1, Math.min(100, parseInt(document.getElementById('parti').value,10)||25));
+    const repOnce = document.getElementById('repOnce').checked;
+
+    // Repertuvarda geçen eserler önceliklendirilecekse önce onların kimlikleri.
+    REP_IDS = new Set();
+    if(repOnce){
+      const rr = await fetch(SUPA_URL+'/rest/v1/repertoire_items?select=work_id&limit=10000',{headers:H});
+      if(rr.ok){ (await rr.json()).forEach(x => REP_IDS.add(x.work_id)); }
+    }
+
+    // Türü boş olanları geniş çek, sıralamayı istemcide yap (PostgREST'te
+    // "önce şu kimlikler" sıralaması yok).
+    const wr = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,lyric_writer,'+
+      'source_person,region,collector,makam,form,video_link&tur=is.null&deleted_at=is.null&limit=1000',{headers:H});
+    if(!wr.ok) throw new Error('works okunamadı ('+wr.status+')');
+    let hepsi = await wr.json();
+
+    hepsi.sort((a,b) => {
+      const ra = REP_IDS.has(a.id) ? 0 : 1, rb = REP_IDS.has(b.id) ? 0 : 1;
+      if(ra !== rb) return ra - rb;
+      return String(a.name||'').localeCompare(String(b.name||''), 'tr');
+    });
+
+    ESERLER = hepsi.slice(0, parti);
+    cizListe();
+    kalanSayisi();
+    durum(ESERLER.length ? 'Bu partide <b>'+ESERLER.length+'</b> eser var.' : 'Türü boş eser kalmadı — liste bitti. 🎉',
+          ESERLER.length ? 'bilgi' : 'ok');
+  }catch(e){
+    durum('Hata: '+esc(e.message),'hata');
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+// ── Liste ────────────────────────────────────────────────────────────────────
+function cizListe(){
+  const q = sade(document.getElementById('ara').value.trim());
+  const el = document.getElementById('liste');
+  const gorunen = q ? ESERLER.filter(w => sade(w.name).includes(q)) : ESERLER;
+
+  if(!gorunen.length){ el.innerHTML = ''; return; }
+
+  el.innerHTML = gorunen.map(w => {
+    // İpucu satırı: türü tahmin etmeye yarayan ne varsa göster.
+    const ip = [];
+    if(w.composer)     ip.push('Besteci: '+esc(w.composer));
+    if(w.lyric_writer) ip.push('Güfte: '+esc(w.lyric_writer));
+    if(w.makam)        ip.push('Makam: '+esc(w.makam));
+    if(w.form)         ip.push('Form: '+esc(w.form));
+    const rozet = REP_IDS.has(w.id) ? '<span class="rozet">repertuvarda</span>' : '';
+    const vid = w.video_link ? '<span class="rozet">video var</span>' : '';
+
+    return '<div class="kart" id="kart_'+w.id+'">' +
+      '<div class="eser">'+esc(w.name || '#'+w.id)+rozet+vid+'</div>' +
+      (ip.length ? '<div class="eser-alt">'+ip.join(' · ')+'</div>' : '') +
+      '<div class="turler">' +
+        TURLER.map(t => '<button class="t" onclick="ata('+w.id+',this)" data-tur="'+esc(t)+'">'+esc(t)+'</button>').join('') +
+      '</div>' +
+      '<div class="msj" id="msj_'+w.id+'"></div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── Atama ────────────────────────────────────────────────────────────────────
+// 204 + 0 satır BAŞARI DEĞİL: return=representation ile dönen diziyi sayıyoruz.
+async function ata(wid, dugme){
+  if(!ortamHazirMi()) return;
+  const tur = dugme.getAttribute('data-tur');
+  const kart = document.getElementById('kart_'+wid);
+  if(kart) kart.querySelectorAll('button.t').forEach(b => b.disabled = true);
+  kartMsj(wid, 'Kaydediliyor…');
+
+  try{
+    const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+wid,{
+      method:'PATCH',
+      headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'return=representation'},
+      body: JSON.stringify({ tur: tur })
+    });
+    if(!r.ok){
+      const t = await r.text();
+      throw new Error('HTTP '+r.status+' '+t.slice(0,120));
+    }
+    const satirlar = await r.json();
+    if(!Array.isArray(satirlar) || satirlar.length === 0){
+      throw new Error('Sunucu hiçbir satır güncellemedi (yetki engellemiş olabilir).');
+    }
+
+    const w = ESERLER.find(x => x.id === wid);
+    SON.unshift({ id: wid, ad: (w && w.name) || ('#'+wid), tur: tur });
+    SON = SON.slice(0,10);
+    ESERLER = ESERLER.filter(x => x.id !== wid);
+
+    if(kart){ kart.classList.add('gitti'); setTimeout(() => { cizListe(); }, 220); }
+    sonCiz();
+    kalanSayisi();
+  }catch(e){
+    kartMsj(wid, 'Kaydedilemedi: '+e.message, 'hata');
+    if(kart) kart.querySelectorAll('button.t').forEach(b => b.disabled = false);
+  }
+}
+
+// ── Geri al ──────────────────────────────────────────────────────────────────
+function sonCiz(){
+  const kutu = document.getElementById('sonKutu');
+  const el = document.getElementById('sonListe');
+  if(!SON.length){ kutu.style.display='none'; return; }
+  kutu.style.display='block';
+  el.innerHTML = SON.map((s,i) =>
+    '<div>'+esc(s.ad)+' → <b>'+esc(s.tur)+'</b>' +
+    '<button class="b" onclick="geriAl('+i+')">↩︎ geri al</button></div>').join('');
+}
+
+async function geriAl(i){
+  if(!ortamHazirMi()) return;
+  const s = SON[i];
+  if(!s) return;
+  try{
+    const r = await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+s.id,{
+      method:'PATCH',
+      headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'return=representation'},
+      body: JSON.stringify({ tur: null })
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const satirlar = await r.json();
+    if(!Array.isArray(satirlar) || satirlar.length === 0) throw new Error('satır güncellenmedi');
+    SON.splice(i,1);
+    sonCiz();
+    kalanSayisi();
+    durum('“'+esc(s.ad)+'” geri alındı — bir sonraki partide yine karşına çıkar.','ok');
+  }catch(e){
+    durum('Geri alınamadı: '+esc(e.message),'hata');
+  }
+}
+
+// ── Açılış ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if(!ortamHazirMi()) return;
+  yukle();
+});
+</script>
+</body>
+</html>
