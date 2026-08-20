@@ -1,5 +1,20 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-08-20: UZUN BASMA → BAŞKA REPERTUVARA EKLE / YENİ REPERTUVAR OLUŞTUR.
+//             Repertuvar detay listesindeki bir esere uzun basınca (500 ms) alttan
+//             sheet açılıyor: yönetilebilen diğer repertuvarlar listeleniyor (eser
+//             zaten içindeyse satır pasif, "zaten var" yazıyor) + "Yeni repertuvar
+//             oluştur" satır içi form. Toplu seçim modu YOK (eserler.html'deki
+//             bulkMode buraya taşınmadı) — bu liste sıralı bir program ve onay
+//             kutuları sürükleme alanıyla çakışırdı. Sürükle-bırak zaten yalnız ⠿
+//             tutamacından başlıyor (2026-08-12), jest çakışması bu yüzden yok;
+//             uzun-basma tutamacın üstünde bilerek devreye girmiyor. Repertuvar
+//             listesi SUNUCUDAN değil bellekteki `reps`ten geliyor (görünürlük
+//             zaten load()'da doğru çözülmüş + çevrimdışı çalışıyor). Sheet DOM'u
+//             document.body'ye ekleniyor — #dc her renderDetail'de yeniden çizildiği
+//             için panelin içindeki position:fixed katman bozulurdu (lycOverlay
+//             ile aynı desen). Yeni: _rlpInit/openRepMoveSheet/rlpAddToRep/
+//             rlpCreateAndAdd, dosyanın SONUNDA.
 // 2026-08-05 (b): TÜRKÇE DUYARSIZ ARAMA. "Hüsnü" kaydı "Husnu" yazınca
 //             bulunamıyordu. Dosyada üç ayrı yöntem vardı: toLowerCase()
 //             (eser/solist arama), toLocaleLowerCase('tr') (repertuvar arama),
@@ -1907,3 +1922,278 @@ function shareViaWhatsApp() {
   });
   window.addEventListener('online', _refresh);
 })();
+
+// ============================================================================
+// (2026-08-20) REPERTUVAR DETAYINDA UZUN BASMA → BAŞKA REPERTUVARA EKLE
+// ----------------------------------------------------------------------------
+// Emir: eserler.html'de zaten var olan "uzun bas → repertuvara ekle" davranışı
+// repertuvar detay listesindeki satırlar için de istendi. Karar (A + C):
+//   (A) Sürükle-bırak YALNIZCA ⠿ tutamacından başlar — bu zaten 2026-08-12'de
+//       yapılmıştı (HTML5 drag öznitelikleri kaldırılıp dragPointerStart yalnız
+//       tutamaca bağlanmıştı), dolayısıyla burada yeni bir şey gerekmedi.
+//       Uzun-basma jesti tutamacın ÜSTÜNDE bilerek devreye girmiyor; iki jest
+//       aynı satırda ama farklı bölgelerde yaşıyor.
+//   (C) Satıra uzun basınca TEK ESER için sheet açılır (Başka repertuvara ekle /
+//       Yeni repertuvar oluştur). Toplu seçim modu YOK — eserler.html'deki
+//       bulkMode buraya taşınmadı, çünkü bu liste sıralı bir program ve
+//       onay kutuları sürükleme alanıyla çakışıyor.
+//
+// Neden repertuvar listesi SUNUCUDAN çekilmiyor: eserler.html'deki aynı sheet
+// hâlâ eski görünürlük modeliyle sorgu kuruyor (group_id / is_public). Buradaki
+// `reps` dizisi load() tarafından zaten doğru görünürlükle dolduruluyor ve
+// çevrimdışıyken de elimizde — o yüzden kaynak olarak o kullanılıyor. Yeni bir
+// okuma yolu açmamak, "3. aşama: tüm okuma yollarını tara" işini büyütmemek için
+// de bilinçli bir tercih.
+//
+// Sheet DOM'u document.body'ye ekleniyor (openLyricsSheet'teki lycOverlay ile
+// aynı desen): #dc her renderDetail'de innerHTML ile baştan çiziliyor, panelin
+// İÇİNDE duran position:fixed bir katman o yeniden çizimde bozulur.
+// ============================================================================
+
+let _rlpTimer = null;         // uzun-basma sayacı
+let _rlpFiredAt = 0;          // uzun-basma tetiklendi → ardından gelen click yutulacak
+let _rlpStart = null;         // basma başlangıç koordinatı (kaydırma toleransı için)
+let _rlpWorkId = null;        // sheet'in üzerinde çalıştığı eser
+let _rlpFromRepId = null;     // hangi repertuvardan açıldı (listeden çıkarılacak)
+
+const RLP_DELAY = 500;        // ms — eserler.html ile aynı
+const RLP_MOVE_TOL = 10;      // px — bu kadar hareket kaydırma sayılır, sayaç iptal
+
+function _rlpIptal() { clearTimeout(_rlpTimer); _rlpTimer = null; _rlpStart = null; }
+
+function _rlpInit() {
+  const dc = document.getElementById('dc');
+  if (!dc || dc.dataset.lpBound) return;
+  dc.dataset.lpBound = '1';
+
+  // iOS'ta uzun basma metin seçimi + büyüteç açıyor; jestin görünür yan etkisi
+  // olmasın diye satırlarda seçim/callout kapatıldı. Ayrı bir CSS dosyasına
+  // dokunmamak için stil buradan enjekte ediliyor (tek dosya teslimi).
+  if (!document.getElementById('rlp-style')) {
+    const st = document.createElement('style');
+    st.id = 'rlp-style';
+    st.textContent =
+      '#dc tbody tr{-webkit-touch-callout:none;}' +
+      '#dc tbody tr td:nth-child(2){-webkit-user-select:none;user-select:none;}' +
+      '#dc tbody tr.lp-active td{background:rgba(124,111,255,.18)!important;}' +
+      '.rlp-sheet{position:fixed;left:0;right:0;bottom:0;z-index:9999;background:var(--surface);' +
+      'border-top:1px solid var(--border2);border-radius:16px 16px 0 0;transform:translateY(100%);' +
+      'transition:transform .28s cubic-bezier(.32,.72,0,1);max-height:76vh;display:flex;flex-direction:column;' +
+      'box-shadow:0 -8px 32px rgba(0,0,0,.45);padding-bottom:env(safe-area-inset-bottom);}' +
+      '.rlp-sheet.open{transform:translateY(0);}' +
+      '.rlp-ov{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.55);display:none;}' +
+      '.rlp-ov.open{display:block;}' +
+      '.rlp-item{display:flex;align-items:center;gap:10px;width:100%;padding:13px 20px;background:none;' +
+      'border:none;color:var(--text);font-size:14px;font-family:inherit;text-align:left;cursor:pointer;}' +
+      '.rlp-item:disabled{opacity:.4;cursor:default;}' +
+      '.rlp-item i{font-size:17px;color:var(--text2);width:20px;text-align:center;flex-shrink:0;}' +
+      '.rlp-item .rlp-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+      '.rlp-item .rlp-hint{font-size:11px;color:var(--text3);flex-shrink:0;}';
+    document.head.appendChild(st);
+  }
+
+  dc.addEventListener('pointerdown', (e) => {
+    if (e.button != null && e.button !== 0) return;                 // sağ tık başlatmasın
+    const tr = e.target.closest && e.target.closest('tr[data-idx]');
+    if (!tr) return;
+    if (e.target.closest('.drag-handle')) return;                   // (A) sürükleme bölgesi — jestler ayrı
+    if (e.target.closest('.ra')) return;                            // satır işlem düğmeleri
+    _rlpStart = { x: e.clientX, y: e.clientY, tr };
+    clearTimeout(_rlpTimer);
+    _rlpTimer = setTimeout(() => {
+      _rlpFiredAt = Date.now();
+      tr.classList.add('lp-active');
+      setTimeout(() => tr.classList.remove('lp-active'), 400);
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch (err) {}
+      const rep = getRep(tr.dataset.rep);
+      const it = rep && (rep.items || [])[parseInt(tr.dataset.idx)];
+      if (it) openRepMoveSheet(it.workId, tr.dataset.rep);
+    }, RLP_DELAY);
+  });
+
+  // Parmak kayarsa (liste kaydırma) uzun-basma iptal. Küçük titremeler
+  // tolere ediliyor — eserler.html'de HER pointermove iptal ediyordu, bu da
+  // duran parmakta bile jesti bazen düşürüyordu.
+  dc.addEventListener('pointermove', (e) => {
+    if (!_rlpStart) return;
+    if (Math.abs(e.clientX - _rlpStart.x) > RLP_MOVE_TOL ||
+        Math.abs(e.clientY - _rlpStart.y) > RLP_MOVE_TOL) _rlpIptal();
+  }, { passive: true });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt =>
+    dc.addEventListener(evt, _rlpIptal, { passive: true }));
+
+  // Uzun-basmadan SONRA gelen click'i yut: satırın ikinci hücresinde
+  // openLyricsSheet çağıran satır içi onclick var, aksi halde sheet'in
+  // ardından söz penceresi de açılırdı. Yakalama (capture) aşamasında
+  // dinleniyor ki hedefteki satır içi handler'dan ÖNCE çalışsın.
+  dc.addEventListener('click', (e) => {
+    if (Date.now() - _rlpFiredAt < 700) { e.stopPropagation(); e.preventDefault(); }
+  }, true);
+
+  // Dokunmatik cihazda uzun basmanın açtığı sistem menüsü jesti bozuyor.
+  dc.addEventListener('contextmenu', (e) => {
+    if (!window.matchMedia || !window.matchMedia('(pointer:coarse)').matches) return;
+    if (e.target.closest && e.target.closest('tr[data-idx]')) e.preventDefault();
+  });
+}
+
+function _rlpEsc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function openRepMoveSheet(workId, fromRepId) {
+  _rlpWorkId = workId;
+  _rlpFromRepId = fromRepId || null;
+  const w = WL[String(workId)] || {};
+
+  let ov = document.getElementById('rlpOverlay');
+  let sh = document.getElementById('rlpSheet');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'rlpOverlay'; ov.className = 'rlp-ov';
+    ov.onclick = closeRepMoveSheet;
+    document.body.appendChild(ov);
+    sh = document.createElement('div');
+    sh.id = 'rlpSheet'; sh.className = 'rlp-sheet';
+    document.body.appendChild(sh);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('rlpSheet')?.classList.contains('open')) closeRepMoveSheet();
+    });
+  }
+
+  // Hedef adaylar: yönetebildiğim ve İÇİNDE BULUNDUĞUM repertuvar dışındakiler.
+  const aday = (reps || []).filter(r => r.canManage && String(r.id) !== String(fromRepId));
+
+  const satirlar = aday.length ? aday.map(r => {
+    const varMi = (r.items || []).some(it => String(it.workId) === String(workId));
+    const ikon = r.is_public ? 'ti-world' : (r.group_id ? 'ti-users-group' : 'ti-lock');
+    return `<button class="rlp-item" ${varMi ? 'disabled' : ''}
+        onclick="rlpAddToRep('${r.id}')">
+        <i class="ti ${ikon}" aria-hidden="true"></i>
+        <span class="rlp-nm">${_rlpEsc(r.name || '(isimsiz)')}</span>
+        <span class="rlp-hint">${varMi ? 'zaten var' : ((r.items || []).length + ' eser')}</span>
+      </button>`;
+  }).join('')
+    : '<div style="padding:18px 20px;color:var(--text3);font-size:13px;">Ekleyebileceğin başka repertuvar yok.</div>';
+
+  sh.innerHTML = `
+    <div style="padding:14px 20px 10px;border-bottom:1px solid var(--border);">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">Repertuvara Ekle</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-top:4px;line-height:1.35;">${_rlpEsc(w.name || ('#' + workId))}</div>
+    </div>
+    <div id="rlpList" style="overflow-y:auto;flex:1;padding:4px 0;">${satirlar}</div>
+    <div id="rlpMsg" style="display:none;padding:8px 20px 0;font-size:12px;color:var(--text3);"></div>
+    <div style="border-top:1px solid var(--border);padding:4px 0 8px;">
+      <button class="rlp-item" id="rlpNewBtn" onclick="rlpShowNewForm()">
+        <i class="ti ti-playlist-add" aria-hidden="true"></i>
+        <span class="rlp-nm" style="color:var(--accent);font-weight:600;">Yeni repertuvar oluştur</span>
+      </button>
+      <div id="rlpNewForm" style="display:none;padding:4px 20px 8px;">
+        <input id="rlpNewName" placeholder="Repertuvar adı" autocomplete="off"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;background:var(--surface2);
+                 border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;">
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button onclick="rlpHideNewForm()" style="flex:1;padding:9px;border-radius:8px;background:none;border:1px solid var(--border);color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer;">İptal</button>
+          <button onclick="rlpCreateAndAdd()" style="flex:2;padding:9px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">Oluştur ve Ekle</button>
+        </div>
+      </div>
+      <button class="rlp-item" onclick="closeRepMoveSheet()">
+        <i class="ti ti-x" aria-hidden="true"></i><span class="rlp-nm" style="color:var(--text2);">Kapat</span>
+      </button>
+    </div>`;
+
+  ov.classList.add('open');
+  requestAnimationFrame(() => sh.classList.add('open'));
+}
+
+function closeRepMoveSheet() {
+  document.getElementById('rlpOverlay')?.classList.remove('open');
+  document.getElementById('rlpSheet')?.classList.remove('open');
+}
+
+function rlpShowNewForm() {
+  const btn = document.getElementById('rlpNewBtn');
+  const form = document.getElementById('rlpNewForm');
+  if (!form) return;
+  if (btn) btn.style.display = 'none';
+  form.style.display = 'block';
+  setTimeout(() => document.getElementById('rlpNewName')?.focus(), 60);
+}
+
+function rlpHideNewForm() {
+  const btn = document.getElementById('rlpNewBtn');
+  const form = document.getElementById('rlpNewForm');
+  if (form) form.style.display = 'none';
+  if (btn) btn.style.display = 'flex';
+}
+
+function _rlpMsg(text, renk) {
+  const m = document.getElementById('rlpMsg');
+  if (!m) return;
+  m.style.display = 'block';
+  m.style.color = renk || 'var(--text3)';
+  m.textContent = text;
+}
+
+// Var olan repertuvara ekleme. seq/mükerrer mantığı addWork() ile birebir aynı;
+// linked_prev AÇIKÇA false (kolon varsayılanı true, gönderilmezse eser kendini
+// potpuriye bağlı doğuruyor — 2026-08-06 notu).
+async function rlpAddToRep(repId) {
+  const hedef = getRep(repId);
+  if (!hedef || _rlpWorkId == null) return;
+  const items = hedef.items || [];
+  if (items.some(i => String(i.workId) === String(_rlpWorkId))) {
+    _rlpMsg('Bu eser zaten "' + (hedef.name || '') + '" içinde.', '#e07060');
+    return;
+  }
+  const nextSeq = items.length ? Math.max(...items.map(i => i.seq || 0)) + 1 : 1;
+  _rlpMsg('Ekleniyor...');
+  try {
+    await dbPost('repertoire_items', {
+      repertoire_id: repId, work_id: _rlpWorkId, seq: nextSeq, linked_prev: false
+    });
+    closeRepMoveSheet();
+    toast('✓ "' + (hedef.name || 'Repertuvar') + '" içine eklendi');
+    await load();
+  } catch (e) {
+    _rlpMsg('Eklenemedi: ' + (e.message || 'bilinmeyen hata'), '#e07060');
+    console.error('[uzun bas → repertuvara ekle]', e);
+  }
+}
+
+// Yeni repertuvar + eseri içine ekle. Görünürlük varsayılanı openNew() ile aynı:
+// grubu olan kullanıcıda Grup, yoksa Kişisel. Sheet'te üç seçenekli görünürlük
+// arayüzü BİLEREK yok — hızlı bir jestin ortasında paylaşım kararı sorulmuyor;
+// gerekirse sonradan kartın çipinden değiştirilir.
+async function rlpCreateAndAdd() {
+  const inp = document.getElementById('rlpNewName');
+  const name = (inp?.value || '').trim();
+  if (!name) { inp?.focus(); return; }
+  if (_rlpWorkId == null) return;
+  const uid = getUserId() || undefined;
+  const gid = getGroupId() || null;
+  _rlpMsg('Oluşturuluyor...');
+  try {
+    const r = await dbPost('repertoires', {
+      name, status: 'concept', is_public: false, group_id: gid,
+      user_id: uid, owner_id: uid
+    });
+    const yeni = Array.isArray(r) ? r[0] : r;
+    if (!yeni || !yeni.id) throw new Error('repertuvar id dönmedi');
+    await dbPost('repertoire_items', {
+      repertoire_id: yeni.id, work_id: _rlpWorkId, seq: 1, linked_prev: false
+    });
+    closeRepMoveSheet();
+    toast('✓ "' + name + '" oluşturuldu ve eser eklendi');
+    await load();
+  } catch (e) {
+    _rlpMsg('Oluşturulamadı: ' + (e.message || 'bilinmeyen hata'), '#e07060');
+    console.error('[uzun bas → yeni repertuvar]', e);
+  }
+}
+
+// #dc HTML'de statik olarak duruyor (yalnız innerHTML'i değişiyor), bu yüzden
+// dinleyiciler bir kez bağlanıyor ve her renderDetail'den sonra hayatta kalıyor.
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _rlpInit);
+else _rlpInit();
