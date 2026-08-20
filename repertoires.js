@@ -1,5 +1,28 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-08-20 (b): YENİ GÖRÜNÜRLÜK MODELİNE GEÇİŞ (3. aşamanın repertoires.js ayağı).
+//             Veritabanı 2. aşamada `repertoires.visibility` + `repertoire_group_shares`
+//             modeline geçmişti (log-23 561/564/565) ama bu dosya hâlâ `is_public`/
+//             `group_id` yazıp okuyordu; 2026-08-17'deki "yeni repertuvarlar gruba
+//             görünmüyor" hatasının sebebi buydu. DEĞİŞENLER: (1) tek okuma noktası
+//             `repVis(r)` — `visibility`yi okur, yalnız göç öncesi önbellek satırları
+//             için eski sütunlara düşer; visChip/openEdit/bölümleme/sheet ikonu hep
+//             bunu kullanıyor. (2) load()'daki istemci süzgeci `or=(owner_id,group_id,
+//             is_public)` KALDIRILDI — görünürlüğü artık `repertoires_read` politikası
+//             belirliyor; eski süzgeç, RLS'ten geçen grup-paylaşımlı ve KİŞİSEL
+//             paylaşımlı (repertoire_shares) repertuvarları istemcide eliyordu.
+//             (3) Listeye DÖRDÜNCÜ bölüm: "Benimle Paylaşılanlar" — süzgeç kalkınca
+//             gelen kişisel paylaşımlar hiçbir bölüme düşmeyip kaybolurdu.
+//             (4) saveRep/copyRep/hızlı oluşturma artık `visibility`yi AÇIKÇA yazıyor
+//             (sütun varsayılanına bırakmıyor) ve yeni `repGrupPaylasimiUygula()` ile
+//             `repertoire_group_shares` satırını ekliyor/siliyor — grup görünürlüğü
+//             sütuna değil O SATIRA bağlı. `rgs_write` politikası `is_group_manager`
+//             istediği için düz üyede bu yazma başarısız olur: hata YUTULMUYOR,
+//             kullanıcıya dürüstçe söyleniyor, ve hızlı oluşturma sheet'indeki
+//             "Grupla paylaş" kutusu yalnız grup yöneticisine gösteriliyor.
+//             Eski `is_public`/`group_id` sütunları TUTARLI yazılmaya devam ediyor:
+//             aynı satırı hâlâ eski modelle okuyan sayfalar var (stage.html,
+//             eserler.html) — göç bitene kadar iki model uyumlu tutuluyor.
 // 2026-08-20: UZUN BASMA → BAŞKA REPERTUVARA EKLE / YENİ REPERTUVAR OLUŞTUR.
 //             Repertuvar detay listesindeki bir esere uzun basınca (500 ms) alttan
 //             sheet açılıyor: yönetilebilen diğer repertuvarlar listeleniyor (eser
@@ -446,11 +469,16 @@ async function load(){
   try{
     const uid2 = getUserId();
     const gid = getGroupId();
-    const repQuery = gid
-      ? 'order=created_at&limit=100&or=(owner_id.eq.'+uid2+',group_id.eq.'+gid+',is_public.eq.true)'
-      : (uid2
-        ? 'order=created_at&limit=100&or=(owner_id.eq.'+uid2+',is_public.eq.true)'
-        : 'order=created_at&limit=100&is_public=eq.true');
+    // (2026-08-20) YENİ MODEL: istemci tarafındaki `or=(owner_id,group_id,is_public)`
+    // süzgeci KALDIRILDI. Görünürlüğü artık sunucudaki `repertoires_read` politikası
+    // belirliyor (public / sahip / visibility='group' ∩ repertoire_group_shares ∩
+    // my_group_ids() / repertoire_shares ile kişisel paylaşım — log-23 564/565).
+    // Eski süzgeç yalnız `group_id` ve `is_public` sütunlarına bakıyordu; bu yüzden
+    // (a) yeni modelde gruba PAYLAŞIM SATIRIYLA açılmış ama `group_id`'si boş bir
+    // repertuvar ve (b) `repertoire_shares` ile KİŞİSEL paylaşılmış bir repertuvar
+    // RLS'ten geçtiği hâlde istemcide eleniyordu. Süzgeci kaldırmak yalnızca eksileni
+    // geri getirir; fazladan hiçbir satır gelmez, çünkü RLS zaten üst sınırdır.
+    const repQuery = 'order=created_at&limit=100';
     const solQuery = gid ? 'order=name&group_id=eq.'+gid : 'order=name';
     // Yerel veri zaten ekrandaysa uzun beklemeye gerek yok — 3.5 sn'de gelmezse
     // sessizce local ile devam. Yerel veri yoksa ağa biraz daha şans ver (4.5 sn).
@@ -534,10 +562,21 @@ function renderList(){
   // "Repertuvarlarım" = yalnızca gruba bağlı OLMAYAN kişisel repertuvarlarım.
   // Her kayıt tek bölümde çıkar; kart içeriği/kaydırma davranışı hâlâ isOwner'a bakar.
   const myGid   = getGroupId();
-  const inGroup = r => !!myGid && !!r.group_id && r.group_id === myGid;
+  // (2026-08-20) YENİ MODEL: bölümleme `visibility` üzerinden. Bir repertuvarın
+  // HANGİ gruba açıldığı istemcide bilinmiyor (paylaşım satırları çekilmiyor), ama
+  // gerek de yok: RLS yalnızca BENİM grubuma açılmış olanları döndürüyor, dolayısıyla
+  // elimize gelen her visibility='group' satırı tanım gereği benim grubumun işi.
+  // `group_id` yedek olarak duruyor (göç öncesi önbellek satırları için).
+  const inGroup = r => repVis(r) === 'group' || (!!myGid && !!r.group_id && r.group_id === myGid);
   const mine = filtered.filter(r => r.isOwner && !inGroup(r));
   const grp  = filtered.filter(r => inGroup(r) && (r.isOwner || !hiddenIds.includes(r.id)));
-  const pub  = filtered.filter(r => !r.isOwner && r.is_public && !inGroup(r) && !hiddenIds.includes(r.id));
+  const pub  = filtered.filter(r => !r.isOwner && repVis(r) === 'public' && !inGroup(r) && !hiddenIds.includes(r.id));
+  // DÖRDÜNCÜ BÖLÜM (yeni): ne benim, ne grubumun, ne genel — yani `repertoire_shares`
+  // ile DOĞRUDAN BANA açılmış repertuvarlar. Eski istemci süzgeci bunları zaten hiç
+  // getirmiyordu; süzgeç kalkınca geliyorlar ve bir bölüme yerleşmezlerse listede
+  // hiç görünmeden kaybolurlardı.
+  const paylasilan = filtered.filter(r =>
+    !r.isOwner && !inGroup(r) && repVis(r) !== 'public' && !hiddenIds.includes(r.id));
     // POTPURİ sayacı — repertuvarda kaç ayrı zincir var (ardışık linkedPrev blokları)
   function medleyCount(r){
     const its=r.items||[]; let n=0;
@@ -549,7 +588,7 @@ function renderList(){
     const medleyChip = mc ? `<span class="rep-medley" title="${mc===1?'Bu repertuvarda bir potpuri var':'Bu repertuvarda '+mc+' potpuri var'}">🔗${mc>1?' '+mc:''}</span>` : '';
     const touchAttrs = `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)" ontouchcancel="riTouchEnd(event)"`;
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
-      <div><div class="rn">${r.name}${r.is_public&&r.isOwner?' <i class="ti ti-world" style="font-size:12px;color:#4ade80;vertical-align:-1px;" title="Herkese açık" aria-hidden="true"></i>':''}</div>
+      <div><div class="rn">${r.name}${repVis(r)==='public'&&r.isOwner?' <i class="ti ti-world" style="font-size:12px;color:#4ade80;vertical-align:-1px;" title="Herkese açık" aria-hidden="true"></i>':''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${medleyChip}${r.date?'<span>'+r.date+'</span>':''}</div></div>
       <div class="rc">${(r.items||[]).length} eser</div>
     </div>`;
@@ -578,6 +617,10 @@ function renderList(){
   if(grp.length){
     html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-users-group" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> Grubun Repertuvarları</div>';
     html += grp.map(repCard).join('');
+  }
+  if(paylasilan.length){
+    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-user-share" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> Benimle Paylaşılanlar</div>';
+    html += paylasilan.map(repCard).join('');
   }
   if(pub.length){
     html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-world" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> Genel Repertuvarlar</div>';
@@ -712,8 +755,20 @@ function renderDetail(){
 // görünüyordu. Artık çip GERÇEK durumu gösteriyor. Tıklayınca doğrudan yayına
 // almak yerine düzenleme modalı açılıyor: yanlış paylaşım geri alınamaz (içerik
 // görülmüş olur), bu yüzden tek dokunuşla herkese açma bilerek kaldırıldı.
+// (2026-08-20) YENİ GÖRÜNÜRLÜK MODELİ — TEK OKUMA NOKTASI.
+// Görünürlük artık `repertoires.visibility` ('public'|'group'|'private') sütununda;
+// grup erişimi `repertoire_group_shares` tablosundan RLS içinde çözülüyor
+// (log-23 561/564/565). Eski `is_public`/`group_id` sütunları tabloda DURUYOR ama
+// artık kaynak DEĞİL. Yedek dal yalnızca göçten önce yazılmış IndexedDB önbelleği
+// içindir — `visibility` alanı gelen her sunucu satırında var.
+function repVis(r){
+  const v = r && r.visibility;
+  if (v === 'public' || v === 'group' || v === 'private') return v;
+  return (r && r.is_public) ? 'public' : ((r && r.group_id) ? 'group' : 'private');
+}
+
 function visChip(rep){
-  const v = rep.is_public ? 'public' : (rep.group_id ? 'group' : 'private');
+  const v = repVis(rep);
   // İkonlar Tabler setinden (projenin standardı) — emoji KULLANILMIYOR.
   // ti-users-group, sol menüdeki "Grup / Koro" öğesiyle AYNI ikon (topnav.js:651).
   const map = {
@@ -735,7 +790,8 @@ async function copyRep(repId){
     const r=await fetch(SUPA_URL+'/rest/v1/repertoires',{
       method:'POST',
       headers:{...H,'Prefer':'return=representation'},
-      body:JSON.stringify({name:rep.name+' (kopya)',status:'concept',user_id:uid,owner_id:uid,is_public:false,group_id:null})
+      // Kopya her zaman KİŞİSEL doğar (yeni model: visibility='private').
+      body:JSON.stringify({name:rep.name+' (kopya)',status:'concept',user_id:uid,owner_id:uid,visibility:'private',is_public:false,group_id:null})
     });
     if(!r.ok)throw new Error(await r.text());
     const [newRep]=await r.json();
@@ -763,8 +819,37 @@ function setVisChoice(v){ if(v==='group' && !getGroupId()) v='private'; const el
 function getVisChoice(){ const el=document.querySelector('input[name="fVisibility"]:checked'); return el?el.value:'private'; }
 
 function openNew(){editId=null;document.getElementById('rmt').textContent='Yeni Repertuvar';['fN','fD','fV','fNo'].forEach(x=>document.getElementById(x).value='');document.getElementById('fS').value='concept';applyVisOptions();setVisChoice(getGroupId()?'group':'private');document.getElementById('rm').style.display='flex';setTimeout(()=>document.getElementById('fN').focus(),50);}
-function openEdit(id){const r=getRep(id);if(!r)return;editId=id;document.getElementById('rmt').textContent='Düzenle';document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';applyVisOptions();setVisChoice(r.is_public?'public':(r.group_id?'group':'private'));document.getElementById('rm').style.display='flex';}
+function openEdit(id){const r=getRep(id);if(!r)return;editId=id;document.getElementById('rmt').textContent='Düzenle';document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';applyVisOptions();setVisChoice(repVis(r));document.getElementById('rm').style.display='flex';}
 function closeRM(){document.getElementById('rm').style.display='none';}
+
+// (2026-08-20) YENİ MODEL — GRUP PAYLAŞIM SATIRI.
+// `visibility='group'` TEK BAŞINA yetmiyor: `repertoires_read` politikası grup
+// erişimini `repertoire_group_shares` tablosundan okuyor, sütundan değil.
+// Satır yoksa repertuvarı yalnız sahibi görür (2026-08-17'deki hata tam buydu).
+// ⚠️ `rgs_write` politikası `is_group_manager(group_id)` istiyor: DÜZ ÜYE bu satırı
+// yazamaz. O yüzden hata YUTULMUYOR — çağıran taraf kullanıcıya dürüst söylüyor.
+// Dönüş: {ok:true} | {ok:false, mesaj:'...'}
+async function repGrupPaylasimiUygula(repId, vis, gid){
+  if(!repId) return {ok:true};
+  try{
+    if(vis === 'group'){
+      if(!gid) return {ok:false, mesaj:'Grup bilgisi bulunamadı — repertuvar grupla paylaşılamadı.'};
+      await dbPost('repertoire_group_shares',{repertoire_id:repId, group_id:gid, shared_by:getUserId()||undefined});
+    } else {
+      // Gruptan geri çekme: satır kalırsa repertuvar kişisel görünse bile grup
+      // üyeleri okumaya devam eder.
+      await dbDelWhere('repertoire_group_shares','repertoire_id',repId);
+    }
+    return {ok:true};
+  }catch(e){
+    const m = String(e && e.message || '');
+    // Aynı satır zaten varsa (bileşik birincil anahtar) bu bir hata değil.
+    if(/duplicate key|23505|already exists/i.test(m)) return {ok:true};
+    console.error('[grup paylaşımı]', m);
+    if(vis === 'group') return {ok:false, mesaj:'Repertuvar oluşturuldu ama GRUPLA PAYLAŞILAMADI (grup yöneticisi yetkisi gerekiyor). Şimdilik yalnızca sen görüyorsun.'};
+    return {ok:false, mesaj:'Grup paylaşımı kaldırılamadı — grup üyeleri bu repertuvarı görmeye devam edebilir.'};
+  }
+}
 
 async function saveRep(){
   const name=document.getElementById('fN').value.trim();
@@ -775,12 +860,23 @@ async function saveRep(){
   // Kişiselde group_id BOŞ yazılır — düzenlemede de gönderiliyor ki bir repertuvar
   // sonradan gruba taşınabilsin ya da gruptan geri çekilebilsin.
   const groupId=(vis==='private')?null:myGid;
-  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,is_public:isPublic,group_id:groupId,user_id:getUserId()||undefined,owner_id:editId?undefined:(getUserId()||undefined)};
+  // (2026-08-20) YENİ MODEL: `visibility` ARTIK AÇIKÇA YAZILIYOR. 2026-08-17'deki
+  // "yeni repertuvarlar gruba görünmüyor" hatasının sebebi tam olarak buydu —
+  // istemci yalnız group_id/is_public yazıyor, `visibility` sütunun varsayılanı
+  // ('private') ile kalıyordu. Eski sütunlar da yazılmaya devam ediyor: aynı veriyi
+  // hâlâ eski modelle okuyan sayfalar var (stage.html, eserler.html — 3. aşamanın
+  // kalan maddesi), göç bitene kadar ikisi tutarlı tutuluyor.
+  const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,visibility:vis,is_public:isPublic,group_id:groupId,user_id:getUserId()||undefined,owner_id:editId?undefined:(getUserId()||undefined)};
   sync('spin','Kaydediliyor...');
   try{
+    let repId=editId;
     if(editId){await dbPatch('repertoires',editId,data);}
-    else{const r=await dbPost('repertoires',data);selId=r[0]?.id||r.id;}
-    closeRM();toast('Kaydedildi ✓');await load();
+    else{const r=await dbPost('repertoires',data);repId=r[0]?.id||r.id;selId=repId;}
+    // Grup görünürlüğü PAYLAŞIM SATIRINA bağlı; sütun tek başına yetmiyor.
+    const pay = await repGrupPaylasimiUygula(repId, vis, myGid);
+    closeRM();
+    toast(pay.ok ? 'Kaydedildi ✓' : pay.mesaj, pay.ok ? 'ok' : 'er');
+    await load();
   }catch(e){sync('err','Hata');toast(e.message,'er');}
 }
 
@@ -2067,7 +2163,7 @@ function openRepMoveSheet(workId, fromRepId) {
 
   const satirlar = aday.length ? aday.map(r => {
     const varMi = (r.items || []).some(it => String(it.workId) === String(workId));
-    const ikon = r.is_public ? 'ti-world' : (r.group_id ? 'ti-users-group' : 'ti-lock');
+    const ikon = { public:'ti-world', group:'ti-users-group', private:'ti-lock' }[repVis(r)];
     return `<button class="rlp-item" ${varMi ? 'disabled' : ''}
         onclick="rlpAddToRep('${r.id}')">
         <i class="ti ${ikon}" aria-hidden="true"></i>
@@ -2076,6 +2172,20 @@ function openRepMoveSheet(workId, fromRepId) {
       </button>`;
   }).join('')
     : '<div style="padding:18px 20px;color:var(--text3);font-size:13px;">Ekleyebileceğin başka repertuvar yok.</div>';
+
+  // (2026-08-20) YENİ MODEL — hızlı oluşturmada görünürlük.
+  // Varsayılan KİŞİSEL (`visibility:'private'`): bir jestin ortasında paylaşım
+  // kararı sorulmuyor, kart çipinden sonradan değiştirilebiliyor. "Grupla paylaş"
+  // seçeneği YALNIZCA grup yöneticisine gösteriliyor, çünkü `rgs_write` politikası
+  // paylaşım satırını yazmayı `is_group_manager(group_id)` ile sınırlıyor — düz
+  // üyeye bu kutuyu göstermek, işaretlediğinde sessizce çalışmayan bir söz olurdu.
+  const _gid = getGroupId();
+  const grupSecenegi = (_gid && typeof isGroupManager === 'function' && isGroupManager())
+    ? `<label style="display:flex;align-items:center;gap:8px;margin-top:9px;font-size:13px;color:var(--text2);cursor:pointer;">
+         <input type="checkbox" id="rlpNewGroup" style="accent-color:var(--accent);width:15px;height:15px;">
+         <i class="ti ti-users-group" style="font-size:15px;" aria-hidden="true"></i> Grupla paylaş
+       </label>`
+    : '';
 
   sh.innerHTML = `
     <div style="padding:14px 20px 10px;border-bottom:1px solid var(--border);">
@@ -2093,6 +2203,7 @@ function openRepMoveSheet(workId, fromRepId) {
         <input id="rlpNewName" placeholder="Repertuvar adı" autocomplete="off"
           style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;background:var(--surface2);
                  border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;">
+        ${grupSecenegi}
         <div style="display:flex;gap:8px;margin-top:8px;">
           <button onclick="rlpHideNewForm()" style="flex:1;padding:9px;border-radius:8px;background:none;border:1px solid var(--border);color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer;">İptal</button>
           <button onclick="rlpCreateAndAdd()" style="flex:2;padding:9px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">Oluştur ve Ekle</button>
@@ -2172,11 +2283,16 @@ async function rlpCreateAndAdd() {
   if (!name) { inp?.focus(); return; }
   if (_rlpWorkId == null) return;
   const uid = getUserId() || undefined;
-  const gid = getGroupId() || null;
+  const grupla = !!document.getElementById('rlpNewGroup')?.checked;
+  const gid = grupla ? (getGroupId() || null) : null;
+  const vis = (grupla && gid) ? 'group' : 'private';
   _rlpMsg('Oluşturuluyor...');
   try {
+    // YENİ MODEL: `visibility` açıkça yazılıyor (sütun varsayılanına bırakılmıyor);
+    // eski `is_public`/`group_id` de tutarlı yazılıyor, çünkü aynı satırı hâlâ eski
+    // modelle okuyan sayfalar var (stage.html, eserler.html — 3. aşamanın kalanı).
     const r = await dbPost('repertoires', {
-      name, status: 'concept', is_public: false, group_id: gid,
+      name, status: 'concept', visibility: vis, is_public: false, group_id: gid,
       user_id: uid, owner_id: uid
     });
     const yeni = Array.isArray(r) ? r[0] : r;
@@ -2184,8 +2300,11 @@ async function rlpCreateAndAdd() {
     await dbPost('repertoire_items', {
       repertoire_id: yeni.id, work_id: _rlpWorkId, seq: 1, linked_prev: false
     });
+    // Grup görünürlüğü paylaşım satırına bağlı — sütun tek başına yetmiyor.
+    const pay = await repGrupPaylasimiUygula(yeni.id, vis, gid);
     closeRepMoveSheet();
-    toast('✓ "' + name + '" oluşturuldu ve eser eklendi');
+    if (pay.ok) toast('✓ "' + name + '" oluşturuldu ve eser eklendi');
+    else toast(pay.mesaj, 'er');
     await load();
   } catch (e) {
     _rlpMsg('Oluşturulamadı: ' + (e.message || 'bilinmeyen hata'), '#e07060');
