@@ -1,5 +1,25 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-08-20 (c): 🎧 REPERTUVARI DİNLE. Repertuvardaki eserlerin works.video_link
+//             bağlantılarından, REPERTUVAR SIRASIYLA bir çalma listesi (Emir'in
+//             amacı: ezberleme, "eserlerin tam kafaya yerleşmesi"). İKİ YOL birden:
+//             (A) uygulama içi YouTube IFrame oynatıcısı — listeden atlanabiliyor,
+//             çalan satır vurgulanıyor; düz <iframe> yerine API kullanıldı çünkü
+//             GÖMMESİ KAPALI videoyu (101/150) ancak onError ile anlayıp
+//             işaretleyip otomatik atlayabiliyoruz. (B) "YouTube'da Aç" —
+//             watch_videos?video_ids=… geçici listesi; gömme kısıtı yok ve
+//             YouTube uygulamasında ARKA PLANDA çalar (uygulama içi oynatıcı
+//             telefon kilitlenince durar — bu arayüzde de yazıyor). Bağlantısı
+//             olmayan eserler SESSİZCE atlanmıyor: "N eserde bağlantı yok" uyarısı,
+//             dokununca hangileri olduğu açılıyor (Emir'in tercihi). Yeni:
+//             _ytId (youtu.be/watch?v=/embed/shorts/live/çıplak kimlik ayrıştırıcı),
+//             _dinleListesi, openDinleSheet/closeDinleSheet, dinleAtla,
+//             dinleYouTubedeAc; düğme detay başlığında "Sahneye Çık"ın yanında.
+//             AYRICA: _applyWorksRows artık videoLink'i de WL'e koyuyor, ve
+//             loadWorksData'daki works okuması ANON'DAN JETONA çevrildi (anon
+//             istekte RLS yalnız visibility='public' eserleri veriyordu ⇒ gizli/
+//             gruba açık eserler listede "#<id>" kalıyordu; stage.html'de 08-19'da
+//             düzeltilen hatanın bu dosyadaki eşi). Anon yedek yol korundu.
 // 2026-08-20 (b): YENİ GÖRÜNÜRLÜK MODELİNE GEÇİŞ (3. aşamanın repertoires.js ayağı).
 //             Veritabanı 2. aşamada `repertoires.visibility` + `repertoire_group_shares`
 //             modeline geçmişti (log-23 561/564/565) ama bu dosya hâlâ `is_public`/
@@ -336,7 +356,8 @@ function _applyWorksRows(rows) {
   WL = {}; WLIST = [];
   (rows||[]).forEach(w => {
     const id = String(w.id);
-    WL[id] = { name: w.name||'', composer: w.composer||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'' };
+    // (2026-08-20) videoLink eklendi — 🎧 Repertuvarı Dinle bunu kullanıyor.
+    WL[id] = { name: w.name||'', composer: w.composer||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'', videoLink: w.video_link||'' };
     WLIST.push({ id, name: w.name||'', composer: w.composer||'', makam: w.makam||'' });
   });
   // customWorks patch (yerel override'lar)
@@ -344,7 +365,7 @@ function _applyWorksRows(rows) {
     const customs = JSON.parse(localStorage.getItem('customWorks') || '[]');
     const deleted = JSON.parse(localStorage.getItem('deletedWorks') || '[]');
     deleted.forEach(function(did){ var sid=String(parseInt(did)); delete WL[sid]; for(var j=WLIST.length-1;j>=0;j--){if(WLIST[j].id===sid){WLIST.splice(j,1);break;}} });
-    customs.forEach(function(w){ var sid=String(parseInt(w.id)); if(WL[sid]){if(w.name)WL[sid].name=w.name;if(w.lyrics!==undefined)WL[sid].lyrics=w.lyrics;} else WL[sid]={name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||''}; var found=false; for(var k=0;k<WLIST.length;k++){if(WLIST[k].id===sid){if(w.name)WLIST[k].name=w.name;found=true;break;}} if(!found)WLIST.push({id:sid,name:w.name||'',composer:w.composer||'',makam:w.makam||''}); });
+    customs.forEach(function(w){ var sid=String(parseInt(w.id)); if(WL[sid]){if(w.name)WL[sid].name=w.name;if(w.lyrics!==undefined)WL[sid].lyrics=w.lyrics;} else WL[sid]={name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||'',videoLink:w.videoLink||''}; var found=false; for(var k=0;k<WLIST.length;k++){if(WLIST[k].id===sid){if(w.name)WLIST[k].name=w.name;found=true;break;}} if(!found)WLIST.push({id:sid,name:w.name||'',composer:w.composer||'',makam:w.makam||''}); });
   } catch(e) {}
 }
 
@@ -362,12 +383,20 @@ async function loadWorksData() {
   }
   // ── 2) ARKA PLANDA sunucudan tazele (asılı kalmasın diye kısa timeout) ──
   try {
-    const r = await fetch(SUPA_URL+'/rest/v1/works?order=name&limit=2000', {
-      // [A] works liste okumasi bilerek anon — 2026-07-17'de token dolunca eser
-      // adlari kaybolup yerine numara ciktigi icin.
-      headers: anonHeaders(),
-      signal: AbortSignal.timeout(3500)
-    });
+    // (2026-08-20) ÖNCE OTURUM JETONU, GEREKİRSE ANON'A DÜŞ — stage.html'de
+    // 2026-08-19'da alınan dersin aynısı. Eski hâli BİLEREK anon'du (2026-07-17:
+    // süresi dolmuş jeton 401 verince eser adları kaybolup yerine numara
+    // çıkıyordu). O gerekçe görünürlük modelinden ÖNCE geçerliydi: artık RLS
+    // anon isteğe SADECE visibility='public' eserleri veriyor ⇒ repertuvardaki
+    // gizli ya da GRUBA AÇIK eserler burada hiç gelmiyor ve satırda yine
+    // "#<id>" görünüyordu. Jetonla dene, istek başarısızsa anon ile tekrar
+    // dene — hem yetki hem eski dayanıklılık korunuyor.
+    const _worksUrl = SUPA_URL+'/rest/v1/works?order=name&limit=2000';
+    let r = await fetch(_worksUrl, { headers: authHeaders(), signal: AbortSignal.timeout(3500) });
+    if (!r.ok) {
+      console.warn('[repertoires] works jetonla alınamadı ('+r.status+') — anon ile deneniyor');
+      r = await fetch(_worksUrl, { headers: anonHeaders(), signal: AbortSignal.timeout(3500) });
+    }
     if (!r.ok) throw new Error('works fetch '+r.status);
     const rows = await r.json();
     if ((rows||[]).length) {
@@ -719,6 +748,7 @@ function renderDetail(){
       <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:8px;">${rep.name}</div>
       <div class="cta-row">
         <a href="stage.html" class="bstage-primary" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:15px;" aria-hidden="true"></i> Sahneye Çık</a>
+        ${(rep.items||[]).length ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openDinleSheet('${rep.id}')" title="Repertuvarı YouTube bağlantılarından sırayla dinle">🎧 Dinle</button>` : ''}
         ${rep.canManage && (rep.items||[]).length>2 ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openSortSheet('${rep.id}')" title="Makam geçişlerine göre sıralama önerisi">🎼 Sırala</button>` : ''}
         ${rep.canManage ? `
         <details class="ov-menu">
@@ -2316,3 +2346,277 @@ async function rlpCreateAndAdd() {
 // dinleyiciler bir kez bağlanıyor ve her renderDetail'den sonra hayatta kalıyor.
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _rlpInit);
 else _rlpInit();
+
+// ============================================================================
+// (2026-08-20) 🎧 REPERTUVARI DİNLE — repertuvardaki eserlerin YouTube
+// bağlantılarından, REPERTUVAR SIRASIYLA bir çalma listesi.
+// ----------------------------------------------------------------------------
+// Amaç Emir'in tarifiyle ÖĞRENME/EZBERLEME ("eserlerin tam kafaya yerleşmesi"),
+// sahne aracı değil. Bu yüzden İKİ YOL birden var (Emir "ikisi birden" dedi):
+//   (A) UYGULAMA İÇİ oynatıcı — ekranda, sıradaki eser görünür, listeden
+//       istediğine atlanır. Sınırı: iOS'ta ekran kilitlenince durur, ve bazı
+//       videolarda gömme kapalıdır (telifli müzik şirketi yüklemeleri; Türk
+//       müziğinde yaygın). Gömme kapalıysa YouTube API 101/150 hatası verir —
+//       yutmuyoruz: satır işaretleniyor ve otomatik sonrakine geçiliyor.
+//   (B) YOUTUBE'DA AÇ — `watch_videos?video_ids=…` ile geçici çalma listesi.
+//       Gömme kısıtı yok ve YouTube uygulamasında ARKA PLANDA çalar (cepte
+//       dinleme). Karşılığında uygulamadan çıkılır; bağlantı ~50 video alır.
+// Bağlantısı olmayan eserler için Emir "uyarı" istedi: sessizce atlanmıyor,
+// başlıkta "N eserde bağlantı yok" yazıyor ve dokununca hangileri olduğu açılıyor.
+// ============================================================================
+
+const YT_MAX = 50;              // watch_videos bağlantısının pratik sınırı
+let _dnlPlayer = null;          // YT.Player örneği
+let _dnlTracks = [];            // {idx,workId,name,makam,vid}
+let _dnlHatali = {};            // vid -> hata metni (gömme kapalı vb.)
+let _dnlRepId = null;
+
+// YouTube bağlantısından 11 karakterlik kimliği çıkarır. `video_link` serbest
+// metin: youtu.be, watch?v=, /embed/, /shorts/, /live/, zaman damgalı ya da
+// çıplak kimlik gelebiliyor. Tanıyamazsa null döner (o eser "bağlantı yok"
+// sayılır — YouTube dışı bir bağlantı da buraya düşer, bilinçli).
+function _ytId(url) {
+  if (!url) return null;
+  const s = String(url).trim();
+  if (/^[A-Za-z0-9_-]{11}$/.test(s)) return s;
+  let m = s.match(/(?:youtube\.com|youtu\.be)\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/|v\/|e\/)?([A-Za-z0-9_-]{11})/);
+  if (m) return m[1];
+  m = s.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if (m) return m[1];
+  return null;
+}
+
+// Repertuvarı çalınabilir / bağlantısız diye ikiye ayırır. SIRA repertuvar
+// sırasıdır (items zaten seq'e göre); potpuri zinciri burada anlam taşımıyor.
+function _dinleListesi(rep) {
+  const hepsi = (rep.items || []).map((it, idx) => {
+    const w = WL[String(it.workId)] || {};
+    return {
+      idx, workId: it.workId,
+      name: w.name || ('#' + it.workId),
+      makam: w.makam || '',
+      vid: _ytId(w.videoLink)
+    };
+  });
+  return { calinabilir: hepsi.filter(x => x.vid), eksik: hepsi.filter(x => !x.vid) };
+}
+
+function _dnlEsc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function _dnlStil() {
+  if (document.getElementById('dnl-style')) return;
+  const st = document.createElement('style');
+  st.id = 'dnl-style';
+  st.textContent =
+    '#dnlOverlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.72);display:none;align-items:flex-end;justify-content:center;}' +
+    '#dnlOverlay.open{display:flex;}' +
+    '.dnl-box{background:var(--surface);border:1px solid var(--border2);border-top-left-radius:16px;border-top-right-radius:16px;' +
+      'width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;' +
+      'padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -10px 40px rgba(0,0,0,.5);}' +
+    '@media(min-width:640px){#dnlOverlay{align-items:center;}.dnl-box{border-radius:16px;}}' +
+    '.dnl-head{display:flex;align-items:flex-start;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--border);}' +
+    '.dnl-x{background:none;border:none;color:var(--text3);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;}' +
+    '.dnl-warn{margin:10px 16px 0;padding:8px 10px;border-radius:8px;background:rgba(239,68,68,.10);' +
+      'border:1px solid rgba(239,68,68,.32);color:#fca5a5;font-size:12px;cursor:pointer;line-height:1.5;}' +
+    '.dnl-warn-list{margin-top:6px;color:var(--text2);font-size:11.5px;display:none;}' +
+    '.dnl-warn.acik .dnl-warn-list{display:block;}' +
+    '.dnl-player{position:relative;width:100%;aspect-ratio:16/9;background:#000;margin-top:10px;}' +
+    '.dnl-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}' +
+    '.dnl-yt{display:flex;align-items:center;justify-content:center;gap:7px;margin:10px 16px 2px;padding:11px;' +
+      'border-radius:10px;background:#ff0033;border:none;color:#fff;font-size:13.5px;font-weight:700;' +
+      'font-family:inherit;cursor:pointer;width:calc(100% - 32px);}' +
+    '.dnl-yt-not{margin:6px 16px 10px;font-size:11.5px;color:var(--text3);line-height:1.5;}' +
+    '.dnl-list{overflow-y:auto;flex:1;padding:4px 0 10px;border-top:1px solid var(--border);}' +
+    '.dnl-tr{display:flex;align-items:center;gap:10px;width:100%;padding:10px 16px;background:none;border:none;' +
+      'color:var(--text);font-size:13.5px;font-family:inherit;text-align:left;cursor:pointer;}' +
+    '.dnl-tr:disabled{cursor:default;}' +
+    '.dnl-tr.aktif{background:rgba(124,111,255,.16);}' +
+    '.dnl-no{color:var(--text3);font-size:11.5px;min-width:20px;text-align:right;flex-shrink:0;}' +
+    '.dnl-tr.aktif .dnl-no{color:var(--accent);font-weight:800;}' +
+    '.dnl-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+    '.dnl-mk{font-size:11px;color:var(--text3);flex-shrink:0;}' +
+    '.dnl-err{font-size:11px;color:#fca5a5;flex-shrink:0;}';
+  document.head.appendChild(st);
+}
+
+// YouTube IFrame API'sini bir kez yükler. Düz <iframe> + playlist parametresi
+// de sırayı çalardı; API'yi tercih etmemizin sebebi ONERROR: gömmesi kapalı
+// videoyu ancak böyle anlayıp işaretleyebiliyor ve otomatik atlayabiliyoruz.
+let _ytApiSoz = null;
+function _ytApiYukle() {
+  if (window.YT && window.YT.Player) return Promise.resolve();
+  if (_ytApiSoz) return _ytApiSoz;
+  _ytApiSoz = new Promise((coz, red) => {
+    const oncekiHazir = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = function () {
+      if (typeof oncekiHazir === 'function') { try { oncekiHazir(); } catch (e) {} }
+      coz();
+    };
+    const sc = document.createElement('script');
+    sc.src = 'https://www.youtube.com/iframe_api';
+    sc.onerror = () => red(new Error('YouTube oynatıcısı yüklenemedi'));
+    document.head.appendChild(sc);
+    setTimeout(() => red(new Error('YouTube oynatıcısı zaman aşımına uğradı')), 12000);
+  });
+  return _ytApiSoz;
+}
+
+function openDinleSheet(repId) {
+  const rep = getRep(repId);
+  if (!rep) return;
+  _dnlRepId = repId;
+  _dnlHatali = {};
+  _dnlStil();
+
+  const { calinabilir, eksik } = _dinleListesi(rep);
+  _dnlTracks = calinabilir;
+
+  let ov = document.getElementById('dnlOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'dnlOverlay';
+    ov.onclick = (e) => { if (e.target === ov) closeDinleSheet(); };
+    document.body.appendChild(ov);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('dnlOverlay')?.classList.contains('open')) closeDinleSheet();
+    });
+  }
+
+  if (!calinabilir.length) {
+    ov.innerHTML = `
+      <div class="dnl-box">
+        <div class="dnl-head">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:15px;font-weight:700;">🎧 Repertuvarı Dinle</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:3px;">${_dnlEsc(rep.name)}</div>
+          </div>
+          <button class="dnl-x" onclick="closeDinleSheet()" aria-label="Kapat">×</button>
+        </div>
+        <div style="padding:22px 18px;color:var(--text3);font-size:13px;line-height:1.6;">
+          Bu repertuvardaki hiçbir eserde YouTube bağlantısı yok.<br>
+          Eseri açıp <b>Düzenle</b> deyip <b>Video Bağlantısı</b> alanına ekleyebilirsin.
+        </div>
+      </div>`;
+    ov.classList.add('open');
+    return;
+  }
+
+  const ids = calinabilir.map(t => t.vid);
+  const asildi = ids.length > YT_MAX;
+
+  // Emir'in kararı: bağlantısı olmayanlar SESSİZCE atlanmıyor, sayısı yazılıyor;
+  // hangileri olduğu dokununca açılıyor (başlıkta uzun liste yer kaplamasın).
+  const uyari = eksik.length ? `
+      <div class="dnl-warn" onclick="this.classList.toggle('acik')">
+        ⚠️ ${eksik.length} eserde YouTube bağlantısı yok — listeye alınmadı. <u>Hangileri?</u>
+        <div class="dnl-warn-list">${eksik.map(x => _dnlEsc(x.name)).join(' · ')}</div>
+      </div>` : '';
+
+  ov.innerHTML = `
+    <div class="dnl-box">
+      <div class="dnl-head">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:15px;font-weight:700;">🎧 Repertuvarı Dinle</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px;">${_dnlEsc(rep.name)} · ${calinabilir.length} eser</div>
+        </div>
+        <button class="dnl-x" onclick="closeDinleSheet()" aria-label="Kapat">×</button>
+      </div>
+      ${uyari}
+      <div class="dnl-player" id="dnlPlayerWrap"><div id="dnlPlayer"></div></div>
+      <button class="dnl-yt" onclick="dinleYouTubedeAc()">
+        <i class="ti ti-brand-youtube" style="font-size:18px;" aria-hidden="true"></i> YouTube'da Aç
+      </button>
+      <div class="dnl-yt-not">
+        Ekran kapalıyken dinlemek için <b>YouTube'da Aç</b>'ı kullan — uygulama içindeki oynatıcı
+        telefon kilitlenince durur.${asildi ? ` YouTube bağlantısı ilk ${YT_MAX} eseri alır.` : ''}
+      </div>
+      <div class="dnl-list" id="dnlList">${_dnlListeHtml(-1)}</div>
+    </div>`;
+  ov.classList.add('open');
+
+  _ytApiYukle().then(() => {
+    if (!document.getElementById('dnlPlayer')) return;   // bu arada kapatılmış
+    _dnlPlayer = new YT.Player('dnlPlayer', {
+      host: 'https://www.youtube-nocookie.com',
+      playerVars: { playsinline: 1, rel: 0 },
+      events: {
+        onReady: (e) => { e.target.cuePlaylist(ids.slice(0, 200)); },
+        onStateChange: () => _dnlAktifiIsaretle(),
+        onError: (e) => _dnlHata(e && e.data)
+      }
+    });
+  }).catch(err => {
+    const wrap = document.getElementById('dnlPlayerWrap');
+    if (wrap) wrap.innerHTML =
+      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;' +
+      'text-align:center;padding:16px;color:var(--text3);font-size:12.5px;line-height:1.6;">' +
+      _dnlEsc(err.message) + '<br>Bağlantını kontrol et ya da “YouTube\'da Aç”ı kullan.</div>';
+  });
+}
+
+function _dnlListeHtml(aktifIdx) {
+  return _dnlTracks.map((t, i) => {
+    const hata = _dnlHatali[t.vid];
+    return `<button class="dnl-tr${i === aktifIdx ? ' aktif' : ''}" onclick="dinleAtla(${i})">
+      <span class="dnl-no">${i + 1}</span>
+      <span class="dnl-nm">${_dnlEsc(t.name)}</span>
+      ${hata ? `<span class="dnl-err">${_dnlEsc(hata)}</span>`
+             : (t.makam ? `<span class="dnl-mk">${_dnlEsc(t.makam)}</span>` : '')}
+    </button>`;
+  }).join('');
+}
+
+function _dnlAktifiIsaretle() {
+  if (!_dnlPlayer || typeof _dnlPlayer.getPlaylistIndex !== 'function') return;
+  const i = _dnlPlayer.getPlaylistIndex();
+  const liste = document.getElementById('dnlList');
+  if (!liste) return;
+  liste.querySelectorAll('.dnl-tr').forEach((el, k) => el.classList.toggle('aktif', k === i));
+  const el = liste.querySelector('.dnl-tr.aktif');
+  if (el) el.scrollIntoView({ block: 'nearest' });
+}
+
+// YouTube hata kodları: 2 geçersiz kimlik, 5 oynatıcı hatası, 100 video yok/özel,
+// 101 & 150 GÖMME KAPALI (telifli yüklemelerde çok yaygın). Hata yutulmuyor:
+// satır işaretleniyor, kullanıcı neden çalmadığını görüyor ve sonrakine geçiliyor.
+function _dnlHata(kod) {
+  const i = (_dnlPlayer && typeof _dnlPlayer.getPlaylistIndex === 'function') ? _dnlPlayer.getPlaylistIndex() : -1;
+  const t = _dnlTracks[i];
+  if (t) {
+    _dnlHatali[t.vid] = (kod === 101 || kod === 150) ? 'gömme kapalı'
+      : (kod === 100 ? 'video yok' : 'açılamadı');
+    const liste = document.getElementById('dnlList');
+    if (liste) { liste.innerHTML = _dnlListeHtml(i); }
+  }
+  // Sıradakine geç — tek bozuk video bütün dinlemeyi durdurmasın.
+  setTimeout(() => {
+    try { if (_dnlPlayer && i > -1 && i < _dnlTracks.length - 1) _dnlPlayer.nextVideo(); } catch (e) {}
+  }, 900);
+}
+
+function dinleAtla(i) {
+  if (!_dnlPlayer || typeof _dnlPlayer.playVideoAt !== 'function') return;
+  try { _dnlPlayer.playVideoAt(i); } catch (e) {}
+  _dnlAktifiIsaretle();
+}
+
+// (B) YOUTUBE'DA AÇ — geçici çalma listesi. Gömme kısıtından etkilenmez ve
+// YouTube uygulamasında arka planda çalar; ezberlerken asıl kullanılacak yol bu.
+function dinleYouTubedeAc() {
+  const ids = _dnlTracks.map(t => t.vid).slice(0, YT_MAX);
+  if (!ids.length) return;
+  // Uygulama içi oynatıcı susturuluyor, yoksa iki ses üst üste biner.
+  try { if (_dnlPlayer && _dnlPlayer.pauseVideo) _dnlPlayer.pauseVideo(); } catch (e) {}
+  window.open('https://www.youtube.com/watch_videos?video_ids=' + ids.join(','), '_blank', 'noopener');
+}
+
+function closeDinleSheet() {
+  const ov = document.getElementById('dnlOverlay');
+  // Oynatıcı YOK EDİLİYOR — yalnız gizlemek sesi arka planda çalar bırakıyor.
+  try { if (_dnlPlayer && _dnlPlayer.destroy) _dnlPlayer.destroy(); } catch (e) {}
+  _dnlPlayer = null;
+  if (ov) { ov.classList.remove('open'); ov.innerHTML = ''; }
+}
