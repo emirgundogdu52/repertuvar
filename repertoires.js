@@ -729,7 +729,7 @@ function renderList(){
     html += '<div style="padding:14px 12px 18px;font-size:12.5px;color:var(--text3);line-height:1.6;border-top:1px solid var(--border);margin-top:8px;">'
          +  '<i class="ti ti-users-group" style="font-size:14px;vertical-align:-2px;" aria-hidden="true"></i> '
          +  'Diğer gruplarında <b>' + baskaGrup.length + '</b> repertuvar daha var. '
-         +  'Görmek için üstten grubu değiştir.</div>';
+         +  'Grubunu değiştirdiğinde görünürler.</div>';
   }
   el.innerHTML = html;
 }
