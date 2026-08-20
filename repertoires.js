@@ -418,6 +418,57 @@ function toast(m,t='ok'){const e=document.createElement('div');e.className='toas
 
 let SOLISTLER = []; // sanatçı listesi
 
+// ── (2026-08-20) HANGİ REPERTUVAR HANGİ GRUBA AİT ──────────────────────────
+// NİÇİN VAR: Emir bildirdi — "Ezgi Harmanı seçiliyken ANIZ/SOLO grubunun
+// repertuvarları da listede". GERİLEMENİN SEBEBİ: bugün istemci süzgeci
+// (`or=(owner_id,group_id,is_public)`) kaldırılıp görünürlük tamamen RLS'e
+// bırakıldı ve şu VARSAYIM yapıldı: "elimize gelen her visibility='group'
+// satırı tanım gereği benim grubumun işi". Bu varsayım TEK GRUPLU kullanıcıda
+// doğru, ÇOK GRUPLU kullanıcıda YANLIŞ — RLS üyesi olunan BÜTÜN grupların
+// repertuvarlarını döndürür.
+//
+// AYRIM: RLS'in işi ERİŞİM (kim görebilir), aktif grubun işi BAĞLAM (şu an
+// neyle çalışıyorum). İkincisi RLS'e devredilemez; istemcide süzülmeli.
+// Karışık liste yalnız kafa karıştırmaz — yanlış grubun repertuvarının durumu
+// ya da içeriği yanlışlıkla değiştirilebilir.
+//
+// Harita `repertoire_group_shares`ten kurulur (RLS zaten yalnız benim
+// gruplarımın satırlarını verir). Çevrimdışı ilk çizimde de süzgeç çalışsın
+// diye localStorage'a yazılır. Satır gelmezse `repertoires.group_id`'ye
+// düşülür (köprü tetikleyicisi onu güncel tutuyor, göç öncesi önbellek
+// satırları için de tek kaynak o).
+let REP_GRUP = (() => {
+  try { return JSON.parse(localStorage.getItem('repGroupMap') || '{}'); }
+  catch(e){ return {}; }
+})();
+
+function repGrupHaritasiKur(rows){
+  if (!Array.isArray(rows)) return;            // çekilemedi → eski harita dursun
+  const m = {};
+  rows.forEach(x => {
+    if (!x || !x.repertoire_id || !x.group_id) return;
+    (m[x.repertoire_id] = m[x.repertoire_id] || []).push(x.group_id);
+  });
+  REP_GRUP = m;
+  try { localStorage.setItem('repGroupMap', JSON.stringify(m)); } catch(e){}
+}
+
+// Bu repertuvar ŞU AN seçili gruba mı ait? Grup repertuvarı değilse false.
+function repAktifGruptaMi(r){
+  if (!r || repVis(r) !== 'group') return false;
+  const gid = getGroupId();
+  if (!gid) return false;                      // grup seçili değilse grup bölümü boş
+  const liste = REP_GRUP[r.id];
+  if (Array.isArray(liste) && liste.length) return liste.includes(gid);
+  return !!r.group_id && r.group_id === gid;   // yedek yol
+}
+
+// Erişimim var ama BAŞKA grubumun repertuvarı — listeden çıkarılır, grup
+// değiştirilince geri gelir.
+function repBaskaGrubunMu(r){
+  return !!r && repVis(r) === 'group' && !repAktifGruptaMi(r);
+}
+
 // ── Grup rolü: grup owner/admin'i, sahibi olmasa da grup repertuvarını yönetebilir ──
 // (sunucuda karşılığı: repertoires_group_write + items_group_manage politikaları)
 // localStorage'da tutuluyor ki çevrimdışı/ilk çizimde düğmeler kaybolmasın.
@@ -440,7 +491,10 @@ function applyRepsData(r, i, s) {
   // linkedPrev: ilk satırda her zaman false — zincir listenin başında başlayamaz.
   // canManage: sahibiyim VEYA bu benim grubumun repertuvarı ve ben grup owner/admin'iyim.
   // Silme buna DAHİL DEĞİL — silme sahibinde kalır (RLS'te de öyle).
-  reps = (r||[]).map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, canManage: (x.owner_id===uid || x.user_id===uid) || (isGroupManager() && !!x.group_id && x.group_id===myGid), items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map((t,ix)=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||'',linkedPrev: ix>0 && !!t.linked_prev}))}));
+  // (2026-08-20) canManage artık `x.group_id===myGid` ham karşılaştırması yerine
+  // `repAktifGruptaMi` üzerinden — paylaşım satırıyla açılmış ama group_id'si boş
+  // repertuvarlar da kapsansın, BAŞKA grubun repertuvarı ise kapsam DIŞI kalsın.
+  reps = (r||[]).map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, canManage: (x.owner_id===uid || x.user_id===uid) || (isGroupManager() && repAktifGruptaMi(x)), items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map((t,ix)=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||'',linkedPrev: ix>0 && !!t.linked_prev}))}));
 }
 
 // (2026-08-06) 🐛 `?rep=` YALNIZCA İLK YÜKLEMEDE UYGULANIR.
@@ -512,11 +566,17 @@ async function load(){
     // Yerel veri zaten ekrandaysa uzun beklemeye gerek yok — 3.5 sn'de gelmezse
     // sessizce local ile devam. Yerel veri yoksa ağa biraz daha şans ver (4.5 sn).
     const timeoutMs = localHadData ? 3500 : 4500;
-    const [r,i,s] = await Promise.all([
+    // (2026-08-20) Dördüncü istek: hangi repertuvar hangi gruba açılmış.
+    // `.catch(()=>null)` ŞART — bu istek başarısız olursa (RLS/ağ) tüm
+    // Promise.all düşer ve repertuvar listesi HİÇ gelmezdi; null dönerse
+    // yalnızca harita tazelenmez, eski haritayla devam edilir.
+    const [r,i,s,gs] = await Promise.all([
       dbGet('repertoires', repQuery, AbortSignal.timeout(timeoutMs)),
       dbGet('repertoire_items','order=seq', AbortSignal.timeout(timeoutMs)),
-      dbGet('solistler', solQuery, AbortSignal.timeout(timeoutMs))
+      dbGet('solistler', solQuery, AbortSignal.timeout(timeoutMs)),
+      dbGet('repertoire_group_shares','select=repertoire_id,group_id&limit=2000', AbortSignal.timeout(timeoutMs)).catch(()=>null)
     ]);
+    repGrupHaritasiKur(gs);
     dbg('sunucudan geldi — rep sayısı: '+(r||[]).length+' | items: '+(i||[]).length);
     if (window.db) {
       await db.repertoires.replaceAll(r||[]);
@@ -596,15 +656,23 @@ function renderList(){
   // gerek de yok: RLS yalnızca BENİM grubuma açılmış olanları döndürüyor, dolayısıyla
   // elimize gelen her visibility='group' satırı tanım gereği benim grubumun işi.
   // `group_id` yedek olarak duruyor (göç öncesi önbellek satırları için).
-  const inGroup = r => repVis(r) === 'group' || (!!myGid && !!r.group_id && r.group_id === myGid);
-  const mine = filtered.filter(r => r.isOwner && !inGroup(r));
-  const grp  = filtered.filter(r => inGroup(r) && (r.isOwner || !hiddenIds.includes(r.id)));
-  const pub  = filtered.filter(r => !r.isOwner && repVis(r) === 'public' && !inGroup(r) && !hiddenIds.includes(r.id));
+  // (2026-08-20) DÜZELTME: eskiden `inGroup` her visibility='group' satırını
+  // "benim grubum" sayıyordu; çok gruba üye olan kullanıcıda İKİ GRUBUN
+  // repertuvarları tek listede karışıyordu (bkz. repAktifGruptaMi başlığı).
+  // Artık yalnız AKTİF gruba ait olanlar grup bölümüne giriyor; öteki
+  // gruplarımın repertuvarları listeden tamamen çıkıyor ve altta sayısı
+  // yazılıyor — grup değiştirilince geri gelirler.
+  const inGroup = r => repAktifGruptaMi(r);
+  const baskaGrup = filtered.filter(repBaskaGrubunMu);
+  const gorunur = filtered.filter(r => !repBaskaGrubunMu(r));
+  const mine = gorunur.filter(r => r.isOwner && !inGroup(r));
+  const grp  = gorunur.filter(r => inGroup(r) && (r.isOwner || !hiddenIds.includes(r.id)));
+  const pub  = gorunur.filter(r => !r.isOwner && repVis(r) === 'public' && !inGroup(r) && !hiddenIds.includes(r.id));
   // DÖRDÜNCÜ BÖLÜM (yeni): ne benim, ne grubumun, ne genel — yani `repertoire_shares`
   // ile DOĞRUDAN BANA açılmış repertuvarlar. Eski istemci süzgeci bunları zaten hiç
   // getirmiyordu; süzgeç kalkınca geliyorlar ve bir bölüme yerleşmezlerse listede
   // hiç görünmeden kaybolurlardı.
-  const paylasilan = filtered.filter(r =>
+  const paylasilan = gorunur.filter(r =>
     !r.isOwner && !inGroup(r) && repVis(r) !== 'public' && !hiddenIds.includes(r.id));
     // POTPURİ sayacı — repertuvarda kaç ayrı zincir var (ardışık linkedPrev blokları)
   function medleyCount(r){
@@ -654,6 +722,14 @@ function renderList(){
   if(pub.length){
     html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-world" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> Genel Repertuvarlar</div>';
     html += pub.map(repCard).join('');
+  }
+  // Öteki gruplarımın repertuvarları listeden çıkarıldı; SESSİZCE kaybolmasınlar —
+  // kullanıcı "repertuvarım silinmiş" sanmasın diye sayısı ve nasıl görüleceği yazılı.
+  if(baskaGrup.length){
+    html += '<div style="padding:14px 12px 18px;font-size:12.5px;color:var(--text3);line-height:1.6;border-top:1px solid var(--border);margin-top:8px;">'
+         +  '<i class="ti ti-users-group" style="font-size:14px;vertical-align:-2px;" aria-hidden="true"></i> '
+         +  'Diğer gruplarında <b>' + baskaGrup.length + '</b> repertuvar daha var. '
+         +  'Görmek için üstten grubu değiştir.</div>';
   }
   el.innerHTML = html;
 }
