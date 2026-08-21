@@ -2735,6 +2735,11 @@ function _knotDugme(workId){
 // Not yükleme sonrası tüm satırları yeniden çizmek yerine yalnız düğmelerin
 // durumunu güncelliyoruz — açık bir listede kaydırma konumu bozulmasın.
 function _knotDugmeleriTazele(){
+  // (2026-08-21 düzeltme) Stil BURADA da kuruluyor. Önce yalnız
+  // openKnotSheet() içinde kuruluyordu: düğmeye `dolu` sınıfı geliyordu ama
+  // karşılığı olan CSS kuralı sayfada henüz yoktu ⇒ notu olan eserin kilidi
+  // SOLUK görünüyordu, alt sayfa bir kez açılana kadar. Emir bildirdi.
+  _knotStil();
   document.querySelectorAll('button.knb[data-knot]').forEach(b => {
     const varMi = !!PERSONAL_NOTES[String(b.dataset.knot)];
     b.classList.toggle('dolu', varMi);
@@ -2879,4 +2884,10 @@ async function knotSheetSil(){
 }
 
 // Açılışta bir kez — liste çizildikten sonra düğmeler kendini tazeliyor.
+// Stil, ilk çizimden önce hazır olsun — düğme rengi ilk bakışta doğru olsun diye.
+try { _knotStil(); } catch(e) {}
+try { document.addEventListener('DOMContentLoaded', () => { try { _knotStil(); } catch(e) {} }); } catch(e) {}
 try { window.addEventListener('load', () => setTimeout(knotYukle, 600)); } catch(e) {}
+// Sayfa zaten yüklendikten SONRA çalışıyorsak 'load' bir daha ateşlenmez —
+// o durumda doğrudan çağırıyoruz (script'in geç yüklenme ihtimali).
+try { if (document.readyState === 'complete') setTimeout(knotYukle, 300); } catch(e) {}
