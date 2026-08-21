@@ -2,6 +2,34 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-21: 🔎 ARAMA FİLTRESİNE TÜR ÇİPLERİ (tür işinin 5. adımı). Arama
+    kutusunun altında yatay kaydırmalı şerit: kelimeyi yaz + çipe dokun.
+    (a) Çipler SABİT 11 kategori DEĞİL — turSayilari() katalogdaki gerçek
+        dağılımı çıkarıyor, çoktan aza sıralı, sayı rozetli; boş kategori hiç
+        çizilmiyor. Sayım applyFilters'ın görünürlük kurallarının AYNISINI
+        uyguluyor (silinmiş / başkasının pending'i / başkasının gizlisi
+        elenir) ⇒ çipteki sayı ile listedeki sayı birbirini tutar.
+    (b) "Türsüz (N)" çipi bilinçli: tür süzgeci açıkken türü boş eserler
+        listeden TAMAMEN kaybolur. Sayıyı göstermek hem "eserim silinmiş"
+        panigini önlüyor hem arac/tur-atama.html'de kalan işi görünür tutuyor;
+        N=0 olunca çip kendiliğinden kayboluyor.
+    (c) TEK SEÇİM (aç/kapa): aynı çipe tekrar dokunmak süzgeci kaldırır. Çoklu
+        seçim bilinçli olarak YAPILMADI — sahnede tek dokunuş, ve "THM+TSM
+        açıkken bu neden çıkmadı" karmaşası olmasın diye.
+    (d) Seçim KALICI DEĞİL (localStorage yok) — sayfa yenilenince sıfırlanır;
+        sahnede gizli süzgeç tuzağı yaşanmasın (grup süzmesi dersi).
+    (e) Liste boş kalırsa artık sebebini söylüyor: "Açık tür süzgeci: THM —
+        çipe tekrar dokunarak kaldırabilirsiniz."
+    (f) Liste kartına TÜR ROZETİ (.work-tur-badge, besteci satırının başında)
+        — çiple süzünce "bu neden çıktı/çıkmadı" sorusunun kart üstündeki
+        cevabı. Bestecisi olmayan eserde satır yalnız rozetle çiziliyor.
+    (g) FORM ÇİPLERİ (ikinci kademe) YAPILMADI: form alanı 716 eserin yalnız
+        47'sinde dolu (%6,6) ⇒ form çipi neredeyse boş listeye düşürür,
+        kullanıcı filtreyi bozuk sanır. Doluluk artınca eklenecek.
+    Yerler: CSS #turChipRow/.tur-chip/.work-tur-badge; HTML #turChipRow (fav +
+    taslak düğmelerinin altında); JS turSayilari/buildTurChips/setTurFilter/
+    updateTurChips (buildFilters'ın sonundan çağrılıyor ⇒ 7 çağrı yerinin
+    hepsi kapsanıyor), activeFilters.tur, clearFilters, applyFilters, renderList.
   - 2026-08-20: 👥 ESERLERDE GRUP GÖRÜNÜRLÜĞÜ + OKUMA YOLLARI YENİ MODELE
     (3. aşamanın eserler.html ayağı). Veritabanı 1./2. aşamada
     works.visibility'yi ('public','group','private') yapmış ve
@@ -582,6 +610,16 @@
   .filter-btn.active { background:rgba(88,166,255,0.15); color:var(--accent); }
   .filter-btn .badge { float:right; background:var(--surface2); border-radius:10px; padding:0 6px; font-size:10px; color:var(--text3); }
   .filter-btn.active .badge { background:rgba(88,166,255,0.2); color:var(--accent); }
+  /* (2026-08-21) Tur cipleri — arama kutusunun altinda, yatay kaydirmali serit. */
+  #turChipRow { display:flex; gap:6px; margin-top:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px; }
+  #turChipRow::-webkit-scrollbar { display:none; }
+  .tur-chip { flex:0 0 auto; display:inline-flex; align-items:center; gap:5px; padding:6px 11px; border-radius:16px; border:1px solid var(--border); background:var(--surface2); color:var(--text2); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; white-space:nowrap; transition:all .15s; }
+  .tur-chip:hover { color:var(--text); }
+  .tur-chip.active { background:rgba(88,166,255,.16); border-color:rgba(88,166,255,.45); color:var(--accent); }
+  .tur-chip-n { background:rgba(255,255,255,.07); border-radius:9px; padding:0 5px; font-size:10px; font-weight:700; color:var(--text3); }
+  .tur-chip.active .tur-chip-n { background:rgba(88,166,255,.22); color:var(--accent); }
+  .tur-chip-bos { border-style:dashed; }
+  .work-tur-badge { display:inline-block; font-size:10px; font-weight:700; letter-spacing:.02em; color:var(--text3); background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:0 6px; margin-right:6px; vertical-align:middle; white-space:nowrap; }
 
   /* WORK LIST */
   .list-panel { flex:1; overflow-y:auto; overflow-x:hidden; overscroll-behavior-x:contain; }
@@ -1264,6 +1302,8 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
         <button id="draftToggle" class="fav-toggle-btn" onclick="setDraftOnly(!draftOnly)"
           style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:none;align-items:center;justify-content:center;gap:5px;">🔒 Taslaklarım <span id="draftCount" style="background:rgba(88,166,255,.2);color:#58A6FF;border-radius:10px;padding:0 6px;font-size:10px;">0</span></button>
       </div>
+      <!-- (2026-08-21) Tur cipleri — JS ile kuruluyor (buildTurChips). Bos kalirsa gizlenir. -->
+      <div id="turChipRow" style="display:none;"></div>
     </div>
     <div class="toolbar">
       <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;"><i class="ti ti-adjustments-horizontal"></i> Filtreler<span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
@@ -1502,7 +1542,7 @@ async function syncWorksFromServer(hadLocalData) {
 let filteredData = [...DATA];
 let selectedId = null;
 let sortMode = 'name';
-let activeFilters = { form: null, tuning: null, region: null, makam: null };
+let activeFilters = { form: null, tuning: null, region: null, makam: null, tur: null };
 let favOnly = false;               // "Tümü / Favoriler" toggle durumu
 // (2026-08-15) "🔒 Taslaklarım" görünümü. Gerekçe (Emir): "Private eserlerin
 // sıralandığı bir başlık açalım, bestecilere veya eserlerini yayınlamak
@@ -1536,6 +1576,71 @@ function buildFilters() {
   makeSection('tuningFilters', 'tuning');
   makeSection('regionFilters', 'region');
   makeSection('makamFilters', 'makam');
+  buildTurChips();
+}
+
+// ── Tur cipleri (2026-08-21) ──────────────────────────────────────────────
+// Arama kutusunun altinda yatay serit: "kelimeyi yaz + cipe dokun" ile daraltma.
+// Uc bilincli karar:
+//  (1) Sabit 11 kategori DEGIL — katalogda GERCEKTEN bulunan turler, sayilariyla
+//      ve coktan aza sirali. Bos kategori sahnede yer kaplamasin.
+//  (2) "Tursuz (N)" cipi VAR: cip secilince turu bos eserler listeden tamamen
+//      kaybolur; sayiyi gostermek hem "eserim silinmis" panigini onler hem de
+//      arac/tur-atama.html'de kalan isi her gun gorunur kilar. N=0 olunca
+//      cip kendiliginden kaybolur.
+//  (3) Secim KALICI DEGIL (localStorage yok) — sayfa yenilenince sifirlanir,
+//      sahnede "eserlerim yok olmus" ani yasanmasin (gizli suzgec tuzagi).
+// Sayilar arama kelimesinden BAGIMSIZ (katalogun gercek dagilimi): her tusa
+// basista sayilarin oynamasi seridi kaydirirken okunmaz hale getiriyor.
+function turSayilari() {
+  const uid = getUserId();
+  const c = {}; let bos = 0;
+  (DATA || []).forEach(w => {
+    // applyFilters'taki gorunurluk kurallarinin AYNISI — cipteki sayi ile
+    // listede cikan sayi birbirini tutsun.
+    if (w.deleted_at) return;
+    if (w.status === 'pending' && w.submitted_by !== uid) return;
+    if (w.visibility === 'private' && w.submitted_by !== uid) return;
+    const t = (w.tur || '').trim();
+    if (t) c[t] = (c[t] || 0) + 1; else bos++;
+  });
+  return {
+    liste: Object.entries(c).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'tr')),
+    bos: bos
+  };
+}
+
+function buildTurChips() {
+  const el = document.getElementById('turChipRow');
+  if (!el) return;
+  const r = turSayilari();
+  if (!r.liste.length && !r.bos) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  let html = r.liste.map(function (e) {
+    const val = String(e[0]);
+    return '<button class="tur-chip" data-tur="' + val.replace(/"/g, '&quot;') + '" onclick="setTurFilter(\'' + val.replace(/'/g, "\\'") + '\')">'
+      + val + ' <span class="tur-chip-n">' + e[1] + '</span></button>';
+  }).join('');
+  if (r.bos) {
+    html += '<button class="tur-chip tur-chip-bos" data-tur="__yok__" onclick="setTurFilter(\'__yok__\')" title="Turu henuz girilmemis eserler">Tursuz <span class="tur-chip-n">' + r.bos + '</span></button>';
+  }
+  el.innerHTML = html;
+  el.style.display = 'flex';
+  updateTurChips();
+}
+
+// Tek secim: ayni cipe tekrar dokunmak suzgeci KALDIRIR (ac/kapa).
+// Cok secim bilincli olarak yapilmadi — sahnede tek dokunus, ve "THM+TSM acikken
+// bu neden cikmadi" karmasasi olmasin diye.
+function setTurFilter(val) {
+  activeFilters.tur = (activeFilters.tur === val) ? null : val;
+  updateTurChips();
+  applyFilters();
+}
+
+function updateTurChips() {
+  document.querySelectorAll('#turChipRow .tur-chip').forEach(function (b) {
+    b.classList.toggle('active', activeFilters.tur === b.dataset.tur);
+  });
 }
 
 function toggleFilter(field, val) {
@@ -1552,9 +1657,10 @@ function updateFilterButtons() {
 }
 
 function clearFilters() {
-  activeFilters = { form: null, tuning: null, region: null, makam: null };
+  activeFilters = { form: null, tuning: null, region: null, makam: null, tur: null };
   document.getElementById('searchInput').value = '';
   updateFilterButtons();
+  updateTurChips();
   applyFilters();
 }
 
@@ -1577,6 +1683,12 @@ function applyFilters() {
     if (activeFilters.tuning && w.tuning !== activeFilters.tuning) return false;
     if (activeFilters.region && w.region !== activeFilters.region) return false;
     if (activeFilters.makam && w.makam !== activeFilters.makam) return false;
+    // (2026-08-21) Tur cipi. '__yok__' = turu henuz girilmemis eserler.
+    if (activeFilters.tur) {
+      const _t = (w.tur || '').trim();
+      if (activeFilters.tur === '__yok__') { if (_t) return false; }
+      else if (_t !== activeFilters.tur) return false;
+    }
     if (q) {
       const search = [w.name,w.composer,w.lyricWriter,w.makam,w.region,w.sourcePerson,w.lyrics].filter(Boolean).join(' ');
       if (!trMatch(search, q)) return false;
@@ -1982,7 +2094,14 @@ function sortData() {
 function renderList() {
   const panel = document.getElementById('listPanel');
   if (!filteredData.length) {
-    panel.innerHTML = '<div class="empty-list">Eser bulunamadı</div>';
+    // (2026-08-21) Acik tur cipi varsa sebebini SOYLE — sessiz bos liste
+    // "eserlerim gitmis" panigi yaratiyor.
+    let _ipucu = '';
+    if (activeFilters.tur) {
+      const _ad = activeFilters.tur === '__yok__' ? 'Türsüz' : activeFilters.tur;
+      _ipucu = '<div style="margin-top:8px;font-size:12px;color:var(--text3);">Açık tür süzgeci: <b>' + _ad + '</b> — çipe tekrar dokunarak kaldırabilirsiniz.</div>';
+    }
+    panel.innerHTML = '<div class="empty-list">Eser bulunamadı' + _ipucu + '</div>';
     return;
   }
   const favs = getFavs();
@@ -1995,6 +2114,9 @@ function renderList() {
     const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
     const countBadge = repCount > 0 ? `<span class="work-count-badge" title="${repCount} repertuvarda kullanılıyor">${repCount}</span>` : '';
     const isFav = favs.has(w.id);
+    // (2026-08-21) Tur rozeti — cip ile suzunce "bu neden cikti/cikmadi"
+    // sorusunun kart uzerindeki cevabi.
+    const turBadge = w.tur ? '<span class="work-tur-badge">' + w.tur + '</span>' : '';
     const isChecked = bulkMode && bulkSelectedIds.has(w.id);
     // Sol renk şeridi — yeşil: bir repertuvarda kullanılıyor
     const stripeClass = repCount > 0 ? ' has-stripe stripe-green' : '';
@@ -2016,7 +2138,7 @@ function renderList() {
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
         <div class="work-name">${w.name||'(isimsiz)'}${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="Yalnızca siz görürsünüz" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">🔒 Taslak</span>' : ''}${(w.visibility === 'group') ? ' <span title="Yalnızca grup üyeleriniz görür" style="font-size:10px;font-weight:700;color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">👥 Grup</span>' : ''}</div>
-        ${w.composer ? `<div class="work-composer">${w.composer}</div>` : ''}
+        ${(turBadge || w.composer) ? `<div class="work-composer">${turBadge}${w.composer||''}</div>` : ''}
         <div class="work-title-divider"></div>
         <div class="work-rep-count"><span class="status-dot"></span> Offline</div>
       </div>
