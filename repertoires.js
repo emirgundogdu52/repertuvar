@@ -808,13 +808,16 @@ function renderDetail(){
       </td>
       <td class="col-kapanis">${cn?'<span class="cn">'+cn+'</span>':''}</td>
       <td class="col-not" style="color:var(--text3);font-size:12px;">${it.note||''}</td>
-      <td>${_canM?`<div class="ra">
+      <td><div class="ra">
+        ${_knotDugme(it.workId)}
+        ${_canM?`
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
         <button class="br bl${linked?' linked':''}" onclick="toggleLink('${rep.id}','${it.id}')" ${idx===0?'disabled':''} title="${linked?'Potpuri bağını çöz':'Bir öncekiyle potpuri yap (kesintisiz devam)'}">🔗</button>
         <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
         <button class="br dl" onclick="rmItem('${rep.id}','${it.id}','${(w.name||'Bu eser').replace(/'/g,"\\'")}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
-      </div>`:''}</td>
+        `:''}
+      </div></td>
     </tr>`;
   }).join(''):`<tr><td colspan="5" class="ei">Henüz eser eklenmedi.</td></tr>`;
 
@@ -2696,3 +2699,184 @@ function closeDinleSheet() {
   _dnlPlayer = null;
   if (ov) { ov.classList.remove('open'); ov.innerHTML = ''; }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// (2026-08-21) KİŞİSEL ESER NOTU — repertuvar eser listesinden erişim
+// ═══════════════════════════════════════════════════════════════════════════
+// NİÇİN BURADA: Emir — "repertuvar için eser seçerken bu notları almak
+// gerekebilir". Not zaten eser detayında var (eserler.html), ama akıl çoğu
+// zaman repertuvarı kurarken çalışıyor; oraya gitmek akışı bölüyordu.
+//
+// NİÇİN ALT SAYFA: satırda zaten sıra no, tutamaç, ad, makam, solist, kapanış,
+// PAYLAŞILAN not ve beş düğme var — mobilde ikinci bir not alanı sığmıyor.
+// Satır altında açılan inline alan uzun notlarda listeyi dağıtırdı. Alt sayfa
+// deseni projede zaten var (openRepMoveSheet).
+//
+// ⚠️ YETKİ: düğme `_canM` (repertuvarı yönetebilme) KAPSAMI DIŞINDA duruyor —
+// kişisel not herkesin kendi işi; başkasının repertuvarına bakan bir üye de
+// kendi notunu okuyup yazabilmeli.
+
+let PERSONAL_NOTES = {};   // {String(work_id): metin}
+
+function _knotEsc(s){
+  return (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Satırdaki düğme. Not varsa turkuaz ve dolu, yoksa soluk — listeye bakarken
+// hangi eserde notun olduğu tek bakışta görünsün.
+function _knotDugme(workId){
+  const varMi = !!PERSONAL_NOTES[String(workId)];
+  return '<button class="br knb' + (varMi ? ' dolu' : '') + '" data-knot="' + workId + '"' +
+         ' onclick="event.stopPropagation();openKnotSheet(\'' + workId + '\')"' +
+         ' title="' + (varMi ? 'Kişisel notun var — okumak/düzenlemek için dokun' : 'Kişisel not ekle') + '">' +
+         '<i class="ti ti-lock" aria-hidden="true"></i></button>';
+}
+
+// Not yükleme sonrası tüm satırları yeniden çizmek yerine yalnız düğmelerin
+// durumunu güncelliyoruz — açık bir listede kaydırma konumu bozulmasın.
+function _knotDugmeleriTazele(){
+  document.querySelectorAll('button.knb[data-knot]').forEach(b => {
+    const varMi = !!PERSONAL_NOTES[String(b.dataset.knot)];
+    b.classList.toggle('dolu', varMi);
+    b.title = varMi ? 'Kişisel notun var — okumak/düzenlemek için dokun' : 'Kişisel not ekle';
+  });
+}
+
+async function knotYukle(){
+  try{
+    const uid = (typeof getUserId==='function') ? getUserId() : null;
+    if(!uid) return;
+    const r = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?select=work_id,note&user_id=eq.'+uid,
+                          { headers: hdrFor('personal_work_notes') });
+    if(!r.ok){ console.warn('[not] personal_work_notes okunamadı', r.status); return; }
+    const rows = await r.json();
+    PERSONAL_NOTES = {};
+    (rows||[]).forEach(x => { if(x.note) PERSONAL_NOTES[String(x.work_id)] = x.note; });
+    _knotDugmeleriTazele();
+  }catch(e){ /* çevrimdışı — kişisel not katmanı atlanır */ }
+}
+
+function _knotStil(){
+  if (document.getElementById('knotStil')) return;
+  const st = document.createElement('style');
+  st.id = 'knotStil';
+  st.textContent =
+    // Turkuaz bilinçli: altın (--accent) marka vurgusu ve PAYLAŞILAN alanların
+    // rengi; kişisel katman ondan ayrı okunmalı.
+    '.br.knb.dolu{color:#2dd4bf;border-color:rgba(45,212,191,.55);}' +
+    '.knot-ov{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.55);display:none;}' +
+    '.knot-ov.open{display:block;}' +
+    '.knot-sheet{position:fixed;left:0;right:0;bottom:0;z-index:9999;background:var(--surface);' +
+      'border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:16px 18px calc(18px + env(safe-area-inset-bottom));' +
+      'transform:translateY(100%);transition:transform .22s ease;max-height:82vh;overflow:auto;}' +
+    '.knot-sheet.open{transform:translateY(0);}' +
+    '.knot-sheet .ks-bas{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;' +
+      'color:#5eead4;letter-spacing:.05em;text-transform:uppercase;}' +
+    '.knot-sheet .ks-ipuc{font-weight:500;text-transform:none;letter-spacing:0;color:var(--text3);font-size:11px;}' +
+    '.knot-sheet .ks-eser{font-size:14px;font-weight:600;color:var(--text);margin:6px 0 10px;line-height:1.35;}' +
+    '.knot-sheet textarea{width:100%;box-sizing:border-box;min-height:130px;resize:vertical;padding:10px 11px;' +
+      'border-radius:9px;background:var(--surface2);color:var(--text);border:1px solid rgba(45,212,191,.35);' +
+      'font-family:inherit;font-size:14px;line-height:1.6;}' +
+    '.knot-sheet .ks-alt{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;}' +
+    '.knot-sheet .ks-durum{font-size:11.5px;color:var(--text3);}';
+  document.head.appendChild(st);
+}
+
+let _knotAcikWorkId = null;
+
+function openKnotSheet(workId){
+  if (typeof getUserId === 'function' && !getUserId()) return;
+  _knotStil();
+  _knotAcikWorkId = String(workId);
+  const w = WL[String(workId)] || {};
+  const not = PERSONAL_NOTES[String(workId)] || '';
+
+  let ov = document.getElementById('knotOverlay');
+  let sh = document.getElementById('knotSheet');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'knotOverlay'; ov.className = 'knot-ov';
+    ov.onclick = closeKnotSheet;
+    document.body.appendChild(ov);
+    sh = document.createElement('div');
+    sh.id = 'knotSheet'; sh.className = 'knot-sheet';
+    document.body.appendChild(sh);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('knotSheet')?.classList.contains('open')) closeKnotSheet();
+    });
+  }
+
+  sh.innerHTML =
+    '<div class="ks-bas"><i class="ti ti-lock" aria-hidden="true"></i> Kişisel notum' +
+      '<span class="ks-ipuc">— yalnızca sen görürsün</span></div>' +
+    '<div class="ks-eser">' + _knotEsc(w.name || ('#' + workId)) + '</div>' +
+    '<textarea id="knotAlan" placeholder="Bu eserde kendine hatırlatmak istediklerin…">' + _knotEsc(not) + '</textarea>' +
+    '<div class="ks-alt">' +
+      '<button class="rbtn rbtn-sm rbtn-primary" onclick="knotSheetKaydet()">Kaydet</button>' +
+      '<button class="rbtn rbtn-sm" onclick="closeKnotSheet()">İptal</button>' +
+      (not ? '<button class="rbtn rbtn-sm" onclick="knotSheetSil()">Sil</button>' : '') +
+      '<span class="ks-durum" id="knotDurum"></span>' +
+    '</div>';
+
+  requestAnimationFrame(() => {
+    document.getElementById('knotOverlay').classList.add('open');
+    document.getElementById('knotSheet').classList.add('open');
+    const t = document.getElementById('knotAlan');
+    if (t) { t.focus(); t.selectionStart = t.value.length; }
+  });
+}
+
+function closeKnotSheet(){
+  document.getElementById('knotOverlay')?.classList.remove('open');
+  document.getElementById('knotSheet')?.classList.remove('open');
+  _knotAcikWorkId = null;
+}
+
+// Yazma: 204 tek başına başarı SAYILMAZ — dönen satıra bakılır. RLS bir yazmayı
+// sessizce engellerse kullanıcı "kaydedildi" yalanı görmesin (bu projede
+// defalarca yaşandı).
+async function knotSheetKaydet(){
+  const id = _knotAcikWorkId; if(!id) return;
+  const t = document.getElementById('knotAlan'); if(!t) return;
+  const yeni = t.value.trim();
+  const d = document.getElementById('knotDurum'); if(d) d.textContent = 'Kaydediliyor…';
+  try{
+    const uid = getUserId(); if(!uid) throw new Error('Oturum yok');
+    if (yeni) {
+      const H = Object.assign({}, hdrFor('personal_work_notes'), {
+        'Content-Type':'application/json',
+        'Prefer':'resolution=merge-duplicates,return=representation'
+      });
+      const r = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?on_conflict=user_id,work_id', {
+        method:'POST', headers:H,
+        body: JSON.stringify({ user_id: uid, work_id: parseInt(id), note: yeni, updated_at: new Date().toISOString() })
+      });
+      if(!r.ok) throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,120));
+      const rows = await r.json();
+      if(!Array.isArray(rows) || !rows.length) throw new Error('Sunucu hiçbir satır yazmadı (yetki?)');
+      PERSONAL_NOTES[String(id)] = yeni;
+    } else {
+      await fetch(SUPA_URL+'/rest/v1/personal_work_notes?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id),
+                  { method:'DELETE', headers: hdrFor('personal_work_notes') });
+      delete PERSONAL_NOTES[String(id)];
+    }
+    _knotDugmeleriTazele();
+    closeKnotSheet();
+  }catch(e){ if(d) d.textContent = 'Kaydedilemedi: ' + e.message; }
+}
+
+async function knotSheetSil(){
+  const id = _knotAcikWorkId; if(!id) return;
+  const d = document.getElementById('knotDurum'); if(d) d.textContent = 'Siliniyor…';
+  try{
+    const uid = getUserId(); if(!uid) return;
+    await fetch(SUPA_URL+'/rest/v1/personal_work_notes?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id),
+                { method:'DELETE', headers: hdrFor('personal_work_notes') });
+    delete PERSONAL_NOTES[String(id)];
+    _knotDugmeleriTazele();
+    closeKnotSheet();
+  }catch(e){ if(d) d.textContent = 'Silinemedi: ' + e.message; }
+}
+
+// Açılışta bir kez — liste çizildikten sonra düğmeler kendini tazeliyor.
+try { window.addEventListener('load', () => setTimeout(knotYukle, 600)); } catch(e) {}
