@@ -553,6 +553,18 @@ body.day-theme #stageToolsPanel .st-grp + .st-grp{ border-top-color:rgba(0,0,0,.
 .wch.n{border-color:#3d2a1a;color:var(--accent);background:#1e1208;}
 .wch.i{border-color:#1a2d1a;color:#7ab87a;background:#0f1a0f;}
 .wnote{font-size:13px;color:var(--text2);text-align:center;font-style:italic;max-width:100%;line-height:1.6;opacity:0;animation:si .4s ease .2s forwards;}
+/* (2026-08-21) KİŞİSEL NOT — sahnede SALT OKUNUR. Turkuaz + kilit, altın
+   (--accent) marka vurgusundan ve paylaşılan alanlardan ayrılsın diye.
+   Karanlıkta simge ve sol kenar çizgisi renkten hızlı okunuyor. */
+.knot-sahne{display:flex;align-items:flex-start;gap:8px;margin:10px auto 0;max-width:100%;
+  padding:7px 11px;border-radius:9px;text-align:left;cursor:pointer;
+  border:1px solid rgba(45,212,191,.28);border-left:3px solid #2dd4bf;background:rgba(45,212,191,.07);
+  opacity:0;animation:si .4s ease .25s forwards;}
+.knot-sahne i{color:#5eead4;font-size:14px;line-height:1.5;flex:0 0 auto;}
+.knot-sahne .kn-tx{font-size:13px;line-height:1.55;color:var(--text2);white-space:pre-wrap;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;}
+.knot-sahne.acik .kn-tx{-webkit-line-clamp:unset;display:block;}
+.knot-sahne .kn-dh{flex:0 0 auto;color:var(--text3);font-size:11px;margin-left:auto;align-self:center;}
 .wlyrics{font-size:calc(clamp(18px,2.8vw,28px) * var(--lyrics-scale,1));color:var(--text);text-align:left;width:100%;max-width:100%;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:2px;padding:0 4px 16px;box-sizing:border-box;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .wnota{display:flex;justify-content:center;align-items:center;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;width:100%;}
 /* ═══ 2026-07-20: ÇOK SAYFALI NOTA — sayfa göstergesi + pager ═══ */
@@ -1188,6 +1200,30 @@ async function loadWL() {
             headers:_pH, signal: AbortSignal.timeout(4000)
           });
         }
+        // (2026-08-21) Kişisel NOTLAR — akorlarla aynı turda, ayrı tablodan.
+        // Ayrı `try` DEĞİL, aynı blokta: yetki/ağ sorununda ikisi de sessizce
+        // atlanır, sahne yine açılır. Tablo yoksa 404/400 döner, yutulur.
+        try {
+          const nr = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?select=work_id,note&user_id=eq.'+uid, {
+            headers:_pH, signal: AbortSignal.timeout(4000)
+          });
+          if (nr.ok) {
+            (await nr.json() || []).forEach(x => {
+              if (x.note) PERSONAL_NOTES[String(parseInt(x.work_id))] = x.note;
+            });
+          }
+        } catch(e) {}
+        // Sahnede notu gösterme tercihi HESAPTA saklanıyor (cihazda değil):
+        // telefonda kapatınca tablette de kapalı gelsin.
+        try {
+          const cr = await fetch(SUPA_URL+'/rest/v1/profiles?select=sahne_kisisel_not&id=eq.'+uid, {
+            headers:_pH, signal: AbortSignal.timeout(4000)
+          });
+          if (cr.ok) {
+            const crows = await cr.json();
+            if (crows && crows.length && crows[0].sahne_kisisel_not === false) KNOT_GOSTER = false;
+          }
+        } catch(e) {}
         if (pr.ok) {
           const prows = await pr.json();
           (prows||[]).forEach(x => {
@@ -1204,7 +1240,64 @@ async function loadWL() {
     } catch(e) { /* offline / yetki yok — kişisel katman atlanır */ }
   } catch(e) { console.error('WL yüklenemedi:', e); }
   finally { WL_loaded = true; } // works yükleme denemesi bitti (başarılı/başarısız)
-}let reps=[], selId=null, curRep=null, curIdx=0;
+}// (2026-08-21) KİŞİSEL ESER NOTU — sahnede SALT OKUNUR gösterim.
+// Düzenleme bilerek yok: sahnede klavye açmak, yanlış dokunuşla şarkı
+// ortasında düzenleme moduna düşmek demek. Yazma yeri eser detayı ve
+// repertuvar listesindeki alt sayfa.
+let PERSONAL_NOTES = {};        // {String(work_id): metin}
+let KNOT_GOSTER = true;         // hesap tercihi; profiles.sahne_kisisel_not
+let _knotAcikId = null;         // uzun not hangi eserde açık (esere özel)
+
+function _knotEsc(t){
+  return (t == null ? '' : String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// İlk satır görünür — not OLDUĞU anlaşılsın; uzunsa dokununca açılır, tekrar
+// dokununca kapanır. Açıklık esere bağlı: sonraki esere geçince kapalı başlar.
+function knotSahneHtml(workId){
+  if (!KNOT_GOSTER) return '';
+  const not = PERSONAL_NOTES[String(workId)];
+  if (!not) return '';
+  const cokSatir = not.indexOf('\n') !== -1 || not.length > 60;
+  const acik = _knotAcikId === String(workId);
+  return '<div class="knot-sahne' + (acik ? ' acik' : '') + '" onclick="knotSahneAc(event,\'' + workId + '\')"' +
+         ' title="Kişisel notun — yalnızca sen görürsün">' +
+         '<i class="ti ti-lock" aria-hidden="true"></i>' +
+         '<span class="kn-tx">' + _knotEsc(not) + '</span>' +
+         (cokSatir ? '<span class="kn-dh">' + (acik ? 'kapat' : 'aç') + '</span>' : '') +
+         '</div>';
+}
+
+function knotSahneAc(ev, workId){
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  _knotAcikId = (_knotAcikId === String(workId)) ? null : String(workId);
+  try { renderStage(); } catch(e) {}
+}
+
+// Panelden aç/kapa. Tercih HESABA yazılıyor; yazma başarısız olsa da ekranda
+// hemen uygulanıyor — sahnede "düğmeye bastım bir şey olmadı" hissi olmasın.
+async function knotGosterToggle(ev){
+  if (ev) ev.stopPropagation();
+  KNOT_GOSTER = !KNOT_GOSTER;
+  _knotAcikId = null;
+  try { renderStage(); } catch(e) {}
+  try { buildStageToolsRow(_tonSonMode); } catch(e) {}
+  try {
+    const uid = (typeof getUserId==='function') ? getUserId() : null;
+    if (!uid) return;
+    const tok = localStorage.getItem('sb_token') || SUPA_KEY;
+    const r = await fetch(SUPA_URL+'/rest/v1/profiles?id=eq.'+uid, {
+      method:'PATCH',
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+tok,'Content-Type':'application/json','Prefer':'return=representation'},
+      body: JSON.stringify({ sahne_kisisel_not: KNOT_GOSTER })
+    });
+    if (!r.ok) { console.warn('[not] tercih yazılamadı — sütun/RLS?', r.status); return; }
+    const rows = await r.json();
+    if (!Array.isArray(rows) || !rows.length) console.warn('[not] tercih yazılmadı: sunucu 0 satır döndürdü');
+  } catch(e) { console.warn('[not] tercih yazılamadı', e); }
+}
+
+let reps=[], selId=null, curRep=null, curIdx=0;
 
 // repertoires.html'deki "Gizle" (hiddenRepIds, sadece client-side) ile tutarlı olsun diye —
 // bir repertuvarı orada gizlersen burada da (sahne modunda) görünmemeli.
@@ -2034,7 +2127,8 @@ function renderStage(){
   if (_head) _head.innerHTML = `
     <div class="wnum"></div>
     <div class="wtitle">${w.name || (WL_loaded ? item.workId : '…')}</div>
-    ${kararChip}`;
+    ${kararChip}
+    ${knotSahneHtml(item.workId)}`;
   // 2026-07-28: ÖLÇEK ÖNCE, İÇERİK SONRA, HİZA AYNI KAREDE.
   // Eskiden içerik basılıyor, hizalama requestAnimationFrame ile BİR SONRAKİ
   // karede uygulanıyordu. İlk kare ortalanmış+eski ölçekte boyanıyor, sonraki
@@ -2333,10 +2427,16 @@ function buildStageToolsRow(mode) {
       <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
       <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>`;
+    // (2026-08-21) Kişisel not aç/kapa — YALNIZCA o eserde not varsa çizilir.
+    // Notu olmayan eserde düğme göstermek "neyi kapatıyorum?" sorusu doğurur.
+    const _knotVar = !!(item && PERSONAL_NOTES[String(item.workId)]);
+    const knotBtn = _knotVar ? `
+      <button onclick="knotGosterToggle(event)" title="Kişisel notu göster/gizle" class="align-btn${KNOT_GOSTER?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;"><i class="ti ti-lock"></i> ${KNOT_GOSTER?'Açık':'Kapalı'}</button>` : '';
     row.innerHTML = grup('Hizalama', alignBtns)
                   + grup('Yazı Boyutu', fontBlok)
                   + grup('Ton', tonBtns)
                   + grup('Akor Yazımı', yazimBtns)
+                  + grup('Kişisel Not', knotBtn)
                   + grup('Görünüm', themeBtn)
                   + grup('Sahne', sahneBtns, true);
     // Panel her yeniden kurulduğunda kaydırıcının dolgu rengi ve hiza
