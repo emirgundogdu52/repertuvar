@@ -201,11 +201,24 @@ async function dbPost(table, data) {
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
+// (2026-08-22) YAZ VE DOĞRULA — `!r.ok` TEK BAŞINA YETMİYOR.
+// PostgREST'te RLS bir UPDATE'i engellediğinde istek HATA DÖNMEZ: 200/204 ile
+// ama SIFIR SATIR günceller. Eski hâl yalnız `!r.ok`e bakıyordu ⇒ kullanıcı
+// "Kaydedildi ✓" görüyor, veritabanında hiçbir şey değişmiyordu. Bu projede
+// aynı desen daha önce eserler.html'de yakalanmıştı (yazVeDogrula); burada
+// duruyordu. `hdrFor` zaten `Prefer: return=representation` gönderiyor, yani
+// dönen diziyi saymak bedava.
 async function dbPatch(table, id, data) {
   _rtSustur();
   const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {method:'PATCH',headers:hdrFor(table),body:JSON.stringify(data)});
   if (!r.ok) throw new Error(await r.text());
-  return r.json();
+  const rows = await r.json().catch(() => null);
+  // Dizi gelmediyse (204/boş gövde) doğrulayacak bir şey yok — eski davranış.
+  // Dizi geldiyse BOŞ olması sessiz reddin ta kendisidir.
+  if (Array.isArray(rows) && rows.length === 0) {
+    throw new Error('Kaydedilemedi: sunucu hiçbir satır güncellemedi (yetkin olmayabilir).');
+  }
+  return rows;
 }
 async function dbDel(table, id) {
   _rtSustur();
@@ -934,11 +947,22 @@ async function copyRep(repId){
     const [newRep]=await r.json();
     // Eserleri kopyala
     if(rep.items&&rep.items.length){
-      await fetch(SUPA_URL+'/rest/v1/repertoire_items',{
+      // (2026-08-22) Bu isteğin yanıtı HİÇ KONTROL EDİLMİYORDU: eser ekleme
+      // başarısız olsa bile (RLS/ağ) altta "Repertuvar kopyalandı!" yazıyor,
+      // kullanıcı BOŞ bir repertuvarla kalıyordu. Artık dönen satırlar sayılıyor
+      // ve eksik varsa dürüstçe söyleniyor — repertuvarın kendisi oluştu, o
+      // yüzden hata FIRLATILMIYOR, yalnız uyarı veriliyor.
+      const ri = await fetch(SUPA_URL+'/rest/v1/repertoire_items',{
         method:'POST',
-        headers:{...H,'Prefer':'return=minimal'},
+        headers:{...H,'Prefer':'return=representation'},
         body:JSON.stringify(rep.items.map((it,i)=>({repertoire_id:newRep.id,work_id:parseInt(it.workId),seq:i+1,closing_note:it.closingNote||null,note:it.note||null,performer:it.performer||null,linked_prev:i>0&&!!it.linkedPrev})))
       });
+      const eklenen = ri.ok ? ((await ri.json().catch(()=>[]))||[]).length : 0;
+      if (eklenen < rep.items.length) {
+        toast('Repertuvar oluştu ama eserlerin ' + eklenen + '/' + rep.items.length + ' tanesi eklenebildi.', 'err');
+        await load(); selId = newRep.id; renderList(); renderDetail();
+        return;
+      }
     }
     toast('📋 Repertuvar kopyalandı!');
     await load();
@@ -1892,14 +1916,12 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeRM();closeWM()
   } catch(e){ console.warn('patch err',e); }
 })();
 
-async function dbPatch(table, id, data) {
-  const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {
-    method: 'PATCH',
-    headers: {...hdrFor(table), 'Prefer': 'return=minimal'},
-    body: JSON.stringify(data)
-  });
-  if (!r.ok) throw new Error(await r.text());
-}
+// (2026-08-22) BURADA İKİNCİ BİR `dbPatch` TANIMI VARDI — KALDIRILDI.
+// `return=minimal` ile yazıyor, gövde okumuyor ve `_rtSustur()` ÇAĞIRMIYORDU;
+// dosyanın ilerisinde tanımlandığı için yukarıdaki (satır ~204) sağlam sürümü
+// EZİYORDU. İki sonucu vardı: (a) sessiz RLS reddi hiç yakalanamıyordu,
+// (b) gerçek zamanlı "kendi yankını yut" penceresi kurulmadığı için çok
+// satırlı işlemlerde araya giren tazeleme listeyi eskitebiliyordu.
 let iemRepId=null,iemItemId=null,iemPfSelected=[];
 let _iemWorkId=null;
 function openItemEdit(repId,itemId){
@@ -2038,10 +2060,18 @@ async function createShareLink(hours){
   if(box) box.innerHTML = '<div class="share-note">Bağlantı oluşturuluyor…</div>';
   try{
     // Tek aktif bağlantı: bu repertuvarın eski bağlantılarını iptal et
-    await fetch(SUPA_URL+'/rest/v1/repertoire_links?repertoire_id=eq.'+repId+'&revoked=is.false', {
+    // (2026-08-22) Bu isteğin yanıtı da kontrol edilmiyordu. Burada sessizlik
+    // GÜVENLİK meselesi: iptal başarısız olursa ESKİ bağlantılar geçerli
+    // kalıyor, oysa arayüz "tek aktif bağlantı" vaat ediyor — kullanıcı
+    // paylaşımı geri çektiğini sanır.
+    const _iptal = await fetch(SUPA_URL+'/rest/v1/repertoire_links?repertoire_id=eq.'+repId+'&revoked=is.false', {
       method:'PATCH', headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'return=minimal'},
       body: JSON.stringify({revoked:true})
     });
+    if (!_iptal.ok) {
+      console.warn('[paylaşım] eski bağlantılar iptal edilemedi:', _iptal.status);
+      toast('Uyarı: eski paylaşım bağlantıları iptal edilemedi, hâlâ geçerli olabilir.', 'err');
+    }
     const token = randomToken();
     const expires = new Date(Date.now() + hours*3600*1000).toISOString();
     const r = await fetch(SUPA_URL+'/rest/v1/repertoire_links', {
