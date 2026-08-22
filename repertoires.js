@@ -391,13 +391,41 @@ async function loadWorksData() {
     // gizli ya da GRUBA AÇIK eserler burada hiç gelmiyor ve satırda yine
     // "#<id>" görünüyordu. Jetonla dene, istek başarısızsa anon ile tekrar
     // dene — hem yetki hem eski dayanıklılık korunuyor.
+    // (2026-08-22) ANON'A DÜŞME DARALTILDI — OTURUM VARSA ARTIK DÜŞÜLMÜYOR.
+    // Belirti (Emir bildirdi): telefondan eklenen GİZLİ bir eser masaüstünde
+    // repertuvar satırında "#<id>" ve "söz eklenmemiş" olarak görünüyordu;
+    // çıkış-giriş yapınca düzeldi. Sebep: jeton bayatlayınca istek başarısız
+    // oluyor, kod sessizce anon'a düşüyor, anon istekte RLS yalnız
+    // visibility='public' eserleri veriyor ⇒ gizli eser WL'e hiç girmiyor.
+    // Diğer eserler önbellekten geldiği için arıza "tek eserde" gibi duruyor.
+    //
+    // KUSUR SESSİZLİKTEYDİ: bir YETKİ sorunu gizlenip yerine YANLIŞ BİLGİ
+    // gösteriliyordu ("söz eklenmemiş" — oysa söz var). Üstelik auth.js zaten
+    // doğru olanı yapıyor: istekten önce jetonu tazeliyor, 401'de zorla
+    // yenileyip isteği BİR KEZ tekrarlıyor, oturum kalıcı ölüyse isteği
+    // engelleyip oturumu sonlandırıyor. Anon yedek yolu tam da bu mekanizmayı
+    // etkisiz kılıyordu: engellenen istekten sonra anon'la tekrar denenince
+    // kullanıcı "girişli" görünmeye devam edip eksik veri görüyordu.
+    //
+    // Anon yolu KALDIRILMADI, yalnız daraltıldı: oturumu OLMAYAN ziyaretçi
+    // (paylaşım bağlantısıyla gelen) genel eserleri görmeye devam etsin.
     const _worksUrl = SUPA_URL+'/rest/v1/works?order=name&limit=2000';
-    let r = await fetch(_worksUrl, { headers: authHeaders(), signal: AbortSignal.timeout(3500) });
+    const _oturumVar = !!localStorage.getItem('sb_token');
+    let r = await fetch(_worksUrl, {
+      headers: _oturumVar ? authHeaders() : anonHeaders(),
+      signal: AbortSignal.timeout(3500)
+    });
     if (!r.ok) {
-      console.warn('[repertoires] works jetonla alınamadı ('+r.status+') — anon ile deneniyor');
-      r = await fetch(_worksUrl, { headers: anonHeaders(), signal: AbortSignal.timeout(3500) });
+      if (_oturumVar) {
+        // Sessizce eksik veri göstermektense dürüst ol. WL zaten local'den
+        // dolu olduğu için ekran boş kalmıyor; yalnız tazeleme atlanıyor.
+        console.warn('[repertoires] works alınamadı ('+r.status+') — anon\'a DÜŞÜLMÜYOR, oturum var');
+        if (navigator.onLine) {
+          try { toast('Eser listesi tazelenemedi. Oturumun yenilenmemiş olabilir — çıkıp tekrar girmen gerekebilir.', 'err'); } catch(e) {}
+        }
+      }
+      throw new Error('works fetch '+r.status);
     }
-    if (!r.ok) throw new Error('works fetch '+r.status);
     const rows = await r.json();
     if ((rows||[]).length) {
       if (window.db) { try { await db.works.saveAll(rows); } catch(e) {} }

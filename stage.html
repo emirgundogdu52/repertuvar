@@ -1135,14 +1135,31 @@ async function loadWL() {
       // gizli ya da gruba açık eserlerin GÜFTE/AKORU sahnede boş kalıyordu.
       // Doğrusu: jetonla dene, istek başarısızsa (401/süresi dolmuş) anon ile
       // tekrar dene — böylece hem yetki hem eski dayanıklılık korunuyor.
+      // (2026-08-22) ANON'A DÜŞME DARALTILDI — OTURUM VARSA ARTIK DÜŞÜLMÜYOR.
+      // Yukarıdaki gerekçe (jetonla dene, olmazsa anon) EKSİKTİ ve sahnede en
+      // pahalı yerde patlıyordu. Emir'in yaşadığı belirti (repertuvar sayfası,
+      // aynı desen): telefondan eklenen GİZLİ eser masaüstünde "#<id>" ve
+      // "söz eklenmemiş" göründü; çıkış-giriş yapınca düzeldi. Sebep, jeton
+      // bayatlayınca sessizce anon'a düşülmesi — anon istekte RLS yalnız
+      // visibility='public' eserleri veriyor, gizli/gruba açık eserin GÜFTESİ
+      // sahnede BOŞ kalıyor. Sahnede bunun bedeli çok yüksek.
+      //
+      // auth.js zaten doğrusunu yapıyor: istekten önce jetonu tazeliyor,
+      // 401'de zorla yenileyip isteği bir kez tekrarlıyor, oturum kalıcı
+      // ölüyse isteği engelleyip oturumu sonlandırıyor. Anon yedek yolu tam da
+      // bu mekanizmayı etkisiz kılıyordu (anon istek yamadan muaf geçiyor).
+      // Anon yolu KALDIRILMADI, daraltıldı: oturumu OLMAYAN ziyaretçi
+      // (paylaşım bağlantısıyla gelen) genel eserleri görmeye devam etsin.
       const _worksUrl = SUPA_URL+'/rest/v1/works?select=*&order=id&limit=2000';
-      let r = await fetch(_worksUrl, { headers: H, signal: AbortSignal.timeout(3500) });
-      if (!r.ok) {
-        console.warn('[stage] works jetonla alınamadı ('+r.status+') — anon ile deneniyor');
-        r = await fetch(_worksUrl, {
-          headers: {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY},
-          signal: AbortSignal.timeout(3500)
-        });
+      const _oturumVar = !!localStorage.getItem('sb_token');
+      let r = await fetch(_worksUrl, {
+        headers: _oturumVar ? H : {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY},
+        signal: AbortSignal.timeout(3500)
+      });
+      if (!r.ok && _oturumVar) {
+        // Eksik güfteyle sahneye çıkmaktansa dürüst ol: WL varsa önbellekten
+        // geleni kullanmaya devam ediyoruz, yalnız tazeleme atlanıyor.
+        console.warn('[stage] works alınamadı ('+r.status+') — anon\'a DÜŞÜLMÜYOR, oturum var');
       }
       if (!r.ok) throw new Error('works '+r.status);
       const fetched = await r.json();
