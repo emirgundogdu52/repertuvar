@@ -175,6 +175,9 @@ body{padding-top:var(--topnav-h, 66px);}
 /* ── Page styles ── */
 .page { padding: 24px 20px; max-width: 640px; }
 @media(min-width:1024px) { .page { padding: 32px; } }
+/* Yatay kaydırma emniyeti: taşan tek bir öğe bütün sayfayı kaydırılabilir
+   yapıp "zoom'lu" hissi veriyor. */
+html, body { overflow-x: hidden; }
 
 .settings-section {
   background: var(--surface);
@@ -182,9 +185,17 @@ body{padding-top:var(--topnav-h, 66px);}
   border-radius: 16px;
   margin-top: 0;
   margin-bottom: 16px;
-  margin-left: calc(50% - 212px);
-  margin-right: calc(50% - 212px);
-  width: 424px;
+  /* (2026-08-22) MOBİL GENİŞLİK DÜZELTMESİ.
+     Buradaki `width:424px` + `margin-left/right: calc(50% - 212px)` bir
+     MASAÜSTÜ ORTALAMA HİLESİ. ~390px'lik bir telefonda calc(50% - 212px)
+     NEGATİF çıkıyor ⇒ bölüm ekrandan taşıyor, sol kenar kırpılıyor ve sayfa
+     "yakınlaştırılmış" görünüyor. Aynı kusur mesajlar.html'de 2026-07-17'de
+     bulunup düzeltilmişti; ayarlar.html'de kalmış.
+     Doğrusu: ebeveyni doldur, 424px'i geçme, ortala. */
+  width: 100%;
+  max-width: 424px;
+  margin-left: auto;
+  margin-right: auto;
   box-sizing: border-box;
   overflow: hidden;
 }
