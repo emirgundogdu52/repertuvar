@@ -180,6 +180,15 @@ html { -webkit-text-size-adjust: 100%; }
           <button class="btn btn-secondary" style="padding:5px 10px;font-size:12px;" onclick="showEditGroup()"><i class="ti ti-pencil" style="font-size:13px;"></i> Düzenle</button>
           <button class="btn btn-danger" style="padding:5px 10px;font-size:12px;" onclick="deleteGroup()"><i class="ti ti-trash" style="font-size:13px;"></i></button>
         </div>
+        <!-- (2026-08-22) GRUPTAN AYRILMA. Emir: "Kişi isterse gruptan
+             ayrılabilmeli." Eskiden üyeyi YALNIZCA yönetici çıkarabiliyordu
+             ("Çıkar" düğmesi admin/kurucu bloğunun içinde ve kendine kapalı);
+             düz üyenin hiçbir çıkış yolu yoktu. Veritabanı tarafı zaten hazırdı:
+             `gm_delete` politikası `user_id = auth.uid()` ile kendi satırını
+             silmeye İZİN VERİYORDU — eksik olan sadece arayüzdü. -->
+        <div id="groupLeaveBtn" style="display:none;flex-shrink:0;">
+          <button class="btn btn-secondary" style="padding:5px 10px;font-size:12px;" onclick="leaveGroup()"><i class="ti ti-logout" style="font-size:13px;"></i> Ayrıl</button>
+        </div>
       </div>
       <div id="groupDescEl" style="font-size:13px;color:var(--text2);margin-bottom:16px;"></div>
 
@@ -408,6 +417,12 @@ function renderGroup() {
   if (editBtns && (isAdmin() || userRole === 'owner')) {
     editBtns.style.display = 'flex';
   }
+
+  // "Ayrıl" KURUCUYA GÖSTERİLMİYOR: kurucu ayrılırsa grup sahipsiz kalır ve
+  // kimse yönetemez. Kurucunun yolu ya kuruculuğu devretmek ya grubu silmek —
+  // ikisi de zaten bu ekranda var.
+  const leaveBtn = document.getElementById('groupLeaveBtn');
+  if (leaveBtn) leaveBtn.style.display = (userRole === 'owner') ? 'none' : '';
 
   // Üyeler listesi
   renderMembersList(currentMembers);
@@ -673,6 +688,50 @@ async function saveInstrument(userId) {
 // YENİ SÖZLEŞME: group_id üyelik SATIRININ kendisinden gelir; önce group_members
 // silinir ve gerçekten silindiği doğrulanır; profil ancak ondan sonra boşaltılır.
 // Sıra önemli — tersi tam da yukarıdaki ayrışmayı üretiyor.
+// (2026-08-22) Kendi üyeliğini sonlandırma. removeMember'dan AYRI tutuldu:
+// orası yöneticinin başkasını çıkarması, burası kişinin kendi kararı — onay
+// metni, hata mesajları ve sonrasında yapılacaklar farklı.
+async function leaveGroup() {
+  const uid = getUserId();
+  const g = currentGroup;
+  if (!uid || !g) return;
+  if (userRole === 'owner') {
+    toast('Kurucu gruptan ayrılamaz. Önce kuruculuğu devredin ya da grubu silin.', 'err');
+    return;
+  }
+  if (!confirm('"' + g.name + '" grubundan ayrılmak istediğinize emin misiniz?\n\nGrubun repertuvarlarını ve gruba açılmış eserleri artık göremezsiniz. Kendi eserleriniz ve kişisel notlarınız sizde kalır.')) return;
+
+  try {
+    // Satırı KENDİ kimliğimizle ve BU grup için siliyoruz; kaç satır silindiği
+    // doğrulanıyor — 0 satır sessiz RLS reddi demektir, "ayrıldınız" yalanı
+    // söylenmemeli.
+    const d = await fetch(SUPA_URL + '/rest/v1/group_members?user_id=eq.' + uid + '&group_id=eq.' + g.id, {
+      method: 'DELETE',
+      headers: { ...authHeaders(), 'Prefer': 'return=representation' }
+    });
+    if (!d.ok) throw new Error(await d.text());
+    const silinen = await d.json();
+    if (!Array.isArray(silinen) || !silinen.length) {
+      throw new Error('Üyelik satırı silinemedi (0 satır).');
+    }
+
+    // Aktif grup buydu: kalan gruplardan birine geç, yoksa boşalt. Bu adım
+    // başarısız olsa bile ÜYELİK ZATEN BİTTİ — kullanıcıyı hata ekranında
+    // bırakmıyoruz, sayfa yenilenince doğru duruma oturuyor.
+    try {
+      const kalan = (myGroups || []).filter(x => x.id !== g.id);
+      if (typeof setActiveGroup === 'function') {
+        await setActiveGroup(kalan.length ? kalan[0].id : null);
+      }
+    } catch (e) { console.warn('[gruplar] aktif grup güncellenemedi:', e); }
+
+    toast('Gruptan ayrıldınız');
+    setTimeout(() => location.reload(), 700);
+  } catch (e) {
+    toast('Ayrılınamadı: ' + e.message, 'err');
+  }
+}
+
 async function removeMember(userId) {
   if (!confirm('Bu üyeyi gruptan çıkarmak istediğinize emin misiniz?')) return;
   try {
