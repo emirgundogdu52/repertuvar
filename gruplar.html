@@ -141,7 +141,7 @@ html { -webkit-text-size-adjust: 100%; }
   <div class="section" id="createGroupForm" style="display:none;">
       <div class="section-title">Yeni Grup / Koro Oluştur</div>
       <div style="margin-bottom:14px;">
-        <label class="fl">Koro Adı *</label>
+        <label class="fl">Grup / Koro Adı *</label>
         <input class="fi" id="newGroupName" placeholder="örn. Ensemble Bağlama Grubu">
       </div>
       <div style="margin-bottom:20px;">
@@ -150,7 +150,7 @@ html { -webkit-text-size-adjust: 100%; }
       </div>
       <div class="m-btn-row" style="display:flex;gap:10px;">
         <button class="btn btn-secondary" onclick="hideCreateGroup()">İptal</button>
-        <button class="btn btn-primary" onclick="createGroup()">Koroyu Oluştur</button>
+        <button class="btn btn-primary" onclick="createGroup()">Grubu / Koroyu Oluştur</button>
       </div>
     </div>
 
@@ -186,8 +186,8 @@ html { -webkit-text-size-adjust: 100%; }
       <!-- Grup düzenleme formu -->
       <div id="editGroupForm" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
         <div style="margin-bottom:12px;">
-          <label class="fl">Koro Adı</label>
-          <input class="fi" id="editGroupName" placeholder="Koro adı...">
+          <label class="fl">Grup / Koro Adı</label>
+          <input class="fi" id="editGroupName" placeholder="Grup / Koro adı...">
         </div>
         <div style="margin-bottom:14px;">
           <label class="fl">Açıklama</label>
@@ -293,7 +293,7 @@ async function createGroup() {
     document.getElementById('newGroupName').value = '';
     document.getElementById('newGroupDesc').value = '';
     hideCreateGroup();
-    toast('Koro oluşturuldu ✓');
+    toast('Grup / Koro oluşturuldu ✓');
     await loadPage();   // loadMyGroups üyelik listesini tazeler
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
@@ -513,13 +513,13 @@ async function saveGroupEdit() {
       body: JSON.stringify({ name, description: desc || null })
     });
     if (!r.ok) throw new Error(await r.text());
-    toast('Koro güncellendi ✓');
+    toast('Grup / Koro güncellendi ✓');
     hideEditGroup();
     await loadPage();
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
 async function deleteGroup() {
-  if (!confirm('Koroyu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) return;
+  if (!confirm('Grubu / Koroyu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) return;
   try {
     // (2026-08-01) Üç istek de yanıtsız gidiyordu: ilk ikisi RLS'te düşse bile
     // profiller boşalıyor, ekranda "Koro silindi" yazıyordu. Artık her adım
@@ -534,14 +534,14 @@ async function deleteGroup() {
     const dg = await fetch(SUPA_URL + '/rest/v1/groups?id=eq.' + currentGroup.id, {
       method: 'DELETE', headers: authHeaders()
     });
-    if (!dg.ok) throw new Error('Koro silinemedi: ' + (await dg.text()));
+    if (!dg.ok) throw new Error('Grup / Koro silinemedi: ' + (await dg.text()));
     const pp = await fetch(SUPA_URL + '/rest/v1/profiles?group_id=eq.' + currentGroup.id, {
       method: 'PATCH', headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
       body: JSON.stringify({ group_id: null })
     });
-    if (!pp.ok) throw new Error('Koro silindi ama profiller güncellenemedi: ' + (await pp.text()));
+    if (!pp.ok) throw new Error('Grup / Koro silindi ama profiller güncellenemedi: ' + (await pp.text()));
     localStorage.removeItem('user_group_id');
-    toast('Koro silindi');
+    toast('Grup / Koro silindi');
     await loadPage();
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
