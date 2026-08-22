@@ -3045,6 +3045,71 @@ function loadSideWork(id) {
   window.addEventListener('online', _refreshAfterWorks);
 })();
 
+// ── 2026-08-22: EKRAN UYANIK TUTMA (Screen Wake Lock) ─────────────────────
+// Sahnede telefonun kendiliginden kilitlenmesi, uygulamanin guvenilirligini
+// dogrudan vuruyordu. Bu blok, SADECE sahne ekrani acikken ekrani uyanik tutar.
+//
+// NEDEN body SINIFINI IZLIYORUZ: showScreen() zaten her geciste
+// `document.body.classList.toggle('stage-active', ...)` yapiyor. Fonksiyonu
+// duzenlemek yerine bu sinifi dinlemek, ileride yeni bir gecis yolu eklense
+// bile kilidin dogru davranmasini saglar (tek dogruluk noktasi).
+//
+// iOS TUZAGI: Web Wake Lock API'de uygulama arka plana gecince kilit SESSIZCE
+// birakilir ve one donunce KENDILIGINDEN GERI ALINMAZ. Bu yuzden
+// visibilitychange / pageshow / focus uzerinden yeniden istiyoruz. Gorunur
+// degilken istek zaten reddedilir, o yuzden sadece 'visible' halinde deniyoruz.
+(function(){
+  var _wl = null;        // aktif WakeLockSentinel
+  var _istendi = false;  // sahne acik mi — kilidin OLMASI GEREKEN hali
+  var _destek = !!(navigator.wakeLock && typeof navigator.wakeLock.request === 'function');
+
+  function _sahneAcik(){
+    return !!(document.body && document.body.classList.contains('stage-active'));
+  }
+
+  function _al(){
+    if(!_destek || !_istendi) return;
+    if(_wl) return;                                   // zaten elimizde
+    if(document.visibilityState !== 'visible') return; // gorunmezken reddedilir
+    navigator.wakeLock.request('screen').then(function(s){
+      _wl = s;
+      s.addEventListener('release', function(){ _wl = null; });
+    }).catch(function(e){
+      _wl = null;
+      console.warn('wakeLock alinamadi:', e && e.name, e && e.message);
+    });
+  }
+
+  function _birak(){
+    _istendi = false;
+    if(_wl){ try{ _wl.release(); }catch(e){} _wl = null; }
+  }
+
+  function _senkron(){
+    if(_sahneAcik()){ _istendi = true; _al(); }
+    else { _birak(); }
+  }
+
+  try{
+    new MutationObserver(_senkron).observe(document.body,
+      { attributes:true, attributeFilter:['class'] });
+  }catch(e){}
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible') _al();
+  });
+  window.addEventListener('pageshow', _al);
+  window.addEventListener('focus', _al);
+
+  // Test icin: sahnedeyken konsola window._wlDurum() yaz.
+  window._wlDurum = function(){
+    return { destek:_destek, sahneAcik:_sahneAcik(), istendi:_istendi,
+             kilitAktif: !!_wl, gorunur: document.visibilityState };
+  };
+
+  _senkron();
+})();
+
 </script>
 </body>
 </html>
