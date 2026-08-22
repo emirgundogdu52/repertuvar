@@ -681,7 +681,23 @@ function hideRepFromView(id) {
 function renderList(){
   const el=document.getElementById('list');
   if(!reps.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">Henüz repertuvar yok</div>';return;}
-  const filtered = reps.filter(r=>repMatchesSearch(r, repSearchQuery));
+  // (2026-08-22) SIRALAMA ARTIK BURADA — KAYNAK NE OLURSA OLSUN AYNI.
+  // Belirti (Emir bildirdi): telefon ile tablette repertuvar sırası farklıydı.
+  // KANIT: telefonun sırası `created_at` artan (sunucu sırası), tabletinki ise
+  // repertuvar KİMLİKLERİNİN (uuid) harf sırası — yani IndexedDB'nin `getAll()`
+  // çıktısı, çünkü o kayıtları birincil anahtar sırasında döndürüyor.
+  // İki bölümde de (Repertuvarlarım + Genel) bu eşleşme birebir tuttu.
+  // `created_at`te eşit/boş değer YOK (21 kayıt, 21 farklı zaman) ⇒ sorun
+  // sunucu sıralamasının belirsizliği DEĞİL, listenin gelen sırayı olduğu gibi
+  // basmasıydı: yerelden çizilen cihaz uuid sırasında kalıyordu.
+  // Çözüm sıralamayı ÇİZİM anına almak; veri nereden gelirse gelsin sonuç aynı.
+  const _sira = (a, b) => {
+    const ta = Date.parse(a.created_at || '') || 0;
+    const tb = Date.parse(b.created_at || '') || 0;
+    if (ta !== tb) return ta - tb;                     // eskiden yeniye
+    return String(a.name||'').localeCompare(String(b.name||''), 'tr');  // eşitse ada göre
+  };
+  const filtered = reps.filter(r=>repMatchesSearch(r, repSearchQuery)).sort(_sira);
   if(repSearchQuery && !filtered.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">"'+repSearchQuery+'" için sonuç bulunamadı</div>';return;}
   const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
