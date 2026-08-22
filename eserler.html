@@ -2082,10 +2082,22 @@ function toggleFavorite(id, ev) {
 // ── Her eserin kaç repertuvarda kullanıldığı (Supabase repertoire_items) ──
 async function loadRepertoireCounts() {
   try {
+    // (2026-08-22) GRUP SAYIMI YENİ MODELE GEÇİRİLDİ.
+    // Eskiden grup bilgisi YALNIZCA `repertoires.group_id`den okunuyordu. Yeni
+    // görünürlük modelinde bir repertuvarın hangi gruplara açıldığı
+    // `repertoire_group_shares` satırlarında tutuluyor; `group_id` uyumluluk
+    // için yazılmaya devam ediyor ama TEK KAYNAK DEĞİL — özellikle bir
+    // repertuvar BİRDEN ÇOK gruba açıldığında `group_id` yalnız birini
+    // taşıyabiliyor. Sonuç: "👥 N Grup" rozeti olduğundan az sayıyordu.
+    // Artık önce paylaşım satırları, o gelmezse group_id'ye düşülüyor.
     const headers = authHeaders();
-    const [itemsRes, repsRes] = await Promise.all([
+    const [itemsRes, repsRes, sharesRes] = await Promise.all([
       fetch(SUPA_URL + '/rest/v1/repertoire_items?select=work_id,repertoire_id', { headers }),
       fetch(SUPA_URL + '/rest/v1/repertoires?select=id,group_id', { headers }),
+      // `.catch` ŞART: bu istek düşerse Promise.all tümünü düşürür ve
+      // "📂 N Repertuvar" sayacı da kaybolurdu. Null dönerse yalnız grup
+      // sayımı eski yola (group_id) düşer.
+      fetch(SUPA_URL + '/rest/v1/repertoire_group_shares?select=repertoire_id,group_id', { headers }).catch(() => null),
     ]);
     if (!itemsRes.ok) return;
     const itemRows = await itemsRes.json();
@@ -2093,13 +2105,27 @@ async function loadRepertoireCounts() {
     const repToGroup = {};
     repRows.forEach(r => { repToGroup[r.id] = r.group_id || null; });
 
+    // repertuvar → o repertuvarın açıldığı grupların kümesi
+    const repToShares = {};
+    if (sharesRes && sharesRes.ok) {
+      const shareRows = await sharesRes.json().catch(() => []);
+      (shareRows || []).forEach(x => {
+        if (!x || !x.repertoire_id || !x.group_id) return;
+        (repToShares[x.repertoire_id] = repToShares[x.repertoire_id] || new Set()).add(x.group_id);
+      });
+    }
+
     const counts = {};
     const groupSets = {};
     itemRows.forEach(row => {
       counts[row.work_id] = (counts[row.work_id] || 0) + 1;
-      const gid = repToGroup[row.repertoire_id];
-      if (gid) {
-        (groupSets[row.work_id] = groupSets[row.work_id] || new Set()).add(gid);
+      const paylasilan = repToShares[row.repertoire_id];
+      if (paylasilan && paylasilan.size) {
+        const hedef = (groupSets[row.work_id] = groupSets[row.work_id] || new Set());
+        paylasilan.forEach(g => hedef.add(g));
+      } else {
+        const gid = repToGroup[row.repertoire_id];   // yedek yol: eski sütun
+        if (gid) (groupSets[row.work_id] = groupSets[row.work_id] || new Set()).add(gid);
       }
     });
     const groupCounts = {};
