@@ -2003,11 +2003,27 @@ async function openSharedWork(rawId) {
 
   // 2) Tek kaydı doğrudan sunucudan çek (liste senkronunu beklemeden)
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + encodeURIComponent(id) + '&select=*', {
-      // [A] Paylasilan baglanti oturumdan bagimsiz acilmali.
-      headers: anonHeaders(),
+    // (2026-08-22) ÖNCE JETON, OTURUM YOKSA ANON.
+    // Eski hâli KOŞULSUZ anon'du; gerekçesi "paylaşılan bağlantı oturumdan
+    // bağımsız açılmalı" idi ve o kısmı doğru. Eksik olan: anon istekte RLS
+    // yalnız visibility='public' eserleri veriyor ⇒ bağlantı GRUBA AÇIK ya da
+    // GİZLİ bir esere aitse, o esere erişimi OLAN girişli kullanıcı bile
+    // "eser bulunamadı" görüyordu. Artık jeton varsa onunla deneniyor; istek
+    // başarısızsa anon'a düşülüyor (bağlantıyı oturumsuz açan ziyaretçi için
+    // eski davranış aynen korunuyor).
+    const _paylasimUrl = SUPA_URL + '/rest/v1/works?id=eq.' + encodeURIComponent(id) + '&select=*';
+    const _oturumVar = !!localStorage.getItem('sb_token');
+    let r = await fetch(_paylasimUrl, {
+      headers: _oturumVar ? authHeaders() : anonHeaders(),
       signal: AbortSignal.timeout(6000)
     });
+    if (!r.ok && _oturumVar) {
+      // Jetonla olmadı: eser genel olabilir ve jeton bayat olabilir — anon'la
+      // bir şans daha. Burada anon'a düşmek zararsız: tek ve BELİRLİ bir kayıt
+      // isteniyor, liste sessizce eksilmiyor.
+      console.warn('[eserler] paylaşılan eser jetonla alınamadı ('+r.status+') — anon ile deneniyor');
+      r = await fetch(_paylasimUrl, { headers: anonHeaders(), signal: AbortSignal.timeout(6000) });
+    }
     if (r.ok) {
       const rows = await r.json();
       if (Array.isArray(rows) && rows.length) {
