@@ -2674,52 +2674,23 @@ function showScreen(id){
       // kirar ve istek yok sayilir. showScreen zaten dokunma isleyicisinden
       // cagriliyor, bu yuzden burada HEMEN odakliyoruz.
       window._pedalOdakVer();
+      // Ipucu (varsa) sahne cizildikten sonra gosterilsin.
+      setTimeout(function(){ try { if (window._pedalIpucuGoster) window._pedalIpucuGoster(); } catch(e){} }, 500);
 
-      // (2026-08-23) PEDALI ETKINLESTIR DUGMESI. Programla odaklanma iOS'ta
-      // reddedilebiliyor; GERCEK bir kullanici dokunusuyla gelen odak
-      // reddedilemez. Sahne basina tek dokunus. Odak alinirsa dugme kaybolur.
-      let dgm = document.getElementById('_pedalDugme');
-      if (!dgm) {
-        dgm = document.createElement('button');
-        dgm.id = '_pedalDugme';
-        dgm.type = 'button';
-        dgm.textContent = '🎹 Pedalı etkinleştir';
-        dgm.title = 'Pedal tuşlarının sayfaya ulaşması için bir kez dokunun';
-        dgm.style.cssText = 'position:fixed;bottom:14px;right:14px;z-index:9997;' +
-          'background:rgba(255,200,61,.16);border:1px solid rgba(255,200,61,.5);' +
-          'color:#FFC83D;padding:8px 14px;border-radius:20px;font-size:12px;' +
-          'font-weight:700;font-family:inherit;cursor:pointer;display:none;';
-        // pointerdown: dokunmanin EN ERKEN aninda odakla, hareket zinciri taze.
-        dgm.addEventListener('pointerdown', function (ev) {
-          ev.preventDefault();          // dugmenin kendisi odagi almasin
-          try { tuz.focus({ preventScroll: true }); } catch (e) { try { tuz.focus(); } catch(e2){} }
-          setTimeout(function () {
-            if (document.activeElement === tuz) dgm.style.display = 'none';
-          }, 50);
-        });
-        (document.body || document.documentElement).appendChild(dgm);
-      }
-      // (2026-08-23 DUZELTME-5) DUGME ARTIK HER ZAMAN GORUNUR.
-      // Onceki hali `document.activeElement === tuz` ise dugmeyi gizliyordu.
-      // Ama olcum sunu gosterdi: serit `odak=INPUT#_pedalOdak` yaziyordu, yani
-      // activeElement DOGRUYDU, buna ragmen HICBIR keydown gelmiyordu — oysa
-      // ayni odak yontemini kullanan bagimsiz test sayfasinda (pedaltest.html)
-      // tuslar sorunsuz dusuyordu. Tek fark: orada odagi KULLANICI verdi
-      // (dugmeye dokunarak), burada KOD verdi.
-      // Cikarim: iOS'ta activeElement odagi gostermesine ragmen WKWebView
-      // klavye odagini yalnizca gercek bir kullanici hareketiyle devrediyor.
-      // Bu yuzden dugme artik activeElement'e degil, GERCEKTEN BIR PEDAL TUSU
-      // GELMIS OLMASINA gore gizleniyor.
-      if (!window._pedalTusGeldi) dgm.style.display = '';
+      // (2026-08-23) "Pedali etkinlestir" DUGMESI KALDIRILDI.
+      // Kisa omurluydu ama sorunu cozen olcumu o verdi: dugmeyle gelen odak
+      // calisiyor, kodla verilen odak calismiyordu. Cikarim su: iOS'ta
+      // activeElement alani gosterse bile WKWebView klavye odagini yalnizca
+      // GERCEK bir kullanici hareketiyle devrediyor.
+      // Artik ayni isi sahnedeki HERHANGI bir dokunus yapiyor (asagidaki
+      // `zorlaOdakla`), kullanici zaten repertuvari acarken ekrana dokunuyor —
+      // yani ayri bir dugmeye gerek kalmadi.
       // Yedek deneme: gecis animasyonu bir seyi ezdiyse. Bu gecikmeli cagri
       // iOS'ta muhtemelen ise yaramaz ama masaustunde/Android'de zarari yok.
       setTimeout(window._pedalOdakVer, 300);
     } catch(e) {}
   }
-  if (id !== 'stageScreen') {
-    const d = document.getElementById('_pedalDugme');
-    if (d) d.style.display = 'none';
-  }
+  if (id !== 'stageScreen') { try { if (window._pedalIpucuGizle) window._pedalIpucuGizle(); } catch(e){} }
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
   const tnav=document.getElementById('v2StageTopnav');if(tnav)tnav.classList.toggle('hidden',id!=='pickerScreen');
   // topnav.js header'ını sahne modunda gizle
@@ -2841,6 +2812,40 @@ function showScreen(id){
   // hic denenmiyordu. Klavye odagi ise ancak o gercek harekette devrediliyor.
   // Cozum: ilk pedal tusu gelene kadar, dokunma aninda odagi ZORLA yenile
   // (blur + focus). Tus geldikten sonra bu blok devre disi kalir.
+  // (2026-08-23) PEDAL IPUCU. Sahnede ekrana bir kez dokunmak, klavye odagini
+  // gizli alana devredip pedali calisir hale getiriyor (bkz. DUZELTME-6).
+  // Kullanici bunu bilemez; pedal sessiz kalirsa neyin eksik oldugunu anlamaz.
+  // Ama HERKESE gostermek de yanlis olurdu — cogu kullanicinin pedali yok ve
+  // anlamsiz bir uyari gorurdu. Bu yuzden ipucu YALNIZCA daha once bu cihazda
+  // pedal tusu gormussek cikiyor.
+  function _pedalIpucuGizle(){
+    var el = document.getElementById('_pedalIpucu');
+    if (el) el.remove();
+  }
+  window._pedalIpucuGizle = _pedalIpucuGizle;
+
+  function _pedalIpucuGoster(){
+    try {
+      if (window._pedalTusGeldi) return;
+      if (localStorage.getItem('pedalVar') !== '1') return;   // pedalsiz kullanici gormesin
+      if (document.getElementById('_pedalIpucu')) return;
+      var sahne = document.getElementById('stageScreen');
+      if (!sahne || sahne.classList.contains('hidden')) return;
+      var el = document.createElement('div');
+      el.id = '_pedalIpucu';
+      el.textContent = '🎹 Pedal için ekrana bir kez dokunun';
+      el.style.cssText = 'position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,0px));' +
+        'left:50%;transform:translateX(-50%);z-index:9996;' +
+        'background:rgba(255,200,61,.14);border:1px solid rgba(255,200,61,.42);' +
+        'color:#FFC83D;padding:7px 14px;border-radius:20px;font-size:12px;' +
+        'font-weight:600;font-family:inherit;pointer-events:none;white-space:nowrap;';
+      (document.body || document.documentElement).appendChild(el);
+      // Dokunulmasa bile sonsuza kadar durmasin.
+      setTimeout(_pedalIpucuGizle, 12000);
+    } catch (e) {}
+  }
+  window._pedalIpucuGoster = _pedalIpucuGoster;
+
   function zorlaOdakla(ev){
     try {
       if (window._pedalTusGeldi) return;                 // is bitti, karisma
@@ -2912,11 +2917,15 @@ function _yaziAlanindaMi(){
 //       `return` vardi ve hangisinde takildigimizi goremiyorduk.
 document.addEventListener('keydown',e=>{
   const _tt = (typeof window._pedalTeshis === 'function') ? window._pedalTeshis : null;
-  // Ilk gercek tus: klavye odagi devredilmis demektir, dugmeye artik gerek yok.
+  // Ilk gercek tus: klavye odagi devredilmis demektir. Bayrak `zorlaOdakla`
+  // blogunu susturur — her dokunusta blur+focus yapmaya gerek kalmaz.
   if (!window._pedalTusGeldi) {
     window._pedalTusGeldi = true;
-    const _d = document.getElementById('_pedalDugme');
-    if (_d) _d.style.display = 'none';
+    // (2026-08-23) CIHAZ "PEDALLI" OLARAK ISARETLENIYOR. Amac: pedali OLMAYAN
+    // kullaniciya asla pedal ipucu gostermemek. Bir kez gercek pedal tusu
+    // geldiyse bu cihazda pedal var demektir; ipucu ancak o zaman anlamli.
+    try { localStorage.setItem('pedalVar', '1'); } catch (e) {}
+    _pedalIpucuGizle();
   }
   if(document.getElementById('stageScreen').classList.contains('hidden')){
     if(_tt) _tt('atlandi: sahne kapali (' + e.key + ')');
