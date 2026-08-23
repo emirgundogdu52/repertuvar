@@ -2602,8 +2602,14 @@ function showScreen(id){
     // gosterme diyor; (2) harici klavye (pedal) bagliyken iOS zaten ekran
     // klavyesini bastiriyor. Klavye yine de cikarsa bu blok geri alinmali.
     try {
+      // (2026-08-23 DUZELTME-4) stageScreen'in tabindex'i KALDIRILDI.
+      // Olcum: odak once INPUT#_pedalOdak'a geldi, sonra ekrana dokununca
+      // DIV#stageScreen'e kaydi ve orada kaldi. Sebep 08-19'da eklenen
+      // tabindex="-1": <div>'i odaklanabilir yapiyor ve her dokunusta odagi
+      // tuzaktan caliyor. Artik gereksiz — odagi gercek bir metin alani
+      // tutuyor. Kalirsa pedal tuslari yine kaybolur.
       const sc = document.getElementById('stageScreen');
-      if (sc && !sc.hasAttribute('tabindex')) sc.setAttribute('tabindex', '-1');
+      if (sc && sc.getAttribute('tabindex') === '-1') sc.removeAttribute('tabindex');
       let tuz = document.getElementById('_pedalOdak');
       if (!tuz) {
         tuz = document.createElement('input');
@@ -2628,6 +2634,25 @@ function showScreen(id){
         (document.body || document.documentElement).appendChild(tuz);
         // Pedal disinda bir sey yazarsa (ekran klavyesi acildiysa) alani bosalt.
         tuz.addEventListener('input', function(){ tuz.value = ''; });
+        // Odak baska bir yere kayarsa hemen geri al. focusout, dokunma
+        // zincirinin ICINDE tetiklenir; bu yuzden focus() burada kabul edilir.
+        tuz.addEventListener('focusout', function () {
+          setTimeout(function () {
+            try {
+              if (document.getElementById('stageScreen').classList.contains('hidden')) return;
+              const ae = document.activeElement;
+              if (ae === tuz) return;
+              // Gercek bir yazi kutusuna gectiyse (sahne notu) dokunma.
+              if (ae) {
+                const t = (ae.tagName || '').toUpperCase();
+                if (t === 'INPUT' || t === 'TEXTAREA' || ae.isContentEditable) {
+                  if (ae.id !== '_pedalOdak') return;
+                }
+              }
+              tuz.focus({ preventScroll: true });
+            } catch (e) {}
+          }, 0);
+        });
       }
       window._pedalOdakVer = function () {
         try {
