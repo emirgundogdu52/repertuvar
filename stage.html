@@ -2889,6 +2889,29 @@ function showScreen(id){
       tuz.focus({ preventScroll: true });
     } catch (e) {}
   }
+  // (2026-08-23 DUZELTME-8) ALAN SAYFA ACILIR ACILMAZ OLUSTURULUYOR.
+  // Su ana kadar alan ILK DOKUNUSTA yaratiliyordu. Suphe: iOS, daha yeni
+  // yaratilmis ve henuz duzene girmemis bir ogeye klavye odagini devretmiyor
+  // olabilir — nitekim bos test sayfasinda (alan bastan DOM'da) tuslar
+  // sorunsuz geliyordu, 192 KB'lik bu sayfada gelmiyordu. Artik alan en basta
+  // kuruluyor, dokunma anina hazir bekliyor.
+  function _erkenKur(){
+    try {
+      _odakAlani();
+      // Programla odak KLAVYE odagini devretmiyor ama alani "yerlesmis" yapiyor;
+      // sonraki gercek dokunusta devir daha guvenilir olsun diye deniyoruz.
+      const t = document.getElementById('_pedalOdak');
+      if (t && document.activeElement === document.body) {
+        try { t.focus({ preventScroll: true }); } catch (e) {}
+      }
+    } catch (e) {}
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _erkenKur);
+  } else {
+    _erkenKur();
+  }
+
   document.addEventListener('pointerdown', zorlaOdakla, true);
   document.addEventListener('touchstart', zorlaOdakla, true);
 
