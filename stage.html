@@ -2833,7 +2833,7 @@ function showScreen(id){
       if (!sahne || sahne.classList.contains('hidden')) return;
       var el = document.createElement('div');
       el.id = '_pedalIpucu';
-      el.textContent = '🎹 Pedal için ekrana bir kez dokunun';
+      el.textContent = '🎹 Pedal hazırlanıyor — ekranda bir yere dokunun';
       el.style.cssText = 'position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,0px));' +
         'left:50%;transform:translateX(-50%);z-index:9996;' +
         'background:rgba(255,200,61,.14);border:1px solid rgba(255,200,61,.42);' +
@@ -2846,12 +2846,39 @@ function showScreen(id){
   }
   window._pedalIpucuGoster = _pedalIpucuGoster;
 
+  // (2026-08-23 DUZELTME-7) ODAK ARTIK SAHNEYE GIRMEDEN ONCE ALINIYOR.
+  // Emir hakli olarak israr etti: "ekrana bir kez dokunun" bir yara bandi.
+  // Inceleme: startStage() zaten ESZAMANLI (bekleme yok), yani dokunma zinciri
+  // kopmuyordu. Gercek fark faz: calisan yol pointerdown/touchstart uzerinde,
+  // sahneye giris ise CLICK uzerinde. iOS klavye odagini dokunmanin ERKEN
+  // aninda devrediyor; click cok gec kaliyor.
+  // Cozum: secici ekraninda repertuvara/butona dokunuldugu ANDA odagi ver.
+  // O dokunus zaten yapiliyor — kullanicidan fazladan hicbir sey istemiyoruz.
+  function _odakAlani(){
+    let t = document.getElementById('_pedalOdak');
+    if (t) return t;
+    // Sahneye hic girilmemis olabilir; alani burada da olusturabilmeliyiz.
+    t = document.createElement('input');
+    t.id = '_pedalOdak';
+    t.type = 'text';
+    t.setAttribute('inputmode', 'none');
+    t.setAttribute('autocomplete', 'off');
+    t.setAttribute('autocorrect', 'off');
+    t.setAttribute('autocapitalize', 'off');
+    t.setAttribute('spellcheck', 'false');
+    t.setAttribute('aria-hidden', 'true');
+    t.style.cssText = 'position:fixed;bottom:2px;right:2px;width:24px;height:24px;' +
+      'opacity:.01;border:0;padding:0;margin:0;background:transparent;' +
+      'color:transparent;caret-color:transparent;font-size:16px;z-index:5;';
+    t.addEventListener('input', function(){ t.value = ''; });
+    (document.body || document.documentElement).appendChild(t);
+    return t;
+  }
+
   function zorlaOdakla(ev){
     try {
       if (window._pedalTusGeldi) return;                 // is bitti, karisma
-      const sahne = document.getElementById('stageScreen');
-      if (!sahne || sahne.classList.contains('hidden')) return;
-      const tuz = document.getElementById('_pedalOdak');
+      const tuz = _odakAlani();
       if (!tuz) return;
       // Gercek bir form ogesine dokunuluyorsa elini surme.
       const h = ev && ev.target;
