@@ -210,6 +210,7 @@ html { -webkit-text-size-adjust: 100%; }
       </div>
 
       <!-- Davet Linki — sadece owner/admin görür -->
+      <datalist id="instrOneriler"></datalist>
       <div id="inviteSection" style="display:none;">
         <div class="section-title">Davet Linki</div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Bu linki paylaşarak ya da karekodu okutarak yeni üyeler davet edebilirsiniz. Link 7 gün geçerlidir.</p>
@@ -363,7 +364,7 @@ async function loadPage() {
 
     // Profilleri ayrı sorgula
     const userIds = rawMembers.map(m => m.user_id).join(',');
-    const pr = await fetch(SUPA_URL + '/rest/v1/profiles?id=in.(' + userIds + ')&select=id,display_name,email,phone,instrument', {
+    const pr = await fetch(SUPA_URL + '/rest/v1/profiles?id=in.(' + userIds + ')&select=id,display_name,email,phone,instrument,instruments', {
       headers: authHeaders()
     });
     const profiles = await pr.json();
@@ -375,7 +376,8 @@ async function loadPage() {
       display_name: profileMap[m.user_id]?.display_name || m.display_name,
       email: profileMap[m.user_id]?.email || m.email,
       phone: profileMap[m.user_id]?.phone || '',
-      instrument: profileMap[m.user_id]?.instrument || ''
+      instrument: profileMap[m.user_id]?.instrument || '',
+      instruments: profileMap[m.user_id]?.instruments || []
     }));
 
     // Kendi rolü
@@ -444,6 +446,7 @@ function renderGroup() {
     inviteSection.style.display = '';
     aktifDavetiYukle();   // ekran degisince kod kaybolmasin
   }
+  _enstrOnerileriYukle();
 
   // Düzenle/sil butonları sadece owner/admin'e
   const editBtns = document.getElementById('groupEditBtns');
@@ -475,11 +478,17 @@ function renderMembersList(members) {
           ${m.phone ? `<span><i class="ti ti-phone" style="font-size:11px;"></i> ${m.phone}</span>` : ''}
         </div>
         <div class="member-instrument" id="instr-display-${m.user_id}">
-          ${m.instrument ? `<i class="ti ti-guitar-pick" style="font-size:11px;"></i> ${m.instrument}` : '<span style="color:var(--text3);font-style:italic;">Enstrüman belirtilmemiş</span>'}
+          ${_enstrListe(m).length
+            ? `<i class="ti ti-guitar-pick" style="font-size:11px;"></i> ${_enstrListe(m).join(', ')}`
+            : '<span style="color:var(--text3);font-style:italic;">Enstrüman belirtilmemiş</span>'}
         </div>
-        <div id="instr-edit-${m.user_id}" style="display:none;margin-top:6px;display:none;">
-          <input class="fi" style="font-size:12px;padding:5px 8px;" id="instr-input-${m.user_id}" value="${m.instrument||''}" placeholder="Enstrüman...">
+        <div id="instr-edit-${m.user_id}" style="display:none;margin-top:6px;">
+          <div id="instr-chips-${m.user_id}" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;"></div>
+          <input class="fi" style="font-size:12px;padding:5px 8px;" id="instr-input-${m.user_id}"
+                 list="instrOneriler" placeholder="Enstrüman yazın, Enter ile ekleyin..."
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();_enstrEkle('${m.user_id}');}">
           <div style="display:flex;gap:6px;margin-top:6px;">
+            <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="_enstrEkle('${m.user_id}')">+ Ekle</button>
             <button class="btn btn-primary" style="padding:4px 12px;font-size:11px;" onclick="saveInstrument('${m.user_id}')">Kaydet</button>
             <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="cancelInstrument('${m.user_id}')">İptal</button>
           </div>
@@ -697,7 +706,7 @@ function filterMembers(q) {
   // yazınca da bulunur. Dört alan tek metinde birleştirilip aranıyor.
   const lq = (q||'').trim();
   const filtered = lq ? currentMembers.filter(m =>
-    trMatch([m.display_name, m.email, m.instrument, m.phone].filter(Boolean).join(' '), lq)
+    trMatch([m.display_name, m.email, _enstrListe(m).join(' '), m.phone].filter(Boolean).join(' '), lq)
   ) : currentMembers;
   if (lq && filtered.length === 0) {
     document.getElementById('membersList').innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Sonuç bulunamadı.</div>';
@@ -782,28 +791,129 @@ async function addMemberAsSolist(userId) {
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
 
+// ── 2026-08-23: ÇOKLU ENSTRÜMAN ───────────────────────────────────────────
+// Tek metin alaniydi; oysa cok enstruman calan uyeler var. Artik `instruments`
+// (text[]) tutuluyor. Kapali bir havuz KOYMADIK — liste "klarnet, saksafon,
+// sipsi, mey..." diye uzayip giderdi ve hep eksik kalirdi. Bunun yerine serbest
+// giris + sistemde girilmis adlardan otomatik tamamlama: liste kullanimla
+// kendi kendine buyur.
+//
+// Eski `instrument` sutunu SILINMEDI; ilk enstruman oraya da yaziliyor, cunku
+// baska ekranlar hala o alani okuyor olabilir.
+var _enstrTaslak = {};   // userId -> [enstruman]
+
+function _enstrListe(m) {
+  if (m && Array.isArray(m.instruments) && m.instruments.length) return m.instruments;
+  if (m && m.instrument) return [m.instrument];
+  return [];
+}
+
+// Yazim tutarliligi: bas/son bosluk kirpilir, coklu bosluk teke iner.
+// Ayni ad buyuk/kucuk harf farkiyla iki kez eklenemez.
+function _enstrNorm(x) { return String(x || '').trim().replace(/\s+/g, ' '); }
+
+function _enstrCizChips(userId) {
+  var kap = document.getElementById('instr-chips-' + userId);
+  if (!kap) return;
+  var liste = _enstrTaslak[userId] || [];
+  kap.innerHTML = liste.length ? liste.map(function (ad, i) {
+    return '<span style="display:inline-flex;align-items:center;gap:5px;background:var(--bg2);'
+      + 'border:1px solid var(--border);border-radius:14px;padding:3px 9px;font-size:11px;">'
+      + _esc(ad)
+      + '<button onclick="_enstrSil(\'' + userId + '\',' + i + ')" '
+      + 'style="background:none;border:none;color:var(--text3);cursor:pointer;'
+      + 'font-size:13px;line-height:1;padding:0;">×</button></span>';
+  }).join('') : '<span style="font-size:11px;color:var(--text3);font-style:italic;">Henüz eklenmedi</span>';
+}
+
+function _esc(x) {
+  return String(x == null ? '' : x)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function _enstrEkle(userId) {
+  var inp = document.getElementById('instr-input-' + userId);
+  if (!inp) return;
+  var ad = _enstrNorm(inp.value);
+  if (!ad) return;
+  var liste = _enstrTaslak[userId] || (_enstrTaslak[userId] = []);
+  var varMi = liste.some(function (x) {
+    return x.toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr');
+  });
+  if (!varMi) liste.push(ad);
+  inp.value = '';
+  inp.focus();
+  _enstrCizChips(userId);
+}
+
+function _enstrSil(userId, i) {
+  var liste = _enstrTaslak[userId] || [];
+  liste.splice(i, 1);
+  _enstrCizChips(userId);
+}
+
 function editInstrument(userId) {
+  var uye = (currentMembers || []).find(function (m) { return m.user_id === userId; });
+  _enstrTaslak[userId] = _enstrListe(uye).slice();
+  _enstrCizChips(userId);
   document.getElementById('instr-display-' + userId).style.display = 'none';
   document.getElementById('instr-edit-' + userId).style.display = 'block';
 }
 
 function cancelInstrument(userId) {
+  delete _enstrTaslak[userId];
   document.getElementById('instr-display-' + userId).style.display = '';
   document.getElementById('instr-edit-' + userId).style.display = 'none';
 }
 
 async function saveInstrument(userId) {
-  const val = document.getElementById('instr-input-' + userId).value.trim();
+  // Kutuda yazili kalmis ama Enter'a basilmamis deger de kaydedilsin —
+  // kullanici yazip dogrudan Kaydet'e basiyor, o metin kaybolmasin.
+  _enstrEkle(userId);
+  var liste = (_enstrTaslak[userId] || []).map(_enstrNorm).filter(Boolean);
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
       method: 'PATCH',
-      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ instrument: val || null })
+      // return=representation: RLS engellerse PostgREST 0 satir doner ve
+      // return=minimal ile bu SESSIZCE basari gorunurdu. Satir sayisini
+      // dogruluyoruz — "Kaydedildi" yazip hicbir sey yazmamak en kotusu.
+      headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ instruments: liste, instrument: liste[0] || null })
     });
     if (!r.ok) throw new Error(await r.text());
-    toast('Enstrüman kaydedildi ✓');
+    const satir = await r.json();
+    if (!satir.length) throw new Error('Sunucu hiçbir satır güncellemedi — yetkiniz olmayabilir');
+    delete _enstrTaslak[userId];
+    toast('Enstrümanlar kaydedildi ✓');
+    _enstrOnerileriYukle();   // yeni girilen ad bir sonraki kisiye oneri olsun
     await loadPage();
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
+}
+
+// Otomatik tamamlama kaynagi: sistemde girilmis tum enstruman adlari.
+async function _enstrOnerileriYukle() {
+  try {
+    var r = await fetch(SUPA_URL + '/rest/v1/rpc/instrument_suggestions', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    if (!r.ok) return;
+    var satirlar = await r.json();
+    var dl = document.getElementById('instrOneriler');
+    if (!dl) return;
+    var tohum = ['Bağlama','Cura','Tanbur','Ud','Kanun','Ney','Keman','Darbuka','Ritim','Vokal'];
+    var gelen = (satirlar || []).map(function (x) { return (x && x.ad) || x; }).filter(Boolean);
+    var hepsi = tohum.concat(gelen).reduce(function (acc, ad) {
+      var k = String(ad).toLocaleLowerCase('tr');
+      if (!acc._g[k]) { acc._g[k] = 1; acc.l.push(ad); }
+      return acc;
+    }, {_g:{}, l:[]}).l;
+    dl.innerHTML = hepsi.map(function (ad) {
+      return '<option value="' + _esc(ad) + '"></option>';
+    }).join('');
+  } catch (e) {}
 }
 
 // Üyeyi gruptan çıkar.
