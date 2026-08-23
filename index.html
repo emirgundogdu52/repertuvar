@@ -481,6 +481,17 @@
       const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=ws.length||'—';
       const hs=document.getElementById('heroStatWorks'); if(hs) hs.textContent=ws.length||'—';
     } catch(e2) {}
+    // ── 2026-08-23: cevrimdisi repertuvar sayaci ──────────────────────────
+    // Eser sayisi onbellekten geliyordu ama repertuvar satiri tire kaliyordu;
+    // oysa `repertoires` store'u IndexedDB'de MEVCUT. Ayri try blogu: works
+    // okumasi patlarsa repertuvar sayaci yine de dolsun.
+    try {
+      const rs = await db.repertoires.getAll();
+      const hr=document.getElementById('heroStatReps'); if(hr) hr.textContent=rs.length||'—';
+    } catch(e3) {}
+    // Grup sayisi BILEREK bos birakiliyor: `groups` tablosu IndexedDB
+    // semasinda yok, cevrimdisi dogru sayiyi bilmenin yolu yok. Yanlis sayi
+    // gostermektense tire birakiyoruz.
   }
 
   // Son eklenen eserler — önce Supabase, hata alınca IndexedDB

@@ -378,7 +378,18 @@ async function loadPage() {
 
     renderMyGroups();
     renderGroup();
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+  } catch(e) {
+    // ── 2026-08-23: cevrimdisi mesaji ────────────────────────────────────
+    // Bu sayfa tamamen canli fetch uzerine kurulu; `groups` ve `profiles`
+    // IndexedDB semasinda YOK, dolayisiyla cevrimdisi veri gosteremiyoruz.
+    // Ama kullaniciya ham "Load failed" gostermek uygulama bozulmus izlenimi
+    // veriyordu. Sebebi acikca soyluyoruz.
+    if (!navigator.onLine) {
+      toast('Çevrimdışısınız — grup bilgileri internet bağlantısı gerektiriyor', 'err');
+    } else {
+      toast('Hata: ' + e.message, 'err');
+    }
+  }
 }
 
 // Gruplarım çipleri — aktif grubu değiştirir (profiles.group_id).
