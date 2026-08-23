@@ -2617,9 +2617,14 @@ function showScreen(id){
         tuz.setAttribute('aria-hidden', 'true');
         // Gorunmez ama ODAKLANABILIR olmali: display:none ya da
         // visibility:hidden odagi engeller. 1px, saydam, dokunulamaz.
-        tuz.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;' +
-          'opacity:0;border:0;padding:0;margin:0;background:transparent;' +
-          'color:transparent;caret-color:transparent;pointer-events:none;z-index:-1;';
+        // (2026-08-23 DUZELTME-3) GORUNMEZ ALAN ODAK ALMIYOR. Onceki hali
+        // opacity:0 + pointer-events:none + z-index:-1 idi; WebKit gercekten
+        // gorunur/dokunulabilir olmayan bir metin alanina odaklanmayi reddediyor
+        // olabilir. Artik alan sahiden ekranda ve dokunulabilir — sadece goze
+        // carpmayacak kadar kucuk ve saydama yakin.
+        tuz.style.cssText = 'position:fixed;bottom:2px;right:2px;width:24px;height:24px;' +
+          'opacity:.01;border:0;padding:0;margin:0;background:transparent;' +
+          'color:transparent;caret-color:transparent;font-size:16px;z-index:5;';
         (document.body || document.documentElement).appendChild(tuz);
         // Pedal disinda bir sey yazarsa (ekran klavyesi acildiysa) alani bosalt.
         tuz.addEventListener('input', function(){ tuz.value = ''; });
@@ -2644,10 +2649,43 @@ function showScreen(id){
       // kirar ve istek yok sayilir. showScreen zaten dokunma isleyicisinden
       // cagriliyor, bu yuzden burada HEMEN odakliyoruz.
       window._pedalOdakVer();
+
+      // (2026-08-23) PEDALI ETKINLESTIR DUGMESI. Programla odaklanma iOS'ta
+      // reddedilebiliyor; GERCEK bir kullanici dokunusuyla gelen odak
+      // reddedilemez. Sahne basina tek dokunus. Odak alinirsa dugme kaybolur.
+      let dgm = document.getElementById('_pedalDugme');
+      if (!dgm) {
+        dgm = document.createElement('button');
+        dgm.id = '_pedalDugme';
+        dgm.type = 'button';
+        dgm.textContent = '🎹 Pedalı etkinleştir';
+        dgm.style.cssText = 'position:fixed;bottom:14px;right:14px;z-index:9997;' +
+          'background:rgba(255,200,61,.16);border:1px solid rgba(255,200,61,.5);' +
+          'color:#FFC83D;padding:8px 14px;border-radius:20px;font-size:12px;' +
+          'font-weight:700;font-family:inherit;cursor:pointer;display:none;';
+        // pointerdown: dokunmanin EN ERKEN aninda odakla, hareket zinciri taze.
+        dgm.addEventListener('pointerdown', function (ev) {
+          ev.preventDefault();          // dugmenin kendisi odagi almasin
+          try { tuz.focus({ preventScroll: true }); } catch (e) { try { tuz.focus(); } catch(e2){} }
+          setTimeout(function () {
+            if (document.activeElement === tuz) dgm.style.display = 'none';
+          }, 50);
+        });
+        (document.body || document.documentElement).appendChild(dgm);
+      }
+      // Odak kendiliginden gelmediyse dugmeyi goster.
+      setTimeout(function () {
+        if (document.getElementById('stageScreen').classList.contains('hidden')) return;
+        dgm.style.display = (document.activeElement === tuz) ? 'none' : '';
+      }, 400);
       // Yedek deneme: gecis animasyonu bir seyi ezdiyse. Bu gecikmeli cagri
       // iOS'ta muhtemelen ise yaramaz ama masaustunde/Android'de zarari yok.
       setTimeout(window._pedalOdakVer, 300);
     } catch(e) {}
+  }
+  if (id !== 'stageScreen') {
+    const d = document.getElementById('_pedalDugme');
+    if (d) d.style.display = 'none';
   }
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
   const tnav=document.getElementById('v2StageTopnav');if(tnav)tnav.classList.toggle('hidden',id!=='pickerScreen');
