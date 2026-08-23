@@ -39,6 +39,7 @@
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="auth.js"></script>
+<script src="db.js"></script>
 <script src="qrcode.min.js"></script>
 <script src="topnav.js" defer></script>
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
@@ -329,7 +330,91 @@ async function createGroup() {
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
 
+// ── 2026-08-23: ÇEVRİMDIŞI OKUMA ──────────────────────────────────────────
+// Bu sayfa tamamen canli fetch uzerineydi. db.js'e `groups`, `profiles`,
+// `group_members` store'lari eklendi; artik ag yokken onbellekten ciziyoruz.
+// YAZMA islemleri (davet, rol degistirme, uye cikarma) cevrimdisi calisamaz —
+// butonlar kilitleniyor, cunku sessizce basarisiz olmalari en kotu sonuc.
+async function _grupYerelCiz() {
+  try {
+    if (!window.db || !db.groups) return false;
+    var gid = getGroupId();
+    var uid = getUserId();
+
+    var gmHepsi = await db.group_members.getAll();
+    var benimUyelikler = (gmHepsi || []).filter(function (m) { return m.user_id === uid; });
+    if (!gid && benimUyelikler.length) gid = benimUyelikler[0].group_id;
+    if (!gid) return false;
+
+    var gruplar = await db.groups.getAll();
+    currentGroup = (gruplar || []).find(function (g) { return g.id === gid; });
+    if (!currentGroup) return false;
+
+    myGroups = (gruplar || []).filter(function (g) {
+      return benimUyelikler.some(function (m) { return m.group_id === g.id; });
+    });
+
+    var profiller = await db.profiles.getAll();
+    var pMap = {};
+    (profiller || []).forEach(function (p) { pMap[p.id] = p; });
+
+    currentMembers = (gmHepsi || [])
+      .filter(function (m) { return m.group_id === gid; })
+      .map(function (m) {
+        var p = pMap[m.user_id] || {};
+        return Object.assign({}, m, {
+          display_name: p.display_name || m.display_name,
+          email: p.email || m.email,
+          phone: p.phone || '',
+          instrument: p.instrument || '',
+          instruments: p.instruments || []
+        });
+      });
+
+    var ben = currentMembers.find(function (m) { return m.user_id === uid; });
+    userRole = (ben && ben.role) || 'member';
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('noGroupState').style.display = 'none';
+    document.getElementById('groupState').style.display = '';
+    renderMyGroups();
+    renderGroup();
+    _yazmaKilitle();
+    return true;
+  } catch (e) { return false; }
+}
+
+// Cevrimdisi: yazan her butonu devre disi birak.
+function _yazmaKilitle() {
+  if (navigator.onLine) return;
+  var kap = document.getElementById('groupState');
+  if (!kap) return;
+  var btnlar = kap.querySelectorAll('button');
+  for (var i = 0; i < btnlar.length; i++) {
+    var b = btnlar[i];
+    var f = (b.getAttribute('onclick') || '');
+    // Salt okunur eylemler acik kalsin: karekod goster/gizle, kopyala,
+    // rol menusunu acma. Geri kalan her sey sunucuya yaziyor.
+    if (/_qrGosterGizle|copyInviteLink|toggleRoleDD|shareViaWhatsApp/.test(f)) continue;
+    b.disabled = true;
+    b.style.opacity = '.45';
+    b.title = 'Çevrimdışı — bu işlem internet bağlantısı gerektiriyor';
+  }
+}
+
 async function loadPage() {
+  // Ag yoksa sunucuyu beklemeden onbellekten ciz (iOS basarisiz istegi ~6 sn
+  // tutuyor; o sure boyunca sayfa bos kaliyordu).
+  if (!navigator.onLine) {
+    if (await _grupYerelCiz()) {
+      toast('Çevrimdışısınız — son kayıtlı grup bilgileri gösteriliyor', 'err');
+      return;
+    }
+    document.getElementById('loadingState').style.display = 'none';
+    toast('Çevrimdışısınız ve kayıtlı grup bilgisi yok', 'err');
+    return;
+  }
+
   // (2026-08-06) ÜYELİK LİSTESİ ÖNCE — çoklu grup üyeliğinde tek doğru kaynak
   // group_members'tır. loadMyGroups() listeyi tazeler ve profiles.group_id
   // boş ya da artık üye olmadığın bir gruba işaret ediyorsa kendini onarır.
@@ -392,7 +477,9 @@ async function loadPage() {
     // IndexedDB semasinda YOK, dolayisiyla cevrimdisi veri gosteremiyoruz.
     // Ama kullaniciya ham "Load failed" gostermek uygulama bozulmus izlenimi
     // veriyordu. Sebebi acikca soyluyoruz.
-    if (!navigator.onLine) {
+    if (await _grupYerelCiz()) {
+      toast('Bağlantı kurulamadı — son kayıtlı grup bilgileri gösteriliyor', 'err');
+    } else if (!navigator.onLine) {
       toast('Çevrimdışısınız — grup bilgileri internet bağlantısı gerektiriyor', 'err');
     } else {
       toast('Hata: ' + e.message, 'err');

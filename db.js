@@ -26,7 +26,11 @@
 //              tüm store'ları temizler; auth.js çağırır).
 
 const DB_NAME = 'RepertuvarDB';
-const DB_VERSION = 1;
+// (2026-08-23) 1 -> 2: Grup/Koro sayfasi tamamen canli fetch uzerineydi;
+// cevrimdisi acilinca "Load failed" veriyordu. `groups`, `profiles` ve
+// `group_members` store'lari eklendi. Yukseltme guvenli: onupgradeneeded
+// yalnizca EKSIK store'lari yaratiyor, mevcut veriye dokunmuyor.
+const DB_VERSION = 2;
 
 // Bazı ortamlarda (Safari Isolatiemodus/Lockdown Mode, bazı private-mod durumları,
 // eski tarayıcılar) indexedDB global nesnesi hiç mevcut olmayabilir.
@@ -60,6 +64,15 @@ function openDB() {
       }
       if (!db.objectStoreNames.contains('meta')) {
         db.createObjectStore('meta', { keyPath: 'key' });
+      }
+      if (!db.objectStoreNames.contains('groups')) {
+        db.createObjectStore('groups', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('profiles')) {
+        db.createObjectStore('profiles', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('group_members')) {
+        db.createObjectStore('group_members', { keyPath: 'id' });
       }
     };
     req.onsuccess = (e) => { _db = e.target.result; resolve(_db); };
@@ -156,6 +169,9 @@ window.db = {
   repertoires: makeStore('repertoires'),
   repertoire_items: makeStore('repertoire_items'),
   solistler: makeStore('solistler'),
+  groups: makeStore('groups'),
+  profiles: makeStore('profiles'),
+  group_members: makeStore('group_members'),
   meta,
 };
 
@@ -175,6 +191,9 @@ window.clearOfflineData = function() {
     db.repertoires.clear(),
     db.repertoire_items.clear(),
     db.solistler.clear(),
+    db.groups.clear(),
+    db.profiles.clear(),
+    db.group_members.clear(),
     storeOp('meta', 'readwrite', (s) => s.clear()).catch(() => {}),
   ];
   return Promise.all(jobs)
@@ -207,18 +226,26 @@ window.syncOfflineData = async function() {
       : (uid ? '/rest/v1/repertoires?select=*&order=created_at.desc&or=(owner_id.eq.' + uid + ',is_public.eq.true)' : '/rest/v1/repertoires?select=*&order=created_at.desc&is_public=eq.true');
     const solFilter = gid ? '/rest/v1/solistler?select=*&order=name.asc&group_id=eq.' + gid : '/rest/v1/solistler?select=*&order=name.asc';
 
-    // Eserleri çek ve kaydet
-    const [worksRes, repsRes, solRes, itemsRes] = await Promise.all([
+    // (2026-08-23) Grup verisi de senkronlaniyor. RLS zaten kapsami daraltiyor:
+    // group_members yalnizca kendi gruplarimi, profiles yalnizca grup
+    // arkadaslarimi donduruyor — istemcide ayrica filtrelemeye gerek yok.
+    const [worksRes, repsRes, solRes, itemsRes, grpRes, gmRes, profRes] = await Promise.all([
       fetch(SUPA_URL + '/rest/v1/works?select=*&order=name.asc&limit=10000', { headers }),
       fetch(SUPA_URL + repFilter, { headers }),
       fetch(SUPA_URL + solFilter, { headers }),
       fetch(SUPA_URL + '/rest/v1/repertoire_items?select=*&order=seq.asc', { headers }),
+      fetch(SUPA_URL + '/rest/v1/groups?select=*', { headers }),
+      fetch(SUPA_URL + '/rest/v1/group_members?select=*', { headers }),
+      fetch(SUPA_URL + '/rest/v1/profiles?select=id,display_name,email,phone,instrument,instruments,group_id', { headers }),
     ]);
 
     if (worksRes.ok) await db.works.replaceAll(await worksRes.json());
     if (repsRes.ok) await db.repertoires.replaceAll(await repsRes.json());
     if (solRes.ok) await db.solistler.replaceAll(await solRes.json());
     if (itemsRes.ok) await db.repertoire_items.replaceAll(await itemsRes.json());
+    if (grpRes.ok) await db.groups.replaceAll(await grpRes.json());
+    if (gmRes.ok) await db.group_members.replaceAll(await gmRes.json());
+    if (profRes.ok) await db.profiles.replaceAll(await profRes.json());
 
     await db.meta.set('lastSync', new Date().toISOString());
     console.log('[db] Offline sync tamamlandı:', new Date().toLocaleTimeString('tr-TR'));
