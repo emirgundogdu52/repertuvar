@@ -816,7 +816,24 @@ function logoutSilent() {
 
 // Çıkış: temizlik BİTTİKTEN sonra yönlendirir. Eskiden yönlendirme hemen
 // yapıldığı için IndexedDB temizliği yarıda kesilebiliyordu.
+//
+// (2026-08-23) ÇEVRİMDIŞI ÇIKIŞ UYARISI — Emir bildirdi: iPad'de internet
+// yokken çıkış yapınca tekrar giriş yapılamıyor ("Load failed"). Giriş
+// sunucuya kimlik doğrulatmayı gerektiriyor, çevrimdışı mümkün değil; üstelik
+// logoutSilent() yerel veriyi de siliyor. Sahnede/provada wifi yokken
+// yanlışlıkla çıkmak, repertuvarı tamamen erişilemez hale getirir.
+// Engellemiyoruz — kullanıcı bilerek çıkmak isteyebilir — ama sonucu
+// önceden söylüyoruz.
 function logout() {
+  if (!navigator.onLine) {
+    var devam = confirm(
+      'İnternet bağlantısı yok.\n\n' +
+      'Şimdi çıkarsanız internet gelene kadar tekrar giriş yapamazsınız. ' +
+      'Yerel verileriniz silinir; bağlantı sağlandığında yeniden yüklenir.\n\n' +
+      'Çıkmak istediğinize emin misiniz?'
+    );
+    if (!devam) return;
+  }
   logoutSilent().then(function() {
     window.location.href = 'login.html?logout=1';
   });
