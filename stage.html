@@ -2844,12 +2844,18 @@ function showScreen(id){
         '<rect x="14.5" y="6" width="7" height="12" rx="2"/>' +
         '<path d="M9.5 9h5M9.5 15h5"/><circle cx="12" cy="12" r="1.4"/></svg>' +
         '<span>Pedalı bağla</span>';
-      el.style.cssText = 'position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,0px));' +
-        'left:50%;transform:translateX(-50%);z-index:9996;' +
+      // (2026-08-23) KONUM: sag alttaki ayar dugmesinin HEMEN USTUNDE, saga
+      // hizali. Onceki hali ekranin ortasindaydi ve eser sozlerinin uzerine
+      // biniyordu — yari saydam oldugu icin metin arkasindan gecince
+      // okunamiyordu. Artik dolgun bir zemin var (saydam degil) ve soz
+      // alaninin disinda duruyor.
+      el.style.cssText = 'position:fixed;bottom:calc(150px + env(safe-area-inset-bottom,0px));' +
+        'right:14px;z-index:9996;' +
         'display:flex;align-items:center;gap:7px;' +
-        'background:rgba(255,200,61,.16);border:1px solid rgba(255,200,61,.5);' +
+        'background:#2A2410;border:1px solid rgba(255,200,61,.75);' +
         'color:#FFC83D;padding:9px 16px;border-radius:20px;font-size:13px;' +
         'font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;' +
+        'box-shadow:0 6px 18px rgba(0,0,0,.5);' +
         '-webkit-tap-highlight-color:transparent;';
       // pointerdown: dokunmanin EN ERKEN aninda odakla. `click` cok gec kaliyor —
       // iOS klavye odagini yalnizca dokunusun bu asamasinda devrediyor.
