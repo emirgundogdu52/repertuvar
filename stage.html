@@ -2591,12 +2591,54 @@ function showScreen(id){
   // Çözüm: seçicideki arama kutusundan odağı almak ama boşta bırakmamak —
   // odak sahne kabına veriliyor (stageScreen'e tabindex="-1" eklendi).
   if (id === 'stageScreen') {
+    // (2026-08-23) tabindex'li DIV ODAK YETMIYOR. Emir'in olcumu: pedal
+    // mod 4/5/6'da (PageUp/PageDown, ok tuslari) ?pedaltest=1 seridinde HICBIR
+    // olay uretmiyor; mod 7'de (fare) olay geliyor. Yani tus WKWebView'e hic
+    // dusmuyor. iOS'ta bir <div>'e tabindex verip odaklamak, donanim klavyesi
+    // olaylarini almak icin YETERLI DEGIL — gercek bir metin alani gerekiyor.
+    //
+    // EKRAN KLAVYESI RISKI: normalde input'a odaklanmak klavyeyi acar, sahnede
+    // felaket olur. Iki koruma var: (1) inputmode="none" iOS'a yazi klavyesi
+    // gosterme diyor; (2) harici klavye (pedal) bagliyken iOS zaten ekran
+    // klavyesini bastiriyor. Klavye yine de cikarsa bu blok geri alinmali.
     try {
       const sc = document.getElementById('stageScreen');
-      if (sc) {
-        if (!sc.hasAttribute('tabindex')) sc.setAttribute('tabindex', '-1');
-        setTimeout(function(){ try { sc.focus({ preventScroll: true }); } catch(e) { try { sc.focus(); } catch(e2) {} } }, 0);
+      if (sc && !sc.hasAttribute('tabindex')) sc.setAttribute('tabindex', '-1');
+      let tuz = document.getElementById('_pedalOdak');
+      if (!tuz) {
+        tuz = document.createElement('input');
+        tuz.id = '_pedalOdak';
+        tuz.type = 'text';
+        tuz.setAttribute('inputmode', 'none');       // yazi klavyesi acma
+        tuz.setAttribute('autocomplete', 'off');
+        tuz.setAttribute('autocorrect', 'off');
+        tuz.setAttribute('autocapitalize', 'off');
+        tuz.setAttribute('spellcheck', 'false');
+        tuz.setAttribute('aria-hidden', 'true');
+        // Gorunmez ama ODAKLANABILIR olmali: display:none ya da
+        // visibility:hidden odagi engeller. 1px, saydam, dokunulamaz.
+        tuz.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;' +
+          'opacity:0;border:0;padding:0;margin:0;background:transparent;' +
+          'color:transparent;caret-color:transparent;pointer-events:none;z-index:-1;';
+        (document.body || document.documentElement).appendChild(tuz);
+        // Pedal disinda bir sey yazarsa (ekran klavyesi acildiysa) alani bosalt.
+        tuz.addEventListener('input', function(){ tuz.value = ''; });
       }
+      window._pedalOdakVer = function () {
+        try {
+          if (document.getElementById('stageScreen').classList.contains('hidden')) return;
+          if (document.activeElement === tuz) return;
+          // Kullanici gercek bir kutuya yaziyorsa (sahne notu/arama) elinden alma.
+          const ae = document.activeElement;
+          if (ae && ae !== document.body && ae !== tuz) {
+            const t = (ae.tagName || '').toUpperCase();
+            if (t === 'INPUT' || t === 'TEXTAREA' || ae.isContentEditable) return;
+          }
+          tuz.focus({ preventScroll: true });
+        } catch (e) {}
+      };
+      setTimeout(window._pedalOdakVer, 0);
+      setTimeout(window._pedalOdakVer, 300);   // gecis animasyonu bitince
     } catch(e) {}
   }
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
@@ -2665,6 +2707,16 @@ function showScreen(id){
       while (kayitlar.length > 8) kayitlar.shift();
       kutu.textContent = kayitlar.join('\n');
     };
+    // (2026-08-23) Odaktaki ogeyi de yaziyoruz: pedal sorununun kaynagi odak
+    // oldugu icin "tus geldi mi" kadar "odak nerede" de kritik.
+    setInterval(function(){
+      try {
+        const ae = document.activeElement;
+        const ad = ae ? ((ae.tagName||'?') + (ae.id ? '#' + ae.id : '')) : 'yok';
+        const sat = 'odak=' + ad;
+        if (kayitlar[kayitlar.length-1] !== sat) yaz(sat);
+      } catch(e){}
+    }, 2000);
     const yazTus = (e, tur) => {
       yaz(tur + ' key=' + JSON.stringify(e.key) +
           ' code=' + JSON.stringify(e.code) +
@@ -2694,6 +2746,19 @@ function showScreen(id){
   } catch(e) {}
 })();
 
+// (2026-08-23) ODAK KAYBOLURSA GERI AL. Sahnede ekrana dokunmak, arka plandan
+// donmek ya da bir dugmeye basmak odagi tasiyabilir; odak gidince pedal tuslari
+// yine sayfaya dusmez. Bu yuzden birkac noktada geri aliyoruz.
+(function(){
+  function geriAl(){ try { if (window._pedalOdakVer) window._pedalOdakVer(); } catch(e){} }
+  document.addEventListener('pointerup', function(){ setTimeout(geriAl, 60); }, true);
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible') setTimeout(geriAl, 120);
+  });
+  window.addEventListener('focus', function(){ setTimeout(geriAl, 120); });
+  window.addEventListener('pageshow', function(){ setTimeout(geriAl, 120); });
+})();
+
 const _PEDAL_ILERI = ['ArrowRight',' ','Spacebar','ArrowDown','PageDown','Enter','.',',','b','B'];
 const _PEDAL_GERI  = ['ArrowLeft','ArrowUp','PageUp','Backspace','a','A'];
 let _sonPedal = 0;
@@ -2708,6 +2773,10 @@ let _sonPedal = 0;
 function _yaziAlanindaMi(){
   const el = document.activeElement;
   if (!el || el === document.body) return false;
+  // (2026-08-23) Pedal odak tuzagi bir <input>, ama KULLANICININ yazdigi bir
+  // kutu degil — tam tersine tuslari sahneye getirmek icin var. Muaf tutulmali,
+  // yoksa her tus "metin kutusuna ait" sayilip yok sayilirdi.
+  if (el.id === '_pedalOdak') return false;
   const t = (el.tagName||'').toUpperCase();
   const yaziKutusu = (t === 'INPUT' || t === 'TEXTAREA' || el.isContentEditable);
   if (!yaziKutusu) return false;
