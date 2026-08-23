@@ -2684,6 +2684,7 @@ function showScreen(id){
         dgm.id = '_pedalDugme';
         dgm.type = 'button';
         dgm.textContent = '🎹 Pedalı etkinleştir';
+        dgm.title = 'Pedal tuşlarının sayfaya ulaşması için bir kez dokunun';
         dgm.style.cssText = 'position:fixed;bottom:14px;right:14px;z-index:9997;' +
           'background:rgba(255,200,61,.16);border:1px solid rgba(255,200,61,.5);' +
           'color:#FFC83D;padding:8px 14px;border-radius:20px;font-size:12px;' +
@@ -2698,11 +2699,18 @@ function showScreen(id){
         });
         (document.body || document.documentElement).appendChild(dgm);
       }
-      // Odak kendiliginden gelmediyse dugmeyi goster.
-      setTimeout(function () {
-        if (document.getElementById('stageScreen').classList.contains('hidden')) return;
-        dgm.style.display = (document.activeElement === tuz) ? 'none' : '';
-      }, 400);
+      // (2026-08-23 DUZELTME-5) DUGME ARTIK HER ZAMAN GORUNUR.
+      // Onceki hali `document.activeElement === tuz` ise dugmeyi gizliyordu.
+      // Ama olcum sunu gosterdi: serit `odak=INPUT#_pedalOdak` yaziyordu, yani
+      // activeElement DOGRUYDU, buna ragmen HICBIR keydown gelmiyordu — oysa
+      // ayni odak yontemini kullanan bagimsiz test sayfasinda (pedaltest.html)
+      // tuslar sorunsuz dusuyordu. Tek fark: orada odagi KULLANICI verdi
+      // (dugmeye dokunarak), burada KOD verdi.
+      // Cikarim: iOS'ta activeElement odagi gostermesine ragmen WKWebView
+      // klavye odagini yalnizca gercek bir kullanici hareketiyle devrediyor.
+      // Bu yuzden dugme artik activeElement'e degil, GERCEKTEN BIR PEDAL TUSU
+      // GELMIS OLMASINA gore gizleniyor.
+      if (!window._pedalTusGeldi) dgm.style.display = '';
       // Yedek deneme: gecis animasyonu bir seyi ezdiyse. Bu gecikmeli cagri
       // iOS'ta muhtemelen ise yaramaz ama masaustunde/Android'de zarari yok.
       setTimeout(window._pedalOdakVer, 300);
@@ -2876,6 +2884,12 @@ function _yaziAlanindaMi(){
 //       `return` vardi ve hangisinde takildigimizi goremiyorduk.
 document.addEventListener('keydown',e=>{
   const _tt = (typeof window._pedalTeshis === 'function') ? window._pedalTeshis : null;
+  // Ilk gercek tus: klavye odagi devredilmis demektir, dugmeye artik gerek yok.
+  if (!window._pedalTusGeldi) {
+    window._pedalTusGeldi = true;
+    const _d = document.getElementById('_pedalDugme');
+    if (_d) _d.style.display = 'none';
+  }
   if(document.getElementById('stageScreen').classList.contains('hidden')){
     if(_tt) _tt('atlandi: sahne kapali (' + e.key + ')');
     return;
