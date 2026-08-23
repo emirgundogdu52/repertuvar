@@ -1342,7 +1342,9 @@ function buildRepsFromRaw(r, items) {
       if (isOwner) return true;
       return !hiddenIds.includes(x.id);
     })
-    .map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||''}))}));
+    // (2026-08-23) `performer` de tasiniyor — eser bazli kadro sahnede
+    // bilgi panelinde gosteriliyor. Eskiden bu alan sahneye hic gelmiyordu.
+    .map(x=>({...x,items:(items||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map(t=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||''}))}));
 }
 
 // (2026-08-20) YENİ MODEL — YEREL ÖNBELLEK SÜZGECİ KALDIRILDI.
@@ -2094,6 +2096,9 @@ function renderStage(){
   const panel = document.getElementById('stageInfoPanel');
   if (panel) {
     const rows = [
+      // (2026-08-23) KADRO en uste yakin: sahnede "bu eserde kim caliyor"
+      // sorusu esere girerken sorulur, teknik ayrintilardan once gelir.
+      item.performer ? `<div class="sip-row"><span class="sip-label">Kadro</span><span class="sip-val">${item.performer}</span></div>` : '',
       w.makam ? `<div class="sip-row"><span class="sip-label">Makam</span><span class="sip-val">${w.makam}</span></div>` : '',
       (item.closingNote||w.closingNote) ? `<div class="sip-row"><span class="sip-label">Kapanış</span><span class="sip-val">${item.closingNote||w.closingNote}</span></div>` : '',
       w.tuning ? `<div class="sip-row"><span class="sip-label">Akort</span><span class="sip-val">${w.tuning}</span></div>` : '',
