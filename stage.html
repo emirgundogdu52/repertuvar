@@ -2832,6 +2832,34 @@ function showScreen(id){
 // yine sayfaya dusmez. Bu yuzden birkac noktada geri aliyoruz.
 (function(){
   function geriAl(){ try { if (window._pedalOdakVer) window._pedalOdakVer(); } catch(e){} }
+
+  // (2026-08-23 DUZELTME-6) EKRANA DOKUNMAK DA PEDALI ETKINLESTIRSIN.
+  // Emir hakli olarak sordu: repertuvari acarken zaten ekrana dokunuyoruz,
+  // neden yetmiyor? Sebep `_pedalOdakVer` icindeki `activeElement === tuz`
+  // erken cikisi: kod odagi coktan vermis oldugu icin activeElement zaten
+  // alani gosteriyor, dolayisiyla GERCEK kullanici hareketiyle odak devri
+  // hic denenmiyordu. Klavye odagi ise ancak o gercek harekette devrediliyor.
+  // Cozum: ilk pedal tusu gelene kadar, dokunma aninda odagi ZORLA yenile
+  // (blur + focus). Tus geldikten sonra bu blok devre disi kalir.
+  function zorlaOdakla(ev){
+    try {
+      if (window._pedalTusGeldi) return;                 // is bitti, karisma
+      const sahne = document.getElementById('stageScreen');
+      if (!sahne || sahne.classList.contains('hidden')) return;
+      const tuz = document.getElementById('_pedalOdak');
+      if (!tuz) return;
+      // Gercek bir form ogesine dokunuluyorsa elini surme.
+      const h = ev && ev.target;
+      if (h && h.closest && h.closest('input,textarea,select,button,a,[contenteditable]')) return;
+      // blur+focus: activeElement zaten alan olsa bile klavye odagini
+      // kullanici hareketiyle yeniden devret.
+      try { tuz.blur(); } catch(e){}
+      tuz.focus({ preventScroll: true });
+    } catch (e) {}
+  }
+  document.addEventListener('pointerdown', zorlaOdakla, true);
+  document.addEventListener('touchstart', zorlaOdakla, true);
+
   // Dokunma isleyicisinin ICINDE, eszamanli — gecikme kullanici hareketi
   // zincirini kirar ve iOS odak istegini reddeder.
   document.addEventListener('pointerup', geriAl, true);
