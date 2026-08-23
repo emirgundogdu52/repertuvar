@@ -2897,13 +2897,14 @@ function showScreen(id){
   // kuruluyor, dokunma anina hazir bekliyor.
   function _erkenKur(){
     try {
+      // (2026-08-23 DUZELTME-9) SADECE OLUSTUR, ODAKLAMA.
+      // Onceki hali burada programla odakliyordu ve CALISAN durumu bozdu
+      // (Emir: "basa dondu"). Sebep: erken odak activeElement'i alana
+      // ayarliyor, ama klavye odagini devretmiyor; sonra gercek dokunusta
+      // yapilan blur+focus iOS tarafindan "zaten odakta" diye yok sayiliyor.
+      // Yani erken odak, gercek devri ENGELLIYOR. Alan bastan DOM'da dursun,
+      // odagi yalnizca gercek kullanici hareketi versin.
       _odakAlani();
-      // Programla odak KLAVYE odagini devretmiyor ama alani "yerlesmis" yapiyor;
-      // sonraki gercek dokunusta devir daha guvenilir olsun diye deniyoruz.
-      const t = document.getElementById('_pedalOdak');
-      if (t && document.activeElement === document.body) {
-        try { t.focus({ preventScroll: true }); } catch (e) {}
-      }
     } catch (e) {}
   }
   if (document.readyState === 'loading') {
