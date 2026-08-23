@@ -2938,6 +2938,82 @@ function showScreen(id){
   window.addEventListener('pageshow', function(){ setTimeout(geriAl, 120); });
 })();
 
+// ── 2026-08-23: PEDAL ONCE SAYFA CEVIRIR, SONRA ESER GECER ───────────────
+// Emir sordu: uzun sozlu bir eserde alt kisim ekrana sigmiyor, icra sirasinda
+// nasil okunacak? Parmakla kaydirilabiliyor ama sahnede iki el de dolu.
+// Sayfa cevirici pedallarin varlik sebebi tam olarak bu: once EKRANI cevirir,
+// icerik bitince ESERE gecer. Kisa eserlerde kaydirilacak sey olmadigi icin
+// davranis degismez — dogrudan sonraki esere gecilir.
+function _sozAlani(){ return document.getElementById('sm'); }
+
+// Bir "sayfa" = gorunur yuksekligin %85'i. Kalan %15 baglam icin: okuyucu
+// nerede kaldigini kaybetmesin diye son satirlar ustte tekrar goruntulenir.
+function _sayfaCevir(yon){
+  const k = _sozAlani();
+  if (!k) return false;
+  const gorunur = k.clientHeight;
+  const toplam  = k.scrollHeight;
+  if (toplam <= gorunur + 8) return false;          // kaydirilacak sey yok
+  const adim = Math.max(gorunur * 0.85, 120);
+  if (yon === 'ileri') {
+    // Dibe 4px kala "bitti" say — kesirli piksel yuzunden asla tam esitlenmiyor.
+    if (k.scrollTop + gorunur >= toplam - 4) return false;
+    k.scrollTo({ top: Math.min(k.scrollTop + adim, toplam - gorunur), behavior: 'smooth' });
+    return true;
+  } else {
+    if (k.scrollTop <= 4) return false;
+    k.scrollTo({ top: Math.max(k.scrollTop - adim, 0), behavior: 'smooth' });
+    return true;
+  }
+}
+
+// Pedalin tek giris noktasi: once sayfa, olmazsa eser.
+function _pedalHareket(yon){
+  if (_sayfaCevir(yon)) return;
+  if (yon === 'geri') prevWork(); else nextWork();
+}
+
+// ── 2026-08-23: NATIVE PEDAL KOPRUSU (yalnizca yuklu uygulamada) ─────────
+// iOS'ta WKWebView, pedalin gonderdigi PageUp/PageDown tuslarini web icerigine
+// iletmiyor — klavye odagi ancak GERCEK bir kullanici hareketiyle devrediliyor.
+// Tarayicida caresi "sahnede bir kez ekrana dokunmak"; native tarafta ise
+// GCKeyboard tuslari odaktan BAGIMSIZ yakaliyor (bkz. PedalKoprusu.swift) ve
+// buraya ozel bir olay olarak gonderiyor. Boylece dokunma ihtiyaci kalkiyor.
+(function(){
+  // Native ile web ayni basisi iki kez tetikleyebilir (odak varsa keydown de
+  // dogar). Ortak zaman damgasi `_sonPedal` uzerinden paylasiliyor.
+  window.addEventListener('nativePedal', function (e) {
+    try {
+      const sahne = document.getElementById('stageScreen');
+      if (!sahne || sahne.classList.contains('hidden')) return;
+      if (typeof _yaziAlanindaMi === 'function' && _yaziAlanindaMi()) return;
+      const simdi = Date.now();
+      if (simdi - _sonPedal < 250) return;      // cift tetikleme korumasi
+      _sonPedal = simdi;
+      const yon = (e && e.detail && e.detail.yon) || 'ileri';
+      if (typeof window._pedalTeshis === 'function') {
+        window._pedalTeshis('>> NATIVE: ' + yon);
+      }
+      _pedalHareket(yon);
+    } catch (err) {}
+  });
+
+  // Pedal bagli oldugunu native taraf bildirdi: artik odak numaralarina ve
+  // "Pedali bagla" dugmesine gerek yok.
+  window.addEventListener('nativePedalDurum', function (e) {
+    try {
+      const bagli = !!(e && e.detail && e.detail.bagli);
+      if (!bagli) return;
+      window._pedalTusGeldi = true;             // odak zorlamasini sustur
+      try { localStorage.setItem('pedalVar', '1'); } catch (err) {}
+      if (window._pedalIpucuGizle) window._pedalIpucuGizle();
+      if (typeof window._pedalTeshis === 'function') {
+        window._pedalTeshis('>> NATIVE: pedal bagli');
+      }
+    } catch (err) {}
+  });
+})();
+
 const _PEDAL_ILERI = ['ArrowRight',' ','Spacebar','ArrowDown','PageDown','Enter','.',',','b','B'];
 const _PEDAL_GERI  = ['ArrowLeft','ArrowUp','PageUp','Backspace','a','A'];
 let _sonPedal = 0;
@@ -3011,7 +3087,7 @@ document.addEventListener('keydown',e=>{
   if(_tt) _tt('>> GECERLI: ' + (ileri ? 'ileri' : 'geri'));
   _sonPedal = simdi;
   e.preventDefault();
-  if(ileri) nextWork(); else prevWork();
+  _pedalHareket(ileri ? 'ileri' : 'geri');
 }, true);
 
 // Yatay swipe → eser geçişi | Swipe up → bottom nav aç (4sn sonra kapan)
