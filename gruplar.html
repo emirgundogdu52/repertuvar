@@ -226,7 +226,13 @@ html { -webkit-text-size-adjust: 100%; }
           <div class="invite-link" id="inviteLinkText"></div>
 
           <!-- Karekod: provada ekrani gosterip herkese okutmak icin.
-               Beyaz cerceve sart — karanlik zeminde kamera okuyamaz. -->
+               Beyaz cerceve sart — karanlik zeminde kamera okuyamaz.
+               (2026-08-23) Kod artik KAPALI geliyor: sayfa acikken surekli
+               ekranda durmasi, yanindaki birinin izinsiz okutmasina aciktir. -->
+          <div style="margin-top:12px;">
+            <button class="btn btn-secondary" id="inviteQrToggle"
+                    onclick="_qrGosterGizle()" style="display:none;">📷 Karekodu Göster</button>
+          </div>
           <div id="inviteQrWrap" style="display:none;margin-top:14px;text-align:center;">
             <div id="inviteQr" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;"></div>
             <div style="font-size:11px;color:var(--text3);margin-top:8px;">Telefonun kamerasıyla okutun</div>
@@ -522,11 +528,25 @@ function _qrCiz(link) {
       // duzeltme seviyesi daha toleransli.
       correctLevel: QRCode.CorrectLevel.H
     });
-    wrap.style.display = '';
+    // Cizildi ama GIZLI durur — kullanici acikca istemeli.
+    wrap.style.display = 'none';
+    var btn = document.getElementById('inviteQrToggle');
+    if (btn) { btn.style.display = ''; btn.textContent = '📷 Karekodu Göster'; }
   } catch (e) {
     wrap.style.display = 'none';
     console.warn('karekod cizilemedi:', e);
   }
+}
+
+// (2026-08-23) Karekodu ac/kapa. Kod uretildikten sonra sayfa acik kaldiginda
+// ya da sekmeden donuldugunde ekranda asili kalmasin diye.
+function _qrGosterGizle() {
+  var wrap = document.getElementById('inviteQrWrap');
+  var btn = document.getElementById('inviteQrToggle');
+  if (!wrap) return;
+  var acik = wrap.style.display !== 'none';
+  wrap.style.display = acik ? 'none' : '';
+  if (btn) btn.textContent = acik ? '📷 Karekodu Göster' : '🙈 Karekodu Gizle';
 }
 
 function _kontenjanYaz(invite) {
