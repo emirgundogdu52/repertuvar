@@ -386,7 +386,17 @@ window.syncOfflineData = async function() {
       if (el) return;
       el = document.createElement('div');
       el.id = 'rt-durum';
-      el.style.cssText = 'position:fixed;left:16px;bottom:16px;z-index:9998;' +
+      // (2026-08-23) KONUM DUZELTMESI — Emir bildirdi: native app'te serit alt
+      // menunun TAM UZERINE biniyor ve z-index:9998 oldugu icin dokunuslari da
+      // yutuyordu; "Ana Sayfa"ya basilamiyordu. Alt menu yuksekligi
+      // calc(68px + safe-area-inset-bottom); serit artik onun ustune cikiyor.
+      // Masaustunde (>=1024px) alt menu gizli oldugu icin eski 16px'e donuyor.
+      var _altMenuVar = window.matchMedia && window.matchMedia('(max-width: 1023px)').matches;
+      var _alt = _altMenuVar
+        ? 'calc(84px + env(safe-area-inset-bottom, 0px))'   // 68px menu + 16px bosluk
+        : '16px';
+      el.style.cssText = 'position:fixed;left:16px;bottom:' + _alt + ';z-index:9998;' +
+        'max-width:calc(100vw - 32px);box-sizing:border-box;' +
         'background:rgba(249,160,74,.14);border:1px solid rgba(249,160,74,.45);' +
         'color:#F9A04A;padding:7px 13px;border-radius:20px;font-size:12px;' +
         'font-weight:600;font-family:inherit;display:flex;align-items:center;gap:8px;' +
