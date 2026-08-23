@@ -2831,17 +2831,39 @@ function showScreen(id){
       if (document.getElementById('_pedalIpucu')) return;
       var sahne = document.getElementById('stageScreen');
       if (!sahne || sahne.classList.contains('hidden')) return;
-      var el = document.createElement('div');
+      // (2026-08-23) IPUCU YERINE GERCEK BIR DUGME.
+      // Ikon KLAVYE ya da PIYANO degil — kullanici klavye arardi. index.html'de
+      // kullanilan pedal cizimi (iki dikdortgen + baglanti) burada da gecerli.
+      var el = document.createElement('button');
       el.id = '_pedalIpucu';
-      el.textContent = '🎹 Pedal hazırlanıyor — ekranda bir yere dokunun';
+      el.type = 'button';
+      el.innerHTML =
+        '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" ' +
+        'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<rect x="2.5" y="6" width="7" height="12" rx="2"/>' +
+        '<rect x="14.5" y="6" width="7" height="12" rx="2"/>' +
+        '<path d="M9.5 9h5M9.5 15h5"/><circle cx="12" cy="12" r="1.4"/></svg>' +
+        '<span>Pedalı bağla</span>';
       el.style.cssText = 'position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,0px));' +
         'left:50%;transform:translateX(-50%);z-index:9996;' +
-        'background:rgba(255,200,61,.14);border:1px solid rgba(255,200,61,.42);' +
-        'color:#FFC83D;padding:7px 14px;border-radius:20px;font-size:12px;' +
-        'font-weight:600;font-family:inherit;pointer-events:none;white-space:nowrap;';
+        'display:flex;align-items:center;gap:7px;' +
+        'background:rgba(255,200,61,.16);border:1px solid rgba(255,200,61,.5);' +
+        'color:#FFC83D;padding:9px 16px;border-radius:20px;font-size:13px;' +
+        'font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;' +
+        '-webkit-tap-highlight-color:transparent;';
+      // pointerdown: dokunmanin EN ERKEN aninda odakla. `click` cok gec kaliyor —
+      // iOS klavye odagini yalnizca dokunusun bu asamasinda devrediyor.
+      el.addEventListener('pointerdown', function (ev) {
+        ev.preventDefault();              // dugme odagi kendine almasin
+        try {
+          var t = _odakAlani();
+          t.focus({ preventScroll: true });
+        } catch (e) {}
+        _pedalIpucuGizle();
+      });
       (document.body || document.documentElement).appendChild(el);
-      // Dokunulmasa bile sonsuza kadar durmasin.
-      setTimeout(_pedalIpucuGizle, 12000);
+      // Pedalsiz calisilan bir gun olabilir — dokunulmazsa kendi kaybolsun.
+      setTimeout(_pedalIpucuGizle, 15000);
     } catch (e) {}
   }
   window._pedalIpucuGoster = _pedalIpucuGoster;
