@@ -39,6 +39,7 @@
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="auth.js"></script>
+<script src="qrcode.min.js"></script>
 <script src="topnav.js" defer></script>
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
@@ -211,18 +212,32 @@ html { -webkit-text-size-adjust: 100%; }
       <!-- Davet Linki — sadece owner/admin görür -->
       <div id="inviteSection" style="display:none;">
         <div class="section-title">Davet Linki</div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Bu linki paylaşarak yeni üyeler davet edebilirsiniz. Link 7 gün geçerlidir.</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Bu linki paylaşarak ya da karekodu okutarak yeni üyeler davet edebilirsiniz. Link 7 gün geçerlidir.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <label style="font-size:13px;color:var(--text2);">Kaç kişi katılabilsin?
+            <input type="number" id="inviteMaxUses" value="1" min="1" max="200" step="1"
+                   style="width:76px;margin-left:8px;padding:7px 9px;border-radius:8px;
+                          border:1px solid var(--border);background:var(--bg2);color:var(--text);">
+          </label>
           <button class="btn btn-primary" onclick="generateInvite()">🔗 Yeni Davet Linki Oluştur</button>
         </div>
         <div class="invite-box" id="inviteLinkBox" style="display:none;">
           <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;">DAVETİYE LİNKİ</div>
           <div class="invite-link" id="inviteLinkText"></div>
+
+          <!-- Karekod: provada ekrani gosterip herkese okutmak icin.
+               Beyaz cerceve sart — karanlik zeminde kamera okuyamaz. -->
+          <div id="inviteQrWrap" style="display:none;margin-top:14px;text-align:center;">
+            <div id="inviteQr" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;"></div>
+            <div style="font-size:11px;color:var(--text3);margin-top:8px;">Telefonun kamerasıyla okutun</div>
+          </div>
+
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
             <button class="btn btn-secondary" onclick="copyInviteLink()">📋 Kopyala</button>
             <button class="btn btn-secondary" onclick="shareViaWhatsApp()">💬 WhatsApp</button>
           </div>
           <div style="font-size:11px;color:var(--text3);margin-top:10px;" id="inviteExpiry"></div>
+          <div style="font-size:12px;color:var(--text2);margin-top:6px;font-weight:600;" id="inviteQuota"></div>
         </div>
       </div>
     </div>
@@ -473,13 +488,55 @@ function renderMembersList(members) {
     </div>`).join('') || '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Henüz üye yok.</div>';
 }
 
+// ── 2026-08-23: KAREKODLU DAVET ───────────────────────────────────────────
+// Provada 20 kisiyi tek tek e-posta ile davet etmek yerine ekrani gosterip
+// herkes okutuyor. Karekod YENI bir sistem degil — mevcut davet linkinin
+// farkli bir teslim yolu. Guvenlik sunucuda (redeem_invite) duruyor.
+//
+// Kutuphane yerelde (qrcode.min.js): davet token'i ucuncu tarafa gitmesin ve
+// prova salonunda internet zayifken de cizilebilsin.
+function _qrCiz(link) {
+  var wrap = document.getElementById('inviteQrWrap');
+  var kutu = document.getElementById('inviteQr');
+  if (!wrap || !kutu) return;
+  kutu.innerHTML = '';
+  if (typeof QRCode === 'undefined') { wrap.style.display = 'none'; return; }
+  try {
+    new QRCode(kutu, {
+      text: link,
+      width: 208, height: 208,
+      colorDark: '#000000', colorLight: '#ffffff',
+      // Ekrandan okutuluyor: parlama/yansima olabilir, en yuksek hata
+      // duzeltme seviyesi daha toleransli.
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    wrap.style.display = '';
+  } catch (e) {
+    wrap.style.display = 'none';
+    console.warn('karekod cizilemedi:', e);
+  }
+}
+
+function _kontenjanYaz(invite) {
+  var el = document.getElementById('inviteQuota');
+  if (!el || !invite) return;
+  var max = invite.max_uses || 1;
+  var kul = invite.used_count || 0;
+  el.textContent = kul + ' / ' + max + ' kullanıldı'
+    + (kul >= max ? ' — kontenjan doldu' : ' · ' + (max - kul) + ' kişilik yer kaldı');
+}
+
 async function generateInvite() {
   const gid = getGroupId();
   try {
+    var kisi = parseInt((document.getElementById('inviteMaxUses') || {}).value, 10);
+    if (!kisi || kisi < 1) kisi = 1;
+    if (kisi > 200) kisi = 200;
+
     const r = await fetch(SUPA_URL + '/rest/v1/group_invites', {
       method: 'POST',
       headers: { ...authHeaders(), 'Prefer': 'return=representation' },
-      body: JSON.stringify({ group_id: gid, created_by: getUserId() })
+      body: JSON.stringify({ group_id: gid, created_by: getUserId(), max_uses: kisi })
     });
     if (!r.ok) throw new Error(await r.text());
     const [invite] = await r.json();
@@ -493,6 +550,8 @@ async function generateInvite() {
     document.getElementById('inviteLinkText').textContent = link;
     document.getElementById('inviteExpiry').textContent = '⏳ ' + new Date(invite.expires_at).toLocaleDateString('tr-TR', {day:'2-digit',month:'long',year:'numeric'}) + ' tarihine kadar geçerli';
     document.getElementById('inviteLinkBox').style.display = '';
+    _qrCiz(link);
+    _kontenjanYaz(invite);
     toast('Davet linki oluşturuldu ✓');
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
 }
