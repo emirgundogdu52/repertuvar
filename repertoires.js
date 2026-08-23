@@ -525,8 +525,61 @@ async function loadMyGroupRole(){
   }catch(e){ /* rolü tazeleyemedik — localStorage'daki son değerle devam */ }
 }
 
+// ── 2026-08-23: ESER BAZLI KADRO ─────────────────────────────────────────
+// Amac: "bu eserde kim, hangi enstrumanla" bilgisini repertuvar satirinda
+// tutmak. YENI TABLO ACMADIK — mevcut `repertoire_items.performer` alani
+// zaten eser bazli ve repertuvara ozel; tek eksigi enstrumandi.
+// Bicim: "Cem Gunes (Gitar), Hulya Ince (Vokal)". Parantezsiz eski kayitlar
+// aynen calismaya devam eder.
+//
+// Enstruman kaynagi: profiles.instruments (bugun eklenen yetenek listesi),
+// solistler.member_id uzerinden eslesiyor. Boylece serbest metin yerine
+// kisinin GERCEKTEN caldigi enstrumanlar oneriliyor — yazim tutarli kaliyor.
+let SOLIST_ENSTRUMAN = {};   // "Ad Soyad" -> ['Gitar','Vokal']
+
+async function _solistEnstrumanKur(solistler) {
+  try {
+    SOLIST_ENSTRUMAN = {};
+    if (!window.db || !db.profiles) return;
+    const profiller = await db.profiles.getAll();
+    if (!profiller || !profiller.length) return;
+    const pMap = {};
+    profiller.forEach(p => { pMap[p.id] = p; });
+    (solistler || []).forEach(x => {
+      if (!x || !x.name) return;
+      const p = x.member_id ? pMap[x.member_id] : null;
+      let liste = (p && Array.isArray(p.instruments) && p.instruments.length)
+        ? p.instruments
+        : (p && p.instrument ? [p.instrument] : []);
+      if (liste.length) SOLIST_ENSTRUMAN[x.name] = liste;
+    });
+  } catch (e) { /* enstruman onerisi olmasa da isim secimi calisir */ }
+}
+
+// "Cem Gunes (Gitar)" -> onerilerde tekrar cikmasin diye sade ad.
+function _pfSadeAd(x) {
+  return String(x || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+}
+
+// Bir arama sorgusuna karsilik "ad" ve "ad — enstruman" adaylarini uretir.
+function _pfAdaylar(q, secili) {
+  const secilenAdlar = (secili || []).map(_pfSadeAd);
+  const out = [];
+  SOLISTLER.forEach(ad => {
+    if (!trMatch(ad, q)) return;
+    if (!secilenAdlar.includes(ad)) out.push({ etiket: ad, deger: ad });
+    (SOLIST_ENSTRUMAN[ad] || []).forEach(ens => {
+      const deger = ad + ' (' + ens + ')';
+      if ((secili || []).includes(deger)) return;
+      out.push({ etiket: ad + ' — ' + ens, deger: deger });
+    });
+  });
+  return out;
+}
+
 function applyRepsData(r, i, s) {
   SOLISTLER = (s||[]).map(x=>x.name).filter(Boolean);
+  _solistEnstrumanKur(s);
   const uid = getUserId() || '';
   const myGid = getGroupId() || '';
   // linkedPrev: ilk satırda her zaman false — zincir listenin başında başlayamaz.
@@ -1108,10 +1161,11 @@ function pfKeydown(e) {
 function pfSuggest(q) {
   const dd = document.getElementById('pfDropdown');
   if (!q) { pfHideDropdown(); return; }
-  const matches = SOLISTLER.filter(n => trMatch(n, q) && !pfSelected.includes(n));
+  const matches = _pfAdaylar(q, pfSelected);
   if (!matches.length) { pfHideDropdown(); return; }
-  dd.innerHTML = matches.slice(0,8).map(n =>
-    '<div class="pf-dd-item" onmousedown="event.preventDefault();pfAdd(\''+n+'\')">' + n + '</div>'
+  dd.innerHTML = matches.slice(0,10).map(m =>
+    '<div class="pf-dd-item" onmousedown="event.preventDefault();pfAdd(\''
+    + m.deger.replace(/'/g, "\\'") + '\')">' + m.etiket + '</div>'
   ).join('');
   dd.style.display = 'block';
 }
@@ -2009,9 +2063,9 @@ function iemPfKeydown(e){
 function iemPfSuggest(q){
   const dd=document.getElementById('iemPfDropdown');
   if(!q){dd.style.display='none';return;}
-  const m=SOLISTLER.filter(n=>trMatch(n,q)&&!iemPfSelected.includes(n));
+  const m=_pfAdaylar(q,iemPfSelected);
   if(!m.length){dd.style.display='none';return;}
-  dd.innerHTML=m.slice(0,8).map(n=>'<div class="pf-dd-item" onmousedown="event.preventDefault();iemPfAdd(\''+n+'\')">'+n+'</div>').join('');
+  dd.innerHTML=m.slice(0,10).map(x=>'<div class="pf-dd-item" onmousedown="event.preventDefault();iemPfAdd(\''+x.deger.replace(/'/g,"\\'")+'\')">'+x.etiket+'</div>').join('');
   dd.style.display='block';
 }
 document.addEventListener('click',function(e){
