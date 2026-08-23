@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pedal Testi</title>
+<style>
+  body{margin:0;background:#0b0f18;color:#dfe6f2;font:15px/1.5 -apple-system,system-ui,sans-serif;padding:16px}
+  h1{font-size:17px;margin:0 0 10px}
+  p{color:#93a0b5;font-size:13px;margin:0 0 12px}
+  #kutu{background:#000;color:#0f0;font:12px/1.5 ui-monospace,monospace;
+        padding:10px;border-radius:8px;white-space:pre-wrap;min-height:220px}
+  #odakAlan{position:fixed;bottom:2px;right:2px;width:24px;height:24px;
+            opacity:.01;border:0;background:transparent;color:transparent;
+            caret-color:transparent;font-size:16px}
+  button{background:#FFC83D;color:#1a1200;border:0;border-radius:9px;
+         padding:11px 16px;font-size:14px;font-weight:700;margin-bottom:12px}
+</style>
+</head>
+<body>
+<h1>Pedal Tuş Testi</h1>
+<p>Bu sayfada uygulamadan hiçbir kod yok. Önce düğmeye dokun, sonra pedala bas.</p>
+<button id="btn">🎹 Odağı ver</button>
+<div id="kutu">bekleniyor…</div>
+<input id="odakAlan" type="text" inputmode="none" autocomplete="off"
+       autocorrect="off" autocapitalize="off" spellcheck="false" aria-hidden="true">
+
+<script>
+(function(){
+  var kutu = document.getElementById('kutu');
+  var alan = document.getElementById('odakAlan');
+  var btn  = document.getElementById('btn');
+  var sat  = [];
+
+  function yaz(s){
+    sat.push(s);
+    while (sat.length > 14) sat.shift();
+    kutu.textContent = sat.join('\n');
+  }
+
+  function tus(e, tur){
+    yaz(tur + ' key=' + JSON.stringify(e.key) +
+        ' code=' + JSON.stringify(e.code) +
+        ' keyCode=' + e.keyCode +
+        (e.repeat ? ' repeat' : ''));
+  }
+
+  document.addEventListener('keydown', function(e){ tus(e,'DOWN'); }, true);
+  document.addEventListener('keyup',   function(e){ tus(e,'UP  '); }, true);
+  document.addEventListener('keypress',function(e){ tus(e,'PRES'); }, true);
+  alan.addEventListener('keydown', function(e){ yaz('(alan) DOWN key=' + JSON.stringify(e.key)); });
+  document.addEventListener('wheel', function(e){
+    yaz('wheel deltaY=' + Math.round(e.deltaY));
+  }, true);
+  document.addEventListener('pointerdown', function(e){
+    yaz('pointerdown type=' + e.pointerType);
+  }, true);
+
+  // Odagi kullanici hareketiyle ver — iOS programla odaklanmayi reddedebiliyor.
+  btn.addEventListener('pointerdown', function(ev){
+    ev.preventDefault();
+    try { alan.focus({preventScroll:true}); } catch(e){ try{ alan.focus(); }catch(e2){} }
+    yaz('>> odak verildi');
+  });
+
+  alan.addEventListener('input', function(){ alan.value = ''; });
+
+  setInterval(function(){
+    var ae = document.activeElement;
+    var ad = ae ? ((ae.tagName||'?') + (ae.id ? '#' + ae.id : '')) : 'yok';
+    var s = 'odak=' + ad;
+    if (sat[sat.length-1] !== s) yaz(s);
+  }, 2000);
+
+  yaz('hazır — düğmeye dokun, sonra pedala bas');
+})();
+</script>
+</body>
+</html>
