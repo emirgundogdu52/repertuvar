@@ -2637,8 +2637,16 @@ function showScreen(id){
           tuz.focus({ preventScroll: true });
         } catch (e) {}
       };
-      setTimeout(window._pedalOdakVer, 0);
-      setTimeout(window._pedalOdakVer, 300);   // gecis animasyonu bitince
+      // (2026-08-23 DUZELTME-2) EŞZAMANLI CAGIRMAK SART. Ilk halim setTimeout
+      // kullaniyordu; olcum `odak=BODY` cikti, yani focus() sessizce reddedildi.
+      // iOS Safari bir metin alanina PROGRAMLA odaklanmayi yalnizca kullanici
+      // hareketinin (dokunma) is parcaciginda kabul ediyor; setTimeout o zinciri
+      // kirar ve istek yok sayilir. showScreen zaten dokunma isleyicisinden
+      // cagriliyor, bu yuzden burada HEMEN odakliyoruz.
+      window._pedalOdakVer();
+      // Yedek deneme: gecis animasyonu bir seyi ezdiyse. Bu gecikmeli cagri
+      // iOS'ta muhtemelen ise yaramaz ama masaustunde/Android'de zarari yok.
+      setTimeout(window._pedalOdakVer, 300);
     } catch(e) {}
   }
   ['pickerScreen','stageScreen','endScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
@@ -2751,7 +2759,10 @@ function showScreen(id){
 // yine sayfaya dusmez. Bu yuzden birkac noktada geri aliyoruz.
 (function(){
   function geriAl(){ try { if (window._pedalOdakVer) window._pedalOdakVer(); } catch(e){} }
-  document.addEventListener('pointerup', function(){ setTimeout(geriAl, 60); }, true);
+  // Dokunma isleyicisinin ICINDE, eszamanli — gecikme kullanici hareketi
+  // zincirini kirar ve iOS odak istegini reddeder.
+  document.addEventListener('pointerup', geriAl, true);
+  document.addEventListener('touchend', geriAl, true);
   document.addEventListener('visibilitychange', function(){
     if (document.visibilityState === 'visible') setTimeout(geriAl, 120);
   });
