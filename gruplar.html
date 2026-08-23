@@ -425,6 +425,7 @@ function renderGroup() {
   const inviteSection = document.getElementById('inviteSection');
   if (userRole === 'owner' || userRole === 'admin') {
     inviteSection.style.display = '';
+    aktifDavetiYukle();   // ekran degisince kod kaybolmasin
   }
 
   // Düzenle/sil butonları sadece owner/admin'e
@@ -554,6 +555,45 @@ async function generateInvite() {
     _kontenjanYaz(invite);
     toast('Davet linki oluşturuldu ✓');
   } catch(e) { toast('Hata: ' + e.message, 'err'); }
+}
+
+// ── 2026-08-23: AKTIF DAVETI GERI YUKLE ───────────────────────────────────
+// Kod yalnizca generateInvite() icinde ciziliyordu; sekme degisince ya da
+// sayfa yenilenince kayboluyor, yonetici her seferinde YENI kod uretmek
+// zorunda kaliyordu — bu hem zahmetli hem de onceki kodu bosa harciyordu.
+// Artik sayfa acilirken sunucudaki gecerli davet okunup gosteriliyor.
+// Yan fayda: sayac ('3 / 20 kullanildi') her acilista GUNCEL degeriyle gelir,
+// provada "kac kisi kaldi" sorusunun cevabi ekranda durur.
+async function aktifDavetiYukle() {
+  var gid = getGroupId();
+  if (!gid) return;
+  try {
+    var r = await fetch(SUPA_URL + '/rest/v1/group_invites'
+      + '?group_id=eq.' + gid
+      + '&expires_at=gt.' + new Date().toISOString()
+      + '&select=token,max_uses,used_count,expires_at'
+      + '&order=created_at.desc&limit=10', { headers: authHeaders() });
+    if (!r.ok) return;                       // yetki yoksa sessizce gec
+    var list = await r.json();
+    // Kontenjani dolmus davetler ise yaramaz — ilk KULLANILABILIR olani al.
+    var inv = (list || []).find(function (x) {
+      return (x.used_count || 0) < (x.max_uses || 1);
+    });
+    if (!inv) return;
+
+    var origin = window.location.origin;
+    var shareBase = origin.startsWith('http') ? origin : 'https://app.repertuvar.app';
+    var link = shareBase + '/login.html?invite=' + inv.token;
+    currentInviteLink = link;
+
+    document.getElementById('inviteLinkText').textContent = link;
+    document.getElementById('inviteExpiry').textContent = '⏳ '
+      + new Date(inv.expires_at).toLocaleDateString('tr-TR',
+          {day:'2-digit',month:'long',year:'numeric'}) + ' tarihine kadar geçerli';
+    document.getElementById('inviteLinkBox').style.display = '';
+    _qrCiz(link);
+    _kontenjanYaz(inv);
+  } catch (e) { /* davet gosterilemezse sayfa yine calissin */ }
 }
 
 function copyInviteLink() {

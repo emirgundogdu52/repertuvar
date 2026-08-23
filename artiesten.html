@@ -19,6 +19,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="auth.js"></script>
+<script src="db.js"></script>
 <script src="topnav.js" defer></script>
 <style>
   
@@ -264,6 +265,31 @@ async function loadAll() {
       if (raw) WORKS_LIST = JSON.parse(raw);
     } catch {}
   } catch(e) {
+    // ── 2026-08-23: CEVRIMDISI GERI DUSUS ─────────────────────────────────
+    // Solist verisi db.js tarafindan ZATEN IndexedDB'ye yaziliyor
+    // (syncOfflineData -> db.solistler.replaceAll). Ama burasi sadece hata
+    // gosterip duruyordu: veri cihazda dururken sayfa bos kaliyordu.
+    // Sahnede "bu eseri kim soyluyor" bilgisi lazim oldugunda internet
+    // olmayabilir; onbellekten cizip durumu acikca soyluyoruz.
+    try {
+      const yerel = (window.db && db.solistler) ? await db.solistler.getAll() : [];
+      if (yerel && yerel.length) {
+        // Sunucu sirasiyla ayni olsun: isme gore
+        artists = yerel.slice().sort((a, b) =>
+          String(a.name || '').localeCompare(String(b.name || ''), 'tr'));
+        setSyncStatus('err', 'Çevrimdışı — kayıtlı veri');
+        showToast('Çevrimdışısınız, son kayıtlı liste gösteriliyor', 'err');
+        renderList();
+        if (selectedId) renderDetail();
+        else if (artists.length) { selectedId = artists[0].id; renderList(); renderDetail(); }
+        try {
+          const raw = localStorage.getItem('worksListCache');
+          if (raw) WORKS_LIST = JSON.parse(raw);
+        } catch (e2) {}
+        return;
+      }
+    } catch (e2) { /* onbellek de yoksa asagidaki hata mesajina dus */ }
+
     setSyncStatus('err', 'Bağlantı hatası');
     showToast('Hata: ' + e.message, 'err');
   }
