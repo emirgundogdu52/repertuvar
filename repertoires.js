@@ -2152,17 +2152,51 @@ async function createShareLink(hours){
     const link = shareBaseUrl() + 'paylas.html?t=' + token;
     if(box) box.innerHTML = `
       <div class="share-link" id="shareLink" data-url="${link}">${link}</div>
+      <div id="shareQrWrap" style="display:none;text-align:center;margin:10px 14px 4px;">
+        <div id="shareQr" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;"></div>
+        <div style="font-size:11px;color:var(--text3);margin-top:7px;">Misafir sanatçı kamerayla okutabilir</div>
+      </div>
       <div class="share-note">${hours} saat geçerli — ${new Date(expires).toLocaleString('tr-TR')}</div>
       <div class="share-foot">
         <button class="bi" onclick="closeShare()">Kapat</button>
         <button class="baw" id="copyBtn" onclick="copyShareLink()">Kopyala</button>
       </div>`;
+    _shareQrCiz(link);
     if(navigator.share){
       const rp = getRep(repId);
       try{ await navigator.share({title:(rp&&rp.name)||'Repertuvar', url:link}); }catch(e){}
     }
   }catch(e){
     if(box) box.innerHTML = '<div class="share-note" style="color:var(--red);">Bağlantı oluşturulamadı: '+e.message+'</div>';
+  }
+}
+
+// ── 2026-08-23: MISAFIR SANATCI KAREKODU ─────────────────────────────────
+// Provaya/konsere disaridan katilan bir muzisyen gruba UYE OLMAMALI: uyelik
+// mesajlari, diger repertuvarlari ve uye listesini acar. Misafirin ihtiyaci
+// tek bir repertuvari sahnede gorebilmek — mevcut paylasim baglantisi tam
+// olarak bunu veriyor, hesap bile gerekmiyor.
+// Karekod yeni bir sistem degil: ayni baglantinin provada gosterilebilir hali.
+// Guvenlik zaten baglantida: sureli (saat bazinda) ve yeni baglantı uretilince
+// eskiler iptal ediliyor.
+function _shareQrCiz(link) {
+  var wrap = document.getElementById('shareQrWrap');
+  var kutu = document.getElementById('shareQr');
+  if (!wrap || !kutu) return;
+  kutu.innerHTML = '';
+  if (typeof QRCode === 'undefined') { wrap.style.display = 'none'; return; }
+  try {
+    new QRCode(kutu, {
+      text: link,
+      width: 190, height: 190,
+      colorDark: '#000000', colorLight: '#ffffff',
+      // Ekrandan okutuluyor; yansima/parlama olabilir, en toleransli seviye.
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    wrap.style.display = '';
+  } catch (e) {
+    wrap.style.display = 'none';
+    console.warn('paylasim karekodu cizilemedi:', e);
   }
 }
 
