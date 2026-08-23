@@ -99,9 +99,12 @@ html{background:var(--bg);}
   .work-pick-item.selected{background:rgba(88,166,255,.12);}
   .work-pick-name{font-size:13px;color:var(--text);}
   .work-pick-sub{font-size:11px;color:var(--text3);margin-top:1px;}
-  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:13px;color:var(--text2);z-index:999;animation:toastIn .2s ease;}
+  /* (2026-08-23) Toast alt menunun (68px + safe-area) UZERINE cikiyor; eskiden 24px idi ve butonlarin uzerine binip dokunuslari engelliyordu. Masaustunde alt menu gizli, 24px e donuyor. */
+.toast{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom, 0px));right:24px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:13px;color:var(--text2);z-index:999;animation:toastIn .2s ease;}
   .toast.ok{border-color:var(--green);color:var(--green);}
   .toast.err{border-color:var(--red);color:var(--red);}
+
+@media (min-width: 1024px) { .toast { bottom: 24px; } }
   @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
   /* ── RESPONSIVE ── */
@@ -243,9 +246,45 @@ function initials(name) {
   return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 }
 
+// (2026-08-23) Onbellekten cizim — hem cevrimdisi kisa devrede hem de ag
+// hatasi catch'inde kullaniliyor. true donerse cizim yapildi demektir.
+async function _yerelSolistleriCiz() {
+  try {
+    const yerel = (window.db && db.solistler) ? await db.solistler.getAll() : [];
+    if (!yerel || !yerel.length) return false;
+    artists = yerel.slice().sort((a, b) =>
+      String(a.name || '').localeCompare(String(b.name || ''), 'tr'));
+    setSyncStatus('err', 'Çevrimdışı — kayıtlı veri');
+    renderList();
+    if (selectedId) renderDetail();
+    else if (artists.length) { selectedId = artists[0].id; renderList(); renderDetail(); }
+    try {
+      const raw = localStorage.getItem('worksListCache');
+      if (raw) WORKS_LIST = JSON.parse(raw);
+    } catch (e) {}
+    return true;
+  } catch (e) { return false; }
+}
+
 async function loadAll() {
   setSyncStatus('loading', 'Yükleniyor...');
   loadMyGroupRole();   // yetki bilgisi — gelince bir sonraki çizimde doğrulanır
+
+  // ── 2026-08-23: ÇEVRİMDIŞI KISA DEVRE ───────────────────────────────────
+  // Emir bildirdi: ağ kapalıyken liste ~6 saniye sonra geliyordu. Sebep
+  // IndexedDB değil, iOS'un başarısız isteği hemen değil ~6 sn sonra
+  // düşürmesiydi; catch bloğu ancak o zaman çalışıyordu. Çevrimdışı olduğumuzu
+  // zaten biliyorsak ağı hiç beklemeye gerek yok — doğrudan önbellekten çiz.
+  if (!navigator.onLine) {
+    if (await _yerelSolistleriCiz()) {
+      showToast('Çevrimdışısınız, son kayıtlı liste gösteriliyor', 'err');
+      return;
+    }
+    setSyncStatus('err', 'Çevrimdışı');
+    showToast('Çevrimdışısınız ve kayıtlı liste yok', 'err');
+    return;
+  }
+
   try {
     const gid = getGroupId();
     const uid = getUserId();
@@ -271,24 +310,10 @@ async function loadAll() {
     // gosterip duruyordu: veri cihazda dururken sayfa bos kaliyordu.
     // Sahnede "bu eseri kim soyluyor" bilgisi lazim oldugunda internet
     // olmayabilir; onbellekten cizip durumu acikca soyluyoruz.
-    try {
-      const yerel = (window.db && db.solistler) ? await db.solistler.getAll() : [];
-      if (yerel && yerel.length) {
-        // Sunucu sirasiyla ayni olsun: isme gore
-        artists = yerel.slice().sort((a, b) =>
-          String(a.name || '').localeCompare(String(b.name || ''), 'tr'));
-        setSyncStatus('err', 'Çevrimdışı — kayıtlı veri');
-        showToast('Çevrimdışısınız, son kayıtlı liste gösteriliyor', 'err');
-        renderList();
-        if (selectedId) renderDetail();
-        else if (artists.length) { selectedId = artists[0].id; renderList(); renderDetail(); }
-        try {
-          const raw = localStorage.getItem('worksListCache');
-          if (raw) WORKS_LIST = JSON.parse(raw);
-        } catch (e2) {}
-        return;
-      }
-    } catch (e2) { /* onbellek de yoksa asagidaki hata mesajina dus */ }
+    if (await _yerelSolistleriCiz()) {
+      showToast('Bağlantı kurulamadı, son kayıtlı liste gösteriliyor', 'err');
+      return;
+    }
 
     setSyncStatus('err', 'Bağlantı hatası');
     showToast('Hata: ' + e.message, 'err');

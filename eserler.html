@@ -3824,9 +3824,16 @@ async function undoDeleteWork(id) {
 
 // Eylemli bildirim: düz toastMsg'den farkı, içinde bir düğme taşıması ve
 // kullanıcı karar verene kadar daha uzun durması (8 sn).
+// (2026-08-23) Toast konumu: alt menu 68px + safe-area kapliyor, eski 24px
+// butonlarin uzerine biniyordu. Satir ici stil oldugu icin medya sorgusu
+// kullanamiyoruz; genislige gore JS ile hesapliyoruz.
+function _toastAlt(){
+  var m = window.matchMedia && window.matchMedia('(max-width: 1023px)').matches;
+  return m ? 'calc(84px + env(safe-area-inset-bottom, 0px))' : '24px';
+}
 function toastGeriAl(text, onUndo, btnText){
   const m=document.createElement('div');
-  m.style.cssText='position:fixed;bottom:24px;right:24px;background:#2b3340;border:1px solid rgba(88,166,255,.45);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
+  m.style.cssText='position:fixed;bottom:'+_toastAlt()+';right:24px;background:#2b3340;border:1px solid rgba(88,166,255,.45);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
   const sp=document.createElement('span'); sp.textContent=text; m.appendChild(sp);
   const b=document.createElement('button');
   b.textContent = btnText || 'Geri al';
@@ -3838,7 +3845,7 @@ function toastGeriAl(text, onUndo, btnText){
 }
 function toastMsg(text){
   const m=document.createElement('div');
-  m.style.cssText='position:fixed;bottom:24px;right:24px;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;';
+  m.style.cssText='position:fixed;bottom:'+_toastAlt()+';right:24px;background:#238636;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;';
   m.textContent=text; document.body.appendChild(m); setTimeout(()=>m.remove(),2500);
 }
 function _afterChordsSaved(id, hasCh, chords, isShared){

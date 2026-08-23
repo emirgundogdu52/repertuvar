@@ -214,9 +214,11 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 .wpi.sel{background:rgba(124,111,255,0.18);border-left:3px solid var(--accent);color:var(--text);}
 .wpn{font-size:13px;color:var(--text);}
 .wps{font-size:11px;color:var(--text3);margin-top:1px;}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:13px;color:var(--text2);z-index:999;animation:ti .2s ease;}
+/* (2026-08-23) Toast alt menunun (68px + safe-area) UZERINE cikiyor; eskiden 24px idi ve butonlarin uzerine binip dokunuslari engelliyordu. Masaustunde alt menu gizli, 24px e donuyor. */
+.toast{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom, 0px));right:24px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:13px;color:var(--text2);z-index:999;animation:ti .2s ease;}
 .toast.ok{border-color:var(--green);color:var(--green);}
 .toast.er{border-color:var(--red);color:var(--red);}
+@media (min-width: 1024px) { .toast { bottom: 24px; } }
 @keyframes ti{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
   .pf-tag {
