@@ -2944,7 +2944,27 @@ function showScreen(id){
 // Sayfa cevirici pedallarin varlik sebebi tam olarak bu: once EKRANI cevirir,
 // icerik bitince ESERE gecer. Kisa eserlerde kaydirilacak sey olmadigi icin
 // davranis degismez — dogrudan sonraki esere gecilir.
-function _sozAlani(){ return document.getElementById('sm'); }
+// (2026-08-23 DUZELTME) KAYDIRILAN OGE SABIT DEGIL. Ilk hali dogrudan #sm'i
+// kullaniyordu ve calismadi (Emir: "sayfanin altina gitmiyor, sonraki esere
+// geciyor"). Icerik duzenine gore tasan oge #sm degil, ic kapsayici ya da
+// belgenin kendisi olabiliyor. Bu yuzden adaylari sirayla deneyip GERCEKTEN
+// tasani seciyoruz.
+function _sozAlani(){
+  const adaylar = [
+    document.getElementById('sm'),
+    document.querySelector('#stageScreen .wlyrics'),
+    document.querySelector('#stageScreen .sm'),
+    document.getElementById('stageScreen'),
+    document.scrollingElement,
+    document.documentElement,
+    document.body
+  ];
+  for (const el of adaylar) {
+    if (!el) continue;
+    if (el.scrollHeight > el.clientHeight + 8) return el;
+  }
+  return null;
+}
 
 // Bir "sayfa" = gorunur yuksekligin %85'i. Kalan %15 baglam icin: okuyucu
 // nerede kaldigini kaybetmesin diye son satirlar ustte tekrar goruntulenir.
@@ -2969,6 +2989,14 @@ function _sayfaCevir(yon){
 
 // Pedalin tek giris noktasi: once sayfa, olmazsa eser.
 function _pedalHareket(yon){
+  if (typeof window._pedalTeshis === 'function') {
+    const k = _sozAlani();
+    window._pedalTeshis(k
+      ? ('kaydir? ' + k.tagName + (k.id ? '#' + k.id : '') +
+         ' top=' + Math.round(k.scrollTop) +
+         ' h=' + k.clientHeight + '/' + k.scrollHeight)
+      : 'kaydirilacak oge YOK');
+  }
   if (_sayfaCevir(yon)) return;
   if (yon === 'geri') prevWork(); else nextWork();
 }
