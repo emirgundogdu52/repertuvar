@@ -2812,6 +2812,8 @@ function showScreen(id){
     document.addEventListener('pointerdown', e => {
       yaz('pointerdown type=' + e.pointerType + ' button=' + e.button);
     }, true);
+    // Pedal isleyicisi buradan serite yazabilsin.
+    window._pedalTeshis = yaz;
     if (document.body) document.body.appendChild(kutu);
     else document.addEventListener('DOMContentLoaded', () => document.body.appendChild(kutu));
   } catch(e) {}
@@ -2863,20 +2865,41 @@ function _yaziAlanindaMi(){
   return true;
 }
 
+// (2026-08-23) YAKALAMA FAZINA ALINDI + ADIM ADIM TESHIS.
+// Bagimsiz test sayfasi (pedaltest.html) kanitladi: iOS Safari pedalin
+// PageUp/PageDown tuslarini sayfaya VERIYOR. Demek ki tusu yutan sey bu
+// dosyanin icinde. Iki degisiklik:
+//   (a) Dinleyici artik YAKALAMA fazinda (ucuncu arguman true). Kabarma
+//       fazindayken aradaki bir ogenin stopPropagation() cagirmasi olayi
+//       tamamen kesebiliyordu; yakalama fazi hedefe inmeden once calisir.
+//   (b) ?pedaltest=1 acikken her erken cikis serite yaziliyor — bes ayri
+//       `return` vardi ve hangisinde takildigimizi goremiyorduk.
 document.addEventListener('keydown',e=>{
-  if(document.getElementById('stageScreen').classList.contains('hidden'))return;
+  const _tt = (typeof window._pedalTeshis === 'function') ? window._pedalTeshis : null;
+  if(document.getElementById('stageScreen').classList.contains('hidden')){
+    if(_tt) _tt('atlandi: sahne kapali (' + e.key + ')');
+    return;
+  }
   if(e.key==='Escape'){exitStage({stopPropagation:()=>{}});return;}
-  if(_yaziAlanindaMi())return;
-  if(e.repeat)return;
+  if(_yaziAlanindaMi()){
+    const ae=document.activeElement;
+    if(_tt) _tt('atlandi: yazi alani=' + ((ae&&ae.tagName)||'?') + ((ae&&ae.id)?'#'+ae.id:''));
+    return;
+  }
+  if(e.repeat){ if(_tt) _tt('atlandi: repeat'); return; }
   const ileri = _PEDAL_ILERI.includes(e.key);
   const geri  = _PEDAL_GERI.includes(e.key);
-  if(!ileri && !geri) return;
+  if(!ileri && !geri){ if(_tt) _tt('atlandi: liste disi key=' + JSON.stringify(e.key)); return; }
   const simdi = Date.now();
-  if(simdi - _sonPedal < 250){ e.preventDefault(); return; }
+  if(simdi - _sonPedal < 250){
+    if(_tt) _tt('atlandi: debounce (' + (simdi-_sonPedal) + 'ms)');
+    e.preventDefault(); return;
+  }
+  if(_tt) _tt('>> GECERLI: ' + (ileri ? 'ileri' : 'geri'));
   _sonPedal = simdi;
   e.preventDefault();
   if(ileri) nextWork(); else prevWork();
-});
+}, true);
 
 // Yatay swipe → eser geçişi | Swipe up → bottom nav aç (4sn sonra kapan)
 let txStart=0, tyStart=0;
