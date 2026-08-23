@@ -2906,7 +2906,9 @@ function showScreen(id){
   function zorlaOdakla(ev){
     try {
       if (window._pedalTusGeldi) return;                 // is bitti, karisma
-      const tuz = _odakAlani();
+      const sahne = document.getElementById('stageScreen');
+      if (!sahne || sahne.classList.contains('hidden')) return;
+      const tuz = document.getElementById('_pedalOdak');
       if (!tuz) return;
       // Gercek bir form ogesine dokunuluyorsa elini surme.
       const h = ev && ev.target;
@@ -2917,30 +2919,11 @@ function showScreen(id){
       tuz.focus({ preventScroll: true });
     } catch (e) {}
   }
-  // (2026-08-23 DUZELTME-8) ALAN SAYFA ACILIR ACILMAZ OLUSTURULUYOR.
-  // Su ana kadar alan ILK DOKUNUSTA yaratiliyordu. Suphe: iOS, daha yeni
-  // yaratilmis ve henuz duzene girmemis bir ogeye klavye odagini devretmiyor
-  // olabilir — nitekim bos test sayfasinda (alan bastan DOM'da) tuslar
-  // sorunsuz geliyordu, 192 KB'lik bu sayfada gelmiyordu. Artik alan en basta
-  // kuruluyor, dokunma anina hazir bekliyor.
-  function _erkenKur(){
-    try {
-      // (2026-08-23 DUZELTME-9) SADECE OLUSTUR, ODAKLAMA.
-      // Onceki hali burada programla odakliyordu ve CALISAN durumu bozdu
-      // (Emir: "basa dondu"). Sebep: erken odak activeElement'i alana
-      // ayarliyor, ama klavye odagini devretmiyor; sonra gercek dokunusta
-      // yapilan blur+focus iOS tarafindan "zaten odakta" diye yok sayiliyor.
-      // Yani erken odak, gercek devri ENGELLIYOR. Alan bastan DOM'da dursun,
-      // odagi yalnizca gercek kullanici hareketi versin.
-      _odakAlani();
-    } catch (e) {}
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', _erkenKur);
-  } else {
-    _erkenKur();
-  }
-
+  // (2026-08-23 DUZELTME-10) ERKEN OLUSTURMA GERI ALINDI.
+  // DUZELTME-8/9'da alani sayfa acilisinda kuruyorduk. Sonuc: hem dokunmadan
+  // calismadi, hem de DAHA ONCE CALISAN "ekrana dokun" yolu bozuldu (Emir
+  // bildirdi). Calisan yapiya donuyoruz: alan sahneye girilirken olusturuluyor
+  // ve odak yalnizca SAHNE ACIKKEN aliniyor.
   document.addEventListener('pointerdown', zorlaOdakla, true);
   document.addEventListener('touchstart', zorlaOdakla, true);
 
