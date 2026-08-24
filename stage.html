@@ -387,7 +387,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .loading{text-align:center;color:var(--text2);padding:24px;font-size:13px;}
 
 .stb{display:flex;flex-direction:column;align-items:stretch;padding:8px 16px 7px;padding-top:calc(8px + env(safe-area-inset-top));border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:7px;position:relative;z-index:401;}
-.stb-r1{display:flex;align-items:center;justify-content:center;}
+.stb-r1{display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 16px 6px;}
 .stb-r2{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;}
 #v2StageBotNav .v2-bn-exit { color: #c05444 !important; }
 #v2StageBotNav .v2-bn-exit:hover { color: #e06655 !important; }
@@ -1000,21 +1000,6 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
        altında repertuvar adı ve sayfa noktaları. Eskiden üçü tek satırdaydı;
        ad kısalıp (%32 tavan) noktalar sıkışıyordu. -->
   <div class="stb">
-    <div class="stb-r1">
-    <!-- (2026-08-06) Bilgi (i) düğmesi ARTIK SEKME ÇERÇEVESİNİN İÇİNDE.
-         Dışarıda tek başına dururken öksüz görünüyordu ve tıklanabilir olduğu
-         belli olmuyordu; şimdi Söz/Akor/Nota ile aynı kutunun içinde, aralarında
-         ince bir ayraç çizgisiyle — aynı aileden ama mod seçici DEĞİL. -->
-    <div class="vm-tabs" id="viewModeTabs" role="tablist" aria-label="Görünüm">
-      <button class="vm-tab" data-mode="lyrics" role="tab" title="Söz" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i><span class="vm-lbl">Söz</span></button>
-      <button class="vm-tab" data-mode="chords" role="tab" title="Akor" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i><span class="vm-lbl">Akor</span></button>
-      <button class="vm-tab" data-mode="nota" role="tab" title="Nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i><span class="vm-lbl">Nota</span></button>
-      <span class="vm-sep" aria-hidden="true"></span>
-      <button class="stage-info-btn" onclick="event.stopPropagation();openInfoSheet()" title="Eser Bilgileri" aria-label="Eser Bilgileri">
-        <i class="ti ti-info-circle" aria-hidden="true"></i>
-      </button>
-    </div>
-    </div>
     <div class="stb-r2">
       <div class="strn" id="strn">—</div>
       <div class="stp">
@@ -1035,6 +1020,21 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   </div>
   <button class="side-nav-btn side-nav-left"  id="sideLeft"  onclick="event.stopPropagation();prevWork()"><i class="ti ti-chevron-left" style="font-size:22px;"></i></button>
   <div class="smhead" id="smHead"></div>
+  <!-- (2026-08-24) GORUNUM SEKMELERI BASLIGIN ALTINA ALINDI.
+       Eskiden ust barin ilk satirindaydi: sayfayi acan kisi once sekmeleri,
+       sonra repertuvar adini, en son eser adini goruyordu. Sahnede once
+       "hangi eser, hangi karar" bilgisi okunur; sekmeler ondan sonra gelir. -->
+  <div class="stb-r1">
+    <div class="vm-tabs" id="viewModeTabs" role="tablist" aria-label="Görünüm">
+      <button class="vm-tab" data-mode="lyrics" role="tab" title="Söz" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i><span class="vm-lbl">Söz</span></button>
+      <button class="vm-tab" data-mode="chords" role="tab" title="Akor" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i><span class="vm-lbl">Akor</span></button>
+      <button class="vm-tab" data-mode="nota" role="tab" title="Nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i><span class="vm-lbl">Nota</span></button>
+      <span class="vm-sep" aria-hidden="true"></span>
+      <button class="stage-info-btn" onclick="event.stopPropagation();openInfoSheet()" title="Eser Bilgileri" aria-label="Eser Bilgileri">
+        <i class="ti ti-info-circle" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
   <div class="sm" id="sm"></div>
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();nextWork()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
