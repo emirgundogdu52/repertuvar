@@ -420,6 +420,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 @media (max-width:430px){
   .vm-tab .vm-lbl{display:none;}
   .vm-tab{padding:0 9px;min-width:42px;}
+  .stage-info-btn .vm-lbl{display:none;}
+  .stage-info-btn{padding:0 9px;}
 }
 
 /* Sabit başlık şeridi — güfte alanının DIŞINDA, üstte durur. Güfte büyüyüp
@@ -940,7 +942,11 @@ body.stage-active #r-bottom-nav{display:none !important;}
    ve köşe yarıçapı, ama accent zemin yok (mod seçmiyor, panel açıyor).
    Belirginlik için ikon rengi --text ve hafif bir zemin verildi. */
 .vm-sep{width:1px;height:20px;background:var(--border);margin:0 3px;flex-shrink:0;}
-.stage-info-btn{background:rgba(255,255,255,.05);border:none;width:38px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;transition:background .14s,color .14s;flex-shrink:0;padding:0;}
+/* (2026-08-24) "Bilgi" etiketi eklendi: sekmeler basligin altina inince yer
+   acildi, ikon tek basina ne oldugu belli olmuyordu. Sabit 38px genislik
+   metni kirpardi — otomatik genislige gecildi. Dar ekranda (<=430px) etiket
+   Soz/Akor/Nota ile birlikte gizlenir, ikon kalir. */
+.stage-info-btn{background:rgba(255,255,255,.05);border:none;min-width:38px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text);cursor:pointer;transition:background .14s,color .14s;flex-shrink:0;padding:0 11px;font-size:13px;font-weight:600;font-family:inherit;}
 .stage-info-btn .ti{font-size:19px;line-height:1;}
 .stage-info-btn:hover{background:rgba(255,255,255,.12);color:var(--accent);}
 body.stage-light .stage-info-btn{background:rgba(0,0,0,.05);}
@@ -1031,7 +1037,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
       <button class="vm-tab" data-mode="nota" role="tab" title="Nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i><span class="vm-lbl">Nota</span></button>
       <span class="vm-sep" aria-hidden="true"></span>
       <button class="stage-info-btn" onclick="event.stopPropagation();openInfoSheet()" title="Eser Bilgileri" aria-label="Eser Bilgileri">
-        <i class="ti ti-info-circle" aria-hidden="true"></i>
+        <i class="ti ti-info-circle" aria-hidden="true"></i><span class="vm-lbl">Bilgi</span>
       </button>
     </div>
   </div>
