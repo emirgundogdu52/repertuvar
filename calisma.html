@@ -117,6 +117,21 @@
            color:var(--text2); cursor:pointer; }
 .yk-onay input { width:18px; height:18px; accent-color:var(--accent); }
 .yk-ilerleme { margin-top:14px; }
+
+.yk-birak { border:2px dashed var(--border); border-radius:14px; padding:26px 18px;
+            text-align:center; cursor:pointer; background:var(--surface);
+            transition:border-color .15s, background .15s; }
+.yk-birak:hover { border-color:color-mix(in srgb, var(--accent) 55%, transparent); }
+.yk-birak.uzerinde { border-color:var(--accent); border-style:solid;
+                     background:color-mix(in srgb, var(--accent) 10%, transparent); }
+.yk-birak .ti { font-size:30px; color:var(--accent); opacity:.85; }
+.yk-birak-ana { font-size:14px; font-weight:700; color:var(--text2); margin-top:8px; }
+.yk-birak-alt { font-size:12px; color:var(--text3); margin-top:3px; }
+/* Telefonda sürükleme yok — metin yanıltmasın. */
+@media (hover:none) and (pointer:coarse) {
+  .yk-birak-ana { display:none; }
+  .yk-birak-alt::before { content:'Dosya seç · '; }
+}
 </style>
 </head>
 <body>
@@ -186,9 +201,14 @@
       <div class="yk-etiket">2 · Ses dosyası</div>
       <input type="file" id="ykDosya" accept="audio/*,.mp3,.m4a,.wav,.ogg" style="display:none;"
              onchange="ykDosyaSecildi()">
-      <button class="co-btn ikincil" onclick="document.getElementById('ykDosya').click()">
-        <i class="ti ti-upload" aria-hidden="true"></i> Dosya seç
-      </button>
+      <!-- Sürükle-bırak VE tıklama aynı alanda: masaüstünde sürüklemek doğal,
+           telefonda sürükleme yok — orada alan sadece büyük bir düğme gibi
+           davranıyor. İki ayrı arayüz kurmaya gerek kalmıyor. -->
+      <div class="yk-birak" id="ykBirak" onclick="document.getElementById('ykDosya').click()">
+        <i class="ti ti-cloud-upload" aria-hidden="true"></i>
+        <div class="yk-birak-ana">Dosyayı buraya sürükleyin</div>
+        <div class="yk-birak-alt">veya dokunup seçin · mp3, m4a, wav</div>
+      </div>
       <div class="yk-dosya" id="ykDosyaBilgi" style="display:none;"></div>
       <div class="yk-not">Tek eser kaydı bekleniyor · en fazla <b id="ykMaxMb">8</b> MB</div>
     </div>
@@ -441,7 +461,30 @@ function ykEserSec(id, ad) {
 }
 
 function ykDosyaSecildi() {
-  const f = document.getElementById('ykDosya').files[0];
+  ykDosyaAl(document.getElementById('ykDosya').files[0]);
+}
+
+// Sürükle-bırak: dosya seçiciyle AYNI yolu kullanıyor, böylece boyut/süre
+// kontrolleri tek yerde kalıyor.
+(function () {
+  const alan = () => document.getElementById('ykBirak');
+  const durdur = e => { e.preventDefault(); e.stopPropagation(); };
+  ['dragenter','dragover','dragleave','drop'].forEach(t => {
+    document.addEventListener(t, e => {
+      const a = alan();
+      if (!a || !document.getElementById('ykKatman').classList.contains('acik')) return;
+      durdur(e);
+      if (t === 'dragenter' || t === 'dragover') a.classList.add('uzerinde');
+      if (t === 'dragleave' || t === 'drop') a.classList.remove('uzerinde');
+      if (t === 'drop') {
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) ykDosyaAl(f);
+      }
+    }, false);
+  });
+})();
+
+function ykDosyaAl(f) {
   const bilgi = document.getElementById('ykDosyaBilgi');
   document.getElementById('ykAdim3').style.display = 'none';
   ykFile = null; ykSure = null;
