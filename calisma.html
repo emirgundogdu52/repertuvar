@@ -132,6 +132,32 @@
   .yk-birak-ana { display:none; }
   .yk-birak-alt::before { content:'Dosya seç · '; }
 }
+
+/* Oynatıcı */
+.oy-durum { text-align:center; color:var(--text3); font-size:13px; padding:30px 0; }
+.oy-zaman { display:flex; align-items:center; gap:10px; font-size:12px;
+            color:var(--text3); font-variant-numeric:tabular-nums; margin-bottom:6px; }
+.oy-zaman input[type=range] { flex:1; }
+.oy-tus { display:flex; align-items:center; justify-content:center; gap:18px; margin:14px 0 22px; }
+.oy-oynat { width:64px; height:64px; border-radius:50%; border:none; cursor:pointer;
+            background:var(--accent); color:#1a1200; font-size:26px;
+            display:flex; align-items:center; justify-content:center; }
+.oy-yuvarlak { width:46px; height:46px; border-radius:50%; cursor:pointer;
+               background:var(--surface2); border:1px solid var(--border);
+               color:var(--text2); font-size:20px;
+               display:flex; align-items:center; justify-content:center; }
+.oy-kutu { background:var(--surface); border:1px solid var(--border); border-radius:13px;
+           padding:14px 15px; margin-bottom:12px; }
+.oy-kutu-ust { display:flex; align-items:center; justify-content:space-between;
+               font-size:12px; font-weight:700; color:var(--text3); letter-spacing:.06em; }
+.oy-deger { font-size:16px; font-weight:800; color:var(--accent); letter-spacing:0; }
+.oy-kutu input[type=range] { width:100%; margin:10px 0 4px; accent-color:var(--accent); }
+.oy-alt { font-size:12px; color:var(--text2); }
+.oy-hizli { display:flex; gap:7px; margin-top:10px; }
+.oy-hizli button { flex:1; padding:7px 0; border-radius:8px; cursor:pointer;
+                   background:var(--surface2); border:1px solid var(--border);
+                   color:var(--text2); font-size:12px; font-weight:600; font-family:inherit; }
+.oy-hizli button:hover { border-color:color-mix(in srgb, var(--accent) 50%, transparent); }
 </style>
 </head>
 <body>
@@ -243,6 +269,84 @@
       <div class="yk-ilerleme" id="ykIlerleme" style="display:none;">
         <div class="co-bar"><i style="width:0%"></i></div>
         <div class="yk-not" id="ykIlerlemeYazi">Yükleniyor…</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── OYNATICI ──────────────────────────────────────────────────────────
+     Tam ekran: sahnede değil, çalışırken kullanılıyor — ekranda yer sıkıntısı
+     yok, kontroller büyük ve parmakla rahat olsun. -->
+<div class="yk-katman" id="oyKatman">
+  <div class="yk-bar">
+    <button class="yk-kapat" onclick="oyKapat()" aria-label="Kapat"><i class="ti ti-x"></i></button>
+    <div class="yk-baslik" id="oyBaslik">—</div>
+    <button class="yk-kapat" style="margin-left:auto;" onclick="oySil()" aria-label="Sil" title="Kaydı sil">
+      <i class="ti ti-trash"></i>
+    </button>
+  </div>
+  <div class="yk-govde">
+
+    <div class="oy-durum" id="oyDurum">Hazırlanıyor…</div>
+
+    <div class="oy-panel" id="oyPanel" style="display:none;">
+
+      <div class="oy-zaman">
+        <span id="oySure">0:00</span>
+        <input type="range" id="oyKaydir" min="0" max="1000" value="0" step="1"
+               oninput="oyAtla(this.value)">
+        <span id="oyToplam">0:00</span>
+      </div>
+
+      <div class="oy-tus">
+        <button class="oy-yuvarlak" onclick="oyGeri()" title="10 sn geri">
+          <i class="ti ti-rewind-backward-10"></i>
+        </button>
+        <button class="oy-oynat" id="oyOynatBtn" onclick="oyOynatDurdur()">
+          <i class="ti ti-player-play-filled" id="oyOynatIkon"></i>
+        </button>
+        <button class="oy-yuvarlak" onclick="oyIleri()" title="10 sn ileri">
+          <i class="ti ti-rewind-forward-10"></i>
+        </button>
+      </div>
+
+      <!-- TON: yarım ses biriminde, altında nota karşılığı.
+           Kaydın tonu girilmişse hedef notayı da yazıyoruz. -->
+      <div class="oy-kutu">
+        <div class="oy-kutu-ust">
+          <span>TON</span>
+          <span class="oy-deger" id="oyTonDeger">0</span>
+        </div>
+        <input type="range" id="oyTon" min="-6" max="6" value="0" step="1"
+               oninput="oyTonAyar(this.value)">
+        <div class="oy-alt" id="oyTonAlt">Kayıt tonunda</div>
+        <div class="oy-hizli">
+          <button onclick="oyTonKaydir(-1)">−1</button>
+          <button onclick="oyTonSifirla()">Sıfırla</button>
+          <button onclick="oyTonKaydir(1)">+1</button>
+        </div>
+      </div>
+
+      <!-- TEMPO: perdeden BAĞIMSIZ. Ağır çalışmak isteyen ton değiştirmeden
+           yavaşlatabilsin diye ayrı kutu. -->
+      <div class="oy-kutu">
+        <div class="oy-kutu-ust">
+          <span>TEMPO</span>
+          <span class="oy-deger" id="oyTempoDeger">%100</span>
+        </div>
+        <input type="range" id="oyTempo" min="50" max="150" value="100" step="5"
+               oninput="oyTempoAyar(this.value)">
+        <div class="oy-hizli">
+          <button onclick="oyTempoSet(60)">%60</button>
+          <button onclick="oyTempoSet(80)">%80</button>
+          <button onclick="oyTempoSet(100)">%100</button>
+        </div>
+      </div>
+
+      <div class="yk-not">
+        Ton ve tempo birbirinden bağımsız: tonu değiştirince hız,
+        tempoyu değiştirince perde bozulmaz.
       </div>
     </div>
 
@@ -643,8 +747,209 @@ async function ykGonder() {
   }
 }
 
-// ── Oynatıcı: sonraki adımda ──────────────────────────────────────────────
-function ac(id) { alert('Oynatıcı bir sonraki adımda eklenecek.'); }
+// ══ OYNATICI ═════════════════════════════════════════════════════════════
+// SoundTouchJS (faz vokoderi) ile perde ve tempo BAĞIMSIZ değiştiriliyor.
+// Basit yol (<audio>.playbackRate) ikisini birbirine bağlar: tonu bir yarım
+// ses tizleştirince tempo da %6 hızlanır. Çalışma için bu kabul edilemez —
+// ağır çalışmak isteyen kişi tonu bozmadan yavaşlatabilmeli.
+//
+// KÜTÜPHANE ES MODÜLÜ: sayfa klasik betikle çalıştığı için dinamik import()
+// kullanılıyor; ilk oynatmada bir kez yükleniyor.
+//
+// iOS NOTU: AudioContext yalnızca kullanıcı dokunuşuyla başlatılabilir.
+// Bugün pedalda öğrendiğimiz kuralın aynısı — bu yüzden ses hazırlığı
+// "Oynat" dokunuşunun içinde başlıyor.
+let _ST = null;          // yüklenen modül
+let oyCtx = null;        // AudioContext
+let oyBuffer = null;     // çözülmüş ses
+let oyShifter = null;    // PitchShifter
+let oyKayit = null;      // work_audio satırı
+let oyCaliyor = false;
+let oyYuzde = 0;         // 0..1
+let oyTonDeg = 0;
+let oyTempoDeg = 1;
+
+const NOTALAR = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const NOTA_TR = { 'C':'Do','C#':'Do#','D':'Re','D#':'Re#','E':'Mi','F':'Fa',
+                  'F#':'Fa#','G':'Sol','G#':'Sol#','A':'La','A#':'La#','B':'Si' };
+
+function sureYaz(sn) {
+  sn = Math.max(0, Math.round(sn || 0));
+  return Math.floor(sn / 60) + ':' + String(sn % 60).padStart(2, '0');
+}
+
+async function ac(id) {
+  oyKayit = KAYITLAR.find(k => k.id === id);
+  if (!oyKayit) return;
+  document.getElementById('oyBaslik').textContent = oyKayit.eserAdi;
+  document.getElementById('oyPanel').style.display = 'none';
+  document.getElementById('oyDurum').style.display = '';
+  document.getElementById('oyDurum').textContent = 'Ses indiriliyor…';
+  document.getElementById('oyKatman').classList.add('acik');
+
+  oyTonDeg = 0; oyTempoDeg = 1; oyYuzde = 0; oyCaliyor = false;
+  document.getElementById('oyTon').value = 0;
+  document.getElementById('oyTempo').value = 100;
+  oyTonEtiket(); oyTempoEtiket();
+
+  try {
+    if (!_ST) _ST = await import('./soundtouch.js');
+
+    // İmzalı URL — kova private, doğrudan adresle indirilemez.
+    const t = (typeof getToken === 'function') ? getToken() : localStorage.getItem('sb_token');
+    const sr = await fetch(SUPA_URL + '/storage/v1/object/sign/work-audio/' + oyKayit.path, {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expiresIn: 3600 })
+    });
+    if (!sr.ok) throw new Error('Bağlantı alınamadı: ' + (await sr.text()));
+    const sj = await sr.json();
+    const url = SUPA_URL + '/storage/v1' + (sj.signedURL || sj.signedUrl);
+
+    const ab = await (await fetch(url)).arrayBuffer();
+    document.getElementById('oyDurum').textContent = 'Ses çözülüyor…';
+
+    oyCtx = oyCtx || new (window.AudioContext || window.webkitAudioContext)();
+    oyBuffer = await oyCtx.decodeAudioData(ab);
+
+    document.getElementById('oyToplam').textContent = sureYaz(oyBuffer.duration);
+    document.getElementById('oySure').textContent = '0:00';
+    document.getElementById('oyDurum').style.display = 'none';
+    document.getElementById('oyPanel').style.display = '';
+  } catch (e) {
+    document.getElementById('oyDurum').textContent = 'Açılamadı: ' + (e && e.message ? e.message : e);
+  }
+}
+
+function oyKapat() {
+  oyDurdur();
+  document.getElementById('oyKatman').classList.remove('acik');
+}
+
+function _shifterKur() {
+  if (!_ST || !oyBuffer || !oyCtx) return null;
+  const sh = new _ST.PitchShifter(oyCtx, oyBuffer, 16384);
+  sh.pitchSemitones = oyTonDeg;
+  sh.tempo = oyTempoDeg;
+  sh.percentagePlayed = oyYuzde;
+  sh.on('play', d => {
+    oyYuzde = d.percentagePlayed;
+    const kaydir = document.getElementById('oyKaydir');
+    if (kaydir && document.activeElement !== kaydir) {
+      kaydir.value = Math.round(oyYuzde * 1000);
+    }
+    document.getElementById('oySure').textContent = sureYaz(d.timePlayed);
+    if (oyYuzde >= 0.999) { oyDurdur(); oyYuzde = 0; }
+  });
+  return sh;
+}
+
+async function oyOynatDurdur() {
+  if (oyCaliyor) { oyDurdur(); return; }
+  try {
+    if (oyCtx && oyCtx.state === 'suspended') await oyCtx.resume();  // iOS
+    oyShifter = _shifterKur();
+    if (!oyShifter) return;
+    oyShifter.connect(oyCtx.destination);
+    oyCaliyor = true;
+    document.getElementById('oyOynatIkon').className = 'ti ti-player-pause-filled';
+  } catch (e) { alert('Oynatılamadı: ' + (e && e.message ? e.message : e)); }
+}
+
+function oyDurdur() {
+  if (oyShifter) { try { oyShifter.disconnect(); } catch (e) {} oyShifter = null; }
+  oyCaliyor = false;
+  const ik = document.getElementById('oyOynatIkon');
+  if (ik) ik.className = 'ti ti-player-play-filled';
+}
+
+// Ayar değişince çalan sesi kesmiyoruz: SoundTouch bu değerleri anında kabul
+// ediyor, yeniden kurmak gereksiz kesinti yaratırdı.
+function oyTonAyar(v) {
+  oyTonDeg = parseInt(v, 10) || 0;
+  if (oyShifter) oyShifter.pitchSemitones = oyTonDeg;
+  oyTonEtiket();
+}
+function oyTonKaydir(d) {
+  const el = document.getElementById('oyTon');
+  el.value = Math.max(-6, Math.min(6, (parseInt(el.value, 10) || 0) + d));
+  oyTonAyar(el.value);
+}
+function oyTonSifirla() {
+  document.getElementById('oyTon').value = 0;
+  oyTonAyar(0);
+}
+function oyTonEtiket() {
+  const d = document.getElementById('oyTonDeger');
+  d.textContent = (oyTonDeg > 0 ? '+' : '') + oyTonDeg;
+  const alt = document.getElementById('oyTonAlt');
+  if (!oyTonDeg) { alt.textContent = 'Kayıt tonunda'; return; }
+  const kaynak = oyKayit && oyKayit.source_key;
+  if (kaynak && NOTALAR.indexOf(kaynak) >= 0) {
+    // Kaydın tonu biliniyorsa hedef notayı da söyle — kullanıcı "kaç yarım
+    // ses" diye değil, "hangi karar" diye düşünüyor.
+    const yeni = NOTALAR[((NOTALAR.indexOf(kaynak) + oyTonDeg) % 12 + 12) % 12];
+    alt.textContent = (NOTA_TR[kaynak] || kaynak) + ' → ' + (NOTA_TR[yeni] || yeni);
+  } else {
+    alt.textContent = Math.abs(oyTonDeg) + ' yarım ses ' + (oyTonDeg > 0 ? 'tiz' : 'pes');
+  }
+}
+
+function oyTempoAyar(v) {
+  oyTempoDeg = (parseInt(v, 10) || 100) / 100;
+  if (oyShifter) oyShifter.tempo = oyTempoDeg;
+  oyTempoEtiket();
+}
+function oyTempoSet(v) {
+  document.getElementById('oyTempo').value = v;
+  oyTempoAyar(v);
+}
+function oyTempoEtiket() {
+  document.getElementById('oyTempoDeger').textContent = '%' + Math.round(oyTempoDeg * 100);
+}
+
+function oyAtla(v) {
+  oyYuzde = (parseInt(v, 10) || 0) / 1000;
+  if (oyShifter) oyShifter.percentagePlayed = oyYuzde;
+  if (oyBuffer) document.getElementById('oySure').textContent = sureYaz(oyYuzde * oyBuffer.duration);
+}
+function _kaydirSn(sn) {
+  if (!oyBuffer) return;
+  const yeni = Math.max(0, Math.min(1, oyYuzde + sn / oyBuffer.duration));
+  document.getElementById('oyKaydir').value = Math.round(yeni * 1000);
+  oyAtla(document.getElementById('oyKaydir').value);
+}
+function oyGeri()  { _kaydirSn(-10); }
+function oyIleri() { _kaydirSn(10); }
+
+// ── Silme: kotayı boşaltmanın tek yolu ────────────────────────────────────
+async function oySil() {
+  if (!oyKayit) return;
+  if (!confirm('"' + oyKayit.eserAdi + '" kaydı silinsin mi?')) return;
+  const t = (typeof getToken === 'function') ? getToken() : localStorage.getItem('sb_token');
+  try {
+    // Önce satır, sonra dosya. Ters sırada olsaydı satır kalır, dosya
+    // giderdi — liste bozuk bir kayıt gösterirdi.
+    const r = await fetch(SUPA_URL + '/rest/v1/work_audio?id=eq.' + oyKayit.id, {
+      method: 'DELETE', headers: { ...authHeaders(), 'Prefer': 'return=representation' }
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const silinen = await r.json();
+    if (!silinen.length) throw new Error('Sunucu hiçbir satır silmedi — yetkiniz olmayabilir.');
+
+    try {
+      await fetch(SUPA_URL + '/storage/v1/object/work-audio/' + oyKayit.path, {
+        method: 'DELETE', headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + t }
+      });
+    } catch (e) { /* dosya silinemezse satır yine de gitti; kota tazelenir */ }
+
+    oyKapat();
+    await kotaYukle();
+    await kayitlariYukle();
+  } catch (e) {
+    alert('Silinemedi: ' + (e && e.message ? e.message : e));
+  }
+}
 
 // ── Başlat ────────────────────────────────────────────────────────────────
 (function () {
