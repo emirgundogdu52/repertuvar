@@ -442,18 +442,38 @@ function ykEserFiltre() {
   const liste = q
     ? ESERLER.filter(e => trNorm(e.name).includes(q)).slice(0, 30)
     : ESERLER.slice(0, 12);
+  // (2026-08-24 DÜZELTME) onclick ÖZNİTELİĞİ KULLANILMIYOR.
+  // Önceki hali `onclick="ykEserSec("123","Ad")"` üretiyordu: JSON.stringify
+  // çift tırnak koyuyor, o da HTML özniteliğini erkenden kapatıyordu — tıklama
+  // hiç çalışmıyordu. Eser adlarında tırnak/apostrof da olabilir. Bu yüzden
+  // veri data-* içinde taşınıyor, tıklama tek bir dinleyiciyle yakalanıyor.
   kap.innerHTML = liste.map(e =>
-    `<div class="co-item" onclick="ykEserSec(${JSON.stringify(String(e.id))},${JSON.stringify(e.name)})">
+    `<div class="co-item" data-id="${_kacis(String(e.id))}" data-ad="${_kacis(e.name)}">
        <div class="co-ikon"><i class="ti ti-music" aria-hidden="true"></i></div>
-       <div><div class="co-ad">${e.name}</div></div>
+       <div><div class="co-ad">${_kacis(e.name)}</div></div>
      </div>`).join('')
     || '<div class="yk-not">Eser bulunamadı.</div>';
 }
 
+function _kacis(x) {
+  return String(x == null ? '' : x)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Tek dinleyici: liste her çizildiğinde yeniden bağlamaya gerek yok.
+document.addEventListener('click', function (ev) {
+  const kap = document.getElementById('ykEserSonuc');
+  if (!kap) return;
+  const sat = ev.target.closest ? ev.target.closest('.co-item') : null;
+  if (!sat || !kap.contains(sat)) return;
+  ykEserSec(sat.getAttribute('data-id'), sat.getAttribute('data-ad'));
+});
+
 function ykEserSec(id, ad) {
   ykEser = { id: id, name: ad };
   const el = document.getElementById('ykSecili');
-  el.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> ' + ad;
+  el.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> ' + _kacis(ad);
   el.style.display = '';
   document.getElementById('ykEserSonuc').innerHTML = '';
   document.getElementById('ykEserAra').value = '';
