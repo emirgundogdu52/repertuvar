@@ -158,6 +158,24 @@
                    background:var(--surface2); border:1px solid var(--border);
                    color:var(--text2); font-size:12px; font-weight:600; font-family:inherit; }
 .oy-hizli button:hover { border-color:color-mix(in srgb, var(--accent) 50%, transparent); }
+
+/* Geniş ekranda kontroller solda, sözler sağda — ikisi de aynı anda görünür. */
+@media (min-width: 900px) {
+  .yk-govde { max-width: 1040px; }
+  .oy-panel { display:grid !important; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:start; }
+  .oy-panel[style*="display:none"] { display:none !important; }
+  .oy-sag .oy-soz { max-height:520px; }
+}
+.oy-soz-basi { width:100%; display:flex; align-items:center; gap:9px; padding:12px 14px;
+               border-radius:12px; cursor:pointer; font-family:inherit; font-size:14px;
+               font-weight:700; color:var(--text2); background:var(--surface);
+               border:1px solid var(--border); margin-top:6px; }
+.oy-soz-basi:hover { border-color:color-mix(in srgb, var(--accent) 50%, transparent); }
+.oy-soz { margin-top:10px; padding:16px 16px 20px; border-radius:12px;
+          background:var(--surface); border:1px solid var(--border);
+          font-size:15px; line-height:1.85; color:var(--text); white-space:pre-wrap;
+          max-height:340px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.oy-soz.bos { color:var(--text3); font-style:italic; white-space:normal; }
 </style>
 </head>
 <body>
@@ -291,6 +309,7 @@
     <div class="oy-durum" id="oyDurum">Hazırlanıyor…</div>
 
     <div class="oy-panel" id="oyPanel" style="display:none;">
+      <div class="oy-sol">
 
       <div class="oy-zaman">
         <span id="oySure">0:00</span>
@@ -347,6 +366,19 @@
       <div class="yk-not">
         Ton ve tempo birbirinden bağımsız: tonu değiştirince hız,
         tempoyu değiştirince perde bozulmaz.
+      </div>
+      </div><!-- /oy-sol -->
+
+      <!-- SÖZLER: kontrollerin ALTINDA (geniş ekranda YANINDA), sekme DEĞİL.
+           Sekme olsaydı sözlere bakarken ton/tempo kontrolleri kaybolurdu;
+           oysa çalışırken ikisi de aynı anda gerekiyor. -->
+      <div class="oy-sag">
+        <button class="oy-soz-basi" onclick="oySozAcKapa()" id="oySozBtn">
+          <i class="ti ti-file-text" aria-hidden="true"></i>
+          <span>Sözler</span>
+          <i class="ti ti-chevron-down" id="oySozOk" style="margin-left:auto;"></i>
+        </button>
+        <div class="oy-soz" id="oySoz" style="display:none;"></div>
       </div>
     </div>
 
@@ -789,6 +821,9 @@ async function ac(id) {
   document.getElementById('oyDurum').textContent = 'Ses indiriliyor…';
   document.getElementById('oyKatman').classList.add('acik');
 
+  const _sz = document.getElementById('oySoz');
+  if (_sz) { _sz.dataset.wid = ''; _sz.textContent = ''; }
+  if (_sozAcik) sozleriGetir();
   oyTonDeg = 0; oyTempoDeg = 1; oyYuzde = 0; oyCaliyor = false;
   document.getElementById('oyTon').value = 0;
   document.getElementById('oyTempo').value = 100;
@@ -927,6 +962,53 @@ function _kaydirSn(sn) {
 }
 function oyGeri()  { _kaydirSn(-10); }
 function oyIleri() { _kaydirSn(10); }
+
+// ── Sözler ────────────────────────────────────────────────────────────────
+// Kaynak: works.lyrics. Önce yerel önbellek (çevrimdışı da çalışsın), yoksa
+// sunucu. Sözler oynatıcıyla AYNI anda görünüyor — sekmeye koymadık, çünkü
+// çalışırken hem söze bakmak hem tonu değiştirmek gerekiyor.
+let _sozAcik = false;
+
+function oySozAcKapa() {
+  _sozAcik = !_sozAcik;
+  document.getElementById('oySoz').style.display = _sozAcik ? '' : 'none';
+  const ok = document.getElementById('oySozOk');
+  if (ok) ok.className = 'ti ti-chevron-' + (_sozAcik ? 'up' : 'down');
+  if (_sozAcik) sozleriGetir();
+}
+
+async function sozleriGetir() {
+  const kap = document.getElementById('oySoz');
+  if (!oyKayit || !kap) return;
+  if (kap.dataset.wid === String(oyKayit.work_id)) return;   // zaten yüklü
+  kap.className = 'oy-soz';
+  kap.textContent = 'Yükleniyor…';
+
+  let soz = null;
+  try {
+    if (window.db && db.works) {
+      const w = (await db.works.getAll()).find(x => String(x.id) === String(oyKayit.work_id));
+      if (w) soz = w.lyrics || w.sozler || null;
+    }
+  } catch (e) {}
+
+  if (soz == null) {
+    try {
+      const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + oyKayit.work_id +
+        '&select=lyrics&limit=1', { headers: authHeaders() });
+      if (r.ok) { const j = await r.json(); if (j.length) soz = j[0].lyrics; }
+    } catch (e) {}
+  }
+
+  kap.dataset.wid = String(oyKayit.work_id);
+  if (soz && String(soz).trim()) {
+    kap.className = 'oy-soz';
+    kap.textContent = String(soz);
+  } else {
+    kap.className = 'oy-soz bos';
+    kap.textContent = 'Bu eser için söz kaydı yok. Eserler sayfasından ekleyebilirsiniz.';
+  }
+}
 
 // ── Silme: kotayı boşaltmanın tek yolu ────────────────────────────────────
 async function oySil() {
