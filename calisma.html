@@ -230,14 +230,18 @@
 </div>
 
 <script>
-// ── Sunucu bağlantısı (diğer sayfalarla aynı desen) ───────────────────────
-const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
-const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+// ── Sunucu bağlantısı ─────────────────────────────────────────────────────
+// (2026-08-24 DÜZELTME) SUPA_URL / SUPA_KEY BURADA TANIMLANMIYOR.
+// auth.js bunları zaten küresel olarak veriyor (satır 2-3). Burada `const` ile
+// yeniden tanımlamak "Identifier 'SUPA_URL' has already been declared" hatası
+// veriyor ve BÜTÜN betik çalışmadan çöküyordu — sayfa boş görünüyordu.
+// Aynı şekilde kullanıcı kimliği için auth.js'in getUserId()'si kullanılıyor.
 function authHeaders() {
-  const t = localStorage.getItem('sb_token');
+  const t = (typeof getToken === 'function') ? getToken() : localStorage.getItem('sb_token');
   return { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' };
 }
 function uid() {
+  if (typeof getUserId === 'function') return getUserId();
   try { return JSON.parse(localStorage.getItem('sb_user') || '{}').id || null; } catch (e) { return null; }
 }
 
@@ -511,7 +515,7 @@ async function ykGonder() {
 
   try {
     // 1) Storage
-    const t = localStorage.getItem('sb_token');
+    const t = (typeof getToken === 'function') ? getToken() : localStorage.getItem('sb_token');
     const up = await fetch(SUPA_URL + '/storage/v1/object/work-audio/' + yol, {
       method: 'POST',
       headers: {
