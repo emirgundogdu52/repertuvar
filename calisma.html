@@ -414,7 +414,9 @@ function kotaCiz() {
 async function kayitlariYukle() {
   try {
     const r = await fetch(SUPA_URL +
-      '/rest/v1/work_audio?select=id,work_id,title,source_key,duration_sec,size_bytes,created_at' +
+      // (2026-08-24 DÜZELTME) `path` DE SEÇİLİYOR. Yoksa oynatıcı imzalı URL'yi
+      // 'work-audio/undefined' için istiyor ve 404 NoSuchKey dönüyordu.
+      '/rest/v1/work_audio?select=id,work_id,path,title,source_key,duration_sec,size_bytes,created_at' +
       '&order=created_at.desc', { headers: authHeaders() });
     if (!r.ok) throw new Error(await r.text());
     const satirlar = await r.json();
