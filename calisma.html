@@ -835,7 +835,11 @@ function _shifterKur() {
   sh.tempo = oyTempoDeg;
   sh.percentagePlayed = oyYuzde;
   sh.on('play', d => {
-    oyYuzde = d.percentagePlayed;
+    // (2026-08-24 DÜZELTME) KÜTÜPHANE TUTARSIZ: `percentagePlayed` OKUNURKEN
+    // 0-100 arası yüzde döndürüyor, YAZILIRKEN 0-1 arası oran bekliyor.
+    // Okunan değeri oran sanınca parçanın %1'inde "bitti" sayılıyordu —
+    // 4 dakikalık dosya ~3 saniyede duruyordu. Bölerek orana çeviriyoruz.
+    oyYuzde = (d.percentagePlayed || 0) / 100;
     const kaydir = document.getElementById('oyKaydir');
     if (kaydir && document.activeElement !== kaydir) {
       kaydir.value = Math.round(oyYuzde * 1000);
