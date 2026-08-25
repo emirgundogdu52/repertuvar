@@ -87,6 +87,36 @@
           cursor:pointer; margin-top:14px; }
 .co-btn:disabled { opacity:.45; cursor:not-allowed; }
 .co-btn.ikincil { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+
+/* Yükleme katmanı */
+.yk-katman { display:none; position:fixed; inset:0; z-index:1200; background:var(--bg);
+             overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.yk-katman.acik { display:block; }
+.yk-bar { position:sticky; top:0; background:var(--bg); border-bottom:1px solid var(--border);
+          display:flex; align-items:center; gap:10px; padding:12px 14px calc(12px);
+          padding-top:calc(12px + env(safe-area-inset-top,0px)); z-index:2; }
+.yk-kapat { background:var(--surface2); border:1px solid var(--border); color:var(--text);
+            width:34px; height:34px; border-radius:9px; font-size:17px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; }
+.yk-baslik { font-size:16px; font-weight:700; color:var(--text); }
+.yk-govde { max-width:680px; margin:0 auto; padding:16px 20px calc(40px + env(safe-area-inset-bottom,0px)); }
+.yk-adim { margin-bottom:26px; }
+.yk-etiket { font-size:12px; font-weight:700; color:var(--text3); letter-spacing:.06em;
+             text-transform:uppercase; margin-bottom:9px; }
+.yk-sonuc { display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto; }
+.yk-sonuc .co-item { padding:10px 12px; }
+.yk-secili { display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:11px;
+             background:color-mix(in srgb, var(--accent) 12%, transparent);
+             border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+             color:var(--text); font-weight:700; font-size:15px; margin-bottom:10px; }
+.yk-dosya { margin-top:10px; padding:11px 13px; border-radius:11px; background:var(--surface);
+            border:1px solid var(--border); font-size:13px; color:var(--text2); }
+.yk-dosya.hata { border-color:var(--red,#f87171); color:var(--red,#f87171); }
+.yk-not { font-size:12px; color:var(--text3); margin-top:8px; line-height:1.5; }
+.yk-onay { display:flex; align-items:center; gap:9px; margin:16px 0 4px; font-size:14px;
+           color:var(--text2); cursor:pointer; }
+.yk-onay input { width:18px; height:18px; accent-color:var(--accent); }
+.yk-ilerleme { margin-top:14px; }
 </style>
 </head>
 <body>
@@ -131,6 +161,72 @@
   </div>
 
 </div>
+</div>
+
+<!-- ── YÜKLEME SAYFASI ────────────────────────────────────────────────────
+     Ayrı bir modal yerine tam ekran bir katman: telefonda eser arama +
+     dosya seçme + ton seçme aynı anda görünsün, modal içinde kaydırma
+     derdi olmasın. -->
+<div class="yk-katman" id="ykKatman">
+  <div class="yk-bar">
+    <button class="yk-kapat" onclick="ykKapat()" aria-label="Kapat"><i class="ti ti-x"></i></button>
+    <div class="yk-baslik">Yeni kayıt</div>
+  </div>
+  <div class="yk-govde">
+
+    <div class="yk-adim">
+      <div class="yk-etiket">1 · Hangi eser?</div>
+      <input class="co-ara" id="ykEserAra" type="search" placeholder="Eser adı ara…"
+             autocomplete="off" oninput="ykEserFiltre()">
+      <div id="ykSecili" class="yk-secili" style="display:none;"></div>
+      <div class="yk-sonuc" id="ykEserSonuc"></div>
+    </div>
+
+    <div class="yk-adim" id="ykAdim2" style="display:none;">
+      <div class="yk-etiket">2 · Ses dosyası</div>
+      <input type="file" id="ykDosya" accept="audio/*,.mp3,.m4a,.wav,.ogg" style="display:none;"
+             onchange="ykDosyaSecildi()">
+      <button class="co-btn ikincil" onclick="document.getElementById('ykDosya').click()">
+        <i class="ti ti-upload" aria-hidden="true"></i> Dosya seç
+      </button>
+      <div class="yk-dosya" id="ykDosyaBilgi" style="display:none;"></div>
+      <div class="yk-not">Tek eser kaydı bekleniyor · en fazla <b id="ykMaxMb">8</b> MB</div>
+    </div>
+
+    <div class="yk-adim" id="ykAdim3" style="display:none;">
+      <div class="yk-etiket">3 · Kaydın tonu <span style="font-weight:400;opacity:.7;">(isteğe bağlı)</span></div>
+      <select class="co-ara" id="ykTon" style="margin-bottom:8px;">
+        <option value="">Bilmiyorum / sonra</option>
+        <option value="C">Do (C)</option>
+        <option value="C#">Do# (C#)</option>
+        <option value="D">Re (D)</option>
+        <option value="D#">Re# (D#)</option>
+        <option value="E">Mi (E)</option>
+        <option value="F">Fa (F)</option>
+        <option value="F#">Fa# (F#)</option>
+        <option value="G">Sol (G)</option>
+        <option value="G#">Sol# (G#)</option>
+        <option value="A">La (A)</option>
+        <option value="A#">La# (A#)</option>
+        <option value="B">Si (B)</option>
+      </select>
+      <div class="yk-not">Kaydın tonunu girersen, eserin kararıyla farkı hesaplayıp
+        kaç perde transpoze edeceğini söyleyebiliriz.</div>
+
+      <label class="yk-onay">
+        <input type="checkbox" id="ykGrup"> Grubumla paylaş
+      </label>
+
+      <button class="co-btn" id="ykGonder" onclick="ykGonder()">
+        <i class="ti ti-cloud-upload" aria-hidden="true"></i> Yükle
+      </button>
+      <div class="yk-ilerleme" id="ykIlerleme" style="display:none;">
+        <div class="co-bar"><i style="width:0%"></i></div>
+        <div class="yk-not" id="ykIlerlemeYazi">Yükleniyor…</div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
@@ -264,15 +360,231 @@ function ciz() {
   kotaCiz();   // yeni eklenen düğmenin de durumu güncellensin
 }
 
-// ── Sonraki parçalarda gelecek ────────────────────────────────────────────
-function yeniKayit() { alert('Yükleme akışı bir sonraki adımda eklenecek.'); }
-function ac(id)      { alert('Oynatıcı bir sonraki adımda eklenecek.'); }
+// ══ YÜKLEME AKIŞI ════════════════════════════════════════════════════════
+// Sıra: eser seç → dosya seç (boyut/süre kontrolü) → ton/paylaşım → yükle.
+//
+// ÖNEMLİ — GERİ ALMA: Dosya önce Storage'a gidiyor, sonra veritabanı satırı
+// yazılıyor. İkinci adım kota tetikleyicisine takılırsa yüklenen dosya ÖKSÜZ
+// kalır ve kullanıcının alanını boşuna yer. Bu yüzden satır yazılamazsa
+// dosyayı geri siliyoruz.
+let ESERLER = [];      // {id, name}
+let ykEser = null;
+let ykFile = null;
+let ykSure = null;
+
+async function eserleriYukle() {
+  try {
+    if (window.db && db.works) {
+      const w = await db.works.getAll();
+      if (w && w.length) {
+        ESERLER = w.map(x => ({ id: x.id, name: x.name })).filter(x => x.name);
+        return;
+      }
+    }
+  } catch (e) {}
+  // Önbellek boşsa sunucudan çek
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/works?select=id,name&order=name.asc&limit=5000',
+      { headers: authHeaders() });
+    if (r.ok) ESERLER = await r.json();
+  } catch (e) {}
+}
+
+function yeniKayit() {
+  if (KOTA && (KOTA.adet >= KOTA.adet_limit)) {
+    alert('Kayıt sınırına ulaştınız (' + KOTA.adet + '/' + KOTA.adet_limit + ').');
+    return;
+  }
+  ykEser = null; ykFile = null; ykSure = null;
+  document.getElementById('ykEserAra').value = '';
+  document.getElementById('ykSecili').style.display = 'none';
+  document.getElementById('ykAdim2').style.display = 'none';
+  document.getElementById('ykAdim3').style.display = 'none';
+  document.getElementById('ykDosyaBilgi').style.display = 'none';
+  document.getElementById('ykIlerleme').style.display = 'none';
+  document.getElementById('ykTon').value = '';
+  document.getElementById('ykGrup').checked = false;
+  if (KOTA) document.getElementById('ykMaxMb').textContent = KOTA.dosya_mb_limit;
+  document.getElementById('ykKatman').classList.add('acik');
+  ykEserFiltre();
+}
+
+function ykKapat() { document.getElementById('ykKatman').classList.remove('acik'); }
+
+function ykEserFiltre() {
+  const q = trNorm(document.getElementById('ykEserAra').value.trim());
+  const kap = document.getElementById('ykEserSonuc');
+  // Arama boşken tüm katalogu basmıyoruz — 700 satır hem yavaş hem işe yaramaz.
+  const liste = q
+    ? ESERLER.filter(e => trNorm(e.name).includes(q)).slice(0, 30)
+    : ESERLER.slice(0, 12);
+  kap.innerHTML = liste.map(e =>
+    `<div class="co-item" onclick="ykEserSec(${JSON.stringify(String(e.id))},${JSON.stringify(e.name)})">
+       <div class="co-ikon"><i class="ti ti-music" aria-hidden="true"></i></div>
+       <div><div class="co-ad">${e.name}</div></div>
+     </div>`).join('')
+    || '<div class="yk-not">Eser bulunamadı.</div>';
+}
+
+function ykEserSec(id, ad) {
+  ykEser = { id: id, name: ad };
+  const el = document.getElementById('ykSecili');
+  el.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> ' + ad;
+  el.style.display = '';
+  document.getElementById('ykEserSonuc').innerHTML = '';
+  document.getElementById('ykEserAra').value = '';
+  document.getElementById('ykAdim2').style.display = '';
+}
+
+function ykDosyaSecildi() {
+  const f = document.getElementById('ykDosya').files[0];
+  const bilgi = document.getElementById('ykDosyaBilgi');
+  document.getElementById('ykAdim3').style.display = 'none';
+  ykFile = null; ykSure = null;
+  if (!f) return;
+
+  const mb = f.size / 1048576;
+  const sinir = (KOTA && KOTA.dosya_mb_limit) || 8;
+  bilgi.style.display = '';
+
+  if (mb > sinir) {
+    bilgi.className = 'yk-dosya hata';
+    bilgi.textContent = f.name + ' — ' + mb.toFixed(1) + ' MB. Sınır ' + sinir +
+      ' MB. Konser kaydı yüklüyorsanız eseri kesip yükleyin.';
+    return;
+  }
+  // Kalan alan da yetmeli — sunucu zaten reddeder, ama kullanıcıyı
+  // yüklemenin sonunda hayal kırıklığına uğratmayalım.
+  if (KOTA) {
+    const kalanMb = KOTA.mb_limit - (KOTA.bayt / 1048576);
+    if (mb > kalanMb) {
+      bilgi.className = 'yk-dosya hata';
+      bilgi.textContent = 'Kalan alanınız ' + kalanMb.toFixed(1) + ' MB, dosya ' +
+        mb.toFixed(1) + ' MB.';
+      return;
+    }
+  }
+
+  bilgi.className = 'yk-dosya';
+  bilgi.textContent = f.name + ' — ' + mb.toFixed(1) + ' MB';
+  ykFile = f;
+  document.getElementById('ykAdim3').style.display = '';
+
+  // Süreyi oku (metadata yeter, dosyayı çözmeye gerek yok)
+  try {
+    const url = URL.createObjectURL(f);
+    const a = new Audio();
+    a.preload = 'metadata';
+    a.onloadedmetadata = function () {
+      if (isFinite(a.duration)) {
+        ykSure = Math.round(a.duration);
+        const dk = Math.floor(ykSure / 60) + ':' + String(ykSure % 60).padStart(2, '0');
+        bilgi.textContent = f.name + ' — ' + mb.toFixed(1) + ' MB · ' + dk;
+      }
+      URL.revokeObjectURL(url);
+    };
+    a.onerror = function () { URL.revokeObjectURL(url); };
+    a.src = url;
+  } catch (e) {}
+}
+
+function ykUzanti(ad) {
+  const m = String(ad || '').match(/\.([a-z0-9]{2,5})$/i);
+  return m ? m[1].toLowerCase() : 'mp3';
+}
+
+async function ykGonder() {
+  if (!ykEser) { alert('Önce eser seçin.'); return; }
+  if (!ykFile) { alert('Önce dosya seçin.'); return; }
+
+  const btn = document.getElementById('ykGonder');
+  const ilerleme = document.getElementById('ykIlerleme');
+  const cubuk = ilerleme.querySelector('.co-bar > i');
+  const yazi = document.getElementById('ykIlerlemeYazi');
+  btn.disabled = true;
+  ilerleme.style.display = '';
+  cubuk.style.width = '10%';
+  yazi.textContent = 'Yükleniyor…';
+
+  const u = uid();
+  const yol = u + '/' + ykEser.id + '/' + Date.now() + '.' + ykUzanti(ykFile.name);
+
+  try {
+    // 1) Storage
+    const t = localStorage.getItem('sb_token');
+    const up = await fetch(SUPA_URL + '/storage/v1/object/work-audio/' + yol, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + t,
+        'Content-Type': ykFile.type || 'audio/mpeg',
+        'x-upsert': 'false'
+      },
+      body: ykFile
+    });
+    if (!up.ok) throw new Error('Dosya yüklenemedi: ' + (await up.text()));
+    cubuk.style.width = '70%';
+    yazi.textContent = 'Kaydediliyor…';
+
+    // 2) Veritabanı satırı — kota tetikleyicisi BURADA çalışır
+    const govde = {
+      work_id: isNaN(Number(ykEser.id)) ? ykEser.id : Number(ykEser.id),
+      owner_id: u,
+      path: yol,
+      title: ykEser.name,
+      source_key: document.getElementById('ykTon').value || null,
+      duration_sec: ykSure,
+      size_bytes: ykFile.size,
+      group_id: document.getElementById('ykGrup').checked
+        ? (localStorage.getItem('user_group_id') || null) : null
+    };
+    const ins = await fetch(SUPA_URL + '/rest/v1/work_audio', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Prefer': 'return=representation' },
+      body: JSON.stringify(govde)
+    });
+
+    if (!ins.ok) {
+      // GERİ ALMA: satır yazılamadıysa dosya öksüz kalmasın.
+      try {
+        await fetch(SUPA_URL + '/storage/v1/object/work-audio/' + yol, {
+          method: 'DELETE',
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + t }
+        });
+      } catch (e) {}
+      const metin = await ins.text();
+      // Kota tetikleyicisinin mesajını olduğu gibi gösteriyoruz — sunucu
+      // zaten anlaşılır Türkçe yazıyor.
+      let mesaj = metin;
+      try { const j = JSON.parse(metin); mesaj = j.message || j.hint || metin; } catch (e) {}
+      throw new Error(mesaj);
+    }
+
+    const satir = await ins.json();
+    if (!satir.length) throw new Error('Sunucu hiçbir satır yazmadı — yetkiniz olmayabilir.');
+
+    cubuk.style.width = '100%';
+    yazi.textContent = 'Tamam ✓';
+    ykKapat();
+    await kotaYukle();
+    await kayitlariYukle();
+  } catch (e) {
+    ilerleme.style.display = 'none';
+    alert('Yükleme başarısız.\n\n' + (e && e.message ? e.message : e));
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Oynatıcı: sonraki adımda ──────────────────────────────────────────────
+function ac(id) { alert('Oynatıcı bir sonraki adımda eklenecek.'); }
 
 // ── Başlat ────────────────────────────────────────────────────────────────
 (function () {
   if (!uid()) { location.href = 'login.html'; return; }
   kotaYukle();
   kayitlariYukle();
+  eserleriYukle();
 })();
 </script>
 </body>
