@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<!--
+  CALISMA.HTML — ÇALIŞMA ODASI — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur)
+
+  - 2026-08-24: Sayfa oluşturuldu (1. parça: iskelet + eser listesi + kota).
+    NİÇİN AYRI SAYFA: Emir'in kararı — transpoze/tempo çalışması sırasında
+    kullanıcı eser sözlerini de açabilmeli, bu yüzden eser detayındaki bir
+    sekmeye sığmaz. Tam ekran bir çalışma alanı gerekiyor.
+    NİÇİN SAHNE EKRANINDA DEĞİL: sahne bir GÜVENİLİRLİK alanı — icra sırasında
+    transpoze düğmesiyle oynanmaz. Çalışma ayrı bir kip.
+
+    KABUK: metronom.html ile AYNI desen (style.css + auth.js + topnav.js +
+    #r-topnav-container + .main-wrap > .page-content). Böylece renkler, font,
+    tema düğmesi, üst menü ve alt gezinme kendiliğinden geliyor — sayfa genel
+    yapıdan kopmuyor.
+
+  SIRADAKİ PARÇALAR (bu dosyada henüz YOK)
+  - 2. parça: yükleme akışı (dosya seç → boyut/süre kontrolü → Storage → tablo)
+  - 3. parça: oynatıcı (SoundTouchJS ile perde ve tempo BAĞIMSIZ)
+  - 4. parça: söz paneli, A/B döngü, çevrimdışı önbellek
+
+  TEKNİK NOTLAR
+  - Kota bilgisi SUNUCUDAN geliyor (audio_kullanim RPC). İstemcide hesaplanmıyor:
+    kullanıcı birden fazla cihazdan yükleyebilir, tek doğru kaynak sunucu.
+  - Ses dosyaları PRIVATE kovada; oynatma için imzalı URL üretilecek (3. parça).
+-->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Çalışma Odası — Repertuvar</title>
+<link rel="stylesheet" href="style.css">
+<script src="auth.js"></script>
+<script src="db.js"></script>
+<script src="topnav.js" defer></script>
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+<style>
+/* metronom.html ile aynı ölçüler — sayfalar arası geçişte genişlik zıplamasın */
+.page-content { max-width: 680px; margin: 0 auto; padding: 16px 20px 90px; font-family: inherit; }
+.page-content input, .page-content button, .page-content select { font-family: inherit; }
+#r-topnav-container { position: sticky; top: 0; z-index: 500; background: var(--bg); }
+
+.co-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.co-title { font-size:22px; font-weight:800; color:var(--text); letter-spacing:-.01em; }
+.co-sub { font-size:13px; color:var(--text3); margin-top:3px; line-height:1.5; }
+
+/* Kota kartı: kullanıcı sınıra yaklaştığını YÜKLEMEDEN ÖNCE görsün. */
+.co-kota { background:var(--surface); border:1px solid var(--border); border-radius:12px;
+           padding:12px 14px; margin-bottom:16px; }
+.co-kota-ust { display:flex; align-items:center; justify-content:space-between; gap:10px;
+               font-size:12px; color:var(--text3); font-weight:600; }
+.co-plan { display:inline-flex; align-items:center; gap:5px; padding:2px 9px; border-radius:12px;
+           font-size:11px; font-weight:700; letter-spacing:.03em;
+           background:color-mix(in srgb, var(--accent) 16%, transparent);
+           border:1px solid color-mix(in srgb, var(--accent) 45%, transparent); color:var(--accent); }
+.co-bar { height:6px; border-radius:4px; background:var(--surface2); overflow:hidden; margin-top:9px; }
+.co-bar > i { display:block; height:100%; background:var(--accent); border-radius:4px;
+              transition:width .3s ease; }
+.co-bar.dolu > i { background:var(--red, #f87171); }
+.co-kota-alt { display:flex; justify-content:space-between; gap:10px; font-size:12px;
+               color:var(--text2); margin-top:7px; }
+
+.co-ara { width:100%; padding:11px 13px; border-radius:10px; background:var(--surface2);
+          border:1px solid var(--border); color:var(--text); font-size:15px; margin-bottom:12px; }
+
+.co-liste { display:flex; flex-direction:column; gap:8px; }
+.co-item { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px;
+           background:var(--surface); border:1px solid var(--border); cursor:pointer;
+           transition:border-color .14s, background .14s; }
+.co-item:hover { border-color:color-mix(in srgb, var(--accent) 45%, transparent); }
+.co-ikon { width:38px; height:38px; border-radius:10px; flex-shrink:0; display:flex;
+           align-items:center; justify-content:center; font-size:19px;
+           background:color-mix(in srgb, var(--accent) 14%, transparent); color:var(--accent); }
+.co-ad { font-size:15px; font-weight:700; color:var(--text); }
+.co-meta { font-size:12px; color:var(--text3); margin-top:2px; }
+.co-sag { margin-left:auto; color:var(--text3); font-size:18px; flex-shrink:0; }
+
+/* Boş durum: yeni kullanıcı buraya girdiğinde ne yapacağını bilsin. */
+.co-bos { text-align:center; padding:38px 20px; color:var(--text3); }
+.co-bos .ti { font-size:40px; opacity:.5; display:block; margin-bottom:12px; }
+.co-bos b { display:block; color:var(--text2); font-size:15px; margin-bottom:6px; }
+
+.co-btn { display:inline-flex; align-items:center; gap:7px; padding:11px 18px; border-radius:11px;
+          background:var(--accent); color:#1a1200; border:none; font-size:14px; font-weight:700;
+          cursor:pointer; margin-top:14px; }
+.co-btn:disabled { opacity:.45; cursor:not-allowed; }
+.co-btn.ikincil { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<div id="r-topnav-container"></div>
+
+<div class="main-wrap">
+<div class="page-content">
+
+  <div class="co-head">
+    <div>
+      <div class="co-title">Çalışma Odası</div>
+      <div class="co-sub">Kendi kayıtlarını yükle, tonunu ve temposunu değiştirerek çalış.</div>
+    </div>
+  </div>
+
+  <div class="co-kota" id="kotaKart" style="display:none;">
+    <div class="co-kota-ust">
+      <span>DEPOLAMA</span>
+      <span class="co-plan" id="kotaPlan">FREE</span>
+    </div>
+    <div class="co-bar" id="kotaBar"><i style="width:0%"></i></div>
+    <div class="co-kota-alt">
+      <span id="kotaDosya">— / —</span>
+      <span id="kotaMb">— / —</span>
+    </div>
+  </div>
+
+  <input class="co-ara" id="araKutu" type="search" placeholder="Eser adı ara…"
+         autocomplete="off" oninput="filtrele()">
+
+  <div class="co-liste" id="liste"></div>
+
+  <div class="co-bos" id="bosDurum" style="display:none;">
+    <i class="ti ti-music-plus" aria-hidden="true"></i>
+    <b>Henüz kaydın yok</b>
+    Bir eser seçip kendi çalışma kaydını yükle;<br>tonunu ve temposunu istediğin gibi ayarla.
+    <br>
+    <button class="co-btn" id="ekleBtn" onclick="yeniKayit()">
+      <i class="ti ti-upload" aria-hidden="true"></i> İlk kaydını ekle
+    </button>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ── Sunucu bağlantısı (diğer sayfalarla aynı desen) ───────────────────────
+const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+function authHeaders() {
+  const t = localStorage.getItem('sb_token');
+  return { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' };
+}
+function uid() {
+  try { return JSON.parse(localStorage.getItem('sb_user') || '{}').id || null; } catch (e) { return null; }
+}
+
+let KAYITLAR = [];   // work_audio satırları (eser adıyla zenginleştirilmiş)
+let KOTA = null;
+
+// ── Kota: SUNUCUDAN. İstemcide hesaplanmıyor — kullanıcı birden fazla
+//    cihazdan yükleyebilir, tek doğru kaynak sunucu.
+async function kotaYukle() {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/audio_kullanim', {
+      method: 'POST', headers: authHeaders(), body: '{}'
+    });
+    if (!r.ok) return;
+    KOTA = await r.json();
+    kotaCiz();
+  } catch (e) { /* kota gösterilemezse sayfa yine çalışsın */ }
+}
+
+function kotaCiz() {
+  if (!KOTA) return;
+  const kart = document.getElementById('kotaKart');
+  const mb    = KOTA.bayt / 1048576;
+  const mbLim = KOTA.mb_limit || 1;
+  const oran  = Math.min(100, Math.round((mb / mbLim) * 100));
+
+  document.getElementById('kotaPlan').textContent = String(KOTA.plan || 'free').toUpperCase();
+  document.getElementById('kotaDosya').textContent = KOTA.adet + ' / ' + KOTA.adet_limit + ' kayıt';
+  document.getElementById('kotaMb').textContent = mb.toFixed(1) + ' / ' + mbLim + ' MB';
+
+  const bar = document.getElementById('kotaBar');
+  bar.querySelector('i').style.width = oran + '%';
+  bar.classList.toggle('dolu', oran >= 90);
+  kart.style.display = '';
+
+  // Sınır dolduysa ekleme düğmesi kapansın — sunucu zaten reddeder ama
+  // kullanıcıyı boşuna dosya seçtirmeyelim.
+  const dolu = (KOTA.adet >= KOTA.adet_limit) || (mb >= mbLim);
+  document.querySelectorAll('#ekleBtn').forEach(b => {
+    b.disabled = dolu;
+    if (dolu) b.title = 'Sınıra ulaştınız — bir kaydı silin veya planınızı yükseltin';
+  });
+}
+
+// ── Kayıtlar ──────────────────────────────────────────────────────────────
+async function kayitlariYukle() {
+  try {
+    const r = await fetch(SUPA_URL +
+      '/rest/v1/work_audio?select=id,work_id,title,source_key,duration_sec,size_bytes,created_at' +
+      '&order=created_at.desc', { headers: authHeaders() });
+    if (!r.ok) throw new Error(await r.text());
+    const satirlar = await r.json();
+
+    // Eser adlarını yerel önbellekten tamamla — ağa ikinci bir tur atmaya gerek yok.
+    let adMap = {};
+    try {
+      if (window.db && db.works) {
+        (await db.works.getAll()).forEach(w => { adMap[String(w.id)] = w.name; });
+      }
+    } catch (e) {}
+
+    KAYITLAR = satirlar.map(x => ({ ...x, eserAdi: adMap[String(x.work_id)] || x.title || 'Eser' }));
+    ciz();
+  } catch (e) {
+    KAYITLAR = [];
+    ciz();
+  }
+}
+
+function trNorm(s) {
+  return String(s || '').toLocaleLowerCase('tr')
+    .replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u')
+    .replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c');
+}
+
+function filtrele() { ciz(); }
+
+function ciz() {
+  const q = trNorm(document.getElementById('araKutu').value.trim());
+  const liste = document.getElementById('liste');
+  const bos = document.getElementById('bosDurum');
+  const gosterilecek = q
+    ? KAYITLAR.filter(k => trNorm(k.eserAdi).includes(q))
+    : KAYITLAR;
+
+  if (!KAYITLAR.length) {
+    liste.innerHTML = '';
+    bos.style.display = '';
+    document.getElementById('araKutu').style.display = 'none';
+    return;
+  }
+  bos.style.display = 'none';
+  document.getElementById('araKutu').style.display = '';
+
+  if (!gosterilecek.length) {
+    liste.innerHTML = '<div class="co-bos" style="padding:24px;">Aramaya uyan kayıt yok.</div>';
+    return;
+  }
+
+  liste.innerHTML = gosterilecek.map(k => {
+    const sure = k.duration_sec
+      ? Math.floor(k.duration_sec / 60) + ':' + String(k.duration_sec % 60).padStart(2, '0')
+      : '';
+    const mb = k.size_bytes ? (k.size_bytes / 1048576).toFixed(1) + ' MB' : '';
+    const ton = k.source_key ? k.source_key : '';
+    const meta = [ton, sure, mb].filter(Boolean).join(' · ');
+    return `<div class="co-item" onclick="ac('${k.id}')">
+      <div class="co-ikon"><i class="ti ti-waveform" aria-hidden="true"></i></div>
+      <div>
+        <div class="co-ad">${k.eserAdi}</div>
+        ${meta ? `<div class="co-meta">${meta}</div>` : ''}
+      </div>
+      <div class="co-sag"><i class="ti ti-chevron-right" aria-hidden="true"></i></div>
+    </div>`;
+  }).join('')
+  + `<button class="co-btn ikincil" id="ekleBtn" onclick="yeniKayit()" style="align-self:flex-start;">
+       <i class="ti ti-plus" aria-hidden="true"></i> Yeni kayıt ekle
+     </button>`;
+
+  kotaCiz();   // yeni eklenen düğmenin de durumu güncellensin
+}
+
+// ── Sonraki parçalarda gelecek ────────────────────────────────────────────
+function yeniKayit() { alert('Yükleme akışı bir sonraki adımda eklenecek.'); }
+function ac(id)      { alert('Oynatıcı bir sonraki adımda eklenecek.'); }
+
+// ── Başlat ────────────────────────────────────────────────────────────────
+(function () {
+  if (!uid()) { location.href = 'login.html'; return; }
+  kotaYukle();
+  kayitlariYukle();
+})();
+</script>
+</body>
+</html>

@@ -655,6 +655,9 @@
         </div>
         <div id="rTnGroups"></div>
         <div id="rTnAdmin"></div>
+        <a href="calisma.html" class="r-tn-dd-item">
+          <i class="ti ti-headphones" style="font-size:15px;"></i> Çalışma Odası
+        </a>
         <a href="metronom.html" class="r-tn-dd-item">
           <i class="ti ti-metronome" style="font-size:15px;"></i> Metronom
         </a>
@@ -759,6 +762,10 @@
       // Sebep: alt gezinme çubuğu telefonda zaten dolu (Sahne Modu dahil 5 öğe) ve
       // 6. öğe ikonları okunmaz hale getiriyor. Aynı YÜZEYDE tekrar YOK — sidebar
       // görünürken avatar menüsünde ikinci bir Metronom bağlantısı çıkmıyor.
+      // (2026-08-24) Çalışma Odası, Metronom'un yanında: ikisi de İCRA DEĞİL
+      // ÇALIŞMA aracı. Sahne ekranına bilerek konmadı — orası güvenilirlik
+      // alanı, icra sırasında transpoze/tempo ile oynanmaz.
+      { href: 'calisma.html',     icon: 'ti-headphones',  label: 'Çalışma Odası' },
       { href: 'metronom.html',    icon: 'ti-metronome',   label: 'Metronom' },
       { divider: true },
       { href: 'mesajlar.html',    icon: 'ti-message',     label: 'Mesajlar' },
