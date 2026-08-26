@@ -146,8 +146,12 @@
                background:var(--surface2); border:1px solid var(--border);
                color:var(--text2); font-size:20px;
                display:flex; align-items:center; justify-content:center; }
-.oy-sn { position:absolute; font-size:9px; font-weight:800; letter-spacing:-.02em;
+/* Rakam yayın İÇİNE, hafif aşağıya: yayın üst kısmındaki açıklık ok ucuna
+   ayrılmış, rakam oraya girerse çakışıyor. */
+.oy-sn { position:absolute; top:53%; left:50%; transform:translate(-50%,-50%);
+         font-size:10px; font-weight:800; letter-spacing:-.03em; line-height:1;
          color:var(--text2); pointer-events:none; }
+.oy-yuvarlak { width:50px; height:50px; }
 .oy-oynat svg { display:block; margin-left:2px; }   /* üçgen optik olarak ortalansın */
 .oy-kutu { background:var(--surface); border:1px solid var(--border); border-radius:13px;
            padding:14px 15px; margin-bottom:12px; }
@@ -323,9 +327,9 @@
 
       <div class="oy-tus">
         <button class="oy-yuvarlak" onclick="oyGeri()" title="10 sn geri" aria-label="10 saniye geri">
-          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"
-               stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M11 20a8 8 0 1 0-8-8"></path><path d="M3 4v5h5"></path>
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 21a9 9 0 1 0-9-9"></path><path d="M3 3.5V12h8.5"></path>
           </svg>
           <span class="oy-sn">10</span>
         </button>
@@ -341,9 +345,9 @@
           </svg>
         </button>
         <button class="oy-yuvarlak" onclick="oyIleri()" title="10 sn ileri" aria-label="10 saniye ileri">
-          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"
-               stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M13 20a8 8 0 1 1 8-8"></path><path d="M21 4v5h-5"></path>
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 21a9 9 0 1 1 9-9"></path><path d="M21 3.5V12h-8.5"></path>
           </svg>
           <span class="oy-sn">10</span>
         </button>
