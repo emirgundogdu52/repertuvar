@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
-const CACHE_NAME = 'repertuvar-v418';
+const CACHE_NAME = 'repertuvar-v405';
 
 // Açılışta öncelikli önbelleğe alınacak çekirdek dosyalar.
 const PRECACHE = [
@@ -53,7 +53,29 @@ function networkFirst(request) {
       }
       return res;
     })
-    .catch(() => caches.match(request)); // ağ yok → cache'ten ver
+    // (2026-08-26) `caches.match` KAYIT YOKSA undefined DÖNER ve
+    // respondWith(undefined) Safari'de "FetchEvent.respondWith received an
+    // error" üretir. Artık her durumda GEÇERLİ bir Response dönüyoruz.
+    .catch(() => caches.match(request).then((c) => c || cevrimdisiYanit(request)));
+}
+
+// Ne ağ ne önbellek varken dönecek son çare. Boş bir hata yerine anlamlı
+// bir yanıt: gezinme isteğiyse kısa bir sayfa, değilse 503.
+function cevrimdisiYanit(request) {
+  const gezinme = request.mode === 'navigate' || request.destination === 'document';
+  if (gezinme) {
+    return new Response(
+      '<!DOCTYPE html><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+      '<body style="margin:0;background:#0b0f18;color:#dfe6f2;' +
+      'font:15px/1.6 -apple-system,system-ui,sans-serif;display:flex;' +
+      'align-items:center;justify-content:center;height:100vh;text-align:center">' +
+      '<div><b>Çevrimdışısınız</b><br>Bu sayfa henüz kaydedilmemiş.<br>' +
+      'Bağlantı gelince tekrar deneyin.</div></body>',
+      { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    );
+  }
+  return new Response('', { status: 503, statusText: 'Cevrimdisi' });
 }
 
 // Yardımcı: cache-first — önce cache, yoksa ağdan al ve cache'le.
@@ -66,7 +88,12 @@ function cacheFirst(request) {
         caches.open(CACHE_NAME).then((c) => c.put(request, copy)).catch(() => {});
       }
       return res;
-    });
+    })
+    // (2026-08-26) CATCH EKLENDİ. Yoktu: önbellekte olmayan bir dosya için ağ
+    // isteği reddedilince söz reddediliyor ve respondWith hata alıyordu —
+    // Safari'nin "FetchEvent.respondWith received an error" mesajı buradan
+    // geliyordu.
+    .catch(() => cevrimdisiYanit(request));
   });
 }
 
