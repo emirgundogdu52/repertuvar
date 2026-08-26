@@ -4916,6 +4916,9 @@ document.addEventListener('keydown', function (e) {
 }, true);
 
 function closeNewEserModal() {
+  // (2026-08-25) Kilit modal kapanırken de açılır: kayıt sırasında bir hata
+  // olup modal elle kapatılırsa düğme kilitli kalmasın.
+  if (typeof _kilitAc === 'function') _kilitAc();
   _editQueryHandled = false;   // sayfa aynı kalırken yeni bir ?edit isteği gelebilir
   // (2026-08-15) Hiza paneli açık kalırsa bir sonraki eserde eski kaynağa
   // bağlı sürgü görünür — modal kapanırken durum sıfırlanıyor.
@@ -5242,7 +5245,28 @@ async function yazVeDogrula(url, method, body) {
   return { ok:true, rows, hata:null };
 }
 
+// (2026-08-25) ÇİFT GÖNDERİM KİLİDİ.
+// Emir bildirdi: "Hangi Bağın Bağbanısın Gülüsün" eseri sisteme 5 KEZ kaydolmuş.
+// Sebep: bu fonksiyon `fetch`'i başlatıp hemen dönüyordu, düğme açık kalıyordu.
+// Yavaş bağlantıda kullanıcı "kaydolmadı" sanıp tekrar dokununca HER DOKUNUŞ
+// ayrı bir POST gönderiyordu. Aynı ada karşı uyarı var ama o yalnızca MEVCUT
+// kayıtlara bakıyor — aynı anda uçuşan istekler birbirini göremez.
+let _eserKaydediliyor = false;
+
+function _kaydetDugmesi() {
+  return document.querySelector('#newEserModal button[onclick="saveNewEser()"]')
+      || document.querySelector('button[onclick="saveNewEser()"]');
+}
+
+function _kilitAc() {
+  _eserKaydediliyor = false;
+  const b = _kaydetDugmesi();
+  if (b) { b.disabled = false; b.style.opacity = ''; b.textContent = 'Kaydet'; }
+}
+
 function saveNewEser() {
+  if (_eserKaydediliyor) return;          // ikinci dokunuş yok sayılır
+
   const name = document.getElementById('ne_name').value.trim();
   if (!name) { switchNeTab('lyrics'); alert('Eser adı zorunludur.'); return; }
 
@@ -5422,6 +5446,12 @@ function saveNewEser() {
       group_id: (visChoice === 'group') ? getGroupId() : null
     };
 
+    // Kilit tam BURADA: yukarıdaki benzer-ad onayı iptal edilirse kilit
+    // gereksiz yere kapanmış olmasın.
+    _eserKaydediliyor = true;
+    const _btn = _kaydetDugmesi();
+    if (_btn) { _btn.disabled = true; _btn.style.opacity = '.55'; _btn.textContent = 'Kaydediliyor…'; }
+
     fetch(SUPA_URL + '/rest/v1/works', {
       method: 'POST',
       headers: {
@@ -5477,7 +5507,8 @@ function saveNewEser() {
     })
     .catch(err => {
       alert('Kayıt hatası: ' + err.message);
-    });
+    })
+    .finally(() => { _kilitAc(); });   // başarı da hata da olsa kilit açılır
   }
 }
 
