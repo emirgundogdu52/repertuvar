@@ -75,6 +75,21 @@
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
 <style>
+/* (2026-08-26) ÇİFT DOKUNMA YAKINLAŞTIRMASI KAPATILDI.
+   Metronom sayfasında hızlı art arda dokunmak (tempo düğmeleri, +/- tuşları)
+   iOS'ta çift dokunma sayılıp sayfayı yakınlaştırıyordu.
+   `maximum-scale=1` ile viewport'u kilitlemek YERİNE `touch-action:manipulation`
+   kullanıldı: çift dokunma yakınlaştırmasını kapatır ama kullanıcının İKİ
+   PARMAKLA yakınlaştırma hakkını elinden almaz (erişilebilirlik).
+   Düğmelerde ayrıca metin seçimi kapatıldı — hızlı dokunuşta iOS metni seçip
+   büyüteç açabiliyor. */
+html, body { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+button, .mx-btn, [role="button"] {
+  touch-action: manipulation;
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Font: style.css body'ye sistem fontunu veriyor (-apple-system / SF Pro Display).
    Buradaki .mx-* sınıfları da onu miras alsın diye açıkça devrediliyor; düğme ve
    input'lar tarayıcı varsayılanına düşmesin diye hepsinde font-family:inherit var. */
