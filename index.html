@@ -497,11 +497,20 @@
   // Son eklenen eserler — önce Supabase, hata alınca IndexedDB
   try {
     let data = [];
+    // (2026-08-25) SİLİNMİŞ ESERLER ARTIK ELENİYOR.
+    // Emir bildirdi: aynı eser "Son Eklenen"de 5 kez görünüyordu. Mükerrer
+    // kayıtlar (çift gönderim hatası) silinmişti ama silme YUMUŞAK — satır
+    // tabloda kalıyor, yalnızca `deleted_at` damgalanıyor. Bu sorguda filtre
+    // yoktu, dolayısıyla silinen kayıtlar listenin en üstünde duruyordu.
+    // eserler.html zaten `deleted_at=is.null` kullanıyor; aynı desen buraya da.
     if (!onlineFailed) {
-      const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,makam,tuning&order=id.desc&limit=6', {headers:H});
+      const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,makam,tuning,deleted_at'
+        + '&deleted_at=is.null&order=id.desc&limit=6', {headers:H});
       data = await r.json();
     } else {
-      const all = await db.works.getAll();
+      // Çevrimdışı yol da aynı süzgeçten geçmeli — önbellekte silinmiş
+      // satırlar da duruyor.
+      const all = (await db.works.getAll()).filter(w => !w.deleted_at);
       data = all.slice(-6).reverse();
     }
     const container = document.getElementById('recentWorks');
