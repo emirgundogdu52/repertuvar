@@ -148,10 +148,15 @@
                display:flex; align-items:center; justify-content:center; }
 /* Rakam yayın İÇİNE, hafif aşağıya: yayın üst kısmındaki açıklık ok ucuna
    ayrılmış, rakam oraya girerse çakışıyor. */
-.oy-sn { position:absolute; top:53%; left:50%; transform:translate(-50%,-50%);
-         font-size:10px; font-weight:800; letter-spacing:-.03em; line-height:1;
-         color:var(--text2); pointer-events:none; }
 .oy-yuvarlak { width:50px; height:50px; }
+/* "10 sn" bilgisi ikonun İÇİNDE değil ALTINDA — dairede yer yok, üst üste
+   binince okunmuyordu. */
+.oy-tus[data-etiket] .oy-yuvarlak::after {
+  content:'10 sn'; position:absolute; bottom:-17px; left:50%;
+  transform:translateX(-50%); font-size:10px; font-weight:600;
+  color:var(--text3); white-space:nowrap; pointer-events:none;
+}
+.oy-tus { margin-bottom:34px !important; }
 .oy-oynat svg { display:block; margin-left:2px; }   /* üçgen optik olarak ortalansın */
 .oy-kutu { background:var(--surface); border:1px solid var(--border); border-radius:13px;
            padding:14px 15px; margin-bottom:12px; }
@@ -325,13 +330,15 @@
         <span id="oyToplam">0:00</span>
       </div>
 
-      <div class="oy-tus">
+      <div class="oy-tus" data-etiket="1">
         <button class="oy-yuvarlak" onclick="oyGeri()" title="10 sn geri" aria-label="10 saniye geri">
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
-               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 21a9 9 0 1 0-9-9"></path><path d="M3 3.5V12h8.5"></path>
+          <!-- (2026-08-25) Rakam kaldırıldı: 50px'lik dairede yayın içine sığmıyor,
+               sıkışık okunuyordu. Çift üçgen küçük boyutta anında anlaşılıyor;
+               "10 sn" bilgisi düğmenin altındaki etikette duruyor. -->
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+            <polygon points="11,5 11,19 2,12"></polygon>
+            <polygon points="21,5 21,19 12,12"></polygon>
           </svg>
-          <span class="oy-sn">10</span>
         </button>
         <!-- (2026-08-25) İKON ARTIK SATIR İÇİ SVG.
              `ti-player-play-filled` çizilmiyordu (dolu varyantlar bu webfont
@@ -345,11 +352,10 @@
           </svg>
         </button>
         <button class="oy-yuvarlak" onclick="oyIleri()" title="10 sn ileri" aria-label="10 saniye ileri">
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
-               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 21a9 9 0 1 1 9-9"></path><path d="M21 3.5V12h-8.5"></path>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+            <polygon points="13,5 13,19 22,12"></polygon>
+            <polygon points="3,5 3,19 12,12"></polygon>
           </svg>
-          <span class="oy-sn">10</span>
         </button>
       </div>
 
