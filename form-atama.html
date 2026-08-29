@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<!--
+  FORM-ATAMA.HTML — 2026-08-26
+
+  NİÇİN VAR
+  ---------
+  Ölçüm: 726 eserin 673'ünde `form` alanı BOŞ (%93). Eserler sayfasına form
+  çipleri (Türkü, Zeybek, Oyun Havası…) koymak için önce bu alanın dolması
+  gerekiyor — boş alanla çip koyarsak dokunan kişi boş listeye düşer.
+
+  NİÇİN "SADECE OYUN HAVASI" DEĞİL
+  --------------------------------
+  İlk sürüm yalnız oyun havalarını işaretliyordu. Emir haklı olarak sordu:
+  liste zaten önümüzdeyken neden tek forma bakalım? Artık her eserin yanında
+  açılır liste var; aynı turda istediğin formu atıyorsun.
+
+  TASARIM
+  -------
+  - Liste 40'lık sayfalar hâlinde: 726 satırı tek seferde basmak hem yavaş
+    hem göz yorucu.
+  - Form listesi ESERİN TÜRÜNE göre: THM'de Bozlak/Halay, TSM'de Peşrev/Longa.
+    Tür yoksa ikisinin birleşimi. (eserler.html'deki `formListesiIcin` ile
+    aynı mantık — iki yerde farklı liste olmasın.)
+  - Değişiklikler ANINDA KAYDEDİLMİYOR: bekleyenler biriktirilip tek "Kaydet"
+    ile gönderiliyor. Yanlış seçimi kaydetmeden geri alabilirsin.
+  - Sayfa değiştirince bekleyen değişiklikler KORUNUR.
+
+  YAZMA GÜVENLİĞİ
+  ---------------
+  Her PATCH `return=representation` ile yapılıyor ve DÖNEN SATIR SAYISI
+  doğrulanıyor. Bu projede yaşandı: RLS bir UPDATE'i engellerse PostgREST
+  204 + 0 satır döner, arayüz "kaydedildi" gösterir. Sessiz başarısızlık
+  en kötü sonuç.
+-->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Form Atama — Repertuvar</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  /* style.css `body`'ye sidebar düzenini dayatıyor (flex satır). Ham <body>
+     kullanınca içerik dikey şeritlere sıkışıyor — sıfırlayıp .wrap kullanıyoruz. */
+  body { margin:0; display:block; background:var(--bg,#07071a); color:var(--text,#e2e0ff);
+         font-family:system-ui,-apple-system,sans-serif; -webkit-text-size-adjust:100%;
+         touch-action:manipulation; }
+  .wrap { max-width:820px; margin:0 auto; padding:16px 16px 110px; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .alt { font-size:13px; color:var(--text3,#5e5c8a); line-height:1.55; margin-bottom:14px; }
+  .sayac { display:flex; gap:9px; flex-wrap:wrap; margin-bottom:14px; }
+  .rozet { padding:6px 12px; border-radius:20px; font-size:12px; font-weight:700;
+           background:var(--surface); border:1px solid var(--border); color:var(--text2); }
+  .rozet.vurgu { background:color-mix(in srgb, var(--accent) 16%, transparent);
+                 border-color:color-mix(in srgb, var(--accent) 45%, transparent);
+                 color:var(--accent); }
+  .satir-ust { display:flex; gap:9px; margin-bottom:12px; flex-wrap:wrap; }
+  input[type=search], select.suz { padding:11px 13px; border-radius:11px; font-size:16px;
+    background:var(--surface2); border:1px solid var(--border); color:var(--text);
+    font-family:inherit; }
+  input[type=search] { flex:1; min-width:180px; }
+  .liste { display:flex; flex-direction:column; gap:7px; }
+  .sat { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:11px;
+         background:var(--surface); border:1px solid var(--border); }
+  .sat.bekleyen { border-color:var(--accent);
+                  background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .sat .bilgi { min-width:0; flex:1; }
+  .ad { font-size:15px; font-weight:600; color:var(--text);
+        overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .meta { font-size:12px; color:var(--text3); margin-top:2px; }
+  .sat select { flex-shrink:0; width:168px; padding:8px 9px; border-radius:9px; font-size:13px;
+                background:var(--surface2); border:1px solid var(--border);
+                color:var(--text); font-family:inherit; }
+  .sat select.dolu { border-color:color-mix(in srgb, var(--accent) 50%, transparent);
+                     color:var(--accent); font-weight:600; }
+  @media (max-width:560px) {
+    .sat { flex-wrap:wrap; }
+    .sat select { width:100%; }
+  }
+  .sayfalama { display:flex; align-items:center; justify-content:space-between;
+               gap:10px; margin-top:16px; }
+  .sayfa-bilgi { flex:1; text-align:center; font-size:13px; color:var(--text3); font-weight:600; }
+  .cubuk { position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(--bg);
+           border-top:1px solid var(--border); display:flex; align-items:center; gap:12px;
+           padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px)); }
+  .btn { padding:11px 18px; border-radius:11px; border:none; background:var(--accent);
+         color:#1a1200; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .btn.ikincil { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+  .durum { padding:20px; text-align:center; color:var(--text3); font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Form Atama</h1>
+<div class="alt">
+  Her eserin yanındaki listeden formunu seçin. Değişiklikler <b>Kaydet</b> deyince
+  gönderilir — sayfa değiştirseniz de bekleyenler korunur.
+</div>
+
+<div class="sayac">
+  <span class="rozet vurgu" id="rzDolu">Formu olan: —</span>
+  <span class="rozet" id="rzToplam">Toplam: —</span>
+  <span class="rozet" id="rzBekleyen">Bekleyen: 0</span>
+</div>
+
+<div class="satir-ust">
+  <input type="search" id="ara" placeholder="Eser adı, yöre veya makam ara…"
+         autocomplete="off" oninput="sayfa=0;ciz()">
+  <select class="suz" id="suzgec" onchange="sayfa=0;ciz()">
+    <option value="bos">Formu olmayanlar</option>
+    <option value="hepsi">Hepsi</option>
+    <option value="dolu">Formu olanlar</option>
+  </select>
+</div>
+
+<div class="durum" id="durum">Yükleniyor…</div>
+<div class="liste" id="liste"></div>
+
+<div class="sayfalama" id="sayfalama" style="display:none;">
+  <button class="btn ikincil" id="oncekiBtn" onclick="sayfaGit(-1)">‹ Önceki</button>
+  <span class="sayfa-bilgi" id="sayfaBilgi">—</span>
+  <button class="btn ikincil" id="sonrakiBtn" onclick="sayfaGit(1)">Sonraki ›</button>
+</div>
+
+</div><!-- /wrap -->
+
+<div class="cubuk">
+  <button class="btn ikincil" onclick="bekleyenTemizle()">Vazgeç</button>
+  <span class="sayfa-bilgi" id="cubukBilgi"></span>
+  <button class="btn" id="kaydetBtn" onclick="kaydet()" disabled>Kaydet</button>
+</div>
+
+<script src="/auth.js"></script>
+<script>
+// eserler.html ile AYNI listeler — iki yerde farklı form seti olmasın.
+const FORM_THM = ['Türkü','Kırık Hava','Uzun Hava','Bozlak','Maya','Hoyrat',
+  'Divan','Gurbet Havası','Barak Havası','Mugam','Ağıt','Deyiş','Nefes','Semah','Duvaz-ı İmam',
+  'Miraçlama','Zeybek','Halay','Horon','Karşılama','Bar','Oyun Havası','Koşma','Destan',
+  'Varsağı','Güzelleme','Taşlama','Rumeli Türküsü'];
+const FORM_TSM = ['Şarkı','Beste','Ağır Semai','Yürük Semai','Kâr','Kâr-ı Nâtık',
+  'Peşrev','Saz Semaisi','Taksim','Longa','Sirto','Medhal','Oyun Havası','Köçekçe',
+  'Gazel','Fantezi','Marş','İlahi','Durak','Tevşih','Şuğul','Naat','Mersiye'];
+
+function formListesi(tur) {
+  if (tur === 'THM') return FORM_THM;
+  if (tur === 'TSM') return FORM_TSM;
+  return [...new Set([...FORM_THM, ...FORM_TSM])];
+}
+
+const SAYFA_BOYU = 40;
+let ESERLER = [];
+let sayfa = 0;
+const BEKLEYEN = new Map();   // id -> yeni form
+
+function trNorm(s) {
+  return String(s || '').toLocaleLowerCase('tr')
+    .replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u')
+    .replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c');
+}
+function esc(x) {
+  return String(x == null ? '' : x)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+async function yukle() {
+  if (typeof SUPA_URL === 'undefined' || typeof authHeaders !== 'function') {
+    document.getElementById('durum').textContent = 'Oturum bulunamadı. Önce uygulamaya giriş yapın.';
+    return;
+  }
+  try {
+    const r = await fetch(SUPA_URL +
+      '/rest/v1/works?select=id,name,form,region,makam,tur&deleted_at=is.null' +
+      '&order=name.asc&limit=5000', { headers: authHeaders() });
+    if (!r.ok) throw new Error(await r.text());
+    ESERLER = await r.json();
+    document.getElementById('durum').style.display = 'none';
+    ciz(); sayaclar();
+  } catch (e) {
+    document.getElementById('durum').textContent = 'Liste alınamadı: ' + (e.message || e);
+  }
+}
+
+function sayaclar() {
+  const dolu = ESERLER.filter(w => (w.form || '').trim()).length;
+  document.getElementById('rzDolu').textContent = 'Formu olan: ' + dolu;
+  document.getElementById('rzToplam').textContent = 'Toplam: ' + ESERLER.length;
+  document.getElementById('rzBekleyen').textContent = 'Bekleyen: ' + BEKLEYEN.size;
+  document.getElementById('kaydetBtn').disabled = BEKLEYEN.size === 0;
+  document.getElementById('cubukBilgi').textContent =
+    BEKLEYEN.size ? BEKLEYEN.size + ' değişiklik kaydedilecek' : '';
+}
+
+function _suzulmus() {
+  const q = trNorm(document.getElementById('ara').value.trim());
+  const mod = document.getElementById('suzgec').value;
+  return ESERLER.filter(w => {
+    const form = BEKLEYEN.has(w.id) ? BEKLEYEN.get(w.id) : (w.form || '');
+    if (mod === 'bos' && form.trim() && !BEKLEYEN.has(w.id)) return false;
+    if (mod === 'dolu' && !form.trim()) return false;
+    if (!q) return true;
+    return trNorm(w.name).includes(q) || trNorm(w.region).includes(q) || trNorm(w.makam).includes(q);
+  });
+}
+
+function sayfaGit(yon) {
+  const toplam = Math.max(1, Math.ceil(_suzulmus().length / SAYFA_BOYU));
+  sayfa = Math.max(0, Math.min(toplam - 1, sayfa + yon));
+  ciz();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function ciz() {
+  const tumu = _suzulmus();
+  const toplamSayfa = Math.max(1, Math.ceil(tumu.length / SAYFA_BOYU));
+  if (sayfa > toplamSayfa - 1) sayfa = toplamSayfa - 1;
+  const liste = tumu.slice(sayfa * SAYFA_BOYU, (sayfa + 1) * SAYFA_BOYU);
+
+  const sp = document.getElementById('sayfalama');
+  if (tumu.length > SAYFA_BOYU) {
+    sp.style.display = '';
+    document.getElementById('sayfaBilgi').textContent =
+      (sayfa + 1) + ' / ' + toplamSayfa + '  ·  ' + tumu.length + ' eser';
+    document.getElementById('oncekiBtn').disabled = (sayfa === 0);
+    document.getElementById('sonrakiBtn').disabled = (sayfa >= toplamSayfa - 1);
+  } else {
+    sp.style.display = 'none';
+  }
+
+  const kap = document.getElementById('liste');
+  if (!liste.length) { kap.innerHTML = '<div class="durum">Eser yok.</div>'; return; }
+
+  kap.innerHTML = liste.map(w => {
+    const secili = BEKLEYEN.has(w.id) ? BEKLEYEN.get(w.id) : (w.form || '');
+    const meta = [w.tur, w.region, w.makam].filter(Boolean).join(' · ');
+    const secenekler = ['<option value="">— form seçin —</option>']
+      .concat(formListesi(w.tur).map(f =>
+        `<option value="${esc(f)}"${f === secili ? ' selected' : ''}>${esc(f)}</option>`));
+    // Katalogda listede olmayan bir form varsa kaybolmasın.
+    if (secili && !formListesi(w.tur).includes(secili)) {
+      secenekler.splice(1, 0, `<option value="${esc(secili)}" selected>${esc(secili)}</option>`);
+    }
+    return `<div class="sat ${BEKLEYEN.has(w.id) ? 'bekleyen' : ''}">
+      <div class="bilgi">
+        <div class="ad">${esc(w.name)}</div>
+        ${meta ? `<div class="meta">${esc(meta)}</div>` : ''}
+      </div>
+      <select class="${secili ? 'dolu' : ''}" data-id="${w.id}">${secenekler.join('')}</select>
+    </div>`;
+  }).join('');
+}
+
+// Tek dinleyici: liste her çizildiğinde yeniden bağlamaya gerek yok.
+document.addEventListener('change', ev => {
+  const sel = ev.target;
+  if (!sel.matches || !sel.matches('.sat select')) return;
+  const id = Number(sel.getAttribute('data-id'));
+  const w = ESERLER.find(x => x.id === id);
+  const yeni = sel.value;
+  // Mevcut değerle aynıysa bekleyene yazma — boşuna PATCH göndermeyelim.
+  if (w && (w.form || '') === yeni) BEKLEYEN.delete(id);
+  else BEKLEYEN.set(id, yeni);
+  ciz(); sayaclar();
+});
+
+function bekleyenTemizle() {
+  if (BEKLEYEN.size && !confirm(BEKLEYEN.size + ' bekleyen değişiklik silinsin mi?')) return;
+  BEKLEYEN.clear(); ciz(); sayaclar();
+}
+
+async function kaydet() {
+  if (!BEKLEYEN.size) return;
+  const btn = document.getElementById('kaydetBtn');
+  btn.disabled = true; btn.textContent = 'Kaydediliyor…';
+  let ok = 0, hata = 0;
+
+  for (const [id, form] of [...BEKLEYEN]) {
+    try {
+      const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
+        method: 'PATCH',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json',
+                   'Prefer': 'return=representation' },
+        body: JSON.stringify({ form: form || null })
+      });
+      if (!r.ok) { hata++; continue; }
+      const satir = await r.json();
+      if (!satir.length) { hata++; continue; }   // RLS engelledi
+      ok++;
+      const w = ESERLER.find(x => x.id === id);
+      if (w) w.form = form;
+      BEKLEYEN.delete(id);
+    } catch (e) { hata++; }
+  }
+
+  btn.textContent = 'Kaydet';
+  ciz(); sayaclar();
+  alert(ok + ' eser güncellendi.' + (hata ? '\n' + hata + ' eser kaydedilemedi.' : ''));
+}
+
+// Kaydedilmemiş değişiklikle sayfadan çıkma
+window.addEventListener('beforeunload', e => {
+  if (BEKLEYEN.size) { e.preventDefault(); e.returnValue = ''; }
+});
+
+yukle();
+</script>
+</body>
+</html>
