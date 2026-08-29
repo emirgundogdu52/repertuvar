@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tür seçici — taslak</title>
+<style>
+  :root{
+    --bg:#0b0f18; --surface:#141a26; --surface2:#1b2231; --border:#26304180;
+    --text:#e6ebf5; --text2:#a9b4c7; --text3:#6b7688; --accent:#FFC83D;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:15px/1.55 -apple-system,system-ui,"Segoe UI",sans-serif;padding:22px 16px 60px}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:19px;margin:0 0 6px}
+  .alt{color:var(--text3);font-size:13px;margin-bottom:22px;line-height:1.6}
+  .ikili{display:grid;gap:22px}
+  @media(min-width:760px){.ikili{grid-template-columns:1fr 1fr}}
+
+  .kart{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px}
+  .kart h2{font-size:13px;margin:0 0 3px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)}
+  .kart .not{font-size:12px;color:var(--text3);margin-bottom:14px}
+
+  .etiket{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+          color:var(--text3);margin:0 0 7px}
+  .ara{width:100%;padding:11px 13px;border-radius:11px;background:var(--surface2);
+       border:1px solid var(--border);color:var(--text);font-size:15px;font-family:inherit}
+  .ara::placeholder{color:var(--text3)}
+
+  .grup-basi{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+             color:var(--text3);margin:16px 0 8px}
+  .cipler{display:flex;flex-wrap:wrap;gap:7px}
+  .cip{padding:8px 13px;border-radius:20px;background:var(--surface2);
+       border:1px solid var(--border);color:var(--text2);font-size:13px;cursor:pointer;
+       font-family:inherit;transition:.13s}
+  .cip:hover{border-color:#FFC83D66;color:var(--text)}
+  .cip.secili{background:#FFC83D26;border-color:#FFC83D88;color:var(--accent);font-weight:700}
+
+  .acilir{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+  .acilir-btn{width:100%;display:flex;align-items:center;gap:9px;background:none;border:none;
+              color:var(--text2);font-size:13.5px;font-weight:600;cursor:pointer;padding:4px 0;
+              font-family:inherit}
+  .acilir-btn .ok{margin-left:auto;transition:transform .18s}
+  .acilir.acik .ok{transform:rotate(180deg)}
+  .acilir-govde{display:none;padding-top:11px}
+  .acilir.acik .acilir-govde{display:block}
+
+  .sonuc{margin-top:12px;font-size:12.5px;color:var(--text3);min-height:18px}
+  .sonuc b{color:var(--accent)}
+  .uyari{margin-top:10px;font-size:12px;color:var(--text3);background:var(--surface2);
+         border:1px solid var(--border);border-radius:10px;padding:9px 11px;line-height:1.55}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Tür seçici — taslak</h1>
+<div class="alt">
+  Arama + sık kullanılanlar + açılabilir grup. Soldaki Türkçe arayüzün,
+  sağdaki İngilizce arayüzün gördüğü hâl. İkisinde de <b>tüm türler mevcut</b> —
+  yalnızca <i>sıra</i> ve <i>hangisinin baştan görüneceği</i> değişiyor.
+</div>
+
+<div class="ikili">
+
+  <!-- ── TÜRKÇE ARAYÜZ ── -->
+  <div class="kart">
+    <h2>Arayüz dili: Türkçe</h2>
+    <div class="not">Türk müziği türleri baştan açık, Batı türleri katlanmış.</div>
+
+    <div class="etiket">Tür</div>
+    <input class="ara" placeholder="Tür ara… (türkü, rock, caz)" oninput="filtre(this,'tr')">
+
+    <div id="tr-govde">
+      <div class="grup-basi">Sık kullanılan</div>
+      <div class="cipler" data-g="tr-sik">
+        <button class="cip" onclick="sec(this,'tr')">Türk Halk Müziği</button>
+        <button class="cip" onclick="sec(this,'tr')">Türk Sanat Müziği</button>
+        <button class="cip" onclick="sec(this,'tr')">Arabesk / Fantezi</button>
+        <button class="cip" onclick="sec(this,'tr')">Özgün Müzik</button>
+        <button class="cip" onclick="sec(this,'tr')">Türk Pop</button>
+      </div>
+
+      <div class="acilir" id="tr-acilir">
+        <button class="acilir-btn" onclick="acKapa('tr-acilir')">
+          Diğer türler <span class="ok">⌄</span>
+        </button>
+        <div class="acilir-govde">
+          <div class="cipler" data-g="tr-diger">
+            <button class="cip" onclick="sec(this,'tr')">Türk Rock</button>
+            <button class="cip" onclick="sec(this,'tr')">Türkçe Rap / Hip-Hop</button>
+            <button class="cip" onclick="sec(this,'tr')">Yabancı Pop</button>
+            <button class="cip" onclick="sec(this,'tr')">Yabancı Rock</button>
+            <button class="cip" onclick="sec(this,'tr')">Caz / Blues</button>
+            <button class="cip" onclick="sec(this,'tr')">Klasik Batı Müziği</button>
+            <button class="cip" onclick="sec(this,'tr')">Diğer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sonuc" id="tr-sonuc">Henüz seçim yok</div>
+  </div>
+
+  <!-- ── İNGİLİZCE ARAYÜZ ── -->
+  <div class="kart">
+    <h2>Interface language: English</h2>
+    <div class="not">Batı türleri baştan açık, Türk müziği türleri katlanmış — ama silinmiş değil.</div>
+
+    <div class="etiket">Genre</div>
+    <input class="ara" placeholder="Search genre… (rock, jazz, makam)" oninput="filtre(this,'en')">
+
+    <div id="en-govde">
+      <div class="grup-basi">Common</div>
+      <div class="cipler" data-g="en-sik">
+        <button class="cip" onclick="sec(this,'en')">Pop</button>
+        <button class="cip" onclick="sec(this,'en')">Rock</button>
+        <button class="cip" onclick="sec(this,'en')">Jazz / Blues</button>
+        <button class="cip" onclick="sec(this,'en')">Classical</button>
+        <button class="cip" onclick="sec(this,'en')">Folk</button>
+        <button class="cip" onclick="sec(this,'en')">Hip-Hop</button>
+      </div>
+
+      <div class="acilir" id="en-acilir">
+        <button class="acilir-btn" onclick="acKapa('en-acilir')">
+          Turkish music genres <span class="ok">⌄</span>
+        </button>
+        <div class="acilir-govde">
+          <div class="cipler" data-g="en-diger">
+            <button class="cip" onclick="sec(this,'en')">Turkish Folk (THM)</button>
+            <button class="cip" onclick="sec(this,'en')">Turkish Classical (TSM)</button>
+            <button class="cip" onclick="sec(this,'en')">Arabesk / Fantezi</button>
+            <button class="cip" onclick="sec(this,'en')">Özgün Müzik</button>
+            <button class="cip" onclick="sec(this,'en')">Turkish Pop</button>
+          </div>
+          <div class="uyari">
+            Bu gruptan bir tür seçilirse <b>makam, usul, yöre</b> alanları formda
+            kendiliğinden açılır. Kullanıcı ayar ekranına hiç gitmez.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sonuc" id="en-sonuc">Nothing selected yet</div>
+  </div>
+
+</div>
+
+<div class="uyari" style="max-width:900px;margin:22px auto 0">
+  <b>Denemesi:</b> arama kutusuna “makam” ya da “rock” yazın — katlanmış gruptaki
+  türler de sonuçlarda çıkar, yani gizlenen hiçbir şey erişilemez olmuyor.
+  Bir çipe tıklayınca altta ne olacağı yazıyor.
+</div>
+
+</div>
+
+<script>
+function acKapa(id){ document.getElementById(id).classList.toggle('acik'); }
+
+function sec(btn, mod){
+  document.querySelectorAll('#'+mod+'-govde .cip').forEach(c=>c.classList.remove('secili'));
+  btn.classList.add('secili');
+  const tr = ['Türk Halk Müziği','Türk Sanat Müziği','Arabesk / Fantezi','Özgün Müzik',
+              'Turkish Folk (THM)','Turkish Classical (TSM)'];
+  const makamli = tr.includes(btn.textContent.trim());
+  const s = document.getElementById(mod+'-sonuc');
+  s.innerHTML = '<b>' + btn.textContent.trim() + '</b> — ' +
+    (makamli ? 'makam, usul, yöre alanları formda açılır'
+             : 'yalnızca ton ve akor alanları; makam/usul gizli');
+}
+
+function filtre(inp, mod){
+  const q = inp.value.trim().toLocaleLowerCase('tr')
+    .replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u')
+    .replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c');
+  const acilir = document.getElementById(mod+'-acilir');
+  let gizliVar = false;
+
+  document.querySelectorAll('#'+mod+'-govde .cip').forEach(c=>{
+    const t = c.textContent.toLocaleLowerCase('tr')
+      .replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u')
+      .replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c');
+    // "makam" gibi kavramsal aramalar da Türk müziği türlerini bulsun
+    const ek = (mod==='en' && acilir.contains(c)) ? ' makam usul turkish turk' : '';
+    const uyar = !q || (t+ek).includes(q);
+    c.style.display = uyar ? '' : 'none';
+    if (uyar && acilir.contains(c)) gizliVar = true;
+  });
+
+  // Arama katlanmış gruptaki bir türle eşleşiyorsa grubu kendiliğinden aç.
+  if (q && gizliVar) acilir.classList.add('acik');
+  if (!q) acilir.classList.remove('acik');
+}
+</script>
+</body>
+</html>
