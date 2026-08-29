@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<!--
+  ARAC/OYUN-HAVASI.HTML — 2026-08-26
+
+  NİÇİN VAR
+  ---------
+  Emir düğün/eğlence programı hazırlarken "oyun havalarını göster" diyebilmek
+  istiyor. Eserler sayfasına bir form çipi koymak için önce VERİ gerekiyor:
+  ölçüm yapıldığında 726 eserin 673'ünde `form` alanı BOŞTU ve "Oyun Havası"
+  kayıtlı TEK eser yoktu. Çipi o hâlde koysaydık dokunan kişi boş listeye
+  düşerdi — tür çiplerinde bilerek kaçındığımız durum.
+
+  NİÇİN TÜM FORMLARI DOLDURMUYORUZ
+  --------------------------------
+  673 esere tek tek form yazmak büyük iş ve kestirmesi yok: tür atamada işe
+  yarayan sezgi (yöre/kaynak kişi/derleyen dolu ⇒ THM) burada karşılığı yok.
+  Oyun havası olup olmadığı başlıktan güvenilir çıkarılamaz. Bu yüzden araç
+  YALNIZCA oyun havalarını işaretlemeye odaklanıyor — geri kalan formlar boş
+  kalabilir, çip için gereken tek şey bu alanın dolu olması.
+
+  YAZMA GÜVENLİĞİ
+  ---------------
+  Her PATCH `return=representation` ile yapılıyor ve DÖNEN SATIR SAYISI
+  doğrulanıyor. Bu projede daha önce yaşandı: RLS bir UPDATE'i engellediğinde
+  PostgREST 204 + 0 satır döner ve arayüz "kaydedildi" gösterir. Sessiz
+  başarısızlık en kötü sonuç.
+
+  ARAMA: Türkçe karakter duyarsız (ı/i, ğ/g, ü/u, ş/s, ö/o, ç/c).
+-->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Oyun Havası İşaretle — Repertuvar</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+<style>
+  body { padding: 16px 16px 120px; max-width: 760px; margin: 0 auto;
+         touch-action: manipulation; }
+  h1 { font-size: 20px; margin: 0 0 4px; color: var(--text); }
+  .alt { font-size: 13px; color: var(--text3); margin-bottom: 14px; line-height: 1.55; }
+  .sayac { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .rozet { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+           background: var(--surface); border: 1px solid var(--border); color: var(--text2); }
+  .rozet.vurgu { background: color-mix(in srgb, var(--accent) 16%, transparent);
+                 border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+                 color: var(--accent); }
+  input[type=search] { width: 100%; padding: 12px 14px; border-radius: 11px; font-size: 16px;
+                       background: var(--surface2); border: 1px solid var(--border);
+                       color: var(--text); margin-bottom: 12px; font-family: inherit; }
+  .liste { display: flex; flex-direction: column; gap: 7px; }
+  .sat { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border-radius: 11px;
+         background: var(--surface); border: 1px solid var(--border); cursor: pointer; }
+  .sat.secili { border-color: var(--accent);
+                background: color-mix(in srgb, var(--accent) 11%, transparent); }
+  .sat input { width: 20px; height: 20px; accent-color: var(--accent); flex-shrink: 0;
+               pointer-events: none; }
+  .ad { font-size: 15px; font-weight: 600; color: var(--text); }
+  .meta { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .form-rozet { margin-left: auto; font-size: 11px; padding: 2px 8px; border-radius: 10px;
+                background: var(--surface2); color: var(--text3); flex-shrink: 0; }
+  .form-rozet.oyun { background: color-mix(in srgb, var(--accent) 18%, transparent);
+                     color: var(--accent); font-weight: 700; }
+  .cubuk { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+           background: var(--bg); border-top: 1px solid var(--border);
+           padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+           display: flex; align-items: center; gap: 12px; }
+  .cubuk .bilgi { font-size: 13px; color: var(--text2); }
+  .btn { margin-left: auto; padding: 11px 20px; border-radius: 11px; border: none;
+         background: var(--accent); color: #1a1200; font-size: 14px; font-weight: 700;
+         cursor: pointer; font-family: inherit; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.ikincil { background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+                 margin-left: 0; }
+  .durum { padding: 20px; text-align: center; color: var(--text3); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<h1>Oyun Havası İşaretle</h1>
+<div class="alt">
+  Oyun havası olan eserleri seçip kaydedin. Kaydedilenlerin <b>form</b> alanı
+  “Oyun Havası” olur ve Eserler sayfasındaki çipte görünür.
+</div>
+
+<div class="sayac">
+  <span class="rozet vurgu" id="rzOyun">Oyun Havası: —</span>
+  <span class="rozet" id="rzToplam">Toplam: —</span>
+  <span class="rozet" id="rzSecili">Seçili: 0</span>
+</div>
+
+<input type="search" id="ara" placeholder="Eser adı, yöre veya usul ara…" autocomplete="off" oninput="ciz()">
+
+<div class="durum" id="durum">Yükleniyor…</div>
+<div class="liste" id="liste"></div>
+
+<div class="cubuk">
+  <button class="btn ikincil" onclick="secimTemizle()">Seçimi temizle</button>
+  <span class="bilgi" id="bilgi"></span>
+  <button class="btn" id="kaydetBtn" onclick="kaydet()" disabled>Kaydet</button>
+</div>
+
+<script src="/auth.js"></script>
+<script>
+const FORM_DEGERI = 'Oyun Havası';
+let ESERLER = [];
+const SECILI = new Set();
+
+function trNorm(s) {
+  return String(s || '').toLocaleLowerCase('tr')
+    .replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u')
+    .replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c');
+}
+function esc(x) {
+  return String(x == null ? '' : x)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+async function yukle() {
+  if (typeof SUPA_URL === 'undefined' || typeof authHeaders !== 'function') {
+    document.getElementById('durum').textContent = 'Oturum bulunamadı. Önce uygulamaya giriş yapın.';
+    return;
+  }
+  try {
+    const r = await fetch(SUPA_URL +
+      '/rest/v1/works?select=id,name,form,region,usul,tur&deleted_at=is.null' +
+      '&order=name.asc&limit=5000', { headers: authHeaders() });
+    if (!r.ok) throw new Error(await r.text());
+    ESERLER = await r.json();
+    document.getElementById('durum').style.display = 'none';
+    ciz(); sayaclar();
+  } catch (e) {
+    document.getElementById('durum').textContent = 'Liste alınamadı: ' + (e.message || e);
+  }
+}
+
+function sayaclar() {
+  const oyun = ESERLER.filter(w => (w.form || '') === FORM_DEGERI).length;
+  document.getElementById('rzOyun').textContent = 'Oyun Havası: ' + oyun;
+  document.getElementById('rzToplam').textContent = 'Toplam: ' + ESERLER.length;
+  document.getElementById('rzSecili').textContent = 'Seçili: ' + SECILI.size;
+  const btn = document.getElementById('kaydetBtn');
+  btn.disabled = SECILI.size === 0;
+  document.getElementById('bilgi').textContent =
+    SECILI.size ? SECILI.size + ' eser işaretlenecek' : '';
+}
+
+function ciz() {
+  const q = trNorm(document.getElementById('ara').value.trim());
+  // Arama boşken TÜM katalogu basmıyoruz: 726 satır hem yavaş hem işe yaramaz.
+  // Zaten işaretli olanlar her zaman görünsün — kullanıcı ne yaptığını görsün.
+  let liste;
+  if (q) {
+    liste = ESERLER.filter(w =>
+      trNorm(w.name).includes(q) || trNorm(w.region).includes(q) || trNorm(w.usul).includes(q));
+  } else {
+    liste = ESERLER.filter(w => (w.form || '') === FORM_DEGERI || SECILI.has(w.id));
+  }
+
+  const kap = document.getElementById('liste');
+  if (!liste.length) {
+    kap.innerHTML = '<div class="durum">' +
+      (q ? 'Aramaya uyan eser yok.' : 'Henüz oyun havası işaretlenmemiş. Aramayla başlayın.') +
+      '</div>';
+    return;
+  }
+  kap.innerHTML = liste.slice(0, 200).map(w => {
+    const isaretli = (w.form || '') === FORM_DEGERI;
+    const meta = [w.tur, w.region, w.usul].filter(Boolean).join(' · ');
+    return `<div class="sat ${SECILI.has(w.id) ? 'secili' : ''}" data-id="${w.id}">
+      <input type="checkbox" ${SECILI.has(w.id) ? 'checked' : ''}>
+      <div>
+        <div class="ad">${esc(w.name)}</div>
+        ${meta ? `<div class="meta">${esc(meta)}</div>` : ''}
+      </div>
+      ${isaretli ? '<span class="form-rozet oyun">Oyun Havası</span>'
+                 : (w.form ? `<span class="form-rozet">${esc(w.form)}</span>` : '')}
+    </div>`;
+  }).join('');
+}
+
+document.addEventListener('click', ev => {
+  const sat = ev.target.closest && ev.target.closest('.sat');
+  if (!sat) return;
+  const id = Number(sat.getAttribute('data-id'));
+  if (SECILI.has(id)) SECILI.delete(id); else SECILI.add(id);
+  ciz(); sayaclar();
+});
+
+function secimTemizle() { SECILI.clear(); ciz(); sayaclar(); }
+
+async function kaydet() {
+  if (!SECILI.size) return;
+  const btn = document.getElementById('kaydetBtn');
+  btn.disabled = true; btn.textContent = 'Kaydediliyor…';
+  const idler = [...SECILI];
+  let basarili = 0, hata = 0;
+
+  for (const id of idler) {
+    try {
+      const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
+        method: 'PATCH',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json',
+                   'Prefer': 'return=representation' },
+        body: JSON.stringify({ form: FORM_DEGERI })
+      });
+      if (!r.ok) { hata++; continue; }
+      // DÖNEN SATIR SAYISI doğrulanıyor: RLS engellerse 0 satır döner ve
+      // bu, başarıdan ayırt edilemez olurdu.
+      const satir = await r.json();
+      if (!satir.length) { hata++; continue; }
+      basarili++;
+      const w = ESERLER.find(x => x.id === id);
+      if (w) w.form = FORM_DEGERI;
+    } catch (e) { hata++; }
+  }
+
+  SECILI.clear();
+  btn.textContent = 'Kaydet';
+  ciz(); sayaclar();
+  alert(basarili + ' eser işaretlendi.' + (hata ? '\n' + hata + ' eser kaydedilemedi.' : ''));
+}
+
+yukle();
+</script>
+</body>
+</html>
