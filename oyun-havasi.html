@@ -35,8 +35,13 @@
 <link rel="stylesheet" href="/style.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
 <style>
-  body { padding: 16px 16px 120px; max-width: 760px; margin: 0 auto;
-         touch-action: manipulation; }
+  /* (2026-08-26 DÜZELTME) style.css `body`'ye sidebar düzenini dayatıyor
+     (flex satır). Ham <body> kullanınca içerik dikey şeritlere sıkışıyordu.
+     tur-atama.html'deki desen: body sıfırlanıyor, içerik .wrap içine alınıyor. */
+  body { margin: 0; display: block; background: var(--bg, #07071a);
+         color: var(--text, #e2e0ff); font-family: system-ui, -apple-system, sans-serif;
+         -webkit-text-size-adjust: 100%; touch-action: manipulation; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 16px 16px 110px; }
   h1 { font-size: 20px; margin: 0 0 4px; color: var(--text); }
   .alt { font-size: 13px; color: var(--text3); margin-bottom: 14px; line-height: 1.55; }
   .sayac { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -76,6 +81,7 @@
 </style>
 </head>
 <body>
+<div class="wrap">
 
 <h1>Oyun Havası İşaretle</h1>
 <div class="alt">
@@ -89,10 +95,12 @@
   <span class="rozet" id="rzSecili">Seçili: 0</span>
 </div>
 
-<input type="search" id="ara" placeholder="Eser adı, yöre veya usul ara…" autocomplete="off" oninput="ciz()">
+<input type="search" id="ara" placeholder="Eser adı, yöre veya makam ara…" autocomplete="off" oninput="ciz()">
 
 <div class="durum" id="durum">Yükleniyor…</div>
 <div class="liste" id="liste"></div>
+
+</div><!-- /wrap -->
 
 <div class="cubuk">
   <button class="btn ikincil" onclick="secimTemizle()">Seçimi temizle</button>
@@ -124,7 +132,10 @@ async function yukle() {
   }
   try {
     const r = await fetch(SUPA_URL +
-      '/rest/v1/works?select=id,name,form,region,usul,tur&deleted_at=is.null' +
+      // (2026-08-26 DÜZELTME) `usul` diye bir sütun YOK — tahmin edilmişti,
+      // sorgu "column works.usul does not exist" ile düşüyordu. Gerçek
+      // alanlar: makam, region, form, tur.
+      '/rest/v1/works?select=id,name,form,region,makam,tur&deleted_at=is.null' +
       '&order=name.asc&limit=5000', { headers: authHeaders() });
     if (!r.ok) throw new Error(await r.text());
     ESERLER = await r.json();
@@ -153,7 +164,7 @@ function ciz() {
   let liste;
   if (q) {
     liste = ESERLER.filter(w =>
-      trNorm(w.name).includes(q) || trNorm(w.region).includes(q) || trNorm(w.usul).includes(q));
+      trNorm(w.name).includes(q) || trNorm(w.region).includes(q) || trNorm(w.makam).includes(q));
   } else {
     liste = ESERLER.filter(w => (w.form || '') === FORM_DEGERI || SECILI.has(w.id));
   }
@@ -167,7 +178,7 @@ function ciz() {
   }
   kap.innerHTML = liste.slice(0, 200).map(w => {
     const isaretli = (w.form || '') === FORM_DEGERI;
-    const meta = [w.tur, w.region, w.usul].filter(Boolean).join(' · ');
+    const meta = [w.tur, w.region, w.makam].filter(Boolean).join(' · ');
     return `<div class="sat ${SECILI.has(w.id) ? 'secili' : ''}" data-id="${w.id}">
       <input type="checkbox" ${SECILI.has(w.id) ? 'checked' : ''}>
       <div>
