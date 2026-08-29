@@ -78,6 +78,11 @@
   .btn.ikincil { background: var(--surface2); color: var(--text); border: 1px solid var(--border);
                  margin-left: 0; }
   .durum { padding: 20px; text-align: center; color: var(--text3); font-size: 14px; }
+  .sayfalama { display: flex; align-items: center; justify-content: space-between;
+               gap: 10px; margin-top: 16px; }
+  .sayfa-bilgi { font-size: 13px; color: var(--text3); font-weight: 600; text-align: center;
+                 flex: 1; }
+  .sayfalama .btn { margin-left: 0; }
 </style>
 </head>
 <body>
@@ -95,10 +100,20 @@
   <span class="rozet" id="rzSecili">Seçili: 0</span>
 </div>
 
-<input type="search" id="ara" placeholder="Eser adı, yöre veya makam ara…" autocomplete="off" oninput="ciz()">
+<input type="search" id="ara" placeholder="Eser adı, yöre veya makam ara…" autocomplete="off" oninput="sayfa=0;ciz()">
 
 <div class="durum" id="durum">Yükleniyor…</div>
 <div class="liste" id="liste"></div>
+
+<!-- (2026-08-26) SAYFALAMA. Emir'in isteği: aramayla hatırlamaya çalışmak
+     yerine katalogu baştan sona 40'lık gruplar hâlinde tarayıp işaretlemek.
+     Seçim sayfalar arasında KORUNUYOR (SECILI kümesi genel) — 5. sayfada
+     işaretlediğin eser 9. sayfaya geçince kaybolmaz. -->
+<div class="sayfalama" id="sayfalama" style="display:none;">
+  <button class="btn ikincil" id="oncekiBtn" onclick="sayfaGit(-1)">‹ Önceki</button>
+  <span class="sayfa-bilgi" id="sayfaBilgi">—</span>
+  <button class="btn ikincil" id="sonrakiBtn" onclick="sayfaGit(1)">Sonraki ›</button>
+</div>
 
 </div><!-- /wrap -->
 
@@ -157,26 +172,46 @@ function sayaclar() {
     SECILI.size ? SECILI.size + ' eser işaretlenecek' : '';
 }
 
-function ciz() {
+const SAYFA_BOYU = 40;
+let sayfa = 0;
+
+function _suzulmus() {
   const q = trNorm(document.getElementById('ara').value.trim());
-  // Arama boşken TÜM katalogu basmıyoruz: 726 satır hem yavaş hem işe yaramaz.
-  // Zaten işaretli olanlar her zaman görünsün — kullanıcı ne yaptığını görsün.
-  let liste;
-  if (q) {
-    liste = ESERLER.filter(w =>
-      trNorm(w.name).includes(q) || trNorm(w.region).includes(q) || trNorm(w.makam).includes(q));
+  if (!q) return ESERLER;                       // arama yoksa TÜM katalog, sayfalı
+  return ESERLER.filter(w =>
+    trNorm(w.name).includes(q) || trNorm(w.region).includes(q) || trNorm(w.makam).includes(q));
+}
+
+function sayfaGit(yon) {
+  const toplam = Math.max(1, Math.ceil(_suzulmus().length / SAYFA_BOYU));
+  sayfa = Math.max(0, Math.min(toplam - 1, sayfa + yon));
+  ciz();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function ciz() {
+  const tumu = _suzulmus();
+  const toplamSayfa = Math.max(1, Math.ceil(tumu.length / SAYFA_BOYU));
+  if (sayfa > toplamSayfa - 1) sayfa = toplamSayfa - 1;
+  const liste = tumu.slice(sayfa * SAYFA_BOYU, (sayfa + 1) * SAYFA_BOYU);
+
+  const sp = document.getElementById('sayfalama');
+  if (tumu.length > SAYFA_BOYU) {
+    sp.style.display = '';
+    document.getElementById('sayfaBilgi').textContent =
+      (sayfa + 1) + ' / ' + toplamSayfa + '  ·  ' + tumu.length + ' eser';
+    document.getElementById('oncekiBtn').disabled = (sayfa === 0);
+    document.getElementById('sonrakiBtn').disabled = (sayfa >= toplamSayfa - 1);
   } else {
-    liste = ESERLER.filter(w => (w.form || '') === FORM_DEGERI || SECILI.has(w.id));
+    sp.style.display = 'none';
   }
 
   const kap = document.getElementById('liste');
   if (!liste.length) {
-    kap.innerHTML = '<div class="durum">' +
-      (q ? 'Aramaya uyan eser yok.' : 'Henüz oyun havası işaretlenmemiş. Aramayla başlayın.') +
-      '</div>';
+    kap.innerHTML = '<div class="durum">Aramaya uyan eser yok.</div>';
     return;
   }
-  kap.innerHTML = liste.slice(0, 200).map(w => {
+  kap.innerHTML = liste.map(w => {
     const isaretli = (w.form || '') === FORM_DEGERI;
     const meta = [w.tur, w.region, w.makam].filter(Boolean).join(' · ');
     return `<div class="sat ${SECILI.has(w.id) ? 'secili' : ''}" data-id="${w.id}">
