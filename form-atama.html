@@ -44,7 +44,7 @@
   body { margin:0; display:block; background:var(--bg,#07071a); color:var(--text,#e2e0ff);
          font-family:system-ui,-apple-system,sans-serif; -webkit-text-size-adjust:100%;
          touch-action:manipulation; }
-  .wrap { max-width:820px; margin:0 auto; padding:16px 16px 110px; }
+  .wrap { max-width:900px; margin:0 auto; padding:16px 16px 110px; }
   h1 { font-size:20px; margin:0 0 4px; }
   .alt { font-size:13px; color:var(--text3,#5e5c8a); line-height:1.55; margin-bottom:14px; }
   .sayac { display:flex; gap:9px; flex-wrap:wrap; margin-bottom:14px; }
@@ -67,7 +67,7 @@
   .ad { font-size:15px; font-weight:600; color:var(--text);
         overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .meta { font-size:12px; color:var(--text3); margin-top:2px; }
-  .sat select { flex-shrink:0; width:168px; padding:8px 9px; border-radius:9px; font-size:13px;
+  .sat select { flex-shrink:0; width:150px; padding:8px 9px; border-radius:9px; font-size:13px;
                 background:var(--surface2); border:1px solid var(--border);
                 color:var(--text); font-family:inherit; }
   .sat select.dolu { border-color:color-mix(in srgb, var(--accent) 50%, transparent);
@@ -92,9 +92,9 @@
 <body>
 <div class="wrap">
 
-<h1>Form Atama</h1>
+<h1>Tür ve Form Atama</h1>
 <div class="alt">
-  Her eserin yanındaki listeden formunu seçin. Değişiklikler <b>Kaydet</b> deyince
+  Her eserin yanındaki listelerden türünü ve (THM/TSM ise) formunu seçin. Değişiklikler <b>Kaydet</b> deyince
   gönderilir — sayfa değiştirseniz de bekleyenler korunur.
 </div>
 
@@ -111,6 +111,7 @@
     <option value="bos">Formu olmayanlar</option>
     <option value="hepsi">Hepsi</option>
     <option value="dolu">Formu olanlar</option>
+    <option value="tursuz">Türü olmayanlar</option>
   </select>
 </div>
 
@@ -142,6 +143,15 @@ const FORM_TSM = ['Şarkı','Beste','Ağır Semai','Yürük Semai','Kâr','Kâr-
   'Peşrev','Saz Semaisi','Taksim','Longa','Sirto','Medhal','Oyun Havası','Köçekçe',
   'Gazel','Fantezi','Marş','İlahi','Durak','Tevşih','Şuğul','Naat','Mersiye'];
 
+// (2026-08-26) TÜR DE ATANIYOR. Emir sordu: "Özgün Müzik, Türk Rock burada yok".
+// Doğru — bunlar FORM değil TÜR. Sistemde iki katman var: tür üst kategori,
+// form ise alt kırılım ve YALNIZ THM/TSM'de anlamlı (pop/rock/rap'te form
+// kavramı işlemiyor). eserler.html de form alanını yalnız o iki türde
+// gösteriyor. Araç artık ikisini birden düzeltiyor.
+const TUR_LISTESI = ['THM','TSM','Türk Pop','Türk Rock','Arabesk / Fantezi','Özgün Müzik',
+  'Türkçe Rap / Hip-Hop','Yabancı Pop','Yabancı Rock','Caz / Blues','Diğer'];
+const FORMU_OLAN_TURLER = ['THM','TSM'];
+
 function formListesi(tur) {
   if (tur === 'THM') return FORM_THM;
   if (tur === 'TSM') return FORM_TSM;
@@ -151,7 +161,10 @@ function formListesi(tur) {
 const SAYFA_BOYU = 40;
 let ESERLER = [];
 let sayfa = 0;
-const BEKLEYEN = new Map();   // id -> yeni form
+const BEKLEYEN = new Map();   // id -> { tur?, form? }  (yalnız DEĞİŞEN alanlar)
+
+function _guncelTur(w)  { const b = BEKLEYEN.get(w.id); return (b && 'tur'  in b) ? b.tur  : (w.tur  || ''); }
+function _guncelForm(w) { const b = BEKLEYEN.get(w.id); return (b && 'form' in b) ? b.form : (w.form || ''); }
 
 function trNorm(s) {
   return String(s || '').toLocaleLowerCase('tr')
@@ -184,7 +197,8 @@ async function yukle() {
 
 function sayaclar() {
   const dolu = ESERLER.filter(w => (w.form || '').trim()).length;
-  document.getElementById('rzDolu').textContent = 'Formu olan: ' + dolu;
+  const turlu = ESERLER.filter(w => (w.tur || '').trim()).length;
+  document.getElementById('rzDolu').textContent = 'Formu olan: ' + dolu + '  ·  Türü olan: ' + turlu;
   document.getElementById('rzToplam').textContent = 'Toplam: ' + ESERLER.length;
   document.getElementById('rzBekleyen').textContent = 'Bekleyen: ' + BEKLEYEN.size;
   document.getElementById('kaydetBtn').disabled = BEKLEYEN.size === 0;
@@ -196,9 +210,10 @@ function _suzulmus() {
   const q = trNorm(document.getElementById('ara').value.trim());
   const mod = document.getElementById('suzgec').value;
   return ESERLER.filter(w => {
-    const form = BEKLEYEN.has(w.id) ? BEKLEYEN.get(w.id) : (w.form || '');
+    const form = _guncelForm(w);
     if (mod === 'bos' && form.trim() && !BEKLEYEN.has(w.id)) return false;
     if (mod === 'dolu' && !form.trim()) return false;
+    if (mod === 'tursuz' && (w.tur || '').trim() && !BEKLEYEN.has(w.id)) return false;
     if (!q) return true;
     return trNorm(w.name).includes(q) || trNorm(w.region).includes(q) || trNorm(w.makam).includes(q);
   });
@@ -232,21 +247,38 @@ function ciz() {
   if (!liste.length) { kap.innerHTML = '<div class="durum">Eser yok.</div>'; return; }
 
   kap.innerHTML = liste.map(w => {
-    const secili = BEKLEYEN.has(w.id) ? BEKLEYEN.get(w.id) : (w.form || '');
-    const meta = [w.tur, w.region, w.makam].filter(Boolean).join(' · ');
-    const secenekler = ['<option value="">— form seçin —</option>']
-      .concat(formListesi(w.tur).map(f =>
-        `<option value="${esc(f)}"${f === secili ? ' selected' : ''}>${esc(f)}</option>`));
-    // Katalogda listede olmayan bir form varsa kaybolmasın.
-    if (secili && !formListesi(w.tur).includes(secili)) {
-      secenekler.splice(1, 0, `<option value="${esc(secili)}" selected>${esc(secili)}</option>`);
+    const tur  = _guncelTur(w);
+    const form = _guncelForm(w);
+    const meta = [w.region, w.makam].filter(Boolean).join(' · ');
+
+    const turSec = ['<option value="">— tür —</option>']
+      .concat(TUR_LISTESI.map(t =>
+        `<option value="${esc(t)}"${t === tur ? ' selected' : ''}>${esc(t)}</option>`));
+
+    // Form YALNIZ THM/TSM'de anlamlı. Diğer türlerde alan kapalı ve sebebi
+    // yazılı — boş bir kutu bırakmak "doldurmayı unuttum" hissi verirdi.
+    const formVar = FORMU_OLAN_TURLER.includes(tur);
+    let formAlani;
+    if (!formVar) {
+      formAlani = `<select data-alan="form" data-id="${w.id}" disabled>
+        <option>${tur ? 'bu türde form yok' : 'önce tür seçin'}</option></select>`;
+    } else {
+      const fl = formListesi(tur);
+      const secenekler = ['<option value="">— form —</option>']
+        .concat(fl.map(f => `<option value="${esc(f)}"${f === form ? ' selected' : ''}>${esc(f)}</option>`));
+      if (form && !fl.includes(form)) {   // katalogdaki farklı bir değer kaybolmasın
+        secenekler.splice(1, 0, `<option value="${esc(form)}" selected>${esc(form)}</option>`);
+      }
+      formAlani = `<select data-alan="form" data-id="${w.id}" class="${form ? 'dolu' : ''}">${secenekler.join('')}</select>`;
     }
+
     return `<div class="sat ${BEKLEYEN.has(w.id) ? 'bekleyen' : ''}">
       <div class="bilgi">
         <div class="ad">${esc(w.name)}</div>
         ${meta ? `<div class="meta">${esc(meta)}</div>` : ''}
       </div>
-      <select class="${secili ? 'dolu' : ''}" data-id="${w.id}">${secenekler.join('')}</select>
+      <select data-alan="tur" data-id="${w.id}" class="${tur ? 'dolu' : ''}">${turSec.join('')}</select>
+      ${formAlani}
     </div>`;
   }).join('');
 }
@@ -256,11 +288,27 @@ document.addEventListener('change', ev => {
   const sel = ev.target;
   if (!sel.matches || !sel.matches('.sat select')) return;
   const id = Number(sel.getAttribute('data-id'));
+  const alan = sel.getAttribute('data-alan');
   const w = ESERLER.find(x => x.id === id);
-  const yeni = sel.value;
-  // Mevcut değerle aynıysa bekleyene yazma — boşuna PATCH göndermeyelim.
-  if (w && (w.form || '') === yeni) BEKLEYEN.delete(id);
-  else BEKLEYEN.set(id, yeni);
+  if (!w) return;
+
+  const b = BEKLEYEN.get(id) || {};
+  b[alan] = sel.value;
+
+  // Tür THM/TSM dışına çıktıysa formun bir anlamı kalmaz — temizliyoruz.
+  // Yoksa "Türk Rock + Bozlak" gibi tutarsız kayıtlar oluşurdu.
+  if (alan === 'tur' && !FORMU_OLAN_TURLER.includes(sel.value)) {
+    if ((w.form || '')) b.form = '';
+    else delete b.form;
+  }
+
+  // Mevcut değerlerle aynıysa bekleyenden düş — boşuna PATCH göndermeyelim.
+  if (('tur'  in b) && (w.tur  || '') === b.tur)  delete b.tur;
+  if (('form' in b) && (w.form || '') === b.form) delete b.form;
+
+  if (Object.keys(b).length) BEKLEYEN.set(id, b);
+  else BEKLEYEN.delete(id);
+
   ciz(); sayaclar();
 });
 
@@ -275,20 +323,25 @@ async function kaydet() {
   btn.disabled = true; btn.textContent = 'Kaydediliyor…';
   let ok = 0, hata = 0;
 
-  for (const [id, form] of [...BEKLEYEN]) {
+  for (const [id, deg] of [...BEKLEYEN]) {
     try {
+      const govde = {};
+      if ('tur'  in deg) govde.tur  = deg.tur  || null;
+      if ('form' in deg) govde.form = deg.form || null;
+      if (!Object.keys(govde).length) { BEKLEYEN.delete(id); continue; }
+
       const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id, {
         method: 'PATCH',
         headers: { ...authHeaders(), 'Content-Type': 'application/json',
                    'Prefer': 'return=representation' },
-        body: JSON.stringify({ form: form || null })
+        body: JSON.stringify(govde)
       });
       if (!r.ok) { hata++; continue; }
       const satir = await r.json();
       if (!satir.length) { hata++; continue; }   // RLS engelledi
       ok++;
       const w = ESERLER.find(x => x.id === id);
-      if (w) w.form = form;
+      if (w) { if ('tur' in deg) w.tur = deg.tur; if ('form' in deg) w.form = deg.form; }
       BEKLEYEN.delete(id);
     } catch (e) { hata++; }
   }
