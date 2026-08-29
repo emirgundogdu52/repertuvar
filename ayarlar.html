@@ -399,6 +399,48 @@ html, body { overflow-x: hidden; }
       </div>
     </div>
 
+    <!-- (2026-08-26) MÜZİK GELENEĞİ — Batı modu altyapısı.
+         Uygulama Türk müziği için tasarlandı: makam, usul, yöre, kaynak kişi
+         alanları her ekranda görünüyor. Batı müziği çalan biri için bunlar
+         anlamsız gürültü. Seçim `profiles.traditions` alanına yazılıyor,
+         auth.js bunu <html> etiketine işliyor, sayfalar CSS ile gizliyor. -->
+    <div class="settings-section">
+      <div class="section-header">
+        <span class="section-icon">🎼</span>
+        <div><div class="section-title">Müzik Geleneği</div>
+             <div class="section-subtitle">Hangi alanların görüneceğini belirler</div></div>
+      </div>
+
+      <label class="setting-row" style="cursor:pointer;">
+        <div>
+          <div class="setting-label">Türk Halk Müziği</div>
+          <div class="setting-desc">Yöre, kaynak kişi, derleyen, usul alanları</div>
+        </div>
+        <input type="checkbox" id="gelThm" style="width:22px;height:22px;accent-color:var(--accent);">
+      </label>
+
+      <label class="setting-row" style="cursor:pointer;">
+        <div>
+          <div class="setting-label">Türk Sanat Müziği</div>
+          <div class="setting-desc">Makam, usul, form alanları</div>
+        </div>
+        <input type="checkbox" id="gelTsm" style="width:22px;height:22px;accent-color:var(--accent);">
+      </label>
+
+      <label class="setting-row" style="cursor:pointer;">
+        <div>
+          <div class="setting-label">Batı Müziği</div>
+          <div class="setting-desc">Ton ve akor odaklı; makam/usul alanları gizlenir</div>
+        </div>
+        <input type="checkbox" id="gelBati" style="width:22px;height:22px;accent-color:var(--accent);">
+      </label>
+
+      <div class="setting-row">
+        <div class="setting-desc" id="gelDurum" style="flex:1;"></div>
+        <button class="setting-btn" onclick="gelenekKaydetTikla()">Kaydet</button>
+      </div>
+    </div>
+
     <!-- 2. SAHNE MODU TERCİHLERİ -->
     <div class="settings-section">
       <div class="section-header">
@@ -657,6 +699,44 @@ function toast(msg, type='ok') {
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 2500);
 }
+
+// ── Müzik geleneği seçimi ────────────────────────────────────────────────
+function gelenekKutulariDoldur() {
+  const g = (typeof gelenekler === 'function') ? gelenekler() : ['thm','tsm'];
+  const t = document.getElementById('gelThm');
+  const s = document.getElementById('gelTsm');
+  const b = document.getElementById('gelBati');
+  if (t) t.checked = g.includes('thm');
+  if (s) s.checked = g.includes('tsm');
+  if (b) b.checked = g.includes('bati');
+}
+
+async function gelenekKaydetTikla() {
+  const secim = [];
+  if (document.getElementById('gelThm').checked)  secim.push('thm');
+  if (document.getElementById('gelTsm').checked)  secim.push('tsm');
+  if (document.getElementById('gelBati').checked) secim.push('bati');
+
+  const durum = document.getElementById('gelDurum');
+  // Hepsi kapalıysa hiçbir alan görünmezdi — en az bir seçim şart.
+  if (!secim.length) {
+    durum.textContent = 'En az bir gelenek seçmelisiniz.';
+    durum.style.color = 'var(--red, #f87171)';
+    return;
+  }
+  try {
+    durum.style.color = '';
+    durum.textContent = 'Kaydediliyor…';
+    await gelenekKaydet(secim);
+    durum.textContent = 'Kaydedildi ✓';
+    toast('Müzik geleneği güncellendi ✓');
+  } catch (e) {
+    durum.style.color = 'var(--red, #f87171)';
+    durum.textContent = 'Kaydedilemedi: ' + (e && e.message ? e.message : e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', gelenekKutulariDoldur);
 
 function saveSetting(key, value) {
   localStorage.setItem(key, value);
