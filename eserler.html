@@ -2,6 +2,11 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-08-27: ➕ TÜR listesine 'Şiir' eklendi (TUR_LISTESI, 'Diğer'in hemen
+    üstünde). Eserler arasında okunan bağımsız şiirler repertuvarda kendi
+    başına bir sıra öğesi olabilsin diye. Form kutusu Şiir'de otomatik
+    gizleniyor (FORMU_OLAN_TURLER yalnız THM/TSM). ⚠️ VERİTABANI ADIMI ŞART:
+    works_tur_check kısıtına 'Şiir' eklenmeden kayıt PostgREST'ten 400 döner.
   - 2026-08-21: 🐞 FORM KUTUSU iOS'TA LİSTE AÇMIYORDU — native <datalist>
     bırakıldı, açılır liste artık kendi kodumuz (rkCombo*).
     KÖK SEBEP (iki katmanlı): (1) iOS Safari ve Capacitor WKWebView datalist
@@ -4268,8 +4273,12 @@ function switchNeTab(name) {
 // (2026-08-20) ESER TÜRÜ — üst katman. Bu dizi veritabanındaki
 // `works_tur_check` kısıtıyla BİREBİR aynı olmalı; farklı yazılan bir değer
 // PostgREST'ten 400 döner.
+// (2026-08-27) 'Şiir' eklendi. Bu bir müzik türü DEĞİL — eserler ARASINDA
+// okunan bağımsız şiirler için, repertuvarda kendi başına bir sıra öğesi
+// olarak dursun diye. FORMU_OLAN_TURLER'e girmediği için Form kutusu
+// kendiliğinden gizleniyor; ayrıca bir şey yapmaya gerek yok.
 const TUR_LISTESI = ['THM','TSM','Türk Pop','Türk Rock','Arabesk / Fantezi','Özgün Müzik',
-  'Türkçe Rap / Hip-Hop','Yabancı Pop','Yabancı Rock','Caz / Blues','Diğer'];
+  'Türkçe Rap / Hip-Hop','Yabancı Pop','Yabancı Rock','Caz / Blues','Şiir','Diğer'];
 
 // Form YALNIZ THM ve TSM'de anlamlı (Türkü, Deyiş, Semai, Peşrev…). Pop, rock,
 // rap, caz gibi türlerde form kavramı işlemiyor; alan görünürse ya boş kalır ya
