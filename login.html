@@ -58,6 +58,7 @@ body { overflow: hidden; }
   line-height:1.6;white-space:pre-line;
 }
 </style>
+<script src="i18n.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -135,8 +136,8 @@ body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-he
 
 <div class="card">
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('login')">Giriş Yap</button>
-    <button class="tab" onclick="switchTab('register')">Kayıt Ol</button>
+    <button class="tab active" onclick="switchTab('login')" data-i18n="giris.girisyap">Giriş Yap</button>
+    <button class="tab" onclick="switchTab('register')" data-i18n="giris.kayitol">Kayıt Ol</button>
   </div>
 
   <!-- Google -->
@@ -150,35 +151,35 @@ body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-he
   <!-- Login form -->
   <div id="loginForm">
     <div class="field">
-      <label>E-posta</label>
-      <input type="email" id="loginEmail" placeholder="ornek@mail.com" autocomplete="email">
+      <label data-i18n="giris.eposta">E-posta</label>
+      <input type="email" id="loginEmail" placeholder="ornek@mail.com" data-i18n-ph="giris.eposta_ph" autocomplete="email">
     </div>
     <div class="field">
-      <label>Şifre</label>
+      <label data-i18n="giris.sifre">Şifre</label>
       <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"
         onkeydown="if(event.key==='Enter') doLogin()">
     </div>
-    <button class="btn-primary" onclick="doLogin()" id="loginBtn">Giriş Yap</button>
-    <button class="forgot" onclick="doReset()">Şifremi unuttum</button>
+    <button class="btn-primary" onclick="doLogin()" id="loginBtn" data-i18n="giris.girisyap">Giriş Yap</button>
+    <button class="forgot" onclick="doReset()" data-i18n="giris.sifreunuttum">Şifremi unuttum</button>
   </div>
 
   <!-- Register form -->
   <div id="registerForm" style="display:none;">
     <div class="field">
-      <label>Ad Soyad *</label>
-      <input type="text" id="regName" placeholder="Adınız ve soyadınız" autocomplete="name"
+      <label><span data-i18n="giris.adsoyad">Ad Soyad</span> *</label>
+      <input type="text" id="regName" placeholder="Adınız ve soyadınız" data-i18n-ph="giris.adsoyad_ph" autocomplete="name"
         onkeydown="if(event.key==='Enter') doRegister()">
     </div>
     <div class="field">
-      <label>E-posta</label>
-      <input type="email" id="regEmail" placeholder="ornek@mail.com" autocomplete="email">
+      <label data-i18n="giris.eposta">E-posta</label>
+      <input type="email" id="regEmail" placeholder="ornek@mail.com" data-i18n-ph="giris.eposta_ph" autocomplete="email">
     </div>
     <div class="field">
-      <label>Şifre</label>
-      <input type="password" id="regPass" placeholder="En az 6 karakter" autocomplete="new-password"
+      <label data-i18n="giris.sifre">Şifre</label>
+      <input type="password" id="regPass" placeholder="En az 6 karakter" data-i18n-ph="giris.sifre_min" autocomplete="new-password"
         onkeydown="if(event.key==='Enter') doRegister()">
     </div>
-    <button class="btn-primary" onclick="doRegister()" id="regBtn">Kayıt Ol</button>
+    <button class="btn-primary" onclick="doRegister()" id="regBtn" data-i18n="giris.kayitol">Kayıt Ol</button>
   </div>
 
   <div class="msg" id="msg"></div>
