@@ -612,12 +612,27 @@ function pingLastSeen() {
   var anahtar = 'lastSeen:' + uid;
   try { if (localStorage.getItem(anahtar) === bugun) return; } catch(e) {}
   try { localStorage.setItem(anahtar, bugun); } catch(e) {}   // önce işaretle: istek düşse de gün içinde tekrar denemesin
+  // (2026-08-30) Arayüzün FİİLEN hangi dilde çizildiği de aynı isteğe biniyor.
+  // `ui_lang`ten ayrı bir sütun: o kullanıcının NİYETİ (yalnızca Ayarlar'dan
+  // elle seçince yazılır, çoğu kullanıcıda NULL kalır) ve senkronizasyon
+  // mantığı ona bakıyor. Bu ise GERÇEK DURUM ve rapor buna bakar. İkisini tek
+  // sütunda toplarsak senkronizasyon bozulur: tarayıcı dili farklı olan ikinci
+  // cihaz, profil isteği dönmeden 'en' yazar, ilk cihaz onu "uzakta değişti"
+  // sanıp geri döner ve cihazlar birbiriyle didişir.
+  // Not: burası günde bir kez ve loadUserRole'dan ÖNCE çalışıyor, yani
+  // yazılan değer oturumun AÇILIŞ dilidir. Kullanıcı gün içinde dili
+  // değiştirirse ertesi güne kadar yansımaz — rapor için yeterli.
+  var govde = { last_seen_at: new Date().toISOString() };
+  try {
+    var d = (window.i18n && window.i18n.dil) ? window.i18n.dil() : null;
+    if (d) govde.ui_lang_effective = d;
+  } catch(e) {}
   try {
     fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
       method: 'PATCH',
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || ''),
                  'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ last_seen_at: new Date().toISOString() })
+      body: JSON.stringify(govde)
     }).catch(function(){});
   } catch(e) {}
 }

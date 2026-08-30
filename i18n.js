@@ -114,6 +114,13 @@
       'ana.tumu': 'Tümü →',
       'ana.ajanda': 'Konser Ajandası',
       'ana.yakinda': 'yakında',
+      // Hero sayacinin etiketi. `menu.repertuvarlar` cogul ve menu icin;
+      // sayac etiketi ayri kalsin, ikisi farkli yerde degisebilir.
+      'ana.repertuvar': 'Repertuvar',
+      // Isimli selamlama JS'ten yaziliyor. {ad} yer tutucusu calisma aninda
+      // degistiriliyor — kelime sirasi dile gore degisebilsin diye metnin
+      // icinde, sonuna eklenmiyor.
+      'ana.hosgeldin_ad': 'Hoş geldin, {ad} 👋',
       'ana.eser': 'Eser',
       'ana.grup': 'Grup',
 
@@ -403,6 +410,8 @@
       'ana.tumu': 'See all →',
       'ana.ajanda': 'Concert Calendar',
       'ana.yakinda': 'coming soon',
+      'ana.repertuvar': 'Setlists',
+      'ana.hosgeldin_ad': 'Welcome, {ad} 👋',
       'ana.eser': 'Pieces',
       'ana.grup': 'Groups',
 

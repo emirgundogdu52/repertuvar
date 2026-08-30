@@ -853,7 +853,7 @@ function _m(anahtar, tr) {
         { href: 'artiesten.html', icon: 'ti-microphone',  label: _m('menu.solistler','Solistler') },
         { href: 'gruplar.html',   icon: 'ti-users-group', label: _m('menu.grup','Grup / Koro') },
       ] : []),
-      { href: 'stage.html',       icon: 'ti-music',    label: 'Sahne Modu', stage: true },
+      { href: 'stage.html',       icon: 'ti-music',    label: _m('menu.sahnemodu','Sahne Modu'), stage: true },
       { href: 'mesajlar.html',    icon: 'ti-message',  label: _m('menu.mesajlar','Mesajlar') },
     ];
 
