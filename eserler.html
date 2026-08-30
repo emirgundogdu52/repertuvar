@@ -1423,7 +1423,7 @@ function displayUserName(userId, email){
   const n = userId && USER_NAMES[userId];
   if (n) return n;
   if ((isAdmin() || isEditor()) && email) return email;
-  return 'Üye';
+  return _esCev('es.rolUye','Üye');
 }
 
 
@@ -1550,7 +1550,7 @@ async function syncWorksFromServer(hadLocalData) {
     if (rows.length === 0 && (hadLocalData || DATA.length > 0)) {
       console.warn('[eserler] sunucu 0 kayıt döndü ama yerelde ' + DATA.length +
         ' eser var — YEREL KORUNUYOR (oturum/yetki sorunu olabilir)');
-      toastMsg('⚠️ Sunucudan liste alınamadı — yerel kopya gösteriliyor');
+      toastMsg(_esCev('es.listeAlinamadi','⚠️ Sunucudan liste alınamadı — yerel kopya gösteriliyor'));
       return;
     }
     // Tam o an bir eseri kaydırıyorsa/panel açıksa görünümü yeniden çizmeyi ertele.
@@ -1903,7 +1903,7 @@ async function pickRepertoireForAdd(repId, repName) {
     const existing = await existingR.json();
     if (existing.some(it => Number(it.work_id) === Number(repAddWorkId))) {
       msg.style.color = '#e07060';
-      msg.textContent = 'Bu eser zaten "' + repName + '" içinde.';
+      msg.textContent = _esCev('es.zatenIcinde','Bu eser zaten "{rep}" içinde.').replace('{rep}', repName);
       return;
     }
     const nextSeq = existing.length ? Math.max(...existing.map(it => it.seq || 0)) + 1 : 1;
@@ -1918,7 +1918,7 @@ async function pickRepertoireForAdd(repId, repName) {
     // anlaşılmıyordu — bir eser sessizce eklenmemiş sayılıyordu.
     if (!insRes.ok) throw new Error('HTTP ' + insRes.status + ' — ' + (await insRes.text()).slice(0, 300));
     msg.style.color = 'var(--ready-color,#34C759)';
-    msg.textContent = '✓ "' + repName + '" içine eklendi.';
+    msg.textContent = _esCev('es.icineEklendi','✓ "{rep}" içine eklendi.').replace('{rep}', repName);
     // Yerel repertuvar/grup sayaçlarını da tazele
     if (typeof loadRepertoireCounts === 'function') loadRepertoireCounts();
     setTimeout(closeRepAddSheet, 900);
@@ -1942,8 +1942,8 @@ function toggleMoreSheet(show, id) {
       <button class="more-sheet-item" onclick="toggleMoreSheet(false);openRepAddSheet(${id})"><i class="ti ti-playlist-add"></i> Repertuvara Ekle</button>
       <button class="more-sheet-item" onclick="shareWork(${id})"><i class="ti ti-share"></i> Paylaş</button>
       <button class="more-sheet-item" onclick="toggleFavoriteFromMore(${id})"><i class="ti ti-star${isFavNow?'-filled fav-star':''}"></i> ${isFavNow?'Favoriden Çıkar':'Favoriye Ekle'}</button>
-      <button class="more-sheet-item" onclick="stubAction('PDF / Nota görüntüleme')"><i class="ti ti-file-music"></i> PDF / Nota</button>
-      <button class="more-sheet-item" onclick="stubAction('Kopyasını oluşturma')"><i class="ti ti-copy"></i> Kopyasını Oluştur</button>
+      <button class="more-sheet-item" onclick="stubAction(_esCev('es.stubPdf','PDF / Nota görüntüleme'))"><i class="ti ti-file-music"></i> PDF / Nota</button>
+      <button class="more-sheet-item" onclick="stubAction(_esCev('es.stubKopya','Kopyasını oluşturma'))"><i class="ti ti-copy"></i> Kopyasını Oluştur</button>
       <button class="more-sheet-item" onclick="toggleMoreSheet(false);openEditEserModal(${id})" style="display:${(isAdmin() || isEditor() || w.submitted_by === getUserId()) ? 'flex' : 'none'}"><i class="ti ti-edit"></i> Düzenle</button>
       <button class="more-sheet-item danger" onclick="toggleMoreSheet(false);showDeleteConfirm(${id})" style="display:${(isAdmin() || isEditor() || w.submitted_by === getUserId()) ? 'flex' : 'none'}"><i class="ti ti-trash"></i> Sil</button>
     `;
@@ -1954,7 +1954,7 @@ function toggleMoreSheet(show, id) {
 
 function stubAction(label) {
   toggleMoreSheet(false);
-  alert(label + ' özelliği yakında eklenecek.');
+  alert(_esCev('es.stubYakinda','{ad} özelliği yakında eklenecek.').replace('{ad}', label));
 }
 
 // 2026-07-20 (3): Paylaşım bağlantısının tabanı. Uygulama Capacitor içinde
@@ -1993,7 +1993,7 @@ async function shareWork(id) {
     if (ok) { toastMsg(_esCev('es.baglantiKopyalandi','✓ Bağlantı kopyalandı')); return; }
   } catch (e) {}
   // 4) Son çare: kullanıcı elle kopyalasın
-  prompt('Bağlantıyı kopyalayın:', url);
+  prompt(_esCev('es.baglantiKopyala','Bağlantıyı kopyalayın:'), url);
 }
 
 // 2026-07-20 (3): Paylaşılan bağlantı (?id=) ile gelen eseri açar.
@@ -2182,14 +2182,14 @@ document.addEventListener('click', function(e) {
   }
 });
 
-const SORT_LABELS = { name:'Ada Göre', composer:'Besteciye Göre', makam:'Makama Göre', form:'Forma Göre', region:'Yöreye Göre' };
+const SORT_LABELS = { name:_esCev('es.sortAd','Ada Göre'), composer:_esCev('es.sortBesteci','Besteciye Göre'), makam:_esCev('es.sortMakam','Makama Göre'), form:_esCev('es.sortForm','Forma Göre'), region:_esCev('es.sortYore','Yöreye Göre') };
 
 function setSort(mode) {
   sortMode = mode;
   document.querySelectorAll('.sort-dd-item').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.sort-dd-item').forEach(b => { if(b.textContent.trim() === SORT_LABELS[mode]) b.classList.add('active'); });
   const btn = document.getElementById('sortMainBtn');
-  if (btn) btn.textContent = (SORT_LABELS[mode] || 'Sırala') + ' ▾';
+  if (btn) btn.textContent = (SORT_LABELS[mode] || _esCev('es.sirala','Sırala')) + ' ▾';
   const dd = document.getElementById('sortDropdown');
   if (dd) dd.classList.remove('open');
   sortData();
@@ -2492,7 +2492,7 @@ function updateBulkBar() {
 
 async function bulkCreateRepertoire() {
   if (!bulkSelectedIds.size) return;
-  const name = prompt('Yeni repertuvarın adı:');
+  const name = prompt(_esCev('es.yeniRepAdi','Yeni repertuvarın adı:'));
   if (!name || !name.trim()) return;
   const headers = { ...authHeaders(), Prefer: 'return=representation' };
   const gid = localStorage.getItem('user_group_id');
@@ -2512,7 +2512,7 @@ async function bulkCreateRepertoire() {
     const insRes = await fetch(SUPA_URL + '/rest/v1/repertoire_items', { method: 'POST', headers, body: JSON.stringify(items) });
     if (!insRes.ok) throw new Error('items insert failed');
     if (typeof loadRepertoireCounts === 'function') loadRepertoireCounts();
-    alert('✓ "' + name.trim() + '" repertuvarı ' + ids.length + ' eserle oluşturuldu.');
+    alert(_esCev('es.repOlusturuldu','✓ "{ad}" repertuvarı {n} eserle oluşturuldu.').replace('{ad}', name.trim()).replace('{n}', ids.length));
     exitBulkMode();
   } catch (e) {
     alert(_esCev('es.repOlusturHata','Repertuvar oluşturulurken bir hata oluştu.'));
@@ -2763,12 +2763,12 @@ function selectWork(id, silent) {
     <div id="tab-bilgiler" class="detail-tab-content detail-body${lastTab==='bilgiler'?' active':''}">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
         ${row2('Besteci', w.composer)}
-        ${row2('Söz Yazarı', w.lyricWriter)}
+        ${row2(_esCev('es.sozyazari','Söz Yazarı'), w.lyricWriter)}
         ${row2('Form', w.form)}
         ${row2('Enstrüman', w.instrument)}
-        ${row2('Bölge / Yöre', w.region)}
+        ${row2(_esCev('alan.yore','Yöre/Bölge'), w.region)}
         ${row2('Kaynak Kişi', w.sourcePerson)}
-        ${row2('Kapanış Notası', w.closingNote)}
+        ${row2(_esCev('alan.karar','Karar Sesi'), w.closingNote)}
       </div>
 
     </div>
@@ -3167,7 +3167,7 @@ function handoffToNudge(id){
   const host = document.getElementById('chords_nudge_' + id);
   if (host && host.style.display === 'none') toggleNudgeEditor(id);
   if (host) host.scrollIntoView({behavior:'smooth', block:'center'});
-  toastMsg('Hiza kilitlendi — önizlemede akora dokun, ◀ ▶ ile kaydır');
+  toastMsg(_esCev('es.hizaKilitlendi','Hiza kilitlendi — önizlemede akora dokun, ◀ ▶ ile kaydır'));
 }
 function applyConvScale(id, val){
   const ta = document.getElementById('inline_chords_' + id);
@@ -3197,7 +3197,7 @@ function suggestConvScale(id){
   const sl = document.getElementById('conv_scale_' + id);
   if (sl) sl.value = Math.round(k * 100);
   applyConvScale(id, Math.round(k * 100));
-  toastMsg('En iyi uyum: ' + k.toFixed(2) + ' — kulağına doğru gelmezse sürgüyle ayarla');
+  toastMsg(_esCev('es.enIyiUyum','En iyi uyum: {k}{ek}').replace('{k}', k.toFixed(2)).replace('{ek}', _esCev('es.kulaginaGore',' — kulağına doğru gelmezse sürgüyle ayarla')));
 }
 function undoConvert(id){
   const ta = document.getElementById('inline_chords_' + id);
@@ -3242,9 +3242,9 @@ function convertChordsInEditor(id){
   const ta=document.getElementById('inline_chords_'+id);
   if(!ta) return;
   const src=ta.value;
-  if(hasRealChords(src)){ alert('Bu metin zaten ChordPro biçiminde ([Am]) görünüyor.'); return; }
+  if(hasRealChords(src)){ alert(_esCev('es.zatenChordPro','Bu metin zaten ChordPro biçiminde ([Am]) görünüyor.')); return; }
   const converted=convertChordsAboveToChordPro(src);
-  if(!hasRealChords(converted)){ alert('Çevrilecek akor satırı bulunamadı. Akorların sözlerin üstünde ayrı satırda olduğundan emin olun.'); return; }
+  if(!hasRealChords(converted)){ alert(_esCev('es.akorSatiriYok','Çevrilecek akor satırı bulunamadı. Akorların sözlerin üstünde ayrı satırda olduğundan emin olun.')); return; }
   _cpConvSrc[id]=src;                       // ham kaynağı sakla: sürgü ve geri alma bunu kullanır
   delete _cpNudged[id]; _cpLastK[id]=1;     // yeni çevirme: rötuş geçmişi ve ölçek sıfır
   ta.value=converted;
@@ -3260,14 +3260,14 @@ function convertChordsInEditor(id){
       + '<span id="conv_scale_lbl_'+id+'" style="font-size:12px;font-weight:700;color:var(--accent);min-width:34px;font-variant-numeric:tabular-nums;">1.00</span>'
       + '<button onclick="suggestConvScale('+id+')" class="rbtn rbtn-sm">Öner</button>'
       + '<button onclick="undoConvert('+id+')" class="rbtn rbtn-sm">Geri al</button>'
-      + '<button onclick="handoffToNudge('+id+')" title="Hizayı kilitle ve kalan akorları elle düzelt" data-i18n-title="es.t_hizaKilit" class="rbtn rbtn-sm is-on"><span class=\'rgl\'>↔</span> Elle kaydır</button>'
+      + '<button onclick="handoffToNudge('+id+')" title="Hizayı kilitle ve kalan akorları elle düzelt" data-i18n-title="es.t_hizaKilit" class="rbtn rbtn-sm is-on"><span class=\'rgl\'>↔</span> ' + _esCev('es.elleKaydir','Elle kaydır') + '</button>'
       + '<button onclick="closeConvScale('+id+')" class="rbtn rbtn-sm">Bitti</button>'
       + '</div>'
       + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">Sürgüyü çekerken akorlar güftenin üstünde birlikte kayar — önizlemeye bakarak doğru yerde bırak. Kaynaktaki hiza tek bir ölçekten kaymışsa bu tek hareket bütün eseri düzeltir.</div>'
       + '<div style="margin-top:8px;padding:8px 10px;background:rgba(245,158,11,.10);border-left:3px solid var(--accent);border-radius:4px;font-size:12px;color:var(--text2);line-height:1.55;">⚠️ <b>Bu sürgü yalnızca şimdi, çevirme sırasında çalışır.</b> Kaydettikten sonra bu eserde ölçeği değiştiremezsin — değiştirmek için kaynak metni yeniden yapıştırıp baştan çevirmen gerekir. Sıra: <b>önce sürgü</b>, sonra <b>↔ Elle kaydır</b>, en son <b data-i18n="ortak.kaydet">Kaydet</b>. Elle rötuş kaydettikten sonra da her zaman yapılabilir.</div>';
   }
   updateChordsPreview(id);
-  toastMsg('✓ Çevrildi — hiza kaymışsa sürgüyle ayarla, sonra Kaydet');
+  toastMsg(_esCev('es.cevrildi','✓ Çevrildi — hiza kaymışsa sürgüyle ayarla, sonra Kaydet'));
 }
 
 function renderChords(text) {
@@ -3516,14 +3516,14 @@ function renderNudgeEditor(id){
     + btn('◀', 'nudgeChord(' + id + ',-1)', has, true)
     + btn('▶', 'nudgeChord(' + id + ',1)', has, true)
     + '<span style="width:1px;height:24px;background:var(--border);margin:0 2px;"></span>'
-    + btn('⟪ Tümü', 'nudgeAll(' + id + ',-1)', true)
-    + btn('Tümü ⟫', 'nudgeAll(' + id + ',1)', true)
+    + btn(_esCev('es.tumuSol','⟪ Tümü'), 'nudgeAll(' + id + ',-1)', true)
+    + btn(_esCev('es.tumuSag','Tümü ⟫'), 'nudgeAll(' + id + ',1)', true)
     + '<span style="flex:1;min-width:8px;"></span>'
     + '<button onclick="toggleNudgeEditor(' + id + ')" class="rbtn rbtn-sm is-on">Bitti</button>'
     + '</div>'
     + '<div style="margin-top:7px;font-size:12px;color:var(--text3);line-height:1.5;">'
-    + (has ? 'Seçili akoru bir hece kaydırır — ok tuşları da çalışır.' : '<b>Aşağıdaki önizlemede taşımak istediğin akora dokun.</b>')
-    + ' Değişiklikler metin kutusuna yazılır, <b data-i18n="ortak.kaydet">Kaydet</b>\'e basmayı unutma.</div>';
+    + (has ? _esCev('es.akorKaydirIpucu','Seçili akoru bir hece kaydırır — ok tuşları da çalışır.') : '<b>Aşağıdaki önizlemede taşımak istediğin akora dokun.</b>')
+    + _esCev('es.kaydetUnutma',' Değişiklikler metin kutusuna yazılır, <b>{kaydet}</b> düğmesine basmayı unutma.').replace('{kaydet}', _esCev('ortak.kaydet','Kaydet')) + '</div>';
   updateChordsPreview(id);
 }
 document.addEventListener('keydown', function(e){
@@ -3581,7 +3581,7 @@ function updateTonBadge(id){
       kl.style.color = v ? 'var(--accent)' : 'var(--text2)';
     } else {
       // Tanınmayan yazım (ör. perde adı) — kaydırmadan olduğu gibi göster
-      kl.textContent = w.closingNote ? ('Karar: ' + w.closingNote + (v ? ' (kaydırılmadı)' : '')) : '';
+      kl.textContent = w.closingNote ? (_esCev('alan.karar','Karar Sesi') + ': ' + w.closingNote + (v ? _esCev('es.kaydirilmadi',' (kaydırılmadı)') : '')) : '';
       kl.style.color = 'var(--text3)';
       kl.title = '';
     }
@@ -3682,7 +3682,7 @@ async function savePersonalNoteRow(id, note){
   });
   if(!r.ok) throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,120));
   const rows = await r.json();
-  if(!Array.isArray(rows) || !rows.length) throw new Error('Sunucu hiçbir satır yazmadı (yetki?)');
+  if(!Array.isArray(rows) || !rows.length) throw new Error(_esCev('es.satirYazilmadi','Sunucu hiçbir satır yazmadı (yetki?)'));
   return rows[0];
 }
 
@@ -3885,8 +3885,8 @@ function _afterChordsSaved(id, hasCh, chords, isShared){
   if (isShared) {
     toastMsg('✓ Eserin akoru kaydedildi');
   } else {
-    toastGeriAl('✓ Kişisel kopyanıza kaydedildi — eserin akoru değişmedi',
-      () => setChordScope(id, 'ortak'), 'Eserin akorunu düzenle');
+    toastGeriAl(_esCev('es.kisiseleKaydedildi','✓ Kişisel kopyanıza kaydedildi — eserin akoru değişmedi'),
+      () => setChordScope(id, 'ortak'), _esCev('es.eserAkorDuzenle','Eserin akorunu düzenle'));
   }
 }
 
@@ -3907,7 +3907,7 @@ async function saveChords(id) {
   // GÜVENLİK: parantezsiz ama DOLU metni asla silme (eski "akor üstte" biçimindeki
   // kayıtlar böyle). Eskiden boş kaydediliyordu ve ortak akor siliniyordu.
   if (raw && !_hasCh) {
-    if (!confirm('Bu metinde [Am] biçiminde akor yok (akorlar sözlerin üstünde ayrı satırda olabilir).\n\nTAMAM: metin aynen kaydedilir — ama akor-hece hizası ve ± Ton çalışmaz.\nİPTAL: kaydetme, önce "⇄ ChordPro\'ya çevir" butonuna bas.')) return;
+    if (!confirm(_esCev('es.akorYokKaydet','Bu metinde [Am] biçiminde akor yok (akorlar sözlerin üstünde ayrı satırda olabilir).\n\nTAMAM: metin aynen kaydedilir — ama akor-hece hizası ve ± Ton çalışmaz.\nİPTAL: kaydetme, önce ChordPro\u2019ya çevir düğmesine bas.'))) return;
   }
   const chords = raw; // dolu metin her zaman korunur; boşsa zaten '' kaydedilir
 
@@ -4110,7 +4110,7 @@ function setupNotaPasteBox(id) {
     box.innerHTML = '';
     box.blur();
     if (fs.length) uploadNotaFiles(id, fs);
-    else notaStatus(id, '❌ Panoda görsel yok. Önce bir görsel/ekran görüntüsü kopyala.', 'var(--red)');
+    else notaStatus(id, _esCev('es.panoGorselYok','❌ Panoda görsel yok. Önce bir görsel/ekran görüntüsü kopyala.'), 'var(--red)');
   });
 
   // Kutu bir metin alanı değil: yazılanı anında temizle, harf girişini engelle.
@@ -4156,8 +4156,8 @@ let _notaSeq = 0;
 async function _notaUploadToStorage(id, file) {
   const okType = (file.type || '').startsWith('image/') || file.type === 'application/pdf'
                  || /\.(jpe?g|png|gif|webp|heic|tiff?|pdf)$/i.test(file.name || '');
-  if (!okType) throw new Error('Yalnızca görsel veya PDF yükleyebilirsin.');
-  if (file.size > NOTA_MAX_BYTES) throw new Error('Dosya çok büyük (' + (file.size/1048576).toFixed(1) + ' MB) — en fazla 15 MB.');
+  if (!okType) throw new Error(_esCev('es.sadeceGorselPdf','Yalnızca görsel veya PDF yükleyebilirsin.'));
+  if (file.size > NOTA_MAX_BYTES) throw new Error(_esCev('es.dosyaBuyuk','Dosya çok büyük ({mb} MB) — en fazla 15 MB.').replace('{mb}', (file.size/1048576).toFixed(1)));
   const token = getToken();
   const ext = notaExtOf(file);
   // _notaSeq: aynı milisaniyede yüklenen iki dosya birbirinin üstüne yazmasın
@@ -4176,7 +4176,7 @@ async function _notaUploadToStorage(id, file) {
 async function uploadNotaFiles(id, fileList) {
   const files = Array.from(fileList || []).filter(Boolean);
   if (!files.length) return;
-  notaStatus(id, files.length > 1 ? `⏳ ${files.length} sayfa yükleniyor...` : '⏳ Yükleniyor...');
+  notaStatus(id, files.length > 1 ? `⏳ ${files.length} sayfa yükleniyor...` : _esCev('es.yukleniyor','⏳ Yükleniyor...'));
   const pages = (await currentNotaPages(id)).slice();
   const before = pages.length;
   const errors = [];
@@ -4188,7 +4188,7 @@ async function uploadNotaFiles(id, fileList) {
   const added = pages.length - before;
   if (!added) { notaStatus(id, '❌ ' + (errors[0] || 'Yüklenemedi.'), 'var(--red)'); return; }
   try { await saveNotaPages(id, pages); }
-  catch(e) { notaStatus(id, '❌ Kayıt hatası: ' + e.message, 'var(--red)'); return; }
+  catch(e) { notaStatus(id, _esCev('es.kayitHatasi','❌ Kayıt hatası: ') + e.message, 'var(--red)'); return; }
   notaStatus(id, `✓ ${added} sayfa eklendi — toplam ${pages.length}.` + (errors.length ? ` (${errors.length} dosya atlandı)` : ''), 'var(--green)');
   setTimeout(() => { selectWork(id, true); switchDetailTab('nota'); }, 600);
 }
@@ -4213,7 +4213,7 @@ function openStageFromDetail(stageId) {
   window.location.href = url;
 }
 
-const TAB_LABELS = {gufte:'🎵 Söz', akorlar:'🎸 Akorlar', bilgiler:'📋 Bilgiler', nota:'🎼 Nota', hikaye:'📖 Hikaye'};
+const TAB_LABELS = {gufte:_esCev('es.tabSoz','🎵 Söz'), akorlar:_esCev('es.tabAkorlar','🎸 Akorlar'), bilgiler:_esCev('es.tabBilgiler','📋 Bilgiler'), nota:_esCev('es.tabNota','🎼 Nota'), hikaye:_esCev('es.tabHikaye','📖 Hikaye')};
 
 function toggleTabDropdown() {
   const dd = document.getElementById('tabDropdown');
@@ -4528,17 +4528,17 @@ function neConvertChords() {
   const ta = document.getElementById('ne_chords');
   if (!ta) return;
   const src = ta.value;
-  if (!src.trim()) { alert('Akor kutusu boş.'); return; }
+  if (!src.trim()) { alert(_esCev('es.akorKutusuBos','Akor kutusu boş.')); return; }
   if (typeof hasRealChords === 'function' && hasRealChords(src)) {
-    alert('Bu metin zaten ChordPro biçiminde görünüyor ([Am] gibi).');
+    alert(_esCev('es.zatenChordPro2','Bu metin zaten ChordPro biçiminde görünüyor ([Am] gibi).'));
     return;
   }
   const cevrilmis = convertChordsAboveToChordPro(src);
   if (typeof hasRealChords === 'function' && !hasRealChords(cevrilmis)) {
-    alert('Çevrilecek akor satırı bulunamadı.\n\nAkorların sözlerin ÜSTÜNDE ayrı bir satırda olduğundan emin olun.');
+    alert(_esCev('es.akorSatiriYok2','Çevrilecek akor satırı bulunamadı.\n\nAkorların sözlerin ÜSTÜNDE ayrı bir satırda olduğundan emin ol.'));
     return;
   }
-  if (!confirm('Akorlar hecelerin önüne taşınacak ve kutunun içeriği değişecek.\n\nDevam edilsin mi?')) return;
+  if (!confirm(_esCev('es.chordProOnay','Akorlar hecelerin önüne taşınacak ve kutunun içeriği değişecek.\n\nDevam edilsin mi?'))) return;
   _neConvSrc = src;                 // sürgü kaynaktan yeniden çevirecek
   _neNudged = false;
   ta.value = cevrilmis;
@@ -4658,9 +4658,9 @@ function neNudgeAll(dir){
 // akor sekmesinde her zaman erişilebilen küçük bir şerit.
 function neOpenNudgeOnly(){
   const ta = document.getElementById('ne_chords');
-  if (!ta || !ta.value.trim()) { alert('Akor kutusu boş.'); return; }
+  if (!ta || !ta.value.trim()) { alert(_esCev('es.akorKutusuBos','Akor kutusu boş.')); return; }
   if (typeof hasRealChords === 'function' && !hasRealChords(ta.value)) {
-    alert('Kutuda [Am] biçiminde akor yok.\n\nAkorlar sözlerin üstünde ayrı satırdaysa önce "ChordPro\'ya çevir" düğmesini kullan.');
+    alert(_esCev('es.akorYokKutu','Kutuda [Am] biçiminde akor yok.\n\nAkorlar sözlerin üstünde ayrı satırdaysa önce ChordPro\u2019ya çevir düğmesini kullan.'));
     return;
   }
   const h = document.getElementById('ne_chordScale');
@@ -4747,7 +4747,7 @@ function setupNeNotaZone() {
     if (!files || !files.length) return;
     if (editingWorkId === null) { renderNeNotaList(); return; }
     uploadNotaFiles(editingWorkId, files);
-    renderNeNotaList('⏳ Yükleniyor — bittiğinde eser detayındaki Nota sekmesinde görünecek.');
+    renderNeNotaList(_esCev('es.notaYukleniyor','⏳ Yükleniyor — bittiğinde eser detayındaki Nota sekmesinde görünecek.'));
   };
   if (zone && zone.dataset.wired !== '1') {
     zone.dataset.wired = '1';
@@ -4776,7 +4776,7 @@ function setupNeNotaZone() {
       box.innerHTML = ''; box.blur();
       if (fs.length) al(fs);
       else if (editingWorkId === null) renderNeNotaList();
-      else renderNeNotaList('❌ Panoda görsel yok. Önce bir görsel/ekran görüntüsü kopyala.');
+      else renderNeNotaList(_esCev('es.panoGorselYok','❌ Panoda görsel yok. Önce bir görsel/ekran görüntüsü kopyala.'));
     });
     box.addEventListener('input', () => { box.innerHTML = ''; });
     box.addEventListener('keydown', e => {
@@ -4801,7 +4801,7 @@ function neNotaPick(input) {
   if (!files.length) return;
   if (editingWorkId === null) { renderNeNotaList(); return; }
   uploadNotaFiles(editingWorkId, files);
-  renderNeNotaList('⏳ Yükleniyor — bittiğinde eser detayındaki Nota sekmesinde görünecek.');
+  renderNeNotaList(_esCev('es.notaYukleniyor','⏳ Yükleniyor — bittiğinde eser detayındaki Nota sekmesinde görünecek.'));
 }
 
 function renderNeNotaList(msg) {
@@ -4818,7 +4818,7 @@ function renderNeNotaList(msg) {
   const w = DATA.find(x => x.id === editingWorkId);
   const n = w ? notaPagesOf(w).length : 0;
   el.innerHTML = n
-    ? '<div style="color:var(--text3);">Bu eserde ' + n + ' nota sayfası var. Sayfa silme ve sıralama eser detayındaki Nota sekmesinde.</div>'
+    ? '<div style="color:var(--text3);">' + _esCev('es.notaSayfaVar','Bu eserde {n} nota sayfası var. Sayfa silme ve sıralama eser detayındaki Nota sekmesinde.').replace('{n}', n) + '</div>'
     : '<div style="color:var(--text3);">Henüz nota yok.</div>';
 }
 
@@ -4939,7 +4939,7 @@ document.addEventListener('keydown', function (e) {
   e.stopPropagation();
   e.preventDefault();
   if (typeof toastMsg === 'function') {
-    toastMsg('Formu kapatmak için Kaydet ya da İptal kullanın');
+    toastMsg(_esCev('es.formuKapat','Formu kapatmak için Kaydet ya da İptal kullanın'));
   }
 }, true);
 
@@ -5034,8 +5034,8 @@ function _gizleDugmesiKur(sar, a) {
   b.type = 'button';
   b.className = 'alan-gizle';
   b.textContent = '×';
-  b.title = 'Bu alanı gizle';
-  b.setAttribute('aria-label', a.ad + ' alanını gizle');
+  b.title = _esCev('es.alanGizleT','Bu alanı gizle');
+  b.setAttribute('aria-label', _esCev('es.alanGizleAria','{ad} alanını gizle').replace('{ad}', a.ad));
   b.style.cssText = 'margin-left:auto;background:none;border:none;color:var(--text3);' +
     'font-size:16px;line-height:1;cursor:pointer;padding:0 2px;opacity:.55;';
   b.onmouseenter = () => { b.style.opacity = '1'; };
@@ -5425,7 +5425,7 @@ async function yazVeDogrula(url, method, body) {
   catch (e) { return { ok:false, rows:[], hata:_esCev('es.baglantiHatasi','Bağlantı hatası: ') + e.message }; }
   if (!r.ok && r.status !== 204) {
     let t = ''; try { t = await r.text(); } catch(e) {}
-    return { ok:false, rows:[], hata:'Sunucu hatası: ' + (t || r.status) };
+    return { ok:false, rows:[], hata:_esCev('es.sunucuHatasi','Sunucu hatası: ') + (t || r.status) };
   }
   let rows = [];
   try { rows = await r.json(); } catch(e) { rows = []; }
@@ -5462,7 +5462,7 @@ function saveNewEser() {
   if (_eserKaydediliyor) return;          // ikinci dokunuş yok sayılır
 
   const name = document.getElementById('ne_name').value.trim();
-  if (!name) { switchNeTab('lyrics'); alert('Eser adı zorunludur.'); return; }
+  if (!name) { switchNeTab('lyrics'); alert(_esCev('es.eserAdiZorunlu','Eser adı zorunludur.')); return; }
 
   // (2026-08-06) AYNI ADLA MÜKERRER KAYIT UYARISI.
   // works ORTAK katalog; aynı türkü ikinci kez girilince liste ikiye bölünüyor,
@@ -5479,9 +5479,9 @@ function saveNewEser() {
         return '  • ' + w.name + (d ? '  (' + d + ')' : '');
       }).join('\n');
       const _fazla = _benzer.length > 4 ? '\n  • … ve ' + (_benzer.length - 4) + ' tane daha' : '';
-      if (!confirm('Benzer adla ' + _benzer.length + ' eser zaten kayıtlı:\n\n' + _liste + _fazla
-        + '\n\nYine de yeni bir kayıt oluşturulsun mu?'
-        + '\n\nMevcut esere ekleme yapacaksanız İptal deyin, listeden o eseri açıp Düzenle deyin.')) {
+      if (!confirm(_esCev('es.benzerVar','Benzer adla {n} eser zaten kayıtlı:\n\n').replace('{n}', _benzer.length) + _liste + _fazla
+        + _esCev('es.benzerYineDe','\n\nYine de yeni bir kayıt oluşturulsun mu?')
+        + _esCev('es.benzerIpucu','\n\nMevcut esere ekleme yapacaksanız İptal deyin, listeden o eseri açıp Düzenle deyin.'))) {
         return;
       }
     }
@@ -5690,7 +5690,7 @@ function saveNewEser() {
           if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
         }, 100);
       } else if (!isPublic) {
-        alert('Eser özel olarak kaydedildi — yalnızca siz görebilirsiniz.');
+        alert(_esCev('es.ozelKaydedildi','Eser özel olarak kaydedildi — yalnızca siz görebilirsiniz.'));
         setTimeout(() => {
           const item = document.querySelector('[data-id="' + newWork.id + '"]');
           if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
@@ -5704,7 +5704,7 @@ function saveNewEser() {
       }
     })
     .catch(err => {
-      alert('Kayıt hatası: ' + err.message);
+      alert(_esCev('es.kayitHatasi','❌ Kayıt hatası: ').replace('❌ ','') + err.message);
     })
     .finally(() => { _kilitAc(); });   // başarı da hata da olsa kilit açılır
   }
@@ -5772,7 +5772,7 @@ document.addEventListener('DOMContentLoaded', function() {
     overlay.addEventListener('click', function(e) {
       if (e.target !== this) return;
       if (typeof toastMsg === 'function') {
-        toastMsg('Formu kapatmak için Kaydet ya da İptal kullanın');
+        toastMsg(_esCev('es.formuKapat','Formu kapatmak için Kaydet ya da İptal kullanın'));
       }
     });
   }
@@ -5905,7 +5905,7 @@ async function assignEditor() {
   const msg = document.getElementById('editorMsg');
   if (!email) return;
   msg.style.display = 'block';
-  msg.textContent = 'Aranıyor...';
+  msg.textContent = _esCev('es.araniyor','Aranıyor...');
   msg.style.color = 'var(--text3)';
 
   // 1. profiles'dan email ile UUID bul
@@ -5930,7 +5930,7 @@ async function assignEditor() {
     // Profil yok — auth.users'dan UUID alıp INSERT yap
     // Bunun için admin RPC gerekir, SQL ile yapılmalı
     msg.style.color = '#e07060';
-    msg.textContent = 'Kullanıcı profili bulunamadı. Kullanıcının en az bir kez giriş yapmış olması gerekiyor.';
+    msg.textContent = _esCev('es.profilYok','Kullanıcı profili bulunamadı. Kullanıcının en az bir kez giriş yapmış olması gerekiyor.');
   }
 }
 
@@ -6491,8 +6491,8 @@ function openSuggestModal() { openNewEserModal(); }
     const roleEl=document.getElementById('sbUserRole');
     if(roleEl){
       if(typeof isAdmin==='function'&&isAdmin()) roleEl.textContent='Admin';
-      else if(typeof isEditor==='function'&&isEditor()) roleEl.textContent='Editör';
-      else roleEl.textContent='Üye';
+      else if(typeof isEditor==='function'&&isEditor()) roleEl.textContent=_esCev('es.rolEditor','Editör');
+      else roleEl.textContent=_esCev('es.rolUye','Üye');
     }
   }
   setTimeout(_v2RoleInit,300);
