@@ -857,7 +857,10 @@ function renderList(){
     // sol çizgisi aşağı devam edince metin boşlukta duruyormuş gibi
     // görünüyordu. Kendi kutusuna alındı: hafif zemin + tam çerçeve, böylece
     // nerede bittiği belli oluyor.
-    html += '<div style="margin:12px 10px 16px;padding:12px 13px;font-size:12.5px;'
+    // Kenar boşluğu YOK: `.ri` kartları da kapsayıcıyı tam dolduruyor
+    // (yalnızca margin-bottom var). 10px vermek notu kartlardan dar
+    // gösteriyordu — hizasız duruyordu.
+    html += '<div style="margin:12px 0 16px;padding:12px 13px;font-size:12.5px;'
          +  'color:var(--text3);line-height:1.6;background:var(--surface2);'
          +  'border:1px solid var(--border);border-radius:10px;">'
          +  '<i class="ti ti-users-group" style="font-size:14px;vertical-align:-2px;" aria-hidden="true"></i> '
