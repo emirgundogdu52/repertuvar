@@ -1606,7 +1606,7 @@ async function syncWorksFromServer(hadLocalData) {
     // Bağlantı GERÇEKTEN yoksa (navigator offline) ve ekranda yerel veri gösteriliyorsa
     // kullanıcıyı bilgilendir. Online'ken sadece timeout olduysa sessiz kal.
     if (navigator.onLine === false && hadLocalData) {
-      toastMsg('📵 Çevrimdışı mod — yerel veriler gösteriliyor');
+      toastMsg(_esCev('es.cevrimdisi','📵 Çevrimdışı mod — yerel veriler gösteriliyor'));
     }
   }
 }
@@ -1982,7 +1982,7 @@ async function shareWork(id) {
     catch (e) { if (e && e.name === 'AbortError') return; /* desteklenmiyorsa kopyalamaya düş */ }
   }
   // 2) Panoya kopyala
-  try { await navigator.clipboard.writeText(url); toastMsg('✓ Bağlantı kopyalandı'); return; } catch (e) {}
+  try { await navigator.clipboard.writeText(url); toastMsg(_esCev('es.baglantiKopyalandi','✓ Bağlantı kopyalandı')); return; } catch (e) {}
   // 3) Eski yöntem (HTTPS olmayan / izin verilmeyen ortamlar)
   try {
     const ta = document.createElement('textarea');
@@ -1990,7 +1990,7 @@ async function shareWork(id) {
     ta.style.cssText = 'position:fixed;top:-1000px;opacity:0;';
     document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, url.length);
     const ok = document.execCommand('copy'); ta.remove();
-    if (ok) { toastMsg('✓ Bağlantı kopyalandı'); return; }
+    if (ok) { toastMsg(_esCev('es.baglantiKopyalandi','✓ Bağlantı kopyalandı')); return; }
   } catch (e) {}
   // 4) Son çare: kullanıcı elle kopyalasın
   prompt('Bağlantıyı kopyalayın:', url);
@@ -2054,7 +2054,7 @@ async function openSharedWork(rawId) {
     const f = findLocal();
     if (f) { selectWork(f.id); return; }
   }
-  toastMsg('Paylaşılan eser bulunamadı');
+  toastMsg(_esCev('es.paylasilanYok','Paylaşılan eser bulunamadı'));
 }
 
 // 2026-07-19: detay başlığındaki favori butonu — detayı yeniden çizmeden yerinde güncellenir
@@ -2264,7 +2264,7 @@ function renderList() {
     if (!canEdit) return cardHtml;
     return `<div class="we-wrap">
       <div class="we-edit-bg" onclick="event.stopPropagation();weCloseOpenCard();openEditEserModal(${w.id})"><i class="ti ti-edit"></i>Değiştir</div>
-      <div class="we-delete-bg" onclick="event.stopPropagation();weCloseOpenCard();if(confirm('${(w.name||'Bu eser').replace(/'/g,"\\'")} silinsin mi?\\n\\nEser çöp kutusuna taşınır, 30 gün içinde geri alabilirsiniz.'))deleteWork(${w.id});"><i class="ti ti-trash"></i>Sil</div>
+      <div class="we-delete-bg" onclick="event.stopPropagation();weCloseOpenCard();esSilOnay(${w.id});"><i class="ti ti-trash"></i>Sil</div>
       ${cardHtml}
     </div>`;
   }).join('');
@@ -2515,7 +2515,7 @@ async function bulkCreateRepertoire() {
     alert('✓ "' + name.trim() + '" repertuvarı ' + ids.length + ' eserle oluşturuldu.');
     exitBulkMode();
   } catch (e) {
-    alert('Repertuvar oluşturulurken bir hata oluştu.');
+    alert(_esCev('es.repOlusturHata','Repertuvar oluşturulurken bir hata oluştu.'));
   }
 }
 
@@ -3174,7 +3174,7 @@ function applyConvScale(id, val){
   const src = _cpConvSrc[id];
   if (!ta || src === undefined) return;
   if (_cpNudged[id]) {                                // elle rötuş yapılmış: sürgü onları silecek
-    if (!confirm('Elle taşıdığın akorlar var.\n\nSürgü metni kaynaktan baştan çevirir, yani o rötuşlar SİLİNİR.\n\nTAMAM: sürgüyle devam et (rötuşlar gider)\nİPTAL: rötuşları koru')) {
+    if (!confirm(_esCev('es.elleTasinmisUyari','Elle taşıdığın akorlar var.\n\nSürgü metni kaynaktan baştan çevirir, yani o rötuşlar SİLİNİR.\n\nTAMAM: sürgüyle devam et (rötuşlar gider)\nİPTAL: rötuşları koru'))) {
       const sl = document.getElementById('conv_scale_' + id);
       if (sl) sl.value = Math.round((_cpLastK[id] || 1) * 100);
       return;
@@ -3786,11 +3786,11 @@ async function deletePersonalChordsRow(id){
   return r.ok || r.status===204;
 }
 async function deletePersonalChords(id){
-  if(!confirm('Kişisel akorun silinecek, ortak akora döneceksin. Emin misin?')) return;
+  if(!confirm(_esCev('es.kisiselAkorSilOnay','Kişisel akorun silinecek, ortak akora döneceksin. Emin misin?'))) return;
   const ok = await deletePersonalChordsRow(id);
   if(!ok){ alert('Silinemedi, tekrar dene.'); return; }
   delete PERSONAL_CHORDS[String(id)];
-  toastMsg('✓ Kişisel akor silindi');
+  toastMsg(_esCev('es.kisiselAkorSilindi','✓ Kişisel akor silindi'));
   setChordScope(id, (document.getElementById('inline_chords_'+id)?.dataset.scope) || 'kisisel');
 }
 // Kapsam (Ortak/Kişisel) değiştir — editör içeriğini ve butonları güncelle
@@ -3833,7 +3833,7 @@ async function undoDeleteWork(id) {
   if (w && !DATA.some(x => x.id === w.id)) DATA.push(mapWorkRow(w));
   buildFilters();
   applyFilters();
-  toastMsg('✓ Eser geri alındı');
+  toastMsg(_esCev('es.geriAlindi','✓ Eser geri alındı'));
 }
 
 // Eylemli bildirim: düz toastMsg'den farkı, içinde bir düğme taşıması ve
@@ -3917,7 +3917,7 @@ async function saveChords(id) {
     // taslağını değiştiremiyordu.
     const _wOwn = DATA.find(x => x.id === id || x.id === parseInt(id));
     const _sahip = _wOwn && _wOwn.submitted_by && _wOwn.submitted_by === getUserId();
-    if (!(isAdmin() || isEditor() || _sahip)) { alert('Bu eserin ortak akorunu yalnızca eseri ekleyen kişi ya da editör düzenleyebilir.'); return; }
+    if (!(isAdmin() || isEditor() || _sahip)) { alert(_esCev('es.ortakAkorYetki','Bu eserin ortak akorunu yalnızca eseri ekleyen kişi ya da editör düzenleyebilir.')); return; }
     try {
       // 2026-07-28: parantezsiz ama DOLU metin artık AYNEN kaydedilir (eskiden
       // burada {chords:''} yazılıyordu → kullanıcı "kaydetmiyor" diye görüyordu).
@@ -3927,7 +3927,7 @@ async function saveChords(id) {
       const idx = DATA.findIndex(x => x.id === id || x.id === parseInt(id));
       if (idx > -1) { DATA[idx].chords = chords; if (_hasCh) DATA[idx].lyrics = chordsToLyrics(chords); }
       _afterChordsSaved(id, _hasCh, chords, true);
-    } catch(err) { alert('Bağlantı hatası: ' + err.message); }
+    } catch(err) { alert(_esCev('es.baglantiHatasi','Bağlantı hatası: ') + err.message); }
   } else {
     // KİŞİSEL: sadece bu kullanıcı görür, ortak works.chords'a dokunulmaz
     try {
@@ -3937,7 +3937,7 @@ async function saveChords(id) {
       if (!ok) { alert('Kaydedilemedi, tekrar dene.'); return; }
       if (chords) PERSONAL_CHORDS[String(id)] = chords; else delete PERSONAL_CHORDS[String(id)];
       _afterChordsSaved(id, _hasCh, chords, false);
-    } catch(err) { alert('Bağlantı hatası: ' + err.message); }
+    } catch(err) { alert(_esCev('es.baglantiHatasi','Bağlantı hatası: ') + err.message); }
   }
 }
 
@@ -4057,7 +4057,7 @@ async function moveNotaPage(id, i, dir) {
   if (j < 0 || j >= pages.length) return;
   const t = pages[i]; pages[i] = pages[j]; pages[j] = t;
   try { await saveNotaPages(id, pages); selectWork(id, true); switchDetailTab('nota'); }
-  catch(e) { alert('Sıralama kaydedilemedi: ' + e.message); }
+  catch(e) { alert(_esCev('es.siralamaHata','Sıralama kaydedilemedi: ') + e.message); }
 }
 
 async function deleteNotaPage(id, i) {
@@ -4167,7 +4167,7 @@ async function _notaUploadToStorage(id, file) {
     headers: Object.assign({'apikey': SUPA_KEY, 'Content-Type': file.type || 'application/octet-stream', 'x-upsert': 'true'}, token ? {'Authorization': 'Bearer ' + token} : {}),
     body: file
   });
-  if (!uploadRes.ok) throw new Error('Yükleme hatası (Storage).');
+  if (!uploadRes.ok) throw new Error(_esCev('es.yuklemeHata','Yükleme hatası (Storage).'));
   return `${SUPA_URL}/storage/v1/object/public/notalar/${path}`;
 }
 
@@ -4198,7 +4198,7 @@ function uploadNotaFile(id, file) { return uploadNotaFiles(id, [file]); }
 
 async function deleteNota(id) {
   const n = notaPagesById(id).length;
-  if (!confirm(n > 1 ? `${n} nota sayfasının TAMAMI silinecek. Emin misin?` : 'Notayı kaldırmak istediğinizden emin misiniz?')) return;
+  if (!confirm(n > 1 ? `${n} nota sayfasının TAMAMI silinecek. Emin misin?` : _esCev('es.notaKaldirOnay','Notayı kaldırmak istediğinizden emin misiniz?'))) return;
   try { await saveNotaPages(id, []); selectWork(id, true); switchDetailTab('nota'); }
   catch(e) { alert('Silinemedi: ' + e.message); }
 }
@@ -4959,6 +4959,17 @@ document.addEventListener('keydown', function (e) {
 // AD SEÇİMİ: `_e` denenmişti ama bu dosyada zaten `let _e...` bildirimleri
 // var; çakışma yüzünden çağrı patlıyor ve metin hiç güncellenmiyordu
 // (Emir bildirdi: "Only Me'ye basınca ne Türkçe ne İngilizce geliyor").
+// (2026-08-30) Silme onayi onclick niteligindeki sablon dizgisinin ICINDEN
+// buraya tasindi. Orada mesaj ic ice kacislarla yaziliydi (sablon -> HTML
+// niteligi -> JS dizgisi) ve cevrilmis metinde tek tirnak olsa kirilirdi.
+// Burada boyle bir tehlike yok.
+function esSilOnay(id) {
+  const w = (typeof DATA !== 'undefined') ? DATA.find(x => String(x.id) === String(id)) : null;
+  const ad = (w && w.name) || _esCev('es.buEser', 'Bu eser');
+  const mesaj = _esCev('es.silOnay', '{ad} silinsin mi?\n\nEser çöp kutusuna taşınır, 30 gün içinde geri alabilirsiniz.');
+  if (confirm(mesaj.replace('{ad}', ad))) deleteWork(id);
+}
+
 function _esCev(anahtar, tr) {
   try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
   catch (e) { return tr; }
@@ -5083,10 +5094,11 @@ function alanGizle(k) {
     // Dolu alan gizlenirse `alanGorunur()` onu yine gösterirdi (görünürlük ≠
     // değer kuralı). Yani gerçekten gizlemek için değerin gitmesi gerekiyor —
     // kullanıcıya bunu açıkça söylüyoruz.
-    const sil = confirm(ad + ' alanında "' + el.value.trim() + '" yazıyor.\n\n' +
-      'Alanı gizlemek için bu değerin silinmesi gerekir.\n' +
-      'Değer silinsin mi?\n\n' +
-      '(İptal edersen alan olduğu gibi kalır.)');
+    const sil = confirm(ad + _esCev('es.alanDolu1',' alanında "') + el.value.trim() +
+      _esCev('es.alanDolu2','" yazıyor.\n\n') +
+      _esCev('es.alanGizleAciklama','Alanı gizlemek için bu değerin silinmesi gerekir.\n') +
+      _esCev('es.degerSilOnay','Değer silinsin mi?\n\n') +
+      _esCev('es.alanIptalNot','(İptal edersen alan olduğu gibi kalır.)'));
     if (!sil) return;
     el.value = '';
   }
@@ -5410,7 +5422,7 @@ async function yazVeDogrula(url, method, body) {
   if (body !== undefined) opt.body = JSON.stringify(body);
   let r;
   try { r = await fetch(url, opt); }
-  catch (e) { return { ok:false, rows:[], hata:'Bağlantı hatası: ' + e.message }; }
+  catch (e) { return { ok:false, rows:[], hata:_esCev('es.baglantiHatasi','Bağlantı hatası: ') + e.message }; }
   if (!r.ok && r.status !== 204) {
     let t = ''; try { t = await r.text(); } catch(e) {}
     return { ok:false, rows:[], hata:'Sunucu hatası: ' + (t || r.status) };
@@ -5420,9 +5432,9 @@ async function yazVeDogrula(url, method, body) {
   if (!Array.isArray(rows)) rows = rows ? [rows] : [];
   if (!rows.length) {
     return { ok:false, rows:[], hata:
-      'Sunucu isteği kabul etti ama HİÇBİR KAYIT DEĞİŞMEDİ.\n\n' +
-      'Büyük olasılıkla bu kaydı değiştirme yetkiniz yok. ' +
-      'Değişiklikleriniz KAYDEDİLMEDİ — pencereyi kapatmadan metni bir yere kopyalayın.' };
+      _esCev('es.kayitDegismedi','Sunucu isteği kabul etti ama HİÇBİR KAYIT DEĞİŞMEDİ.\n\n') +
+      _esCev('es.yetkiYok','Büyük olasılıkla bu kaydı değiştirme yetkiniz yok.') + ' ' +
+      _esCev('es.kaydedilmedi','Değişiklikleriniz KAYDEDİLMEDİ — pencereyi kapatmadan metni bir yere kopyalayın.') };
   }
   return { ok:true, rows, hata:null };
 }
@@ -5592,7 +5604,7 @@ function saveNewEser() {
         alert(res.hata);
       }
     })
-    .catch(err => alert('Bağlantı hatası: ' + err.message));
+    .catch(err => alert(_esCev('es.baglantiHatasi','Bağlantı hatası: ') + err.message));
   } else {
     // Yeni eser - Supabase'e kaydet
     // (2026-08-15) GİZLİ ESER ONAY AKIŞINA GİRMEZ. Gerekçe (Emir): private,
@@ -5660,7 +5672,7 @@ function saveNewEser() {
       // "#1780438185102" gibi görünüyordu. Artık id yoksa hata veriyoruz:
       // uydurma kimlik üretmek, sessizce bozuk veri üretmekten başka bir şey değil.
       const yeniId = data && data[0] && data[0].id;
-      if (!yeniId) throw new Error('Sunucu yeni eserin kimliğini döndürmedi — kayıt doğrulanamadı, lütfen tekrar deneyin.');
+      if (!yeniId) throw new Error(_esCev('es.kimlikYok','Sunucu yeni eserin kimliğini döndürmedi — kayıt doğrulanamadı, lütfen tekrar deneyin.'));
       const newWork = { ...saveFields, id: yeniId };
       DATA.push(newWork);
       eserGrupPaylasimiUygula(yeniId, visChoice)
@@ -5670,9 +5682,9 @@ function saveNewEser() {
       applyFilters();
       if (status === 'pending') {
         updateMySuggestionsCount();
-        alert('Eser öneriniz iletildi! Admin onayından sonra yayınlanacak.');
+        alert(_esCev('es.oneriIletildi','Eser öneriniz iletildi! Admin onayından sonra yayınlanacak.'));
       } else if (visChoice === 'group') {
-        alert('Eser grubunuzla paylaşıldı — yalnızca grup üyeleriniz görebilir.');
+        alert(_esCev('es.grupPaylasildi','Eser grubunuzla paylaşıldı — yalnızca grup üyeleriniz görebilir.'));
         setTimeout(() => {
           const item = document.querySelector('[data-id="' + newWork.id + '"]');
           if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
@@ -5911,7 +5923,7 @@ async function assignEditor() {
       body: JSON.stringify({ role: 'editor' })
     });
     msg.style.color = '#3FB950';
-    msg.textContent = '✓ Editör olarak atandı.';
+    msg.textContent = _esCev('es.editorAtandi','✓ Editör olarak atandı.');
     document.getElementById('editorEmailInput').value = '';
     showEditorManager();
   } else {
@@ -6110,7 +6122,7 @@ async function eserGrupPaylasimiUygula(workId, vis) {
   const H = authHeaders();
   try {
     if (vis === 'group') {
-      if (!gid) return { ok:false, mesaj:'Grup bilgisi bulunamadı — eser grupla paylaşılamadı.' };
+      if (!gid) return { ok:false, mesaj:_esCev('es.grupBilgisiYok','Grup bilgisi bulunamadı — eser grupla paylaşılamadı.') };
       const r = await fetch(SUPA_URL + '/rest/v1/work_group_shares', {
         method: 'POST', headers: { ...H, 'Prefer': 'return=representation' },
         body: JSON.stringify({ work_id: workId, group_id: gid, shared_by: getUserId() })
@@ -6131,8 +6143,8 @@ async function eserGrupPaylasimiUygula(workId, vis) {
   } catch (e) {
     console.error('[eser grup paylaşımı]', e);
     return { ok:false, mesaj: vis === 'group'
-      ? '⚠️ Eser kaydedildi ama GRUPLA PAYLAŞILAMADI — şimdilik yalnızca siz görüyorsunuz.'
-      : '⚠️ Grup paylaşımı kaldırılamadı — grup üyeleri bu eseri görmeye devam edebilir.' };
+      ? _esCev('es.grupPaylasilamadi','⚠️ Eser kaydedildi ama GRUPLA PAYLAŞILAMADI — şimdilik yalnızca siz görüyorsunuz.')
+      : _esCev('es.grupKaldirilamadi','⚠️ Grup paylaşımı kaldırılamadı — grup üyeleri bu eseri görmeye devam edebilir.') };
   }
 }
 
