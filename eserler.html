@@ -2610,10 +2610,14 @@ function selectWork(id, silent) {
   dc.style.display = 'block';
 
   const chips = [
-    w.makam ? `<span class="chip makam"><i class="ti ti-music"></i> ${w.makam}</span>` : '',
-    w.measurement ? `<span class="chip meas"><i class="ti ti-clock"></i> ${w.measurement}</span>` : '',
-    w.form ? `<span class="chip form"><i class="ti ti-category"></i> ${w.form}</span>` : '',
-    w.tuning ? `<span class="chip tuning"><i class="ti ti-adjustments"></i> ${w.tuning}</span>` : '',
+    w.makam ? `<span class="chip makam" title="Makam"><i class="ti ti-music"></i> ${w.makam}</span>` : '',
+    // (2026-08-30) Çip başlıkları netleşti: bu alan ÖLÇÜ tutuyor (4/4, 15/8),
+    // usul değil. Usul ayrı sütunda (`ritim`) ve kendi çipini alıyor —
+    // ikisi aynı kutuda görünürse yine karışırdı.
+    w.measurement ? `<span class="chip meas" title="Ölçü"><i class="ti ti-clock"></i> ${w.measurement}</span>` : '',
+    w.ritim ? `<span class="chip meas" title="Usul"><i class="ti ti-wave-sine"></i> ${w.ritim}</span>` : '',
+    w.form ? `<span class="chip form" title="Form"><i class="ti ti-category"></i> ${w.form}</span>` : '',
+    w.tuning ? `<span class="chip tuning" title="Akort"><i class="ti ti-adjustments"></i> ${w.tuning}</span>` : '',
   ].filter(Boolean).join('');
 
   function row(label, val) {
