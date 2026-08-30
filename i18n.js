@@ -117,6 +117,11 @@
       // Hero sayacinin etiketi. `menu.repertuvarlar` cogul ve menu icin;
       // sayac etiketi ayri kalsin, ikisi farkli yerde degisebilir.
       'ana.repertuvar': 'Repertuvar',
+      // iPad maketinde surukle-birak sonrasi beliren bildirim. Buradaki
+      // "Repertuvar" MARKA DEGIL, guncellenen listenin kendisi — bu yuzden
+      // Ingilizcede "Setlist updated". Maketin ust cubugundaki "Repertuvar"
+      // ise urun adi ve isaretlenmedi.
+      'ana.repguncel': 'Repertuvar güncellendi',
       // Isimli selamlama JS'ten yaziliyor. {ad} yer tutucusu calisma aninda
       // degistiriliyor — kelime sirasi dile gore degisebilsin diye metnin
       // icinde, sonuna eklenmiyor.
@@ -417,6 +422,7 @@
       'ana.ajanda': 'Concert Calendar',
       'ana.yakinda': 'coming soon',
       'ana.repertuvar': 'Setlists',
+      'ana.repguncel': 'Setlist updated',
       'ana.hosgeldin_ad': 'Welcome, {ad} 👋',
       'ana.eser': 'Pieces',
       'ana.grup': 'Groups',
