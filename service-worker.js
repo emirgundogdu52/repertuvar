@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
-const CACHE_NAME = 'repertuvar-v420';
+const CACHE_NAME = 'repertuvar-v421';
 
 // Açılışta öncelikli önbelleğe alınacak çekirdek dosyalar.
 const PRECACHE = [
@@ -103,6 +103,13 @@ self.addEventListener('fetch', (event) => {
 
   // Sadece GET isteklerini ele al
   if (req.method !== 'GET') return;
+
+  // (2026-08-30) RANGE İSTEKLERİ SW'YE UĞRAMASIN.
+  // Safari ses/video için dosyanın bir ARALIĞINI ister (Range başlığı) ve
+  // 206 Partial Content bekler. Önbellekten tam bir 200 yanıtı dönersek
+  // Safari bunu reddeder — "FetchEvent.respondWith received an error"
+  // mesajının bilinen sebeplerinden biri budur.
+  if (req.headers.get('range')) return;
 
   let url;
   try { url = new URL(req.url); } catch (e) { return; }
