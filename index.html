@@ -658,6 +658,10 @@
         ['Superstition', 'E\u266dm · 100'], ['September', 'A · 126'] ] }
     ];
     const adEl = document.getElementById('heroListName');
+    // Sekme cubugu satirlarin ALTINDA duruyor ve ekranin cocugu. Satirlari
+    // appendChild ile tasirsak cubugun ARKASINA duserler ve menu listenin
+    // ustunde gorunur — satirlar her zaman cubuktan ONCE eklenmeli.
+    const tabbar = screen.querySelector('.hero-ipad-tabbar');
     // reorder() ilk satiri fiziksel olarak sona tasiyor; liste degisirken
     // baslangic sirasi geri kurulmali, yoksa numaralar 1..6 okunmaz.
     const temelSira = allRows();
@@ -669,7 +673,8 @@
       screen.classList.add('swapping');
       setTimeout(() => {
         temelSira.forEach((r, i) => {
-          screen.appendChild(r);              // baslangic sirasini geri kur
+          // baslangic sirasini geri kur — DAIMA sekme cubugunun onune
+          if (tabbar) screen.insertBefore(r, tabbar); else screen.appendChild(r);
           const b = r.querySelector('b'), sp = r.querySelector('span:not(.num):not(.grip)');
           if (b)  b.textContent  = L.eserler[i][0];
           if (sp) sp.textContent = L.eserler[i][1];
@@ -684,6 +689,9 @@
           adEl.textContent = (window.i18n && window.i18n.t)
             ? window.i18n.t(L.adKey, adEl.textContent) : adEl.textContent;
         }
+        // Isaretli metinleri yeniden uygula: liste adinin data-i18n'i az once
+        // degisti, ayrica dil bu sirada degismis olabilir.
+        try { if (window.i18n && window.i18n.uygula) window.i18n.uygula(screen); } catch (e) {}
         screen.classList.remove('swapping');
         setTimeout(done, 360);
       }, 320);
