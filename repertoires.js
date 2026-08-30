@@ -187,6 +187,13 @@ function _r(anahtar, tr) {
   catch (e) { return tr; }
 }
 
+// (2026-08-30) TEKİL/ÇOĞUL. Türkçede sayıdan sonra ek almaz ("1 eser",
+// "18 eser") ama İngilizcede alır ("1 piece", "18 pieces"). Tek anahtar
+// kullanınca "1 pieces" çıkıyordu.
+function _rBirim(n) {
+  return (n === 1) ? _r('rep.eserBirimTekil', 'eser') : _r('rep.eserBirim', 'eser');
+}
+
 const REFERENCE_TABLES = new Set(['makams','regions','composers','lyricists','public_profiles']);
 function hdrFor(table) {
   const base = REFERENCE_TABLES.has(table) ? anonHeaders() : authHeaders();
@@ -807,7 +814,7 @@ function renderList(){
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
       <div><div class="rn">${r.name}${repVis(r)==='public'&&r.isOwner?' <i class="ti ti-world" style="font-size:12px;color:#4ade80;vertical-align:-1px;" title="Herkese açık" aria-hidden="true"></i>':''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${medleyChip}${r.date?'<span>'+r.date+'</span>':''}</div></div>
-      <div class="rc">${(r.items||[]).length} ${_r('rep.eserBirim','eser')}</div>
+      <div class="rc">${(r.items||[]).length} ${_rBirim((r.items||[]).length)}</div>
     </div>`;
     // Kendi repertuvarında: gerçekten SİL (kırmızı). Başkasınınkinde: sadece kendi
     // görünümünden GİZLE (mavi) — orijinal veriye, sahibine ya da gruba hiç dokunmuyor.
@@ -2449,7 +2456,7 @@ function openRepMoveSheet(workId, fromRepId) {
         onclick="rlpAddToRep('${r.id}')">
         <i class="ti ${ikon}" aria-hidden="true"></i>
         <span class="rlp-nm">${_rlpEsc(r.name || '(isimsiz)')}</span>
-        <span class="rlp-hint">${varMi ? _r('rep.zatenVarKisa','zaten var') : ((r.items || []).length + ' ' + _r('rep.eserBirim','eser'))}</span>
+        <span class="rlp-hint">${varMi ? _r('rep.zatenVarKisa','zaten var') : ((r.items || []).length + ' ' + _rBirim((r.items || []).length))}</span>
       </button>`;
   }).join('')
     : '<div style="padding:18px 20px;color:var(--text3);font-size:13px;">Ekleyebileceğin başka repertuvar yok.</div>';
