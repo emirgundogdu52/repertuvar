@@ -4951,17 +4951,23 @@ document.addEventListener('keydown', function (e) {
 //     hiçbir zaman gizlenmez.
 //  2) Eski eserlerde `active_music_fields` NULL. Bu "hepsini göster" demek —
 //     725 esere toplu yazma yapmadık, davranış birebir korunuyor.
+// (2026-08-30) Alan adları JS'ten çiziliyor, `data-i18n` ulaşamıyor —
+// çeviri burada alınıyor. `_e()` i18n yoksa Türkçeye düşer.
+function _e(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
 const MUZIK_ALANLARI = [
-  { k:'makam',        ad:'Makam' },
-  { k:'usul',         ad:'Usul' },
-  { k:'olcu',         ad:'Ölçü' },
-  { k:'tempo',        ad:'Tempo' },
-  { k:'akort',        ad:'Akort' },
-  { k:'karar',        ad:'Karar Sesi' },
-  { k:'enstruman',    ad:'Enstrüman' },
-  { k:'yore',         ad:'Yöre/Bölge' },
-  { k:'kaynak_kisi',  ad:'Kaynak Kişi' },
-  { k:'derleyen',     ad:'Derleyen' },
+  { k:'makam',        ad:_e('alan.makam','Makam') },
+  { k:'usul',         ad:_e('alan.usul','Usul') },
+  { k:'olcu',         ad:_e('alan.olcu','Ölçü') },
+  { k:'tempo',        ad:_e('alan.tempo','Tempo') },
+  { k:'akort',        ad:_e('alan.akort','Akort') },
+  { k:'karar',        ad:_e('alan.karar','Karar Sesi') },
+  { k:'enstruman',    ad:_e('alan.enstruman','Enstrüman') },
+  { k:'yore',         ad:_e('alan.yore','Yöre/Bölge') },
+  { k:'kaynak_kisi',  ad:_e('alan.kaynak','Kaynak Kişi') },
+  { k:'derleyen',     ad:_e('alan.derleyen','Derleyen') },
 ];
 // Alan anahtarı -> formdaki girdi kimliği (değeri var mı diye bakmak için)
 const ALAN_INPUT = {
@@ -5028,6 +5034,13 @@ function alanEkleListesiCiz() {
   const eksik = MUZIK_ALANLARI.filter(a => !alanGorunur(a.k));
   // Gizli alan kalmadıysa düğmenin durması kafa karıştırır.
   document.getElementById('ne_alanEkleSar').style.display = eksik.length ? '' : 'none';
+  // Kaç alanın gizli olduğu düğmede yazsın — kullanıcı açmadan önce bilsin.
+  const sayi = document.getElementById('ne_alanSayi');
+  if (sayi) sayi.textContent = eksik.length ? '(' + eksik.length + ')' : '';
+  // Liste KAPALI başlar: merakla açan kişi işine yaramazsa kapatabilsin.
+  kap.style.display = 'none';
+  const _ok = document.getElementById('ne_alanOk');
+  if (_ok) _ok.style.transform = '';
   kap.innerHTML = eksik.map(a =>
     '<button type="button" onclick="alanAc(\'' + a.k + '\')" ' +
     'style="padding:7px 13px;border-radius:18px;background:var(--surface2);' +
@@ -5037,7 +5050,10 @@ function alanEkleListesiCiz() {
 
 function alanEkleAcKapa() {
   const k = document.getElementById('ne_alanEkleListe');
-  k.style.display = (k.style.display === 'none' || !k.style.display) ? 'flex' : 'none';
+  const acik = !(k.style.display === 'none' || !k.style.display);
+  k.style.display = acik ? 'none' : 'flex';
+  const ok = document.getElementById('ne_alanOk');
+  if (ok) ok.style.transform = acik ? '' : 'rotate(180deg)';
 }
 
 function alanAc(k) {
@@ -6410,8 +6426,10 @@ function openSuggestModal() { openNewEserModal(); }
         <button type="button" id="ne_alanEkleBtn" onclick="alanEkleAcKapa()"
                 style="background:none;border:1px dashed var(--border);border-radius:10px;
                        color:var(--text3);font-size:13px;font-family:inherit;cursor:pointer;
-                       padding:9px 14px;width:100%;text-align:left;" data-i18n="es.alanekle">
-          + Müzik alanı ekle
+                       padding:9px 14px;width:100%;display:flex;align-items:center;gap:8px;">
+          <span data-i18n="es.alanekle">+ Müzik alanı ekle</span>
+          <span id="ne_alanSayi" style="opacity:.65;"></span>
+          <i class="ti ti-chevron-down" id="ne_alanOk" style="margin-left:auto;transition:transform .18s;"></i>
         </button>
         <div id="ne_alanEkleListe" style="display:none;flex-wrap:wrap;gap:7px;margin-top:9px;"></div>
       </div>
