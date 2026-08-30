@@ -1441,6 +1441,9 @@ function mapWorkRow(w) {
     area: '', region: w.region || '', sourcePerson: w.source_person || '',
     collector: w.collector || '', story: w.story || '',
     ritim: w.ritim || '',
+    // NULL korunuyor: "hepsini göster" anlamı taşıyor, boş diziye çevirirsek
+    // eski eserlerin tüm alanları bir anda gizlenirdi.
+    activeMusicFields: Array.isArray(w.active_music_fields) ? w.active_music_fields : null,
     videoLink: w.video_link || '', lyrics: w.lyrics || '',
     chords: w.chords || '', notaUrl: w.nota_url || '',
     // (2026-08-15) AĞIR ALANLAR GERÇEKTEN GELDİ Mİ? FAZ 1 (lightSel) güfte/akor
@@ -1528,7 +1531,7 @@ async function syncWorksFromServer(hadLocalData) {
     // ── FAZ 1: HAFİF liste (güfte/akor/nota HARİÇ) — ilk boyama hızlı olsun.
     //    Liste ve filtreler bu alanlara ihtiyaç duymaz; ağır güfte/akor metnini
     //    ilk yükte çekmek soğuk açılışı yavaşlatan asıl sebepti. ──
-    const lightSel = 'select=id,name,composer,lyric_writer,makam,tur,form,measurement,instrument,tuning,closing_note,region,source_person,collector,story,metronom,ritim,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id,deleted_at';
+    const lightSel = 'select=id,name,composer,lyric_writer,makam,tur,form,measurement,instrument,tuning,closing_note,region,source_person,collector,story,metronom,ritim,active_music_fields,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id,deleted_at';
     const r = await fetch(SUPA_URL+base+'&'+lightSel, {
       headers: hdr,
       signal: AbortSignal.timeout(hadLocalData ? 8000 : 5000)
@@ -4837,6 +4840,10 @@ function openNewEserModal() {
   applyNeVisOptions();
   document.getElementById('ne_visPrivate').checked = true;
   updateVisibilityHint();
+  // YENİ eser: kullanıcının varsayılan alanlarıyla başlar (Ayarlar'dan
+  // değiştirilebilir). Mevcut eserlerin alanlarını ETKİLEMEZ.
+  _aktifAlanlar = varsayilanAlanlar().slice();
+  alanlariUygula();
   switchNeTab('lyrics');
   document.getElementById('newEserModal').style.display = 'flex';
 }
@@ -4901,6 +4908,10 @@ async function openEditEserModal(id) {
   });
   setLyricsValue(w.lyrics || '');
   applyLyricsLockState();   // kilit yok — söz her zaman düzenlenebilir (2026-08-06)
+  // DÜZENLEME: eserin kendi alan listesi. NULL ise (725 eski eser) hepsi
+  // görünür — toplu migration yapmadık, davranış birebir korunuyor.
+  _aktifAlanlar = Array.isArray(w.activeMusicFields) ? w.activeMusicFields.slice() : null;
+  alanlariUygula();
   fillTurSelect(w.tur || '');
   neTurDegisti();
   fillFormDatalist();
@@ -4927,6 +4938,90 @@ document.addEventListener('keydown', function (e) {
     toastMsg('Formu kapatmak için Kaydet ya da İptal kullanın');
   }
 }, true);
+
+// ══ ALAN BAZLI GÖRÜNÜRLÜK ════════════════════════════════════════════════
+// Belgedeki ilke: "Kullanıcının ne tür müzisyen olduğunu belirleme; hangi
+// bilgilerin önemli olduğuna müzisyen karar versin."
+//
+// İKİ KURAL:
+//  1) GÖRÜNÜRLÜK ≠ DEĞER. Bir alanın boş olması, o alanın kullanılmadığı
+//     anlamına gelmez — kullanıcı eserin makamını henüz bilmiyor olabilir.
+//     Bu yüzden alan gizlenirken DEĞER SİLİNMEZ, ve değeri olan alan
+//     hiçbir zaman gizlenmez.
+//  2) Eski eserlerde `active_music_fields` NULL. Bu "hepsini göster" demek —
+//     725 esere toplu yazma yapmadık, davranış birebir korunuyor.
+const MUZIK_ALANLARI = [
+  { k:'makam',        ad:'Makam' },
+  { k:'usul',         ad:'Usul' },
+  { k:'olcu',         ad:'Ölçü' },
+  { k:'tempo',        ad:'Tempo' },
+  { k:'akort',        ad:'Akort' },
+  { k:'karar',        ad:'Karar Sesi' },
+  { k:'enstruman',    ad:'Enstrüman' },
+  { k:'yore',         ad:'Yöre/Bölge' },
+  { k:'kaynak_kisi',  ad:'Kaynak Kişi' },
+  { k:'derleyen',     ad:'Derleyen' },
+];
+// Alan anahtarı -> formdaki girdi kimliği (değeri var mı diye bakmak için)
+const ALAN_INPUT = {
+  makam:'ne_makam', usul:'ne_ritim', olcu:'ne_measurement', tempo:'ne_metronom',
+  akort:'ne_tuning', karar:'ne_closingNote', enstruman:'ne_instrument',
+  yore:'ne_region', kaynak_kisi:'ne_sourcePerson', derleyen:'ne_collector'
+};
+
+let _aktifAlanlar = null;   // null = hepsi görünür (eski eser)
+
+function varsayilanAlanlar() {
+  try {
+    const g = JSON.parse(localStorage.getItem('defaultMusicFields') || 'null');
+    if (Array.isArray(g) && g.length) return g;
+  } catch (e) {}
+  return MUZIK_ALANLARI.map(a => a.k);   // varsayılan: hepsi
+}
+
+function alanGorunur(k) {
+  if (_aktifAlanlar === null) return true;              // eski eser: hepsi
+  if (_aktifAlanlar.includes(k)) return true;
+  // GÖRÜNÜRLÜK ≠ DEĞER: dolu bir alan asla gizlenmez, yoksa veri
+  // kullanıcının gözünden kaybolur ve düzeltilemez hale gelir.
+  const el = document.getElementById(ALAN_INPUT[k]);
+  return !!(el && el.value && el.value.trim());
+}
+
+function alanlariUygula() {
+  MUZIK_ALANLARI.forEach(a => {
+    const sar = document.querySelector('#neTabPanel_basic [data-alan="' + a.k + '"]');
+    if (sar) sar.style.display = alanGorunur(a.k) ? '' : 'none';
+  });
+  alanEkleListesiCiz();
+}
+
+function alanEkleListesiCiz() {
+  const kap = document.getElementById('ne_alanEkleListe');
+  const btn = document.getElementById('ne_alanEkleBtn');
+  if (!kap || !btn) return;
+  const eksik = MUZIK_ALANLARI.filter(a => !alanGorunur(a.k));
+  // Gizli alan kalmadıysa düğmenin durması kafa karıştırır.
+  document.getElementById('ne_alanEkleSar').style.display = eksik.length ? '' : 'none';
+  kap.innerHTML = eksik.map(a =>
+    '<button type="button" onclick="alanAc(\'' + a.k + '\')" ' +
+    'style="padding:7px 13px;border-radius:18px;background:var(--surface2);' +
+    'border:1px solid var(--border);color:var(--text2);font-size:13px;' +
+    'font-family:inherit;cursor:pointer;">+ ' + a.ad + '</button>').join('');
+}
+
+function alanEkleAcKapa() {
+  const k = document.getElementById('ne_alanEkleListe');
+  k.style.display = (k.style.display === 'none' || !k.style.display) ? 'flex' : 'none';
+}
+
+function alanAc(k) {
+  if (_aktifAlanlar === null) _aktifAlanlar = varsayilanAlanlar().slice();
+  if (!_aktifAlanlar.includes(k)) _aktifAlanlar.push(k);
+  alanlariUygula();
+  const el = document.getElementById(ALAN_INPUT[k]);
+  if (el) el.focus();
+}
 
 function closeNewEserModal() {
   // (2026-08-25) Kilit modal kapanırken de açılır: kayıt sırasında bir hata
@@ -5343,6 +5438,10 @@ function saveNewEser() {
     sourcePerson: document.getElementById('ne_sourcePerson').value.trim(),
     collector:    document.getElementById('ne_collector').value.trim(),
     ritim:        document.getElementById('ne_ritim').value.trim(),
+    // Görünür alanların listesi eserle birlikte saklanıyor: kullanıcı bir
+    // esere Makam ekleyip boş bıraktıysa, alan bir daha açıldığında yine
+    // görünsün. (Belge: "field may be active even when value = null")
+    active_music_fields: _aktifAlanlar,
     // Tempo sayısal kolon (smallint) — boşsa null gitmeli, '' hata verir
     metronom:     (document.getElementById('ne_metronom').value.trim() || null),
     story:        document.getElementById('ne_story').value.trim(),
@@ -6225,8 +6324,8 @@ function openSuggestModal() { openNewEserModal(); }
       <div><label class="ne-lbl">Söz Yazarı</label><input id="ne_lyricWriter" class="ne-inp" placeholder="Söz yazarı..."></div>
       <div><label class="ne-lbl">Besteci</label><input id="ne_composer" class="ne-inp" placeholder="Besteci..."></div>
 
-      <div><label class="ne-lbl">Kaynak Kişi</label><input id="ne_sourcePerson" class="ne-inp" placeholder="Kaynak kişi..."></div>
-      <div><label class="ne-lbl">Derleyen</label><input id="ne_collector" class="ne-inp" placeholder="Derleyen..."></div>
+      <div data-alan="kaynak_kisi"><label class="ne-lbl">Kaynak Kişi</label><input id="ne_sourcePerson" class="ne-inp" placeholder="Kaynak kişi..."></div>
+      <div data-alan="derleyen"><label class="ne-lbl">Derleyen</label><input id="ne_collector" class="ne-inp" placeholder="Derleyen..."></div>
 
       <!-- (2026-08-30) ETİKET DÜZELTİLDİ: `measurement` alanı "Usul" diye
            etiketliydi ama içindeki 445 değerin 444'ü ÖLÇÜ (4/4, 9/8, hatta
@@ -6238,17 +6337,32 @@ function openSuggestModal() { openNewEserModal(); }
            SIRA DEĞİŞTİ: Makam ve Usul artık yan yana — Türk müziğinde ikisi
            birlikte düşünülür ("Hicaz–Düyek"). Ölçü ise teknik bir ayrıntı,
            Tempo ile eşleşmesi daha doğal ("72 vuruş/dk, 4/4"). -->
-      <div><label class="ne-lbl">Makam</label><input id="ne_makam" class="ne-inp" placeholder="Makam..."></div>
-      <div><label class="ne-lbl">Usul</label><input id="ne_ritim" class="ne-inp" placeholder="Aksak, Düyek, Sofyan..."></div>
+      <div data-alan="makam"><label class="ne-lbl">Makam</label><input id="ne_makam" class="ne-inp" placeholder="Makam..."></div>
+      <div data-alan="usul"><label class="ne-lbl">Usul</label><input id="ne_ritim" class="ne-inp" placeholder="Aksak, Düyek, Sofyan..."></div>
 
-      <div><label class="ne-lbl">Akort</label><input id="ne_tuning" class="ne-inp" placeholder="Akort..."></div>
-      <div><label class="ne-lbl">Karar Sesi</label><input id="ne_closingNote" class="ne-inp" placeholder="Karar sesi..."></div>
+      <div data-alan="akort"><label class="ne-lbl">Akort</label><input id="ne_tuning" class="ne-inp" placeholder="Akort..."></div>
+      <div data-alan="karar"><label class="ne-lbl">Karar Sesi</label><input id="ne_closingNote" class="ne-inp" placeholder="Karar sesi..."></div>
 
-      <div><label class="ne-lbl">Enstrüman</label><input id="ne_instrument" class="ne-inp" placeholder="Enstrüman..."></div>
-      <div><label class="ne-lbl">Yöre/Bölge</label><input id="ne_region" class="ne-inp" placeholder="Yöre..."></div>
+      <div data-alan="enstruman"><label class="ne-lbl">Enstrüman</label><input id="ne_instrument" class="ne-inp" placeholder="Enstrüman..."></div>
+      <div data-alan="yore"><label class="ne-lbl">Yöre/Bölge</label><input id="ne_region" class="ne-inp" placeholder="Yöre..."></div>
 
-      <div><label class="ne-lbl">Tempo <span style="color:var(--text3);font-weight:400;">(vuruş/dk)</span></label><input id="ne_metronom" class="ne-inp" inputmode="numeric" maxlength="3" placeholder="örn. 72"></div>
-      <div><label class="ne-lbl">Ölçü</label><input id="ne_measurement" class="ne-inp" placeholder="4/4, 9/8, 7/8+4/4..."></div>
+      <div data-alan="tempo"><label class="ne-lbl">Tempo <span style="color:var(--text3);font-weight:400;">(vuruş/dk)</span></label><input id="ne_metronom" class="ne-inp" inputmode="numeric" maxlength="3" placeholder="örn. 72"></div>
+      <div data-alan="olcu"><label class="ne-lbl">Ölçü</label><input id="ne_measurement" class="ne-inp" placeholder="4/4, 9/8, 7/8+4/4..."></div>
+
+      <!-- (2026-08-30) ALAN BAZLI GÖRÜNÜRLÜK.
+           İlke: kullanıcıyı sınıflandırma ("Türk müziği misin, Batı mı?"),
+           alanları yapılandır. Kimse bir kimlik seçmiyor; hangi bilgilerle
+           çalıştığını söylüyor. Gizlenen alan SİLİNMİYOR — değeri varsa
+           alan zaten görünür kalır (görünürlük ≠ değer). -->
+      <div style="grid-column:1/-1;" id="ne_alanEkleSar">
+        <button type="button" id="ne_alanEkleBtn" onclick="alanEkleAcKapa()"
+                style="background:none;border:1px dashed var(--border);border-radius:10px;
+                       color:var(--text3);font-size:13px;font-family:inherit;cursor:pointer;
+                       padding:9px 14px;width:100%;text-align:left;">
+          + Müzik alanı ekle
+        </button>
+        <div id="ne_alanEkleListe" style="display:none;flex-wrap:wrap;gap:7px;margin-top:9px;"></div>
+      </div>
 
       <div style="grid-column:1/-1;"><label class="ne-lbl">Youtube</label><input id="ne_videoLink" class="ne-inp" placeholder="https://..."></div>
       <div style="grid-column:1/-1;">
