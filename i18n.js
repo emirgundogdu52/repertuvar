@@ -372,7 +372,13 @@
 
       'menu.anasayfa': 'Home',
       'menu.eserler': 'Works',
-      'menu.repertuvarlar': 'Repertoires',
+      // 'Setlists', 'Repertoires' degil: Ingilizcede "repertoire" bir
+      // muzisyenin calabildigi eserlerin BUTUNU demek — o bizim Eserler
+      // sayfamiz. Belirli bir performans icin siralanmis liste "setlist".
+      // Sozlukteki diger 14 metin zaten Setlist kullaniyor; menu tek basina
+      // ayrilinca kullanici "Repertoires"a tiklayip "My Setlists" goruyordu.
+      // Marka ve slogan metinlerinde "repertoire" DOGRU, oraya dokunulmadi.
+      'menu.repertuvarlar': 'Setlists',
       'menu.solistler': 'Soloists',
       'menu.grup': 'Group / Choir',
       'menu.calismaodasi': 'Practice Room',
