@@ -6211,7 +6211,7 @@ function openSuggestModal() { openNewEserModal(); }
         <span style="font-size:13px;color:var(--text2);">👥 <strong data-i18n="es.grupla">Grubumla Paylaş</strong> <span data-i18n="es.grupla_alt">— Yalnız grup üyeleri görür</span></span>
       </label>
       <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:9px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);transition:all .15s;" id="ne_visPrivateLabel">
-        <input type="radio" name="ne_visibility" id="ne_visPrivate" value="private" checked style="accent-color:var(--accent);width:15px;height:15px;">
+        <input type="radio" name="ne_visibility" id="ne_visPrivate" value="private" checked onchange="updateVisibilityHint()" style="accent-color:var(--accent);width:15px;height:15px;">
         <span style="font-size:13px;color:var(--text2);">🔒 <strong data-i18n="es.sadeceben">Sadece Ben</strong> <span data-i18n="es.sadeceben_alt">— Kimse göremez</span></span>
       </label>
     </div>
