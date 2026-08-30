@@ -368,9 +368,9 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 <div class="main-wrap">
 <div class="layout">
   <aside class="lp">
-    <div class="lph"><h2>Mevcut Repertuvarlar</h2><button class="bn" onclick="openNew()" title="+ Yeni Repertuvar Oluştur">+ Yeni</button></div>
+    <div class="lph"><h2 data-i18n="rep.mevcut">Mevcut Repertuvarlar</h2><button class="bn" onclick="openNew()" title="+ Yeni Repertuvar Oluştur" data-i18n="rep.yeni">+ Yeni</button></div>
     <div style="padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
-      <input type="text" id="repSearchInput" placeholder="Repertuvar veya eser adı ara..." oninput="onRepSearchInput(this.value)"
+      <input type="text" id="repSearchInput" placeholder="Repertuvar veya eser adı ara..." data-i18n-ph="rep.ph_ara" oninput="onRepSearchInput(this.value)"
         style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;transition:border-color .15s;"
         onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
     </div>
@@ -379,7 +379,7 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
   <div class="dp" id="dp">
     <div class="es" id="es">
       <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12h6M9 16h4"/></svg>
-      <p>Bir repertuvar seçin</p>
+      <p data-i18n="rep.sec">Bir repertuvar seçin</p>
     </div>
     <div id="dc" style="display:none;"></div>
   </div>
@@ -388,45 +388,45 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 <!-- Modal: Rep -->
 <div class="mo" id="rm" style="display:none;">
   <div class="md">
-    <h2 id="rmt">Yeni Repertuvar</h2>
-    <div class="fr"><label class="fl">Repertuvar Adı *</label><input class="fi" id="fN" placeholder="örn. THM Eserleri Do Akort"></div>
-    <div class="fr"><label class="fl">Tarih</label><input class="fi" id="fD" type="date"></div>
-    <div class="fr"><label class="fl">Lokasyon</label><input class="fi" id="fV" placeholder="Sahne adı veya şehir"></div>
-    <div class="fr"><label class="fl">Durum</label>
+    <h2 id="rmt" data-i18n="rep.yenirep">Yeni Repertuvar</h2>
+    <div class="fr"><label class="fl"><span data-i18n="rep.ad">Repertuvar Adı</span> *</label><input class="fi" id="fN" placeholder="örn. THM Eserleri Do Akort" data-i18n-ph="rep.ph_ad"></div>
+    <div class="fr"><label class="fl" data-i18n="rep.tarih">Tarih</label><input class="fi" id="fD" type="date"></div>
+    <div class="fr"><label class="fl" data-i18n="rep.lokasyon">Lokasyon</label><input class="fi" id="fV" placeholder="Sahne adı veya şehir" data-i18n-ph="rep.ph_yer"></div>
+    <div class="fr"><label class="fl" data-i18n="rep.durum">Durum</label>
       <select class="fi" id="fS" style="appearance:none;cursor:pointer;">
-        <option value="concept">Taslak</option>
-        <option value="confirmed">Onaylandı</option>
-        <option value="archive">Arşiv</option>
+        <option value="concept" data-i18n="rep.taslak">Taslak</option>
+        <option value="confirmed" data-i18n="rep.onaylandi">Onaylandı</option>
+        <option value="archive" data-i18n="rep.arsiv">Arşiv</option>
       </select>
     </div>
-    <div class="fr"><label class="fl">Notlar</label><textarea class="fi" id="fNo" rows="3"></textarea></div>
+    <div class="fr"><label class="fl" data-i18n="rep.notlar">Notlar</label><textarea class="fi" id="fNo" rows="3"></textarea></div>
     <div class="fr">
-      <label class="fl">Görünürlük</label>
+      <label class="fl" data-i18n="rep.gorunurluk">Görünürlük</label>
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:2px;">
         <label class="vis-opt" id="visPrivateLabel">
           <input type="radio" name="fVisibility" id="fVisPrivate" value="private" checked style="accent-color:var(--accent);width:15px;height:15px;">
-          <span>🔒 <strong>Kişisel</strong> — Sadece sen</span>
+          <span>🔒 <strong data-i18n="rep.kisisel">Kişisel</strong> <span data-i18n="rep.kisisel_alt">— Sadece sen</span></span>
         </label>
         <label class="vis-opt" id="visGroupLabel">
           <input type="radio" name="fVisibility" id="fVisGroup" value="group" style="accent-color:var(--accent);width:15px;height:15px;">
-          <span>👥 <strong>Grup</strong> — Grubunun üyeleri</span>
+          <span>👥 <strong data-i18n="rep.grup">Grup</strong> <span data-i18n="rep.grup_alt">— Grubunun üyeleri</span></span>
         </label>
         <label class="vis-opt" id="visPublicLabel">
           <input type="radio" name="fVisibility" id="fVisPublic" value="public" style="accent-color:var(--accent);width:15px;height:15px;">
-          <span>🌐 <strong>Genel</strong> — Herkes görebilir</span>
+          <span>🌐 <strong data-i18n="rep.genel">Genel</strong> <span data-i18n="rep.genel_alt">— Herkes görebilir</span></span>
         </label>
       </div>
     </div>
-    <div class="fa"><button class="bc" onclick="closeRM()">İptal</button><button class="bs" onclick="saveRep()">Kaydet</button></div>
+    <div class="fa"><button class="bc" onclick="closeRM()" data-i18n="ortak.iptal">İptal</button><button class="bs" onclick="saveRep()" data-i18n="ortak.kaydet">Kaydet</button></div>
   </div>
 </div>
 
 <!-- Modal: Work -->
 <div class="mo" id="wm" style="display:none;">
   <div class="md">
-    <h2>Eser Ekle</h2>
-    <div class="fr"><input class="fi" id="ws" placeholder="Eser adı veya besteci ara..." oninput="filterW()" autocomplete="off"></div>
-    <div id="wDupWarn" style="display:none;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);color:#ef4444;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:13px;font-weight:600;">Bu eser zaten bu repertuvarda mevcut</div>
+    <h2 data-i18n="rep.eserekle">Eser Ekle</h2>
+    <div class="fr"><input class="fi" id="ws" placeholder="Eser adı veya besteci ara..." data-i18n-ph="rep.ph_eserara" oninput="filterW()" autocomplete="off"></div>
+    <div id="wDupWarn" style="display:none;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);color:#ef4444;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:13px;font-weight:600;" data-i18n="rep.zatenvar">Bu eser zaten bu repertuvarda mevcut</div>
     <div class="wpl" id="wpl"></div>
     <!-- Eser bilgileri (seçince otomatik dolar) -->
     <div id="wInfoBox" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:13px;">
@@ -439,21 +439,21 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
     <div class="fr" style="margin-top:14px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
         <div style="grid-column:1/-1;">
-          <label class="fl">İcracı Sanatçılar</label>
+          <label class="fl" data-i18n="rep.icracilar">İcracı Sanatçılar</label>
           <div id="pfTags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;align-items:center;cursor:text;" onclick="document.getElementById('pfInput').focus()">
             <!-- sanatçı tag'leri buraya gelecek -->
-            <input id="pfInput" placeholder="Sanatçı ekle..." autocomplete="off"
+            <input id="pfInput" placeholder="Sanatçı ekle..." data-i18n-ph="rep.ph_sanatci" autocomplete="off"
               style="border:none;background:none;color:var(--text);font-size:13px;outline:none;min-width:140px;flex:1;"
               oninput="pfSuggest(this.value)" onkeydown="pfKeydown(event)">
           </div>
           <div id="pfDropdown" style="display:none;position:absolute;z-index:100;background:var(--surface);border:1px solid var(--border);border-radius:7px;max-height:160px;overflow-y:auto;width:280px;margin-top:2px;"></div>
         </div>
-        <div><label class="fl">Karar Sesi</label><input class="fi" id="fCN" placeholder="La, Do, Si..."></div>
+        <div><label class="fl" data-i18n="rep.karar">Karar Sesi</label><input class="fi" id="fCN" placeholder="La, Do, Si..." data-i18n-ph="rep.ph_karar"></div>
       </div>
     </div>
-    <div class="fr"><label class="fl">Makam <span style="color:var(--text3);font-size:11px;">(değişmez, bilgi amaçlı)</span></label><input class="fi" id="fMK" placeholder="—" readonly style="opacity:.5;cursor:not-allowed;"></div>
-    <div class="fr"><label class="fl">Eser Notu</label><input class="fi" id="fIN" placeholder="Sahne notu, tempo..."></div>
-    <div class="fa"><button class="bc" onclick="closeWM()">İptal</button><button class="bs" onclick="addWork()">Ekle</button></div>
+    <div class="fr"><label class="fl"><span data-i18n="rep.makam">Makam</span> <span style="color:var(--text3);font-size:11px;" data-i18n="rep.degismez_bilgi">(değişmez, bilgi amaçlı)</span></label><input class="fi" id="fMK" placeholder="—" readonly style="opacity:.5;cursor:not-allowed;"></div>
+    <div class="fr"><label class="fl" data-i18n="rep.esernotu">Eser Notu</label><input class="fi" id="fIN" placeholder="Sahne notu, tempo..." data-i18n-ph="rep.ph_not"></div>
+    <div class="fa"><button class="bc" onclick="closeWM()" data-i18n="ortak.iptal">İptal</button><button class="bs" onclick="addWork()" data-i18n="rep.ekle">Ekle</button></div>
   </div>
 </div>
 
@@ -465,15 +465,15 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
      Alan adları repertoires.js'teki openItemEdit/saveIEM ile birebir aynı. -->
 <div class="mo" id="iem" style="display:none;">
   <div class="md">
-    <h2 style="margin-bottom:2px;">Eseri Düzenle</h2>
+    <h2 style="margin-bottom:2px;" data-i18n="rep.eserduzenle">Eseri Düzenle</h2>
     <div id="iemWorkName" style="font-size:15px;font-weight:700;color:var(--text);margin-top:6px;"></div>
     <div id="iemWorkInfo" style="font-size:12px;color:var(--text3);margin-top:2px;"></div>
 
     <div class="fr" style="margin-top:14px;">
       <div style="grid-column:1/-1;width:100%;">
-        <label class="fl">İcracı Sanatçılar</label>
+        <label class="fl" data-i18n="rep.icracilar">İcracı Sanatçılar</label>
         <div id="iemPfTags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;align-items:center;cursor:text;" onclick="document.getElementById('iemPfInput').focus()">
-          <input id="iemPfInput" placeholder="Sanatçı ekle..." autocomplete="off"
+          <input id="iemPfInput" placeholder="Sanatçı ekle..." data-i18n-ph="rep.ph_sanatci" autocomplete="off"
             style="border:none;background:none;color:var(--text);font-size:13px;outline:none;min-width:140px;flex:1;"
             oninput="iemPfSuggest(this.value)" onkeydown="iemPfKeydown(event)">
         </div>
@@ -483,12 +483,12 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 
     <div class="fr">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
-        <div><label class="fl">Karar Sesi</label><input class="fi" id="iemCN" placeholder="La, Do, Si..."></div>
-        <div><label class="fl">Makam <span style="color:var(--text3);font-size:11px;">(değişmez)</span></label><input class="fi" id="iemMK" placeholder="—" readonly style="opacity:.5;cursor:not-allowed;"></div>
+        <div><label class="fl" data-i18n="rep.karar">Karar Sesi</label><input class="fi" id="iemCN" placeholder="La, Do, Si..." data-i18n-ph="rep.ph_karar"></div>
+        <div><label class="fl"><span data-i18n="rep.makam">Makam</span> <span style="color:var(--text3);font-size:11px;" data-i18n="rep.degismez">(değişmez)</span></label><input class="fi" id="iemMK" placeholder="—" readonly style="opacity:.5;cursor:not-allowed;"></div>
       </div>
     </div>
 
-    <div class="fr"><label class="fl">Eser Notu</label><input class="fi" id="iemNote" placeholder="Sahne notu, tempo..."></div>
+    <div class="fr"><label class="fl" data-i18n="rep.esernotu">Eser Notu</label><input class="fi" id="iemNote" placeholder="Sahne notu, tempo..." data-i18n-ph="rep.ph_not"></div>
 
     <!-- (2026-08-06) Eserin KENDİ bilgileri (söz, akor, nota, besteci…) burada
          TEKRARLANMIYOR. Aynı alanların iki ayrı formda durması ikisinin
@@ -496,14 +496,14 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
          hazır eser formu açılıyor ve kaydedince buraya geri dönülüyor. -->
     <div class="fr">
       <button type="button" onclick="iemOpenWorkEditor()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;">
-        <i class="ti ti-edit" style="font-size:15px;" aria-hidden="true"></i> Eser bilgilerini düzenle (söz, akor, nota…)
+        <i class="ti ti-edit" style="font-size:15px;" aria-hidden="true"></i> <span data-i18n="rep.eserbilgi">Eser bilgilerini düzenle (söz, akor, nota…)</span>
       </button>
       <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5;">
         Eserin kendi bilgileri her repertuvarda aynıdır. Yukarıdaki alanlar ise yalnızca bu repertuvara özeldir.
       </div>
     </div>
 
-    <div class="fa"><button class="bc" onclick="closeIEM()">İptal</button><button class="bs" onclick="saveIEM()">Kaydet</button></div>
+    <div class="fa"><button class="bc" onclick="closeIEM()" data-i18n="ortak.iptal">İptal</button><button class="bs" onclick="saveIEM()" data-i18n="ortak.kaydet">Kaydet</button></div>
   </div>
 </div>
 
