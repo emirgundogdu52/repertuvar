@@ -853,7 +853,13 @@ function renderList(){
   // Öteki gruplarımın repertuvarları listeden çıkarıldı; SESSİZCE kaybolmasınlar —
   // kullanıcı "repertuvarım silinmiş" sanmasın diye sayısı ve nasıl görüleceği yazılı.
   if(baskaGrup.length){
-    html += '<div style="padding:14px 12px 18px;font-size:12.5px;color:var(--text3);line-height:1.6;border-top:1px solid var(--border);margin-top:8px;">'
+    // (2026-08-30) Bu not ÜSTTEN ayraçlıydı ama ALTTAN açık kalıyordu; kolonun
+    // sol çizgisi aşağı devam edince metin boşlukta duruyormuş gibi
+    // görünüyordu. Kendi kutusuna alındı: hafif zemin + tam çerçeve, böylece
+    // nerede bittiği belli oluyor.
+    html += '<div style="margin:12px 10px 16px;padding:12px 13px;font-size:12.5px;'
+         +  'color:var(--text3);line-height:1.6;background:var(--surface2);'
+         +  'border:1px solid var(--border);border-radius:10px;">'
          +  '<i class="ti ti-users-group" style="font-size:14px;vertical-align:-2px;" aria-hidden="true"></i> '
          +  _r('rep.baskaGrup1','Diğer gruplarında') + ' <b>' + baskaGrup.length + '</b> '
          +  _r('rep.baskaGrup2','repertuvar daha var. Grubunu değiştirdiğinde görünürler.') + '</div>';
