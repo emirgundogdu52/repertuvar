@@ -29,12 +29,14 @@ async function hesapSilOnay() {
     const gruplar = gr.ok ? await gr.json() : [];
 
     const satirlar = [];
-    if (reps.length > 0) satirlar.push(reps.length + ' repertuvarınız kalıcı olarak silinecek.');
-    if (gruplar.length > 0) satirlar.push('Sahibi olduğunuz ' + gruplar.length + ' grubun yönetimi başka bir üyeye devredilecek (grupta başka üye yoksa grup silinecek).');
+    // Sayi metnin ICINDE ({n}), sonuna eklenmiyor: kelime sirasi dile gore
+    // degisebilsin.
+    if (reps.length > 0) satirlar.push(_t('mod.sil_repUyari', '{n} repertuvarınız kalıcı olarak silinecek.').replace('{n}', reps.length));
+    if (gruplar.length > 0) satirlar.push(_t('mod.sil_grupUyari', 'Sahibi olduğunuz {n} grubun yönetimi başka bir üyeye devredilecek (grupta başka üye yoksa grup silinecek).').replace('{n}', gruplar.length));
 
     const uyariEl = document.getElementById('silRepUyari');
     if (uyariEl) {
-      uyariEl.innerHTML = satirlar.length ? satirlar.join('<br>') : 'Kayıtlı repertuvarınız bulunmuyor.';
+      uyariEl.innerHTML = satirlar.length ? satirlar.join('<br>') : _t('mod.sil_repYok', 'Kayıtlı repertuvarınız bulunmuyor.');
       uyariEl.style.display = 'block';
     }
   } catch(e) {}
@@ -46,16 +48,25 @@ function hesapSilKapat() {
   document.getElementById('hesapSilModal').classList.remove('open');
 }
 
+// (2026-08-30) JS'ten yazilan metinler icin ceviri yardimcisi. data-i18n
+// yalnizca HTML'de duran metinleri cozer; toast ve dogrulama mesajlari
+// calisma aninda uretildigi icin sozluge buradan bakiyorlar.
+// i18n yuklenmemisse Turkceye duser, hicbir akis kirilmaz.
+function _t(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 async function hesapSil() {
   const email = document.getElementById('silOnayEmail').value.trim();
   const user = getUser();
   const hata = document.getElementById('silHataMsg');
   
-  if (!email) { hata.style.display='block'; hata.textContent='E-posta adresinizi girin.'; return; }
-  if (email !== user?.email) { hata.style.display='block'; hata.textContent='E-posta adresi eşleşmiyor.'; return; }
+  if (!email) { hata.style.display='block'; hata.textContent=_t('mod.sil_epostaGir','E-posta adresinizi girin.'); return; }
+  if (email !== user?.email) { hata.style.display='block'; hata.textContent=_t('mod.sil_eslesmiyor','E-posta adresi eşleşmiyor.'); return; }
 
   const btn = document.getElementById('silOnayla');
-  btn.disabled = true; btn.textContent = 'Siliniyor...';
+  btn.disabled = true; btn.textContent = _t('mod.sil_siliniyor','Siliniyor...');
 
   try {
     // Sunucu tarafı kalıcı silme (tüm veri + auth kaydı)
@@ -67,8 +78,8 @@ async function hesapSil() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
   } catch(e) {
     hata.style.display = 'block';
-    hata.textContent = 'Hesap silinemedi, lütfen tekrar deneyin.';
-    btn.disabled = false; btn.textContent = 'Hesabımı Sil';
+    hata.textContent = _t('mod.sil_basarisiz','Hesap silinemedi, lütfen tekrar deneyin.');
+    btn.disabled = false; btn.textContent = _t('ay.hesapsil','Hesabımı Sil');
     return;
   }
 
@@ -656,12 +667,15 @@ html, body { overflow-x: hidden; }
 <!-- Hesap Sil Modal -->
 <div class="modal-overlay" id="hesapSilModal">
   <div class="modal-card">
-    <div class="modal-title" style="color:var(--red);">⚠️ Hesabı Sil</div>
-    <p style="font-size:16px;color:var(--text2);margin-bottom:8px;">Bu işlem <strong>geri alınamaz</strong>. Tüm hesap bilgileriniz kalıcı olarak silinecek.</p>
+    <div class="modal-title" style="color:var(--red);" data-i18n="mod.sil_baslik">⚠️ Hesabı Sil</div>
+    <!-- Vurgu cumle icinden CUMLENIN TAMAMINA tasindi: <strong> metnin
+         ortasinda kalirsa ceviri parcalanir ve kelime sirasi dillere gore
+         degistigi icin parcalar birlesmez. -->
+    <p style="font-size:16px;color:var(--text2);margin-bottom:8px;"><strong data-i18n="mod.sil_p1a">Bu işlem geri alınamaz.</strong> <span data-i18n="mod.sil_p1b">Tüm hesap bilgileriniz kalıcı olarak silinecek.</span></p>
     <p id="silRepUyari" style="font-size:16px;color:var(--red);font-weight:600;margin-bottom:8px;display:none;"></p>
-    <p style="font-size:16px;color:var(--text2);margin-bottom:8px;">Onayladığınızda hesabınız ve tüm verileriniz <strong>hemen ve kalıcı olarak</strong> silinir. Sahibi olduğunuz gruplarda başka üye varsa yönetim onlara devredilir.</p>
-    <p style="font-size:16px;color:var(--text2);margin-bottom:16px;">Onaylamak için e-posta adresinizi yazın:</p>
-    <input type="email" id="silOnayEmail" placeholder="e-posta adresiniz"
+    <p style="font-size:16px;color:var(--text2);margin-bottom:8px;" data-i18n="mod.sil_p2">Onayladığınızda hesabınız ve tüm verileriniz hemen ve kalıcı olarak silinir. Sahibi olduğunuz gruplarda başka üye varsa yönetim onlara devredilir.</p>
+    <p style="font-size:16px;color:var(--text2);margin-bottom:16px;" data-i18n="mod.sil_p3">Onaylamak için e-posta adresinizi yazın:</p>
+    <input type="email" id="silOnayEmail" placeholder="e-posta adresiniz" data-i18n-ph="mod.sil_ph"
       style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:16px;font-family:var(--font);outline:none;margin-bottom:16px;">
     <div id="silHataMsg" style="font-size:15px;color:var(--red);display:none;margin-bottom:8px;"></div>
     <div class="modal-actions">
@@ -675,9 +689,9 @@ html, body { overflow-x: hidden; }
 <!-- Şifre Değiştir Modal -->
 <div class="modal-overlay" id="passwordModal">
   <div class="modal-card">
-    <div class="modal-title">🔑 Şifre Değiştir</div>
-    <div class="field"><label>YENİ ŞİFRE</label><input type="password" id="newPass" placeholder="En az 6 karakter"></div>
-    <div class="field"><label>YENİ ŞİFRE (TEKRAR)</label><input type="password" id="newPass2" placeholder="Şifreyi tekrar gir"></div>
+    <div class="modal-title" data-i18n="mod.sifre_baslik">🔑 Şifre Değiştir</div>
+    <div class="field"><label data-i18n="mod.sifre_yeni">YENİ ŞİFRE</label><input type="password" id="newPass" placeholder="En az 6 karakter" data-i18n-ph="giris.sifre_min"></div>
+    <div class="field"><label data-i18n="mod.sifre_yeni2">YENİ ŞİFRE (TEKRAR)</label><input type="password" id="newPass2" placeholder="Şifreyi tekrar gir" data-i18n-ph="mod.sifre_ph2"></div>
     <div class="modal-actions">
       <button class="setting-btn" onclick="closePasswordModal()" data-i18n="ay.iptal">İptal</button>
       <button class="setting-btn primary" onclick="changePassword()" data-i18n="ay.kaydet">Kaydet</button>
@@ -688,20 +702,20 @@ html, body { overflow-x: hidden; }
 <!-- E-posta Değiştir Modal -->
 <div class="modal-overlay" id="emailModal">
   <div class="modal-card">
-    <div class="modal-title">✉️ E-posta Değiştir</div>
+    <div class="modal-title" data-i18n="mod.eposta_baslik">✉️ E-posta Değiştir</div>
     <div id="emailStep1">
-      <div class="field"><label>YENİ E-POSTA</label><input type="email" id="newEmail" placeholder="yeni@mail.com" autocomplete="email"></div>
+      <div class="field"><label data-i18n="mod.eposta_yeni">YENİ E-POSTA</label><input type="email" id="newEmail" placeholder="yeni@mail.com" data-i18n-ph="mod.eposta_ph" autocomplete="email"></div>
       <div class="modal-actions">
         <button class="setting-btn" onclick="closeEmailModal()" data-i18n="ay.iptal">İptal</button>
-        <button class="setting-btn primary" onclick="requestEmailChange()">Kod Gönder</button>
+        <button class="setting-btn primary" onclick="requestEmailChange()" data-i18n="mod.eposta_kodGonder">Kod Gönder</button>
       </div>
     </div>
     <div id="emailStep2" style="display:none;">
-      <p style="font-size:14px;color:var(--text2);margin-bottom:14px;">Yeni adresine gönderilen <strong>8 haneli kodu</strong> gir.</p>
-      <div class="field"><label>DOĞRULAMA KODU</label><input type="text" id="emailCode" placeholder="00000000" maxlength="8" inputmode="numeric" autocomplete="one-time-code"></div>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:14px;" data-i18n="mod.eposta_adim2">Yeni adresine gönderilen 8 haneli kodu gir.</p>
+      <div class="field"><label data-i18n="mod.eposta_kodEtiket">DOĞRULAMA KODU</label><input type="text" id="emailCode" placeholder="00000000" maxlength="8" inputmode="numeric" autocomplete="one-time-code"></div>
       <div class="modal-actions">
         <button class="setting-btn" onclick="closeEmailModal()" data-i18n="ay.iptal">İptal</button>
-        <button class="setting-btn primary" onclick="verifyEmailChange()">Doğrula</button>
+        <button class="setting-btn primary" onclick="verifyEmailChange()" data-i18n="mod.eposta_dogrula">Doğrula</button>
       </div>
     </div>
   </div>
@@ -949,8 +963,8 @@ function closePasswordModal() {
 async function changePassword() {
   const p1 = document.getElementById('newPass').value;
   const p2 = document.getElementById('newPass2').value;
-  if (!p1 || p1.length < 6) { toast('En az 6 karakter gerekli', 'err'); return; }
-  if (p1 !== p2) { toast('Şifreler eşleşmiyor', 'err'); return; }
+  if (!p1 || p1.length < 6) { toast(_t('mod.sifre_kisa','En az 6 karakter gerekli'), 'err'); return; }
+  if (p1 !== p2) { toast(_t('mod.sifre_uyusmuyor','Şifreler eşleşmiyor'), 'err'); return; }
   try {
     const r = await fetch(SUPA_URL + '/auth/v1/user', {
       method: 'PUT',
@@ -963,7 +977,7 @@ async function changePassword() {
     });
     if (r.ok) {
       closePasswordModal();
-      toast('Şifre güncellendi. Çıkış yapılıyor...');
+      toast(_t('mod.sifre_ok','Şifre güncellendi. Çıkış yapılıyor...'));
       setTimeout(() => {
         localStorage.removeItem('sb_token');
         localStorage.removeItem('sb_refresh');
@@ -975,7 +989,7 @@ async function changePassword() {
       const err = await r.json();
       toast(err.message || 'Hata oluştu', 'err');
     }
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+  } catch(e) { toast(_t('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 // ---- E-posta Değiştir ----
@@ -992,9 +1006,9 @@ function closeEmailModal() {
 }
 async function requestEmailChange() {
   const email = document.getElementById('newEmail').value.trim().toLowerCase();
-  if (!email || !email.includes('@') || !email.includes('.')) { toast('Geçerli bir e-posta gir', 'err'); return; }
+  if (!email || !email.includes('@') || !email.includes('.')) { toast(_t('mod.eposta_gecersiz','Geçerli bir e-posta gir'), 'err'); return; }
   const u = getUser && getUser();
-  if (u && email === (u.email || '').toLowerCase()) { toast('Bu zaten mevcut e-postan', 'err'); return; }
+  if (u && email === (u.email || '').toLowerCase()) { toast(_t('mod.eposta_ayni','Bu zaten mevcut e-postan'), 'err'); return; }
   try {
     const r = await fetch(SUPA_URL + '/auth/v1/user', {
       method: 'PUT',
@@ -1009,16 +1023,16 @@ async function requestEmailChange() {
       _pendingNewEmail = email;
       document.getElementById('emailStep1').style.display = 'none';
       document.getElementById('emailStep2').style.display = '';
-      toast('Doğrulama kodu ' + email + ' adresine gönderildi');
+      toast(_t('mod.eposta_kodGonderildi','Doğrulama kodu {mail} adresine gönderildi').replace('{mail}', email));
     } else {
       const e = await r.json().catch(() => ({}));
       toast(e.msg || e.error_description || e.error || 'İşlem başarısız', 'err');
     }
-  } catch (e) { toast('Bağlantı hatası: ' + e.message, 'err'); }
+  } catch (e) { toast(_t('mod.baglantiHatasi','Bağlantı hatası: ') + e.message, 'err'); }
 }
 async function verifyEmailChange() {
   const token = document.getElementById('emailCode').value.trim();
-  if (!token || token.length < 6) { toast('Kodu gir', 'err'); return; }
+  if (!token || token.length < 6) { toast(_t('mod.eposta_kodGir','Kodu gir'), 'err'); return; }
   try {
     const r = await fetch(SUPA_URL + '/auth/v1/verify', {
       method: 'POST',
@@ -1030,12 +1044,12 @@ async function verifyEmailChange() {
       if (data.access_token) localStorage.setItem('sb_token', data.access_token);
       if (data.refresh_token) localStorage.setItem('sb_refresh', data.refresh_token);
       closeEmailModal();
-      toast('E-posta güncellendi ✓');
+      toast(_t('mod.eposta_ok','E-posta güncellendi ✓'));
       setTimeout(() => location.reload(), 1200);
     } else {
       toast(data.msg || data.error_description || 'Kod hatalı veya süresi dolmuş', 'err');
     }
-  } catch (e) { toast('Bağlantı hatası: ' + e.message, 'err'); }
+  } catch (e) { toast(_t('mod.baglantiHatasi','Bağlantı hatası: ') + e.message, 'err'); }
 }
 
 (async function() {
