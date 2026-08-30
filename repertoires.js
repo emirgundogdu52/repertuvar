@@ -848,8 +848,8 @@ function renderList(){
   if(baskaGrup.length){
     html += '<div style="padding:14px 12px 18px;font-size:12.5px;color:var(--text3);line-height:1.6;border-top:1px solid var(--border);margin-top:8px;">'
          +  '<i class="ti ti-users-group" style="font-size:14px;vertical-align:-2px;" aria-hidden="true"></i> '
-         +  'Diğer gruplarında <b>' + baskaGrup.length + '</b> repertuvar daha var. '
-         +  'Grubunu değiştirdiğinde görünürler.</div>';
+         +  _r('rep.baskaGrup1','Diğer gruplarında') + ' <b>' + baskaGrup.length + '</b> '
+         +  _r('rep.baskaGrup2','repertuvar daha var. Grubunu değiştirdiğinde görünürler.') + '</div>';
   }
   el.innerHTML = html;
 }
