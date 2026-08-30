@@ -4808,7 +4808,7 @@ function renderNeNotaList(msg) {
   if (editingWorkId === null) {
     el.innerHTML = '<div style="padding:10px 12px;background:rgba(255,200,61,.08);'
       + 'border:1px solid rgba(255,200,61,.3);border-radius:7px;color:var(--accent);line-height:1.55;">'
-      + _e('es.notaOnceKaydet','Nota ekleyebilmek için önce eseri kaydedin. Kaydettikten sonra eseri düzenleyip notayı buradan yükleyebilirsiniz.')
+      + _esCev('es.notaOnceKaydet','Nota ekleyebilmek için önce eseri kaydedin. Kaydettikten sonra eseri düzenleyip notayı buradan yükleyebilirsiniz.')
       + '</div>';
     return;
   }
@@ -4821,7 +4821,7 @@ function renderNeNotaList(msg) {
 
 function openNewEserModal() {
   editingWorkId = null;
-  document.getElementById('modalTitle').textContent = _e('es.yenieser','+ Yeni Eser Ekle');
+  document.getElementById('modalTitle').textContent = _esCev('es.yenieser','+ Yeni Eser Ekle');
   ['ne_name','ne_composer','ne_lyricWriter','ne_makam','ne_measurement','ne_form',
    'ne_tuning','ne_instrument','ne_region','ne_sourcePerson','ne_collector','ne_story','ne_ritim','ne_metronom',
    'ne_videoLink','ne_lyrics','ne_chords','ne_closingNote']
@@ -4893,7 +4893,7 @@ async function openEditEserModal(id) {
   const w = DATA.find(x => x.id === id);
   if (!w) return;
   editingWorkId = id;
-  document.getElementById('modalTitle').textContent = _e('es.eseriDuzenle','✏️ Eseri Düzenle');
+  document.getElementById('modalTitle').textContent = _esCev('es.eseriDuzenle','✏️ Eseri Düzenle');
   const fields = {
     ne_name: w.name, ne_composer: w.composer, ne_lyricWriter: w.lyricWriter,
     ne_makam: w.makam, ne_measurement: w.measurement, ne_form: w.form,
@@ -4952,22 +4952,25 @@ document.addEventListener('keydown', function (e) {
 //  2) Eski eserlerde `active_music_fields` NULL. Bu "hepsini göster" demek —
 //     725 esere toplu yazma yapmadık, davranış birebir korunuyor.
 // (2026-08-30) Alan adları JS'ten çiziliyor, `data-i18n` ulaşamıyor —
-// çeviri burada alınıyor. `_e()` i18n yoksa Türkçeye düşer.
-function _e(anahtar, tr) {
+// çeviri burada alınıyor. `_esCev()` i18n yoksa Türkçeye düşer.
+// AD SEÇİMİ: `_e` denenmişti ama bu dosyada zaten `let _e...` bildirimleri
+// var; çakışma yüzünden çağrı patlıyor ve metin hiç güncellenmiyordu
+// (Emir bildirdi: "Only Me'ye basınca ne Türkçe ne İngilizce geliyor").
+function _esCev(anahtar, tr) {
   try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
   catch (e) { return tr; }
 }
 const MUZIK_ALANLARI = [
-  { k:'makam',        ad:_e('alan.makam','Makam') },
-  { k:'usul',         ad:_e('alan.usul','Usul') },
-  { k:'olcu',         ad:_e('alan.olcu','Ölçü') },
-  { k:'tempo',        ad:_e('alan.tempo','Tempo') },
-  { k:'akort',        ad:_e('alan.akort','Akort') },
-  { k:'karar',        ad:_e('alan.karar','Karar Sesi') },
-  { k:'enstruman',    ad:_e('alan.enstruman','Enstrüman') },
-  { k:'yore',         ad:_e('alan.yore','Yöre/Bölge') },
-  { k:'kaynak_kisi',  ad:_e('alan.kaynak','Kaynak Kişi') },
-  { k:'derleyen',     ad:_e('alan.derleyen','Derleyen') },
+  { k:'makam',        ad:_esCev('alan.makam','Makam') },
+  { k:'usul',         ad:_esCev('alan.usul','Usul') },
+  { k:'olcu',         ad:_esCev('alan.olcu','Ölçü') },
+  { k:'tempo',        ad:_esCev('alan.tempo','Tempo') },
+  { k:'akort',        ad:_esCev('alan.akort','Akort') },
+  { k:'karar',        ad:_esCev('alan.karar','Karar Sesi') },
+  { k:'enstruman',    ad:_esCev('alan.enstruman','Enstrüman') },
+  { k:'yore',         ad:_esCev('alan.yore','Yöre/Bölge') },
+  { k:'kaynak_kisi',  ad:_esCev('alan.kaynak','Kaynak Kişi') },
+  { k:'derleyen',     ad:_esCev('alan.derleyen','Derleyen') },
 ];
 // Alan anahtarı -> formdaki girdi kimliği (değeri var mı diye bakmak için)
 const ALAN_INPUT = {
@@ -6137,15 +6140,15 @@ function updateVisibilityHint() {
   const yetkili = (typeof isAdmin === 'function' && isAdmin()) ||
                   (typeof isEditor === 'function' && isEditor());
   if (v === 'private') {
-    el.textContent = _e('es.gorunurNot_ozel','🔒 Bu eseri yalnızca siz görürsünüz. Onay gerekmez, istediğiniz zaman paylaşabilirsiniz.');
+    el.textContent = _esCev('es.gorunurNot_ozel','🔒 Bu eseri yalnızca siz görürsünüz. Onay gerekmez, istediğiniz zaman paylaşabilirsiniz.');
   } else if (v === 'group') {
     // Grup paylaşımı KATALOG ÖNERİSİ DEĞİL — onay kuyruğuna düşmez, çünkü
     // eser genel kataloğa girmiyor, yalnız grubun içinde kalıyor.
-    el.textContent = '👥 Eseri yalnızca grup üyeleriniz görür. Genel kataloğa girmez, onay gerekmez.';
+    el.textContent = _esCev('es.gorunurNot_grup','👥 Eseri yalnızca grup üyeleriniz görür. Genel kataloğa girmez, onay gerekmez.');
   } else if (yetkili) {
-    el.textContent = '🌐 Eser doğrudan yayımlanacak — onay yetkiniz var.';
+    el.textContent = _esCev('es.gorunurNot_yetkili','🌐 Eser doğrudan yayımlanacak — onay yetkiniz var.');
   } else {
-    el.textContent = '🌐 Eser katalog önerisi olarak iletilecek; yönetici onayından sonra herkese açık olacak.';
+    el.textContent = _esCev('es.gorunurNot_oneri','🌐 Eser katalog önerisi olarak iletilecek; yönetici onayından sonra herkese açık olacak.');
   }
 }
 // Eski "Eser Öner" akışı artık "+" ile aynı: modalı açar, gerisini görünürlük
