@@ -117,11 +117,6 @@
       // Hero sayacinin etiketi. `menu.repertuvarlar` cogul ve menu icin;
       // sayac etiketi ayri kalsin, ikisi farkli yerde degisebilir.
       'ana.repertuvar': 'Repertuvar',
-      // iPad maketinde surukle-birak sonrasi beliren bildirim. Buradaki
-      // "Repertuvar" MARKA DEGIL, guncellenen listenin kendisi — bu yuzden
-      // Ingilizcede "Setlist updated". Maketin ust cubugundaki "Repertuvar"
-      // ise urun adi ve isaretlenmedi.
-      'ana.repguncel': 'Repertuvar güncellendi',
       // ── Ozellik kartlari ──────────────────────────────────────────────
       // Ingilizce surumde makam/usul GENELLESTIRILDI (key, time signature):
       // birebir ceviri urunu Ingilizce okuyana dar gosteriyordu. Turkce
@@ -453,7 +448,6 @@
       'ana.ajanda': 'Concert Calendar',
       'ana.yakinda': 'coming soon',
       'ana.repertuvar': 'Setlists',
-      'ana.repguncel': 'Setlist updated',
       'ana.f_arsiv_bas': 'Music Library',
       'ana.f_arsiv_a': 'Key, time signature, lyrics, chords — enter it once, reach it anywhere. Record every detail that matters to the way you play. There are currently',
       'ana.f_arsiv_b': 'pieces in the system. You can add to that number by submitting your own; submitted pieces appear once an admin or editor approves them.',

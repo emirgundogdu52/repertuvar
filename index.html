@@ -307,7 +307,9 @@
         <div class="hero-preview-wrap">
           <div class="hero-preview-glow"></div>
           <div class="hero-ipad">
-            <div class="hero-ipad-toast" id="heroToast"><i class="ti ti-check"></i> <span data-i18n="ana.repguncel">Repertuvar güncellendi</span></div>
+            <!-- Bildirim metninde data-i18n YOK: maketin icindeki her sey gosterilen
+                 LISTENIN dilini izliyor, arayuz dilini degil. Bkz. sekme cubugu. -->
+            <div class="hero-ipad-toast" id="heroToast"><i class="ti ti-check"></i> <span id="heroToastText">Repertuvar güncellendi</span></div>
             <div class="hero-ipad-topbar">
               <i class="ti ti-menu-2"></i>
               <span class="title">Repertuvar</span>
@@ -681,10 +683,14 @@
     // liste HTML'deki baslangic degerleriyle AYNI olmali.
     const SEKME = { tr: ['Repertuvar','Eserler','Solistler','Grup','Ayarlar'],
                     en: ['Setlists','Pieces','Soloists','Group','Settings'] };
-    function sekmeleriYaz(dil) {
+    // Bildirim de maketin ICINDE: sekmelerle ayni kurala tabi.
+    const BILDIRIM = { tr: 'Repertuvar güncellendi', en: 'Setlist updated' };
+    const toastText = document.getElementById('heroToastText');
+    function ekranDiliniYaz(dil) {
       const etiketler = SEKME[dil] || SEKME.tr;
       screen.querySelectorAll('.hero-ipad-tabbar .tab span')
             .forEach((el, i) => { if (etiketler[i]) el.textContent = etiketler[i]; });
+      if (toastText) toastText.textContent = BILDIRIM[dil] || BILDIRIM.tr;
     }
     // reorder() ilk satiri fiziksel olarak sona tasiyor; liste degisirken
     // baslangic sirasi geri kurulmali, yoksa numaralar 1..6 okunmaz.
@@ -707,7 +713,7 @@
         temelSira[0].classList.add('dragging');
         renumber(); highlight(0);
         if (adEl) adEl.textContent = L.ad;
-        sekmeleriYaz(L.dil);
+        ekranDiliniYaz(L.dil);
         // Isaretli metinleri yeniden uygula: dil bu sirada degismis olabilir.
         // (Liste adi isaretli DEGIL — ozel isim, ceviriye girmez.)
         try { if (window.i18n && window.i18n.uygula) window.i18n.uygula(screen); } catch (e) {}
