@@ -765,7 +765,7 @@ async function loadUserRole() {
   if (isAdmin()) {
     localStorage.setItem('user_role', 'admin');
     try {
-      const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=group_id', {
+      const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=group_id,ui_lang', {
         headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || '') },
         signal: AbortSignal.timeout(6000)
       });
@@ -773,6 +773,7 @@ async function loadUserRole() {
         const data = await r.json();
         if (data[0]?.group_id) localStorage.setItem('user_group_id', data[0].group_id);
         else localStorage.removeItem('user_group_id');
+        try { if (window.i18n && data[0]?.ui_lang) i18n.sunucudanBenimse(data[0].ui_lang); } catch(e) {}
       }
     } catch(e) {}
     try { window.dispatchEvent(new CustomEvent('user-role-loaded')); } catch(e) {}
@@ -782,7 +783,7 @@ async function loadUserRole() {
     return;
   }
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=role,status,group_id', {
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=role,status,group_id,ui_lang', {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || '') },
       signal: AbortSignal.timeout(6000)
     });
@@ -792,6 +793,10 @@ async function loadUserRole() {
       if (data[0]?.status) localStorage.setItem('user_status', data[0].status);
       if (data[0]?.group_id) localStorage.setItem('user_group_id', data[0].group_id);
       else localStorage.removeItem('user_group_id');
+      // (2026-08-30) Arayüz dili profilden takip ediliyor. Ayrı istek yok —
+      // zaten atılan bu isteğe biniyor. Kararı i18n veriyor: yerel seçimi
+      // körü körüne ezmiyor, yalnızca profil DEĞİŞMİŞSE uyguluyor.
+      try { if (window.i18n && data[0]?.ui_lang) i18n.sunucudanBenimse(data[0].ui_lang); } catch(e) {}
     }
   } catch(e) { console.log('[auth] loadUserRole error:', e); }
   // Menü rolü localStorage'dan okuyor ve ilk çizimde bu anahtar henüz boş
@@ -808,7 +813,11 @@ var USER_SCOPED_KEYS = [
   'user_role', 'user_status', 'user_group_id',
   'user_groups',   // çoklu grup üyelik listesi — cihazı paylaşan 2. kullanıcıya sızmasın
   'myGroupRole',   // repertoires.js + artiesten.html yazıyor; kullanıcı bazlı değil
-  'scope_uid'
+  'scope_uid',
+  // Profilden gelen dil önbelleği: sunucudan türeyen KULLANICIYA AİT veri,
+  // cihazı paylaşan ikinci kullanıcıya sızmamalı. `uiLang` bilerek listede
+  // DEĞİL — o cihaz düzeyinde bir arayüz tercihi, kişisel veri taşımıyor.
+  'uiLangSunucu'
 ];
 
 // Sayfa yönlendirmesi olmadan oturumu temizler.

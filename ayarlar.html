@@ -733,11 +733,24 @@ function dilDegistir(yeni) {
   try {
     const uid = getUserId();
     if (uid) {
-      fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
+      // `return=minimal` kullanılmıyor: RLS engellerse sunucu 0 satır
+      // günceller ve bu, başarıdan ayırt edilemez. Satır sayısı doğrulanıyor.
+      fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=ui_lang', {
         method: 'PATCH',
         headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || ''),
-                   'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                   'Content-Type': 'application/json', 'Prefer': 'return=representation' },
         body: JSON.stringify({ ui_lang: yeni })
+      }).then(async r => {
+        const satir = r.ok ? await r.json().catch(() => []) : [];
+        if (!r.ok || !satir.length) {
+          console.warn('[dil] profile yazilamadi (HTTP ' + r.status +
+            (satir.length ? '' : ', 0 satir') + ') — dil bu cihazda gecerli, ' +
+            'diger cihazlara tasinmayacak.');
+          return;
+        }
+        // Kendi yazdığımızı önbelleğe al, yoksa sonraki açılışta bunu
+        // "başka cihazda değişmiş" sanıp gereksiz yere yeniden uygularız.
+        try { localStorage.setItem('uiLangSunucu', yeni); } catch (e) {}
       }).catch(() => {});
     }
   } catch (e) {}

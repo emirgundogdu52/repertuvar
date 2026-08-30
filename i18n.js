@@ -618,6 +618,14 @@
       if (kayitli && DILLER[kayitli]) return kayitli;
     } catch (e) {}
     try {
+      // Profilden gelen tercihin son bilinen hali. Bu cihazda hiç seçim
+      // yapılmadıysa bile kullanıcı başka bir cihazda seçmiş olabilir; onu
+      // açılışta hemen uygula, profil isteğinin dönmesini bekleme (yoksa
+      // sayfa bir an yanlış dilde çizilir).
+      const sunucu = localStorage.getItem('uiLangSunucu');
+      if (sunucu && DILLER[sunucu]) return sunucu;
+    } catch (e) {}
+    try {
       const n = (navigator.language || 'tr').slice(0, 2).toLowerCase();
       if (DILLER[n]) return n;
       // Türkçe olmayan her dil için İngilizce daha iyi bir tahmin:
@@ -667,6 +675,32 @@
     return true;
   }
 
+  // ── Profildeki dili benimseme ────────────────────────────────────────────
+  // Sunucu değeri yerel tercihi HER ZAMAN ezmez: ezerse cihaz başına dil
+  // seçmek imkânsız olurdu. Ölçüt "profil DEĞİŞTİ Mİ": en son gördüğümüz
+  // sunucu değeri `uiLangSunucu`da duruyor, gelen ondan farklıysa tercih
+  // başka bir cihazda değiştirilmiş, yani daha yenidir. Aynıysa uzakta bir
+  // şey olmamıştır ve bu cihazın seçimi korunur. Zaman damgası sütunu
+  // tutmadan çalışan son-yazan-kazanır.
+  function sunucudanBenimse(gelen) {
+    if (!gelen || !DILLER[gelen]) return false;
+    let onceki = null;
+    try { onceki = localStorage.getItem('uiLangSunucu'); } catch (e) {}
+    try { localStorage.setItem('uiLangSunucu', gelen); } catch (e) {}
+    if (onceki === gelen) return false;   // uzakta değişiklik yok, karışma
+    // Profil değişmiş. Bu cihazın eski açık seçimi artık geçersiz ve ÜZERİNE
+    // YAZILMALI: yazmazsak bir sonraki açılışta önbellek eşitlenmiş olacağı
+    // için `uiLang` yeniden kazanır ve dil eskiye döner.
+    try {
+      if (localStorage.getItem('uiLang') !== gelen) localStorage.setItem('uiLang', gelen);
+    } catch (e) {}
+    if (gelen === DIL) return false;      // zaten o dildeyiz, yeniden çizme
+    DIL = gelen;
+    uygula();
+    try { window.dispatchEvent(new CustomEvent('dil-degisti', { detail: { dil: DIL } })); } catch (e) {}
+    return true;
+  }
+
   // Sayfa çizilmeden uygula: metinler bir an Türkçe görünüp değişmesin.
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => uygula());
@@ -679,6 +713,7 @@
     dil: () => DIL,
     diller: DILLER,
     ayarla: dilAyarla,
+    sunucudanBenimse: sunucudanBenimse,
     uygula: uygula,
     sozluk: SOZLUK          // sayfalar kendi anahtarlarını ekleyebilsin
   };
