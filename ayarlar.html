@@ -8,6 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Repertuvar — Ayarlar</title>
 <link rel="icon" href="Repertuvar_logo.png">
+<script src="i18n.js"></script>
 <script src="auth.js"></script>
 <script src="topnav.js" defer></script>
 <script>
@@ -399,6 +400,27 @@ html, body { overflow-x: hidden; }
       </div>
     </div>
 
+    <!-- (2026-08-30) ARAYÜZ DİLİ.
+         Dil seçimi ALAN GÖRÜNÜRLÜĞÜNDEN BAĞIMSIZ: İngilizce arayüz kullanan
+         biri makam müziği çalışıyor olabilir. İkisi ayrı ayarlar. -->
+    <div class="settings-section">
+      <div class="section-header">
+        <span class="section-icon">🌐</span>
+        <div><div class="section-title" data-i18n="ayar.dil">Arayüz Dili</div>
+             <div class="section-subtitle" data-i18n="ayar.dil_alt">Uygulamanın gösterileceği dil</div></div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label" data-i18n="ayar.dil">Arayüz Dili</div>
+          <div class="setting-desc" id="dilNot"></div>
+        </div>
+        <select id="dilSecim" onchange="dilDegistir(this.value)"
+                style="padding:9px 12px;border-radius:9px;background:var(--surface2);
+                       border:1px solid var(--border);color:var(--text);font-size:14px;
+                       font-family:inherit;"></select>
+      </div>
+    </div>
+
     <!-- (2026-08-30) MÜZİK ALANLARI — "gelenek seçimi" KALDIRILDI.
          Önceki hâli "Türk Halk Müziği / Türk Sanat Müziği / Batı Müziği" diye
          soruyordu. İki sorunu vardı: (a) kullanıcıyı bir kimliğe yerleştiriyor,
@@ -687,6 +709,42 @@ function toast(msg, type='ok') {
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 2500);
 }
+
+// ── Arayüz dili ──────────────────────────────────────────────────────────
+function dilKutusunuDoldur() {
+  const sel = document.getElementById('dilSecim');
+  if (!sel || !window.i18n) return;
+  const d = i18n.diller;
+  sel.innerHTML = Object.keys(d).map(k =>
+    '<option value="' + k + '"' + (k === i18n.dil() ? ' selected' : '') + '>' + d[k] + '</option>'
+  ).join('');
+  const not = document.getElementById('dilNot');
+  if (not) {
+    not.textContent = i18n.dil() === 'tr'
+      ? 'Çeviri sürüyor — bazı ekranlar Türkçe kalabilir.'
+      : 'Translation in progress — some screens may remain in Turkish.';
+  }
+}
+
+function dilDegistir(yeni) {
+  if (!window.i18n || !i18n.ayarla(yeni)) return;
+  dilKutusunuDoldur();
+  // Tercih profilde de saklanıyor: başka cihazda aynı dil gelsin.
+  try {
+    const uid = getUserId();
+    if (uid) {
+      fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
+        method: 'PATCH',
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || ''),
+                   'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ ui_lang: yeni })
+      }).catch(() => {});
+    }
+  } catch (e) {}
+  toast(yeni === 'tr' ? 'Dil değiştirildi ✓' : 'Language changed ✓');
+}
+
+document.addEventListener('DOMContentLoaded', dilKutusunuDoldur);
 
 // ── Müzik alanları (yeni eserlerin varsayılanı) ──────────────────────────
 // Belgedeki ilke: müzisyeni sınıflandırma, alanları yapılandır.

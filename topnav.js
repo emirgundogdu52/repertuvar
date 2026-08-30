@@ -1,4 +1,12 @@
 /* topnav.js — v2026-08-01-sidebar-account — masaüstü sidebar'da tema düğmesinin ÜSTÜNE
+// (2026-08-30) Menü etiketleri çeviriden geçiyor. `i18n.js` yüklenmemiş bir
+// sayfada da çalışsın diye Türkçe yedeğe düşüyor — topnav her sayfada var,
+// biri i18n'i almayı unutursa menü boş kalmamalı.
+function _m(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
    avatar + hesap menüsü eklendi (.sb-user-x / .sb-user-dropdown / .sb-dd-item, yeni
    toggleSbDropdown + updateSbUserName). "Oturumu Kapat" artık Ayarlar sayfasının içinde
    saklı değil, iki tıkla erişilebilir; menüde Ayarlar da var. Avatar mobil topnav'daki
@@ -752,11 +760,11 @@
     const isEditorNow = isAdminNow || savedRole === 'editor';
 
     const navItems = [
-      { href: 'index.html',       icon: 'ti-home',        label: 'Ana Sayfa' },
-      { href: 'eserler.html',     icon: 'ti-book',        label: 'Eserler' },
-      { href: 'repertoires.html', icon: 'ti-playlist',    label: 'Repertuvarlar' },
-      { href: 'artiesten.html',   icon: 'ti-microphone',  label: 'Solistler' },
-      { href: 'gruplar.html',     icon: 'ti-users-group', label: 'Grup / Koro' },
+      { href: 'index.html',       icon: 'ti-home',        label: _m('menu.anasayfa','Ana Sayfa') },
+      { href: 'eserler.html',     icon: 'ti-book',        label: _m('menu.eserler','Eserler') },
+      { href: 'repertoires.html', icon: 'ti-playlist',    label: _m('menu.repertuvarlar','Repertuvarlar') },
+      { href: 'artiesten.html',   icon: 'ti-microphone',  label: _m('menu.solistler','Solistler') },
+      { href: 'gruplar.html',     icon: 'ti-users-group', label: _m('menu.grup','Grup / Koro') },
       // 2026-08-05: Metronom — bağımsız çalışma aracı, eser/repertuvar kaydına bağlı değil.
       // YERLEŞİM: masaüstü/iPad'de sidebar (burası), TELEFONDA avatar menüsünde.
       // Sebep: alt gezinme çubuğu telefonda zaten dolu (Sahne Modu dahil 5 öğe) ve
@@ -765,14 +773,14 @@
       // (2026-08-24) Çalışma Odası, Metronom'un yanında: ikisi de İCRA DEĞİL
       // ÇALIŞMA aracı. Sahne ekranına bilerek konmadı — orası güvenilirlik
       // alanı, icra sırasında transpoze/tempo ile oynanmaz.
-      { href: 'calisma.html',     icon: 'ti-headphones',  label: 'Çalışma Odası' },
-      { href: 'metronom.html',    icon: 'ti-metronome',   label: 'Metronom' },
+      { href: 'calisma.html',     icon: 'ti-headphones',  label: _m('menu.calismaodasi','Çalışma Odası') },
+      { href: 'metronom.html',    icon: 'ti-metronome',   label: _m('menu.metronom','Metronom') },
       { divider: true },
-      { href: 'mesajlar.html',    icon: 'ti-message',     label: 'Mesajlar' },
+      { href: 'mesajlar.html',    icon: 'ti-message',     label: _m('menu.mesajlar','Mesajlar') },
       // (2026-08-06) "Üyeler" menüden ÇIKARILDI, yerine YÖNETİM geldi. Üyeler
       // artık Yönetim sayfasının altındaki bir bölüm — yönetim işleri tek
       // giriş noktasında toplansın diye (Emir'in kararı).
-      { href: 'yonetim.html',     icon: 'ti-shield-lock', label: 'Yönetim', adminOnly: true },
+      { href: 'yonetim.html',     icon: 'ti-shield-lock', label: _m('menu.yonetim','Yönetim'), adminOnly: true },
       // Ayarlar buradan KALDIRILDI (2026-08-01): artık alttaki avatar/hesap menüsünde.
       // Aynı bağlantının hem listede hem menüde durması gereksiz tekrardı.
     ];
@@ -834,15 +842,15 @@
     const roomyNav = window.innerWidth >= 600;
 
     const bnItems = [
-      { href: 'index.html',       icon: 'ti-home',     label: 'Ana Sayfa' },
-      { href: 'eserler.html',     icon: 'ti-book',     label: 'Eserler' },
-      { href: 'repertoires.html', icon: 'ti-playlist', label: 'Repertuvarlar' },
+      { href: 'index.html',       icon: 'ti-home',     label: _m('menu.anasayfa','Ana Sayfa') },
+      { href: 'eserler.html',     icon: 'ti-book',     label: _m('menu.eserler','Eserler') },
+      { href: 'repertoires.html', icon: 'ti-playlist', label: _m('menu.repertuvarlar','Repertuvarlar') },
       ...(roomyNav ? [
-        { href: 'artiesten.html', icon: 'ti-microphone',  label: 'Solistler' },
-        { href: 'gruplar.html',   icon: 'ti-users-group', label: 'Grup / Koro' },
+        { href: 'artiesten.html', icon: 'ti-microphone',  label: _m('menu.solistler','Solistler') },
+        { href: 'gruplar.html',   icon: 'ti-users-group', label: _m('menu.grup','Grup / Koro') },
       ] : []),
       { href: 'stage.html',       icon: 'ti-music',    label: 'Sahne Modu', stage: true },
-      { href: 'mesajlar.html',    icon: 'ti-message',  label: 'Mesajlar' },
+      { href: 'mesajlar.html',    icon: 'ti-message',  label: _m('menu.mesajlar','Mesajlar') },
     ];
 
     const bnHtml = bnItems.map(item => {
