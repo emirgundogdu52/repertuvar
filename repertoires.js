@@ -177,6 +177,16 @@
 // Eskiden hepsi 'Bearer ' + (sb_token || SUPA_KEY) ile gidiyordu; token olunce
 // repertuvarlar/solistler RLS altinda 0 satir donuyor, kullanici hata degil BOS
 // LISTE goruyordu.
+
+// ── 2026-08-30: ÇEVİRİ YARDIMCISI ────────────────────────────────────────
+// Bölüm başlıkları, durum etiketleri ve sayaçlar buradan yazılıyor; HTML'deki
+// `data-i18n` bunlara ulaşamıyor. `_r()` i18n yoksa Türkçeye düşer, yani
+// çeviri motoru yüklenmemiş bir sayfada liste yine dolu görünür.
+function _r(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 const REFERENCE_TABLES = new Set(['makams','regions','composers','lyricists','public_profiles']);
 function hdrFor(table) {
   const base = REFERENCE_TABLES.has(table) ? anonHeaders() : authHeaders();
@@ -752,7 +762,7 @@ function renderList(){
   };
   const filtered = reps.filter(r=>repMatchesSearch(r, repSearchQuery)).sort(_sira);
   if(repSearchQuery && !filtered.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">"'+repSearchQuery+'" için sonuç bulunamadı</div>';return;}
-  const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
+  const sl={concept:_r('rep.taslak','Taslak'),confirmed:_r('rep.onaylandi','Onaylandı'),archive:_r('rep.arsiv','Arşiv')};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
   const hiddenIds = getHiddenRepIds();
   // BÖLÜMLEME ÖNCELİĞİ: grup > sahip > public (en özel ilişki kazanır).
@@ -797,7 +807,7 @@ function renderList(){
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
       <div><div class="rn">${r.name}${repVis(r)==='public'&&r.isOwner?' <i class="ti ti-world" style="font-size:12px;color:#4ade80;vertical-align:-1px;" title="Herkese açık" aria-hidden="true"></i>':''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${medleyChip}${r.date?'<span>'+r.date+'</span>':''}</div></div>
-      <div class="rc">${(r.items||[]).length} eser</div>
+      <div class="rc">${(r.items||[]).length} ${_r('rep.eserBirim','eser')}</div>
     </div>`;
     // Kendi repertuvarında: gerçekten SİL (kırmızı). Başkasınınkinde: sadece kendi
     // görünümünden GİZLE (mavi) — orijinal veriye, sahibine ya da gruba hiç dokunmuyor.
@@ -818,19 +828,19 @@ function renderList(){
   }
   let html = '';
   if(mine.length){
-    html += '<div style="padding:8px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;"><i class="ti ti-playlist" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> Repertuvarlarım</div>';
+    html += '<div style="padding:8px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;"><i class="ti ti-playlist" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> ' + _r('rep.benim','Repertuvarlarım') + '</div>';
     html += mine.map(repCard).join('');
   }
   if(grp.length){
-    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-users-group" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> Grubun Repertuvarları</div>';
+    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-users-group" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> ' + _r('rep.grubun','Grubun Repertuvarları') + '</div>';
     html += grp.map(repCard).join('');
   }
   if(paylasilan.length){
-    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-user-share" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> Benimle Paylaşılanlar</div>';
+    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-user-share" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> ' + _r('rep.paylasilan','Benimle Paylaşılanlar') + '</div>';
     html += paylasilan.map(repCard).join('');
   }
   if(pub.length){
-    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-world" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> Genel Repertuvarlar</div>';
+    html += '<div style="padding:12px 12px 4px;font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;border-top:1px solid var(--border);margin-top:8px;"><i class="ti ti-world" style="font-size:16px;vertical-align:-2px;" aria-hidden="true"></i> ' + _r('rep.genelrep','Genel Repertuvarlar') + '</div>';
     html += pub.map(repCard).join('');
   }
   // Öteki gruplarımın repertuvarları listeden çıkarıldı; SESSİZCE kaybolmasınlar —
@@ -874,7 +884,7 @@ function renderDetail(){
   const dc=document.getElementById('dc');
   dc.style.display=rep?'block':'none';
   if(!rep)return;
-  const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
+  const sl={concept:_r('rep.taslak','Taslak'),confirmed:_r('rep.onaylandi','Onaylandı'),archive:_r('rep.arsiv','Arşiv')};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
   const items=rep.items||[];
   // ── POTPURİ: zincir hesapları (linkedPrev ardışık satır zinciri) ──
@@ -1910,7 +1920,7 @@ async function chSeq(repId,idx,val){
 function printR(repId){
   const rep=getRep(repId);if(!rep)return;
   const items=rep.items||[];
-  const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
+  const sl={concept:_r('rep.taslak','Taslak'),confirmed:_r('rep.onaylandi','Onaylandı'),archive:_r('rep.arsiv','Arşiv')};
   const rows=items.map(it=>{const w=WL[String(it.workId)]||{};const cn=it.closingNote||w.closingNote||'';return`<tr><td style="width:40px;color:#888;text-align:center;">${it.seq}</td><td style="padding:9px 12px;"><div style="font-weight:500;color:#111;">${w.name||it.workId}</div><div style="font-size:11px;color:#666;">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></td><td style="width:80px;text-align:center;color:#444;">${cn}</td><td style="width:120px;font-size:12px;color:#666;">${it.note||''}</td></tr>`;}).join('');
 
   const printCSS = '*{margin:0;padding:0;box-sizing:border-box;}body{font-family:\'DM Sans\',sans-serif;font-size:14px;color:#111;padding:32px 40px;}h1{font-family:\'Playfair Display\',serif;font-size:28px;font-weight:400;margin-bottom:8px;}hr{border:none;border-top:2px solid #111;margin:16px 0;}table{width:100%;border-collapse:collapse;}th{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#888;text-align:left;padding:6px 12px;border-bottom:1px solid #ddd;}td{padding:9px 12px;border-bottom:1px solid #eee;vertical-align:middle;}';
@@ -2439,7 +2449,7 @@ function openRepMoveSheet(workId, fromRepId) {
         onclick="rlpAddToRep('${r.id}')">
         <i class="ti ${ikon}" aria-hidden="true"></i>
         <span class="rlp-nm">${_rlpEsc(r.name || '(isimsiz)')}</span>
-        <span class="rlp-hint">${varMi ? 'zaten var' : ((r.items || []).length + ' eser')}</span>
+        <span class="rlp-hint">${varMi ? _r('rep.zatenVarKisa','zaten var') : ((r.items || []).length + ' ' + _r('rep.eserBirim','eser'))}</span>
       </button>`;
   }).join('')
     : '<div style="padding:18px 20px;color:var(--text3);font-size:13px;">Ekleyebileceğin başka repertuvar yok.</div>';
