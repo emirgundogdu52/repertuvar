@@ -167,7 +167,13 @@
       'ay.kopyala': '📋 Kopyala',
       'ay.paylas': 'Paylaş',
       'ay.diger': 'Diğer',
+      // Paylas dugmesindeki kisa etiket. `ay.eposta` ("E-posta Adresi")
+      // ayri bir yerde, hesap bolumunun basligi — karistirilmasin.
+      'ay.paylas_eposta': 'E-posta',
       'ay.davetgonder': 'E-posta ile Davet Gönder',
+      // Ornek adres de cevriliyor: Ingilizce arayuzde Turkce bir isim
+      // gormek, alanin ne beklediginin anlasilmasini zorlastiriyor.
+      'ay.davet_ph': 'arkadas@mail.com',
       'ay.gonder': 'Gönder',
       'ay.hakkinda': 'Hakkında',
       'ay.uygulama': 'Uygulama',
@@ -450,7 +456,9 @@
       'ay.kopyala': '📋 Copy',
       'ay.paylas': 'Share',
       'ay.diger': 'Other',
+      'ay.paylas_eposta': 'E-mail',
       'ay.davetgonder': 'Send Invite by Email',
+      'ay.davet_ph': 'friend@mail.com',
       'ay.gonder': 'Send',
       'ay.hakkinda': 'About',
       'ay.uygulama': 'App',

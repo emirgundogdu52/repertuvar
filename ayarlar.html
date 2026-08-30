@@ -253,6 +253,12 @@ html, body { overflow-x: hidden; }
   font-size: 15px; font-weight: 600; color: var(--text2);
   cursor: pointer; font-family: var(--font); transition: all .15s;
   text-decoration: none; display: inline-block;
+  /* (2026-08-30) Satir flex + space-between. Bunlar olmadan soldaki aciklama
+     uzayinca dugme sikisip metnindeki bosluktan kiriliyor ve ok alt satira
+     iniyor ("Members" / "→"). Ingilizcede goruldu ama acik dilden bagimsiz:
+     uzun bir Turkce aciklama da ayni sonucu verir. Sikismasi gereken taraf
+     dugme degil, sarabilen aciklama metni. */
+  white-space: nowrap; flex-shrink: 0;
 }
 .setting-btn:hover { border-color: var(--accent2); color: var(--accent3); }
 .setting-btn.danger { border-color: rgba(248,113,113,.3); color: var(--red); }
@@ -584,7 +590,7 @@ html, body { overflow-x: hidden; }
             WhatsApp
           </button>
           <button onclick="paylasBilesen('email')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(124,111,255,.1);color:var(--accent);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
-            <i class="ti ti-mail" style="font-size:18px;"></i> E-posta
+            <i class="ti ti-mail" style="font-size:18px;"></i> <span data-i18n="ay.paylas_eposta">E-posta</span>
           </button>
           <button onclick="paylasBilesen('sms')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(74,222,128,.1);color:#4ade80;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
             <i class="ti ti-message" style="font-size:18px;"></i> SMS
@@ -599,7 +605,7 @@ html, body { overflow-x: hidden; }
       <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
         <div class="setting-label" data-i18n="ay.davetgonder">E-posta ile Davet Gönder</div>
         <div style="display:flex;gap:8px;width:100%;">
-          <input type="email" id="davetEmail" placeholder="arkadas@mail.com" 
+          <input type="email" id="davetEmail" placeholder="arkadas@mail.com" data-i18n-ph="ay.davet_ph" 
             style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:16px;font-family:var(--font);outline:none;"
             onkeydown="if(event.key==='Enter') davetGonder()">
           <button onclick="davetGonder()" id="davetBtn" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;padding:8px 16px;color:#1a1200;font-size:16px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap;" data-i18n="ay.gonder">Gönder</button>
