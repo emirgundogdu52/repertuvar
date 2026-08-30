@@ -1068,7 +1068,7 @@
     transition:all .15s;
   }
   .nota-paste:empty::before {
-    content:"📋  Buraya basılı tut → Yapıştır";
+    content:attr(data-ipucu);
     color:var(--text3); font-weight:600; pointer-events:none;
   }
   .nota-paste:focus { border-color:var(--accent); color:var(--accent); }
@@ -2787,6 +2787,7 @@ function selectWork(id, silent) {
             <div class="nota-drop-sub"><span data-i18n="es.notaAlt">Yeni dosyalar mevcut sayfaların SONUNA eklenir</span><br><span data-i18n="es.notaBoyut">(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)</span></div>
           </div>
           <div class="nota-paste" id="notaPaste_${w.id}" data-work="${w.id}"
+               data-ipucu="${_esCev('es.notaYapistirKutu','📋  Buraya basılı tut → Yapıştır')}"
                contenteditable="true" inputmode="none" role="button"
                aria-label="Panodaki görseli yapıştır"
                onclick="event.stopPropagation()"></div>
@@ -4296,7 +4297,9 @@ const FORMU_OLAN_TURLER = ['THM','TSM'];
 function fillTurSelect(secili) {
   const sel = document.getElementById('ne_tur');
   if (!sel) return;
-  sel.innerHTML = '<option value="" data-i18n="es.secilmedi">— seçilmedi —</option>' +
+  // (2026-08-30) Liste JS ile çiziliyor; `data-i18n` işaretlemesi sonradan
+  // uygulanmadığı için metin Türkçe kalıyordu. Çeviri doğrudan burada alınıyor.
+  sel.innerHTML = '<option value="">' + _esCev('es.secilmedi','— seçilmedi —') + '</option>' +
     TUR_LISTESI.map(t => '<option value="' + t.replace(/"/g,'&quot;') + '">' + t + '</option>').join('');
   sel.value = secili || '';
 }
@@ -6376,7 +6379,7 @@ function openSuggestModal() { openNewEserModal(); }
           <div class="nota-drop" id="notaDrop_ne"
                onclick="if (editingWorkId === null) { renderNeNotaList(); } else { document.getElementById('ne_notaFile').click(); }">
             <div class="nota-drop-icon">🎼</div>
-            <div class="nota-drop-main">Notayı buraya sürükle, yapıştır ya da tıklayıp seç</div>
+            <div class="nota-drop-main" data-i18n="es.notaSurukle2">Notayı buraya sürükle, yapıştır ya da tıklayıp seç</div>
             <div class="nota-drop-sub"><span data-i18n="es.notaAlt">Yeni dosyalar mevcut sayfaların SONUNA eklenir</span><br><span data-i18n="es.notaBoyut">(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)</span></div>
           </div>
           <div class="nota-paste" id="notaPaste_ne" contenteditable="true" inputmode="none" role="button"
