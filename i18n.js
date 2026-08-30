@@ -122,6 +122,32 @@
       // Ingilizcede "Setlist updated". Maketin ust cubugundaki "Repertuvar"
       // ise urun adi ve isaretlenmedi.
       'ana.repguncel': 'Repertuvar güncellendi',
+      // ── Ozellik kartlari ──────────────────────────────────────────────
+      // Ingilizce surumde makam/usul GENELLESTIRILDI (key, time signature):
+      // birebir ceviri urunu Ingilizce okuyana dar gosteriyordu. Turkce
+      // metin oldugu gibi duruyor.
+      'ana.f_arsiv_bas': 'Eser Arşivi',
+      // Sayac <span id="activeListCount"> metnin ORTASINDA duruyor, bu yuzden
+      // aciklama iki anahtara bolundu: tek anahtar olsaydi textContent
+      // sayaci silerdi.
+      'ana.f_arsiv_a': 'Makam, usul, söz, akor — hepsini bir kez gir, her yerden ulaş. Türk müziğinin tüm incelikleriyle kayıt altına alın. Sistemde şu an',
+      'ana.f_arsiv_b': 'eser kayıtlı. Bu sayıya eser önererek katkıda bulunabilirsiniz. Önerilen eserler Admin ya da Editörler tarafından onaylandıktan sonra sistemde görünecektir...',
+      'ana.f_offline_aciklama': 'Sahne arkasında veya bulunduğunuz yerde sinyal mi yok? Fark etmez, Repertuvar Listelerinize ve Eserler\u2019e yine de ulaşabilirsiniz. Sistem çevrimdışı da çalışmaya devam eder!',
+      'ana.f_rep_bas': 'Hazır Repertuvar Listeleri',
+      'ana.f_rep_aciklama': 'Her ortam için veya sahne için ayrı listeler... — Dost meclislerinde prova yaparken veya konserlerde sürükle-bırak ile sıralamayı anında değiştir. Repertuvar listeleriniz her an hazır olsun! Yaptığınız değişiklikler gerçek zamanlı sisteme kaydedilir ve varsa tüm grup üyeleri değişiklikleri görür.',
+      'ana.f_gizli_bas': 'Size Özel / Herkese açık',
+      'ana.f_gizli_aciklama': 'Kişisel notalarınızı, henüz paylaşmak istemediğiniz bestelerinizi dilerseniz genelle paylaşır, dilerseniz size özel olacak şekilde gizli yaparsınız. Kontrol tamamen sizde!.. Bu tercihleri daha sonradan da değiştirmeniz mümkündür. O eseri bularak Düzenle butonu ile bunu gerçekleştirebilirsiniz.',
+      'ana.f_grup_bas': 'Grup & Koro',
+      'ana.f_grup_aciklama': 'Ekibinizle ortak Repertuvar listelerini paylaşın. Sahnede; "sırada ne var, hangi makamdan çalıyoruz, hangi usulden?" gibi soruları unutun!.. — Her şey anında herkesin kendi ekranında!..',
+      'ana.f_pedal_bas': 'Sayfa Çevirme Pedalıyla Uyumlu',
+      'ana.f_pedal_a': 'Enstrüman elinizde, gözleriniz notalarda — siz sadece performansınıza odaklanın. Piyasadaki Bluetooth sayfa çevirme pedalları (AirTurn, Donner, iRig BlueTurn, PageFlip vb.) klavye tuşu gönderdiği için Repertuvar\u2019la doğrudan çalışır; uygulama içinde ayar yapmanız gerekmez.',
+      'ana.f_pedal_kalin': 'Pedal harici bir cihazdır, ayrıca satın alınır.',
+      'ana.f_pedal_b': 'Pedalınız yoksa ekrana dokunarak, kaydırarak veya klavyeyle de eser geçebilirsiniz.',
+      'ana.f_pedalustu': 'Bluetooth sayfa çevirme pedalları (harici cihaz) doğrudan çalışır. Pedalın yoksa dokunma, kaydırma ve klavyeyle de geçebilirsin.',
+      'ana.ajanda_aciklama': 'Konserlerinizin tarih, mekan, organizatör bilgileri; karşılama, transfer ve konaklama detayları — tüm konser lojistiğinizi tek ekrandan Repertuvarlarınızla ilişkilendirilmiş şekilde yönetebileceksiniz!...',
+      'ana.aj_tarih': 'Tarih', 'ana.aj_mekan': 'Mekan',
+      'ana.aj_konaklama': 'Konaklama', 'ana.aj_transfer': 'Transfer',
+      'ortak.yukleniyor': 'Yükleniyor…',
       // Isimli selamlama JS'ten yaziliyor. {ad} yer tutucusu calisma aninda
       // degistiriliyor — kelime sirasi dile gore degisebilsin diye metnin
       // icinde, sonuna eklenmiyor.
@@ -376,7 +402,13 @@
       'giris.veya': 'or',
 
       'menu.anasayfa': 'Home',
-      'menu.eserler': 'Works',
+      // 'Pieces', 'Works' degil. Iki sebep: (1) sozlukteki diger 26 metin
+      // zaten "piece" kullaniyor; (2) ayni sayfada "Works offline" ve "Works
+      // with a page-turner pedal" metinleri var, menude "Works" yazinca
+      // kelime hem isim hem fiil olarak gorunup okurken takiliyordu.
+      // "Song" bilerek kullanilmadi: Ingilizcede sozu olan vokal eser demek,
+      // pesrev/saz semaisi gibi sozsuz formlari disarida birakirdi.
+      'menu.eserler': 'Pieces',
       // 'Setlists', 'Repertoires' degil: Ingilizcede "repertoire" bir
       // muzisyenin calabildigi eserlerin BUTUNU demek — o bizim Eserler
       // sayfamiz. Belirli bir performans icin siralanmis liste "setlist".
@@ -423,6 +455,25 @@
       'ana.yakinda': 'coming soon',
       'ana.repertuvar': 'Setlists',
       'ana.repguncel': 'Setlist updated',
+      'ana.f_arsiv_bas': 'Music Library',
+      'ana.f_arsiv_a': 'Key, time signature, lyrics, chords — enter it once, reach it anywhere. Record every detail that matters to the way you play. There are currently',
+      'ana.f_arsiv_b': 'pieces in the system. You can add to that number by submitting your own; submitted pieces appear once an admin or editor approves them.',
+      'ana.f_offline_aciklama': 'No signal backstage, or wherever you happen to be playing? It doesn\u2019t matter — your setlists and your pieces are still there. Everything keeps working offline.',
+      'ana.f_rep_bas': 'Setlists, Ready When You Are',
+      'ana.f_rep_aciklama': 'A separate list for every room and every stage. Rehearsing among friends or playing a concert, drag and drop to change the order on the spot. Your changes are saved in real time, and if you have a group, everyone sees them.',
+      'ana.f_gizli_bas': 'Private or Public',
+      'ana.f_gizli_aciklama': 'Your own sheet music, the compositions you\u2019re not ready to share yet — publish them or keep them to yourself. You decide, and you can change your mind later: find the piece, hit Edit, and switch it.',
+      'ana.f_grup_bas': 'Groups & Choirs',
+      'ana.f_grup_aciklama': 'Share setlists with your ensemble. On stage, nobody has to ask what\u2019s next or what key it\u2019s in — everyone sees it on their own screen the moment it changes.',
+      'ana.f_pedal_bas': 'Works With a Page-Turner Pedal',
+      'ana.f_pedal_a': 'Instrument in your hands, eyes on the music — just play. Bluetooth page-turner pedals on the market (AirTurn, Donner, iRig BlueTurn, PageFlip and others) send keyboard keys, so they work with Repertuvar straight away, with nothing to set up in the app.',
+      'ana.f_pedal_kalin': 'The pedal is a separate device, sold separately.',
+      'ana.f_pedal_b': 'No pedal? Tap, swipe or use the keyboard to change pieces.',
+      'ana.f_pedalustu': 'Bluetooth page-turner pedals (a separate device) work straight away. No pedal? Tap, swipe or use the keyboard instead.',
+      'ana.ajanda_aciklama': 'Dates, venues and organiser details for your concerts; pick-up, transfer and accommodation — you\u2019ll manage the whole logistics side from one screen, linked to your setlists.',
+      'ana.aj_tarih': 'Date', 'ana.aj_mekan': 'Venue',
+      'ana.aj_konaklama': 'Accommodation', 'ana.aj_transfer': 'Transfer',
+      'ortak.yukleniyor': 'Loading…',
       'ana.hosgeldin_ad': 'Welcome, {ad} 👋',
       'ana.eser': 'Pieces',
       'ana.grup': 'Groups',
