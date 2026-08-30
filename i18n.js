@@ -69,6 +69,10 @@
       'giris.sifretekrar': 'Şifre (tekrar)',
       'giris.bekleyin': 'Lütfen bekleyin…',
       'giris.sifre_min': 'En az 6 karakter',
+      'giris.slogan1': 'Modern Müzisyenler İçin',
+      'giris.slogan2': 'Akıllı Sahne ve Repertuvar Yönetimi',
+      'giris.google': 'Google ile devam et',
+      'giris.veya': 'veya',
 
       'menu.anasayfa': 'Ana Sayfa',
       'menu.eserler': 'Eserler',
@@ -115,6 +119,10 @@
       'giris.sifretekrar': 'Password (repeat)',
       'giris.bekleyin': 'Please wait…',
       'giris.sifre_min': 'At least 6 characters',
+      'giris.slogan1': 'For the Modern Musician',
+      'giris.slogan2': 'Smart Stage and Repertoire Management',
+      'giris.google': 'Continue with Google',
+      'giris.veya': 'or',
 
       'menu.anasayfa': 'Home',
       'menu.eserler': 'Works',
