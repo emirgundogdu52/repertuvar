@@ -1357,7 +1357,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     <div style="padding:6px 16px 0;background:var(--bg);">
       <div style="position:relative;">
         <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none;">&#9906;</span>
-        <input type="text" id="searchInput" placeholder="Eser adı veya söz ara..." autocomplete="off"
+        <input type="text" id="searchInput" placeholder="Eser adı veya söz ara..." data-i18n-ph="es.ph_ara" autocomplete="off"
           style="width:100%;height:42px;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0 12px 0 36px;color:var(--text);font-size:14px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;outline:none;transition:border-color .2s;"
           oninput="applyFilters();">
       </div>
@@ -2257,7 +2257,7 @@ function renderList() {
       </div>
       <div class="work-actions">
         ${countBadge}
-        <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori" style="display:${bulkMode?'none':'flex'};">${isFav ? '★' : '☆'}</button>
+        <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori" data-i18n-title="es.t_favori" style="display:${bulkMode?'none':'flex'};">${isFav ? '★' : '☆'}</button>
         <span class="work-chevron" style="display:${bulkMode?'none':'inline'};">›</span>
       </div>
     </div>`;
@@ -2644,8 +2644,8 @@ function selectWork(id, silent) {
       <div class="act-bar">
         <button class="act-btn" onclick="event.stopPropagation();openRepAddSheet(${w.id})" title="Repertuvara Ekle"><i class="ti ti-playlist-add"></i> Repertuvara Ekle</button>
         <button class="act-btn" onclick="event.stopPropagation();shareWork(${w.id})" title="Paylaş"><i class="ti ti-share"></i> Paylaş</button>
-        <button class="act-btn${isFavNow?' is-fav':''}" id="actFav_${w.id}" onclick="event.stopPropagation();toggleFavoriteInline(${w.id})" title="Favori"><i class="ti ti-star${isFavNow?'-filled':''}"></i> <span class="act-lbl">${isFavNow?'Favoride':'Favori'}</span></button>
-        ${_canEditW ? `<button class="act-btn" onclick="event.stopPropagation();openEditEserModal(${w.id})" title="Düzenle"><i class="ti ti-edit"></i> Düzenle</button>` : ''}
+        <button class="act-btn${isFavNow?' is-fav':''}" id="actFav_${w.id}" onclick="event.stopPropagation();toggleFavoriteInline(${w.id})" title="Favori" data-i18n-title="es.t_favori"><i class="ti ti-star${isFavNow?'-filled':''}"></i> <span class="act-lbl">${isFavNow?'Favoride':'Favori'}</span></button>
+        ${_canEditW ? `<button class="act-btn" onclick="event.stopPropagation();openEditEserModal(${w.id})" title="Düzenle" data-i18n-title="es.t_duzenle"><i class="ti ti-edit"></i> Düzenle</button>` : ''}
         ${_canEditW ? `<button class="act-btn danger" onclick="event.stopPropagation();showDeleteConfirm(${w.id})" title="Sil"><i class="ti ti-trash"></i> Sil</button>` : ''}
       </div>`;
 
@@ -2729,7 +2729,7 @@ function selectWork(id, silent) {
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
           <span style="font-size:12px;color:var(--text3);">Ton:</span>
           <button onclick="stepTranspose(${w.id},-1)" title="Yarım ton pes" class="rbtn rbtn-sm rbtn-ico">−</button>
-          <button id="ton_badge_${w.id}" onclick="resetTranspose(${w.id})" title="Orijinal tona dön" class="rbtn rbtn-sm" style="min-width:56px;">Orijinal</button>
+          <button id="ton_badge_${w.id}" onclick="resetTranspose(${w.id})" title="Orijinal tona dön" data-i18n-title="es.t_orijinalTon" class="rbtn rbtn-sm" style="min-width:56px;">Orijinal</button>
           <button onclick="stepTranspose(${w.id},1)" title="Yarım ton tiz" class="rbtn rbtn-sm rbtn-ico">+</button>
           <span id="karar_lbl_${w.id}" style="font-size:12px;font-weight:700;color:var(--text2);margin-left:4px;"></span>
           <span style="font-size:11px;color:var(--text3);">sadece görünümü kaydırır, kayıtlı akoru değiştirmez</span>
@@ -2741,7 +2741,7 @@ function selectWork(id, silent) {
           <span class="rbtn-group">
             <button id="chords_preview_btn_${w.id}" onclick="toggleChordsPreview(${w.id})" class="rbtn">Önizle</button>
             <button onclick="convertChordsInEditor(${w.id})" title="Akorlar sözlerin üstünde ayrı satırdaysa [Am] biçimine çevirir" class="rbtn"><span class="rgl">⇄</span> ChordPro'ya çevir</button>
-            <button id="chords_nudge_btn_${w.id}" onclick="toggleNudgeEditor(${w.id})" title="Akora dokun, ◀ ▶ veya ok tuşlarıyla hece hece kaydır" class="rbtn"><span class="rgl">↔</span> Akoru kaydır</button>
+            <button id="chords_nudge_btn_${w.id}" onclick="toggleNudgeEditor(${w.id})" title="Akora dokun, ◀ ▶ veya ok tuşlarıyla hece hece kaydır" data-i18n-title="es.t_akorKaydir" class="rbtn"><span class="rgl">↔</span> Akoru kaydır</button>
           </span>
           <button id="delpc_${w.id}" onclick="deletePersonalChords(${w.id})" class="rbtn rbtn-danger rbtn-sm" style="display:none;">Kişiseli sil</button>
         </div>
@@ -3259,7 +3259,7 @@ function convertChordsInEditor(id){
       + '<span id="conv_scale_lbl_'+id+'" style="font-size:12px;font-weight:700;color:var(--accent);min-width:34px;font-variant-numeric:tabular-nums;">1.00</span>'
       + '<button onclick="suggestConvScale('+id+')" class="rbtn rbtn-sm">Öner</button>'
       + '<button onclick="undoConvert('+id+')" class="rbtn rbtn-sm">Geri al</button>'
-      + '<button onclick="handoffToNudge('+id+')" title="Hizayı kilitle ve kalan akorları elle düzelt" class="rbtn rbtn-sm is-on"><span class=\'rgl\'>↔</span> Elle kaydır</button>'
+      + '<button onclick="handoffToNudge('+id+')" title="Hizayı kilitle ve kalan akorları elle düzelt" data-i18n-title="es.t_hizaKilit" class="rbtn rbtn-sm is-on"><span class=\'rgl\'>↔</span> Elle kaydır</button>'
       + '<button onclick="closeConvScale('+id+')" class="rbtn rbtn-sm">Bitti</button>'
       + '</div>'
       + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">Sürgüyü çekerken akorlar güftenin üstünde birlikte kayar — önizlemeye bakarak doğru yerde bırak. Kaynaktaki hiza tek bir ölçekten kaymışsa bu tek hareket bütün eseri düzeltir.</div>'
@@ -3702,7 +3702,7 @@ function knotIcerik(id, duzenle){
             + '<span class="knot-ipuc">— yalnızca sen görürsün</span></div>';
   if(duzenle){
     return bas
-      + '<textarea class="knot-alan" id="knot_alan_'+id+'" placeholder="Bu eserde kendine hatırlatmak istediklerin…">'+_knotEsc(not)+'</textarea>'
+      + '<textarea class="knot-alan" id="knot_alan_'+id+'" placeholder="Bu eserde kendine hatırlatmak istediklerin…" data-i18n-ph="es.ph_kisiselnot">'+_knotEsc(not)+'</textarea>'
       + '<div class="knot-dugmeler">'
       +   '<button class="rbtn rbtn-sm rbtn-primary" onclick="knotKaydet('+id+')" data-i18n="ortak.kaydet">Kaydet</button>'
       +   '<button class="rbtn rbtn-sm" onclick="knotCiz('+id+')" data-i18n="ortak.iptal">İptal</button>'
@@ -3711,7 +3711,7 @@ function knotIcerik(id, duzenle){
       + '</div>';
   }
   return bas + (not
-    ? '<div class="knot-metin" onclick="knotAc('+id+')" title="Düzenlemek için dokun">'+_knotEsc(not)+'</div>'
+    ? '<div class="knot-metin" onclick="knotAc('+id+')" title="Düzenlemek için dokun" data-i18n-title="es.t_dokunDuzenle">'+_knotEsc(not)+'</div>'
     : '<div class="knot-bos" onclick="knotAc('+id+')">+ Not ekle</div>');
 }
 
@@ -4030,7 +4030,7 @@ function renderNotaPagesBlock(w) {
         ${canEdit ? `<span style="display:flex;gap:10px;">
           ${i > 0 ? `<button onclick="moveNotaPage(${w.id},${i},-1)" title="Yukarı" style="background:none;border:none;color:var(--text2);font-size:14px;cursor:pointer;">↑</button>` : ''}
           ${i < pages.length-1 ? `<button onclick="moveNotaPage(${w.id},${i},1)" title="Aşağı" style="background:none;border:none;color:var(--text2);font-size:14px;cursor:pointer;">↓</button>` : ''}
-          <button onclick="deleteNotaPage(${w.id},${i})" title="Bu sayfayı sil" style="background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;">🗑</button>
+          <button onclick="deleteNotaPage(${w.id},${i})" title="Bu sayfayı sil" data-i18n-title="es.t_sayfaSil" style="background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;">🗑</button>
         </span>` : ''}
       </div>
       ${isNotaImage(u)
@@ -4296,7 +4296,7 @@ const FORMU_OLAN_TURLER = ['THM','TSM'];
 function fillTurSelect(secili) {
   const sel = document.getElementById('ne_tur');
   if (!sel) return;
-  sel.innerHTML = '<option value="">— seçilmedi —</option>' +
+  sel.innerHTML = '<option value="" data-i18n="es.secilmedi">— seçilmedi —</option>' +
     TUR_LISTESI.map(t => '<option value="' + t.replace(/"/g,'&quot;') + '">' + t + '</option>').join('');
   sel.value = secili || '';
 }
@@ -6165,7 +6165,7 @@ function openSuggestModal() { openNewEserModal(); }
     <div style="border-top:1px solid var(--border);padding-top:16px;">
       <div style="font-size:12px;color:var(--text3);margin-bottom:8px;font-weight:600;letter-spacing:.05em;" data-i18n="es.yenieditor">YENİ EDİTÖR ATA</div>
       <div style="display:flex;gap:8px;">
-        <input id="editorEmailInput" type="email" placeholder="kullanici@email.com" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;">
+        <input id="editorEmailInput" type="email" placeholder="kullanici@email.com" data-i18n-ph="es.ph_eposta" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;">
         <button onclick="assignEditor()" style="padding:8px 16px;border-radius:8px;background:#4DA3FF;border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;" data-i18n="es.ata">Ata</button>
       </div>
       <div id="editorMsg" style="font-size:12px;margin-top:8px;display:none;"></div>
@@ -6220,7 +6220,7 @@ function openSuggestModal() { openNewEserModal(); }
 
     <!-- AD + FORM — sekmelerin ÜSTÜNDE, hangi sekmede olursan ol görünür (2026-08-06) -->
     <div class="ne-head">
-      <div><label class="ne-lbl"><span data-i18n="es.eserAdi">Eser Adı</span> *</label><input id="ne_name" class="ne-inp" placeholder="Eser adı..."></div>
+      <div><label class="ne-lbl"><span data-i18n="es.eserAdi">Eser Adı</span> *</label><input id="ne_name" class="ne-inp" placeholder="Eser adı..." data-i18n-ph="es.ph_eserAdi"></div>
       <div>
         <label class="ne-lbl" data-i18n="es.tur">Tür</label>
         <select id="ne_tur" class="ne-inp" onchange="neTurDegisti()"></select>
@@ -6239,7 +6239,7 @@ function openSuggestModal() { openNewEserModal(); }
              olarak duruyor — fillFormDatalist() aynen onu dolduruyor; açılır
              listeyi rkCombo* fonksiyonları kendisi çiziyor. -->
         <div class="rk-combo">
-          <input id="ne_form" class="ne-inp" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Form seç ya da yaz...">
+          <input id="ne_form" class="ne-inp" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Form seç ya da yaz..." data-i18n-ph="es.ph_form">
           <button type="button" class="rk-combo-btn" id="ne_formOk" aria-label="Form listesini aç">&#9662;</button>
         </div>
         <datalist id="formListesi"></datalist>
@@ -6263,15 +6263,15 @@ function openSuggestModal() { openNewEserModal(); }
         <!-- Toolbar -->
         <div id="lyricsToolbar" style="display:flex;align-items:center;gap:2px;padding:6px 8px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;">
           <span style="font-size:11px;color:var(--text3);margin-right:6px;font-weight:600;letter-spacing:.05em;" data-i18n="es.format">FORMAT</span>
-          <button type="button" onclick="lyricsCmd('bold')"       title="Kalın"         style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-weight:700;font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><b>B</b></button>
+          <button type="button" onclick="lyricsCmd('bold')"       title="Kalın" data-i18n-title="es.t_kalin"         style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-weight:700;font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><b>B</b></button>
           <button type="button" onclick="lyricsCmd('italic')"     title="İtalik"        style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><i>I</i></button>
-          <button type="button" onclick="lyricsCmd('underline')"  title="Altı Çizili"   style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><u>U</u></button>
+          <button type="button" onclick="lyricsCmd('underline')"  title="Altı Çizili" data-i18n-title="es.t_alticizili"   style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><u>U</u></button>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
           <button type="button" onclick="lyricsAlign('left')"     title="Sola Yasla"    style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">≡</button>
-          <button type="button" onclick="lyricsAlign('center')"   title="Ortala"        style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">☰</button>
+          <button type="button" onclick="lyricsAlign('center')"   title="Ortala" data-i18n-title="es.t_ortala"        style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">☰</button>
           <button type="button" onclick="lyricsAlign('right')"    title="Sağa Yasla"    style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">≡</button>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
-          <select onchange="lyricsFontSize(this.value)" title="Font Boyutu" style="height:28px;padding:0 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;">
+          <select onchange="lyricsFontSize(this.value)" title="Font Boyutu" data-i18n-title="es.t_fontboyut" style="height:28px;padding:0 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;">
             <option value="" data-i18n="es.boyut">Boyut</option>
             <option value="12px" data-i18n="es.kucuk">Küçük</option>
             <option value="14px" selected data-i18n="es.normal">Normal</option>
@@ -6279,7 +6279,7 @@ function openSuggestModal() { openNewEserModal(); }
             <option value="20px" data-i18n="es.xbuyuk">X-Büyük</option>
           </select>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
-          <button type="button" onclick="lyricsClear()" title="Formatı Temizle" style="padding:0 8px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text3);font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'" data-i18n="es.temizle">✕ Temizle</button>
+          <button type="button" onclick="lyricsClear()" title="Formatı Temizle" data-i18n-title="es.t_formatTemizle" style="padding:0 8px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text3);font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'" data-i18n="es.temizle">✕ Temizle</button>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
           <button type="button" onclick="lyricsInsert('❗ ')" title="İmleci satır başına koyup tıklayın — o satır dikkat çekecek şekilde vurgulanır" style="padding:0 8px;height:28px;border-radius:5px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;" onmouseover="this.style.background='rgba(239,68,68,.16)'" onmouseout="this.style.background='rgba(239,68,68,.08)'" data-i18n="es.onemli">❗ Önemli Satır</button>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
@@ -6291,13 +6291,13 @@ function openSuggestModal() { openNewEserModal(); }
           <button type="button" onclick="lyricsInsert('(')"   title="Parantez aç" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">(</button>
           <button type="button" onclick="lyricsInsert(')')"   title="Parantez kapa" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">)</button>
           <button type="button" onclick="lyricsInsert('>>')"    title="Çift ok" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">>></button>
-          <button type="button" onclick="lyricsInsert('2X')"    title="2 kez tekrar" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">2X</button>
-          <button type="button" onclick="lyricsInsert('3X')"    title="3 kez tekrar" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">3X</button>
-          <button type="button" onclick="lyricsInsert('\n— Nakarat —\n')" title="Nakarat bölümü" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#4DA3FF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'" data-i18n="es.nakarat">Nakarat</button>
-          <button type="button" onclick="lyricsInsert('\n— Bağlantı —\n')" title="Bağlantı bölümü" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#4DA3FF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'" data-i18n="es.baglanti">Bağlantı</button>
+          <button type="button" onclick="lyricsInsert('2X')"    title="2 kez tekrar" data-i18n-title="es.t_2kez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">2X</button>
+          <button type="button" onclick="lyricsInsert('3X')"    title="3 kez tekrar" data-i18n-title="es.t_3kez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">3X</button>
+          <button type="button" onclick="lyricsInsert('\n— Nakarat —\n')" title="Nakarat bölümü" data-i18n-title="es.t_nakaratBolum" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#4DA3FF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'" data-i18n="es.nakarat">Nakarat</button>
+          <button type="button" onclick="lyricsInsert('\n— Bağlantı —\n')" title="Bağlantı bölümü" data-i18n-title="es.t_baglantiBolum" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#4DA3FF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'" data-i18n="es.baglanti">Bağlantı</button>
         </div>
         <!-- Editable area -->
-        <div id="ne_lyrics_editor" contenteditable="true" placeholder="Eserin sözlerini (nakarat, tekrar ve dönüşleri buraya yazabilir veya yapıştırabilirsiniz)" 
+        <div id="ne_lyrics_editor" contenteditable="true" placeholder="Eserin sözlerini (nakarat, tekrar ve dönüşleri buraya yazabilir veya yapıştırabilirsiniz)" data-i18n-ph="es.ph_soz" 
           style="min-height:280px;max-height:480px;overflow-y:auto;padding:12px;background:var(--surface2);color:var(--text);font-size:14px;line-height:1.8;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;outline:none;white-space:pre-wrap;">
         </div>
       </div>
@@ -6389,11 +6389,11 @@ function openSuggestModal() { openNewEserModal(); }
       <!-- (2026-08-06) Alan sırası Emir'in belirlediği eşleşmelere göre:
            Söz Yazarı-Besteci / Kaynak Kişi-Derleyen / Makam-Usul /
            Akort-Karar Sesi / Enstrüman-Yöre / Tempo-Ölçü / Youtube -->
-      <div><label class="ne-lbl" data-i18n="es.sozyazari">Söz Yazarı</label><input id="ne_lyricWriter" class="ne-inp" placeholder="Söz yazarı..."></div>
-      <div><label class="ne-lbl" data-i18n="es.bestecialan">Besteci</label><input id="ne_composer" class="ne-inp" placeholder="Besteci..."></div>
+      <div><label class="ne-lbl" data-i18n="es.sozyazari">Söz Yazarı</label><input id="ne_lyricWriter" class="ne-inp" placeholder="Söz yazarı..." data-i18n-ph="es.ph_sozyaz"></div>
+      <div><label class="ne-lbl" data-i18n="es.bestecialan">Besteci</label><input id="ne_composer" class="ne-inp" placeholder="Besteci..." data-i18n-ph="es.ph_besteci"></div>
 
-      <div data-alan="kaynak_kisi"><label class="ne-lbl" data-i18n="es.kaynak">Kaynak Kişi</label><input id="ne_sourcePerson" class="ne-inp" placeholder="Kaynak kişi..."></div>
-      <div data-alan="derleyen"><label class="ne-lbl" data-i18n="es.derleyen">Derleyen</label><input id="ne_collector" class="ne-inp" placeholder="Derleyen..."></div>
+      <div data-alan="kaynak_kisi"><label class="ne-lbl" data-i18n="es.kaynak">Kaynak Kişi</label><input id="ne_sourcePerson" class="ne-inp" placeholder="Kaynak kişi..." data-i18n-ph="es.ph_kaynak"></div>
+      <div data-alan="derleyen"><label class="ne-lbl" data-i18n="es.derleyen">Derleyen</label><input id="ne_collector" class="ne-inp" placeholder="Derleyen..." data-i18n-ph="es.ph_derleyen"></div>
 
       <!-- (2026-08-30) ETİKET DÜZELTİLDİ: `measurement` alanı "Usul" diye
            etiketliydi ama içindeki 445 değerin 444'ü ÖLÇÜ (4/4, 9/8, hatta
@@ -6405,17 +6405,17 @@ function openSuggestModal() { openNewEserModal(); }
            SIRA DEĞİŞTİ: Makam ve Usul artık yan yana — Türk müziğinde ikisi
            birlikte düşünülür ("Hicaz–Düyek"). Ölçü ise teknik bir ayrıntı,
            Tempo ile eşleşmesi daha doğal ("72 vuruş/dk, 4/4"). -->
-      <div data-alan="makam"><label class="ne-lbl" data-i18n="es.makam">Makam</label><input id="ne_makam" class="ne-inp" placeholder="Makam..."></div>
-      <div data-alan="usul"><label class="ne-lbl" data-i18n="es.usul">Usul</label><input id="ne_ritim" class="ne-inp" placeholder="Aksak, Düyek, Sofyan..."></div>
+      <div data-alan="makam"><label class="ne-lbl" data-i18n="es.makam">Makam</label><input id="ne_makam" class="ne-inp" placeholder="Makam..." data-i18n-ph="es.ph_makam"></div>
+      <div data-alan="usul"><label class="ne-lbl" data-i18n="es.usul">Usul</label><input id="ne_ritim" class="ne-inp" placeholder="Aksak, Düyek, Sofyan..." data-i18n-ph="es.ph_usul"></div>
 
-      <div data-alan="akort"><label class="ne-lbl" data-i18n="es.akort">Akort</label><input id="ne_tuning" class="ne-inp" placeholder="Akort..."></div>
-      <div data-alan="karar"><label class="ne-lbl" data-i18n="es.kararsesi">Karar Sesi</label><input id="ne_closingNote" class="ne-inp" placeholder="Karar sesi..."></div>
+      <div data-alan="akort"><label class="ne-lbl" data-i18n="es.akort">Akort</label><input id="ne_tuning" class="ne-inp" placeholder="Akort..." data-i18n-ph="es.ph_akort"></div>
+      <div data-alan="karar"><label class="ne-lbl" data-i18n="es.kararsesi">Karar Sesi</label><input id="ne_closingNote" class="ne-inp" placeholder="Karar sesi..." data-i18n-ph="es.ph_karar"></div>
 
-      <div data-alan="enstruman"><label class="ne-lbl" data-i18n="es.enstruman">Enstrüman</label><input id="ne_instrument" class="ne-inp" placeholder="Enstrüman..."></div>
-      <div data-alan="yore"><label class="ne-lbl" data-i18n="es.yore">Yöre/Bölge</label><input id="ne_region" class="ne-inp" placeholder="Yöre..."></div>
+      <div data-alan="enstruman"><label class="ne-lbl" data-i18n="es.enstruman">Enstrüman</label><input id="ne_instrument" class="ne-inp" placeholder="Enstrüman..." data-i18n-ph="es.ph_enstruman"></div>
+      <div data-alan="yore"><label class="ne-lbl" data-i18n="es.yore">Yöre/Bölge</label><input id="ne_region" class="ne-inp" placeholder="Yöre..." data-i18n-ph="es.ph_yore"></div>
 
-      <div data-alan="tempo"><label class="ne-lbl">Tempo <span style="color:var(--text3);font-weight:400;">(vuruş/dk)</span></label><input id="ne_metronom" class="ne-inp" inputmode="numeric" maxlength="3" placeholder="örn. 72"></div>
-      <div data-alan="olcu"><label class="ne-lbl" data-i18n="es.olcu">Ölçü</label><input id="ne_measurement" class="ne-inp" placeholder="4/4, 9/8, 7/8+4/4..."></div>
+      <div data-alan="tempo"><label class="ne-lbl">Tempo <span style="color:var(--text3);font-weight:400;">(vuruş/dk)</span></label><input id="ne_metronom" class="ne-inp" inputmode="numeric" maxlength="3" placeholder="örn. 72" data-i18n-ph="es.ph_tempo"></div>
+      <div data-alan="olcu"><label class="ne-lbl" data-i18n="es.olcu">Ölçü</label><input id="ne_measurement" class="ne-inp" placeholder="4/4, 9/8, 7/8+4/4..." data-i18n-ph="es.ph_olcu"></div>
 
       <!-- (2026-08-30) ALAN BAZLI GÖRÜNÜRLÜK.
            İlke: kullanıcıyı sınıflandırma ("Türk müziği misin, Batı mı?"),
@@ -6437,7 +6437,7 @@ function openSuggestModal() { openNewEserModal(); }
       <div style="grid-column:1/-1;"><label class="ne-lbl">Youtube</label><input id="ne_videoLink" class="ne-inp" placeholder="https://..."></div>
       <div style="grid-column:1/-1;">
         <label class="ne-lbl" data-i18n="es.hikaye">Eserin Hikâyesi</label>
-        <textarea id="ne_story" class="ne-inp" placeholder="Eserin hikâyesi, derlendiği ortam, anlatılan olay..." style="min-height:120px;resize:vertical;line-height:1.6;"></textarea>
+        <textarea id="ne_story" class="ne-inp" placeholder="Eserin hikâyesi, derlendiği ortam, anlatılan olay..." data-i18n-ph="es.ph_hikaye" style="min-height:120px;resize:vertical;line-height:1.6;"></textarea>
       </div>
     </div>
     </div>
