@@ -757,6 +757,8 @@ async function ayarAlanlariTazele() {
 
 async function alanVarsayilanKaydet() {
   const d = document.getElementById('alanDurum');
+  // Yükleyici henüz çalışmadıysa (ör. hızlı tıklama) null olabilir.
+  if (!Array.isArray(_ayarSecili)) _ayarSecili = AYAR_ALANLAR.map(a => a.k);
   // Hepsi kapalıysa yeni eser formunda tek alan kalmazdı.
   if (!_ayarSecili.length) {
     d.style.color = 'var(--red, #f87171)';
@@ -786,7 +788,7 @@ async function alanVarsayilanKaydet() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', ayarAlanlariYukle);
+document.addEventListener('DOMContentLoaded', ayarAlanlariniYukle);
 
 function saveSetting(key, value) {
   localStorage.setItem(key, value);
