@@ -6220,22 +6220,26 @@ function openSuggestModal() { openNewEserModal(); }
     <!-- TAB 3 (gösterim sırası): TEMEL BİLGİLER -->
     <div id="neTabPanel_basic" class="ne-tab-panel" style="display:none;grid-template-columns:1fr 1fr;gap:12px;min-height:460px;align-content:start;">
       <!-- (2026-08-06) Alan sırası Emir'in belirlediği eşleşmelere göre:
-           Söz Yazarı-Besteci / Kaynak Kişi-Derleyen / Makam-Ölçü /
-           Akort-Karar Sesi / Enstrüman-Yöre / Tempo-Usul / Youtube -->
+           Söz Yazarı-Besteci / Kaynak Kişi-Derleyen / Makam-Usul /
+           Akort-Karar Sesi / Enstrüman-Yöre / Tempo-Ölçü / Youtube -->
       <div><label class="ne-lbl">Söz Yazarı</label><input id="ne_lyricWriter" class="ne-inp" placeholder="Söz yazarı..."></div>
       <div><label class="ne-lbl">Besteci</label><input id="ne_composer" class="ne-inp" placeholder="Besteci..."></div>
 
       <div><label class="ne-lbl">Kaynak Kişi</label><input id="ne_sourcePerson" class="ne-inp" placeholder="Kaynak kişi..."></div>
       <div><label class="ne-lbl">Derleyen</label><input id="ne_collector" class="ne-inp" placeholder="Derleyen..."></div>
 
+      <!-- (2026-08-30) ETİKET DÜZELTİLDİ: `measurement` alanı "Usul" diye
+           etiketliydi ama içindeki 445 değerin 444'ü ÖLÇÜ (4/4, 9/8, hatta
+           "7/8+4/4" gibi eser içinde değişen ölçüler). Usul ayrı bir kavram —
+           Aksak, Düyek gibi vuruş kalıpları — ve onun için zaten `ritim`
+           sütunu vardı, yanlış etiket yüzünden boş kalmış. Veri taşınmadı;
+           yalnızca adlar gerçekte tutulan bilgiyle eşleştirildi.
+
+           SIRA DEĞİŞTİ: Makam ve Usul artık yan yana — Türk müziğinde ikisi
+           birlikte düşünülür ("Hicaz–Düyek"). Ölçü ise teknik bir ayrıntı,
+           Tempo ile eşleşmesi daha doğal ("72 vuruş/dk, 4/4"). -->
       <div><label class="ne-lbl">Makam</label><input id="ne_makam" class="ne-inp" placeholder="Makam..."></div>
-      <!-- (2026-08-30) ETİKET DÜZELTİLDİ: bu alan "Usul" diye etiketliydi ama
-           içindeki 445 değerin 444'ü ÖLÇÜ (4/4, 9/8, hatta "7/8+4/4" gibi eser
-           içinde değişen ölçüler). Usul ise ayrı bir kavram — Aksak, Düyek gibi
-           vuruş kalıpları — ve onun için zaten `ritim` sütunu var, yanlış
-           etiket yüzünden boş kalmıştı. Veri taşınmadı; sadece adlar
-           gerçekte tutulan bilgiyle eşleştirildi. -->
-      <div><label class="ne-lbl">Ölçü</label><input id="ne_measurement" class="ne-inp" placeholder="4/4, 9/8, 7/8+4/4..."></div>
+      <div><label class="ne-lbl">Usul</label><input id="ne_ritim" class="ne-inp" placeholder="Aksak, Düyek, Sofyan..."></div>
 
       <div><label class="ne-lbl">Akort</label><input id="ne_tuning" class="ne-inp" placeholder="Akort..."></div>
       <div><label class="ne-lbl">Karar Sesi</label><input id="ne_closingNote" class="ne-inp" placeholder="Karar sesi..."></div>
@@ -6244,7 +6248,7 @@ function openSuggestModal() { openNewEserModal(); }
       <div><label class="ne-lbl">Yöre/Bölge</label><input id="ne_region" class="ne-inp" placeholder="Yöre..."></div>
 
       <div><label class="ne-lbl">Tempo <span style="color:var(--text3);font-weight:400;">(vuruş/dk)</span></label><input id="ne_metronom" class="ne-inp" inputmode="numeric" maxlength="3" placeholder="örn. 72"></div>
-      <div><label class="ne-lbl">Usul</label><input id="ne_ritim" class="ne-inp" placeholder="Aksak, Düyek, Sofyan..."></div>
+      <div><label class="ne-lbl">Ölçü</label><input id="ne_measurement" class="ne-inp" placeholder="4/4, 9/8, 7/8+4/4..."></div>
 
       <div style="grid-column:1/-1;"><label class="ne-lbl">Youtube</label><input id="ne_videoLink" class="ne-inp" placeholder="https://..."></div>
       <div style="grid-column:1/-1;">
