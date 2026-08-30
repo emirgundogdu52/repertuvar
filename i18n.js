@@ -600,7 +600,10 @@
       'es.gorunurNot_oneri': '🌐 This piece will be submitted to the catalogue; it becomes public once an admin approves it.',
       'ay.gunduz': '☀️ Day',
       'ay.gece': '🌙 Night',
-      'alan.makam': 'Makam', 'alan.usul': 'Usul', 'alan.olcu': 'Time signature',
+      // 'Meter', 'Time signature' degil: bu anahtar CIPLERDE kullaniliyor
+      // (ayarlar.html + eserler.html "+ Muzik alani ekle"). 14 karakter cipi
+      // iki satira tasiriyordu. Form etiketi `es.olcu` tam hali kaliyor.
+      'alan.makam': 'Makam', 'alan.usul': 'Usul', 'alan.olcu': 'Meter',
       'alan.tempo': 'Tempo', 'alan.akort': 'Tuning', 'alan.karar': 'Tonic',
       'alan.enstruman': 'Instrument', 'alan.yore': 'Region',
       'alan.kaynak': 'Source person', 'alan.derleyen': 'Collector',
