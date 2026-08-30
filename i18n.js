@@ -89,6 +89,25 @@
       // Alan terimleri (Kirik Hava, Pesrev, Agir Semai...) BILEREK cevrilmiyor:
       // makam ve usul gibi, uluslararasi literaturde de Turkce adlariyla
       // geciyorlar ve karsiliklari yok.
+      'es.sayfaBaslik': 'Repertuvar — Eserler',
+      'es.onayBekleyenBtn': '⏳ Onay Bekleyen',
+      'es.secildi': '{n} seçildi',
+      'es.vurusDk': '(vuruş/dk)',
+      // Akor kutusu ornegi: Ingilizcede TANIDIK bir parcaya donuyor.
+      // Turkce ornek Ingilizce kullaniciya bicimi degil, repertuvari anlatir.
+      'es.ph_akorOrnek': '[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm\n[C]Telim örülürken [F]ağladı gözüm',
+      'es.t_ciftOk': 'Çift ok',
+      'es.t_italik': 'İtalik',
+      'es.t_solaYasla': 'Sola Yasla',
+      'es.t_sagaYasla': 'Sağa Yasla',
+      'es.t_satirVurgu': 'İmleci satır başına koyup tıklayın — o satır dikkat çekecek şekilde vurgulanır',
+      'es.t_koseliAc': 'Köşeli parantez aç',
+      'es.t_koseliKapa': 'Köşeli parantez kapa',
+      'es.t_susluAc': 'Süslü parantez aç',
+      'es.t_susluKapa': 'Süslü parantez kapa',
+      'es.t_parantezAc': 'Parantez aç',
+      'es.t_parantezKapa': 'Parantez kapa',
+      // <b> etiketleri metnin PARÇASI: data-i18n-html ile yazılıyor.
       'es.buEser': 'Bu eser',
       'es.silOnay': '{ad} silinsin mi?\n\nEser çöp kutusuna taşınır, 30 gün içinde geri alabilirsiniz.',
       'es.degerSilOnay': 'Değer silinsin mi?\n\n',
@@ -418,7 +437,7 @@
       'es.notaYapistir': '📋 Buraya basılı tut → Yapıştır',
       'es.notaYapistirKutu': '📋  Buraya basılı tut → Yapıştır',
       'es.notaSurukle2': 'Notayı buraya sürükle, yapıştır ya da tıklayıp seç',
-      'es.notaYapistirIpucu': 'Ekran görüntüsünü kopyaladıysan kutuya basılı tut → Yapıştır. Bilgisayarda ⌘/Ctrl + V yeterli. Sahne modunda sayfa geçişi için her sayfayı ayrı görsel olarak yükle.',
+      'es.notaYapistirIpucu': 'Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.',
       'es.notaOnceKaydet': 'Nota ekleyebilmek için önce eseri kaydedin. Kaydettikten sonra eseri düzenleyip notayı buradan yükleyebilirsiniz.',
       'es.eseriDuzenle': '✏️ Eseri Düzenle',
       'es.yenieserKisa': 'Yeni Eser Ekle',
@@ -474,6 +493,22 @@
       'mod.eposta_ok': 'Email updated ✓',
       'mod.baglantiHatasi': 'Connection error: ',
       'mod.hata': 'Error: ',
+      'es.sayfaBaslik': 'Repertuvar — Pieces',
+      'es.onayBekleyenBtn': '⏳ Awaiting Approval',
+      'es.secildi': '{n} selected',
+      'es.vurusDk': '(bpm)',
+      'es.ph_akorOrnek': '[C]Yesterday, [Bm]all my troubles seemed so [E]far away\n[Am]Now it looks as [D]though they\u2019re [G]here to stay',
+      'es.t_ciftOk': 'Double arrow',
+      'es.t_italik': 'Italic',
+      'es.t_solaYasla': 'Align Left',
+      'es.t_sagaYasla': 'Align Right',
+      'es.t_satirVurgu': 'Put the cursor at the start of a line and click — that line gets highlighted',
+      'es.t_koseliAc': 'Open square bracket',
+      'es.t_koseliKapa': 'Close square bracket',
+      'es.t_susluAc': 'Open curly brace',
+      'es.t_susluKapa': 'Close curly brace',
+      'es.t_parantezAc': 'Open parenthesis',
+      'es.t_parantezKapa': 'Close parenthesis',
       'es.buEser': 'This piece',
       'es.silOnay': 'Delete {ad}?\n\nThe piece goes to the trash and can be restored within 30 days.',
       'es.degerSilOnay': 'Delete this value?\n\n',
@@ -799,7 +834,7 @@
       'es.notaYapistir': '📋 Press and hold here → Paste',
       'es.notaYapistirKutu': '📋  Press and hold here → Paste',
       'es.notaSurukle2': 'Drag sheet music here, paste it, or tap to choose a file',
-      'es.notaYapistirIpucu': 'If you copied a screenshot, press and hold the box → Paste. On a computer ⌘/Ctrl + V is enough. For page turning in Stage Mode, upload each page as a separate image.',
+      'es.notaYapistirIpucu': 'If you copied a screenshot, <b>press and hold</b> in the box → <b>Paste</b>. On a computer <b>⌘/Ctrl + V</b> is enough. For page turns in Stage Mode, upload <b>each page as a separate image</b>.',
       'es.notaOnceKaydet': 'Save the piece first, then reopen it to upload sheet music here.',
       'es.eseriDuzenle': '✏️ Edit Piece',
       'es.yenieserKisa': 'Add New Piece',
@@ -862,6 +897,15 @@
       const k = el.getAttribute('data-i18n');
       const v = t(k, null);
       if (v !== k) el.textContent = v;
+    });
+    // (2026-08-30) İçinde <b> gibi etiket TAŞIYAN metinler için ayrı işaret.
+    // `data-i18n` textContent yazıyor ve bu, etiketleri siliyordu — Türkçede
+    // bile, çünkü uygula() dil ne olursa olsun çalışıyor. Buraya konan değer
+    // sözlükten gelir, yani kendi metnimizdir; dışarıdan içerik girmez.
+    alan.querySelectorAll('[data-i18n-html]').forEach(el => {
+      const k = el.getAttribute('data-i18n-html');
+      const v = t(k, null);
+      if (v !== k) el.innerHTML = v;
     });
     alan.querySelectorAll('[data-i18n-ph]').forEach(el => {
       const k = el.getAttribute('data-i18n-ph');

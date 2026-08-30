@@ -583,7 +583,7 @@
 <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Repertuar — Eserler</title>
+<title data-i18n="es.sayfaBaslik">Repertuvar — Eserler</title>
 <style>
   :root {
     --bg: #070B18;
@@ -1368,7 +1368,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
           style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;" data-i18n="es.favoriler">★ Favoriler</button>
         <!-- (2026-08-15) Taslaklarım — gizli eseri olmayan kullanıcıda hiç görünmez. -->
         <button id="draftToggle" class="fav-toggle-btn" onclick="setDraftOnly(!draftOnly)"
-          style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:none;align-items:center;justify-content:center;gap:5px;">🔒 Taslaklarım <span id="draftCount" style="background:rgba(88,166,255,.2);color:#58A6FF;border-radius:10px;padding:0 6px;font-size:10px;">0</span></button>
+          style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:none;align-items:center;justify-content:center;gap:5px;"><span data-i18n="es.taslaklarim">🔒 Taslaklarım</span> <span id="draftCount" style="background:rgba(88,166,255,.2);color:#58A6FF;border-radius:10px;padding:0 6px;font-size:10px;">0</span></button>
       </div>
       <!-- (2026-08-21) Tur cipleri — JS ile kuruluyor (buildTurChips). Bos kalirsa gizlenir. -->
       <div id="turChipRow" style="display:none;"></div>
@@ -1376,10 +1376,10 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     <div class="toolbar">
       <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;"><i class="ti ti-adjustments-horizontal"></i> Filtreler<span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
       <button id="btnAdminNewEser" class="admin-only fab-new-eser" onclick="openNewEserModal()" title="Yeni Eser Ekle" data-i18n-title="es.yenieserKisa" style="position:fixed;right:20px;bottom:24px;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;box-shadow:0 8px 24px rgba(255,200,61,0.4);display:none;align-items:center;justify-content:center;font-size:22px;line-height:1;color:#111;font-weight:600;cursor:pointer;z-index:500;">+</button>
-      <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:none;align-items:center;gap:5px;background:rgba(249,160,74,.12);border:1px solid rgba(249,160,74,.3);border-radius:20px;padding:4px 10px 4px 8px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);">⏳ Onay Bekleyen <span id="pendingCountDesktop" style="background:#F9A04A;color:#1a1000;border-radius:10px;padding:1px 7px;font-size:10px;">0</span></button>
+      <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:none;align-items:center;gap:5px;background:rgba(249,160,74,.12);border:1px solid rgba(249,160,74,.3);border-radius:20px;padding:4px 10px 4px 8px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);"><span data-i18n="es.onayBekleyenBtn">⏳ Onay Bekleyen</span> <span id="pendingCountDesktop" style="background:#F9A04A;color:#1a1000;border-radius:10px;padding:1px 7px;font-size:10px;">0</span></button>
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;margin-left:auto;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);" data-i18n="es.oner">🎵 Öner</button>
       <button id="btnUserSuggest" onclick="openSuggestModal()" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);" data-i18n="es.eseroner">🎵 Eser Öner</button>
-      <button id="btnOnerilerim" onclick="window.location.href='onerilerim.html'" style="display:none;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);">📋 Eserlerim <span id="onerilerimCount" style="display:none;background:var(--accent);color:#111;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;">0</span></button>
+      <button id="btnOnerilerim" onclick="window.location.href='onerilerim.html'" style="display:none;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);"><span data-i18n="es.eserlerim">📋 Eserlerim</span> <span id="onerilerimCount" style="display:none;background:var(--accent);color:#111;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;">0</span></button>
     </div>
     <div class="list-panel" id="listPanel"></div>
     <div id="bulkActionBar" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:600;background:var(--surface);border-top:1px solid var(--border);padding:10px 14px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(0,0,0,.28);align-items:center;gap:10px;">
@@ -2487,7 +2487,7 @@ function updateBulkBar() {
   const label = document.getElementById('bulkCountLabel');
   if (!bar || !label) return;
   bar.style.display = bulkMode ? 'flex' : 'none';
-  label.textContent = bulkSelectedIds.size + ' seçildi';
+  label.textContent = _esCev('es.secildi','{n} seçildi').replace('{n}', bulkSelectedIds.size);
 }
 
 async function bulkCreateRepertoire() {
@@ -2735,7 +2735,7 @@ function selectWork(id, silent) {
           <span style="font-size:11px;color:var(--text3);">sadece görünümü kaydırır, kayıtlı akoru değiştirmez</span>
         </div>
         <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="_cpGrow(this);updateChordsPreview(${w.id})" style="width:100%;min-height:min(46vh,608px);padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
-          placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm"></textarea>
+          placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm" data-i18n-ph="es.ph_akorOrnek"></textarea>
         <div class="rbtn-row" style="margin-top:10px;">
           <button onclick="saveChords(${w.id})" class="rbtn rbtn-primary" data-i18n="ortak.kaydet">Kaydet</button>
           <span class="rbtn-group">
@@ -2791,7 +2791,7 @@ function selectWork(id, silent) {
                contenteditable="true" inputmode="none" role="button"
                aria-label="Panodaki görseli yapıştır"
                onclick="event.stopPropagation()"></div>
-          <div class="nota-paste-hint" data-i18n="es.notaYapistirIpucu">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
+          <div class="nota-paste-hint" data-i18n-html="es.notaYapistirIpucu">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
           <div id="notaUploadStatus_${w.id}" style="margin-top:8px;font-size:12px;color:var(--text3);"></div>
           ${notaPagesOf(w).length ? `<button onclick="deleteNota(${w.id})" style="margin-top:8px;display:block;background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">🗑 Tüm Sayfaları Kaldır</button>` : ''}
         </div>
@@ -6282,12 +6282,12 @@ function openSuggestModal() { openNewEserModal(); }
         <div id="lyricsToolbar" style="display:flex;align-items:center;gap:2px;padding:6px 8px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;">
           <span style="font-size:11px;color:var(--text3);margin-right:6px;font-weight:600;letter-spacing:.05em;" data-i18n="es.format">FORMAT</span>
           <button type="button" onclick="lyricsCmd('bold')"       title="Kalın" data-i18n-title="es.t_kalin"         style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-weight:700;font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><b>B</b></button>
-          <button type="button" onclick="lyricsCmd('italic')"     title="İtalik"        style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><i>I</i></button>
+          <button type="button" onclick="lyricsCmd('italic')"     title="İtalik" data-i18n-title="es.t_italik"        style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><i>I</i></button>
           <button type="button" onclick="lyricsCmd('underline')"  title="Altı Çizili" data-i18n-title="es.t_alticizili"   style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:13px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><u>U</u></button>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
-          <button type="button" onclick="lyricsAlign('left')"     title="Sola Yasla"    style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">≡</button>
+          <button type="button" onclick="lyricsAlign('left')"     title="Sola Yasla" data-i18n-title="es.t_solaYasla"    style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">≡</button>
           <button type="button" onclick="lyricsAlign('center')"   title="Ortala" data-i18n-title="es.t_ortala"        style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">☰</button>
-          <button type="button" onclick="lyricsAlign('right')"    title="Sağa Yasla"    style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">≡</button>
+          <button type="button" onclick="lyricsAlign('right')"    title="Sağa Yasla" data-i18n-title="es.t_sagaYasla"    style="width:28px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:15px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">≡</button>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
           <select onchange="lyricsFontSize(this.value)" title="Font Boyutu" data-i18n-title="es.t_fontboyut" style="height:28px;padding:0 6px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;">
             <option value="" data-i18n="es.boyut">Boyut</option>
@@ -6299,16 +6299,16 @@ function openSuggestModal() { openNewEserModal(); }
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
           <button type="button" onclick="lyricsClear()" title="Formatı Temizle" data-i18n-title="es.t_formatTemizle" style="padding:0 8px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text3);font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'" data-i18n="es.temizle">✕ Temizle</button>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
-          <button type="button" onclick="lyricsInsert('❗ ')" title="İmleci satır başına koyup tıklayın — o satır dikkat çekecek şekilde vurgulanır" style="padding:0 8px;height:28px;border-radius:5px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;" onmouseover="this.style.background='rgba(239,68,68,.16)'" onmouseout="this.style.background='rgba(239,68,68,.08)'" data-i18n="es.onemli">❗ Önemli Satır</button>
+          <button type="button" onclick="lyricsInsert('❗ ')" title="İmleci satır başına koyup tıklayın — o satır dikkat çekecek şekilde vurgulanır" data-i18n-title="es.t_satirVurgu" style="padding:0 8px;height:28px;border-radius:5px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;" onmouseover="this.style.background='rgba(239,68,68,.16)'" onmouseout="this.style.background='rgba(239,68,68,.08)'" data-i18n="es.onemli">❗ Önemli Satır</button>
           <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
           <span style="font-size:11px;color:var(--text3);margin-right:4px;font-weight:600;letter-spacing:.05em;" data-i18n="es.ozel">ÖZEL</span>
-          <button type="button" onclick="lyricsInsert('[')"   title="Köşeli parantez aç" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">[</button>
-          <button type="button" onclick="lyricsInsert(']')"   title="Köşeli parantez kapa" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">]</button>
-          <button type="button" onclick="lyricsInsert('{')"   title="Süslü parantez aç" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">{</button>
-          <button type="button" onclick="lyricsInsert('}')"   title="Süslü parantez kapa" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">}</button>
-          <button type="button" onclick="lyricsInsert('(')"   title="Parantez aç" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">(</button>
-          <button type="button" onclick="lyricsInsert(')')"   title="Parantez kapa" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">)</button>
-          <button type="button" onclick="lyricsInsert('>>')"    title="Çift ok" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">>></button>
+          <button type="button" onclick="lyricsInsert('[')"   title="Köşeli parantez aç" data-i18n-title="es.t_koseliAc" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">[</button>
+          <button type="button" onclick="lyricsInsert(']')"   title="Köşeli parantez kapa" data-i18n-title="es.t_koseliKapa" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">]</button>
+          <button type="button" onclick="lyricsInsert('{')"   title="Süslü parantez aç" data-i18n-title="es.t_susluAc" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">{</button>
+          <button type="button" onclick="lyricsInsert('}')"   title="Süslü parantez kapa" data-i18n-title="es.t_susluKapa" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">}</button>
+          <button type="button" onclick="lyricsInsert('(')"   title="Parantez aç" data-i18n-title="es.t_parantezAc" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">(</button>
+          <button type="button" onclick="lyricsInsert(')')"   title="Parantez kapa" data-i18n-title="es.t_parantezKapa" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">)</button>
+          <button type="button" onclick="lyricsInsert('>>')"    title="Çift ok" data-i18n-title="es.t_ciftOk" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">>></button>
           <button type="button" onclick="lyricsInsert('2X')"    title="2 kez tekrar" data-i18n-title="es.t_2kez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">2X</button>
           <button type="button" onclick="lyricsInsert('3X')"    title="3 kez tekrar" data-i18n-title="es.t_3kez" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:monospace;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">3X</button>
           <button type="button" onclick="lyricsInsert('\n— Nakarat —\n')" title="Nakarat bölümü" data-i18n-title="es.t_nakaratBolum" style="padding:0 7px;height:28px;border-radius:5px;border:1px solid transparent;background:none;color:#4DA3FF;font-size:11px;cursor:pointer;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'" data-i18n="es.nakarat">Nakarat</button>
@@ -6376,7 +6376,7 @@ function openSuggestModal() { openNewEserModal(); }
         </div>
         <!-- Hiza sürgüsü / kaydırma paneli buraya çizilir (neOpenConvScale, neOpenNudgeOnly) -->
         <div id="ne_chordScale" style="display:none;margin:0 0 10px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
-        <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:430px;resize:vertical;"></textarea>
+        <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm" data-i18n-ph="es.ph_akorOrnek" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:430px;resize:vertical;"></textarea>
       </div>
     </div>
 
@@ -6396,7 +6396,7 @@ function openSuggestModal() { openNewEserModal(); }
           </div>
           <div class="nota-paste" id="notaPaste_ne" contenteditable="true" inputmode="none" role="button"
                aria-label="Panodaki görseli yapıştır" onclick="event.stopPropagation()"></div>
-          <div class="nota-paste-hint" data-i18n="es.notaYapistirIpucu">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
+          <div class="nota-paste-hint" data-i18n-html="es.notaYapistirIpucu">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
           <div id="ne_notaList" style="margin-top:12px;font-size:12px;color:var(--text2);"></div>
         </div>
       </div>
@@ -6432,7 +6432,7 @@ function openSuggestModal() { openNewEserModal(); }
       <div data-alan="enstruman"><label class="ne-lbl" data-i18n="es.enstruman">Enstrüman</label><input id="ne_instrument" class="ne-inp" placeholder="Enstrüman..." data-i18n-ph="es.ph_enstruman"></div>
       <div data-alan="yore"><label class="ne-lbl" data-i18n="es.yore">Yöre/Bölge</label><input id="ne_region" class="ne-inp" placeholder="Yöre..." data-i18n-ph="es.ph_yore"></div>
 
-      <div data-alan="tempo"><label class="ne-lbl">Tempo <span style="color:var(--text3);font-weight:400;">(vuruş/dk)</span></label><input id="ne_metronom" class="ne-inp" inputmode="numeric" maxlength="3" placeholder="örn. 72" data-i18n-ph="es.ph_tempo"></div>
+      <div data-alan="tempo"><label class="ne-lbl"><span data-i18n="alan.tempo">Tempo</span> <span style="color:var(--text3);font-weight:400;" data-i18n="es.vurusDk">(vuruş/dk)</span></label><input id="ne_metronom" class="ne-inp" inputmode="numeric" maxlength="3" placeholder="örn. 72" data-i18n-ph="es.ph_tempo"></div>
       <div data-alan="olcu"><label class="ne-lbl" data-i18n="es.olcu">Ölçü</label><input id="ne_measurement" class="ne-inp" placeholder="4/4, 9/8, 7/8+4/4..." data-i18n-ph="es.ph_olcu"></div>
 
       <!-- (2026-08-30) ALAN BAZLI GÖRÜNÜRLÜK.
