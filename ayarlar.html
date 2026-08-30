@@ -353,7 +353,7 @@ html, body { overflow-x: hidden; }
     <div class="settings-section">
       <div class="section-header">
         <span class="section-icon">👤</span>
-        <div><div class="section-title">Hesap</div></div>
+        <div><div class="section-title" data-i18n="ay.hesap">Hesap</div></div>
       </div>
       <div class="setting-row">
         <div class="profile-avatar" id="profileAvatar">—</div>
@@ -365,25 +365,25 @@ html, body { overflow-x: hidden; }
       </div>
       <div class="setting-row">
         <div style="flex:1;min-width:0;">
-          <div class="setting-label">Ad Soyad</div>
-          <div class="setting-desc">Eklediğin eserlerde ve grup listelerinde bu isim görünür</div>
+          <div class="setting-label" data-i18n="ay.adsoyad">Ad Soyad</div>
+          <div class="setting-desc" data-i18n="ay.adsoyad_alt">Eklediğin eserlerde ve grup listelerinde bu isim görünür</div>
           <input id="setName" type="text" placeholder="Adınız ve soyadınız" autocomplete="name"
             style="margin-top:8px;width:100%;max-width:320px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box;">
           <div id="setNameMsg" style="margin-top:6px;font-size:12px;display:none;"></div>
         </div>
-        <button class="setting-btn" onclick="saveDisplayName()">Kaydet</button>
+        <button class="setting-btn" onclick="saveDisplayName()" data-i18n="ay.kaydet">Kaydet</button>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Şifre</div>
-          <div class="setting-desc">Hesap şifreni değiştir</div>
+          <div class="setting-label" data-i18n="ay.sifre">Şifre</div>
+          <div class="setting-desc" data-i18n="ay.sifre_alt">Hesap şifreni değiştir</div>
         </div>
-        <button class="setting-btn" onclick="openPasswordModal()">Değiştir</button>
+        <button class="setting-btn" onclick="openPasswordModal()" data-i18n="ay.degistir">Değiştir</button>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">E-posta Adresi</div>
-          <div class="setting-desc">Hesap e-posta adresini değiştir</div>
+          <div class="setting-label" data-i18n="ay.eposta">E-posta Adresi</div>
+          <div class="setting-desc" data-i18n="ay.eposta_alt">Hesap e-posta adresini değiştir</div>
         </div>
         <button class="setting-btn" onclick="openEmailModal()">Değiştir</button>
       </div>
@@ -393,10 +393,10 @@ html, body { overflow-x: hidden; }
            dosyada duruyor, silinmedi. -->
       <div class="setting-row">
         <div>
-          <div class="setting-label" style="color:var(--red);">Hesabımı Sil</div>
-          <div class="setting-desc">Tüm verileriniz kalıcı olarak silinir (GDPR)</div>
+          <div class="setting-label" style="color:var(--red);" data-i18n="ay.hesapsil">Hesabımı Sil</div>
+          <div class="setting-desc" data-i18n="ay.hesapsil_alt">Tüm verileriniz kalıcı olarak silinir (GDPR)</div>
         </div>
-        <button class="setting-btn danger" onclick="hesapSilOnay()">Sil</button>
+        <button class="setting-btn danger" onclick="hesapSilOnay()" data-i18n="ay.sil">Sil</button>
       </div>
     </div>
 
@@ -432,8 +432,8 @@ html, body { overflow-x: hidden; }
     <div class="settings-section">
       <div class="section-header">
         <span class="section-icon">🎼</span>
-        <div><div class="section-title">Müzik Alanları</div>
-             <div class="section-subtitle">Yeni eserlerde hangi alanlar açık gelsin</div></div>
+        <div><div class="section-title" data-i18n="ay.muzikalan">Müzik Alanları</div>
+             <div class="section-subtitle" data-i18n="ay.muzikalan_alt">Yeni eserlerde hangi alanlar açık gelsin</div></div>
       </div>
 
       <div class="setting-row" style="display:block;">
@@ -455,12 +455,12 @@ html, body { overflow-x: hidden; }
     <div class="settings-section">
       <div class="section-header">
         <span class="section-icon">🎭</span>
-        <div><div class="section-title">Sahne Modu</div><div class="section-subtitle">Sahneye çıkarken kullanılan varsayılan ayarlar</div></div>
+        <div><div class="section-title" data-i18n="ay.sahne">Sahne Modu</div><div class="section-subtitle" data-i18n="ay.sahne_alt">Sahneye çıkarken kullanılan varsayılan ayarlar</div></div>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Varsayılan Tema</div>
-          <div class="setting-desc">Sahne modunda açılış teması</div>
+          <div class="setting-label" data-i18n="ay.tema">Varsayılan Tema</div>
+          <div class="setting-desc" data-i18n="ay.tema_alt">Sahne modunda açılış teması</div>
         </div>
         <select class="setting-select" id="stageTheme" onchange="saveSetting('stageTheme',this.value)">
           <option value="day">☀️ Gündüz</option>
@@ -469,19 +469,19 @@ html, body { overflow-x: hidden; }
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Söz Hizalama</div>
-          <div class="setting-desc">Sahne modunda varsayılan metin hizası</div>
+          <div class="setting-label" data-i18n="ay.hiza">Söz Hizalama</div>
+          <div class="setting-desc" data-i18n="ay.hiza_alt">Sahne modunda varsayılan metin hizası</div>
         </div>
         <select class="setting-select" id="stageLyricsAlign" onchange="saveSetting('stageLyricsAlign',this.value)">
-          <option value="center">Orta</option>
-          <option value="left">Sol</option>
-          <option value="right">Sağ</option>
+          <option value="center" data-i18n="ay.orta">Orta</option>
+          <option value="left" data-i18n="ay.sol">Sol</option>
+          <option value="right" data-i18n="ay.sag">Sağ</option>
         </select>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Akor Görünümü</div>
-          <div class="setting-desc">Söz yerine akorları göster</div>
+          <div class="setting-label" data-i18n="ay.akor">Akor Görünümü</div>
+          <div class="setting-desc" data-i18n="ay.akor_alt">Söz yerine akorları göster</div>
         </div>
         <label class="toggle">
           <input type="checkbox" id="stageShowChords" onchange="saveSetting('stageShowChords',this.checked?'1':'0')">
@@ -494,49 +494,49 @@ html, body { overflow-x: hidden; }
     <div class="settings-section">
       <div class="section-header">
         <span class="section-icon">🎶</span>
-        <div><div class="section-title">Grup / Koro</div><div class="section-subtitle">Grup üyeliği ve yönetimi</div></div>
+        <div><div class="section-title" data-i18n="ay.grup">Grup / Koro</div><div class="section-subtitle" data-i18n="ay.grup_alt">Grup üyeliği ve yönetimi</div></div>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Grup Yönetimi</div>
-          <div class="setting-desc">Üyeler, davet linkleri, roller</div>
+          <div class="setting-label" data-i18n="ay.grupyon">Grup Yönetimi</div>
+          <div class="setting-desc" data-i18n="ay.grupyon_alt">Üyeler, davet linkleri, roller</div>
         </div>
-        <a href="gruplar.html" class="setting-btn">Gruba Git →</a>
+        <a href="gruplar.html" class="setting-btn" data-i18n="ay.grupgit">Gruba Git →</a>
       </div>
     </div>
 
     <div class="settings-section admin-only">
       <div class="section-header">
         <span class="section-icon">🛠️</span>
-        <div><div class="section-title">Yönetim</div><div class="section-subtitle">Sadece adminler görebilir</div></div>
+        <div><div class="section-title" data-i18n="ay.yonetim">Yönetim</div><div class="section-subtitle" data-i18n="ay.yonetim_alt">Sadece adminler görebilir</div></div>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">İstatistikler</div>
-          <div class="setting-desc">Ziyaret ve kullanım istatistikleri</div>
+          <div class="setting-label" data-i18n="ay.istat">İstatistikler</div>
+          <div class="setting-desc" data-i18n="ay.istat_alt">Ziyaret ve kullanım istatistikleri</div>
         </div>
-        <a href="istatistikler.html" class="setting-btn">Görüntüle →</a>
+        <a href="istatistikler.html" class="setting-btn" data-i18n="ay.goruntule">Görüntüle →</a>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Üye Yönetimi</div>
-          <div class="setting-desc">Rolleri düzenle, üye ekle/sil</div>
+          <div class="setting-label" data-i18n="ay.uyeyon">Üye Yönetimi</div>
+          <div class="setting-desc" data-i18n="ay.uyeyon_alt">Rolleri düzenle, üye ekle/sil</div>
         </div>
-        <a href="uyeler.html" class="setting-btn">Üyeler →</a>
+        <a href="uyeler.html" class="setting-btn" data-i18n="ay.uyeler">Üyeler →</a>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Bekleyen Öneriler</div>
-          <div class="setting-desc">Onay bekleyen eser önerileri</div>
+          <div class="setting-label" data-i18n="ay.oneriler">Bekleyen Öneriler</div>
+          <div class="setting-desc" data-i18n="ay.oneriler_alt">Onay bekleyen eser önerileri</div>
         </div>
-        <a href="eserler.html" class="setting-btn" onclick="localStorage.setItem('openPending','1')">İncele →</a>
+        <a href="eserler.html" class="setting-btn" onclick="localStorage.setItem('openPending','1')" data-i18n="ay.incele">İncele →</a>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Veri Temizleme</div>
-          <div class="setting-desc">Boş ve hatalı kayıtları temizle</div>
+          <div class="setting-label" data-i18n="ay.temizle">Veri Temizleme</div>
+          <div class="setting-desc" data-i18n="ay.temizle_alt">Boş ve hatalı kayıtları temizle</div>
         </div>
-        <a href="temizle.html" class="setting-btn danger">Temizle →</a>
+        <a href="temizle.html" class="setting-btn danger" data-i18n="ay.temizlebtn">Temizle →</a>
       </div>
     </div>
 
@@ -548,11 +548,11 @@ html, body { overflow-x: hidden; }
         <span class="section-icon">📋</span>
         <div>
           <div class="section-title">Önerilerim <span id="pendingCountBadge" style="display:none;background:rgba(249,160,74,.2);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:14px;font-weight:700;border-radius:10px;padding:1px 8px;margin-left:4px;"></span></div>
-          <div class="section-subtitle" style="font-size:14px;color:var(--text3);margin-top:2px;">Gönderdiğiniz eser önerileri ve onay durumları</div>
+          <div class="section-subtitle" style="font-size:14px;color:var(--text3);margin-top:2px;" data-i18n="ay.onerilerim_alt">Gönderdiğiniz eser önerileri ve onay durumları</div>
         </div>
       </div>
       <a href="onerilerim.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;text-decoration:none;margin-top:12px;">
-        <span style="font-size:16px;color:var(--text);">Önerilerimi Görüntüle</span>
+        <span style="font-size:16px;color:var(--text);" data-i18n="ay.onerilerimgor">Önerilerimi Görüntüle</span>
         <i class="ti ti-chevron-right" style="color:var(--text3);font-size:20px;"></i>
       </a>
     </div>
@@ -561,23 +561,23 @@ html, body { overflow-x: hidden; }
       <div class="section-header">
         <span class="section-icon">🎵</span>
         <div>
-          <div class="section-title">Arkadaşını Davet Et</div>
-          <div class="section-subtitle" style="font-size:14px;color:var(--text3);margin-top:2px;">Repertuvar'ı müzisyen arkadaşlarınla paylaş</div>
+          <div class="section-title" data-i18n="ay.davet">Arkadaşını Davet Et</div>
+          <div class="section-subtitle" style="font-size:14px;color:var(--text3);margin-top:2px;" data-i18n="ay.davet_alt">Repertuvar'ı müzisyen arkadaşlarınla paylaş</div>
         </div>
       </div>
 
       <!-- Link kopyala -->
       <div class="setting-row">
         <div>
-          <div class="setting-label">Davet Linki</div>
+          <div class="setting-label" data-i18n="ay.davetlink">Davet Linki</div>
           <div class="setting-desc" id="davetLink" style="font-size:14px;color:var(--text3);word-break:break-all;">app.repertuvar.app/login.html</div>
         </div>
-        <button class="setting-btn" onclick="linkKopyala()" id="kopyalaBtn">📋 Kopyala</button>
+        <button class="setting-btn" onclick="linkKopyala()" id="kopyalaBtn" data-i18n="ay.kopyala">📋 Kopyala</button>
       </div>
 
       <!-- Paylaş -->
       <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:12px;">
-        <div class="setting-label">Paylaş</div>
+        <div class="setting-label" data-i18n="ay.paylas">Paylaş</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;width:100%;">
           <button onclick="paylasBilesen('whatsapp')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(37,211,102,.1);color:#25D366;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.335-1.508A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.359-.214-3.721.976.994-3.634-.234-.374A9.818 9.818 0 1112 21.818z"/></svg>
@@ -590,19 +590,19 @@ html, body { overflow-x: hidden; }
             <i class="ti ti-message" style="font-size:18px;"></i> SMS
           </button>
           <button onclick="paylasBilesen('native')" style="flex:1;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(167,139,250,.1);color:var(--accent2);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;">
-            <i class="ti ti-share" style="font-size:18px;"></i> Diğer
+            <i class="ti ti-share" style="font-size:18px;"></i> <span data-i18n="ay.diger">Diğer</span>
           </button>
         </div>
       </div>
 
       <!-- E-posta ile davet -->
       <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
-        <div class="setting-label">E-posta ile Davet Gönder</div>
+        <div class="setting-label" data-i18n="ay.davetgonder">E-posta ile Davet Gönder</div>
         <div style="display:flex;gap:8px;width:100%;">
           <input type="email" id="davetEmail" placeholder="arkadas@mail.com" 
             style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:16px;font-family:var(--font);outline:none;"
             onkeydown="if(event.key==='Enter') davetGonder()">
-          <button onclick="davetGonder()" id="davetBtn" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;padding:8px 16px;color:#1a1200;font-size:16px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap;">Gönder</button>
+          <button onclick="davetGonder()" id="davetBtn" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;padding:8px 16px;color:#1a1200;font-size:16px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap;" data-i18n="ay.gonder">Gönder</button>
         </div>
         <div id="davetMsg" style="font-size:15px;display:none;"></div>
       </div>
@@ -611,33 +611,33 @@ html, body { overflow-x: hidden; }
     <div class="settings-section">
       <div class="section-header">
         <span class="section-icon">ℹ️</span>
-        <div><div class="section-title">Hakkında</div></div>
+        <div><div class="section-title" data-i18n="ay.hakkinda">Hakkında</div></div>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Uygulama</div>
-          <div class="setting-desc">Türk müziği repertuvar yönetimi</div>
+          <div class="setting-label" data-i18n="ay.uygulama">Uygulama</div>
+          <div class="setting-desc" data-i18n="ay.uygulama_alt">Türk müziği repertuvar yönetimi</div>
         </div>
         <span class="version-badge">v2.0</span>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Web Sitesi</div>
+          <div class="setting-label" data-i18n="ay.websitesi">Web Sitesi</div>
           <div class="setting-desc">repertuvar.app</div>
         </div>
-        <a href="https://repertuvar.app" target="_blank" class="setting-btn">Ziyaret Et →</a>
+        <a href="https://repertuvar.app" target="_blank" class="setting-btn" data-i18n="ay.ziyaret">Ziyaret Et →</a>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Gizlilik Politikası</div>
-          <div class="setting-desc">Verilerinizi nasıl koruyoruz</div>
+          <div class="setting-label" data-i18n="ay.gizlilik">Gizlilik Politikası</div>
+          <div class="setting-desc" data-i18n="ay.gizlilik_alt">Verilerinizi nasıl koruyoruz</div>
         </div>
         <a href="https://repertuvar.app/privacy" target="_blank" rel="noopener" class="setting-btn">Görüntüle →</a>
       </div>
       <div class="setting-row">
         <div>
-          <div class="setting-label">Kullanım Koşulları</div>
-          <div class="setting-desc">Hizmet şartlarımız</div>
+          <div class="setting-label" data-i18n="ay.kosullar">Kullanım Koşulları</div>
+          <div class="setting-desc" data-i18n="ay.kosullar_alt">Hizmet şartlarımız</div>
         </div>
         <a href="https://repertuvar.app/terms" target="_blank" rel="noopener" class="setting-btn">Görüntüle →</a>
       </div>
@@ -659,7 +659,7 @@ html, body { overflow-x: hidden; }
       style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:16px;font-family:var(--font);outline:none;margin-bottom:16px;">
     <div id="silHataMsg" style="font-size:15px;color:var(--red);display:none;margin-bottom:8px;"></div>
     <div class="modal-actions">
-      <button class="modal-btn" onclick="hesapSilKapat()">İptal</button>
+      <button class="modal-btn" onclick="hesapSilKapat()" data-i18n="ay.iptal">İptal</button>
       <button class="modal-btn danger" id="silOnayla" onclick="hesapSil()">Hesabımı Sil</button>
     </div>
   </div>
