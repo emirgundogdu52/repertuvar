@@ -1,12 +1,4 @@
 /* topnav.js — v2026-08-01-sidebar-account — masaüstü sidebar'da tema düğmesinin ÜSTÜNE
-// (2026-08-30) Menü etiketleri çeviriden geçiyor. `i18n.js` yüklenmemiş bir
-// sayfada da çalışsın diye Türkçe yedeğe düşüyor — topnav her sayfada var,
-// biri i18n'i almayı unutursa menü boş kalmamalı.
-function _m(anahtar, tr) {
-  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
-  catch (e) { return tr; }
-}
-
    avatar + hesap menüsü eklendi (.sb-user-x / .sb-user-dropdown / .sb-dd-item, yeni
    toggleSbDropdown + updateSbUserName). "Oturumu Kapat" artık Ayarlar sayfasının içinde
    saklı değil, iki tıkla erişilebilir; menüde Ayarlar da var. Avatar mobil topnav'daki
@@ -15,6 +7,18 @@ function _m(anahtar, tr) {
    konumlandırma gerekmedi.
    Önceki: v2026-06-30-switch-unified — sbThemeToggle/rThemeToggle/dtThemeToggle hepsi
    tek .r-theme-toggle markup'ı kullanır */
+
+// (2026-08-30) Menü etiketleri çeviriden geçiyor. `i18n.js` yüklenmemiş bir
+// sayfada da çalışsın diye Türkçe yedeğe düşüyor — topnav her sayfada var,
+// biri i18n'i almayı unutursa menü boş kalmamalı.
+// NOT: bu blok dosyanın AÇILIŞ YORUMUNDAN SONRA durmalı. Önce ilk satır
+// sonuna eklenmişti ve yorumun İÇİNE düştü — `_m` tanımsız kaldı, menü hiç
+// çizilmedi. Sözdizimi kontrolü bunu yakalayamaz; yorum geçerli koddur.
+function _m(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 /* 2026-07-17: SYNC BAR eklendi (dosya sonu) — Supabase /rest/v1 & /auth/v1 fetch'lerinde ekranın en üstünde ince altın ilerleme çubuğu. */
 (function() {
   // CSS inject
