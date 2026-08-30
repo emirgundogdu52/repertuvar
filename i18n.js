@@ -145,9 +145,13 @@
       'ana.f_pedal_b': 'Pedalınız yoksa ekrana dokunarak, kaydırarak veya klavyeyle de eser geçebilirsiniz.',
       'ana.f_pedalustu': 'Bluetooth sayfa çevirme pedalları (harici cihaz) doğrudan çalışır. Pedalın yoksa dokunma, kaydırma ve klavyeyle de geçebilirsin.',
       'ana.ajanda_aciklama': 'Konserlerinizin tarih, mekan, organizatör bilgileri; karşılama, transfer ve konaklama detayları — tüm konser lojistiğinizi tek ekrandan Repertuvarlarınızla ilişkilendirilmiş şekilde yönetebileceksiniz!...',
+      // iPad maketindeki iki ornek repertuvarin adi. Eser adlari ozel isim,
+      // cevrilmiyor. Amac: uygulamanin hem THM'ye hem bati muzigine uygun
+      // oldugunu tek cumle yazmadan gostermek.
+      'ana.maket_thm': 'Anadolu\u2019dan Türküler',
+      'ana.maket_bati': 'Düğün Seti',
       'ana.aj_tarih': 'Tarih', 'ana.aj_mekan': 'Mekan',
       'ana.aj_konaklama': 'Konaklama', 'ana.aj_transfer': 'Transfer',
-      'ortak.yukleniyor': 'Yükleniyor…',
       // Isimli selamlama JS'ten yaziliyor. {ad} yer tutucusu calisma aninda
       // degistiriliyor — kelime sirasi dile gore degisebilsin diye metnin
       // icinde, sonuna eklenmiyor.
@@ -471,9 +475,10 @@
       'ana.f_pedal_b': 'No pedal? Tap, swipe or use the keyboard to change pieces.',
       'ana.f_pedalustu': 'Bluetooth page-turner pedals (a separate device) work straight away. No pedal? Tap, swipe or use the keyboard instead.',
       'ana.ajanda_aciklama': 'Dates, venues and organiser details for your concerts; pick-up, transfer and accommodation — you\u2019ll manage the whole logistics side from one screen, linked to your setlists.',
+      'ana.maket_thm': 'Folk Songs from Anatolia',
+      'ana.maket_bati': 'Wedding Set',
       'ana.aj_tarih': 'Date', 'ana.aj_mekan': 'Venue',
       'ana.aj_konaklama': 'Accommodation', 'ana.aj_transfer': 'Transfer',
-      'ortak.yukleniyor': 'Loading…',
       'ana.hosgeldin_ad': 'Welcome, {ad} 👋',
       'ana.eser': 'Pieces',
       'ana.grup': 'Groups',

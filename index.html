@@ -137,6 +137,18 @@
     }
     .hero-ipad-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
     .hero-ipad-screen { background:var(--bg2); border-radius:14px; padding:14px; }
+    /* (2026-08-30) Maketteki repertuvarin adi. Ust cubuktaki "Repertuvar"
+       MARKA oldugu icin liste adi oraya yazilamiyor; iki ornek liste
+       arasinda gecerken degisen sey bu satir. */
+    .hero-list-name {
+      font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+      color:var(--accent); padding:0 2px 9px; border-bottom:1px solid var(--border);
+      margin:0 0 4px;
+    }
+    /* Liste degisimi pedaldan BAGIMSIZ calisir. Pedal eser icinde ilerletir,
+       liste degistirmez — ayni hareketle gosterirsek izleyen yanlis ogrenir. */
+    .hero-ipad-screen .swap-fade { transition: opacity .3s ease, transform .3s ease; }
+    .hero-ipad-screen.swapping .swap-fade { opacity:0; transform:translateX(-16px); }
     .hero-song-row {
       display:flex; align-items:center; gap:10px; background:var(--surface2);
       margin:7px 0; padding:11px 12px; border-radius:10px; font-size:13px; color:var(--text2);
@@ -302,12 +314,13 @@
               <div class="icons"><i class="ti ti-search"></i><i class="ti ti-plus"></i><i class="ti ti-dots-vertical"></i></div>
             </div>
             <div class="hero-ipad-screen">
-              <div class="hero-song-row dragging hero-rotatable" id="heroRow1"><span class="grip">☰</span><b>Allı Turnam</b><span>Hüseyni · La</span></div>
-              <div class="hero-song-row hero-rotatable" id="heroRow2"><span class="num">2</span><b>Dostum Dostum</b><span>Hüseyni · La</span></div>
-              <div class="hero-song-row hero-rotatable" id="heroRow3"><span class="num">3</span><b>Barış Güvercini</b><span>Hüseyni · La</span></div>
-              <div class="hero-song-row"><span class="num">4</span><b>Vardar Ovası</b><span>Hicaz · La</span></div>
-              <div class="hero-song-row"><span class="num">5</span><b>Aldırma Gönül</b><span>Hicaz · La</span></div>
-              <div class="hero-song-row"><span class="num">6</span><b>Bedir Geliyor</b><span>Hicaz · La</span></div>
+              <div class="hero-list-name swap-fade" id="heroListName" data-i18n="ana.maket_thm">Anadolu’dan Türküler</div>
+              <div class="hero-song-row dragging hero-rotatable swap-fade" id="heroRow1"><span class="grip">☰</span><b>Allı Turnam</b><span>Hüseyni · La</span></div>
+              <div class="hero-song-row hero-rotatable swap-fade" id="heroRow2"><span class="num">2</span><b>Dostum Dostum</b><span>Hüseyni · La</span></div>
+              <div class="hero-song-row hero-rotatable swap-fade" id="heroRow3"><span class="num">3</span><b>Barış Güvercini</b><span>Hüseyni · La</span></div>
+              <div class="hero-song-row swap-fade"><span class="num">4</span><b>Vardar Ovası</b><span>Hicaz · La</span></div>
+              <div class="hero-song-row swap-fade"><span class="num">5</span><b>Aldırma Gönül</b><span>Hicaz · La</span></div>
+              <div class="hero-song-row swap-fade"><span class="num">6</span><b>Bedir Geliyor</b><span>Hicaz · La</span></div>
               <div class="hero-ipad-tabbar">
                 <div class="tab active"><i class="ti ti-music"></i><span data-i18n="menu.repertuvarlar">Repertuvar</span></div>
                 <div class="tab"><i class="ti ti-book"></i><span data-i18n="menu.eserler">Eserler</span></div>
@@ -625,11 +638,66 @@
       setTimeout(done, 1450);
     }
 
+    // ── Iki ornek repertuvar ────────────────────────────────────────────
+    // (2026-08-30) Maket tek bir THM listesi gosteriyordu. Ikinci bir bati
+    // listesi eklendi: uygulamanin her iki repertuvara da uydugu, tek cumle
+    // yazmadan gorulsun. Gecis PEDALDAN BAGIMSIZ — pedal eser icinde
+    // ilerletir, liste degistirmez; ayni hareketle gosterirsek izleyen
+    // pedalin listeler arasi gectigini sanir.
+    // Eser adlari ozel isim, cevrilmiyor; yalnizca liste ADI sozlukten gelir.
+    // Tonlar YAYGIN calinan tonlar, mutlak degil — gruplar solistin sesine
+    // gore transpoze eder.
+    const LISTELER = [
+      { adKey: 'ana.maket_thm', eserler: [
+        ['Allı Turnam', 'Hüseyni · La'], ['Dostum Dostum', 'Hüseyni · La'],
+        ['Barış Güvercini', 'Hüseyni · La'], ['Vardar Ovası', 'Hicaz · La'],
+        ['Aldırma Gönül', 'Hicaz · La'], ['Bedir Geliyor', 'Hicaz · La'] ] },
+      { adKey: 'ana.maket_bati', eserler: [
+        ['Moon River', 'C · 90'], ['Perfect', 'A\u266d · 63'],
+        ['L-O-V-E', 'G · 130'], ['Valerie', 'E\u266d · 105'],
+        ['Superstition', 'E\u266dm · 100'], ['September', 'A · 126'] ] }
+    ];
+    const adEl = document.getElementById('heroListName');
+    // reorder() ilk satiri fiziksel olarak sona tasiyor; liste degisirken
+    // baslangic sirasi geri kurulmali, yoksa numaralar 1..6 okunmaz.
+    const temelSira = allRows();
+    let aktifListe = 0;
+
+    function listeDegistir(done) {
+      aktifListe = (aktifListe + 1) % LISTELER.length;
+      const L = LISTELER[aktifListe];
+      screen.classList.add('swapping');
+      setTimeout(() => {
+        temelSira.forEach((r, i) => {
+          screen.appendChild(r);              // baslangic sirasini geri kur
+          const b = r.querySelector('b'), sp = r.querySelector('span:not(.num):not(.grip)');
+          if (b)  b.textContent  = L.eserler[i][0];
+          if (sp) sp.textContent = L.eserler[i][1];
+          r.classList.remove('dragging', 'now');
+        });
+        temelSira[0].classList.add('dragging');
+        renumber(); highlight(0);
+        if (adEl) {
+          // data-i18n'i da guncelle: kullanici dili degistirdiginde
+          // i18n.uygula() bu satiri kendiliginden yeniden cevirsin.
+          adEl.setAttribute('data-i18n', L.adKey);
+          adEl.textContent = (window.i18n && window.i18n.t)
+            ? window.i18n.t(L.adKey, adEl.textContent) : adEl.textContent;
+        }
+        screen.classList.remove('swapping');
+        setTimeout(done, 360);
+      }, 320);
+    }
+
     let step = 0;
     function loop() {
       if (step === 0) { reorder(() => { step = 1; loop(); }); }
       else if (step <= 3) { const t = step; pedalPress(t, () => { step++; loop(); }); }
-      else { highlight(0); step = 0; setTimeout(loop, 1700); }
+      else {
+        highlight(0); step = 0;
+        // Tur bitti: pedal gosterimi kapandiktan SONRA listeyi degistir.
+        setTimeout(() => listeDegistir(() => setTimeout(loop, 1100)), 900);
+      }
     }
     setTimeout(loop, 2500);
   })();
