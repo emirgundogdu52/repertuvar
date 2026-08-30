@@ -12,7 +12,7 @@
 <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Repertuvar</title>
+<title data-i18n="rep.sayfaBaslik">Repertuvar</title>
 <style>
 :root{--bg:#07071a;--surface:#0f0f2e;--surface2:#13132e;--border:rgba(140,120,255,0.38);--border2:rgba(140,120,255,0.58);--accent:#7c6fff;--accent2:#a78bfa;--accent3:#c4b5fd;--text:#e2e0ff;--text2:#9d9bc4;--text3:#5e5c8a;--red:#f87171;--green:#4ade80;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -368,7 +368,7 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 <div class="main-wrap">
 <div class="layout">
   <aside class="lp">
-    <div class="lph"><h2 data-i18n="rep.mevcut">Mevcut Repertuvarlar</h2><button class="bn" onclick="openNew()" title="+ Yeni Repertuvar Oluştur" data-i18n="rep.yeni">+ Yeni</button></div>
+    <div class="lph"><h2 data-i18n="rep.mevcut">Mevcut Repertuvarlar</h2><button class="bn" onclick="openNew()" title="+ Yeni Repertuvar Oluştur" data-i18n-title="rep.yeniRepT" data-i18n="rep.yeni">+ Yeni</button></div>
     <div style="padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
       <input type="text" id="repSearchInput" placeholder="Repertuvar veya eser adı ara..." data-i18n-ph="rep.ph_ara" oninput="onRepSearchInput(this.value)"
         style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;transition:border-color .15s;"
@@ -498,9 +498,7 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
       <button type="button" onclick="iemOpenWorkEditor()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;">
         <i class="ti ti-edit" style="font-size:15px;" aria-hidden="true"></i> <span data-i18n="rep.eserbilgi">Eser bilgilerini düzenle (söz, akor, nota…)</span>
       </button>
-      <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5;">
-        Eserin kendi bilgileri her repertuvarda aynıdır. Yukarıdaki alanlar ise yalnızca bu repertuvara özeldir.
-      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5;" data-i18n="rep.alanAciklama">Eserin kendi bilgileri her repertuvarda aynıdır. Yukarıdaki alanlar ise yalnızca bu repertuvara özeldir.</div>
     </div>
 
     <div class="fa"><button class="bc" onclick="closeIEM()" data-i18n="ortak.iptal">İptal</button><button class="bs" onclick="saveIEM()" data-i18n="ortak.kaydet">Kaydet</button></div>

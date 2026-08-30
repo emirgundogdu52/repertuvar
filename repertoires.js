@@ -233,7 +233,7 @@ async function dbPatch(table, id, data) {
   // Dizi gelmediyse (204/boş gövde) doğrulayacak bir şey yok — eski davranış.
   // Dizi geldiyse BOŞ olması sessiz reddin ta kendisidir.
   if (Array.isArray(rows) && rows.length === 0) {
-    throw new Error('Kaydedilemedi: sunucu hiçbir satır güncellemedi (yetkin olmayabilir).');
+    throw new Error(_r('rep.satirGuncellenmedi','Kaydedilemedi: sunucu hiçbir satır güncellemedi (yetkin olmayabilir).'));
   }
   return rows;
 }
@@ -451,7 +451,7 @@ async function loadWorksData() {
         // dolu olduğu için ekran boş kalmıyor; yalnız tazeleme atlanıyor.
         console.warn('[repertoires] works alınamadı ('+r.status+') — anon\'a DÜŞÜLMÜYOR, oturum var');
         if (navigator.onLine) {
-          try { toast('Eser listesi tazelenemedi. Oturumun yenilenmemiş olabilir — çıkıp tekrar girmen gerekebilir.', 'err'); } catch(e) {}
+          try { toast(_r('rep.listeTazelenmedi','Eser listesi tazelenemedi. Oturumun yenilenmemiş olabilir — çıkıp tekrar girmen gerekebilir.'), 'err'); } catch(e) {}
         }
       }
       throw new Error('works fetch '+r.status);
@@ -657,7 +657,7 @@ async function load(){
       }
     } catch(e) { dbg('local okuma hatası: '+e.message); }
   }
-  if (!localHadData) sync('spin','Yükleniyor...');
+  if (!localHadData) sync('spin',_r('rep.yukleniyor','Yükleniyor...'));
 
   // ── 2) ARKA PLANDA SUNUCUYLA SENKRONİZE ET (timeout'lu — asılı kalmasın) ──
   try{
@@ -712,9 +712,9 @@ async function load(){
     if (localHadData) {
       sync('ok', reallyOffline ? 'Çevrimdışı — yerel veri' : 'Senkronize edilemedi');
     } else {
-      sync('err', reallyOffline ? 'Çevrimdışı' : 'Bağlantı hatası');
+      sync('err', reallyOffline ? _r('rep.cevrimdisiKisa','Çevrimdışı') : _r('rep.baglantiHatasiKisa','Bağlantı hatası'));
     }
-    if (reallyOffline) toast('📵 Çevrimdışı mod — yerel veriler gösteriliyor', 'ok');
+    if (reallyOffline) toast(_r('rep.cevrimdisiMod','📵 Çevrimdışı mod — yerel veriler gösteriliyor'), 'ok');
   }
 }
 
@@ -744,7 +744,7 @@ function hideRepFromView(id) {
   const hidden = getHiddenRepIds();
   if (!hidden.includes(id)) hidden.push(id);
   localStorage.setItem('hiddenRepIds', JSON.stringify(hidden));
-  toast('Görünümünden kaldırıldı');
+  toast(_r('rep.gorunumdenKaldirildi','Görünümünden kaldırıldı'));
   renderList();
 }
 
@@ -768,7 +768,7 @@ function renderList(){
     return String(a.name||'').localeCompare(String(b.name||''), 'tr');  // eşitse ada göre
   };
   const filtered = reps.filter(r=>repMatchesSearch(r, repSearchQuery)).sort(_sira);
-  if(repSearchQuery && !filtered.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">"'+repSearchQuery+'" için sonuç bulunamadı</div>';return;}
+  if(repSearchQuery && !filtered.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">' + _r('rep.sonucYok','"{q}" için sonuç bulunamadı').replace('{q}', repSearchQuery) + '</div>';return;}
   const sl={concept:_r('rep.taslak','Taslak'),confirmed:_r('rep.onaylandi','Onaylandı'),archive:_r('rep.arsiv','Arşiv')};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
   const hiddenIds = getHiddenRepIds();
@@ -933,7 +933,7 @@ function renderDetail(){
                sarı köşeli çizgisiyle aynı dar hücreye binince okunmayan bir şekil
                çıkıyordu (Emir bildirdi). Aktiflik zaten satır vurgusu + accent
                renkli kalın numarayla belli oluyor. -->
-          <span style="color:${isActive?'var(--accent)':(linked?'var(--accent2)':'var(--text3)')};font-size:11px;font-weight:${isActive?'800':'600'};min-width:16px;" title="${linked?'Potpuri — bir öncekiyle kesintisiz':''}">${linked?'↳':_no[idx]}</span>
+          <span style="color:${isActive?'var(--accent)':(linked?'var(--accent2)':'var(--text3)')};font-size:11px;font-weight:${isActive?'800':'600'};min-width:16px;" title="${linked?_r('rep.potpuriT','Potpuri — bir öncekiyle kesintisiz'):''}">${linked?'↳':_no[idx]}</span>
           ${_canM?`<span class="drag-handle" onpointerdown="dragPointerStart(event)" title="Sürükleyerek taşı">⠿</span>`:''}
         </div>
       </td>
@@ -949,7 +949,7 @@ function renderDetail(){
         ${_canM?`
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
-        <button class="br bl${linked?' linked':''}" onclick="toggleLink('${rep.id}','${it.id}')" ${idx===0?'disabled':''} title="${linked?'Potpuri bağını çöz':'Bir öncekiyle potpuri yap (kesintisiz devam)'}">🔗</button>
+        <button class="br bl${linked?' linked':''}" onclick="toggleLink('${rep.id}','${it.id}')" ${idx===0?'disabled':''} title="${linked?'Potpuri bağını çöz':_r('rep.potpuriYap','Bir öncekiyle potpuri yap (kesintisiz devam)')}">🔗</button>
         <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
         <button class="br dl" onclick="rmItem('${rep.id}','${it.id}','${(w.name||'Bu eser').replace(/'/g,"\\'")}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
         `:''}
@@ -1017,9 +1017,9 @@ function visChip(rep){
   // İkonlar Tabler setinden (projenin standardı) — emoji KULLANILMIYOR.
   // ti-users-group, sol menüdeki "Grup / Koro" öğesiyle AYNI ikon (topnav.js:651).
   const map = {
-    public:  ['pub',  'ti-world', 'Genel',   'Herkese açık — değiştirmek için tıkla'],
-    group:   ['grp',  'ti-users-group', 'Grup',    'Grup üyeleri görebilir — değiştirmek için tıkla'],
-    private: ['priv', 'ti-lock',  'Kişisel', 'Yalnızca sen görebilirsin — değiştirmek için tıkla']
+    public:  ['pub',  'ti-world', 'Genel',   _r('rep.genelT','Herkese açık — değiştirmek için tıkla')],
+    group:   ['grp',  'ti-users-group', 'Grup',    _r('rep.grupT','Grup üyeleri görebilir — değiştirmek için tıkla')],
+    private: ['priv', 'ti-lock',  _r('rep.kisisel','Kişisel'), _r('rep.kisiselT','Yalnızca sen görebilirsin — değiştirmek için tıkla')]
   };
   const [cls,icon,label,title] = map[v];
   return `<span class="chip-vis ${cls}" onclick="openEdit('${rep.id}')" title="${title}"><i class="ti ${icon}" style="font-size:13px;" aria-hidden="true"></i> ${label}</span>`;
@@ -1028,7 +1028,7 @@ function visChip(rep){
 async function copyRep(repId){
   const rep=getRep(repId);if(!rep)return;
   const uid=getUserId();
-  sync('spin','Kopyalanıyor...');
+  sync('spin',_r('rep.kopyalaniyor','Kopyalanıyor...'));
   try{
     // Yeni repertuvar oluştur
     const H=authHeaders();
@@ -1054,12 +1054,12 @@ async function copyRep(repId){
       });
       const eklenen = ri.ok ? ((await ri.json().catch(()=>[]))||[]).length : 0;
       if (eklenen < rep.items.length) {
-        toast('Repertuvar oluştu ama eserlerin ' + eklenen + '/' + rep.items.length + ' tanesi eklenebildi.', 'err');
+        toast(_r('rep.kismiEklendi','Repertuvar oluştu ama eserlerin {n}/{t} tanesi eklenebildi.').replace('{n}',eklenen).replace('{t}',rep.items.length), 'err');
         await load(); selId = newRep.id; renderList(); renderDetail();
         return;
       }
     }
-    toast('📋 Repertuvar kopyalandı!');
+    toast(_r('rep.kopyalandi','📋 Repertuvar kopyalandı!'));
     await load();
     selId=newRep.id;
     renderList();renderDetail();
@@ -1075,7 +1075,7 @@ function setVisChoice(v){ if(v==='group' && !getGroupId()) v='private'; const el
 function getVisChoice(){ const el=document.querySelector('input[name="fVisibility"]:checked'); return el?el.value:'private'; }
 
 function openNew(){editId=null;document.getElementById('rmt').textContent='Yeni Repertuvar';['fN','fD','fV','fNo'].forEach(x=>document.getElementById(x).value='');document.getElementById('fS').value='concept';applyVisOptions();setVisChoice(getGroupId()?'group':'private');document.getElementById('rm').style.display='flex';setTimeout(()=>document.getElementById('fN').focus(),50);}
-function openEdit(id){const r=getRep(id);if(!r)return;editId=id;document.getElementById('rmt').textContent='Düzenle';document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';applyVisOptions();setVisChoice(repVis(r));document.getElementById('rm').style.display='flex';}
+function openEdit(id){const r=getRep(id);if(!r)return;editId=id;document.getElementById('rmt').textContent=_r('rep.duzenle','Düzenle');document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';applyVisOptions();setVisChoice(repVis(r));document.getElementById('rm').style.display='flex';}
 function closeRM(){document.getElementById('rm').style.display='none';}
 
 // (2026-08-20) YENİ MODEL — GRUP PAYLAŞIM SATIRI.
@@ -1089,7 +1089,7 @@ async function repGrupPaylasimiUygula(repId, vis, gid){
   if(!repId) return {ok:true};
   try{
     if(vis === 'group'){
-      if(!gid) return {ok:false, mesaj:'Grup bilgisi bulunamadı — repertuvar grupla paylaşılamadı.'};
+      if(!gid) return {ok:false, mesaj:_r('rep.grupBilgiYok','Grup bilgisi bulunamadı — repertuvar grupla paylaşılamadı.')};
       await dbPost('repertoire_group_shares',{repertoire_id:repId, group_id:gid, shared_by:getUserId()||undefined});
     } else {
       // Gruptan geri çekme: satır kalırsa repertuvar kişisel görünse bile grup
@@ -1102,8 +1102,8 @@ async function repGrupPaylasimiUygula(repId, vis, gid){
     // Aynı satır zaten varsa (bileşik birincil anahtar) bu bir hata değil.
     if(/duplicate key|23505|already exists/i.test(m)) return {ok:true};
     console.error('[grup paylaşımı]', m);
-    if(vis === 'group') return {ok:false, mesaj:'Repertuvar oluşturuldu ama GRUPLA PAYLAŞILAMADI (grup yöneticisi yetkisi gerekiyor). Şimdilik yalnızca sen görüyorsun.'};
-    return {ok:false, mesaj:'Grup paylaşımı kaldırılamadı — grup üyeleri bu repertuvarı görmeye devam edebilir.'};
+    if(vis === 'group') return {ok:false, mesaj:_r('rep.grupPaylasilamadi','Repertuvar oluşturuldu ama GRUPLA PAYLAŞILAMADI (grup yöneticisi yetkisi gerekiyor). Şimdilik yalnızca siz görüyorsunuz.')};
+    return {ok:false, mesaj:_r('rep.grupKaldirilamadi','Grup paylaşımı kaldırılamadı — grup üyeleri bu repertuvarı görmeye devam edebilir.')};
   }
 }
 
@@ -1137,7 +1137,7 @@ async function saveRep(){
 }
 
 async function delRep(id){
-  if(!confirm('Bu repertuvarı silmek istiyor musunuz?'))return;
+  if(!confirm(_r('rep.silOnay','Bu repertuvarı silmek istiyor musunuz?')))return;
   try{await dbDel('repertoires',id);if(selId===id)selId=null;toast('Silindi');await load();}catch(e){toast(e.message,'er');}
 }
 
@@ -1319,7 +1319,7 @@ function closeLyricsSheet(){
 }
 
 async function addWork(){
-  if(!selWId){alert('Lütfen bir eser seçin.');return;}
+  if(!selWId){alert(_r('rep.eserSecin','Lütfen bir eser seçin.'));return;}
   const rep=getRep(addRepId);if(!rep)return;
   const items=rep.items||[];
   if(items.some(i=>String(i.workId)===String(selWId))){
@@ -1338,7 +1338,7 @@ async function addWork(){
 }
 
 async function rmItem(repId,itemId,workName){
-  if(!confirm((workName||'Bu eser')+' repertuvardan çıkarılsın mı?'))return;
+  if(!confirm(_r('rep.cikarOnay','{ad} repertuvardan çıkarılsın mı?').replace('{ad}', workName||_r('rep.buEser','Bu eser'))))return;
   try{await dbDel('repertoire_items',itemId);toast('Silindi');await load();}catch(e){toast(e.message,'er');}
 }
 
@@ -1432,14 +1432,14 @@ const _PCNAME=['Do','Reb','Re','Mib','Mi','Fa','Fa#','Sol','Lab','La','Sib','Si'
 // İki profil arası geçiş maliyeti + insan okunur gerekçe
 function transitionCost(a,b){
   if(a.karar===null||b.karar===null) return {c:2.5,txt:'karar sesi bilinmiyor',lvl:'na'};
-  if(a.makamAd && a.makamAd===b.makamAd) return {c:0,txt:'aynı makam: '+a.makamAd,lvl:'ok'};
+  if(a.makamAd && a.makamAd===b.makamAd) return {c:0,txt:_r('rep.ayniMakam','aynı makam: {x}').replace('{x}',a.makamAd),lvl:'ok'};
   const d0=Math.abs(a.karar-b.karar)%12;
   const d=Math.min(d0,12-d0);
-  if(d===0) return {c:1,txt:'aynı karar: '+_PCNAME[a.karar],lvl:'ok'};
-  if(a.aile && a.aile===b.aile) return {c:1.5,txt:'aynı aile: '+a.aile,lvl:'ok'};
-  if(d===2||d===5) return {c:2,txt:(d===2?'tam ses':'dörtlü')+' aralık',lvl:'mid'};
-  if(d===3||d===4) return {c:3,txt:'üçlü aralık',lvl:'mid'};
-  return {c:5,txt:(d===1?'yarım ses':'artık dörtlü')+' — kulağı zorlar',lvl:'bad'};
+  if(d===0) return {c:1,txt:_r('rep.ayniKarar','aynı karar: {x}').replace('{x}',_PCNAME[a.karar]),lvl:'ok'};
+  if(a.aile && a.aile===b.aile) return {c:1.5,txt:_r('rep.ayniAile','aynı aile: {x}').replace('{x}',a.aile),lvl:'ok'};
+  if(d===2||d===5) return {c:2,txt:(d===2?_r('rep.tamSes','tam ses'):_r('rep.dortlu','dörtlü'))+_r('rep.aralik',' aralık'),lvl:'mid'};
+  if(d===3||d===4) return {c:3,txt:_r('rep.ucluAralik','üçlü aralık'),lvl:'mid'};
+  return {c:5,txt:(d===1?_r('rep.yarimSes','yarım ses'):_r('rep.artikDortlu','artık dörtlü'))+_r('rep.kulagiZorlar',' — kulağı zorlar'),lvl:'bad'};
 }
 
 // Atomlar: potpuri zinciri tek atom, tek eser tek atom
@@ -1509,7 +1509,7 @@ function proposeOrder(items, mode){
 let _sortRepId=null, _sortProposal=null;
 
 function openSortSheet(repId){
-  if(!MAKAMS_OK){ toast('Makam tablosu yüklenmedi — makamlar.sql çalıştırıldı mı?','er'); return; }
+  if(!MAKAMS_OK){ toast(_r('rep.makamTabloYok','Makam tablosu yüklenmedi — makamlar.sql çalıştırıldı mı?'),'er'); return; }
   const rep=getRep(repId); if(!rep||!(rep.items||[]).length) return;
   _sortRepId=repId;
   const ov=document.getElementById('sortOverlay');
@@ -1565,9 +1565,9 @@ function runSort(mode){
   body.innerHTML=html;
   const sc=document.getElementById('sortScore');
   const diff=cBefore-cAfter;
-  sc.textContent = diff>0.01 ? ('Geçiş puanı '+cBefore.toFixed(1)+' → '+cAfter.toFixed(1)+' (iyileşme)')
-                 : (diff<-0.01 ? ('Bu mod puanı yükseltiyor: '+cBefore.toFixed(1)+' → '+cAfter.toFixed(1))
-                 : 'Sıra zaten uygun görünüyor');
+  sc.textContent = diff>0.01 ? (_r('rep.gecisPuani','Geçiş puanı {a} → {b} (iyileşme)').replace('{a}',cBefore.toFixed(1)).replace('{b}',cAfter.toFixed(1)))
+                 : (diff<-0.01 ? (_r('rep.puanYukseliyor','Bu mod puanı yükseltiyor: {a} → {b}').replace('{a}',cBefore.toFixed(1)).replace('{b}',cAfter.toFixed(1)))
+                 : _r('rep.siraUygun','Sıra zaten uygun görünüyor'));
 }
 
 async function applySort(){
@@ -1577,7 +1577,7 @@ async function applySort(){
   const repId=_sortRepId;
   closeSortSheet();
   await applyReorder(repId, orig, merged, null);
-  toast('Sıralama uygulandı');
+  toast(_r('rep.siralamaUygulandi','Sıralama uygulandı'));
 }
 
 // ── SÜRÜKLE-BIRAK (2026-08-12) — TEK KOD, HEM FARE HEM PARMAK ──────────────
@@ -1820,7 +1820,7 @@ async function applyReorder(repId, origItems, merged, newActiveIdx){
     if (activeItemRepId === repId && newActiveIdx != null) activeItemIdx = newActiveIdx;
     await load();
   }catch(e){
-    toast(/linked_prev/.test(e.message)?'linked_prev kolonu eksik — SQL\'i çalıştır':e.message,'er');
+    toast(/linked_prev/.test(e.message)?_r('rep.linkedPrevYok','linked_prev kolonu eksik'):e.message,'er');
   }
 }
 
@@ -1834,10 +1834,10 @@ async function toggleLink(repId, itemId){
   sync('spin','...');
   try{
     await dbPatch('repertoire_items', it.id, {linked_prev: val});
-    toast(val?'🔗 Potpuriye bağlandı':'Bağ çözüldü');
+    toast(val?_r('rep.potpuriyeBaglandi','🔗 Potpuriye bağlandı'):_r('rep.bagCozuldu','Bağ çözüldü'));
     await load();
   }catch(e){
-    toast(/linked_prev/.test(e.message)?'linked_prev kolonu eksik — SQL\'i çalıştır':e.message,'er');
+    toast(/linked_prev/.test(e.message)?_r('rep.linkedPrevYok','linked_prev kolonu eksik'):e.message,'er');
   }
 }
 
@@ -1969,7 +1969,7 @@ function printViaIframe(html, title){
 }
 function printFallback(html){
   const w=window.open('','_blank');
-  if(!w){ toast('Yazdırma penceresi engellendi — tarayıcı ayarından izin ver','er'); return; }
+  if(!w){ toast(_r('rep.yazdirmaEngellendi','Yazdırma penceresi engellendi — tarayıcı ayarından izin ver'),'er'); return; }
   w.document.open(); w.document.write(html); w.document.close();
 }
 
@@ -2166,7 +2166,7 @@ async function createShareLink(hours){
     });
     if (!_iptal.ok) {
       console.warn('[paylaşım] eski bağlantılar iptal edilemedi:', _iptal.status);
-      toast('Uyarı: eski paylaşım bağlantıları iptal edilemedi, hâlâ geçerli olabilir.', 'err');
+      toast(_r('rep.eskiBaglantiUyari','Uyarı: eski paylaşım bağlantıları iptal edilemedi, hâlâ geçerli olabilir.'), 'err');
     }
     const token = randomToken();
     const expires = new Date(Date.now() + hours*3600*1000).toISOString();
@@ -2236,7 +2236,7 @@ function copyShareLink() {
   const el=document.getElementById('shareLink');
   const link=el?el.dataset.url:'';
   const done=()=>{ const btn=document.getElementById('copyBtn');
-    if(btn){ btn.textContent='✓ Kopyalandı'; setTimeout(()=>{ if(btn) btn.textContent='Kopyala'; },2000); } };
+    if(btn){ btn.textContent=_r('rep.kopyalandiOk','✓ Kopyalandı'); setTimeout(()=>{ if(btn) btn.textContent='Kopyala'; },2000); } };
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(link).then(done).catch(()=>fallbackCopy(link,done));
   } else fallbackCopy(link,done);
@@ -2245,7 +2245,7 @@ function fallbackCopy(text, done){
   const el=document.createElement('textarea');
   el.value=text; el.style.position='fixed'; el.style.opacity='0';
   document.body.appendChild(el); el.select();
-  try{ document.execCommand('copy'); done(); }catch(e){ toast('Kopyalanamadı — bağlantıyı elle seç','er'); }
+  try{ document.execCommand('copy'); done(); }catch(e){ toast(_r('rep.kopyalanamadi','Kopyalanamadı — bağlantıyı elle seç'),'er'); }
   document.body.removeChild(el);
 }
 
@@ -2254,7 +2254,7 @@ function shareViaEmail() {
   const link = document.getElementById('shareLink').dataset.url;
   const rep = getRep(shareRepId);
   const subject = encodeURIComponent('\u1F3B5 ' + (rep ? rep.name : 'Repertuvar') + ' - Sahne Modu');
-  const body = encodeURIComponent('Merhaba,\n\n' + (rep ? rep.name : 'Repertuvar') + ' repertuvarini sahne modunda goruntulelemek icin asagidaki baglantıyı kullanabilirsin:\n\n' + link + '\n\nIyi muzikler!');
+  const body = encodeURIComponent(_r('rep.postaGovde','Merhaba,\n\n{ad} repertuvarını sahne modunda görüntülemek için aşağıdaki bağlantıyı kullanabilirsin:\n\n{link}\n\nİyi müzikler!').replace('{ad}', rep ? rep.name : 'Repertuvar').replace('{link}', link));
   window.open('mailto:?subject=' + subject + '&body=' + body, '_blank');
 }
 
@@ -2562,7 +2562,7 @@ async function rlpAddToRep(repId) {
       repertoire_id: repId, work_id: _rlpWorkId, seq: nextSeq, linked_prev: false
     });
     closeRepMoveSheet();
-    toast('✓ "' + (hedef.name || 'Repertuvar') + '" içine eklendi');
+    toast('✓ ' + _r('rep.icineEklendi','"{ad}" içine eklendi').replace('{ad}', hedef.name || 'Repertuvar'));
     await load();
   } catch (e) {
     _rlpMsg('Eklenemedi: ' + (e.message || 'bilinmeyen hata'), '#e07060');
@@ -2583,7 +2583,7 @@ async function rlpCreateAndAdd() {
   const grupla = !!document.getElementById('rlpNewGroup')?.checked;
   const gid = grupla ? (getGroupId() || null) : null;
   const vis = (grupla && gid) ? 'group' : 'private';
-  _rlpMsg('Oluşturuluyor...');
+  _rlpMsg(_r('rep.olusturuluyor','Oluşturuluyor...'));
   try {
     // YENİ MODEL: `visibility` açıkça yazılıyor (sütun varsayılanına bırakılmıyor);
     // eski `is_public`/`group_id` de tutarlı yazılıyor, çünkü aynı satırı hâlâ eski
@@ -2600,11 +2600,11 @@ async function rlpCreateAndAdd() {
     // Grup görünürlüğü paylaşım satırına bağlı — sütun tek başına yetmiyor.
     const pay = await repGrupPaylasimiUygula(yeni.id, vis, gid);
     closeRepMoveSheet();
-    if (pay.ok) toast('✓ "' + name + '" oluşturuldu ve eser eklendi');
+    if (pay.ok) toast('✓ ' + _r('rep.olusturuldiEklendi','"{ad}" oluşturuldu ve eser eklendi').replace('{ad}', name));
     else toast(pay.mesaj, 'er');
     await load();
   } catch (e) {
-    _rlpMsg('Oluşturulamadı: ' + (e.message || 'bilinmeyen hata'), '#e07060');
+    _rlpMsg(_r('rep.olusturulamadi','Oluşturulamadı: ') + (e.message || 'bilinmeyen hata'), '#e07060');
     console.error('[uzun bas → yeni repertuvar]', e);
   }
 }
@@ -2724,9 +2724,9 @@ function _ytApiYukle() {
     };
     const sc = document.createElement('script');
     sc.src = 'https://www.youtube.com/iframe_api';
-    sc.onerror = () => red(new Error('YouTube oynatıcısı yüklenemedi'));
+    sc.onerror = () => red(new Error(_r('rep.ytYuklenemedi','YouTube oynatıcısı yüklenemedi')));
     document.head.appendChild(sc);
-    setTimeout(() => red(new Error('YouTube oynatıcısı zaman aşımına uğradı')), 12000);
+    setTimeout(() => red(new Error(_r('rep.ytZamanAsimi','YouTube oynatıcısı zaman aşımına uğradı'))), 12000);
   });
   return _ytApiSoz;
 }
@@ -2794,11 +2794,11 @@ function openDinleSheet(repId) {
       ${uyari}
       <div class="dnl-player" id="dnlPlayerWrap"><div id="dnlPlayer"></div></div>
       <button class="dnl-yt" onclick="dinleYouTubedeAc()">
-        <i class="ti ti-brand-youtube" style="font-size:18px;" aria-hidden="true"></i> YouTube'da Aç
+        <i class="ti ti-brand-youtube" style="font-size:18px;" aria-hidden="true"></i> ${_r('rep.ytAc','YouTube\u2019da Aç')}
       </button>
       <div class="dnl-yt-not">
-        Ekran kapalıyken dinlemek için <b>YouTube'da Aç</b>'ı kullan — uygulama içindeki oynatıcı
-        telefon kilitlenince durur.${asildi ? ` YouTube bağlantısı ilk ${YT_MAX} eseri alır.` : ''}
+        ${_r('rep.ytNot','Ekran kapalıyken dinlemek için <b>{btn}</b> düğmesini kullan — uygulama içindeki oynatıcı telefon kilitlenince durur.').replace('{btn}', _r('rep.ytAc','YouTube\u2019da Aç'))}${asildi ? _r('rep.ytSinir',' YouTube bağlantısı ilk {n} eseri alır.').replace('{n}', YT_MAX) : ''}
+
       </div>
       <div class="dnl-list" id="dnlList">${_dnlListeHtml(-1)}</div>
     </div>`;
@@ -2853,8 +2853,8 @@ function _dnlHata(kod) {
   const i = (_dnlPlayer && typeof _dnlPlayer.getPlaylistIndex === 'function') ? _dnlPlayer.getPlaylistIndex() : -1;
   const t = _dnlTracks[i];
   if (t) {
-    _dnlHatali[t.vid] = (kod === 101 || kod === 150) ? 'gömme kapalı'
-      : (kod === 100 ? 'video yok' : 'açılamadı');
+    _dnlHatali[t.vid] = (kod === 101 || kod === 150) ? _r('rep.gommeKapali','gömme kapalı')
+      : (kod === 100 ? 'video yok' : _r('rep.acilamadi','açılamadı'));
     const liste = document.getElementById('dnlList');
     if (liste) { liste.innerHTML = _dnlListeHtml(i); }
   }
@@ -2916,7 +2916,7 @@ function _knotDugme(workId){
   const varMi = !!PERSONAL_NOTES[String(workId)];
   return '<button class="br knb' + (varMi ? ' dolu' : '') + '" data-knot="' + workId + '"' +
          ' onclick="event.stopPropagation();openKnotSheet(\'' + workId + '\')"' +
-         ' title="' + (varMi ? 'Kişisel notun var — okumak/düzenlemek için dokun' : 'Kişisel not ekle') + '">' +
+         ' title="' + (varMi ? _r('rep.notVarT','Kişisel notun var — okumak/düzenlemek için dokun') : _r('rep.notEkleT','Kişisel not ekle')) + '">' +
          '<i class="ti ti-lock" aria-hidden="true"></i></button>';
 }
 
@@ -2931,7 +2931,7 @@ function _knotDugmeleriTazele(){
   document.querySelectorAll('button.knb[data-knot]').forEach(b => {
     const varMi = !!PERSONAL_NOTES[String(b.dataset.knot)];
     b.classList.toggle('dolu', varMi);
-    b.title = varMi ? 'Kişisel notun var — okumak/düzenlemek için dokun' : 'Kişisel not ekle';
+    b.title = varMi ? _r('rep.notVarT','Kişisel notun var — okumak/düzenlemek için dokun') : _r('rep.notEkleT','Kişisel not ekle');
   });
 }
 
@@ -3046,7 +3046,7 @@ async function knotSheetKaydet(){
       });
       if(!r.ok) throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,120));
       const rows = await r.json();
-      if(!Array.isArray(rows) || !rows.length) throw new Error('Sunucu hiçbir satır yazmadı (yetki?)');
+      if(!Array.isArray(rows) || !rows.length) throw new Error(_r('rep.satirYazilmadi','Sunucu hiçbir satır yazmadı (yetki?)'));
       PERSONAL_NOTES[String(id)] = yeni;
     } else {
       await fetch(SUPA_URL+'/rest/v1/personal_work_notes?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id),
