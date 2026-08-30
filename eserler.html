@@ -4991,9 +4991,33 @@ function alanGorunur(k) {
 function alanlariUygula() {
   MUZIK_ALANLARI.forEach(a => {
     const sar = document.querySelector('#neTabPanel_basic [data-alan="' + a.k + '"]');
-    if (sar) sar.style.display = alanGorunur(a.k) ? '' : 'none';
+    if (!sar) return;
+    sar.style.display = alanGorunur(a.k) ? '' : 'none';
+    _gizleDugmesiKur(sar, a);
   });
   alanEkleListesiCiz();
+}
+
+// Her alan etiketinin sağına küçük bir "×" — alanı bu eser için kaldırır.
+// Etiketin içine konuyor ki ayrı bir satır kaplamasın.
+function _gizleDugmesiKur(sar, a) {
+  const lbl = sar.querySelector('.ne-lbl');
+  if (!lbl || lbl.querySelector('.alan-gizle')) return;
+  lbl.style.display = 'flex';
+  lbl.style.alignItems = 'center';
+  lbl.style.gap = '6px';
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'alan-gizle';
+  b.textContent = '×';
+  b.title = 'Bu alanı gizle';
+  b.setAttribute('aria-label', a.ad + ' alanını gizle');
+  b.style.cssText = 'margin-left:auto;background:none;border:none;color:var(--text3);' +
+    'font-size:16px;line-height:1;cursor:pointer;padding:0 2px;opacity:.55;';
+  b.onmouseenter = () => { b.style.opacity = '1'; };
+  b.onmouseleave = () => { b.style.opacity = '.55'; };
+  b.onclick = (ev) => { ev.preventDefault(); alanGizle(a.k); };
+  lbl.appendChild(b);
 }
 
 function alanEkleListesiCiz() {
@@ -5021,6 +5045,33 @@ function alanAc(k) {
   alanlariUygula();
   const el = document.getElementById(ALAN_INPUT[k]);
   if (el) el.focus();
+}
+
+// (2026-08-30) ALANI GİZLEME — "gizle" ile "değeri sil" AYRI işlemler.
+// Belge: "UI'dan kaldırmak değerin database'den silinmesine neden olmamalıdır."
+// Bu yüzden dolu bir alanı gizlemek istendiğinde önce ne olacağı soruluyor:
+// değer kalsın mı, silinsin mi. Sessizce veri kaybetmek en kötü sonuç olurdu.
+function alanGizle(k) {
+  const el = document.getElementById(ALAN_INPUT[k]);
+  const dolu = !!(el && el.value && el.value.trim());
+  const ad = (MUZIK_ALANLARI.find(a => a.k === k) || {}).ad || k;
+
+  if (dolu) {
+    // Dolu alan gizlenirse `alanGorunur()` onu yine gösterirdi (görünürlük ≠
+    // değer kuralı). Yani gerçekten gizlemek için değerin gitmesi gerekiyor —
+    // kullanıcıya bunu açıkça söylüyoruz.
+    const sil = confirm(ad + ' alanında "' + el.value.trim() + '" yazıyor.\n\n' +
+      'Alanı gizlemek için bu değerin silinmesi gerekir.\n' +
+      'Değer silinsin mi?\n\n' +
+      '(İptal edersen alan olduğu gibi kalır.)');
+    if (!sil) return;
+    el.value = '';
+  }
+
+  if (_aktifAlanlar === null) _aktifAlanlar = varsayilanAlanlar().slice();
+  const i = _aktifAlanlar.indexOf(k);
+  if (i >= 0) _aktifAlanlar.splice(i, 1);
+  alanlariUygula();
 }
 
 function closeNewEserModal() {
