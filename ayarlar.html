@@ -399,45 +399,33 @@ html, body { overflow-x: hidden; }
       </div>
     </div>
 
-    <!-- (2026-08-26) MÜZİK GELENEĞİ — Batı modu altyapısı.
-         Uygulama Türk müziği için tasarlandı: makam, usul, yöre, kaynak kişi
-         alanları her ekranda görünüyor. Batı müziği çalan biri için bunlar
-         anlamsız gürültü. Seçim `profiles.traditions` alanına yazılıyor,
-         auth.js bunu <html> etiketine işliyor, sayfalar CSS ile gizliyor. -->
+    <!-- (2026-08-30) MÜZİK ALANLARI — "gelenek seçimi" KALDIRILDI.
+         Önceki hâli "Türk Halk Müziği / Türk Sanat Müziği / Batı Müziği" diye
+         soruyordu. İki sorunu vardı: (a) kullanıcıyı bir kimliğe yerleştiriyor,
+         (b) "Batı'yı seçersem türkü ekleyemez miyim?" korkusu yaratıyordu.
+         Artık kimlik değil ALAN soruluyor — kullanıcı hangi bilgilerle
+         çalıştığını söylüyor, sistem onu sınıflandırmıyor.
+         Bu seçim YALNIZCA yeni eserlerin başlangıç alanlarını etkiler;
+         mevcut eserlerin alanları değişmez. -->
     <div class="settings-section">
       <div class="section-header">
         <span class="section-icon">🎼</span>
-        <div><div class="section-title">Müzik Geleneği</div>
-             <div class="section-subtitle">Hangi alanların görüneceğini belirler</div></div>
+        <div><div class="section-title">Müzik Alanları</div>
+             <div class="section-subtitle">Yeni eserlerde hangi alanlar açık gelsin</div></div>
       </div>
 
-      <label class="setting-row" style="cursor:pointer;">
-        <div>
-          <div class="setting-label">Türk Halk Müziği</div>
-          <div class="setting-desc">Yöre, kaynak kişi, derleyen, usul alanları</div>
+      <div class="setting-row" style="display:block;">
+        <div class="setting-desc" style="margin-bottom:12px;line-height:1.6;">
+          Kapattığınız alanlar <b>silinmez</b> — dolu olan bir alan her zaman görünür,
+          ve her eserde <b>“+ Müzik alanı ekle”</b> ile istediğinizi geri açabilirsiniz.
+          Bu ayar yalnızca <b>yeni</b> eserlerin başlangıç görünümünü belirler.
         </div>
-        <input type="checkbox" id="gelThm" style="width:22px;height:22px;accent-color:var(--accent);">
-      </label>
-
-      <label class="setting-row" style="cursor:pointer;">
-        <div>
-          <div class="setting-label">Türk Sanat Müziği</div>
-          <div class="setting-desc">Makam, usul, form alanları</div>
-        </div>
-        <input type="checkbox" id="gelTsm" style="width:22px;height:22px;accent-color:var(--accent);">
-      </label>
-
-      <label class="setting-row" style="cursor:pointer;">
-        <div>
-          <div class="setting-label">Batı Müziği</div>
-          <div class="setting-desc">Ton ve akor odaklı; makam/usul alanları gizlenir</div>
-        </div>
-        <input type="checkbox" id="gelBati" style="width:22px;height:22px;accent-color:var(--accent);">
-      </label>
+        <div id="alanKutulari" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
 
       <div class="setting-row">
-        <div class="setting-desc" id="gelDurum" style="flex:1;"></div>
-        <button class="setting-btn" onclick="gelenekKaydetTikla()">Kaydet</button>
+        <div class="setting-desc" id="alanDurum" style="flex:1;"></div>
+        <button class="setting-btn" onclick="alanVarsayilanKaydet()">Kaydet</button>
       </div>
     </div>
 
@@ -700,43 +688,105 @@ function toast(msg, type='ok') {
   setTimeout(() => el.remove(), 2500);
 }
 
-// ── Müzik geleneği seçimi ────────────────────────────────────────────────
-function gelenekKutulariDoldur() {
-  const g = (typeof gelenekler === 'function') ? gelenekler() : ['thm','tsm'];
-  const t = document.getElementById('gelThm');
-  const s = document.getElementById('gelTsm');
-  const b = document.getElementById('gelBati');
-  if (t) t.checked = g.includes('thm');
-  if (s) s.checked = g.includes('tsm');
-  if (b) b.checked = g.includes('bati');
+// ── Müzik alanları (yeni eserlerin varsayılanı) ──────────────────────────
+// Belgedeki ilke: müzisyeni sınıflandırma, alanları yapılandır.
+// Buradaki seçim `profiles.default_music_fields` alanına yazılıyor ve
+// YALNIZCA yeni eserlerin başlangıç görünümünü belirliyor.
+const AYAR_ALANLAR = [
+  { k:'makam',       ad:'Makam' },
+  { k:'usul',        ad:'Usul' },
+  { k:'olcu',        ad:'Ölçü' },
+  { k:'tempo',       ad:'Tempo' },
+  { k:'akort',       ad:'Akort' },
+  { k:'karar',       ad:'Karar Sesi' },
+  { k:'enstruman',   ad:'Enstrüman' },
+  { k:'yore',        ad:'Yöre/Bölge' },
+  { k:'kaynak_kisi', ad:'Kaynak Kişi' },
+  { k:'derleyen',    ad:'Derleyen' },
+];
+let _ayarSecili = null;
+
+function ayarAlanlariniYukle() {
+  try {
+    const g = JSON.parse(localStorage.getItem('defaultMusicFields') || 'null');
+    _ayarSecili = Array.isArray(g) && g.length ? g.slice() : AYAR_ALANLAR.map(a => a.k);
+  } catch (e) { _ayarSecili = AYAR_ALANLAR.map(a => a.k); }
+  ayarAlanlariCiz();
+  ayarAlanlariTazele();   // sunucudaki değer farklıysa düzeltir
 }
 
-async function gelenekKaydetTikla() {
-  const secim = [];
-  if (document.getElementById('gelThm').checked)  secim.push('thm');
-  if (document.getElementById('gelTsm').checked)  secim.push('tsm');
-  if (document.getElementById('gelBati').checked) secim.push('bati');
+function ayarAlanlariCiz() {
+  const kap = document.getElementById('alanKutulari');
+  if (!kap) return;
+  kap.innerHTML = AYAR_ALANLAR.map(a => {
+    const acik = _ayarSecili.includes(a.k);
+    return '<button type="button" onclick="ayarAlanTikla(\'' + a.k + '\')" ' +
+      'style="padding:8px 14px;border-radius:20px;font-size:13px;font-family:inherit;' +
+      'cursor:pointer;font-weight:' + (acik ? '700' : '500') + ';' +
+      'background:' + (acik ? 'color-mix(in srgb, var(--accent) 18%, transparent)' : 'var(--surface2)') + ';' +
+      'border:1px solid ' + (acik ? 'color-mix(in srgb, var(--accent) 55%, transparent)' : 'var(--border)') + ';' +
+      'color:' + (acik ? 'var(--accent)' : 'var(--text3)') + ';">' +
+      (acik ? '✓ ' : '') + a.ad + '</button>';
+  }).join('');
+}
 
-  const durum = document.getElementById('gelDurum');
-  // Hepsi kapalıysa hiçbir alan görünmezdi — en az bir seçim şart.
-  if (!secim.length) {
-    durum.textContent = 'En az bir gelenek seçmelisiniz.';
-    durum.style.color = 'var(--red, #f87171)';
+function ayarAlanTikla(k) {
+  const i = _ayarSecili.indexOf(k);
+  if (i >= 0) _ayarSecili.splice(i, 1); else _ayarSecili.push(k);
+  ayarAlanlariCiz();
+  const d = document.getElementById('alanDurum');
+  if (d) { d.textContent = 'Kaydedilmedi'; d.style.color = ''; }
+}
+
+async function ayarAlanlariTazele() {
+  try {
+    const uid = getUserId();
+    if (!uid) return;
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=default_music_fields',
+      { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || '') } });
+    if (!r.ok) return;
+    const j = await r.json();
+    const g = j[0] && j[0].default_music_fields;
+    if (Array.isArray(g)) {
+      _ayarSecili = g.slice();
+      localStorage.setItem('defaultMusicFields', JSON.stringify(g));
+      ayarAlanlariCiz();
+    }
+  } catch (e) {}
+}
+
+async function alanVarsayilanKaydet() {
+  const d = document.getElementById('alanDurum');
+  // Hepsi kapalıysa yeni eser formunda tek alan kalmazdı.
+  if (!_ayarSecili.length) {
+    d.style.color = 'var(--red, #f87171)';
+    d.textContent = 'En az bir alan seçmelisiniz.';
     return;
   }
   try {
-    durum.style.color = '';
-    durum.textContent = 'Kaydediliyor…';
-    await gelenekKaydet(secim);
-    durum.textContent = 'Kaydedildi ✓';
-    toast('Müzik geleneği güncellendi ✓');
+    d.style.color = ''; d.textContent = 'Kaydediliyor…';
+    const uid = getUserId();
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || ''),
+                 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ default_music_fields: _ayarSecili })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    // Satır sayısı doğrulanıyor: RLS engellerse 0 satır döner ve bu,
+    // başarıdan ayırt edilemez olurdu.
+    const satir = await r.json();
+    if (!satir.length) throw new Error('Sunucu hiçbir satır güncellemedi.');
+    localStorage.setItem('defaultMusicFields', JSON.stringify(_ayarSecili));
+    d.textContent = 'Kaydedildi ✓';
+    toast('Müzik alanları güncellendi ✓');
   } catch (e) {
-    durum.style.color = 'var(--red, #f87171)';
-    durum.textContent = 'Kaydedilemedi: ' + (e && e.message ? e.message : e);
+    d.style.color = 'var(--red, #f87171)';
+    d.textContent = 'Kaydedilemedi: ' + (e && e.message ? e.message : e);
   }
 }
 
-document.addEventListener('DOMContentLoaded', gelenekKutulariDoldur);
+document.addEventListener('DOMContentLoaded', ayarAlanlariYukle);
 
 function saveSetting(key, value) {
   localStorage.setItem(key, value);

@@ -2,74 +2,29 @@
 var SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
 var SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 
-// ── 2026-08-26: MÜZİK GELENEĞİ (Batı modu) ────────────────────────────────
-// Uygulama Türk müziği için tasarlandı: makam, usul, yöre, kaynak kişi alanları
-// her ekranda görünüyor. Batılı bir müzisyende bunlar anlamsız gürültü — arayüzü
-// çevirsek bile "bu uygulama benim için değil" hissi verir.
+// ── 2026-08-30: MÜZİK ALANLARI ────────────────────────────────────────────
+// (Önceki "gelenek" yaklaşımı kaldırıldı: kullanıcıyı "Türk müziği / Batı
+// müziği" diye sınıflandırıyordu. İki sorunu vardı — kimlik dayatması ve
+// "Batı'yı seçersem türkü ekleyemez miyim?" korkusu. Yeni ilke: müzisyeni
+// sınıflandırma, ALANLARI yapılandır.)
 //
-// `<html data-gelenek="...">` bu alanların görünürlüğünü belirliyor; sayfalar
-// CSS ile gizliyor. Değer localStorage'dan ANINDA uygulanıyor: sunucuyu
-// beklersek alanlar bir an görünüp kaybolur (göze çarpan bir titreme).
-function gelenekler() {
-  try {
-    const g = JSON.parse(localStorage.getItem('traditions') || 'null');
-    if (Array.isArray(g) && g.length) return g;
-  } catch (e) {}
-  return ['thm', 'tsm'];            // varsayılan: mevcut kullanıcılar etkilenmesin
-}
-
-function gelenekUygula() {
-  try {
-    const g = gelenekler();
-    const kok = document.documentElement;
-    kok.setAttribute('data-gelenek', g.join(' '));
-    // Tek tek sınıflar da veriliyor: CSS'te `[data-gelenek~="thm"]` yazmak
-    // yerine `.gelenek-thm` demek daha okunur ve seçici maliyeti düşük.
-    kok.classList.toggle('gelenek-thm', g.includes('thm'));
-    kok.classList.toggle('gelenek-tsm', g.includes('tsm'));
-    kok.classList.toggle('gelenek-bati', g.includes('bati'));
-    // Türk müziği alanları yalnızca thm/tsm varken anlamlı.
-    kok.classList.toggle('tm-gizle', !(g.includes('thm') || g.includes('tsm')));
-  } catch (e) {}
-}
-gelenekUygula();   // sayfa çizilmeden önce
-
-// Sunucudaki değeri tazele (arka planda; başarısız olursa yerel değer kalır).
-async function geleneklerTazele() {
+// Buradaki liste yalnızca YENİ eserlerin başlangıç görünümü. Mevcut eserler
+// kendi `active_music_fields` değerini taşır; bu ayar onları etkilemez.
+async function varsayilanAlanlariTazele() {
   const uid = getUserId();
   if (!uid) return;
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=traditions', {
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=default_music_fields', {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || '') },
       signal: AbortSignal.timeout(6000)
     });
     if (!r.ok) return;
     const j = await r.json();
-    const g = j[0] && j[0].traditions;
+    const g = j[0] && j[0].default_music_fields;
     if (Array.isArray(g) && g.length) {
-      localStorage.setItem('traditions', JSON.stringify(g));
-      gelenekUygula();
+      localStorage.setItem('defaultMusicFields', JSON.stringify(g));
     }
-  } catch (e) {}
-}
-
-// Kullanıcının seçimini kaydet. Yazma doğrulanıyor: RLS engellerse 0 satır
-// döner ve bu, başarıdan ayırt edilemez olurdu.
-async function gelenekKaydet(g) {
-  const uid = getUserId();
-  if (!uid || !Array.isArray(g) || !g.length) return false;
-  const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
-    method: 'PATCH',
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || ''),
-               'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-    body: JSON.stringify({ traditions: g })
-  });
-  if (!r.ok) throw new Error(await r.text());
-  const satir = await r.json();
-  if (!satir.length) throw new Error('Sunucu hiçbir satır güncellemedi.');
-  localStorage.setItem('traditions', JSON.stringify(g));
-  gelenekUygula();
-  return true;
+  } catch (e) { /* alınamazsa yerel değer kullanılır */ }
 }
 
 function getToken() { return localStorage.getItem('sb_token'); }
@@ -726,7 +681,7 @@ async function requireAuth() {
     ensureProfile(user).catch(()=>{});
     // Gelenek tercihi de arka planda tazelenir: yerel değer zaten uygulandı,
     // sunucudaki farklıysa (başka cihazda değiştirilmiş olabilir) düzeltilir.
-    geleneklerTazele().catch(()=>{});
+    varsayilanAlanlariTazele().catch(()=>{});
     await loadUserRole();
 
     // Hesap askıya alınmış veya silinme talep edilmişse engelle (cache'deki son bilinen durum)
@@ -898,7 +853,7 @@ function logoutSilent() {
 // Engellemiyoruz — kullanıcı bilerek çıkmak isteyebilir — ama sonucu
 // önceden söylüyoruz.
 function logout() {
-  try { localStorage.removeItem('traditions'); } catch (e) {}
+  try { localStorage.removeItem('defaultMusicFields'); } catch (e) {}
   if (!navigator.onLine) {
     var devam = confirm(
       'İnternet bağlantısı yok.\n\n' +
