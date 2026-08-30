@@ -2234,7 +2234,7 @@ function renderList() {
     //             (yalnızca bulkMode açıkken görünür).
     const checkbox = `<span class="work-bulk-check${isChecked?' checked':''}" style="display:${bulkMode?'flex':'none'};width:20px;height:20px;border-radius:6px;border:1.5px solid ${isChecked?'var(--accent)':'var(--border2)'};background:${isChecked?'var(--accent)':'none'};align-items:center;justify-content:center;flex-shrink:0;align-self:center;font-size:12px;color:#1a1200;font-weight:700;">${isChecked?'✓':''}</span>`;
     // Kompakt görünüm: sadece isim + besteci + tek durum satırı.
-    // Makam/Form/Akort/Usul/Repertuvar/Grup detayları artık satıra basınca açılan
+    // Makam/Form/Akort/Ölçü/Repertuvar/Grup detayları artık satıra basınca açılan
     // detay panelinde (mevcut chips sistemi) gösteriliyor — liste kalabalık olmasın diye.
     // Admin/editör her eseri düzenleyebilir; üye sadece kendi eklediği eseri (submitted_by) düzenleyebilir.
     const canEdit = swipeAllowedContext && (isAdmin() || isEditor() || w.submitted_by === uidNow);
@@ -6216,8 +6216,8 @@ function openSuggestModal() { openNewEserModal(); }
     <!-- TAB 3 (gösterim sırası): TEMEL BİLGİLER -->
     <div id="neTabPanel_basic" class="ne-tab-panel" style="display:none;grid-template-columns:1fr 1fr;gap:12px;min-height:460px;align-content:start;">
       <!-- (2026-08-06) Alan sırası Emir'in belirlediği eşleşmelere göre:
-           Söz Yazarı-Besteci / Kaynak Kişi-Derleyen / Makam-Usul /
-           Akort-Karar Sesi / Enstrüman-Yöre / Tempo-Ritim / Youtube -->
+           Söz Yazarı-Besteci / Kaynak Kişi-Derleyen / Makam-Ölçü /
+           Akort-Karar Sesi / Enstrüman-Yöre / Tempo-Usul / Youtube -->
       <div><label class="ne-lbl">Söz Yazarı</label><input id="ne_lyricWriter" class="ne-inp" placeholder="Söz yazarı..."></div>
       <div><label class="ne-lbl">Besteci</label><input id="ne_composer" class="ne-inp" placeholder="Besteci..."></div>
 
@@ -6225,7 +6225,13 @@ function openSuggestModal() { openNewEserModal(); }
       <div><label class="ne-lbl">Derleyen</label><input id="ne_collector" class="ne-inp" placeholder="Derleyen..."></div>
 
       <div><label class="ne-lbl">Makam</label><input id="ne_makam" class="ne-inp" placeholder="Makam..."></div>
-      <div><label class="ne-lbl">Usul</label><input id="ne_measurement" class="ne-inp" placeholder="Usul..."></div>
+      <!-- (2026-08-30) ETİKET DÜZELTİLDİ: bu alan "Usul" diye etiketliydi ama
+           içindeki 445 değerin 444'ü ÖLÇÜ (4/4, 9/8, hatta "7/8+4/4" gibi eser
+           içinde değişen ölçüler). Usul ise ayrı bir kavram — Aksak, Düyek gibi
+           vuruş kalıpları — ve onun için zaten `ritim` sütunu var, yanlış
+           etiket yüzünden boş kalmıştı. Veri taşınmadı; sadece adlar
+           gerçekte tutulan bilgiyle eşleştirildi. -->
+      <div><label class="ne-lbl">Ölçü</label><input id="ne_measurement" class="ne-inp" placeholder="4/4, 9/8, 7/8+4/4..."></div>
 
       <div><label class="ne-lbl">Akort</label><input id="ne_tuning" class="ne-inp" placeholder="Akort..."></div>
       <div><label class="ne-lbl">Karar Sesi</label><input id="ne_closingNote" class="ne-inp" placeholder="Karar sesi..."></div>
@@ -6234,7 +6240,7 @@ function openSuggestModal() { openNewEserModal(); }
       <div><label class="ne-lbl">Yöre/Bölge</label><input id="ne_region" class="ne-inp" placeholder="Yöre..."></div>
 
       <div><label class="ne-lbl">Tempo <span style="color:var(--text3);font-weight:400;">(vuruş/dk)</span></label><input id="ne_metronom" class="ne-inp" inputmode="numeric" maxlength="3" placeholder="örn. 72"></div>
-      <div><label class="ne-lbl">Ritim</label><input id="ne_ritim" class="ne-inp" placeholder="örn. Düyek, Çiftetelli..."></div>
+      <div><label class="ne-lbl">Usul</label><input id="ne_ritim" class="ne-inp" placeholder="Aksak, Düyek, Sofyan..."></div>
 
       <div style="grid-column:1/-1;"><label class="ne-lbl">Youtube</label><input id="ne_videoLink" class="ne-inp" placeholder="https://..."></div>
       <div style="grid-column:1/-1;">

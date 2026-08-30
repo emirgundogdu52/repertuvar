@@ -2109,7 +2109,10 @@ function renderStage(){
       (item.closingNote||w.closingNote) ? `<div class="sip-row"><span class="sip-label">Kapanış</span><span class="sip-val">${item.closingNote||w.closingNote}</span></div>` : '',
       w.tuning ? `<div class="sip-row"><span class="sip-label">Akort</span><span class="sip-val">${w.tuning}</span></div>` : '',
       w.form ? `<div class="sip-row"><span class="sip-label">Form</span><span class="sip-val">${w.form}</span></div>` : '',
-      w.measurement ? `<div class="sip-row"><span class="sip-label">Usul</span><span class="sip-val">${w.measurement}</span></div>` : '',
+      // (2026-08-30) `measurement` ÖLÇÜ tutuyor (4/4, 9/8), usul değil.
+      // Usul ayrı sütunda (`ritim`) ve o da burada gösteriliyor.
+      w.measurement ? `<div class="sip-row"><span class="sip-label">Ölçü</span><span class="sip-val">${w.measurement}</span></div>` : '',
+      w.ritim ? `<div class="sip-row"><span class="sip-label">Usul</span><span class="sip-val">${w.ritim}</span></div>` : '',
       w.region ? `<div class="sip-row"><span class="sip-label">Bölge</span><span class="sip-val">${w.region}</span></div>` : '',
       w.composer ? `<div class="sip-row"><span class="sip-label">Besteci</span><span class="sip-val">${w.composer}</span></div>` : '',
       w.lyricWriter ? `<div class="sip-row"><span class="sip-label">Söz Yazarı</span><span class="sip-val">${w.lyricWriter}</span></div>` : '',
