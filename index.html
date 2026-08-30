@@ -459,7 +459,12 @@
   try {
     const testR = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1', {headers:H, signal: AbortSignal.timeout(3000)});
     if (!testR.ok) throw new Error('offline');
-    const wR = await fetch(SUPA_URL+'/rest/v1/works?select=id&status=eq.approved&limit=1', {headers:H});
+    // (2026-08-30) `deleted_at=is.null` EKLENDİ. Silme YUMUŞAK: satır tabloda
+    // kalıyor, yalnızca damgalanıyor. Filtresiz sorgular silinmiş eserleri de
+    // sayıyor/listeliyordu — ana sayfa 741 gösterirken gerçek sayı 725'ti.
+    // KURAL: works üzerinde LİSTE veya SAYIM yapan her sorguya bu filtre girer.
+    // (`id=eq.` ile tek kayıt çekenler hariç: düzenleme ve geri alma için lazım.)
+    const wR = await fetch(SUPA_URL+'/rest/v1/works?select=id&status=eq.approved&deleted_at=is.null&limit=1', {headers:H});
     const cnt = wR.headers.get('content-range')?.split('/')[1];
     if (cnt) {
       const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=cnt;

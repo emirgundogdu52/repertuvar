@@ -422,7 +422,7 @@ async function loadWorksData() {
     //
     // Anon yolu KALDIRILMADI, yalnız daraltıldı: oturumu OLMAYAN ziyaretçi
     // (paylaşım bağlantısıyla gelen) genel eserleri görmeye devam etsin.
-    const _worksUrl = SUPA_URL+'/rest/v1/works?order=name&limit=2000';
+    const _worksUrl = SUPA_URL+'/rest/v1/works?deleted_at=is.null&order=name&limit=2000';
     const _oturumVar = !!localStorage.getItem('sb_token');
     let r = await fetch(_worksUrl, {
       headers: _oturumVar ? authHeaders() : anonHeaders(),

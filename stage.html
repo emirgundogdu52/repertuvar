@@ -1156,7 +1156,7 @@ async function loadWL() {
       // bu mekanizmayı etkisiz kılıyordu (anon istek yamadan muaf geçiyor).
       // Anon yolu KALDIRILMADI, daraltıldı: oturumu OLMAYAN ziyaretçi
       // (paylaşım bağlantısıyla gelen) genel eserleri görmeye devam etsin.
-      const _worksUrl = SUPA_URL+'/rest/v1/works?select=*&order=id&limit=2000';
+      const _worksUrl = SUPA_URL+'/rest/v1/works?select=*&deleted_at=is.null&order=id&limit=2000';
       const _oturumVar = !!localStorage.getItem('sb_token');
       let r = await fetch(_worksUrl, {
         headers: _oturumVar ? H : {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY},

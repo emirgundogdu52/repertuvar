@@ -575,7 +575,7 @@ async function eserleriYukle() {
   } catch (e) {}
   // Önbellek boşsa sunucudan çek
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/works?select=id,name&order=name.asc&limit=5000',
+    const r = await fetch(SUPA_URL + '/rest/v1/works?select=id,name&deleted_at=is.null&order=name.asc&limit=5000',
       { headers: authHeaders() });
     if (r.ok) ESERLER = await r.json();
   } catch (e) {}

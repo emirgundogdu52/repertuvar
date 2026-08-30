@@ -5953,7 +5953,7 @@ async function rejectWork(id) {
 
 async function updatePendingCount() {
   // (2026-08-15) Rozet sayısı da gizli eserleri saymaz — bkz. showPendingWorks.
-  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&or=(visibility.is.null,visibility.neq.private)&select=id', {
+  const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&or=(visibility.is.null,visibility.neq.private)&deleted_at=is.null&select=id', {
     headers: authHeaders()
   });
   const data = r.ok ? await r.json() : [];
@@ -5992,7 +5992,7 @@ async function updateMySuggestionsCount() {
   const uid = (typeof getUserId === 'function') ? getUserId() : null;
   if (!uid) return;
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&submitted_by=eq.' + encodeURIComponent(uid) + '&select=id', {
+    const r = await fetch(SUPA_URL + '/rest/v1/works?status=eq.pending&submitted_by=eq.' + encodeURIComponent(uid) + '&deleted_at=is.null&select=id', {
       headers: authHeaders()
     });
     const data = r.ok ? await r.json() : [];

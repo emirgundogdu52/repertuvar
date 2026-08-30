@@ -230,7 +230,9 @@ window.syncOfflineData = async function() {
     // group_members yalnizca kendi gruplarimi, profiles yalnizca grup
     // arkadaslarimi donduruyor — istemcide ayrica filtrelemeye gerek yok.
     const [worksRes, repsRes, solRes, itemsRes, grpRes, gmRes, profRes] = await Promise.all([
-      fetch(SUPA_URL + '/rest/v1/works?select=*&order=name.asc&limit=10000', { headers }),
+      // (2026-08-30) Silinmiş eserler ÖNBELLEĞE ALINMASIN: buraya girerse
+      // çevrimdışı çalışan her sayfa onları gösterir ve sebebi bulunması zor olur.
+      fetch(SUPA_URL + '/rest/v1/works?select=*&deleted_at=is.null&order=name.asc&limit=10000', { headers }),
       fetch(SUPA_URL + repFilter, { headers }),
       fetch(SUPA_URL + solFilter, { headers }),
       fetch(SUPA_URL + '/rest/v1/repertoire_items?select=*&order=seq.asc', { headers }),
