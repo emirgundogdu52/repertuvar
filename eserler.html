@@ -1375,7 +1375,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     </div>
     <div class="toolbar">
       <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;"><i class="ti ti-adjustments-horizontal"></i> Filtreler<span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
-      <button id="btnAdminNewEser" class="admin-only fab-new-eser" onclick="openNewEserModal()" title="Yeni Eser Ekle" style="position:fixed;right:20px;bottom:24px;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;box-shadow:0 8px 24px rgba(255,200,61,0.4);display:none;align-items:center;justify-content:center;font-size:22px;line-height:1;color:#111;font-weight:600;cursor:pointer;z-index:500;">+</button>
+      <button id="btnAdminNewEser" class="admin-only fab-new-eser" onclick="openNewEserModal()" title="Yeni Eser Ekle" data-i18n-title="es.yenieserKisa" style="position:fixed;right:20px;bottom:24px;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;box-shadow:0 8px 24px rgba(255,200,61,0.4);display:none;align-items:center;justify-content:center;font-size:22px;line-height:1;color:#111;font-weight:600;cursor:pointer;z-index:500;">+</button>
       <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:none;align-items:center;gap:5px;background:rgba(249,160,74,.12);border:1px solid rgba(249,160,74,.3);border-radius:20px;padding:4px 10px 4px 8px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);">⏳ Onay Bekleyen <span id="pendingCountDesktop" style="background:#F9A04A;color:#1a1000;border-radius:10px;padding:1px 7px;font-size:10px;">0</span></button>
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;margin-left:auto;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);" data-i18n="es.oner">🎵 Öner</button>
       <button id="btnUserSuggest" onclick="openSuggestModal()" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);" data-i18n="es.eseroner">🎵 Eser Öner</button>
@@ -2783,8 +2783,8 @@ function selectWork(id, silent) {
           <div class="nota-drop" id="notaDrop_${w.id}" data-work="${w.id}"
                onclick="document.getElementById('notaFile_${w.id}').click()">
             <div class="nota-drop-icon">🎼</div>
-            <div class="nota-drop-main">Notayı buraya sürükle veya yapıştır</div>
-            <div class="nota-drop-sub">Yeni dosyalar mevcut sayfaların SONUNA eklenir<br>(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)</div>
+            <div class="nota-drop-main" data-i18n="es.notaSurukle">Notayı buraya sürükle veya yapıştır</div>
+            <div class="nota-drop-sub"><span data-i18n="es.notaAlt">Yeni dosyalar mevcut sayfaların SONUNA eklenir</span><br><span data-i18n="es.notaBoyut">(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)</span></div>
           </div>
           <div class="nota-paste" id="notaPaste_${w.id}" data-work="${w.id}"
                contenteditable="true" inputmode="none" role="button"
@@ -4808,7 +4808,7 @@ function renderNeNotaList(msg) {
   if (editingWorkId === null) {
     el.innerHTML = '<div style="padding:10px 12px;background:rgba(255,200,61,.08);'
       + 'border:1px solid rgba(255,200,61,.3);border-radius:7px;color:var(--accent);line-height:1.55;">'
-      + 'Nota ekleyebilmek için önce eseri kaydedin. Kaydettikten sonra eseri düzenleyip notayı buradan yükleyebilirsiniz.'
+      + _e('es.notaOnceKaydet','Nota ekleyebilmek için önce eseri kaydedin. Kaydettikten sonra eseri düzenleyip notayı buradan yükleyebilirsiniz.')
       + '</div>';
     return;
   }
@@ -4821,7 +4821,7 @@ function renderNeNotaList(msg) {
 
 function openNewEserModal() {
   editingWorkId = null;
-  document.getElementById('modalTitle').textContent = '+ Yeni Eser Ekle';
+  document.getElementById('modalTitle').textContent = _e('es.yenieser','+ Yeni Eser Ekle');
   ['ne_name','ne_composer','ne_lyricWriter','ne_makam','ne_measurement','ne_form',
    'ne_tuning','ne_instrument','ne_region','ne_sourcePerson','ne_collector','ne_story','ne_ritim','ne_metronom',
    'ne_videoLink','ne_lyrics','ne_chords','ne_closingNote']
@@ -4893,7 +4893,7 @@ async function openEditEserModal(id) {
   const w = DATA.find(x => x.id === id);
   if (!w) return;
   editingWorkId = id;
-  document.getElementById('modalTitle').textContent = '✏️ Eseri Düzenle';
+  document.getElementById('modalTitle').textContent = _e('es.eseriDuzenle','✏️ Eseri Düzenle');
   const fields = {
     ne_name: w.name, ne_composer: w.composer, ne_lyricWriter: w.lyricWriter,
     ne_makam: w.makam, ne_measurement: w.measurement, ne_form: w.form,
@@ -6137,7 +6137,7 @@ function updateVisibilityHint() {
   const yetkili = (typeof isAdmin === 'function' && isAdmin()) ||
                   (typeof isEditor === 'function' && isEditor());
   if (v === 'private') {
-    el.textContent = '🔒 Bu eseri yalnızca siz görürsünüz. Onay gerekmez, istediğiniz zaman paylaşabilirsiniz.';
+    el.textContent = _e('es.gorunurNot_ozel','🔒 Bu eseri yalnızca siz görürsünüz. Onay gerekmez, istediğiniz zaman paylaşabilirsiniz.');
   } else if (v === 'group') {
     // Grup paylaşımı KATALOG ÖNERİSİ DEĞİL — onay kuyruğuna düşmez, çünkü
     // eser genel kataloğa girmiyor, yalnız grubun içinde kalıyor.
@@ -6310,7 +6310,7 @@ function openSuggestModal() { openNewEserModal(); }
     <div id="neTabPanel_details" class="ne-tab-panel" style="display:none;grid-template-columns:1fr;gap:12px;min-height:460px;align-content:start;">
       <div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-          <label style="font-size:12px;color:var(--text2);">Akorlar <span style="color:var(--text3);font-weight:300;">(opsiyonel — akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz)</span></label>
+          <label style="font-size:12px;color:var(--text2);"><span data-i18n="es.akorEtiket">Akorlar</span> <span style="color:var(--text3);font-weight:300;"><span data-i18n="es.akorOps1">(opsiyonel — akoru</span> <code style="color:#58A6FF;">[Am]</code> <span data-i18n="es.akorOps2">gibi hecenin önüne yaz)</span></span></label>
           <div style="display:flex;gap:12px;align-items:center;">
             <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;">
               <input type="radio" name="ne_notation" value="abc" checked onchange="setChordNotation('abc')" style="accent-color:var(--accent);width:14px;height:14px;"> A B C
@@ -6336,7 +6336,7 @@ function openSuggestModal() { openNewEserModal(); }
           <button type="button" onclick="chordRepeat('3X')" style="padding:4px 9px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">3X</button>
           <button type="button" onclick="chordMark('Kıta')" style="padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;" data-i18n="es.kita">Kıta</button>
           <button type="button" onclick="chordMark('Ara Saz')" style="padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;" data-i18n="es.arasaz">Ara Saz</button>
-          <span style="font-size:11px;color:var(--text3);margin-left:2px;">— Nakarat/Kıta satır başına, 2X satır sonuna</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:2px;" data-i18n="es.isaretNot">— Nakarat/Kıta satır başına, 2X satır sonuna</span>
         </div>
         <!-- (2026-08-10) "AKOR ÜSTTE" BİÇİMİNİ ÇEVİRME DÜĞMESİ.
              Emir sordu: "burada ChordPro seçeneği neden yok, yanlış mı yapıyorum?"
@@ -6347,14 +6347,14 @@ function openSuggestModal() { openNewEserModal(); }
              göremiyordu. Aynı çevirici artık burada da. -->
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 6px;">
           <button type="button" onclick="neConvertChords()" style="padding:5px 12px;border-radius:6px;border:1px solid var(--accent2,#4DA3FF);background:transparent;color:var(--accent2,#4DA3FF);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">
-            Akorlar sözün üstünde mi? ChordPro'ya çevir
+            <span data-i18n="es.chordproCevir">Akorlar sözün üstünde mi? ChordPro'ya çevir</span>
           </button>
           <!-- (2026-08-15) Kayıtlı eserde kaynak metin olmadığı için ölçek sürgüsü
                çalışamaz; toplu kaydırma her zaman erişilebilir olmalı. -->
           <button type="button" onclick="neOpenNudgeOnly()" style="padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">
-            ↔ Akorları kaydır
+            <span data-i18n="es.akorKaydirBtn">↔ Akorları kaydır</span>
           </button>
-          <span style="font-size:11px;color:var(--text3);">Akor satırı üstte, söz altta yazılmışsa hecelerin önüne taşır</span>
+          <span style="font-size:11px;color:var(--text3);" data-i18n="es.akorKaydirNot">Akor satırı üstte, söz altta yazılmışsa hecelerin önüne taşır</span>
         </div>
         <!-- Hiza sürgüsü / kaydırma paneli buraya çizilir (neOpenConvScale, neOpenNudgeOnly) -->
         <div id="ne_chordScale" style="display:none;margin:0 0 10px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
@@ -6374,7 +6374,7 @@ function openSuggestModal() { openNewEserModal(); }
                onclick="if (editingWorkId === null) { renderNeNotaList(); } else { document.getElementById('ne_notaFile').click(); }">
             <div class="nota-drop-icon">🎼</div>
             <div class="nota-drop-main">Notayı buraya sürükle, yapıştır ya da tıklayıp seç</div>
-            <div class="nota-drop-sub">Yeni dosyalar mevcut sayfaların SONUNA eklenir<br>(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)</div>
+            <div class="nota-drop-sub"><span data-i18n="es.notaAlt">Yeni dosyalar mevcut sayfaların SONUNA eklenir</span><br><span data-i18n="es.notaBoyut">(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)</span></div>
           </div>
           <div class="nota-paste" id="notaPaste_ne" contenteditable="true" inputmode="none" role="button"
                aria-label="Panodaki görseli yapıştır" onclick="event.stopPropagation()"></div>
