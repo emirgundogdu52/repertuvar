@@ -314,7 +314,7 @@
               <div class="icons"><i class="ti ti-search"></i><i class="ti ti-plus"></i><i class="ti ti-dots-vertical"></i></div>
             </div>
             <div class="hero-ipad-screen">
-              <div class="hero-list-name swap-fade" id="heroListName" data-i18n="ana.maket_thm">Anadolu’dan Türküler</div>
+              <div class="hero-list-name swap-fade" id="heroListName">Anadolu’dan Türküler</div>
               <div class="hero-song-row dragging hero-rotatable swap-fade" id="heroRow1"><span class="grip">☰</span><b>Allı Turnam</b><span>Hüseyni · La</span></div>
               <div class="hero-song-row hero-rotatable swap-fade" id="heroRow2"><span class="num">2</span><b>Dostum Dostum</b><span>Hüseyni · La</span></div>
               <div class="hero-song-row hero-rotatable swap-fade" id="heroRow3"><span class="num">3</span><b>Barış Güvercini</b><span>Hüseyni · La</span></div>
@@ -322,11 +322,18 @@
               <div class="hero-song-row swap-fade"><span class="num">5</span><b>Aldırma Gönül</b><span>Hicaz · La</span></div>
               <div class="hero-song-row swap-fade"><span class="num">6</span><b>Bedir Geliyor</b><span>Hicaz · La</span></div>
               <div class="hero-ipad-tabbar">
-                <div class="tab active"><i class="ti ti-music"></i><span data-i18n="menu.repertuvarlar">Repertuvar</span></div>
-                <div class="tab"><i class="ti ti-book"></i><span data-i18n="menu.eserler">Eserler</span></div>
-                <div class="tab"><i class="ti ti-microphone"></i><span data-i18n="menu.solistler">Solistler</span></div>
-                <div class="tab"><i class="ti ti-users-group"></i><span data-i18n="menu.grup">Grup</span></div>
-                <div class="tab"><i class="ti ti-settings"></i><span data-i18n="menu.ayarlar">Ayarlar</span></div>
+                <!-- (2026-08-30) Bu etiketlerde data-i18n YOK ve olmamali.
+                     Maketteki sekmeler arayuz dilini degil, o an gosterilen
+                     LISTENIN dilini izliyor: Anadolu'dan Turkuler gosterilirken
+                     Turkce, Wedding Set gosterilirken Ingilizce. Maket boylece
+                     iki ayri muzisyenin ekrani gibi okunuyor. data-i18n
+                     eklenirse i18n.uygula() bunlari ezer ve etki bozulur.
+                     Baslangic degerleri ilk listeyle (Turkce) ayni. -->
+                <div class="tab active"><i class="ti ti-music"></i><span>Repertuvar</span></div>
+                <div class="tab"><i class="ti ti-book"></i><span>Eserler</span></div>
+                <div class="tab"><i class="ti ti-microphone"></i><span>Solistler</span></div>
+                <div class="tab"><i class="ti ti-users-group"></i><span>Grup</span></div>
+                <div class="tab"><i class="ti ti-settings"></i><span>Ayarlar</span></div>
               </div>
             </div>
           </div>
@@ -647,12 +654,16 @@
     // Eser adlari ozel isim, cevrilmiyor; yalnizca liste ADI sozlukten gelir.
     // Tonlar YAYGIN calinan tonlar, mutlak degil — gruplar solistin sesine
     // gore transpoze eder.
+    // Liste ADI CEVRILMEZ. Eser adlari gibi ozel isim sayilir: gercek
+    // uygulamada da kullanicinin repertuvarina verdigi ad, arayuz dili
+    // degisince degismez. Her listenin adi kendi icerigiyle ayni dilde
+    // sabit kalir; maket boylece iki AYRI repertuvar gibi okunur.
     const LISTELER = [
-      { adKey: 'ana.maket_thm', eserler: [
+      { ad: 'Anadolu\u2019dan Türküler', dil: 'tr', eserler: [
         ['Allı Turnam', 'Hüseyni · La'], ['Dostum Dostum', 'Hüseyni · La'],
         ['Barış Güvercini', 'Hüseyni · La'], ['Vardar Ovası', 'Hicaz · La'],
         ['Aldırma Gönül', 'Hicaz · La'], ['Bedir Geliyor', 'Hicaz · La'] ] },
-      { adKey: 'ana.maket_bati', eserler: [
+      { ad: 'Wedding Set', dil: 'en', eserler: [
         ['Moon River', 'C · 90'], ['Perfect', 'A\u266d · 63'],
         ['L-O-V-E', 'G · 130'], ['Valerie', 'E\u266d · 105'],
         ['Superstition', 'E\u266dm · 100'], ['September', 'A · 126'] ] }
@@ -662,6 +673,19 @@
     // appendChild ile tasirsak cubugun ARKASINA duserler ve menu listenin
     // ustunde gorunur — satirlar her zaman cubuktan ONCE eklenmeli.
     const tabbar = screen.querySelector('.hero-ipad-tabbar');
+    // Sekme etiketleri LISTENIN dilini izliyor, aktif arayuz dilini degil.
+    // Sozlukten (menu.*) CEKILMIYOR, bilerek: (1) sozlukteki degerler bu 9px
+    // besli cubuk icin uzun ("Grup / Koro", "Group / Choir" tasiyordu);
+    // (2) HTML'deki baslangic degeri sozlukle birebir tutmadigi icin ilk tur
+    // "Repertuvar", sonraki turlar "Repertuvarlar" gosteriyordu. Buradaki
+    // liste HTML'deki baslangic degerleriyle AYNI olmali.
+    const SEKME = { tr: ['Repertuvar','Eserler','Solistler','Grup','Ayarlar'],
+                    en: ['Setlists','Pieces','Soloists','Group','Settings'] };
+    function sekmeleriYaz(dil) {
+      const etiketler = SEKME[dil] || SEKME.tr;
+      screen.querySelectorAll('.hero-ipad-tabbar .tab span')
+            .forEach((el, i) => { if (etiketler[i]) el.textContent = etiketler[i]; });
+    }
     // reorder() ilk satiri fiziksel olarak sona tasiyor; liste degisirken
     // baslangic sirasi geri kurulmali, yoksa numaralar 1..6 okunmaz.
     const temelSira = allRows();
@@ -682,15 +706,10 @@
         });
         temelSira[0].classList.add('dragging');
         renumber(); highlight(0);
-        if (adEl) {
-          // data-i18n'i da guncelle: kullanici dili degistirdiginde
-          // i18n.uygula() bu satiri kendiliginden yeniden cevirsin.
-          adEl.setAttribute('data-i18n', L.adKey);
-          adEl.textContent = (window.i18n && window.i18n.t)
-            ? window.i18n.t(L.adKey, adEl.textContent) : adEl.textContent;
-        }
-        // Isaretli metinleri yeniden uygula: liste adinin data-i18n'i az once
-        // degisti, ayrica dil bu sirada degismis olabilir.
+        if (adEl) adEl.textContent = L.ad;
+        sekmeleriYaz(L.dil);
+        // Isaretli metinleri yeniden uygula: dil bu sirada degismis olabilir.
+        // (Liste adi isaretli DEGIL — ozel isim, ceviriye girmez.)
         try { if (window.i18n && window.i18n.uygula) window.i18n.uygula(screen); } catch (e) {}
         screen.classList.remove('swapping');
         setTimeout(done, 360);
