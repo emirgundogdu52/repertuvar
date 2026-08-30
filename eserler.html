@@ -2791,7 +2791,7 @@ function selectWork(id, silent) {
                contenteditable="true" inputmode="none" role="button"
                aria-label="Panodaki görseli yapıştır"
                onclick="event.stopPropagation()"></div>
-          <div class="nota-paste-hint">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
+          <div class="nota-paste-hint" data-i18n="es.notaYapistirIpucu">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
           <div id="notaUploadStatus_${w.id}" style="margin-top:8px;font-size:12px;color:var(--text3);"></div>
           ${notaPagesOf(w).length ? `<button onclick="deleteNota(${w.id})" style="margin-top:8px;display:block;background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">🗑 Tüm Sayfaları Kaldır</button>` : ''}
         </div>
@@ -6384,7 +6384,7 @@ function openSuggestModal() { openNewEserModal(); }
           </div>
           <div class="nota-paste" id="notaPaste_ne" contenteditable="true" inputmode="none" role="button"
                aria-label="Panodaki görseli yapıştır" onclick="event.stopPropagation()"></div>
-          <div class="nota-paste-hint">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
+          <div class="nota-paste-hint" data-i18n="es.notaYapistirIpucu">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
           <div id="ne_notaList" style="margin-top:12px;font-size:12px;color:var(--text2);"></div>
         </div>
       </div>
