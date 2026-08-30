@@ -181,6 +181,12 @@
       'ay.iptal': 'İptal',
       'ay.kaydet': 'Kaydet',
       'ay.sil': 'Sil',
+      'ay.gunduz': '☀️ Gündüz',
+      'ay.gece': '🌙 Gece',
+      'alan.makam': 'Makam', 'alan.usul': 'Usul', 'alan.olcu': 'Ölçü',
+      'alan.tempo': 'Tempo', 'alan.akort': 'Akort', 'alan.karar': 'Karar Sesi',
+      'alan.enstruman': 'Enstrüman', 'alan.yore': 'Yöre/Bölge',
+      'alan.kaynak': 'Kaynak Kişi', 'alan.derleyen': 'Derleyen',
       'ayar.dil_alt': 'Uygulamanın gösterileceği dil',
     },
     en: {
@@ -324,6 +330,12 @@
       'ay.iptal': 'Cancel',
       'ay.kaydet': 'Save',
       'ay.sil': 'Delete',
+      'ay.gunduz': '☀️ Day',
+      'ay.gece': '🌙 Night',
+      'alan.makam': 'Makam', 'alan.usul': 'Usul', 'alan.olcu': 'Time signature',
+      'alan.tempo': 'Tempo', 'alan.akort': 'Tuning', 'alan.karar': 'Tonic',
+      'alan.enstruman': 'Instrument', 'alan.yore': 'Region',
+      'alan.kaynak': 'Source person', 'alan.derleyen': 'Collector',
       'ayar.dil_alt': 'Language the app is shown in',
     }
   };

@@ -385,7 +385,7 @@ html, body { overflow-x: hidden; }
           <div class="setting-label" data-i18n="ay.eposta">E-posta Adresi</div>
           <div class="setting-desc" data-i18n="ay.eposta_alt">Hesap e-posta adresini değiştir</div>
         </div>
-        <button class="setting-btn" onclick="openEmailModal()">Değiştir</button>
+        <button class="setting-btn" onclick="openEmailModal()" data-i18n="ay.degistir">Değiştir</button>
       </div>
       <!-- Oturumu Kapat satırı 2026-08-01'de KALDIRILDI — çıkış artık sidebar'daki
            avatar/hesap menüsünde (masaüstü) ve mobil üst çubuktaki avatar menüsünde.
@@ -437,7 +437,7 @@ html, body { overflow-x: hidden; }
       </div>
 
       <div class="setting-row" style="display:block;">
-        <div class="setting-desc" style="margin-bottom:12px;line-height:1.6;">
+        <div class="setting-desc" id="alanAciklama" style="margin-bottom:12px;line-height:1.6;">
           Kapattığınız alanlar <b>silinmez</b> — dolu olan bir alan her zaman görünür,
           ve her eserde <b>“+ Müzik alanı ekle”</b> ile istediğinizi geri açabilirsiniz.
           Bu ayar yalnızca <b>yeni</b> eserlerin başlangıç görünümünü belirler.
@@ -447,7 +447,7 @@ html, body { overflow-x: hidden; }
 
       <div class="setting-row">
         <div class="setting-desc" id="alanDurum" style="flex:1;"></div>
-        <button class="setting-btn" onclick="alanVarsayilanKaydet()">Kaydet</button>
+        <button class="setting-btn" onclick="alanVarsayilanKaydet()" data-i18n="ay.kaydet">Kaydet</button>
       </div>
     </div>
 
@@ -463,8 +463,8 @@ html, body { overflow-x: hidden; }
           <div class="setting-desc" data-i18n="ay.tema_alt">Sahne modunda açılış teması</div>
         </div>
         <select class="setting-select" id="stageTheme" onchange="saveSetting('stageTheme',this.value)">
-          <option value="day">☀️ Gündüz</option>
-          <option value="night">🌙 Gece</option>
+          <option value="day" data-i18n="ay.gunduz">☀️ Gündüz</option>
+          <option value="night" data-i18n="ay.gece">🌙 Gece</option>
         </select>
       </div>
       <div class="setting-row">
@@ -673,8 +673,8 @@ html, body { overflow-x: hidden; }
     <div class="field"><label>YENİ ŞİFRE</label><input type="password" id="newPass" placeholder="En az 6 karakter"></div>
     <div class="field"><label>YENİ ŞİFRE (TEKRAR)</label><input type="password" id="newPass2" placeholder="Şifreyi tekrar gir"></div>
     <div class="modal-actions">
-      <button class="setting-btn" onclick="closePasswordModal()">İptal</button>
-      <button class="setting-btn primary" onclick="changePassword()">Kaydet</button>
+      <button class="setting-btn" onclick="closePasswordModal()" data-i18n="ay.iptal">İptal</button>
+      <button class="setting-btn primary" onclick="changePassword()" data-i18n="ay.kaydet">Kaydet</button>
     </div>
   </div>
 </div>
@@ -686,7 +686,7 @@ html, body { overflow-x: hidden; }
     <div id="emailStep1">
       <div class="field"><label>YENİ E-POSTA</label><input type="email" id="newEmail" placeholder="yeni@mail.com" autocomplete="email"></div>
       <div class="modal-actions">
-        <button class="setting-btn" onclick="closeEmailModal()">İptal</button>
+        <button class="setting-btn" onclick="closeEmailModal()" data-i18n="ay.iptal">İptal</button>
         <button class="setting-btn primary" onclick="requestEmailChange()">Kod Gönder</button>
       </div>
     </div>
@@ -694,7 +694,7 @@ html, body { overflow-x: hidden; }
       <p style="font-size:14px;color:var(--text2);margin-bottom:14px;">Yeni adresine gönderilen <strong>8 haneli kodu</strong> gir.</p>
       <div class="field"><label>DOĞRULAMA KODU</label><input type="text" id="emailCode" placeholder="00000000" maxlength="8" inputmode="numeric" autocomplete="one-time-code"></div>
       <div class="modal-actions">
-        <button class="setting-btn" onclick="closeEmailModal()">İptal</button>
+        <button class="setting-btn" onclick="closeEmailModal()" data-i18n="ay.iptal">İptal</button>
         <button class="setting-btn primary" onclick="verifyEmailChange()">Doğrula</button>
       </div>
     </div>
@@ -750,17 +750,23 @@ document.addEventListener('DOMContentLoaded', dilKutusunuDoldur);
 // Belgedeki ilke: müzisyeni sınıflandırma, alanları yapılandır.
 // Buradaki seçim `profiles.default_music_fields` alanına yazılıyor ve
 // YALNIZCA yeni eserlerin başlangıç görünümünü belirliyor.
+// (2026-08-30) Çip adları JS'ten çiziliyor, bu yüzden `data-i18n` işlemiyor —
+// çeviri burada alınıyor. `_a()` i18n yoksa Türkçeye düşer.
+function _a(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
 const AYAR_ALANLAR = [
-  { k:'makam',       ad:'Makam' },
-  { k:'usul',        ad:'Usul' },
-  { k:'olcu',        ad:'Ölçü' },
-  { k:'tempo',       ad:'Tempo' },
-  { k:'akort',       ad:'Akort' },
-  { k:'karar',       ad:'Karar Sesi' },
-  { k:'enstruman',   ad:'Enstrüman' },
-  { k:'yore',        ad:'Yöre/Bölge' },
-  { k:'kaynak_kisi', ad:'Kaynak Kişi' },
-  { k:'derleyen',    ad:'Derleyen' },
+  { k:'makam',       ad:_a('alan.makam','Makam') },
+  { k:'usul',        ad:_a('alan.usul','Usul') },
+  { k:'olcu',        ad:_a('alan.olcu','Ölçü') },
+  { k:'tempo',       ad:_a('alan.tempo','Tempo') },
+  { k:'akort',       ad:_a('alan.akort','Akort') },
+  { k:'karar',       ad:_a('alan.karar','Karar Sesi') },
+  { k:'enstruman',   ad:_a('alan.enstruman','Enstrüman') },
+  { k:'yore',        ad:_a('alan.yore','Yöre/Bölge') },
+  { k:'kaynak_kisi', ad:_a('alan.kaynak','Kaynak Kişi') },
+  { k:'derleyen',    ad:_a('alan.derleyen','Derleyen') },
 ];
 let _ayarSecili = null;
 
@@ -771,6 +777,12 @@ function ayarAlanlariniYukle() {
   } catch (e) { _ayarSecili = AYAR_ALANLAR.map(a => a.k); }
   ayarAlanlariCiz();
   ayarAlanlariTazele();   // sunucudaki değer farklıysa düzeltir
+  var ac = document.getElementById('alanAciklama');
+  if (ac && window.i18n && i18n.dil() === 'en') {
+    ac.innerHTML = 'Fields you switch off are <b>not deleted</b> — a field that has a ' +
+      'value always stays visible, and you can bring any field back on a piece with ' +
+      '<b>"+ Add music field"</b>. This setting only affects how <b>new</b> pieces start out.';
+  }
 }
 
 function ayarAlanlariCiz() {
