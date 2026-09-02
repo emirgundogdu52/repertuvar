@@ -68,7 +68,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Metronom — Repertuvar</title>
+<title data-i18n="me.sayfaBaslik">Metronom — Repertuvar</title>
 <link rel="stylesheet" href="style.css">
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
@@ -251,12 +251,12 @@ button, .mx-btn, [role="button"] {
     </svg>
 
     <div class="mx-bpm-row">
-      <button class="mx-round" id="minus" aria-label="Yavaşlat">−</button>
+      <button class="mx-round" id="minus" aria-label="Yavaşlat" data-i18n-aria="me.yavaslat">−</button>
       <div>
-        <input class="mx-bpm" id="bpmView" type="text" inputmode="numeric" maxlength="3" value="96" aria-label="Tempo (BPM)">
+        <input class="mx-bpm" id="bpmView" type="text" inputmode="numeric" maxlength="3" value="96" aria-label="Tempo (BPM)" data-i18n-aria="me.tempoBpm">
         <div class="mx-bpm-unit">BPM</div>
       </div>
-      <button class="mx-round" id="plus" aria-label="Hızlandır">+</button>
+      <button class="mx-round" id="plus" aria-label="Hızlandır" data-i18n-aria="me.hizlandir">+</button>
     </div>
     <div class="mx-term" id="term"></div>
 
@@ -265,54 +265,54 @@ button, .mx-btn, [role="button"] {
     <div class="mx-group-row">
       <span class="mx-group" id="groupView">—</span>
       <input type="text" id="groupField" class="mx-group-field" inputmode="tel"
-             placeholder="2+2+2+3" aria-label="Gruplamayı yaz">
-      <button class="mx-group-plus" id="groupPlus" aria-label="Artı ekle">+</button>
-      <button class="mx-group-go" id="groupGo">Uygula</button>
+             placeholder="2+2+2+3" aria-label="Gruplamayı yaz" data-i18n-aria="me.gruplamaYaz">
+      <button class="mx-group-plus" id="groupPlus" aria-label="Artı ekle" data-i18n-aria="me.artiEkle">+</button>
+      <button class="mx-group-go" id="groupGo" data-i18n="me.uygula">Uygula</button>
     </div>
     <div class="mx-beats" id="beats"></div>
     <div class="mx-legend">
-      <span><i class="dot dum"></i> DÜM — kalın vuruş</span>
-      <span><i class="dot tek"></i> Tek — ince vuruş</span>
-      <span><i class="dot bos"></i> Boş — sessiz</span>
+      <span><i class="dot dum"></i> <span data-i18n="me.dumKalin">DÜM — kalın vuruş</span></span>
+      <span><i class="dot tek"></i> <span data-i18n="me.tekInce">Tek — ince vuruş</span></span>
+      <span><i class="dot bos"></i> <span data-i18n="me.bosSessiz">Boş — sessiz</span></span>
     </div>
-    <div class="mx-hint">Vuruşa dokundukça <b>DÜM → Tek → Boş</b> arasında döner. Listede olmayan bir usul için gruplamayı doğrudan yaz: <b>15/8</b> istiyorsan üstteki kutuya <b>2+2+3+3+3+2</b> yazıp Uygula'ya bas.</div>
+    <div class="mx-hint" data-i18n-html="me.vurusaDokunTam">Vuruşa dokundukça <b>DÜM → Tek → Boş</b> arasında döner. Listede olmayan bir usul için gruplamayı doğrudan yaz: <b>15/8</b> istiyorsan üstteki kutuya <b>2+2+3+3+3+2</b> yazıp Uygula'ya bas.</div>
 
     <div class="mx-main">
-      <button class="mx-play" id="play"><i class="ti ti-player-play-filled"></i> <span id="playText">Başlat</span></button>
-      <button class="mx-tap" id="tap">Tempoyu<br>vur</button>
+      <button class="mx-play" id="play"><i class="ti ti-player-play-filled"></i> <span id="playText" data-i18n="me.baslat">Başlat</span></button>
+      <button class="mx-tap" id="tap" data-i18n-html="me.tempoyuVur">Tempoyu<br>vur</button>
     </div>
   </div>
 
   <div class="mx-card">
-    <div class="mx-title">Zaman sayısı</div>
+    <div class="mx-title" data-i18n="me.zamanSayisi">Zaman sayısı</div>
     <div class="mx-chips" id="counts"></div>
     <div style="display:flex;align-items:center;gap:9px;margin-top:12px;">
-      <span style="font-size:12px;color:var(--text3);">Serbest:</span>
+      <span style="font-size:12px;color:var(--text3);" data-i18n="me.serbest">Serbest:</span>
       <input type="text" inputmode="numeric" maxlength="2" id="countField" class="mx-count-field" value="4">
-      <span style="font-size:12px;color:var(--text3);">zaman (1-64)</span>
+      <span style="font-size:12px;color:var(--text3);" data-i18n="me.zamanAralik">zaman (1-64)</span>
     </div>
   </div>
 
   <div class="mx-card">
-    <div class="mx-title">Usuller</div>
+    <div class="mx-title" data-i18n="me.usuller">Usuller</div>
     <div class="mx-tabs" id="usulTabs">
-      <button class="mx-tab on" data-t="yaygin">En çok kullanılan</button>
-      <button class="mx-tab" data-t="tsm">Sanat müziği</button>
-      <button class="mx-tab" data-t="thm">Halk müziği</button>
+      <button class="mx-tab on" data-t="yaygin" data-i18n="me.enCok">En çok kullanılan</button>
+      <button class="mx-tab" data-t="tsm" data-i18n="me.sanatMuzigi">Sanat müziği</button>
+      <button class="mx-tab" data-t="thm" data-i18n="me.halkMuzigi">Halk müziği</button>
     </div>
     <div class="mx-chips" id="presets"></div>
-    <div class="mx-hint" style="text-align:left;margin-top:12px;">
+    <div class="mx-hint" style="text-align:left;margin-top:12px;" data-i18n="me.kisayolTam">
       Hepsi kısayoldur; seçtikten sonra vuruşlara dokunup kendi kalıbını kurabilirsin.
       Sanat müziği usullerinde zaman sayıları esastır, düm-tek dağılımı icra geleneğine göre değişebilir.
     </div>
   </div>
 
   <div class="mx-card">
-    <div class="mx-title">Ayarlar</div>
+    <div class="mx-title" data-i18n="me.ayarlar">Ayarlar</div>
     <div class="mx-switch">
       <div>
         <div class="mx-switch-label"><i class="ti ti-volume"></i> Ses</div>
-        <div class="mx-switch-sub">Kapalıyken yalnızca görsel çalışır — prova ortamında işe yarar</div>
+        <div class="mx-switch-sub" data-i18n="me.gorselNot">Kapalıyken yalnızca görsel çalışır — prova ortamında işe yarar</div>
       </div>
       <div class="mx-toggle on" id="tgSound"></div>
     </div>
@@ -323,13 +323,13 @@ button, .mx-btn, [role="button"] {
     <div class="mx-switch">
       <div>
         <div class="mx-switch-label"><i class="ti ti-bulb"></i> Ekran açık kalsın</div>
-        <div class="mx-switch-sub">Çalışırken ekran kendiliğinden kararmaz</div>
+        <div class="mx-switch-sub" data-i18n="me.ekranNot">Çalışırken ekran kendiliğinden kararmaz</div>
       </div>
       <div class="mx-toggle" id="tgWake"></div>
     </div>
   </div>
 
-  <div class="mx-hint" style="margin-bottom:10px;">
+  <div class="mx-hint" style="margin-bottom:10px;" data-i18n="me.sessizNot">
     iPhone'da yan taraftaki sessize alma anahtarı açıksa tık sesi duyulmayabilir.
   </div>
 
@@ -337,6 +337,12 @@ button, .mx-btn, [role="button"] {
 </div>
 
 <script>
+// (2026-09-03) JS'ten yazilan metinler icin ceviri yardimcisi.
+function _meCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 // ── Durum ───────────────────────────────────────────────────────────────
 // pattern: her vuruş için 2 = vurgulu, 1 = normal, 0 = sessiz
 let bpm = 96;
@@ -375,14 +381,14 @@ function loadState(){
 // İtalyanca tempo terimleri — sayının müzikal karşılığını göstermek,
 // tempo seçerken kulaktan bilmeyene yol gösteriyor.
 function tempoTerm(v){
-  if (v < 40)  return 'Grave — çok ağır';
-  if (v < 60)  return 'Largo — ağır';
+  if (v < 40)  return _meCev('me.grave','Grave — çok ağır');
+  if (v < 60)  return _meCev('me.largo','Largo — ağır');
   if (v < 76)  return 'Adagio — sakin';
-  if (v < 108) return 'Andante — yürüyüş temposu';
+  if (v < 108) return _meCev('me.andante','Andante — yürüyüş temposu');
   if (v < 120) return 'Moderato — orta';
-  if (v < 156) return 'Allegro — canlı';
-  if (v < 200) return 'Vivace — hızlı';
-  return 'Presto — çok hızlı';
+  if (v < 156) return _meCev('me.allegro','Allegro — canlı');
+  if (v < 200) return _meCev('me.vivace','Vivace — hızlı');
+  return _meCev('me.presto','Presto — çok hızlı');
 }
 
 // ── Ses motoru ──────────────────────────────────────────────────────────
@@ -477,7 +483,7 @@ function stop(){
   document.querySelectorAll('.mx-beat').forEach(b => b.classList.remove('now'));
   $('stage').classList.remove('pulse');
   $('play').classList.remove('on');
-  $('play').innerHTML = '<i class="ti ti-player-play-filled"></i> <span>Başlat</span>';
+  $('play').innerHTML = '<i class="ti ti-player-play-filled"></i> <span data-i18n="me.baslat">Başlat</span>';
   releaseWake();
 }
 
@@ -517,9 +523,9 @@ function renderBeats(){
   $('beats').innerHTML = pattern.map((lv, i) => {
     const gap = (i > 0 && lv === 2) ? ' grp' : '';
     const label = lv === 2 ? 'D' : (lv === 1 ? 'T' : '·');
-    return `<button class="mx-beat ${lv===2?'dum':''} ${lv===0?'bos':''}${gap}${big?' sm':''}" data-i="${i}" title="${i+1}. vuruş">${label}</button>`;
+    return `<button class="mx-beat ${lv===2?'dum':''} ${lv===0?'bos':''}${gap}${big?' sm':''}" data-i="${i}" title="${_meCev('me.vurusNo','{n}. vuruş').replace('{n}', i+1)}">${label}</button>`;
   }).join('');
-  $('groupView').textContent = pattern.length + ' zamanlı ·';
+  $('groupView').textContent = _meCev('me.zamanli','{n} zamanlı').replace('{n}', pattern.length) + ' ·';
   const gf = $('groupField');
   if (gf && document.activeElement !== gf) gf.value = groupsOf().join('+');
   document.querySelectorAll('.mx-beat').forEach(btn => {
@@ -540,7 +546,7 @@ function groupsOf(){
   gr.push(n);
   return gr;
 }
-function groupText(){ return pattern.length + ' zamanlı · ' + groupsOf().join('+'); }
+function groupText(){ return _meCev('me.zamanli','{n} zamanlı').replace('{n}', pattern.length) + ' · ' + groupsOf().join('+'); }
 
 // Yazılan gruplamayı uygula: "2+2+3+3+3+2" → 15 zamanlı desen
 function applyGroupText(txt){
@@ -604,35 +610,35 @@ function renderCounts(){
 // g: grup uzunlukları — her grubun ilk vuruşu DÜM, kalanı TEK olur.
 const USUL = {
   yaygin: [
-    { ad:'2/4',  g:[1,1],        not:'Oyun havaları' },
+    { ad:'2/4',  g:[1,1],        not:_meCev('me.oyunHavalari','Oyun havaları') },
     { ad:'3/4',  g:[1,1,1],      not:'Semai' },
-    { ad:'4/4',  g:[2,2],        not:'Pop, ilahi, sanat müziği' },
-    { ad:'5/8',  g:[2,3],        not:'Türküler' },
-    { ad:'5/8',  g:[3,2],        not:'Türküler' },
+    { ad:'4/4',  g:[2,2],        not:_meCev('me.popIlahi','Pop, ilahi, sanat müziği') },
+    { ad:'5/8',  g:[2,3],        not:_meCev('me.turkuler','Türküler') },
+    { ad:'5/8',  g:[3,2],        not:_meCev('me.turkuler','Türküler') },
     { ad:'6/8',  g:[3,3],        not:'Halay, Roman' },
     { ad:'7/8',  g:[2,2,3],      not:'Karadeniz, Ege' },
-    { ad:'8/8',  g:[3,2,3],      not:'Türküler' },
-    { ad:'8/8',  g:[2,3,3],      not:'Türküler' },
+    { ad:'8/8',  g:[3,2,3],      not:_meCev('me.turkuler','Türküler') },
+    { ad:'8/8',  g:[2,3,3],      not:_meCev('me.turkuler','Türküler') },
     { ad:'9/8',  g:[2,2,2,3],    not:'Zeybek' },
-    { ad:'9/8',  g:[3,2,2,2],    not:'Karşılama' },
-    { ad:'10/8', g:[3,2,2,3],    not:'Sanat müziği' },
-    { ad:'12/8', g:[3,3,3,3],    not:'Blues, halk müziği' },
+    { ad:'9/8',  g:[3,2,2,2],    not:_meCev('me.karsilamaNot','Karşılama') },
+    { ad:'10/8', g:[3,2,2,3],    not:_meCev('me.sanatMuzigi','Sanat müziği') },
+    { ad:'12/8', g:[3,3,3,3],    not:_meCev('me.bluesHalk','Blues, halk müziği') },
   ],
   tsm: [
-    { ad:'Semai',        g:[1,1,1],           not:'3 zamanlı' },
-    { ad:'Sofyan',       g:[2,2],             not:'4 zamanlı' },
-    { ad:'Türk Aksağı',  g:[2,3],             not:'5 zamanlı' },
-    { ad:'Yürük Semai',  g:[3,3],             not:'6 zamanlı' },
-    { ad:'Devr-i Hindi', g:[3,2,2],           not:'7 zamanlı' },
-    { ad:'Devr-i Turan', g:[2,2,3],           not:'7 zamanlı' },
-    { ad:'Aksak',        g:[2,2,2,3],         not:'9 zamanlı' },
-    { ad:'Ağır Aksak',   g:[2,2,2,3],         not:'9 zamanlı' },
-    { ad:'Evfer',        g:[2,2,2,3],         not:'9 zamanlı' },
-    { ad:'Raks Aksağı',  g:[2,2,2,3],         not:'9 zamanlı' },
-    { ad:'Curcuna',      g:[3,2,2,3],         not:'10 zamanlı' },
-    { ad:'Muhammes',     g:[4,4,4,4],         not:'16 zamanlı' },
-    { ad:'Çifte Düyek',  g:[4,4,4,4],         not:'16 zamanlı' },
-    { ad:'Devr-i Kebir', g:[4,4,4,4,4,4,4],   not:'28 zamanlı' },
+    { ad:'Semai',        g:[1,1,1],           not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','3') },
+    { ad:'Sofyan',       g:[2,2],             not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','4') },
+    { ad:'Türk Aksağı',  g:[2,3],             not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','5') },
+    { ad:'Yürük Semai',  g:[3,3],             not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','6') },
+    { ad:'Devr-i Hindi', g:[3,2,2],           not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','7') },
+    { ad:'Devr-i Turan', g:[2,2,3],           not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','7') },
+    { ad:'Aksak',        g:[2,2,2,3],         not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','9') },
+    { ad:'Ağır Aksak',   g:[2,2,2,3],         not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','9') },
+    { ad:'Evfer',        g:[2,2,2,3],         not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','9') },
+    { ad:'Raks Aksağı',  g:[2,2,2,3],         not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','9') },
+    { ad:'Curcuna',      g:[3,2,2,3],         not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','10') },
+    { ad:'Muhammes',     g:[4,4,4,4],         not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','16') },
+    { ad:'Çifte Düyek',  g:[4,4,4,4],         not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','16') },
+    { ad:'Devr-i Kebir', g:[4,4,4,4,4,4,4],   not:_meCev('me.zamanli','{n} zamanlı').replace('{n}','28') },
   ],
   thm: [
     { ad:'5/8',  g:[2,3] },      { ad:'5/8',  g:[3,2] },
