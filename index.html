@@ -453,6 +453,14 @@
 
 
 <script>
+// (2026-09-02) Ceviri yardimcisi UST SEVIYEDE. Onceki hali `if (heroG) {`
+// blogunun icinde `const` idi; blok disindan cagrilinca ReferenceError
+// veriyordu. Sayfadaki her yerden erisilebilmeli.
+function _c(k, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(k, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 // theme chips removed from index, handled in stage.html
 
 (async function() {
@@ -470,7 +478,6 @@
     // (2026-08-30) Bu satir i18n'den SONRA calisiyor ve isaretli elementin
     // uzerine yaziyordu — bu yuzden ad gelince selamlama Turkcede kaliyordu.
     // Ceviri artik sozlukten aliniyor; i18n yoksa Turkceye duser.
-    const _c = (k, tr) => (window.i18n && window.i18n.t) ? window.i18n.t(k, tr) : tr;
     heroG.textContent = firstName
       ? _c('ana.hosgeldin_ad', 'Hoş geldin, {ad} 👋').replace('{ad}', firstName)
       : _c('ana.hosgeldin', 'Hoş geldiniz 👋');
@@ -573,7 +580,7 @@
     const pd = await rp.json();
     const role = pd?.[0]?.role || 'member';
     const roleEl = document.getElementById('sbUserRole');
-    if (roleEl) roleEl.textContent = role==='admin'?'Admin':role==='editor'?'Editör':'Üye';
+    if (roleEl) roleEl.textContent = role==='admin'?_c('ortak.admin','Admin'):role==='editor'?_c('ortak.editor','Editör'):_c('ortak.uye','Üye');
     if (role==='admin' || role==='editor') {
       document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
     }

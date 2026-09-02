@@ -1288,7 +1288,7 @@ function knotSahneHtml(workId){
          ' title="' + _sCev('sh.knotT','Kişisel notun — yalnızca sen görürsün') + '">' +
          '<i class="ti ti-lock" aria-hidden="true"></i>' +
          '<span class="kn-tx">' + _knotEsc(not) + '</span>' +
-         (cokSatir ? '<span class="kn-dh">' + (acik ? 'kapat' : 'aç') + '</span>' : '') +
+         (cokSatir ? '<span class="kn-dh">' + (acik ? _sCev('sh.knKapat','kapat') : _sCev('sh.knAc','aç')) + '</span>' : '') +
          '</div>';
 }
 
@@ -2258,9 +2258,9 @@ function notaViewHtml(pages, i) {
   const counter = pages.length > 1 ? `<div class="nota-count" id="notaCount">${i+1} / ${pages.length}</div>` : '';
   const pager = pages.length > 1 ? `
     <div class="nota-pager" id="notaPager">
-      <button onclick="event.stopPropagation();notaGoPage(${i-1})" ${i===0?'disabled':''} aria-label="Önceki sayfa">‹</button>
+      <button onclick="event.stopPropagation();notaGoPage(${i-1})" ${i===0?'disabled':''} aria-label="${_sCev('sh.oncekiSayfa','Önceki sayfa')}">‹</button>
       <div class="nota-dots">${pages.map((_,k)=>`<button class="nota-dot${k===i?' cur':''}" onclick="event.stopPropagation();notaGoPage(${k})" aria-label="Sayfa ${k+1}"></button>`).join('')}</div>
-      <button onclick="event.stopPropagation();notaGoPage(${i+1})" ${i===pages.length-1?'disabled':''} aria-label="Sonraki sayfa">›</button>
+      <button onclick="event.stopPropagation();notaGoPage(${i+1})" ${i===pages.length-1?'disabled':''} aria-label="${_sCev('sh.sonrakiSayfa','Sonraki sayfa')}">›</button>
     </div>` : '';
   return counter + `<div class="wnota">${body}${pager}</div>`;
 }
@@ -2589,7 +2589,7 @@ function backToPicker(){
         <h1 class="ptitle">Paylaşılan Repertuvar</h1>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;margin-top:16px;"
           onclick="startSharedRep()">
-          <div style="font-size:15px;font-weight:600;color:var(--text);">${curRep.name||'Repertuvar'}</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);">${curRep.name||_sCev('sh.adsizRep','Repertuvar')}</div>
           <div style="font-size:12px;color:var(--text2);margin-top:4px;">${(curRep.items||[]).length} eser</div>
         </div>`;
     }
@@ -3336,7 +3336,7 @@ function loadSideWork(id) {
     {
       curRep = {
         id: 'single',
-        name: w.name || 'Eser',
+        name: w.name || _sCev('sh.adsizEser','Eser'),
         items: [{ workId: normalizedId, closingNote: w.closingNote || '' }]
       };
       curIdx = 0;
