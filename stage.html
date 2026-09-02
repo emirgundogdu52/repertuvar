@@ -1285,7 +1285,7 @@ function knotSahneHtml(workId){
   const cokSatir = not.indexOf('\n') !== -1 || not.length > 60;
   const acik = _knotAcikId === String(workId);
   return '<div class="knot-sahne' + (acik ? ' acik' : '') + '" onclick="knotSahneAc(event,\'' + workId + '\')"' +
-         _sCev('sh.knotT',' title="Kişisel notun — yalnızca sen görürsün">') +
+         ' title="' + _sCev('sh.knotT','Kişisel notun — yalnızca sen görürsün') + '">' +
          '<i class="ti ti-lock" aria-hidden="true"></i>' +
          '<span class="kn-tx">' + _knotEsc(not) + '</span>' +
          (cokSatir ? '<span class="kn-dh">' + (acik ? 'kapat' : 'aç') + '</span>' : '') +
@@ -1818,8 +1818,8 @@ function tonSliderInput(v) {
 }
 function _tonKutuIcerik(n) {
   const ad = tonSesAdi(_tonKararSesi(), n);
-  const fark = n > 0 ? '+' + n : (n < 0 ? String(n) : 'özgün');
-  return (ad || (n ? fark : 'Ton')) + '<small>' + fark + '</small>';
+  const fark = n > 0 ? '+' + n : (n < 0 ? String(n) : _sCev('sh.tonOzgun','özgün'));
+  return (ad || (n ? fark : _sCev('sh.ton','Ton'))) + '<small>' + fark + '</small>';
 }
 // Parmak kalkınca uygulanır (change olayı): kaydet, sahneyi tazele, sonra kapan.
 function tonSliderCommit(v) {
@@ -2381,16 +2381,16 @@ function buildStageToolsRow(mode) {
   const _tonWid = _tonItem ? String(_tonItem.workId) : '';
   if (_tonAcik && _tonAcikWid !== _tonWid) { _tonAcik = false; clearTimeout(_tonKapatT); }
   _tonAcikWid = _tonWid;
-  const themeBtn = `<button onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn2" title="Gece/Gündüz" class="align-btn"><i class="ti ti-sun"></i></button>`;
+  const themeBtn = `<button onclick="event.stopPropagation();toggleStageTheme()" id="stageThemeBtn2" title="${_sCev('sh.geceGunduz','Gece/Gündüz')}" class="align-btn"><i class="ti ti-sun"></i></button>`;
   // (2026-08-13) ☰ (openStageNav) DÜĞMESİ KALDIRILDI — sahneden çıkmak iki
   // dokunuş istiyordu ve ikon ne yaptığını anlatmıyordu (Emir bildirdi:
   // "bilmeyen için muamma"). Eylemler artık YAZIYLA, doğrudan panelde.
   // openStageNav / #v2StageBotNav dosyada duruyor (Escape yolu ve :818'deki
   // gizli yedek düğme için) — sadece panelden çağrılmıyor.
   const sahneBtns = `
-      <a href="#" onclick="event.stopPropagation();goBack(event)" class="st-act" title="Geldiğin sayfaya dön"><i class="ti ti-arrow-left"></i>Geri Dön</a>
-      <a href="index.html" onclick="event.stopPropagation()" class="st-act" title="Ana sayfa" data-i18n-title="sh.anaSayfa"><i class="ti ti-home"></i><span data-i18n="sh.anaSayfa">Ana Sayfa</span></a>
-      <button onclick="event.stopPropagation();exitStage(event)" class="st-act st-act-exit" title="Sahne modundan çık"><i class="ti ti-x"></i>Sahneden Çık</button>`;
+      <a href="#" onclick="event.stopPropagation();goBack(event)" class="st-act" title="${_sCev('sh.geldiginSayfa','Geldiğin sayfaya dön')}"><i class="ti ti-arrow-left"></i>${_sCev('sh.geriDon','Geri Dön')}</a>
+      <a href="index.html" onclick="event.stopPropagation()" class="st-act" title="${_sCev('sh.anaSayfa','Ana Sayfa')}"><i class="ti ti-home"></i>${_sCev('sh.anaSayfa','Ana Sayfa')}</a>
+      <button onclick="event.stopPropagation();exitStage(event)" class="st-act st-act-exit" title="${_sCev('sh.sahneModundanCik','Sahne modundan çık')}"><i class="ti ti-x"></i>${_sCev('sh.sahnedenCik','Sahneden Çık')}</button>`;
   // Akor modunda ton kaydırma (± yarım ton) — eser başına saklanır
   const item = (curRep && (curRep.items||[])[curIdx]) || null;
   const tVal = item ? getTranspose(item.workId) : 0;
@@ -2409,9 +2409,9 @@ function buildStageToolsRow(mode) {
   if (_hasChords && mode !== 'nota') {
     if (!_sesVar) {
       tonBtns = `
-      <button onclick="event.stopPropagation();stepTranspose(-1)" title="Yarım ton pes" class="align-btn"><i class="ti ti-minus"></i></button>
-      <button onclick="event.stopPropagation();resetTranspose()" id="tonBadge" title="Tonu sıfırla" class="align-btn" style="min-width:44px;font-size:12px;font-weight:800;${tVal?'color:var(--accent);border-color:var(--accent);':''}">${tVal>0?'+'+tVal:(tVal||'Ton')}</button>
-      <button onclick="event.stopPropagation();stepTranspose(1)" title="Yarım ton tiz" class="align-btn"><i class="ti ti-plus"></i></button>
+      <button onclick="event.stopPropagation();stepTranspose(-1)" title="${_sCev('sh.yarimTonPes','Yarım ton pes')}" class="align-btn"><i class="ti ti-minus"></i></button>
+      <button onclick="event.stopPropagation();resetTranspose()" id="tonBadge" title="${_sCev('sh.tonuSifirla','Tonu sıfırla')}" class="align-btn" style="min-width:44px;font-size:12px;font-weight:800;${tVal?'color:var(--accent);border-color:var(--accent);':''}">${tVal>0?'+'+tVal:(tVal||'Ton')}</button>
+      <button onclick="event.stopPropagation();stepTranspose(1)" title="${_sCev('sh.yarimTonTiz','Yarım ton tiz')}" class="align-btn"><i class="ti ti-plus"></i></button>
       ${_cnTon ? `<span class="ton-karar" style="font-size:11px;white-space:nowrap;padding:0 6px;color:var(--text3, #6b7482);">${_cnTon}</span>` : ''}`;
     } else if (!_tonAcik) {
       const _ad = tonSesAdi(_cnTon, tVal);
@@ -2424,10 +2424,10 @@ function buildStageToolsRow(mode) {
     } else {
       tonBtns = `
       <div class="ton-slider-wrap" onclick="event.stopPropagation()">
-        <button onclick="event.stopPropagation();tonNudge(-1)" class="ton-step" title="Yarım ton pes"><i class="ti ti-minus"></i></button>
+        <button onclick="event.stopPropagation();tonNudge(-1)" class="ton-step" title="${_sCev('sh.yarimTonPes','Yarım ton pes')}"><i class="ti ti-minus"></i></button>
         <input type="range" id="tonSlider" class="ton-slider" min="${TON_MIN}" max="${TON_MAX}" step="1" value="${tVal}"
           onclick="event.stopPropagation()" oninput="tonSliderInput(this.value)" onchange="tonSliderCommit(this.value)">
-        <button onclick="event.stopPropagation();tonNudge(1)" class="ton-step" title="Yarım ton tiz"><i class="ti ti-plus"></i></button>
+        <button onclick="event.stopPropagation();tonNudge(1)" class="ton-step" title="${_sCev('sh.yarimTonTiz','Yarım ton tiz')}"><i class="ti ti-plus"></i></button>
         <span class="ton-nota" id="tonNota">${_tonKutuIcerik(tVal)}</span>
       </div>`;
     }
@@ -2438,8 +2438,8 @@ function buildStageToolsRow(mode) {
   // ekranındaki radyoyla AYNI ayardır.
   const _yazim = (typeof getAkorYazim === 'function') ? getAkorYazim() : 'abc';
   const yazimBtns = (mode === 'chords') ? `
-      <button onclick="event.stopPropagation();setAkorYazimi('abc')" title="Akorları A B C yaz" class="align-btn${_yazim==='abc'?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:800;">ABC</button>
-      <button onclick="event.stopPropagation();setAkorYazimi('solfej')" title="Akorları Do Re Mi yaz" class="align-btn${_yazim==='solfej'?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:800;">Do Re Mi</button>` : '';
+      <button onclick="event.stopPropagation();setAkorYazimi('abc')" title="${_sCev('sh.akorABC','Akorları A B C yaz')}" class="align-btn${_yazim==='abc'?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:800;">ABC</button>
+      <button onclick="event.stopPropagation();setAkorYazimi('solfej')" title="${_sCev('sh.akorSolfej','Akorları Do Re Mi yaz')}" class="align-btn${_yazim==='solfej'?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:800;">Do Re Mi</button>` : '';
 
   // Başlıklı blok; içi boşsa hiç çizilmez (ör. akoru olmayan eserde Ton bloğu).
   // (2026-08-13) Üçüncü parametre: blok DİKEY dizilsin mi (Sahne bloğu gibi
@@ -2452,7 +2452,7 @@ function buildStageToolsRow(mode) {
   // değer kayıtlı ölçekten okunuyor (setLyricsFontScale zaten saklıyor).
   const _olcek = parseFloat(localStorage.getItem('stageLyricsScale') || '1') || 1;
   const fontBlok = `
-      <div class="font-slider-wrap" title="Yazı Boyutu">
+      <div class="font-slider-wrap" title="${_sCev('sh.yaziBoyutu','Yazı Boyutu')}">
         <span class="fs-a-sm">A</span>
         <input type="range" id="lyricsFontSlider" class="font-slider" min="0.75" max="1.6" step="0.05" value="${_olcek}"
           onclick="event.stopPropagation()" oninput="setLyricsFontScale(this.value)">
@@ -2464,17 +2464,17 @@ function buildStageToolsRow(mode) {
   } else {
     // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama ikisinde de geçerli
     const alignBtns = `
-      <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="Sola Yasla" class="align-btn"><i class="ti ti-align-left"></i></button>
-      <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="Ortala" class="align-btn"><i class="ti ti-align-center"></i></button>
-      <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="Sağa Yasla" class="align-btn"><i class="ti ti-align-right"></i></button>`;
+      <button onclick="event.stopPropagation();setLyricsAlign('left')" id="alignLeft" title="${_sCev('sh.solaYasla','Sola Yasla')}" class="align-btn"><i class="ti ti-align-left"></i></button>
+      <button onclick="event.stopPropagation();setLyricsAlign('center')" id="alignCenter" title="${_sCev('sh.ortala','Ortala')}" class="align-btn"><i class="ti ti-align-center"></i></button>
+      <button onclick="event.stopPropagation();setLyricsAlign('right')" id="alignRight" title="${_sCev('sh.sagaYasla','Sağa Yasla')}" class="align-btn"><i class="ti ti-align-right"></i></button>`;
     // (2026-08-21) Kişisel not aç/kapa — YALNIZCA o eserde not varsa çizilir.
     // Notu olmayan eserde düğme göstermek "neyi kapatıyorum?" sorusu doğurur.
     const _knotVar = !!(item && PERSONAL_NOTES[String(item.workId)]);
     const knotBtn = _knotVar ? `
       <button onclick="knotGosterToggle(event)" title="${_sCev('sh.knotToggleT','Kişisel notu göster/gizle')}" class="align-btn${KNOT_GOSTER?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;"><i class="ti ti-lock"></i> ${KNOT_GOSTER?_sCev('sh.acik','Açık'):_sCev('sh.kapali','Kapalı')}</button>` : '';
-    row.innerHTML = grup('Hizalama', alignBtns)
+    row.innerHTML = grup(_sCev('sh.hizalama','Hizalama'), alignBtns)
                   + grup(_sCev('sh.yaziBoyutu','Yazı Boyutu'), fontBlok)
-                  + grup('Ton', tonBtns)
+                  + grup(_sCev('sh.ton','Ton'), tonBtns)
                   + grup(_sCev('sh.akorYazimi','Akor Yazımı'), yazimBtns)
                   + grup(_sCev('sh.kisiselNot','Kişisel Not'), knotBtn)
                   + grup(_sCev('sh.gorunum','Görünüm'), themeBtn)
