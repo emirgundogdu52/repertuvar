@@ -29,7 +29,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Çalışma Odası — Repertuvar</title>
+<title data-i18n="ca.sayfaBaslik">Çalışma Odası — Repertuvar</title>
 <link rel="stylesheet" href="style.css">
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
@@ -200,14 +200,14 @@
 
   <div class="co-head">
     <div>
-      <div class="co-title">Çalışma Odası</div>
-      <div class="co-sub">Kendi kayıtlarını yükle, tonunu ve temposunu değiştirerek çalış.</div>
+      <div class="co-title" data-i18n="ca.baslik">Çalışma Odası</div>
+      <div class="co-sub" data-i18n="ca.altBaslik">Kendi kayıtlarını yükle, tonunu ve temposunu değiştirerek çalış.</div>
     </div>
   </div>
 
   <div class="co-kota" id="kotaKart" style="display:none;">
     <div class="co-kota-ust">
-      <span>DEPOLAMA</span>
+      <span data-i18n="ca.depolama">DEPOLAMA</span>
       <span class="co-plan" id="kotaPlan">FREE</span>
     </div>
     <div class="co-bar" id="kotaBar"><i style="width:0%"></i></div>
@@ -217,15 +217,15 @@
     </div>
   </div>
 
-  <input class="co-ara" id="araKutu" type="search" placeholder="Eser adı ara…"
+  <input class="co-ara" id="araKutu" type="search" placeholder="Eser adı ara…" data-i18n-ph="ca.araPh"
          autocomplete="off" oninput="filtrele()">
 
   <div class="co-liste" id="liste"></div>
 
   <div class="co-bos" id="bosDurum" style="display:none;">
     <i class="ti ti-music-plus" aria-hidden="true"></i>
-    <b>Henüz kaydın yok</b>
-    Bir eser seçip kendi çalışma kaydını yükle;<br>tonunu ve temposunu istediğin gibi ayarla.
+    <b data-i18n="ca.kayitYok">Henüz kaydın yok</b>
+    Bir eser seçip kendi çalışma kaydını yükle;<br><span data-i18n="ca.kayitYokAlt">tonunu ve temposunu istediğin gibi ayarla.</span>
     <br>
     <button class="co-btn" id="ekleBtn" onclick="yeniKayit()">
       <i class="ti ti-upload" aria-hidden="true"></i> İlk kaydını ekle
@@ -241,21 +241,21 @@
      derdi olmasın. -->
 <div class="yk-katman" id="ykKatman">
   <div class="yk-bar">
-    <button class="yk-kapat" onclick="ykKapat()" aria-label="Kapat"><i class="ti ti-x"></i></button>
-    <div class="yk-baslik">Yeni kayıt</div>
+    <button class="yk-kapat" onclick="ykKapat()" aria-label="Kapat" data-i18n-aria="ortak.kapat"><i class="ti ti-x"></i></button>
+    <div class="yk-baslik" data-i18n="ca.yeniKayit">Yeni kayıt</div>
   </div>
   <div class="yk-govde">
 
     <div class="yk-adim">
-      <div class="yk-etiket">1 · Hangi eser?</div>
-      <input class="co-ara" id="ykEserAra" type="search" placeholder="Eser adı ara…"
+      <div class="yk-etiket" data-i18n="ca.adim1">1 · Hangi eser?</div>
+      <input class="co-ara" id="ykEserAra" type="search" placeholder="Eser adı ara…" data-i18n-ph="ca.araPh"
              autocomplete="off" oninput="ykEserFiltre()">
       <div id="ykSecili" class="yk-secili" style="display:none;"></div>
       <div class="yk-sonuc" id="ykEserSonuc"></div>
     </div>
 
     <div class="yk-adim" id="ykAdim2" style="display:none;">
-      <div class="yk-etiket">2 · Ses dosyası</div>
+      <div class="yk-etiket" data-i18n="ca.adim2">2 · Ses dosyası</div>
       <input type="file" id="ykDosya" accept="audio/*,.mp3,.m4a,.wav,.ogg" style="display:none;"
              onchange="ykDosyaSecildi()">
       <!-- Sürükle-bırak VE tıklama aynı alanda: masaüstünde sürüklemek doğal,
@@ -263,17 +263,17 @@
            davranıyor. İki ayrı arayüz kurmaya gerek kalmıyor. -->
       <div class="yk-birak" id="ykBirak" onclick="document.getElementById('ykDosya').click()">
         <i class="ti ti-cloud-upload" aria-hidden="true"></i>
-        <div class="yk-birak-ana">Dosyayı buraya sürükleyin</div>
-        <div class="yk-birak-alt">veya dokunup seçin · mp3, m4a, wav</div>
+        <div class="yk-birak-ana" data-i18n="ca.surukle">Dosyayı buraya sürükleyin</div>
+        <div class="yk-birak-alt" data-i18n="ca.veyaSec">veya dokunup seçin · mp3, m4a, wav</div>
       </div>
       <div class="yk-dosya" id="ykDosyaBilgi" style="display:none;"></div>
-      <div class="yk-not">Tek eser kaydı bekleniyor · en fazla <b id="ykMaxMb">8</b> MB</div>
+      <div class="yk-not" data-i18n="ca.tekEser">Tek eser kaydı bekleniyor · en fazla <b id="ykMaxMb">8</b> MB</div>
     </div>
 
     <div class="yk-adim" id="ykAdim3" style="display:none;">
-      <div class="yk-etiket">3 · Kaydın tonu <span style="font-weight:400;opacity:.7;">(isteğe bağlı)</span></div>
+      <div class="yk-etiket"><span data-i18n="ca.adim3">3 · Kaydın tonu</span> <span style="font-weight:400;opacity:.7;" data-i18n="ca.istegeBagli">(isteğe bağlı)</span></div>
       <select class="co-ara" id="ykTon" style="margin-bottom:8px;">
-        <option value="">Bilmiyorum / sonra</option>
+        <option value="" data-i18n="ca.bilmiyorum">Bilmiyorum / sonra</option>
         <option value="C">Do (C)</option>
         <option value="C#">Do# (C#)</option>
         <option value="D">Re (D)</option>
@@ -287,11 +287,11 @@
         <option value="A#">La# (A#)</option>
         <option value="B">Si (B)</option>
       </select>
-      <div class="yk-not">Kaydın tonunu girersen, eserin kararıyla farkı hesaplayıp
+      <div class="yk-not" data-i18n="ca.tonAciklama">Kaydın tonunu girersen, eserin kararıyla farkı hesaplayıp
         kaç perde transpoze edeceğini söyleyebiliriz.</div>
 
       <label class="yk-onay">
-        <input type="checkbox" id="ykGrup"> Grubumla paylaş
+        <input type="checkbox" id="ykGrup"> <span data-i18n="ca.grupPaylas">Grubumla paylaş</span>
       </label>
 
       <button class="co-btn" id="ykGonder" onclick="ykGonder()">
@@ -299,7 +299,7 @@
       </button>
       <div class="yk-ilerleme" id="ykIlerleme" style="display:none;">
         <div class="co-bar"><i style="width:0%"></i></div>
-        <div class="yk-not" id="ykIlerlemeYazi">Yükleniyor…</div>
+        <div class="yk-not" id="ykIlerlemeYazi" data-i18n="ortak.yukleniyor">Yükleniyor…</div>
       </div>
     </div>
 
@@ -311,15 +311,15 @@
      yok, kontroller büyük ve parmakla rahat olsun. -->
 <div class="yk-katman" id="oyKatman">
   <div class="yk-bar">
-    <button class="yk-kapat" onclick="oyKapat()" aria-label="Kapat"><i class="ti ti-x"></i></button>
+    <button class="yk-kapat" onclick="oyKapat()" aria-label="Kapat" data-i18n-aria="ortak.kapat"><i class="ti ti-x"></i></button>
     <div class="yk-baslik" id="oyBaslik">—</div>
-    <button class="yk-kapat" style="margin-left:auto;" onclick="oySil()" aria-label="Sil" title="Kaydı sil">
+    <button class="yk-kapat" style="margin-left:auto;" onclick="oySil()" aria-label="Sil" data-i18n-aria="ortak.sil" title="Kaydı sil" data-i18n-title="ca.kaydiSil">
       <i class="ti ti-trash"></i>
     </button>
   </div>
   <div class="yk-govde">
 
-    <div class="oy-durum" id="oyDurum">Hazırlanıyor…</div>
+    <div class="oy-durum" id="oyDurum" data-i18n="ca.hazirlaniyor">Hazırlanıyor…</div>
 
     <div class="oy-panel" id="oyPanel" style="display:none;">
       <div class="oy-sol">
@@ -332,7 +332,7 @@
       </div>
 
       <div class="oy-tus" data-etiket="1">
-        <button class="oy-yuvarlak" onclick="oyGeri()" title="10 sn geri" aria-label="10 saniye geri">
+        <button class="oy-yuvarlak" onclick="oyGeri()" title="10 sn geri" data-i18n-title="ca.geri10" aria-label="10 saniye geri" data-i18n-aria="ca.geri10Uzun">
           <!-- (2026-08-25) Rakam kaldırıldı: 50px'lik dairede yayın içine sığmıyor,
                sıkışık okunuyordu. Çift üçgen küçük boyutta anında anlaşılıyor;
                "10 sn" bilgisi düğmenin altındaki etikette duruyor. -->
@@ -346,13 +346,13 @@
              sürümünde eksik) ve düğme boş sarı daire görünüyordu. SVG hiçbir
              dış kaynağa bağlı değil — font yüklenmese de görünür. -->
         <button class="oy-oynat" id="oyOynatBtn" onclick="oyOynatDurdur()"
-                aria-label="Oynat" title="Oynat">
+                aria-label="Oynat" data-i18n-aria="ca.oynat" title="Oynat" data-i18n-title="ca.oynat">
           <svg id="oyOynatIkon" viewBox="0 0 24 24" width="26" height="26"
                fill="currentColor" aria-hidden="true">
             <polygon points="7,4.5 20,12 7,19.5"></polygon>
           </svg>
         </button>
-        <button class="oy-yuvarlak" onclick="oyIleri()" title="10 sn ileri" aria-label="10 saniye ileri">
+        <button class="oy-yuvarlak" onclick="oyIleri()" title="10 sn ileri" data-i18n-title="ca.ileri10" aria-label="10 saniye ileri" data-i18n-aria="ca.ileri10Uzun">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
             <polygon points="13,5 13,19 22,12"></polygon>
             <polygon points="3,5 3,19 12,12"></polygon>
@@ -364,15 +364,15 @@
            Kaydın tonu girilmişse hedef notayı da yazıyoruz. -->
       <div class="oy-kutu">
         <div class="oy-kutu-ust">
-          <span>TON</span>
+          <span data-i18n="ca.ton">TON</span>
           <span class="oy-deger" id="oyTonDeger">0</span>
         </div>
         <input type="range" id="oyTon" min="-6" max="6" value="0" step="1"
                oninput="oyTonAyar(this.value)">
-        <div class="oy-alt" id="oyTonAlt">Kayıt tonunda</div>
+        <div class="oy-alt" id="oyTonAlt" data-i18n="ca.kayitTonunda">Kayıt tonunda</div>
         <div class="oy-hizli">
           <button onclick="oyTonKaydir(-1)">−1</button>
-          <button onclick="oyTonSifirla()">Sıfırla</button>
+          <button onclick="oyTonSifirla()" data-i18n="ca.sifirla">Sıfırla</button>
           <button onclick="oyTonKaydir(1)">+1</button>
         </div>
       </div>
@@ -381,7 +381,7 @@
            yavaşlatabilsin diye ayrı kutu. -->
       <div class="oy-kutu">
         <div class="oy-kutu-ust">
-          <span>TEMPO</span>
+          <span data-i18n="ca.tempo">TEMPO</span>
           <span class="oy-deger" id="oyTempoDeger">%100</span>
         </div>
         <input type="range" id="oyTempo" min="50" max="150" value="100" step="5"
@@ -393,7 +393,7 @@
         </div>
       </div>
 
-      <div class="yk-not">
+      <div class="yk-not" data-i18n="ca.bagimsizNot">
         Ton ve tempo birbirinden bağımsız: tonu değiştirince hız,
         tempoyu değiştirince perde bozulmaz.
       </div>
@@ -405,7 +405,7 @@
       <div class="oy-sag">
         <button class="oy-soz-basi" onclick="oySozAcKapa()" id="oySozBtn">
           <i class="ti ti-file-text" aria-hidden="true"></i>
-          <span>Sözler</span>
+          <span data-i18n="ca.sozler">Sözler</span>
           <i class="ti ti-chevron-down" id="oySozOk" style="margin-left:auto;"></i>
         </button>
         <div class="oy-soz" id="oySoz" style="display:none;"></div>
@@ -416,6 +416,12 @@
 </div>
 
 <script>
+// (2026-09-03) JS'ten yazilan metinler icin ceviri yardimcisi.
+function _caCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 // ── Sunucu bağlantısı ─────────────────────────────────────────────────────
 // (2026-08-24 DÜZELTME) SUPA_URL / SUPA_KEY BURADA TANIMLANMIYOR.
 // auth.js bunları zaten küresel olarak veriyor (satır 2-3). Burada `const` ile
@@ -455,7 +461,7 @@ function kotaCiz() {
   const oran  = Math.min(100, Math.round((mb / mbLim) * 100));
 
   document.getElementById('kotaPlan').textContent = String(KOTA.plan || 'free').toUpperCase();
-  document.getElementById('kotaDosya').textContent = KOTA.adet + ' / ' + KOTA.adet_limit + ' kayıt';
+  document.getElementById('kotaDosya').textContent = _caCev('ca.kayitSayaci','{n} / {t} kayıt').replace('{n}',KOTA.adet).replace('{t}',KOTA.adet_limit);
   document.getElementById('kotaMb').textContent = mb.toFixed(1) + ' / ' + mbLim + ' MB';
 
   const bar = document.getElementById('kotaBar');
@@ -468,7 +474,7 @@ function kotaCiz() {
   const dolu = (KOTA.adet >= KOTA.adet_limit) || (mb >= mbLim);
   document.querySelectorAll('#ekleBtn').forEach(b => {
     b.disabled = dolu;
-    if (dolu) b.title = 'Sınıra ulaştınız — bir kaydı silin veya planınızı yükseltin';
+    if (dolu) b.title = _caCev('ca.sinirUlasildi','Sınıra ulaştınız — bir kaydı silin veya planınızı yükseltin');
   });
 }
 
@@ -491,7 +497,7 @@ async function kayitlariYukle() {
       }
     } catch (e) {}
 
-    KAYITLAR = satirlar.map(x => ({ ...x, eserAdi: adMap[String(x.work_id)] || x.title || 'Eser' }));
+    KAYITLAR = satirlar.map(x => ({ ...x, eserAdi: adMap[String(x.work_id)] || x.title || _caCev('ca.adsizEser','Eser') }));
     ciz();
   } catch (e) {
     KAYITLAR = [];
@@ -584,7 +590,7 @@ async function eserleriYukle() {
 
 function yeniKayit() {
   if (KOTA && (KOTA.adet >= KOTA.adet_limit)) {
-    alert('Kayıt sınırına ulaştınız (' + KOTA.adet + '/' + KOTA.adet_limit + ').');
+    alert(_caCev('ca.kayitSiniri','Kayıt sınırına ulaştınız ({n}/{t}).').replace('{n}',KOTA.adet).replace('{t}',KOTA.adet_limit));
     return;
   }
   ykEser = null; ykFile = null; ykSure = null;
@@ -684,8 +690,8 @@ function ykDosyaAl(f) {
 
   if (mb > sinir) {
     bilgi.className = 'yk-dosya hata';
-    bilgi.textContent = f.name + ' — ' + mb.toFixed(1) + ' MB. Sınır ' + sinir +
-      ' MB. Konser kaydı yüklüyorsanız eseri kesip yükleyin.';
+    bilgi.textContent = _caCev('ca.dosyaBuyuk','{ad} — {mb} MB. Sınır {s} MB. Konser kaydı yüklüyorsanız eseri kesip yükleyin.').replace('{ad}', f.name).replace('{mb}', mb.toFixed(1)).replace('{s}', sinir);
+
     return;
   }
   // Kalan alan da yetmeli — sunucu zaten reddeder, ama kullanıcıyı
@@ -694,8 +700,7 @@ function ykDosyaAl(f) {
     const kalanMb = KOTA.mb_limit - (KOTA.bayt / 1048576);
     if (mb > kalanMb) {
       bilgi.className = 'yk-dosya hata';
-      bilgi.textContent = 'Kalan alanınız ' + kalanMb.toFixed(1) + ' MB, dosya ' +
-        mb.toFixed(1) + ' MB.';
+      bilgi.textContent = _caCev('ca.kalanAlan','Kalan alanınız {kalan} MB, dosya {mb} MB.').replace('{kalan}', kalanMb.toFixed(1)).replace('{mb}', mb.toFixed(1));
       return;
     }
   }
@@ -729,8 +734,8 @@ function ykUzanti(ad) {
 }
 
 async function ykGonder() {
-  if (!ykEser) { alert('Önce eser seçin.'); return; }
-  if (!ykFile) { alert('Önce dosya seçin.'); return; }
+  if (!ykEser) { alert(_caCev('ca.eserSecin','Önce eser seçin.')); return; }
+  if (!ykFile) { alert(_caCev('ca.dosyaSecin','Önce dosya seçin.')); return; }
 
   const btn = document.getElementById('ykGonder');
   const ilerleme = document.getElementById('ykIlerleme');
@@ -739,7 +744,7 @@ async function ykGonder() {
   btn.disabled = true;
   ilerleme.style.display = '';
   cubuk.style.width = '10%';
-  yazi.textContent = 'Yükleniyor…';
+  yazi.textContent = _caCev('ortak.yukleniyor','Yükleniyor…');
 
   const u = uid();
   const yol = u + '/' + ykEser.id + '/' + Date.now() + '.' + ykUzanti(ykFile.name);
@@ -757,7 +762,7 @@ async function ykGonder() {
       },
       body: ykFile
     });
-    if (!up.ok) throw new Error('Dosya yüklenemedi: ' + (await up.text()));
+    if (!up.ok) throw new Error(_caCev('ca.dosyaYuklenemedi','Dosya yüklenemedi: ') + (await up.text()));
     cubuk.style.width = '70%';
     yazi.textContent = 'Kaydediliyor…';
 
@@ -796,16 +801,16 @@ async function ykGonder() {
     }
 
     const satir = await ins.json();
-    if (!satir.length) throw new Error('Sunucu hiçbir satır yazmadı — yetkiniz olmayabilir.');
+    if (!satir.length) throw new Error(_caCev('ca.satirYazilmadi','Sunucu hiçbir satır yazmadı — yetkiniz olmayabilir.'));
 
     cubuk.style.width = '100%';
-    yazi.textContent = 'Tamam ✓';
+    yazi.textContent = _caCev('ca.tamam','Tamam ✓');
     ykKapat();
     await kotaYukle();
     await kayitlariYukle();
   } catch (e) {
     ilerleme.style.display = 'none';
-    alert('Yükleme başarısız.\n\n' + (e && e.message ? e.message : e));
+    alert(_caCev('ca.yuklemeBasarisiz','Yükleme başarısız.\n\n') + (e && e.message ? e.message : e));
   } finally {
     btn.disabled = false;
   }
@@ -869,12 +874,12 @@ async function ac(id) {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' },
       body: JSON.stringify({ expiresIn: 3600 })
     });
-    if (!sr.ok) throw new Error('Bağlantı alınamadı: ' + (await sr.text()));
+    if (!sr.ok) throw new Error(_caCev('ca.baglantiAlinamadi','Bağlantı alınamadı: ') + (await sr.text()));
     const sj = await sr.json();
     const url = SUPA_URL + '/storage/v1' + (sj.signedURL || sj.signedUrl);
 
     const ab = await (await fetch(url)).arrayBuffer();
-    document.getElementById('oyDurum').textContent = 'Ses çözülüyor…';
+    document.getElementById('oyDurum').textContent = _caCev('ca.sesCozuluyor','Ses çözülüyor…');
 
     oyCtx = oyCtx || new (window.AudioContext || window.webkitAudioContext)();
     oyBuffer = await oyCtx.decodeAudioData(ab);
@@ -884,7 +889,7 @@ async function ac(id) {
     document.getElementById('oyDurum').style.display = 'none';
     document.getElementById('oyPanel').style.display = '';
   } catch (e) {
-    document.getElementById('oyDurum').textContent = 'Açılamadı: ' + (e && e.message ? e.message : e);
+    document.getElementById('oyDurum').textContent = _caCev('ca.acilamadi','Açılamadı: ') + (e && e.message ? e.message : e);
   }
 }
 
@@ -924,7 +929,7 @@ async function oyOynatDurdur() {
     oyShifter.connect(oyCtx.destination);
     oyCaliyor = true;
     _oynatIkonu(true);
-  } catch (e) { alert('Oynatılamadı: ' + (e && e.message ? e.message : e)); }
+  } catch (e) { alert(_caCev('ca.oynatilamadi','Oynatılamadı: ') + (e && e.message ? e.message : e)); }
 }
 
 function oyDurdur() {
@@ -969,7 +974,7 @@ function oyTonEtiket() {
   const d = document.getElementById('oyTonDeger');
   d.textContent = (oyTonDeg > 0 ? '+' : '') + oyTonDeg;
   const alt = document.getElementById('oyTonAlt');
-  if (!oyTonDeg) { alt.textContent = 'Kayıt tonunda'; return; }
+  if (!oyTonDeg) { alt.textContent = _caCev('ca.kayitTonunda','Kayıt tonunda'); return; }
   const kaynak = oyKayit && oyKayit.source_key;
   if (kaynak && NOTALAR.indexOf(kaynak) >= 0) {
     // Kaydın tonu biliniyorsa hedef notayı da söyle — kullanıcı "kaç yarım
@@ -977,7 +982,7 @@ function oyTonEtiket() {
     const yeni = NOTALAR[((NOTALAR.indexOf(kaynak) + oyTonDeg) % 12 + 12) % 12];
     alt.textContent = (NOTA_TR[kaynak] || kaynak) + ' → ' + (NOTA_TR[yeni] || yeni);
   } else {
-    alt.textContent = Math.abs(oyTonDeg) + ' yarım ses ' + (oyTonDeg > 0 ? 'tiz' : 'pes');
+    alt.textContent = _caCev('ca.yarimSes','{n} yarım ses {yon}').replace('{n}',Math.abs(oyTonDeg)).replace('{yon}', oyTonDeg > 0 ? _caCev('ca.tiz','tiz') : _caCev('ca.pes','pes'));
   }
 }
 
@@ -1027,7 +1032,7 @@ async function sozleriGetir() {
   if (!oyKayit || !kap) return;
   if (kap.dataset.wid === String(oyKayit.work_id)) return;   // zaten yüklü
   kap.className = 'oy-soz';
-  kap.textContent = 'Yükleniyor…';
+  kap.textContent = _caCev('ortak.yukleniyor','Yükleniyor…');
 
   let soz = null;
   try {
@@ -1051,7 +1056,7 @@ async function sozleriGetir() {
     kap.textContent = String(soz);
   } else {
     kap.className = 'oy-soz bos';
-    kap.textContent = 'Bu eser için söz kaydı yok. Eserler sayfasından ekleyebilirsiniz.';
+    kap.textContent = _caCev('ca.sozYok','Bu eser için söz kaydı yok. Eserler sayfasından ekleyebilirsiniz.');
   }
 }
 
@@ -1068,7 +1073,7 @@ async function oySil() {
     });
     if (!r.ok) throw new Error(await r.text());
     const silinen = await r.json();
-    if (!silinen.length) throw new Error('Sunucu hiçbir satır silmedi — yetkiniz olmayabilir.');
+    if (!silinen.length) throw new Error(_caCev('ca.satirSilinmedi','Sunucu hiçbir satır silmedi — yetkiniz olmayabilir.'));
 
     try {
       await fetch(SUPA_URL + '/storage/v1/object/work-audio/' + oyKayit.path, {
