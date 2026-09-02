@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Repertuvar — Eserlerim</title>
+<title data-i18n="on.sayfaBaslik">Repertuvar — Eserlerim</title>
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
   - 2026-08-15 (3): 🗑 SİLİNENLER BÖLÜMÜ (çöp kutusu). Silme yumuşak hâle
@@ -86,6 +86,8 @@
 .sec-empty{font-size:12px;color:var(--text3);padding:14px 16px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;}
 .admin-only{display:none;}
 </style>
+  <!-- (2026-09-03) i18n bu sayfada eksikti. -->
+  <script src="i18n.js"></script>
 </head>
 <body>
 
@@ -93,14 +95,20 @@
 
 <div class="main-wrap">
 <div class="page">
-  <div class="page-title">📋 Eserlerim</div>
-  <div class="page-sub">Gizli taslaklarınız, onay bekleyen önerileriniz, yayımlanan eserleriniz ve silinenler</div>
-  <div id="listPanel"><div class="empty">Yükleniyor...</div></div>
+  <div class="page-title" data-i18n="on.baslik">📋 Eserlerim</div>
+  <div class="page-sub" data-i18n="on.altBaslik">Gizli taslaklarınız, onay bekleyen önerileriniz, yayımlanan eserleriniz ve silinenler</div>
+  <div id="listPanel"><div class="empty" data-i18n="ortak.yukleniyor">Yükleniyor...</div></div>
 </div>
 </div>
 
 
 <script>
+// (2026-09-03) JS'ten yazilan metinler icin ceviri yardimcisi.
+function _onCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 // [B] Bu sayfanin iki cagrisi da kullaniciya ozel: kendi eserlerini listeleme
 // (works?submitted_by=eq.<uid>) ve kendi onerisini geri cekme (works PATCH).
 // Anon anahtarla RLS 0 satir donduruyor, kullanici hata yerine "Henuz bir eser
@@ -111,11 +119,11 @@ function timeAgo(dateStr) {
   if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr);
   const m = Math.floor(diff / 60000);
-  if (m < 1) return 'Az önce';
-  if (m < 60) return m + ' dk önce';
+  if (m < 1) return _onCev('ortak.azOnce','Az önce');
+  if (m < 60) return m + _onCev('ortak.dkOnce',' dk önce');
   const h = Math.floor(m / 60);
-  if (h < 24) return h + ' sa önce';
-  return Math.floor(h / 24) + ' gün önce';
+  if (h < 24) return h + _onCev('ortak.saOnce',' sa önce');
+  return Math.floor(h / 24) + _onCev('ortak.gunOnce',' gün önce');
 }
 
 function esc(s) {
@@ -137,7 +145,7 @@ function kalanGun(silinme) {
   if (!silinme) return '';
   const gecen = (Date.now() - new Date(silinme)) / 86400000;
   const kalan = Math.max(0, Math.ceil(30 - gecen));
-  return kalan > 0 ? ' · ' + kalan + ' gün kaldı' : ' · bugün kaldırılacak';
+  return kalan > 0 ? ' · ' + kalan + _onCev('on.gunKaldi',' gün kaldı') : _onCev('on.bugunKaldirilacak',' · bugün kaldırılacak');
 }
 
 // (2026-08-15) Yumuşak silmeyi geri alır. Toast 8 saniye duruyor; onu kaçıran
@@ -149,14 +157,14 @@ async function restoreWork(id) {
       headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({ deleted_at: null })
     });
-    if (!r.ok && r.status !== 204) { alert('Hata: ' + await r.text()); return; }
+    if (!r.ok && r.status !== 204) { alert(_onCev('mod.hata','Hata: ') + await r.text()); return; }
     let rows = []; try { rows = await r.json(); } catch(e) {}
     if (!Array.isArray(rows) || !rows.length) {
-      alert('Sunucu isteği kabul etti ama hiçbir kayıt değişmedi — bu eseri geri alma yetkiniz olmayabilir.');
+      alert(_onCev('on.geriAlYetki','Sunucu isteği kabul etti ama hiçbir kayıt değişmedi — bu eseri geri alma yetkiniz olmayabilir.'));
       return;
     }
     loadSuggestions();
-  } catch(e) { alert('Hata: ' + e.message); }
+  } catch(e) { alert(_onCev('mod.hata','Hata: ') + e.message); }
 }
 
 function cardHtml(w, kind) {
@@ -171,9 +179,9 @@ function cardHtml(w, kind) {
   // silinmiş bir kaydı düzenleyip kaybolmasına şaşırırdı.
   let actions = (kind === 'deleted')
     ? '<button class="btn-restore" onclick="restoreWork(' + w.id + ')">↩︎ Geri Al</button>'
-    : '<a href="' + editUrl(w.id) + '" class="btn-edit">Düzenle</a>';
+    : '<a href="' + editUrl(w.id) + '" class="btn-edit">' + _onCev('rep.duzenle','Düzenle') + '</a>';
   if (kind === 'pending') {
-    actions += '<a href="repertoires.html?add_work=' + w.id + '" class="btn-add">📋 Repertuvara Ekle</a>'
+    actions += '<a href="repertoires.html?add_work=' + w.id + '" class="btn-add">' + _onCev('es.repertuvaraEkle','Repertuvara Ekle') + '</a>'
              + '<button class="btn-retract" onclick="retractSuggestion(' + w.id + ')">Öneriyi Geri Çek</button>';
   }
   return '<div class="card">'
@@ -227,17 +235,17 @@ async function loadSuggestions() {
     const approved = canli.filter(w => w.visibility !== 'private' && w.status !== 'pending');
 
     panel.innerHTML =
-        section('⏳ Onay Bekleyen Önerilerim',
-                'Herkese açık olarak paylaştığınız, yöneticinin onayını bekleyen eserler. Geri çekerseniz eser silinmez — gizli taslağınıza döner.',
+        section(_onCev('on.onayBekleyen','⏳ Onay Bekleyen Önerilerim'),
+                _onCev('on.onayBekleyenAlt','Herkese açık olarak paylaştığınız, yöneticinin onayını bekleyen eserler. Geri çekerseniz eser silinmez — gizli taslağınıza döner.'),
                 pending, 'pending', '')
-      + section('🔒 Taslaklarım',
-                'Yalnızca siz görürsünüz. Onay gerekmez; hazır olduğunuzda Düzenle’den herkese açabilirsiniz.',
+      + section(_onCev('on.taslaklarim','🔒 Taslaklarım'),
+                _onCev('on.taslakAlt','Yalnızca siz görürsünüz. Onay gerekmez; hazır olduğunuzda Düzenle’den herkese açabilirsiniz.'),
                 drafts, 'draft', '')
-      + section('✓ Yayımlanan Eserlerim',
-                'Kataloğa girmiş, herkesin görebildiği eserleriniz.',
+      + section(_onCev('on.yayimlanan','✓ Yayımlanan Eserlerim'),
+                _onCev('on.yayimlananAlt','Kataloğa girmiş, herkesin görebildiği eserleriniz.'),
                 approved, 'approved', '')
       + section('🗑 Silinenler',
-                'Silinen eserler 30 gün burada bekler, sonra kalıcı olarak kaldırılır. Bu süre içinde geri alabilirsiniz.',
+                _onCev('on.copAlt','Silinen eserler 30 gün burada bekler, sonra kalıcı olarak kaldırılır. Bu süre içinde geri alabilirsiniz.'),
                 deleted, 'deleted', '');
   } catch(e) {
     panel.innerHTML = '<div class="empty">Yüklenemedi: ' + esc(e.message) + '</div>';
@@ -249,7 +257,7 @@ async function loadSuggestions() {
 // (bkz. dosya başındaki günlük). Artık yalnızca paylaşım geri alınıyor: eser
 // gizli taslak olarak sahibinde kalır, onay kuyruğundan düşer.
 async function retractSuggestion(id) {
-  if (!confirm('Öneri geri çekilsin mi?\n\nEser SİLİNMEZ — yalnızca size görünen gizli taslağınıza döner. İstediğiniz zaman yeniden paylaşabilirsiniz.')) return;
+  if (!confirm(_onCev('on.geriCekOnay','Öneri geri çekilsin mi?\n\nEser SİLİNMEZ — yalnızca size görünen gizli taslağınıza döner. İstediğiniz zaman yeniden paylaşabilirsiniz.'))) return;
   try {
     // (2026-08-15) 204 BAŞARI DEĞİLDİR — dönen satır sayısı kontrol ediliyor.
     // Yetki yoksa PostgREST sıfır satır günceller ve yine 204 döner; eskiden
@@ -259,14 +267,14 @@ async function retractSuggestion(id) {
       headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({ visibility: 'private', status: 'approved' })
     });
-    if (!r.ok && r.status !== 204) { alert('Hata: ' + await r.text()); return; }
+    if (!r.ok && r.status !== 204) { alert(_onCev('mod.hata','Hata: ') + await r.text()); return; }
     let rows = []; try { rows = await r.json(); } catch(e) {}
     if (!Array.isArray(rows) || !rows.length) {
-      alert('Sunucu isteği kabul etti ama hiçbir kayıt değişmedi — bu eseri değiştirme yetkiniz olmayabilir. Öneri GERİ ÇEKİLMEDİ.');
+      alert(_onCev('on.degistirYetki','Sunucu isteği kabul etti ama hiçbir kayıt değişmedi — bu eseri değiştirme yetkiniz olmayabilir. Öneri GERİ ÇEKİLMEDİ.'));
       return;
     }
     loadSuggestions();
-  } catch(e) { alert('Hata: ' + e.message); }
+  } catch(e) { alert(_onCev('mod.hata','Hata: ') + e.message); }
 }
 
 window.toggleSbDropdown = function() {
@@ -288,7 +296,7 @@ document.addEventListener('click', function(e) {
   const av = document.getElementById('sbAvatar'); if(av) av.textContent = ini;
   const un = document.getElementById('sbUserName'); if(un) un.textContent = name;
   const ur = document.getElementById('sbUserRole');
-  if (ur) ur.textContent = isAdmin() ? 'Admin' : (getUserRole() === 'editor' ? 'Editör' : 'Üye');
+  if (ur) ur.textContent = isAdmin() ? 'Admin' : (getUserRole() === 'editor' ? _onCev('ortak.editor','Editör') : _onCev('ortak.uye','Üye'));
   if (isAdmin() || isEditor()) {
     document.querySelectorAll('.admin-only').forEach(el => { el.style.display = ''; });
   }

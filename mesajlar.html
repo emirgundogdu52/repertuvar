@@ -11,7 +11,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Repertuvar — Mesajlar</title>
+<title data-i18n="ms.sayfaBaslik">Repertuvar — Mesajlar</title>
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -195,9 +195,9 @@ body { -webkit-text-size-adjust: 100%; }
 
   <!-- Üye: Mesaj gönder -->
   <div id="composeSection" class="compose-box" style="display:none;">
-    <h3>✉️ Admin'e Mesaj Gönder</h3>
-    <textarea id="composeText" placeholder="Sorunuzu, talebinizi ya da geri bildiriminizi yazın. Ne kadar ayrıntı verirseniz o kadar hızlı yardımcı olabiliriz."></textarea>
-    <button class="btn-send" onclick="sendMessage()" id="sendBtn">Gönder</button>
+    <h3 data-i18n="ms.adminMesaj">✉️ Admin'e Mesaj Gönder</h3>
+    <textarea id="composeText" placeholder="Sorunuzu, talebinizi ya da geri bildiriminizi yazın. Ne kadar ayrıntı verirseniz o kadar hızlı yardımcı olabiliriz." data-i18n-ph="ms.phSoru"></textarea>
+    <button class="btn-send" onclick="sendMessage()" id="sendBtn" data-i18n="ms.gonder">Gönder</button>
   </div>
 
   <!-- Admin: Yeni Mesaj butonu -->
@@ -207,10 +207,10 @@ body { -webkit-text-size-adjust: 100%; }
 
   <!-- Admin: Duyuru yaz -->
   <div id="announceSection" class="compose-box admin-only" style="display:none;">
-    <h3>📢 Toplu Duyuru Gönder</h3>
-    <input type="text" id="annTitle" placeholder="Duyuru başlığı">
-    <textarea id="annContent" placeholder="Duyuru içeriği..."></textarea>
-    <button class="btn-send" onclick="sendAnnouncement()" id="annBtn">Duyuruyu Yayınla</button>
+    <h3 data-i18n="ms.topluDuyuru">📢 Toplu Duyuru Gönder</h3>
+    <input type="text" id="annTitle" placeholder="Duyuru başlığı" data-i18n-ph="ms.phDuyuruBaslik">
+    <textarea id="annContent" placeholder="Duyuru içeriği..." data-i18n-ph="ms.phDuyuruIcerik"></textarea>
+    <button class="btn-send" onclick="sendAnnouncement()" id="annBtn" data-i18n="ms.duyuruYayinla">Duyuruyu Yayınla</button>
   </div>
 
   <!-- Tabs -->
@@ -225,12 +225,12 @@ body { -webkit-text-size-adjust: 100%; }
 
   <!-- Mesajlar -->
   <div id="messagesPanel">
-    <div class="empty">Yükleniyor...</div>
+    <div class="empty" data-i18n="ortak.yukleniyor">Yükleniyor...</div>
   </div>
 
   <!-- Duyurular -->
   <div id="announcementsPanel" style="display:none;">
-    <div class="empty">Yükleniyor...</div>
+    <div class="empty" data-i18n="ortak.yukleniyor">Yükleniyor...</div>
   </div>
 
 </div><!-- /page -->
@@ -239,24 +239,24 @@ body { -webkit-text-size-adjust: 100%; }
 <!-- Yeni Mesaj Modal -->
 <div class="nm-modal" id="newMsgModal">
   <div class="nm-card">
-    <div class="nm-title">✉️ Üyeye Mesaj Gönder</div>
+    <div class="nm-title" data-i18n="ms.uyeyeMesaj">✉️ Üyeye Mesaj Gönder</div>
     <div class="nm-field">
-      <label>Üye Seç <span id="nmSelectedCount" style="color:var(--accent);font-weight:700;"></span></label>
+      <label><span data-i18n="ms.uyeSec">Üye Seç</span> <span id="nmSelectedCount" style="color:var(--accent);font-weight:700;"></span></label>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input type="text" id="nmSearch" class="nm-textarea" style="min-height:unset;padding:8px 12px;font-size:12px;" placeholder="İsim veya e-posta ile ara...">
-        <button onclick="toggleSelectAll()" id="nmSelectAllBtn" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">Tümü</button>
+        <input type="text" id="nmSearch" class="nm-textarea" style="min-height:unset;padding:8px 12px;font-size:12px;" placeholder="İsim veya e-posta ile ara..." data-i18n-ph="ms.phAra">
+        <button onclick="toggleSelectAll()" id="nmSelectAllBtn" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;" data-i18n="ms.tumu">Tümü</button>
       </div>
       <div id="nmMemberList" style="max-height:200px;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:4px;">
-        <div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;">Yükleniyor...</div>
+        <div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;" data-i18n="ortak.yukleniyor">Yükleniyor...</div>
       </div>
     </div>
     <div class="nm-field">
-      <label>Mesaj</label>
-      <textarea class="nm-textarea" id="nmText" placeholder="Mesajınızı yazın..."></textarea>
+      <label data-i18n="ms.mesaj">Mesaj</label>
+      <textarea class="nm-textarea" id="nmText" placeholder="Mesajınızı yazın..." data-i18n-ph="ms.phMesaj"></textarea>
     </div>
     <div class="nm-actions">
-      <button class="btn-nm-cancel" onclick="closeNewMsgModal()">İptal</button>
-      <button class="btn-nm-send" onclick="sendNewMessage()" id="nmSendBtn">Gönder</button>
+      <button class="btn-nm-cancel" onclick="closeNewMsgModal()" data-i18n="ortak.iptal">İptal</button>
+      <button class="btn-nm-send" onclick="sendNewMessage()" id="nmSendBtn" data-i18n="ms.gonder">Gönder</button>
     </div>
   </div>
 </div>
@@ -264,6 +264,12 @@ body { -webkit-text-size-adjust: 100%; }
 <!-- Bottom nav -->
 
 <script>
+// (2026-09-03) JS'ten yazilan metinler icin ceviri yardimcisi.
+function _msCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 // (2026-08-03) Eskiden token yoksa anon anahtara SESSİZCE düşüyordu: istek yola
 // çıkıyor, RLS altında auth.uid() NULL olduğu için 0 satır dönüyor, kullanıcı
 // hata değil BOŞ LİSTE görüyordu. Artık auth.js'teki kanonik authHeaders()
@@ -281,11 +287,11 @@ function toast(msg, type='ok') {
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr);
   const m = Math.floor(diff / 60000);
-  if (m < 1) return 'Az önce';
-  if (m < 60) return m + ' dk önce';
+  if (m < 1) return _msCev('ortak.azOnce','Az önce');
+  if (m < 60) return m + _msCev('ortak.dkOnce',' dk önce');
   const h = Math.floor(m / 60);
-  if (h < 24) return h + ' sa önce';
-  return Math.floor(h / 24) + ' gün önce';
+  if (h < 24) return h + _msCev('ortak.saOnce',' sa önce');
+  return Math.floor(h / 24) + _msCev('ortak.gunOnce',' gün önce');
 }
 
 function switchTab(tab) {
@@ -298,9 +304,9 @@ function switchTab(tab) {
 // ── Mesaj gönder (üye) ──
 async function sendMessage() {
   const content = document.getElementById('composeText').value.trim();
-  if (!content) { toast('Mesaj boş olamaz', 'er'); return; }
+  if (!content) { toast(_msCev('ms.mesajBos','Mesaj boş olamaz'), 'er'); return; }
   const btn = document.getElementById('sendBtn');
-  btn.disabled = true; btn.textContent = 'Gönderiliyor...';
+  btn.disabled = true; btn.textContent = _msCev('ms.gonderiliyor','Gönderiliyor...');
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/messages', {
       method: 'POST',
@@ -313,10 +319,10 @@ async function sendMessage() {
     });
     if (!r.ok) throw new Error(await r.text());
     document.getElementById('composeText').value = '';
-    toast('Mesajınız gönderildi ✓');
+    toast(_msCev('ms.gonderildi','Mesajınız gönderildi ✓'));
     loadMessages();
-  } catch(e) { toast('Hata: ' + e.message, 'er'); }
-  btn.disabled = false; btn.textContent = 'Gönder';
+  } catch(e) { toast(_msCev('mod.hata','Hata: ') + e.message, 'er'); }
+  btn.disabled = false; btn.textContent = _msCev('ms.gonder','Gönder');
 }
 
 // ── Mesajları yükle ──
@@ -414,8 +420,8 @@ function openThread(fromId, email) {
               <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:11px;"></i> Sil</button>
             </div>
             <div class="reply-form" id="reply-${m.id}" style="display:none;">
-              <textarea placeholder="Yanıtınızı yazın..." id="replyText-${m.id}" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:12px;font-family:inherit;outline:none;resize:vertical;min-height:70px;margin-top:8px;"></textarea>
-              <button class="btn-send" style="margin-top:8px;padding:7px 16px;font-size:12px;" onclick="sendReply('${m.id}','${fromId}','${email.replace(/'/g,"\\'")}')">Gönder</button>
+              <textarea placeholder="${_msCev('ms.phYanit','Yanıtınızı yazın...')}" id="replyText-${m.id}" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:12px;font-family:inherit;outline:none;resize:vertical;min-height:70px;margin-top:8px;"></textarea>
+              <button class="btn-send" style="margin-top:8px;padding:7px 16px;font-size:12px;" onclick="sendReply('${m.id}','${fromId}','${email.replace(/'/g,"\\'")}')" data-i18n="ms.gonder">Gönder</button>
             </div>
           </div>`).join('');
       setTimeout(() => { panel.scrollTop = panel.scrollHeight; }, 50);
@@ -428,7 +434,7 @@ function toggleReplyThread(id) {
 }
 
 async function deleteMessage(id) {
-  if (!confirm('Bu mesajı silmek istiyor musunuz?')) return;
+  if (!confirm(_msCev('ms.silOnay','Bu mesajı silmek istiyor musunuz?'))) return;
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/messages?id=eq.' + id, {
       method: 'DELETE', headers: H()
@@ -437,11 +443,11 @@ async function deleteMessage(id) {
       const el = document.getElementById('msg-' + id);
       if (el) el.remove();
       if (window._loadUnreadBadge) window._loadUnreadBadge();
-      toast('Mesaj silindi ✓');
+      toast(_msCev('ms.silindi','Mesaj silindi ✓'));
     } else {
-      toast('Hata: ' + await r.text(), 'er');
+      toast(_msCev('mod.hata','Hata: ') + await r.text(), 'er');
     }
-  } catch(e) { toast('Hata: ' + e.message, 'er'); }
+  } catch(e) { toast(_msCev('mod.hata','Hata: ') + e.message, 'er'); }
 }
 
 
@@ -454,7 +460,7 @@ async function openNewMsgModal() {
   updateNmCount();
   const list = document.getElementById('nmMemberList');
   if (nmAllMembers.length) { renderNmList(nmAllMembers); return; }
-  list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;">Yükleniyor...</div>';
+  list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;" data-i18n="ortak.yukleniyor">Yükleniyor...</div>';
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/profiles?select=id,email,display_name&order=email', { headers: H() });
     nmAllMembers = await r.json();
@@ -515,10 +521,10 @@ function closeNewMsgModal() {
 async function sendNewMessage() {
   const checked = Array.from(document.querySelectorAll('#nmMemberList input[type=checkbox]:checked'));
   const text = document.getElementById('nmText').value.trim();
-  if (!checked.length) { toast('En az bir üye seçin', 'er'); return; }
-  if (!text) { toast('Mesaj boş olamaz', 'er'); return; }
+  if (!checked.length) { toast(_msCev('ms.uyeSecin','En az bir üye seçin'), 'er'); return; }
+  if (!text) { toast(_msCev('ms.mesajBos','Mesaj boş olamaz'), 'er'); return; }
   const btn = document.getElementById('nmSendBtn');
-  btn.disabled = true; btn.textContent = 'Gönderiliyor...';
+  btn.disabled = true; btn.textContent = _msCev('ms.gonderiliyor','Gönderiliyor...');
   try {
     await Promise.all(checked.map(chk =>
       fetch(SUPA_URL + '/rest/v1/messages', {
@@ -527,18 +533,18 @@ async function sendNewMessage() {
         body: JSON.stringify({
           from_id: chk.value,
           from_email: chk.dataset.email || '',
-          content: '(Admin tarafından başlatılan konuşma)',
+          content: _msCev('ms.adminBaslatti','(Admin tarafından başlatılan konuşma)'),
           admin_reply: text,
           replied_at: new Date().toISOString(),
           read_at: new Date().toISOString()
         })
       })
     ));
-    toast(checked.length + ' üyeye mesaj gönderildi ✓');
+    toast(checked.length + _msCev('ms.uyeyeGonderildiKisa',' üyeye mesaj gönderildi ✓'));
     closeNewMsgModal();
     loadMessages();
-  } catch(e) { toast('Hata: ' + e.message, 'er'); }
-  btn.disabled = false; btn.textContent = 'Gönder';
+  } catch(e) { toast(_msCev('mod.hata','Hata: ') + e.message, 'er'); }
+  btn.disabled = false; btn.textContent = _msCev('ms.gonder','Gönder');
 }
 
 function toggleReply(id) {
@@ -556,19 +562,19 @@ async function sendReply(msgId, fromId, email) {
       body: JSON.stringify({ admin_reply: text, replied_at: new Date().toISOString() })
     });
     if (!r.ok) throw new Error(await r.text());
-    toast('Yanıt gönderildi ✓');
+    toast(_msCev('ms.yanitGonderildi','Yanıt gönderildi ✓'));
     if (fromId) openThread(fromId, email);
     else loadMessages();
-  } catch(e) { toast('Hata: ' + e.message, 'er'); }
+  } catch(e) { toast(_msCev('mod.hata','Hata: ') + e.message, 'er'); }
 }
 
 // ── Duyuru gönder (admin) ──
 async function sendAnnouncement() {
   const title = document.getElementById('annTitle').value.trim();
   const content = document.getElementById('annContent').value.trim();
-  if (!title || !content) { toast('Başlık ve içerik gerekli', 'er'); return; }
+  if (!title || !content) { toast(_msCev('ms.baslikIcerik','Başlık ve içerik gerekli'), 'er'); return; }
   const btn = document.getElementById('annBtn');
-  btn.disabled = true; btn.textContent = 'Yayınlanıyor...';
+  btn.disabled = true; btn.textContent = _msCev('ms.yayinlaniyor','Yayınlanıyor...');
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/announcements', {
       method: 'POST',
@@ -578,10 +584,10 @@ async function sendAnnouncement() {
     if (!r.ok) throw new Error(await r.text());
     document.getElementById('annTitle').value = '';
     document.getElementById('annContent').value = '';
-    toast('Duyuru yayınlandı ✓');
+    toast(_msCev('ms.duyuruYayinlandi','Duyuru yayınlandı ✓'));
     loadAnnouncements();
-  } catch(e) { toast('Hata: ' + e.message, 'er'); }
-  btn.disabled = false; btn.textContent = 'Duyuruyu Yayınla';
+  } catch(e) { toast(_msCev('mod.hata','Hata: ') + e.message, 'er'); }
+  btn.disabled = false; btn.textContent = _msCev('ms.duyuruYayinla','Duyuruyu Yayınla');
 }
 
 // ── Duyuruları yükle ──
@@ -621,7 +627,7 @@ async function loadAnnouncements() {
     const r1 = document.getElementById('sbUserRole'); if(r1) r1.textContent = 'Admin';
   } else {
     document.getElementById('composeSection').style.display = 'block';
-    const r2 = document.getElementById('sbUserRole'); if(r2) r2.textContent = getUserRole() === 'editor' ? 'Editör' : 'Üye';
+    const r2 = document.getElementById('sbUserRole'); if(r2) r2.textContent = getUserRole() === 'editor' ? _msCev('ortak.editor','Editör') : _msCev('ortak.uye','Üye');
   }
 
   loadMessages();

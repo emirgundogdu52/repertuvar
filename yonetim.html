@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Repertuvar — Yönetim</title>
+<title data-i18n="yo.sayfaBaslik">Repertuvar — Yönetim</title>
 <!-- yonetim.html — 2026-08-06
      Yönetim işleri şimdiye kadar üç ayrı sayfaya dağılmıştı: üyeler ve roller
      uyeler.html'de, eser onay kuyruğu eserler.html'in içinde gizli, grup
@@ -64,74 +64,74 @@
 <div class="main-wrap">
 <div class="page-content">
   <div>
-    <div class="page-title">Yönetim</div>
-    <div class="page-sub">Uygulama geneli işler tek yerde.</div>
+    <div class="page-title" data-i18n="yo.baslik">Yönetim</div>
+    <div class="page-sub" data-i18n="yo.altBaslik">Uygulama geneli işler tek yerde.</div>
   </div>
 
   <div class="y-stats">
     <div class="y-stat" id="stPendingBox">
-      <div class="y-stat-lbl">Onay Bekleyen</div>
+      <div class="y-stat-lbl" data-i18n="yo.onayBekleyen">Onay Bekleyen</div>
       <div class="y-stat-val" id="stPending">—</div>
     </div>
     <div class="y-stat">
-      <div class="y-stat-lbl">Kullanıcı</div>
+      <div class="y-stat-lbl" data-i18n="yo.kullanici">Kullanıcı</div>
       <div class="y-stat-val" id="stUsers">—</div>
     </div>
     <div class="y-stat">
-      <div class="y-stat-lbl">Eser</div>
+      <div class="y-stat-lbl" data-i18n="yo.eser">Eser</div>
       <div class="y-stat-val" id="stWorks">—</div>
     </div>
     <div class="y-stat">
-      <div class="y-stat-lbl">Repertuvar</div>
+      <div class="y-stat-lbl" data-i18n="yo.repertuvar">Repertuvar</div>
       <div class="y-stat-val" id="stReps">—</div>
     </div>
     <div class="y-stat">
-      <div class="y-stat-lbl">Grup / Koro</div>
+      <div class="y-stat-lbl" data-i18n="yo.grupKoro">Grup / Koro</div>
       <div class="y-stat-val" id="stGroups">—</div>
     </div>
   </div>
 
-  <div class="y-sec-title">Kırılım</div>
+  <div class="y-sec-title" data-i18n="yo.kirilim">Kırılım</div>
   <div class="y-cards" style="margin-bottom:26px;">
     <div class="y-break">
-      <h4>Eserler</h4>
+      <h4 data-i18n="yo.eserler">Eserler</h4>
       <div class="y-rows">
-        <div class="y-row"><span class="y-row-lbl">Yayında</span><span class="y-row-val" id="brApproved">—</span></div>
-        <div class="y-row warn"><span class="y-row-lbl">Onay bekleyen</span><span class="y-row-val" id="brPending">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Gizli (yalnız sahibi)</span><span class="y-row-val" id="brPrivate">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Sözü olan</span><span class="y-row-val" id="brLyrics">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Akoru olan</span><span class="y-row-val" id="brChords">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Notası olan</span><span class="y-row-val" id="brNota">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.yayinda">Yayında</span><span class="y-row-val" id="brApproved">—</span></div>
+        <div class="y-row warn"><span class="y-row-lbl" data-i18n="yo.onayBekleyen2">Onay bekleyen</span><span class="y-row-val" id="brPending">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.gizli">Gizli (yalnız sahibi)</span><span class="y-row-val" id="brPrivate">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.sozuOlan">Sözü olan</span><span class="y-row-val" id="brLyrics">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.akoruOlan">Akoru olan</span><span class="y-row-val" id="brChords">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.notasiOlan">Notası olan</span><span class="y-row-val" id="brNota">—</span></div>
       </div>
     </div>
 
     <div class="y-break">
-      <h4>Kullanıcılar</h4>
+      <h4 data-i18n="yo.kullanicilar">Kullanıcılar</h4>
       <div class="y-rows">
-        <div class="y-row"><span class="y-row-lbl">Yönetici</span><span class="y-row-val" id="brAdmin">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Editör</span><span class="y-row-val" id="brEditor">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Üye</span><span class="y-row-val" id="brMember">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Bir gruba bağlı</span><span class="y-row-val" id="brInGroup">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.yonetici">Yönetici</span><span class="y-row-val" id="brAdmin">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="ortak.editor">Editör</span><span class="y-row-val" id="brEditor">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="ortak.uye">Üye</span><span class="y-row-val" id="brMember">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.grubaBagli">Bir gruba bağlı</span><span class="y-row-val" id="brInGroup">—</span></div>
       </div>
     </div>
 
     <div class="y-break">
-      <h4>Repertuvarlar</h4>
+      <h4 data-i18n="yo.repertuvarlar">Repertuvarlar</h4>
       <div class="y-rows">
-        <div class="y-row"><span class="y-row-lbl">Gruba ait</span><span class="y-row-val" id="brRepGroup">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Kişisel</span><span class="y-row-val" id="brRepOwn">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Herkese açık</span><span class="y-row-val" id="brRepPublic">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Solist kaydı</span><span class="y-row-val" id="brSolist">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.grubaAit">Gruba ait</span><span class="y-row-val" id="brRepGroup">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.kisisel">Kişisel</span><span class="y-row-val" id="brRepOwn">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.herkeseAcik">Herkese açık</span><span class="y-row-val" id="brRepPublic">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.solistKaydi">Solist kaydı</span><span class="y-row-val" id="brSolist">—</span></div>
       </div>
     </div>
 
     <div class="y-break">
-      <h4>Kullanım</h4>
+      <h4 data-i18n="yo.kullanim">Kullanım</h4>
       <div class="y-rows">
-        <div class="y-row"><span class="y-row-lbl">Bugün giren</span><span class="y-row-val" id="brAct1">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Son 7 günde giren</span><span class="y-row-val" id="brAct7">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Son 30 günde giren</span><span class="y-row-val" id="brAct30">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Hiç girmemiş</span><span class="y-row-val" id="brActNever">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.bugunGiren">Bugün giren</span><span class="y-row-val" id="brAct1">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.son7Giren">Son 7 günde giren</span><span class="y-row-val" id="brAct7">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.son30Giren">Son 30 günde giren</span><span class="y-row-val" id="brAct30">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.hicGirmemis">Hiç girmemiş</span><span class="y-row-val" id="brActNever">—</span></div>
       </div>
     </div>
 
@@ -139,12 +139,12 @@
          sayacımız: landing/index.html `log_hit` RPC'sini çağırıyor, buradaki
          sayılar `landing_stats()` RPC'sinden geliyor (yalnızca admin okuyabilir). -->
     <div class="y-break">
-      <h4>Tanıtım Sayfası</h4>
+      <h4 data-i18n="yo.tanitimSayfasi">Tanıtım Sayfası</h4>
       <div class="y-rows">
-        <div class="y-row"><span class="y-row-lbl">Bugün</span><span class="y-row-val" id="lhBugun">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Son 7 gün</span><span class="y-row-val" id="lhGun7">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Son 30 gün</span><span class="y-row-val" id="lhGun30">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Toplam</span><span class="y-row-val" id="lhToplam">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.bugun">Bugün</span><span class="y-row-val" id="lhBugun">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.son7">Son 7 gün</span><span class="y-row-val" id="lhGun7">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.son30">Son 30 gün</span><span class="y-row-val" id="lhGun30">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.toplam">Toplam</span><span class="y-row-val" id="lhToplam">—</span></div>
       </div>
       <div id="lhKaynak" style="margin-top:12px;"></div>
     </div>
@@ -154,50 +154,50 @@
          uygulama içindeki gezinmesini kaydediyor ve zaten aylardır dolu.
          Sayılar `app_usage_stats()` RPC'sinden (yalnızca admin okuyabilir). -->
     <div class="y-break">
-      <h4>Uygulama Kullanımı</h4>
+      <h4 data-i18n="yo.uygulamaKullanimi">Uygulama Kullanımı</h4>
       <div class="y-rows">
-        <div class="y-row"><span class="y-row-lbl">Bugün açılan sayfa</span><span class="y-row-val" id="pvBugun">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Son 7 gün</span><span class="y-row-val" id="pvGun7">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Son 30 gün</span><span class="y-row-val" id="pvGun30">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Son 7 gün oturum</span><span class="y-row-val" id="pvOturum">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.bugunAcilan">Bugün açılan sayfa</span><span class="y-row-val" id="pvBugun">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.son7">Son 7 gün</span><span class="y-row-val" id="pvGun7">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.son30">Son 30 gün</span><span class="y-row-val" id="pvGun30">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.son7Oturum">Son 7 gün oturum</span><span class="y-row-val" id="pvOturum">—</span></div>
       </div>
       <div id="pvSayfa" style="margin-top:12px;"></div>
       <div id="pvCihaz" style="margin-top:12px;"></div>
     </div>
 
     <div class="y-break">
-      <h4>Son Hareket</h4>
+      <h4 data-i18n="yo.sonHareket">Son Hareket</h4>
       <div class="y-rows">
-        <div class="y-row"><span class="y-row-lbl">Son 7 günde eklenen eser</span><span class="y-row-val" id="br7">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Son 30 günde eklenen eser</span><span class="y-row-val" id="br30">—</span></div>
-        <div class="y-row"><span class="y-row-lbl">Aktif davet bağlantısı</span><span class="y-row-val" id="brInvite">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.son7Eser">Son 7 günde eklenen eser</span><span class="y-row-val" id="br7">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.son30Eser">Son 30 günde eklenen eser</span><span class="y-row-val" id="br30">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.aktifDavet">Aktif davet bağlantısı</span><span class="y-row-val" id="brInvite">—</span></div>
       </div>
     </div>
   </div>
 
-  <div class="y-sec-title">Bölümler</div>
+  <div class="y-sec-title" data-i18n="yo.bolumler">Bölümler</div>
   <div class="y-cards">
     <a class="y-card" href="uyeler.html">
       <div class="y-card-ico"><i class="ti ti-users" aria-hidden="true"></i></div>
       <div>
-        <div class="y-card-name">Üyeler</div>
-        <div class="y-card-desc">Kullanıcı listesi, rol değiştirme, hesap askıya alma ve silme talepleri.</div>
+        <div class="y-card-name" data-i18n="yo.uyeler">Üyeler</div>
+        <div class="y-card-desc" data-i18n="yo.uyelerAlt">Kullanıcı listesi, rol değiştirme, hesap askıya alma ve silme talepleri.</div>
       </div>
     </a>
 
     <a class="y-card" href="eserler.html?pending=1" id="cardPending">
       <div class="y-card-ico"><i class="ti ti-checkbox" aria-hidden="true"></i></div>
       <div>
-        <div class="y-card-name">Eser Onayı <span class="y-badge" id="pendingBadge" style="display:none;">0</span></div>
-        <div class="y-card-desc">Kullanıcıların önerdiği eserleri inceleyip ortak kataloğa alın.</div>
+        <div class="y-card-name"><span data-i18n="yo.eserOnayi">Eser Onayı</span> <span class="y-badge" id="pendingBadge" style="display:none;">0</span></div>
+        <div class="y-card-desc" data-i18n="yo.eserOnayiAlt">Kullanıcıların önerdiği eserleri inceleyip ortak kataloğa alın.</div>
       </div>
     </a>
 
     <a class="y-card" href="gruplar.html">
       <div class="y-card-ico"><i class="ti ti-users-group" aria-hidden="true"></i></div>
       <div>
-        <div class="y-card-name">Grup / Koro</div>
-        <div class="y-card-desc">Grup bilgileri, üyeler ve davet bağlantıları.</div>
+        <div class="y-card-name" data-i18n="yo.grupKoro">Grup / Koro</div>
+        <div class="y-card-desc" data-i18n="yo.grupAlt">Grup bilgileri, üyeler ve davet bağlantıları.</div>
       </div>
     </a>
   </div>
@@ -207,6 +207,12 @@
 </div>
 
 <script>
+// (2026-09-03) JS'ten yazilan metinler icin ceviri yardimcisi.
+function _yoCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 // Sayılar tek seferde, PostgREST'in count başlığıyla alınıyor: satırları
 // çekmiyoruz (limit=1 + head yerine select=id), yalnızca Content-Range'deki
 // toplamı okuyoruz — 400+ eserlik tabloyu boşuna indirmemek için.
@@ -311,9 +317,9 @@ async function kullanimYukle() {
           }).join('') + '</div>';
     };
     const s1 = document.getElementById('pvSayfa');
-    if (s1) s1.innerHTML = liste('En çok açılan sayfa (30 gün)', d.sayfalar, 'sayfa');
+    if (s1) s1.innerHTML = liste(_yoCev('yo.enCokAcilan','En çok açılan sayfa (30 gün)'), d.sayfalar, _yoCev('yo.sayfaBirimi','sayfa'));
     const s2 = document.getElementById('pvCihaz');
-    if (s2) s2.innerHTML = liste('Cihaz (30 gün)', d.cihazlar, 'cihaz');
+    if (s2) s2.innerHTML = liste(_yoCev('yo.cihaz','Cihaz (30 gün)'), d.cihazlar, 'cihaz');
   } catch (e) { /* sessiz */ }
 }
 
@@ -382,8 +388,8 @@ async function kirilimYukle(pending) {
     document.querySelector('.page-content').innerHTML =
       '<div style="text-align:center;padding:60px 20px;color:var(--text3);">'
       + '<div style="font-size:34px;margin-bottom:12px;">🔒</div>'
-      + '<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;">Bu sayfa yönetim içindir</div>'
-      + '<div style="font-size:13px;">Erişim yetkiniz yok. Ana sayfaya dönebilirsiniz.</div></div>';
+      + '<div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;">' + _yoCev('yo.yetkiYokBaslik','Bu sayfa yönetim içindir') + '</div>'
+      + '<div style="font-size:13px;">' + _yoCev('yo.yetkiYokAlt','Erişim yetkiniz yok. Ana sayfaya dönebilirsiniz.') + '</div></div>';
     return;
   }
 
@@ -392,7 +398,7 @@ async function kirilimYukle(pending) {
     const uyeKart = document.querySelector('.y-card[href="uyeler.html"]');
     if (uyeKart) uyeKart.remove();
     const not = document.getElementById('yNote');
-    if (not) not.textContent = 'Editör yetkisiyle görüntülüyorsunuz: eser onayı size açık, kullanıcı yönetimi yalnızca yöneticilerde.';
+    if (not) not.textContent = _yoCev('yo.editorNot','Editör yetkisiyle görüntülüyorsunuz: eser onayı size açık, kullanıcı yönetimi yalnızca yöneticilerde.');
   }
 
   panoYukle();
