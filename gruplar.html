@@ -35,7 +35,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Grup / Koro Yönetimi — Repertuvar</title>
+<title data-i18n="gr.sayfaBaslik">Grup / Koro Yönetimi — Repertuvar</title>
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="i18n.js"></script>
@@ -132,28 +132,28 @@ html { -webkit-text-size-adjust: 100%; }
 
 <div class="main-wrap">
 <div class="page-content">
-  <div id="loadingState" style="text-align:center;padding:60px 20px;color:var(--text3);">Yükleniyor...</div>
+  <div id="loadingState" style="text-align:center;padding:60px 20px;color:var(--text3);" data-i18n="ortak.yukleniyor">Yükleniyor...</div>
   <div id="noGroupState" style="display:none;">
     <div class="section no-group">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <p>Henüz bir grup veya koroya üye değilsiniz.</p>
-      <button class="btn btn-primary" onclick="showCreateGroup()">+ Yeni Grup / Koro Oluştur</button>
+      <p data-i18n="gr.uyeDegil">Henüz bir grup veya koroya üye değilsiniz.</p>
+      <button class="btn btn-primary" onclick="showCreateGroup()" data-i18n="gr.yeniOlustur">+ Yeni Grup / Koro Oluştur</button>
     </div>
   </div>
 
   <div class="section" id="createGroupForm" style="display:none;">
-      <div class="section-title">Yeni Grup / Koro Oluştur</div>
+      <div class="section-title" data-i18n="gr.yeniOlusturBaslik">Yeni Grup / Koro Oluştur</div>
       <div style="margin-bottom:14px;">
-        <label class="fl">Grup / Koro Adı *</label>
-        <input class="fi" id="newGroupName" placeholder="örn. Ensemble Bağlama Grubu">
+        <label class="fl" data-i18n="gr.adZorunlu">Grup / Koro Adı *</label>
+        <input class="fi" id="newGroupName" placeholder="örn. Ensemble Bağlama Grubu" data-i18n-ph="gr.phAd">
       </div>
       <div style="margin-bottom:20px;">
-        <label class="fl">Açıklama</label>
-        <input class="fi" id="newGroupDesc" placeholder="Kısa bir açıklama...">
+        <label class="fl" data-i18n="gr.aciklama">Açıklama</label>
+        <input class="fi" id="newGroupDesc" placeholder="Kısa bir açıklama..." data-i18n-ph="gr.phAciklama">
       </div>
       <div class="m-btn-row" style="display:flex;gap:10px;">
-        <button class="btn btn-secondary" onclick="hideCreateGroup()">İptal</button>
-        <button class="btn btn-primary" onclick="createGroup()">Grubu / Koroyu Oluştur</button>
+        <button class="btn btn-secondary" onclick="hideCreateGroup()" data-i18n="ortak.iptal">İptal</button>
+        <button class="btn btn-primary" onclick="createGroup()" data-i18n="gr.olusturBtn">Grubu / Koroyu Oluştur</button>
       </div>
     </div>
 
@@ -164,7 +164,7 @@ html { -webkit-text-size-adjust: 100%; }
          listelerinin hangi gruba göre çekileceğini belirler. -->
     <div class="section" id="myGroupsSection">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
-        <div class="section-title" style="margin-bottom:0;">Gruplarım</div>
+        <div class="section-title" style="margin-bottom:0;" data-i18n="gr.gruplarim">Gruplarım</div>
         <button class="btn btn-secondary" style="padding:5px 11px;font-size:12px;flex-shrink:0;" onclick="showCreateGroup()"><i class="ti ti-plus" style="font-size:13px;"></i> Yeni Grup</button>
       </div>
       <div id="myGroupsChips" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
@@ -198,34 +198,34 @@ html { -webkit-text-size-adjust: 100%; }
       <!-- Grup düzenleme formu -->
       <div id="editGroupForm" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
         <div style="margin-bottom:12px;">
-          <label class="fl">Grup / Koro Adı</label>
-          <input class="fi" id="editGroupName" placeholder="Grup / Koro adı...">
+          <label class="fl" data-i18n="gr.ad">Grup / Koro Adı</label>
+          <input class="fi" id="editGroupName" placeholder="Grup / Koro adı..." data-i18n-ph="gr.phAdDuzenle">
         </div>
         <div style="margin-bottom:14px;">
-          <label class="fl">Açıklama</label>
-          <input class="fi" id="editGroupDesc" placeholder="Açıklama...">
+          <label class="fl" data-i18n="gr.aciklama">Açıklama</label>
+          <input class="fi" id="editGroupDesc" placeholder="Açıklama..." data-i18n-ph="gr.phAciklamaDuzenle">
         </div>
         <div class="m-btn-row" style="display:flex;gap:8px;">
-          <button class="btn btn-primary" style="font-size:12px;" onclick="saveGroupEdit()">Kaydet</button>
-          <button class="btn btn-secondary" style="font-size:12px;" onclick="hideEditGroup()">İptal</button>
+          <button class="btn btn-primary" style="font-size:12px;" onclick="saveGroupEdit()" data-i18n="ortak.kaydet">Kaydet</button>
+          <button class="btn btn-secondary" style="font-size:12px;" onclick="hideEditGroup()" data-i18n="ortak.iptal">İptal</button>
         </div>
       </div>
 
       <!-- Davet Linki — sadece owner/admin görür -->
       <datalist id="instrOneriler"></datalist>
       <div id="inviteSection" style="display:none;">
-        <div class="section-title">Davet Linki</div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Bu linki paylaşarak ya da karekodu okutarak yeni üyeler davet edebilirsiniz. Link 7 gün geçerlidir.</p>
+        <div class="section-title" data-i18n="gr.davetLinki">Davet Linki</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;" data-i18n="gr.davetAciklama">Bu linki paylaşarak ya da karekodu okutarak yeni üyeler davet edebilirsiniz. Link 7 gün geçerlidir.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <label style="font-size:13px;color:var(--text2);">Kaç kişi katılabilsin?
+          <label style="font-size:13px;color:var(--text2);"><span data-i18n="gr.kacKisi">Kaç kişi katılabilsin?</span>
             <input type="number" id="inviteMaxUses" value="1" min="1" max="200" step="1"
                    style="width:76px;margin-left:8px;padding:7px 9px;border-radius:8px;
                           border:1px solid var(--border);background:var(--bg2);color:var(--text);">
           </label>
-          <button class="btn btn-primary" onclick="generateInvite()">🔗 Yeni Davet Linki Oluştur</button>
+          <button class="btn btn-primary" onclick="generateInvite()" data-i18n="gr.yeniDavet">🔗 Yeni Davet Linki Oluştur</button>
         </div>
         <div class="invite-box" id="inviteLinkBox" style="display:none;">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;">DAVETİYE LİNKİ</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;" data-i18n="gr.davetiyeLinki">DAVETİYE LİNKİ</div>
           <div class="invite-link" id="inviteLinkText"></div>
 
           <!-- Karekod: provada ekrani gosterip herkese okutmak icin.
@@ -234,16 +234,16 @@ html { -webkit-text-size-adjust: 100%; }
                ekranda durmasi, yanindaki birinin izinsiz okutmasina aciktir. -->
           <div style="margin-top:12px;">
             <button class="btn btn-secondary" id="inviteQrToggle"
-                    onclick="_qrGosterGizle()" style="display:none;">📷 Karekodu Göster</button>
+                    onclick="_qrGosterGizle()" style="display:none;" data-i18n="gr.karekodGoster">📷 Karekodu Göster</button>
           </div>
           <div id="inviteQrWrap" style="display:none;margin-top:14px;text-align:center;">
             <div id="inviteQr" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;"></div>
-            <div style="font-size:11px;color:var(--text3);margin-top:8px;">Telefonun kamerasıyla okutun</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:8px;" data-i18n="gr.kameraOkut">Telefonun kamerasıyla okutun</div>
           </div>
 
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-            <button class="btn btn-secondary" onclick="copyInviteLink()">📋 Kopyala</button>
-            <button class="btn btn-secondary" onclick="shareViaWhatsApp()">💬 WhatsApp</button>
+            <button class="btn btn-secondary" onclick="copyInviteLink()" data-i18n="gr.kopyala">📋 Kopyala</button>
+            <button class="btn btn-secondary" onclick="shareViaWhatsApp()" data-i18n="gr.whatsapp2">💬 WhatsApp</button>
           </div>
           <div style="font-size:11px;color:var(--text3);margin-top:10px;" id="inviteExpiry"></div>
           <div style="font-size:12px;color:var(--text2);margin-top:6px;font-weight:600;" id="inviteQuota"></div>
@@ -260,11 +260,11 @@ html { -webkit-text-size-adjust: 100%; }
     <!-- Üyeler -->
     <div class="section">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div class="section-title" style="margin-bottom:0;">Grup / Koro Üyeleri</div>
+        <div class="section-title" style="margin-bottom:0;" data-i18n="gr.uyeler">Grup / Koro Üyeleri</div>
       </div>
       <div style="position:relative;margin-bottom:12px;">
         <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text3);"></i>
-        <input class="fi" id="memberSearch" style="padding-left:32px;font-size:12px;" placeholder="Mevcut üyelerde ara..." oninput="filterMembers(this.value)">
+        <input class="fi" id="memberSearch" style="padding-left:32px;font-size:12px;" placeholder="Mevcut üyelerde ara..." data-i18n-ph="gr.phUyeAra" oninput="filterMembers(this.value)">
       </div>
       <div id="membersList"></div>
     </div>
@@ -275,6 +275,12 @@ html { -webkit-text-size-adjust: 100%; }
 <!-- Bottom nav -->
 
 <script>
+// (2026-09-03) JS'ten yazilan metinler icin ceviri yardimcisi.
+function _grCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 let currentGroup = null;
 let currentMembers = [];
 let userRole = null;
@@ -326,9 +332,9 @@ async function createGroup() {
     document.getElementById('newGroupName').value = '';
     document.getElementById('newGroupDesc').value = '';
     hideCreateGroup();
-    toast('Grup / Koro oluşturuldu ✓');
+    toast(_grCev('gr.olusturuldu','Grup / Koro oluşturuldu ✓'));
     await loadPage();   // loadMyGroups üyelik listesini tazeler
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+  } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 // ── 2026-08-23: ÇEVRİMDIŞI OKUMA ──────────────────────────────────────────
@@ -399,7 +405,7 @@ function _yazmaKilitle() {
     if (/_qrGosterGizle|copyInviteLink|toggleRoleDD|shareViaWhatsApp/.test(f)) continue;
     b.disabled = true;
     b.style.opacity = '.45';
-    b.title = 'Çevrimdışı — bu işlem internet bağlantısı gerektiriyor';
+    b.title = _grCev('gr.cevrimdisiIslem','Çevrimdışı — bu işlem internet bağlantısı gerektiriyor');
   }
 }
 
@@ -408,11 +414,11 @@ async function loadPage() {
   // tutuyor; o sure boyunca sayfa bos kaliyordu).
   if (!navigator.onLine) {
     if (await _grupYerelCiz()) {
-      toast('Çevrimdışısınız — son kayıtlı grup bilgileri gösteriliyor', 'err');
+      toast(_grCev('gr.cevrimdisiKayitli','Çevrimdışısınız — son kayıtlı grup bilgileri gösteriliyor'), 'err');
       return;
     }
     document.getElementById('loadingState').style.display = 'none';
-    toast('Çevrimdışısınız ve kayıtlı grup bilgisi yok', 'err');
+    toast(_grCev('gr.cevrimdisiBos','Çevrimdışısınız ve kayıtlı grup bilgisi yok'), 'err');
     return;
   }
 
@@ -479,11 +485,11 @@ async function loadPage() {
     // Ama kullaniciya ham "Load failed" gostermek uygulama bozulmus izlenimi
     // veriyordu. Sebebi acikca soyluyoruz.
     if (await _grupYerelCiz()) {
-      toast('Bağlantı kurulamadı — son kayıtlı grup bilgileri gösteriliyor', 'err');
+      toast(_grCev('gr.baglantiYok','Bağlantı kurulamadı — son kayıtlı grup bilgileri gösteriliyor'), 'err');
     } else if (!navigator.onLine) {
-      toast('Çevrimdışısınız — grup bilgileri internet bağlantısı gerektiriyor', 'err');
+      toast(_grCev('gr.cevrimdisiGrup','Çevrimdışısınız — grup bilgileri internet bağlantısı gerektiriyor'), 'err');
     } else {
-      toast('Hata: ' + e.message, 'err');
+      toast(_grCev('mod.hata','Hata: ') + e.message, 'err');
     }
   }
 }
@@ -496,14 +502,14 @@ function renderMyGroups() {
   const active = getGroupId();
   box.innerHTML = (myGroups || []).map(g => {
     const on = g.id === active;
-    const roleTxt = g.role === 'owner' ? 'kurucu' : (g.role === 'admin' ? 'yönetici' : 'üye');
+    const roleTxt = g.role === 'owner' ? 'kurucu' : (g.role === 'admin' ? _grCev('gr.yonetici','yönetici') : _grCev('gr.uyeKucuk','üye'));
     return `<button class="grp-chip${on ? ' active' : ''}" ${on ? '' : `onclick="switchGroup('${g.id}')"`}>
       <span class="grp-dot${on ? ' on' : ''}" aria-hidden="true"></span>
       ${esc(g.name)} <span class="grp-role">${roleTxt}</span>
     </button>`;
   }).join('');
   if (hint) hint.textContent = (myGroups || []).length > 1
-    ? 'Aktif grubu değiştirdiğinizde repertuvarlar, solistler ve üyeler o gruba göre yüklenir.'
+    ? _grCev('gr.aktifGrupNot','Aktif grubu değiştirdiğinizde repertuvarlar, solistler ve üyeler o gruba göre yüklenir.')
     : '';
 }
 
@@ -511,9 +517,9 @@ function esc(t) { return (t == null ? '' : String(t)).replace(/&/g,'&amp;').repl
 
 async function switchGroup(gid) {
   if (gid === getGroupId()) return;
-  toast('Grup değiştiriliyor...');
+  toast(_grCev('gr.grupDegistiriliyor','Grup değiştiriliyor...'));
   const ok = await setActiveGroup(gid);   // profiles PATCH + offline sync
-  if (!ok) { toast('Grup değiştirilemedi — tekrar deneyin', 'err'); return; }
+  if (!ok) { toast(_grCev('gr.grupDegistirilemedi','Grup değiştirilemedi — tekrar deneyin'), 'err'); return; }
   location.reload();   // repertuvar/solist önbellekleri aktif gruba göre tazelenir
 }
 
@@ -525,7 +531,7 @@ function renderGroup() {
   const initial = g.name.charAt(0).toUpperCase();
   document.getElementById('groupAvatarEl').textContent = initial;
   document.getElementById('groupNameEl').textContent = g.name;
-  document.getElementById('groupMetaEl').textContent = currentMembers.length + ' üye';
+  document.getElementById('groupMetaEl').textContent = _grCev('gr.uyeSayisi','{n} üye').replace('{n}', currentMembers.length);
   if (g.description) document.getElementById('groupDescEl').textContent = g.description;
 
   // Davet bölümü sadece owner/admin'e
@@ -573,19 +579,19 @@ function renderMembersList(members) {
         <div id="instr-edit-${m.user_id}" style="display:none;margin-top:6px;">
           <div id="instr-chips-${m.user_id}" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;"></div>
           <input class="fi" style="font-size:12px;padding:5px 8px;" id="instr-input-${m.user_id}"
-                 list="instrOneriler" placeholder="Enstrüman yazın, Enter ile ekleyin..."
+                 list="instrOneriler" placeholder="${_grCev('gr.phEnstruman','Enstrüman yazın, Enter ile ekleyin...')}"
                  onkeydown="if(event.key==='Enter'){event.preventDefault();_enstrEkle('${m.user_id}');}">
           <div style="display:flex;gap:6px;margin-top:6px;">
             <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="_enstrEkle('${m.user_id}')">+ Ekle</button>
-            <button class="btn btn-primary" style="padding:4px 12px;font-size:11px;" onclick="saveInstrument('${m.user_id}')">Kaydet</button>
-            <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="cancelInstrument('${m.user_id}')">İptal</button>
+            <button class="btn btn-primary" style="padding:4px 12px;font-size:11px;" onclick="saveInstrument('${m.user_id}')" data-i18n="ortak.kaydet">Kaydet</button>
+            <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="cancelInstrument('${m.user_id}')" data-i18n="ortak.iptal">İptal</button>
           </div>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
         <span class="role-badge ${roleClass[m.role]||'role-member'}">${roleLabels[m.role]||'Üye'}</span>
         ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="editInstrument('${m.user_id}')"><i class="ti ti-pencil" style="font-size:11px;"></i></button>` : ''}
-        ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="addMemberAsSolist('${m.user_id}')" title="Solistler listesine ekle"><i class="ti ti-microphone" style="font-size:11px;"></i></button>` : ''}
+        ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="addMemberAsSolist('${m.user_id}')" title="${_grCev('gr.solistlereEkle','Solistler listesine ekle')}"><i class="ti ti-microphone" style="font-size:11px;"></i></button>` : ''}
         ${(isAdmin() || userRole==='owner') && m.user_id !== uid ? `
           <div class="role-dropdown" id="rd-${m.user_id}">
             <button class="btn btn-secondary role-dd-btn" style="padding:6px 12px;font-size:12px;display:flex;align-items:center;gap:5px;" onclick="toggleRoleDD('${m.user_id}', event)">
@@ -643,7 +649,7 @@ function _qrGosterGizle() {
   if (!wrap) return;
   var acik = wrap.style.display !== 'none';
   wrap.style.display = acik ? 'none' : '';
-  if (btn) btn.textContent = acik ? '📷 Karekodu Göster' : '🙈 Karekodu Gizle';
+  if (btn) btn.textContent = acik ? _grCev('gr.karekodGoster','📷 Karekodu Göster') : _grCev('gr.karekodGizle','🙈 Karekodu Gizle');
 }
 
 function _kontenjanYaz(invite) {
@@ -651,8 +657,8 @@ function _kontenjanYaz(invite) {
   if (!el || !invite) return;
   var max = invite.max_uses || 1;
   var kul = invite.used_count || 0;
-  el.textContent = kul + ' / ' + max + ' kullanıldı'
-    + (kul >= max ? ' — kontenjan doldu' : ' · ' + (max - kul) + ' kişilik yer kaldı');
+  el.textContent = _grCev('gr.kullanildi','{n} kullanıldı').replace('{n}', kul + ' / ' + max)
+    + (kul >= max ? _grCev('gr.kontenjanDoldu',' — kontenjan doldu') : ' · ' + _grCev('gr.yerKaldi','{n} kişilik yer kaldı').replace('{n}', max - kul));
 }
 
 async function generateInvite() {
@@ -677,12 +683,12 @@ async function generateInvite() {
     const link = shareBase + '/login.html?invite=' + invite.token;
     currentInviteLink = link;
     document.getElementById('inviteLinkText').textContent = link;
-    document.getElementById('inviteExpiry').textContent = '⏳ ' + new Date(invite.expires_at).toLocaleDateString('tr-TR', {day:'2-digit',month:'long',year:'numeric'}) + ' tarihine kadar geçerli';
+    document.getElementById('inviteExpiry').textContent = '⏳ ' + new Date(invite.expires_at).toLocaleDateString('tr-TR', {day:'2-digit',month:'long',year:'numeric'}) + _grCev('gr.tarihineKadar',' tarihine kadar geçerli');
     document.getElementById('inviteLinkBox').style.display = '';
     _qrCiz(link);
     _kontenjanYaz(invite);
-    toast('Davet linki oluşturuldu ✓');
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+    toast(_grCev('gr.davetOlusturuldu','Davet linki oluşturuldu ✓'));
+  } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 // ── 2026-08-23: AKTIF DAVETI GERI YUKLE ───────────────────────────────────
@@ -717,7 +723,7 @@ async function aktifDavetiYukle() {
     document.getElementById('inviteLinkText').textContent = link;
     document.getElementById('inviteExpiry').textContent = '⏳ '
       + new Date(inv.expires_at).toLocaleDateString('tr-TR',
-          {day:'2-digit',month:'long',year:'numeric'}) + ' tarihine kadar geçerli';
+          {day:'2-digit',month:'long',year:'numeric'}) + _grCev('gr.tarihineKadar',' tarihine kadar geçerli');
     document.getElementById('inviteLinkBox').style.display = '';
     _qrCiz(link);
     _kontenjanYaz(inv);
@@ -726,7 +732,7 @@ async function aktifDavetiYukle() {
 
 function copyInviteLink() {
   if (!currentInviteLink) return;
-  navigator.clipboard.writeText(currentInviteLink).then(() => toast('Link kopyalandı ✓'));
+  navigator.clipboard.writeText(currentInviteLink).then(() => toast(_grCev('gr.linkKopyalandi','Link kopyalandı ✓')));
 }
 
 function shareViaWhatsApp() {
@@ -755,13 +761,13 @@ async function saveGroupEdit() {
       body: JSON.stringify({ name, description: desc || null })
     });
     if (!r.ok) throw new Error(await r.text());
-    toast('Grup / Koro güncellendi ✓');
+    toast(_grCev('gr.guncellendi','Grup / Koro güncellendi ✓'));
     hideEditGroup();
     await loadPage();
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+  } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 async function deleteGroup() {
-  if (!confirm('Grubu / Koroyu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) return;
+  if (!confirm(_grCev('gr.silOnay','Grubu / Koroyu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.'))) return;
   try {
     // (2026-08-01) Üç istek de yanıtsız gidiyordu: ilk ikisi RLS'te düşse bile
     // profiller boşalıyor, ekranda "Koro silindi" yazıyordu. Artık her adım
@@ -772,20 +778,20 @@ async function deleteGroup() {
     const dm = await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + currentGroup.id, {
       method: 'DELETE', headers: authHeaders()
     });
-    if (!dm.ok) throw new Error('Üyelikler silinemedi: ' + (await dm.text()));
+    if (!dm.ok) throw new Error(_grCev('gr.uyelikSilinemedi','Üyelikler silinemedi: ') + (await dm.text()));
     const dg = await fetch(SUPA_URL + '/rest/v1/groups?id=eq.' + currentGroup.id, {
       method: 'DELETE', headers: authHeaders()
     });
-    if (!dg.ok) throw new Error('Grup / Koro silinemedi: ' + (await dg.text()));
+    if (!dg.ok) throw new Error(_grCev('gr.grupSilinemedi','Grup / Koro silinemedi: ') + (await dg.text()));
     const pp = await fetch(SUPA_URL + '/rest/v1/profiles?group_id=eq.' + currentGroup.id, {
       method: 'PATCH', headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
       body: JSON.stringify({ group_id: null })
     });
-    if (!pp.ok) throw new Error('Grup / Koro silindi ama profiller güncellenemedi: ' + (await pp.text()));
+    if (!pp.ok) throw new Error(_grCev('gr.profilGuncellenemedi','Grup / Koro silindi ama profiller güncellenemedi: ') + (await pp.text()));
     localStorage.removeItem('user_group_id');
-    toast('Grup / Koro silindi');
+    toast(_grCev('gr.silindi','Grup / Koro silindi'));
     await loadPage();
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+  } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 // Üye arama
@@ -812,8 +818,8 @@ async function changeRole(userId, newRole) {
       body: JSON.stringify({ role: newRole })
     });
     if (!r.ok) throw new Error(await r.text());
-    toast('Rol güncellendi ✓');
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+    toast(_grCev('gr.rolGuncellendi','Rol güncellendi ✓'));
+  } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 // Üyeyi Solistler listesine ekle (2026-08-01).
@@ -826,16 +832,16 @@ async function changeRole(userId, newRole) {
 // uygun değil. member_id NULL kalabilir: elle eklenen misafir/dış solistler böyle.
 async function addMemberAsSolist(userId) {
   const m = (currentMembers || []).find(x => x.user_id === userId);
-  if (!m) { toast('Üye bulunamadı', 'err'); return; }
+  if (!m) { toast(_grCev('gr.uyeBulunamadi','Üye bulunamadı'), 'err'); return; }
   const name = (m.display_name || (m.email ? m.email.split('@')[0] : '')).trim();
-  if (!name) { toast('Bu üyenin adı yok — önce profilinde ad tanımlanmalı', 'err'); return; }
+  if (!name) { toast(_grCev('gr.adYok','Bu üyenin adı yok — önce profilinde ad tanımlanmalı'), 'err'); return; }
   const gid = (currentGroup && currentGroup.id) || null;
-  if (!gid) { toast('Grup bulunamadı', 'err'); return; }
+  if (!gid) { toast(_grCev('gr.grupBulunamadi','Grup bulunamadı'), 'err'); return; }
   try {
     // 1) Bu üye zaten bağlı mı?
     const chk = await fetch(SUPA_URL + '/rest/v1/solistler?group_id=eq.' + gid + '&member_id=eq.' + userId + '&select=id,name', { headers: authHeaders() });
     const rows = chk.ok ? await chk.json() : [];
-    if (Array.isArray(rows) && rows.length) { toast((rows[0].name || name) + ' zaten solist listesinde'); return; }
+    if (Array.isArray(rows) && rows.length) { toast(_grCev('gr.zatenSolist','{ad} zaten solist listesinde').replace('{ad}', rows[0].name || name)); return; }
 
     // 2) SAHİPLENME: aynı grupta member_id'si BOŞ, ama e-postası ya da adı tutan bir
     //    solist varsa YENİ KAYIT AÇMA — mevcut satırı üyeye bağla. Bu olmadan elle
@@ -856,7 +862,7 @@ async function addMemberAsSolist(userId) {
         body: JSON.stringify(patch)
       });
       if (!up.ok) throw new Error(await up.text());
-      toast('🔗 ' + (t.name || name) + ' mevcut solist kaydına bağlandı');
+      toast('🔗 ' + _grCev('gr.solisteBaglandi','{ad} mevcut solist kaydına bağlandı').replace('{ad}', t.name || name));
       return;
     }
 
@@ -875,8 +881,8 @@ async function addMemberAsSolist(userId) {
       })
     });
     if (!r.ok) throw new Error(await r.text());
-    toast('🎤 ' + name + ' solistlere eklendi');
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+    toast('🎤 ' + _grCev('gr.solistlereEklendi','{ad} solistlere eklendi').replace('{ad}', name));
+  } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 // ── 2026-08-23: ÇOKLU ENSTRÜMAN ───────────────────────────────────────────
@@ -971,12 +977,12 @@ async function saveInstrument(userId) {
     });
     if (!r.ok) throw new Error(await r.text());
     const satir = await r.json();
-    if (!satir.length) throw new Error('Sunucu hiçbir satır güncellemedi — yetkiniz olmayabilir');
+    if (!satir.length) throw new Error(_grCev('gr.satirGuncellenmedi','Sunucu hiçbir satır güncellemedi — yetkiniz olmayabilir'));
     delete _enstrTaslak[userId];
-    toast('Enstrümanlar kaydedildi ✓');
+    toast(_grCev('gr.enstrumanKaydedildi','Enstrümanlar kaydedildi ✓'));
     _enstrOnerileriYukle();   // yeni girilen ad bir sonraki kisiye oneri olsun
     await loadPage();
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+  } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 // Otomatik tamamlama kaynagi: sistemde girilmis tum enstruman adlari.
@@ -1024,7 +1030,7 @@ async function leaveGroup() {
   const g = currentGroup;
   if (!uid || !g) return;
   if (userRole === 'owner') {
-    toast('Kurucu gruptan ayrılamaz. Önce kuruculuğu devredin ya da grubu silin.', 'err');
+    toast(_grCev('gr.kurucuAyrilamaz','Kurucu gruptan ayrılamaz. Önce kuruculuğu devredin ya da grubu silin.'), 'err');
     return;
   }
   if (!confirm('"' + g.name + '" grubundan ayrılmak istediğinize emin misiniz?\n\nGrubun repertuvarlarını ve gruba açılmış eserleri artık göremezsiniz. Kendi eserleriniz ve kişisel notlarınız sizde kalır.')) return;
@@ -1040,7 +1046,7 @@ async function leaveGroup() {
     if (!d.ok) throw new Error(await d.text());
     const silinen = await d.json();
     if (!Array.isArray(silinen) || !silinen.length) {
-      throw new Error('Üyelik satırı silinemedi (0 satır).');
+      throw new Error(_grCev('gr.uyelikSatirYok','Üyelik satırı silinemedi (0 satır).'));
     }
 
     // Aktif grup buydu: kalan gruplardan birine geç, yoksa boşalt. Bu adım
@@ -1053,26 +1059,26 @@ async function leaveGroup() {
       }
     } catch (e) { console.warn('[gruplar] aktif grup güncellenemedi:', e); }
 
-    toast('Gruptan ayrıldınız');
+    toast(_grCev('gr.gruptanAyrildiniz','Gruptan ayrıldınız'));
     setTimeout(() => location.reload(), 700);
   } catch (e) {
-    toast('Ayrılınamadı: ' + e.message, 'err');
+    toast(_grCev('gr.ayrilinamadi','Ayrılınamadı: ') + e.message, 'err');
   }
 }
 
 async function removeMember(userId) {
-  if (!confirm('Bu üyeyi gruptan çıkarmak istediğinize emin misiniz?')) return;
+  if (!confirm(_grCev('gr.uyeCikarOnay','Bu üyeyi gruptan çıkarmak istediğinize emin misiniz?'))) return;
   try {
     // 1) Üyelik satırını BUL — group_id'yi localStorage'dan değil satırdan al.
     const q = await fetch(SUPA_URL + '/rest/v1/group_members?user_id=eq.' + userId + '&select=id,group_id', {
       headers: authHeaders()
     });
-    if (!q.ok) throw new Error('Üyelik okunamadı: ' + (await q.text()));
+    if (!q.ok) throw new Error(_grCev('gr.uyelikOkunamadi','Üyelik okunamadı: ') + (await q.text()));
     const rows = await q.json();
     const row = (currentGroup && rows.find(m => m.group_id === currentGroup.id))
              || (rows.length === 1 ? rows[0] : null);
     if (!row) {
-      toast(rows.length ? 'Birden fazla üyelik var — hangisi belirsiz' : 'Üyelik kaydı bulunamadı', 'err');
+      toast(rows.length ? _grCev('gr.birdenFazlaUyelik','Birden fazla üyelik var — hangisi belirsiz') : _grCev('gr.uyelikYok','Üyelik kaydı bulunamadı'), 'err');
       return;
     }
 
@@ -1082,9 +1088,9 @@ async function removeMember(userId) {
       method: 'DELETE',
       headers: { ...authHeaders(), 'Prefer': 'return=representation' }
     });
-    if (!d.ok) throw new Error('Üyelik silinemedi: ' + (await d.text()));
+    if (!d.ok) throw new Error(_grCev('gr.uyelikSilinemedi2','Üyelik silinemedi: ') + (await d.text()));
     const deleted = await d.json();
-    if (!deleted.length) throw new Error('Üyelik satırı silinemedi (0 satır) — profil bilerek değiştirilmedi.');
+    if (!deleted.length) throw new Error(_grCev('gr.uyelikSatirYok2','Üyelik satırı silinemedi (0 satır) — profil bilerek değiştirilmedi.'));
 
     // 3) ANCAK ŞİMDİ profiles.group_id boşaltılır — ve (2026-08-06) YALNIZCA
     //    çıkarılan grup o kişinin AKTİF grubuysa. Çoklu grup üyeliğinde koşulsuz
@@ -1094,7 +1100,7 @@ async function removeMember(userId) {
       headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({ group_id: null })
     });
-    if (!p.ok) throw new Error('Üyelik silindi ama profil güncellenemedi: ' + (await p.text()));
+    if (!p.ok) throw new Error(_grCev('gr.uyelikSilindiProfil','Üyelik silindi ama profil güncellenemedi: ') + (await p.text()));
     // 0 satır ARTIK HATA DEĞİL: kişinin aktif grubu başka bir grup olabilir,
     // o zaman bu filtre hiçbir satır tutmaz ve bu DOĞRU davranıştır.
 
@@ -1102,9 +1108,9 @@ async function removeMember(userId) {
     // Eğer çıkarılan kullanıcı kendisiyse localStorage'ı temizle
     const me = typeof getUser === 'function' && getUser();
     if (me && me.id === userId) localStorage.removeItem('user_group_id');
-    toast('Üye çıkarıldı');
+    toast(_grCev('gr.uyeCikarildi','Üye çıkarıldı'));
     await loadPage();
-  } catch(e) { toast('Hata: ' + e.message, 'err'); }
+  } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 // Kullanıcı arama (tüm profiles tablosunda)
@@ -1145,7 +1151,7 @@ async function pickRole(userId, newRole) {
   const sbRole = document.getElementById('sbUserRole');
   if (sbAvatar) sbAvatar.textContent = initial;
   if (sbName) sbName.textContent = name;
-  if (sbRole) sbRole.textContent = isAdmin() ? 'Admin' : (getUserRole() === 'editor' ? 'Editör' : 'Üye');
+  if (sbRole) sbRole.textContent = isAdmin() ? 'Admin' : (getUserRole() === 'editor' ? _grCev('ortak.editor','Editör') : _grCev('ortak.uye','Üye'));
 
   // Show admin-only elements
   if (isAdmin() || getUserRole() === 'editor') {
