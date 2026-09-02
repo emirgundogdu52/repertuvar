@@ -710,7 +710,7 @@ async function load(){
     // "çevrimdışısın" diye yanıltma.
     const reallyOffline = (navigator.onLine === false);
     if (localHadData) {
-      sync('ok', reallyOffline ? 'Çevrimdışı — yerel veri' : 'Senkronize edilemedi');
+      sync('ok', reallyOffline ? _r('rep.cevrimdisiYerel','Çevrimdışı — yerel veri') : _r('rep.senkronHata','Senkronize edilemedi'));
     } else {
       sync('err', reallyOffline ? _r('rep.cevrimdisiKisa','Çevrimdışı') : _r('rep.baglantiHatasiKisa','Bağlantı hatası'));
     }
@@ -937,7 +937,7 @@ function renderDetail(){
           ${_canM?`<span class="drag-handle" onpointerdown="dragPointerStart(event)" title="Sürükleyerek taşı">⠿</span>`:''}
         </div>
       </td>
-      <td style="padding-left:16px;cursor:pointer;" onclick="openLyricsSheet('${it.workId}','${rep.id}','${it.id}')" title="Sözleri göster — düzenlemek için pencerede Düzenle">
+      <td style="padding-left:16px;cursor:pointer;" onclick="openLyricsSheet('${it.workId}','${rep.id}','${it.id}')" title="${_r('rep.sozleriGoster','Sözleri göster — düzenlemek için pencerede Düzenle')}">
         <div class="wn">${linked?'<span class="medley-chip" title="Potpuri devamı">🔗</span> ':''}${w.name||'#'+it.workId}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
         ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
@@ -963,8 +963,8 @@ function renderDetail(){
       <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:8px;">${rep.name}</div>
       <div class="cta-row">
         <a href="stage.html" class="bstage-primary" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:15px;" aria-hidden="true"></i> Sahneye Çık</a>
-        ${(rep.items||[]).length ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openDinleSheet('${rep.id}')" title="Repertuvarı YouTube bağlantılarından sırayla dinle">🎧 Dinle</button>` : ''}
-        ${rep.canManage && (rep.items||[]).length>2 ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openSortSheet('${rep.id}')" title="Makam geçişlerine göre sıralama önerisi">🎼 Sırala</button>` : ''}
+        ${(rep.items||[]).length ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openDinleSheet('${rep.id}')" title="${_r('rep.dinleT','Repertuvarı YouTube bağlantılarından sırayla dinle')}">🎧 Dinle</button>` : ''}
+        ${rep.canManage && (rep.items||[]).length>2 ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openSortSheet('${rep.id}')" title="${_r('rep.siralaT','Makam geçişlerine göre sıralama önerisi')}">🎼 Sırala</button>` : ''}
         ${rep.canManage ? `
         <details class="ov-menu">
           <summary class="bi" style="font-size:12px;padding:9px 12px;">⋯ Diğer</summary>
@@ -1018,7 +1018,7 @@ function visChip(rep){
   // ti-users-group, sol menüdeki "Grup / Koro" öğesiyle AYNI ikon (topnav.js:651).
   const map = {
     public:  ['pub',  'ti-world', 'Genel',   _r('rep.genelT','Herkese açık — değiştirmek için tıkla')],
-    group:   ['grp',  'ti-users-group', 'Grup',    _r('rep.grupT','Grup üyeleri görebilir — değiştirmek için tıkla')],
+    group:   ['grp',  'ti-users-group', _r('rep.grupKisa','Grup'),    _r('rep.grupT','Grup üyeleri görebilir — değiştirmek için tıkla')],
     private: ['priv', 'ti-lock',  _r('rep.kisisel','Kişisel'), _r('rep.kisiselT','Yalnızca sen görebilirsin — değiştirmek için tıkla')]
   };
   const [cls,icon,label,title] = map[v];
@@ -1063,7 +1063,7 @@ async function copyRep(repId){
     await load();
     selId=newRep.id;
     renderList();renderDetail();
-  }catch(e){sync('err','Hata');toast(e.message,'er');}
+  }catch(e){sync('err',_r('ortak.hata','Hata'));toast(e.message,'er');}
 }
 
 // ── Görünürlük seçimi: Kişisel / Grup / Genel ──────────────────────────────
@@ -1074,7 +1074,7 @@ function applyVisOptions(){ const gl=document.getElementById('visGroupLabel'); i
 function setVisChoice(v){ if(v==='group' && !getGroupId()) v='private'; const el=document.getElementById(v==='public'?'fVisPublic':(v==='group'?'fVisGroup':'fVisPrivate')); if(el) el.checked=true; }
 function getVisChoice(){ const el=document.querySelector('input[name="fVisibility"]:checked'); return el?el.value:'private'; }
 
-function openNew(){editId=null;document.getElementById('rmt').textContent='Yeni Repertuvar';['fN','fD','fV','fNo'].forEach(x=>document.getElementById(x).value='');document.getElementById('fS').value='concept';applyVisOptions();setVisChoice(getGroupId()?'group':'private');document.getElementById('rm').style.display='flex';setTimeout(()=>document.getElementById('fN').focus(),50);}
+function openNew(){editId=null;document.getElementById('rmt').textContent=_r('rep.yeniRepertuvar','Yeni Repertuvar');['fN','fD','fV','fNo'].forEach(x=>document.getElementById(x).value='');document.getElementById('fS').value='concept';applyVisOptions();setVisChoice(getGroupId()?'group':'private');document.getElementById('rm').style.display='flex';setTimeout(()=>document.getElementById('fN').focus(),50);}
 function openEdit(id){const r=getRep(id);if(!r)return;editId=id;document.getElementById('rmt').textContent=_r('rep.duzenle','Düzenle');document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';applyVisOptions();setVisChoice(repVis(r));document.getElementById('rm').style.display='flex';}
 function closeRM(){document.getElementById('rm').style.display='none';}
 
@@ -1131,14 +1131,14 @@ async function saveRep(){
     // Grup görünürlüğü PAYLAŞIM SATIRINA bağlı; sütun tek başına yetmiyor.
     const pay = await repGrupPaylasimiUygula(repId, vis, myGid);
     closeRM();
-    toast(pay.ok ? 'Kaydedildi ✓' : pay.mesaj, pay.ok ? 'ok' : 'er');
+    toast(pay.ok ? _r('ortak.kaydedildi','Kaydedildi ✓') : pay.mesaj, pay.ok ? 'ok' : 'er');
     await load();
-  }catch(e){sync('err','Hata');toast(e.message,'er');}
+  }catch(e){sync('err',_r('ortak.hata','Hata'));toast(e.message,'er');}
 }
 
 async function delRep(id){
   if(!confirm(_r('rep.silOnay','Bu repertuvarı silmek istiyor musunuz?')))return;
-  try{await dbDel('repertoires',id);if(selId===id)selId=null;toast('Silindi');await load();}catch(e){toast(e.message,'er');}
+  try{await dbDel('repertoires',id);if(selId===id)selId=null;toast(_r('ortak.silindi','Silindi'));await load();}catch(e){toast(e.message,'er');}
 }
 
 function openWM(repId){addRepId=repId;selWId=null;document.getElementById('ws').value='';document.getElementById('fCN').value='';document.getElementById('fIN').value='';document.getElementById('wpl').style.maxHeight='';const dw=document.getElementById('wDupWarn');if(dw)dw.style.display='none';filterW();document.getElementById('wm').style.display='flex';setTimeout(()=>document.getElementById('ws').focus(),50);}
@@ -1280,7 +1280,7 @@ function openLyricsSheet(workId, repId, itemId){
             <button id="lycEditBtn" onclick="lycEdit()" style="display:none;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">
               <i class="ti ti-edit" style="font-size:13px;" aria-hidden="true"></i> Düzenle
             </button>
-            <button onclick="closeLyricsSheet()" aria-label="Kapat" style="background:none;border:none;color:var(--text3);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;">×</button>
+            <button onclick="closeLyricsSheet()" aria-label="${_r('ortak.kapat','Kapat')}" style="background:none;border:none;color:var(--text3);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;">×</button>
           </div>
         </div>
         <div id="lycBody" style="padding:16px 18px 20px;overflow:auto;font-size:15px;line-height:1.85;color:var(--text);white-space:pre-wrap;"></div>
@@ -1333,13 +1333,13 @@ async function addWork(){
     // linked_prev açıkça false: kolon varsayılanı `true` olduğu için alan
     // gönderilmezse yeni eser kendiliğinden potpuriye bağlı doğuyordu (2026-08-06)
     await dbPost('repertoire_items',{repertoire_id:addRepId,work_id:selWId,seq:nextSeq,linked_prev:false,closing_note:document.getElementById('fCN').value.trim()||null,note:document.getElementById('fIN').value.trim()||null,performer:pfSelected.length?pfSelected.join(', '):null});
-    closeWM();toast('Eser eklendi ✓');await load();
+    closeWM();toast(_r('rep.eserEklendiKisa','Eser eklendi ✓'));await load();
   }catch(e){toast(e.message,'er');}
 }
 
 async function rmItem(repId,itemId,workName){
   if(!confirm(_r('rep.cikarOnay','{ad} repertuvardan çıkarılsın mı?').replace('{ad}', workName||_r('rep.buEser','Bu eser'))))return;
-  try{await dbDel('repertoire_items',itemId);toast('Silindi');await load();}catch(e){toast(e.message,'er');}
+  try{await dbDel('repertoire_items',itemId);toast(_r('ortak.silindi','Silindi'));await load();}catch(e){toast(e.message,'er');}
 }
 
 
@@ -2061,7 +2061,7 @@ async function saveIEM(){
       performer:iemPfSelected.length?iemPfSelected.join(', '):null
     };
     await dbPatch('repertoire_items',iemItemId,data);
-    closeIEM();toast('Kaydedildi ✓');await load();
+    closeIEM();toast(_r('ortak.kaydedildi','Kaydedildi ✓'));await load();
   }catch(e){toast(e.message,'er');}
 }
 function iemPfRender(){
@@ -2190,7 +2190,7 @@ async function createShareLink(hours){
     _shareQrCiz(link);
     if(navigator.share){
       const rp = getRep(repId);
-      try{ await navigator.share({title:(rp&&rp.name)||'Repertuvar', url:link}); }catch(e){}
+      try{ await navigator.share({title:(rp&&rp.name)||_r('rep.adsizRep','Repertuvar'), url:link}); }catch(e){}
     }
   }catch(e){
     if(box) box.innerHTML = '<div class="share-note" style="color:var(--red);">Bağlantı oluşturulamadı: '+e.message+'</div>';
@@ -2253,15 +2253,15 @@ function fallbackCopy(text, done){
 function shareViaEmail() {
   const link = document.getElementById('shareLink').dataset.url;
   const rep = getRep(shareRepId);
-  const subject = encodeURIComponent('\u1F3B5 ' + (rep ? rep.name : 'Repertuvar') + ' - Sahne Modu');
-  const body = encodeURIComponent(_r('rep.postaGovde','Merhaba,\n\n{ad} repertuvarını sahne modunda görüntülemek için aşağıdaki bağlantıyı kullanabilirsin:\n\n{link}\n\nİyi müzikler!').replace('{ad}', rep ? rep.name : 'Repertuvar').replace('{link}', link));
+  const subject = encodeURIComponent('\u1F3B5 ' + (rep ? rep.name : _r('rep.adsizRep','Repertuvar')) + _r('rep.sahneModuKonu',' - Sahne Modu'));
+  const body = encodeURIComponent(_r('rep.postaGovde','Merhaba,\n\n{ad} repertuvarını sahne modunda görüntülemek için aşağıdaki bağlantıyı kullanabilirsin:\n\n{link}\n\nİyi müzikler!').replace('{ad}', rep ? rep.name : _r('rep.adsizRep','Repertuvar')).replace('{link}', link));
   window.open('mailto:?subject=' + subject + '&body=' + body, '_blank');
 }
 
 function shareViaWhatsApp() {
   const link = document.getElementById('shareLink').dataset.url;
   const rep = getRep(shareRepId);
-  const text = '🎵 ' + (rep ? rep.name : 'Repertuvar') + ' — Sahne modunda görüntüle:\n' + link;
+  const text = '🎵 ' + (rep ? rep.name : _r('rep.adsizRep','Repertuvar')) + _r('rep.sahneModunda',' — Sahne modunda görüntüle:\n') + link;
   window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
 }
 
@@ -2497,7 +2497,7 @@ function openRepMoveSheet(workId, fromRepId) {
         <span class="rlp-nm" style="color:var(--accent);font-weight:600;">Yeni repertuvar oluştur</span>
       </button>
       <div id="rlpNewForm" style="display:none;padding:4px 20px 8px;">
-        <input id="rlpNewName" placeholder="Repertuvar adı" autocomplete="off"
+        <input id="rlpNewName" placeholder="${_r('rep.repAdiPh','Repertuvar adı')}" autocomplete="off"
           style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;background:var(--surface2);
                  border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;">
         ${grupSecenegi}
@@ -2552,7 +2552,7 @@ async function rlpAddToRep(repId) {
   if (!hedef || _rlpWorkId == null) return;
   const items = hedef.items || [];
   if (items.some(i => String(i.workId) === String(_rlpWorkId))) {
-    _rlpMsg('Bu eser zaten "' + (hedef.name || '') + '" içinde.', '#e07060');
+    _rlpMsg(_r('rep.zatenIcindeKisa','Bu eser zaten "{ad}" içinde.').replace('{ad}', hedef.name || ''), '#e07060');
     return;
   }
   const nextSeq = items.length ? Math.max(...items.map(i => i.seq || 0)) + 1 : 1;
@@ -2562,10 +2562,10 @@ async function rlpAddToRep(repId) {
       repertoire_id: repId, work_id: _rlpWorkId, seq: nextSeq, linked_prev: false
     });
     closeRepMoveSheet();
-    toast('✓ ' + _r('rep.icineEklendi','"{ad}" içine eklendi').replace('{ad}', hedef.name || 'Repertuvar'));
+    toast('✓ ' + _r('rep.icineEklendi','"{ad}" içine eklendi').replace('{ad}', hedef.name || _r('rep.adsizRep','Repertuvar')));
     await load();
   } catch (e) {
-    _rlpMsg('Eklenemedi: ' + (e.message || 'bilinmeyen hata'), '#e07060');
+    _rlpMsg(_r('rep.eklenemedi','Eklenemedi: ') + (e.message || _r('ortak.bilinmeyenHata','bilinmeyen hata')), '#e07060');
     console.error('[uzun bas → repertuvara ekle]', e);
   }
 }
@@ -2604,7 +2604,7 @@ async function rlpCreateAndAdd() {
     else toast(pay.mesaj, 'er');
     await load();
   } catch (e) {
-    _rlpMsg(_r('rep.olusturulamadi','Oluşturulamadı: ') + (e.message || 'bilinmeyen hata'), '#e07060');
+    _rlpMsg(_r('rep.olusturulamadi','Oluşturulamadı: ') + (e.message || _r('ortak.bilinmeyenHata','bilinmeyen hata')), '#e07060');
     console.error('[uzun bas → yeni repertuvar]', e);
   }
 }
@@ -2760,7 +2760,7 @@ function openDinleSheet(repId) {
             <div style="font-size:15px;font-weight:700;">🎧 Repertuvarı Dinle</div>
             <div style="font-size:12px;color:var(--text3);margin-top:3px;">${_dnlEsc(rep.name)}</div>
           </div>
-          <button class="dnl-x" onclick="closeDinleSheet()" aria-label="Kapat">×</button>
+          <button class="dnl-x" onclick="closeDinleSheet()" aria-label="${_r('ortak.kapat','Kapat')}">×</button>
         </div>
         <div style="padding:22px 18px;color:var(--text3);font-size:13px;line-height:1.6;">
           Bu repertuvardaki hiçbir eserde YouTube bağlantısı yok.<br>
@@ -2789,7 +2789,7 @@ function openDinleSheet(repId) {
           <div style="font-size:15px;font-weight:700;">🎧 Repertuvarı Dinle</div>
           <div style="font-size:12px;color:var(--text3);margin-top:3px;">${_dnlEsc(rep.name)} · ${calinabilir.length} eser</div>
         </div>
-        <button class="dnl-x" onclick="closeDinleSheet()" aria-label="Kapat">×</button>
+        <button class="dnl-x" onclick="closeDinleSheet()" aria-label="${_r('ortak.kapat','Kapat')}">×</button>
       </div>
       ${uyari}
       <div class="dnl-player" id="dnlPlayerWrap"><div id="dnlPlayer"></div></div>
@@ -2854,7 +2854,7 @@ function _dnlHata(kod) {
   const t = _dnlTracks[i];
   if (t) {
     _dnlHatali[t.vid] = (kod === 101 || kod === 150) ? _r('rep.gommeKapali','gömme kapalı')
-      : (kod === 100 ? 'video yok' : _r('rep.acilamadi','açılamadı'));
+      : (kod === 100 ? _r('rep.videoYok','video yok') : _r('rep.acilamadi','açılamadı'));
     const liste = document.getElementById('dnlList');
     if (liste) { liste.innerHTML = _dnlListeHtml(i); }
   }
@@ -3034,7 +3034,7 @@ async function knotSheetKaydet(){
   const yeni = t.value.trim();
   const d = document.getElementById('knotDurum'); if(d) d.textContent = 'Kaydediliyor…';
   try{
-    const uid = getUserId(); if(!uid) throw new Error('Oturum yok');
+    const uid = getUserId(); if(!uid) throw new Error(_r('ortak.oturumYok','Oturum yok'));
     if (yeni) {
       const H = Object.assign({}, hdrFor('personal_work_notes'), {
         'Content-Type':'application/json',
@@ -3055,7 +3055,7 @@ async function knotSheetKaydet(){
     }
     _knotDugmeleriTazele();
     closeKnotSheet();
-  }catch(e){ if(d) d.textContent = 'Kaydedilemedi: ' + e.message; }
+  }catch(e){ if(d) d.textContent = _r('ortak.kaydedilemedi','Kaydedilemedi: ') + e.message; }
 }
 
 async function knotSheetSil(){

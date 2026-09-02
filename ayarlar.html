@@ -91,19 +91,19 @@ async function hesapSil() {
 </script>
 <script>
 const DAVET_URL = 'https://app.repertuvar.app/login.html';
-const DAVET_MESAJ = 'Merhaba! Türk müziği repertuvar yönetimi için harika bir uygulama keşfettim. Sahne modunda eserler arası geçiş çok kolay. Bir bak: ';
+const DAVET_MESAJ = _t('ay.davetMesaj','Merhaba! Türk müziği repertuvar yönetimi için harika bir uygulama keşfettim. Sahne modunda eserler arası geçiş çok kolay. Bir bak: ');
 
 function linkKopyala() {
   navigator.clipboard.writeText(DAVET_URL).then(() => {
     const btn = document.getElementById('kopyalaBtn');
-    btn.textContent = '✓ Kopyalandı';
+    btn.textContent = _t('ay.kopyalandi','✓ Kopyalandı');
     setTimeout(() => btn.textContent = '📋 Kopyala', 2000);
   });
 }
 
 function paylasBilesen(tip) {
   const mesaj = encodeURIComponent(DAVET_MESAJ + DAVET_URL);
-  const konu = encodeURIComponent('Repertuvar — Sahne Müzisyenleri için');
+  const konu = encodeURIComponent(_t('ay.paylasKonu','Repertuvar — Sahne Müzisyenleri için'));
   if (tip === 'whatsapp') {
     window.open('https://wa.me/?text=' + mesaj, '_blank');
   } else if (tip === 'email') {
@@ -133,7 +133,7 @@ async function davetGonder() {
     return; 
   }
   const btn = document.getElementById('davetBtn');
-  btn.disabled = true; btn.textContent = 'Gönderiliyor...';
+  btn.disabled = true; btn.textContent = _t('ay.gonderiliyor','Gönderiliyor...');
   
   // Supabase ile davet e-postası gönder
   const SUPA_URL_L = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
@@ -152,27 +152,27 @@ async function davetGonder() {
     if (r.ok) {
       msg.style.display = 'block';
       msg.style.color = '#4ade80';
-      msg.textContent = '✓ Davet gönderildi!';
+      msg.textContent = _t('ay.davetGonderildi','✓ Davet gönderildi!');
       document.getElementById('davetEmail').value = '';
     } else {
       // Admin API yoksa manuel mail aç
-      const konu = encodeURIComponent("Repertuvar'a Davet");
-      const icerik = encodeURIComponent('Merhaba,\n\nSeni Repertuvar uygulamasına davet ediyorum. Türk müziği sahne yönetimi için çok işlevsel bir araç.\n\nKayıt olmak için: ' + DAVET_URL + '\n\nİyi müzikler!');
+      const konu = encodeURIComponent(_t('ay.davetKonu',"Repertuvar'a Davet"));
+      const icerik = encodeURIComponent(_t('ay.davetGovde','Merhaba,\n\nSeni Repertuvar uygulamasına davet ediyorum. Türk müziği sahne yönetimi için çok işlevsel bir araç.\n\nKayıt olmak için: ') + DAVET_URL + _t('ay.iyiMuzikler','\n\nİyi müzikler!'));
       window.open('mailto:' + email + '?subject=' + konu + '&body=' + icerik);
       msg.style.display = 'block';
       msg.style.color = '#4ade80';
-      msg.textContent = '✓ Mail uygulaması açıldı.';
+      msg.textContent = _t('ay.mailAcildi','✓ Mail uygulaması açıldı.');
     }
   } catch(e) {
-    const konu = encodeURIComponent("Repertuvar'a Davet");
-    const icerik = encodeURIComponent('Merhaba,\n\nSeni Repertuvar uygulamasına davet ediyorum.\n\nKayıt olmak için: ' + DAVET_URL);
+    const konu = encodeURIComponent(_t('ay.davetKonu',"Repertuvar'a Davet"));
+    const icerik = encodeURIComponent(_t('ay.davetGovdeKisa','Merhaba,\n\nSeni Repertuvar uygulamasına davet ediyorum.\n\nKayıt olmak için: ') + DAVET_URL);
     window.open('mailto:' + email + '?subject=' + konu + '&body=' + icerik);
     msg.style.display = 'block';
     msg.style.color = '#4ade80';
-    msg.textContent = '✓ Mail uygulaması açıldı.';
+    msg.textContent = _t('ay.mailAcildi','✓ Mail uygulaması açıldı.');
   }
   
-  btn.disabled = false; btn.textContent = 'Gönder';
+  btn.disabled = false; btn.textContent = _t('ay.gonder','Gönder');
 }
 
 </script>
@@ -741,7 +741,7 @@ function dilKutusunuDoldur() {
   const not = document.getElementById('dilNot');
   if (not) {
     not.textContent = i18n.dil() === 'tr'
-      ? 'Çeviri sürüyor — bazı ekranlar Türkçe kalabilir.'
+      ? _t('ay.ceviriSuruyor','Çeviri sürüyor — bazı ekranlar Türkçe kalabilir.')
       : 'Translation in progress — some screens may remain in Turkish.';
   }
 }
@@ -774,7 +774,7 @@ function dilDegistir(yeni) {
       }).catch(() => {});
     }
   } catch (e) {}
-  toast(yeni === 'tr' ? 'Dil değiştirildi ✓' : 'Language changed ✓');
+  toast(_t('ay.dilDegisti','Dil değiştirildi ✓'));
 }
 
 document.addEventListener('DOMContentLoaded', dilKutusunuDoldur);
@@ -865,7 +865,7 @@ async function alanVarsayilanKaydet() {
   // Hepsi kapalıysa yeni eser formunda tek alan kalmazdı.
   if (!_ayarSecili.length) {
     d.style.color = 'var(--red, #f87171)';
-    d.textContent = 'En az bir alan seçmelisiniz.';
+    d.textContent = _t('ay.enAzBirAlan','En az bir alan seçmelisiniz.');
     return;
   }
   try {
@@ -881,13 +881,13 @@ async function alanVarsayilanKaydet() {
     // Satır sayısı doğrulanıyor: RLS engellerse 0 satır döner ve bu,
     // başarıdan ayırt edilemez olurdu.
     const satir = await r.json();
-    if (!satir.length) throw new Error('Sunucu hiçbir satır güncellemedi.');
+    if (!satir.length) throw new Error(_t('ay.satirGuncellenmedi','Sunucu hiçbir satır güncellemedi.'));
     localStorage.setItem('defaultMusicFields', JSON.stringify(_ayarSecili));
-    d.textContent = 'Kaydedildi ✓';
-    toast('Müzik alanları güncellendi ✓');
+    d.textContent = _t('ortak.kaydedildi','Kaydedildi ✓');
+    toast(_t('ay.alanlarGuncellendi','Müzik alanları güncellendi ✓'));
   } catch (e) {
     d.style.color = 'var(--red, #f87171)';
-    d.textContent = 'Kaydedilemedi: ' + (e && e.message ? e.message : e);
+    d.textContent = _t('ortak.kaydedilemedi','Kaydedilemedi: ') + (e && e.message ? e.message : e);
   }
 }
 
@@ -895,7 +895,7 @@ document.addEventListener('DOMContentLoaded', ayarAlanlariniYukle);
 
 function saveSetting(key, value) {
   localStorage.setItem(key, value);
-  toast('Kaydedildi ✓');
+  toast(_t('ortak.kaydedildi','Kaydedildi ✓'));
 }
 
 async function saveDisplayName(){
@@ -905,10 +905,10 @@ async function saveDisplayName(){
   const show = (t, ok) => { if(!msg) return; msg.style.display='block'; msg.textContent=t;
     msg.style.color = ok ? 'var(--green,#3FB950)' : 'var(--red,#F85149)'; };
 
-  if (name.length < 2) { show('Lütfen ad ve soyadınızı girin.', false); return; }
+  if (name.length < 2) { show(_t('ay.adSoyadGir','Lütfen ad ve soyadınızı girin.'), false); return; }
   const u = getUser();
   const token = localStorage.getItem('sb_token');
-  if (!u || !token) { show('Oturum bulunamadı, tekrar giriş yapın.', false); return; }
+  if (!u || !token) { show(_t('ay.oturumYokGiris','Oturum bulunamadı, tekrar giriş yapın.'), false); return; }
 
   try {
     // 1) Hesap bilgisine yaz (user_metadata.full_name)
@@ -936,9 +936,9 @@ async function saveDisplayName(){
     ['sbUserName','tnUserName','profileName'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent = name; });
     ['sbAvatar','tnAvatar','profileAvatar'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent = name.charAt(0).toUpperCase(); });
 
-    show('✓ İsminiz kaydedildi.', true);
+    show(_t('ay.isimKaydedildi','✓ İsminiz kaydedildi.'), true);
   } catch(e) {
-    show('Kaydedilemedi: ' + e.message, false);
+    show(_t('ortak.kaydedilemedi','Kaydedilemedi: ') + e.message, false);
   }
 }
 
@@ -987,7 +987,7 @@ async function changePassword() {
       }, 1500);
     } else {
       const err = await r.json();
-      toast(err.message || 'Hata oluştu', 'err');
+      toast(err.message || _t('ay.hataOlustu','Hata oluştu'), 'err');
     }
   } catch(e) { toast(_t('mod.hata','Hata: ') + e.message, 'err'); }
 }
@@ -1026,7 +1026,7 @@ async function requestEmailChange() {
       toast(_t('mod.eposta_kodGonderildi','Doğrulama kodu {mail} adresine gönderildi').replace('{mail}', email));
     } else {
       const e = await r.json().catch(() => ({}));
-      toast(e.msg || e.error_description || e.error || 'İşlem başarısız', 'err');
+      toast(e.msg || e.error_description || e.error || _t('ay.islemBasarisiz','İşlem başarısız'), 'err');
     }
   } catch (e) { toast(_t('mod.baglantiHatasi','Bağlantı hatası: ') + e.message, 'err'); }
 }
@@ -1047,7 +1047,7 @@ async function verifyEmailChange() {
       toast(_t('mod.eposta_ok','E-posta güncellendi ✓'));
       setTimeout(() => location.reload(), 1200);
     } else {
-      toast(data.msg || data.error_description || 'Kod hatalı veya süresi dolmuş', 'err');
+      toast(data.msg || data.error_description || _t('ay.kodHatali','Kod hatalı veya süresi dolmuş'), 'err');
     }
   } catch (e) { toast(_t('mod.baglantiHatasi','Bağlantı hatası: ') + e.message, 'err'); }
 }
@@ -1079,7 +1079,7 @@ async function verifyEmailChange() {
       const pd = await rp.json();
       role = pd?.[0]?.role || 'member';
     }
-    const roleLabel = role === 'admin' ? 'Admin' : role === 'editor' ? 'Editör' : 'Üye';
+    const roleLabel = role === 'admin' ? _t('ortak.admin','Admin') : role === 'editor' ? _t('ortak.editor','Editör') : _t('ortak.uye','Üye');
     ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=roleLabel; });
     if (role === 'admin' || role === 'editor') {
       document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
@@ -1094,7 +1094,7 @@ async function verifyEmailChange() {
           ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='Admin'; });
         } else if (typeof isEditor === 'function' && isEditor()) {
           document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
-          ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='Editör'; });
+          ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=_t('ortak.editor','Editör'); });
         }
       }, 500);
     }
