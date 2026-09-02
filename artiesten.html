@@ -325,19 +325,19 @@ async function loadAll() {
     }
 
     setSyncStatus('err', _soCev('so.baglantiHatasi','Bağlantı hatası'));
-    showToast('Hata: ' + e.message, 'err');
+    showToast(_soCev('mod.hata','Hata: ') + e.message, 'err');
   }
 }
 
 function renderList() {
   const el = document.getElementById('artistListScroll');
-  if (!artists.length) { el.innerHTML = '<div style="padding:30px 16px;text-align:center;color:var(--text3);font-size:13px;">Henüz solist yok</div>'; return; }
+  if (!artists.length) { el.innerHTML = '<div style="padding:30px 16px;text-align:center;color:var(--text3);font-size:13px;">' + _soCev('so.solistYok','Henüz solist yok') + '</div>'; return; }
   el.innerHTML = artists.map(a => `
     <div class="artist-item${selectedId===a.id?' active':''}" onclick="selectArtist('${a.id}')">
       <div class="artist-avatar">${initials(a.name)}</div>
       <div class="artist-info">
         <div class="artist-name">${a.name}</div>
-        <div class="artist-sub">${a.phone || a.email || ((a.works||[]).length+' eser')}</div>
+        <div class="artist-sub">${a.phone || a.email || (_soCev('so.eserSayisi','{n} eser').replace('{n}', (a.works||[]).length))}</div>
       </div>
     </div>`).join('');
 }
@@ -365,25 +365,25 @@ function renderDetail() {
           
         </div>
         <div class="detail-actions">
-          <button class="btn-icon" onclick="openEditModal('${a.id}')">✏️ Düzenle</button>
-          <button class="btn-icon btn-danger" onclick="deleteArtist('${a.id}')">Sil</button>
+          <button class="btn-icon" onclick="openEditModal('${a.id}')">✏️ ${_soCev('rep.duzenle','Düzenle')}</button>
+          <button class="btn-icon btn-danger" onclick="deleteArtist('${a.id}')">${_soCev('ortak.sil','Sil')}</button>
         </div>
       </div>
       <div class="info-grid">
-        ${a.phone?`<div class="info-card"><div class="info-card-label">Telefon</div><div class="info-card-value"><a href="tel:${a.phone}">${a.phone}</a></div></div>`:''}
-        ${a.email?`<div class="info-card"><div class="info-card-label">E-posta</div><div class="info-card-value"><a href="mailto:${a.email}">${a.email}</a></div></div>`:''}
-        ${a.notes?`<div class="info-card full"><div class="info-card-label">Notlar</div><div class="notes-box">${a.notes}</div></div>`:''}
+        ${a.phone?`<div class="info-card"><div class="info-card-label">${_soCev('so.telefon','Telefon')}</div><div class="info-card-value"><a href="tel:${a.phone}">${a.phone}</a></div></div>`:''}
+        ${a.email?`<div class="info-card"><div class="info-card-label">${_soCev('so.eposta','E-posta')}</div><div class="info-card-value"><a href="mailto:${a.email}">${a.email}</a></div></div>`:''}
+        ${a.notes?`<div class="info-card full"><div class="info-card-label">${_soCev('so.notlar','Notlar')}</div><div class="notes-box">${a.notes}</div></div>`:''}
       </div>
       <div class="works-chips">
         ${workChips}
-        <button class="work-chip-add" onclick="openWorkModal('${a.id}')"><i class="ti ti-plus" style="font-size:13px;"></i> Eser Ekle</button>
+        <button class="work-chip-add" onclick="openWorkModal('${a.id}')"><i class="ti ti-plus" style="font-size:13px;"></i> ${_soCev('so.eserEkle','Eser Ekle')}</button>
       </div>
     </div>`;
 }
 
 function openNewModal() {
   editingId = null;
-  document.getElementById('modalTitle').textContent = 'Yeni Solist';
+  document.getElementById('modalTitle').textContent = _soCev('so.yeniSolist','Yeni Solist');
   ['fName','fPhone','fEmail','fNotes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('artistModal').style.display = 'flex';
   setTimeout(() => document.getElementById('fName').focus(), 50);
@@ -423,14 +423,14 @@ async function saveArtist() {
       selectedId = newA.id;
     }
     closeModal();
-    showToast('Kaydedildi ✓');
+    showToast(_soCev('so.kaydedildi','Kaydedildi ✓'));
     await loadAll();
-  } catch(e) { showToast('Hata: ' + e.message, 'err'); }
+  } catch(e) { showToast(_soCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 async function deleteArtist(id) {
   if (!canManageArtist(getArtist(id))) { denyEdit(); return; }
-  if (!confirm('Bu solist silinsin mi?')) return;
+  if (!confirm(_soCev('so.silOnay','Bu solist silinsin mi?'))) return;
   try {
     // .select() ŞART: RLS engellerse PostgREST hata değil, 0 SATIR döndürür.
     // Bunu kontrol etmezsek "Silindi ✓" deyip satır ekranda kalıyor (2026-08-01 hatası).
@@ -438,9 +438,9 @@ async function deleteArtist(id) {
     if (error) throw error;
     if (!data || data.length === 0) { denyEdit(); return; }
     if (selectedId === id) selectedId = null;
-    showToast('Silindi');
+    showToast(_soCev('so.silindi','Silindi'));
     await loadAll();
-  } catch(e) { showToast('Hata: ' + e.message, 'err'); }
+  } catch(e) { showToast(_soCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 function openWorkModal(artistId) {
@@ -465,7 +465,7 @@ function renderWorkPicker(q) {
       <div class="work-pick-name">${w.name}</div>
       <div class="work-pick-sub">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div>
     </div>`
-  ).join('') || '<div style="padding:16px;text-align:center;color:var(--text3);">Bulunamadı — Önce Eserler sayfasını ziyaret edin</div>';
+  ).join('') || '<div style="padding:16px;text-align:center;color:var(--text3);">' + _soCev('so.bulunamadi','Bulunamadı — Önce Eserler sayfasını ziyaret edin') + '</div>';
 }
 
 async function addWorkToArtist() {
@@ -483,9 +483,9 @@ async function addWorkToArtist() {
     if (error) throw error;
     if (!upd || upd.length === 0) { denyEdit(); return; }
     closeWorkModal();
-    showToast('Eser eklendi ✓');
+    showToast(_soCev('so.eserEklendi','Eser eklendi ✓'));
     await loadAll();
-  } catch(e) { showToast('Hata: ' + e.message, 'err'); }
+  } catch(e) { showToast(_soCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 async function removeWork(artistId, idx) {
@@ -499,7 +499,7 @@ async function removeWork(artistId, idx) {
     if (error) throw error;
     if (!upd || upd.length === 0) { denyEdit(); return; }
     await loadAll();
-  } catch(e) { showToast('Hata: ' + e.message, 'err'); }
+  } catch(e) { showToast(_soCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 
 document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeModal(); closeWorkModal(); } });
