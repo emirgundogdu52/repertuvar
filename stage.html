@@ -2113,22 +2113,22 @@ function renderStage(){
     const rows = [
       // (2026-08-23) KADRO en uste yakin: sahnede "bu eserde kim caliyor"
       // sorusu esere girerken sorulur, teknik ayrintilardan once gelir.
-      item.performer ? `<div class="sip-row"><span class="sip-label">Kadro</span><span class="sip-val">${item.performer}</span></div>` : '',
-      w.makam ? `<div class="sip-row"><span class="sip-label">Makam</span><span class="sip-val">${w.makam}</span></div>` : '',
-      (item.closingNote||w.closingNote) ? `<div class="sip-row"><span class="sip-label">Kapanış</span><span class="sip-val">${item.closingNote||w.closingNote}</span></div>` : '',
-      w.tuning ? `<div class="sip-row"><span class="sip-label">Akort</span><span class="sip-val">${w.tuning}</span></div>` : '',
-      w.form ? `<div class="sip-row"><span class="sip-label">Form</span><span class="sip-val">${w.form}</span></div>` : '',
+      item.performer ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.kadro','Kadro')}</span><span class="sip-val">${item.performer}</span></div>` : '',
+      w.makam ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.makam','Makam')}</span><span class="sip-val">${w.makam}</span></div>` : '',
+      (item.closingNote||w.closingNote) ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.kapanis','Kapanış')}</span><span class="sip-val">${item.closingNote||w.closingNote}</span></div>` : '',
+      w.tuning ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.akort','Akort')}</span><span class="sip-val">${w.tuning}</span></div>` : '',
+      w.form ? `<div class="sip-row"><span class="sip-label">${_sCev('es.form','Form')}</span><span class="sip-val">${w.form}</span></div>` : '',
       // (2026-08-30) `measurement` ÖLÇÜ tutuyor (4/4, 9/8), usul değil.
       // Usul ayrı sütunda (`ritim`) ve o da burada gösteriliyor.
-      w.measurement ? `<div class="sip-row"><span class="sip-label">Ölçü</span><span class="sip-val">${w.measurement}</span></div>` : '',
-      w.ritim ? `<div class="sip-row"><span class="sip-label">Usul</span><span class="sip-val">${w.ritim}</span></div>` : '',
-      w.region ? `<div class="sip-row"><span class="sip-label">Bölge</span><span class="sip-val">${w.region}</span></div>` : '',
-      w.composer ? `<div class="sip-row"><span class="sip-label">Besteci</span><span class="sip-val">${w.composer}</span></div>` : '',
-      w.lyricWriter ? `<div class="sip-row"><span class="sip-label">Söz Yazarı</span><span class="sip-val">${w.lyricWriter}</span></div>` : '',
-      w.instrument ? `<div class="sip-row"><span class="sip-label">Enstrüman</span><span class="sip-val">${w.instrument}</span></div>` : '',
-      item.note ? `<div class="sip-row"><span class="sip-label">Not</span><span class="sip-val">${item.note}</span></div>` : '',
+      w.measurement ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.olcu','Ölçü')}</span><span class="sip-val">${w.measurement}</span></div>` : '',
+      w.ritim ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.usul','Usul')}</span><span class="sip-val">${w.ritim}</span></div>` : '',
+      w.region ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.bolge','Bölge')}</span><span class="sip-val">${w.region}</span></div>` : '',
+      w.composer ? `<div class="sip-row"><span class="sip-label">${_sCev('es.bestecialan','Besteci')}</span><span class="sip-val">${w.composer}</span></div>` : '',
+      w.lyricWriter ? `<div class="sip-row"><span class="sip-label">${_sCev('es.sozyazari','Söz Yazarı')}</span><span class="sip-val">${w.lyricWriter}</span></div>` : '',
+      w.instrument ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.enstruman','Enstrüman')}</span><span class="sip-val">${w.instrument}</span></div>` : '',
+      item.note ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.not','Not')}</span><span class="sip-val">${item.note}</span></div>` : '',
     ].filter(Boolean).join('');
-    panel.innerHTML = rows || '<div style="color:var(--text3);font-size:12px;">Bilgi yok</div>';
+    panel.innerHTML = rows || '<div style="color:var(--text3);font-size:12px;">' + _sCev('sh.bilgiYok','Bilgi yok') + '</div>';
     const infoBtn = document.querySelector('.stage-info-btn');
     if (infoBtn) infoBtn.style.display = rows ? 'flex' : 'none';
   }
@@ -2161,7 +2161,7 @@ function renderStage(){
   const _kt = getTranspose(item.workId);
   const _kl = kararLabel(_cn, _kt);
   const kararChip = _cn
-    ? `<div class="wkarar${_kt ? ' shifted' : ''}" title="${_kt && kararLabel(_cn,0) ? 'Orijinal karar: ' + kararLabel(_cn,0) : ''}">Karar: ${_kl || _cn}${(!_kl && _kt) ? ' (kaydırılmadı)' : ''}</div>`
+    ? `<div class="wkarar${_kt ? ' shifted' : ''}" title="${_kt && kararLabel(_cn,0) ? _sCev('sh.orijinalKarar','Orijinal karar: {n}').replace('{n}', kararLabel(_cn,0)) : ''}">${_sCev('sh.kararKisa','Karar')}: ${_kl || _cn}${(!_kl && _kt) ? _sCev('es.kaydirilmadi',' (kaydırılmadı)') : ''}</div>`
     : '';
   const _head = document.getElementById('smHead');
   if (_head) _head.innerHTML = `
@@ -2867,7 +2867,7 @@ function showScreen(id){
         '<rect x="2.5" y="6" width="7" height="12" rx="2"/>' +
         '<rect x="14.5" y="6" width="7" height="12" rx="2"/>' +
         '<path d="M9.5 9h5M9.5 15h5"/><circle cx="12" cy="12" r="1.4"/></svg>' +
-        '<span>Pedalı bağla</span>';
+        '<span>' + _sCev('sh.pedaliBagla','Pedalı bağla') + '</span>';
       // (2026-08-23) KONUM: sag alttaki ayar dugmesinin HEMEN USTUNDE, saga
       // hizali. Onceki hali ekranin ortasindaydi ve eser sozlerinin uzerine
       // biniyordu — yari saydam oldugu icin metin arkasindan gecince
