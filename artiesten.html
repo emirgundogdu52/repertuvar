@@ -15,7 +15,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Solistler — Repertuvar</title>
+<title data-i18n="so.sayfaBaslik">Solistler — Repertuvar</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="i18n.js"></script>
@@ -150,8 +150,8 @@ html{background:var(--bg);}
 <div class="layout">
   <aside class="artist-list-panel">
     <div class="panel-header">
-      <h2>Solistler</h2>
-      <button class="btn-new" onclick="openNewModal()">+ Yeni</button>
+      <h2 data-i18n="so.solistler">Solistler</h2>
+      <button class="btn-new" onclick="openNewModal()" data-i18n="so.yeni">+ Yeni</button>
     </div>
     <div class="list-scroll" id="artistListScroll"></div>
   </aside>
@@ -161,7 +161,7 @@ html{background:var(--bg);}
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
         <circle cx="12" cy="7" r="4"/>
       </svg>
-      <p>Bir solist seçin</p>
+      <p data-i18n="so.solistSec">Bir solist seçin</p>
     </div>
     <div id="detailContent" style="display:none;padding:0 0 40px;"></div>
   </div>
@@ -170,14 +170,14 @@ html{background:var(--bg);}
 <!-- MODAL: Artist -->
 <div class="modal-overlay" id="artistModal" style="display:none;">
   <div class="modal">
-    <h2 id="modalTitle">Yeni Solist</h2>
-    <div class="form-row"><label class="form-label">Ad Soyad *</label><input class="form-input" id="fName" placeholder="Solist adı"></div>
-    <div class="form-row"><label class="form-label">Telefon</label><input class="form-input" id="fPhone" type="tel" placeholder="+31 6 ..."></div>
-    <div class="form-row"><label class="form-label">E-posta</label><input class="form-input" id="fEmail" type="email" placeholder="email@adres.com"></div>
-    <div class="form-row"><label class="form-label">Notlar</label><textarea class="form-input" id="fNotes" rows="3" placeholder="Örn. Genelde Si ve Do karar okur..."></textarea></div>
+    <h2 id="modalTitle" data-i18n="so.yeniSolist">Yeni Solist</h2>
+    <div class="form-row"><label class="form-label" data-i18n="so.adSoyad">Ad Soyad *</label><input class="form-input" id="fName" placeholder="Solist adı" data-i18n-ph="so.phAd"></div>
+    <div class="form-row"><label class="form-label" data-i18n="so.telefon">Telefon</label><input class="form-input" id="fPhone" type="tel" placeholder="+31 6 ..." data-i18n-ph="so.phTel"></div>
+    <div class="form-row"><label class="form-label" data-i18n="so.eposta">E-posta</label><input class="form-input" id="fEmail" type="email" placeholder="email@adres.com" data-i18n-ph="so.phMail"></div>
+    <div class="form-row"><label class="form-label" data-i18n="so.notlar">Notlar</label><textarea class="form-input" id="fNotes" rows="3" placeholder="Örn. Genelde Si ve Do karar okur..." data-i18n-ph="so.phNot"></textarea></div>
     <div class="form-actions">
-      <button class="btn-cancel" onclick="closeModal()">İptal</button>
-      <button class="btn-save" onclick="saveArtist()">Kaydet</button>
+      <button class="btn-cancel" onclick="closeModal()" data-i18n="ortak.iptal">İptal</button>
+      <button class="btn-save" onclick="saveArtist()" data-i18n="ortak.kaydet">Kaydet</button>
     </div>
   </div>
 </div>
@@ -185,12 +185,12 @@ html{background:var(--bg);}
 <!-- MODAL: Add Work -->
 <div class="modal-overlay" id="workModal" style="display:none;">
   <div class="modal">
-    <h2>Eser Ekle</h2>
-    <input class="form-input" id="workSearch" placeholder="Eser adı veya besteci ara..." oninput="filterWorks()" autocomplete="off">
+    <h2 data-i18n="so.eserEkle">Eser Ekle</h2>
+    <input class="form-input" id="workSearch" placeholder="Eser adı veya besteci ara..." data-i18n-ph="so.phAra" oninput="filterWorks()" autocomplete="off">
     <div class="work-picker-list" id="workPickerList"></div>
     <div class="form-actions">
-      <button class="btn-cancel" onclick="closeWorkModal()">İptal</button>
-      <button class="btn-save" onclick="addWorkToArtist()">Ekle</button>
+      <button class="btn-cancel" onclick="closeWorkModal()" data-i18n="ortak.iptal">İptal</button>
+      <button class="btn-save" onclick="addWorkToArtist()" data-i18n="ortak.ekle">Ekle</button>
     </div>
   </div>
 </div>
@@ -210,6 +210,14 @@ let addingToArtistId = null;
 // Sıradan üye ekleyebilir ama başkasının kaydına dokunamaz — sunucu 403 verirdi,
 // bunun yerine anlaşılır bir uyarı gösteriyoruz.
 let MY_GROUP_ROLE = localStorage.getItem('myGroupRole') || null;
+// (2026-09-02) JS'ten yazilan metinler icin ceviri yardimcisi.
+// data-i18n yalnizca HTML'de duran metinleri cozuyor; toast ve durum
+// mesajlari calisma aninda uretildigi icin sozluge buradan bakiyorlar.
+function _soCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 function isGroupManager(){ return MY_GROUP_ROLE === 'owner' || MY_GROUP_ROLE === 'admin'; }
 async function loadMyGroupRole(){
   const uid = getUserId(), gid = getGroupId();
@@ -227,7 +235,7 @@ function canManageArtist(a){
   return a.user_id === uid || a.member_id === uid || isGroupManager();
 }
 function denyEdit(){
-  showToast('Bu solist kaydını grup yöneticisi ya da kaydı ekleyen kişi düzenleyebilir', 'err');
+  showToast(_soCev('so.yetkiNot','Bu solist kaydını grup yöneticisi ya da kaydı ekleyen kişi düzenleyebilir'), 'err');
 }
 
 function setSyncStatus(state, label) {
@@ -255,7 +263,7 @@ async function _yerelSolistleriCiz() {
     if (!yerel || !yerel.length) return false;
     artists = yerel.slice().sort((a, b) =>
       String(a.name || '').localeCompare(String(b.name || ''), 'tr'));
-    setSyncStatus('err', 'Çevrimdışı — kayıtlı veri');
+    setSyncStatus('err', _soCev('so.cevrimdisiKayit','Çevrimdışı — kayıtlı veri'));
     renderList();
     if (selectedId) renderDetail();
     else if (artists.length) { selectedId = artists[0].id; renderList(); renderDetail(); }
@@ -268,7 +276,7 @@ async function _yerelSolistleriCiz() {
 }
 
 async function loadAll() {
-  setSyncStatus('loading', 'Yükleniyor...');
+  setSyncStatus('loading', _soCev('ortak.yukleniyor','Yükleniyor...'));
   loadMyGroupRole();   // yetki bilgisi — gelince bir sonraki çizimde doğrulanır
 
   // ── 2026-08-23: ÇEVRİMDIŞI KISA DEVRE ───────────────────────────────────
@@ -278,11 +286,11 @@ async function loadAll() {
   // zaten biliyorsak ağı hiç beklemeye gerek yok — doğrudan önbellekten çiz.
   if (!navigator.onLine) {
     if (await _yerelSolistleriCiz()) {
-      showToast('Çevrimdışısınız, son kayıtlı liste gösteriliyor', 'err');
+      showToast(_soCev('so.cevrimdisiListe','Çevrimdışısınız, son kayıtlı liste gösteriliyor'), 'err');
       return;
     }
-    setSyncStatus('err', 'Çevrimdışı');
-    showToast('Çevrimdışısınız ve kayıtlı liste yok', 'err');
+    setSyncStatus('err', _soCev('so.cevrimdisi','Çevrimdışı'));
+    showToast(_soCev('so.cevrimdisiBos','Çevrimdışısınız ve kayıtlı liste yok'), 'err');
     return;
   }
 
@@ -312,11 +320,11 @@ async function loadAll() {
     // Sahnede "bu eseri kim soyluyor" bilgisi lazim oldugunda internet
     // olmayabilir; onbellekten cizip durumu acikca soyluyoruz.
     if (await _yerelSolistleriCiz()) {
-      showToast('Bağlantı kurulamadı, son kayıtlı liste gösteriliyor', 'err');
+      showToast(_soCev('so.baglantiYok','Bağlantı kurulamadı, son kayıtlı liste gösteriliyor'), 'err');
       return;
     }
 
-    setSyncStatus('err', 'Bağlantı hatası');
+    setSyncStatus('err', _soCev('so.baglantiHatasi','Bağlantı hatası'));
     showToast('Hata: ' + e.message, 'err');
   }
 }
@@ -385,7 +393,7 @@ function openEditModal(id) {
   if (!a) return;
   if (!canManageArtist(a)) { denyEdit(); return; }
   editingId = id;
-  document.getElementById('modalTitle').textContent = 'Solist Düzenle';
+  document.getElementById('modalTitle').textContent = _soCev('so.solistDuzenle','Solist Düzenle');
   document.getElementById('fName').value = a.name;
   document.getElementById('fPhone').value = a.phone || '';
   document.getElementById('fEmail').value = a.email || '';
@@ -461,7 +469,7 @@ function renderWorkPicker(q) {
 }
 
 async function addWorkToArtist() {
-  if (!selectedWorkId) { alert('Lütfen bir eser seçin.'); return; }
+  if (!selectedWorkId) { alert(_soCev('so.eserSecin','Lütfen bir eser seçin.')); return; }
   const a = getArtist(addingToArtistId);
   if (!a) return;
   if (!canManageArtist(a)) { denyEdit(); return; }
