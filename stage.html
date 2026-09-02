@@ -327,7 +327,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Sahne Modu</title>
+<title data-i18n="sh.sayfaBaslik">Sahne Modu</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -980,23 +980,23 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 
 
 <div class="screen" id="pickerScreen">
-  <button onclick="openStageNav()" title="Menü" style="position:fixed;bottom:20px;right:16px;z-index:500;width:44px;height:44px;border-radius:50%;background:rgba(124,111,255,0.15);border:1px solid rgba(124,111,255,0.35);color:#7c6fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);display:none;"><i class="ti ti-layout-navbar" style="font-size:20px;"></i></button>
+  <button onclick="openStageNav()" title="Menü" data-i18n-title="sh.menu" style="position:fixed;bottom:20px;right:16px;z-index:500;width:44px;height:44px;border-radius:50%;background:rgba(124,111,255,0.15);border:1px solid rgba(124,111,255,0.35);color:#7c6fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);display:none;"><i class="ti ti-layout-navbar" style="font-size:20px;"></i></button>
   <div class="pi">
     <div class="pi-fixed-top">
-      <h1 class="ptitle">Sahne Moduna Hoş Geldiniz</h1>
-      <p class="psub">Sahne performansınız için bir repertuvar seçiniz</p>
-      <input type="text" id="stageSearchInput" placeholder="Repertuvar veya eser adı ara..." oninput="onStageSearchInput(this.value)"
+      <h1 class="ptitle" data-i18n="sh.hosgeldin">Sahne Moduna Hoş Geldiniz</h1>
+      <p class="psub" data-i18n="sh.repSec">Sahne performansınız için bir repertuvar seçiniz</p>
+      <input type="text" id="stageSearchInput" placeholder="Repertuvar veya eser adı ara..." data-i18n-ph="sh.araPh" oninput="onStageSearchInput(this.value)"
         style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--text);font-family:inherit;outline:none;margin-bottom:16px;transition:border-color .15s;box-sizing:border-box;"
         onfocus="this.style.borderColor='#FFC83D'" onblur="this.style.borderColor='var(--border)'">
     </div>
     <div class="pi-scroll">
-      <div class="rsl" id="rsl"><div class="loading">Yükleniyor...</div></div>
+      <div class="rsl" id="rsl"><div class="loading" data-i18n="ortak.yukleniyor">Yükleniyor...</div></div>
     </div>
     <div class="pi-fixed-bottom">
-      <button class="bstart" id="bstart" disabled onclick="startStage()">Sahneye Çık →</button>
+      <button class="bstart" id="bstart" disabled onclick="startStage()"><span data-i18n="sh.sahneyeCik">Sahneye Çık →</span></button>
       <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
-        <div id="tc-day" onclick="setTheme('day')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(148,148,168,0.18);color:#8b8aa8;cursor:pointer;transition:all .15s;">☀️ Gündüz</div>
-        <div id="tc-night" onclick="setTheme('night')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(148,148,168,0.18);color:#8b8aa8;cursor:pointer;transition:all .15s;">🌙 Gece</div>
+        <div id="tc-day" onclick="setTheme('day')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(148,148,168,0.18);color:#8b8aa8;cursor:pointer;transition:all .15s;"data-i18n="sh.gunduz">☀️ Gündüz</div>
+        <div id="tc-night" onclick="setTheme('night')" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(148,148,168,0.18);color:#8b8aa8;cursor:pointer;transition:all .15s;"data-i18n="sh.gece">🌙 Gece</div>
       </div>
     </div>
   </div>
@@ -1020,7 +1020,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   <div class="info-sheet" id="infoSheet">
     <div class="info-sheet-handle"></div>
     <div class="info-sheet-header">
-      <span>Eser Bilgileri</span>
+      <span data-i18n="sh.eserBilgileri">Eser Bilgileri</span>
       <button class="info-sheet-close" onclick="closeInfoSheet()"><i class="ti ti-x" style="font-size:18px;"></i></button>
     </div>
     <div class="info-sheet-body" id="stageInfoPanel"></div>
@@ -1032,13 +1032,13 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
        sonra repertuvar adini, en son eser adini goruyordu. Sahnede once
        "hangi eser, hangi karar" bilgisi okunur; sekmeler ondan sonra gelir. -->
   <div class="stb-r1">
-    <div class="vm-tabs" id="viewModeTabs" role="tablist" aria-label="Görünüm">
-      <button class="vm-tab" data-mode="lyrics" role="tab" title="Söz" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i><span class="vm-lbl">Söz</span></button>
-      <button class="vm-tab" data-mode="chords" role="tab" title="Akor" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i><span class="vm-lbl">Akor</span></button>
-      <button class="vm-tab" data-mode="nota" role="tab" title="Nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i><span class="vm-lbl">Nota</span></button>
+    <div class="vm-tabs" id="viewModeTabs" role="tablist" aria-label="Görünüm" data-i18n-aria="sh.gorunum">
+      <button class="vm-tab" data-mode="lyrics" role="tab" title="Söz" data-i18n-title="sh.soz" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i><span class="vm-lbl" data-i18n="sh.soz">Söz</span></button>
+      <button class="vm-tab" data-mode="chords" role="tab" title="Akor" data-i18n-title="sh.akor" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i><span class="vm-lbl" data-i18n="sh.akor">Akor</span></button>
+      <button class="vm-tab" data-mode="nota" role="tab" title="Nota" data-i18n-title="sh.nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i><span class="vm-lbl" data-i18n="sh.nota">Nota</span></button>
       <span class="vm-sep" aria-hidden="true"></span>
-      <button class="stage-info-btn" onclick="event.stopPropagation();openInfoSheet()" title="Eser Bilgileri" aria-label="Eser Bilgileri">
-        <i class="ti ti-info-circle" aria-hidden="true"></i><span class="vm-lbl">Bilgi</span>
+      <button class="stage-info-btn" onclick="event.stopPropagation();openInfoSheet()" title="Eser Bilgileri" data-i18n-title="sh.eserBilgileri" aria-label="Eser Bilgileri" data-i18n-aria="sh.eserBilgileri">
+        <i class="ti ti-info-circle" aria-hidden="true"></i><span class="vm-lbl" data-i18n="sh.bilgi">Bilgi</span>
       </button>
     </div>
   </div>
@@ -1046,7 +1046,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();nextWork()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
     <div class="sb-menu">
-      <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" class="sb-menu-btn"><i class="ti ti-adjustments-horizontal"></i></button>
+      <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" data-i18n-title="sh.gorunumAyarlari" class="sb-menu-btn"><i class="ti ti-adjustments-horizontal"></i></button>
       <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;overflow-x:hidden;border-radius:12px;padding:8px 12px;z-index:9999;">
         <div id="stageToolsRow"></div>
       </div>
@@ -1062,7 +1062,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
          olduğu belli; değerler ince dikey çizgilerle ayrılıyor. -->
     <div class="np" id="np" style="display:none;">
       <div class="np-top">
-        <span class="nl">Sıradaki</span>
+        <span class="nl" data-i18n="sh.siradaki">Sıradaki</span>
         <span class="nn" id="nn">—</span>
       </div>
       <div class="np-side" id="npSide"></div>
@@ -1071,19 +1071,19 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
          paneline taşındı ("Yazı Boyutu" bloğu). Burada A−, kaydırıcı ve A+
          diye ÜÇ kontrol aynı işi yapıyordu; panelde tek kaydırıcı kaldı.
          Alt şerit böylece yalnızca "Sıradaki" bilgisini taşıyor. -->
-    <div class="th" style="display:none;">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
+    <div class="th" style="display:none;" data-i18n-html="sh.ipucu">Ekrana dokun veya<br><kbd>→</kbd> <kbd>Space</kbd> ile ilerle<br><kbd>←</kbd> ile geri dön</div>
   </div>
 </div>
 
 <div class="screen hidden" id="endScreen">
   <div class="ei">🎉</div>
-  <h1 class="et">Bravo!</h1>
-  <p class="es" id="ern">Repertuvar tamamlandı</p>
-  <p class="ec" id="erc">0 eser</p>
+  <h1 class="et" data-i18n="sh.bravo">Bravo!</h1>
+  <p class="es" id="ern" data-i18n="sh.repTamamlandi">Repertuvar tamamlandı</p>
+  <p class="ec" id="erc" data-i18n="sh.eserSayisiSifir">0 eser</p>
   <div class="ea">
-    <button class="be bep" onclick="restartStage()">↺ Baştan Başla</button>
-    <button class="be beg" id="btnRepertuvarSec" onclick="backToPicker()">Repertuvar Seç</button>
-    <a href="index.html" class="be beg" id="btnAnaSayfa">Ana Sayfa</a>
+    <button class="be bep" onclick="restartStage()"><span data-i18n="sh.bastanBasla">↺ Baştan Başla</span></button>
+    <button class="be beg" id="btnRepertuvarSec" onclick="backToPicker()"><span data-i18n="sh.repertuvarSec">Repertuvar Seç</span></button>
+    <a href="index.html" class="be beg" id="btnAnaSayfa" data-i18n="sh.anaSayfa">Ana Sayfa</a>
   </div>
 </div>
 
@@ -1127,7 +1127,7 @@ function stageToast(text){
 }
 function stageOfflineToast(){
   if (_stageOfflineToastShown) return;
-  if (navigator.onLine === false){ _stageOfflineToastShown = true; stageToast('📵 Çevrimdışı mod — yerel veriler gösteriliyor'); }
+  if (navigator.onLine === false){ _stageOfflineToastShown = true; stageToast(_sCev('sh.cevrimdisi','📵 Çevrimdışı mod — yerel veriler gösteriliyor')); }
 }
 
 async function loadWL() {
@@ -1285,7 +1285,7 @@ function knotSahneHtml(workId){
   const cokSatir = not.indexOf('\n') !== -1 || not.length > 60;
   const acik = _knotAcikId === String(workId);
   return '<div class="knot-sahne' + (acik ? ' acik' : '') + '" onclick="knotSahneAc(event,\'' + workId + '\')"' +
-         ' title="Kişisel notun — yalnızca sen görürsün">' +
+         _sCev('sh.knotT',' title="Kişisel notun — yalnızca sen görürsün">') +
          '<i class="ti ti-lock" aria-hidden="true"></i>' +
          '<span class="kn-tx">' + _knotEsc(not) + '</span>' +
          (cokSatir ? '<span class="kn-dh">' + (acik ? 'kapat' : 'aç') + '</span>' : '') +
@@ -1439,8 +1439,8 @@ function renderPicker(){
   const el=document.getElementById('rsl');
   if(!reps.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);line-height:1.8;">Henüz repertuvar yok.<br><a href="repertoires.html" style="color:var(--accent)">Repertuvar sayfasında</a> repertuvar oluşturun.</div>';return;}
   const filtered = reps.filter(r=>stageRepMatchesSearch(r, stageSearchQuery));
-  if(stageSearchQuery && !filtered.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);">"'+stageSearchQuery+'" için sonuç bulunamadı</div>';return;}
-  const sl={concept:'Taslak',confirmed:'Onaylandı',archive:'Arşiv'};
+  if(stageSearchQuery && !filtered.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);">' + _sCev('sh.sonucYok','"{q}" için sonuç bulunamadı').replace('{q}', stageSearchQuery) + '</div>';return;}
+  const sl={concept:_sCev('sh.dTaslak','Taslak'),confirmed:_sCev('sh.dOnaylandi','Onaylandı'),archive:_sCev('sh.dArsiv','Arşiv')};
   const uid = getUserId();
   el.innerHTML=filtered.map(r=>{
     const isOwner = r.owner_id === uid || r.user_id === uid;
@@ -1589,7 +1589,7 @@ const RS_AUTH_H = {
 };
 
 async function rsDeleteRep(id) {
-  if (!confirm('Bu repertuvarı silmek istiyor musunuz?')) return;
+  if (!confirm(_sCev('sh.silOnay','Bu repertuvarı silmek istiyor musunuz?'))) return;
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/repertoires?id=eq.' + id, { method: 'DELETE', headers: RS_AUTH_H });
     if (!r.ok) throw new Error(await r.text());
@@ -1598,7 +1598,7 @@ async function rsDeleteRep(id) {
     if (window.db) db.repertoires.delete(id).catch(()=>{});
     renderPicker();
   } catch (e) {
-    alert('Silinirken bir hata oluştu: ' + e.message);
+    alert(_sCev('sh.silHata','Silinirken bir hata oluştu: ') + e.message);
   }
 }
 
@@ -1770,6 +1770,14 @@ function tonSesAdi(closingNote, n) {
   if (yazim === 'solfej') return (d ? _KARAR_TR_D : _KARAR_TR)[j];
   return (d ? _KARAR_LATIN_D : _KARAR_LATIN)[j];
 }
+// (2026-09-01) JS'ten yazilan metinler icin ceviri yardimcisi. data-i18n
+// yalnizca HTML'de duran metinleri cozuyor; sahne ekraninin buyuk kismi
+// calisma aninda uretiliyor. i18n yuklenmemisse Turkceye duser.
+function _sCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+
 function _tonAktifItem() { return (curRep && (curRep.items||[])[curIdx]) || null; }
 function _tonKararSesi() {
   const item = _tonAktifItem();
@@ -2200,7 +2208,7 @@ function renderStage(){
     const linkedNext = !!next.linked_prev;
     np.classList.toggle('medley', linkedNext);
     const nl = np.querySelector('.nl');
-    if (nl) nl.textContent = linkedNext ? '🔗 POTPURİ — DEVAMI' : 'Sıradaki';
+    if (nl) nl.textContent = linkedNext ? _sCev('sh.potpuriDevam','🔗 POTPURİ — DEVAMI') : _sCev('sh.siradaki','Sıradaki');
     np.style.display='flex';   // (2026-08-06) 'block' CSS'teki yatay dizilimi eziyordu
   }
   else np.style.display='none';
@@ -2303,9 +2311,9 @@ function initBackBtn() {
   const src = localStorage.getItem('stageSource');
   const backBtn = document.getElementById('btnGoBack');
   if (backBtn && src) {
-    const labels = { eserler: 'Eserler', repertoires: 'Repertuvarlar', index: 'Ana Sayfa', artiesten: 'Solistler', uyeler: 'Üyeler', ayarlar: 'Ayarlar' };
+    const labels = { eserler: _sCev('sh.navEserler','Eserler'), repertoires: _sCev('sh.navRepertuvarlar','Repertuvarlar'), index: _sCev('sh.anaSayfa','Ana Sayfa'), artiesten: _sCev('sh.navSolistler','Solistler'), uyeler: _sCev('sh.navUyeler','Üyeler'), ayarlar: _sCev('sh.navAyarlar','Ayarlar') };
     const lbl = backBtn.querySelector('.v2-bn-label');
-    if (lbl) lbl.textContent = labels[src] || 'Geri Dön';
+    if (lbl) lbl.textContent = labels[src] || _sCev('sh.geriDon','Geri Dön');
   }
   // Not: görünüm etiketi artık her renderStage() çağrısında updateViewToggleUI() ile güncelleniyor
 }
@@ -2381,7 +2389,7 @@ function buildStageToolsRow(mode) {
   // gizli yedek düğme için) — sadece panelden çağrılmıyor.
   const sahneBtns = `
       <a href="#" onclick="event.stopPropagation();goBack(event)" class="st-act" title="Geldiğin sayfaya dön"><i class="ti ti-arrow-left"></i>Geri Dön</a>
-      <a href="index.html" onclick="event.stopPropagation()" class="st-act" title="Ana sayfa"><i class="ti ti-home"></i>Ana Sayfa</a>
+      <a href="index.html" onclick="event.stopPropagation()" class="st-act" title="Ana sayfa" data-i18n-title="sh.anaSayfa"><i class="ti ti-home"></i><span data-i18n="sh.anaSayfa">Ana Sayfa</span></a>
       <button onclick="event.stopPropagation();exitStage(event)" class="st-act st-act-exit" title="Sahne modundan çık"><i class="ti ti-x"></i>Sahneden Çık</button>`;
   // Akor modunda ton kaydırma (± yarım ton) — eser başına saklanır
   const item = (curRep && (curRep.items||[])[curIdx]) || null;
@@ -2410,7 +2418,7 @@ function buildStageToolsRow(mode) {
       const _org = tonSesAdi(_cnTon, 0);
       tonBtns = `
       <button onclick="tonKaydiriciAc(event)" id="tonBtn" class="ton-btn${tVal?' shifted':''}"
-        title="${tVal ? ('Özgün karar: ' + _org + ' — değiştirmek için dokun') : 'Tonu değiştir'}">
+        title="${tVal ? (_sCev('sh.ozgunKarar','Özgün karar: {n} — değiştirmek için dokun').replace('{n}', _org)) : _sCev('sh.tonuDegistir','Tonu değiştir')}">
         <i class="ti ti-music"></i>${_ad}${tVal ? `<span style="font-size:10px;font-weight:700;opacity:.75;">${tVal>0?'+'+tVal:tVal}</span>` : ''}
       </button>`;
     } else {
@@ -2452,7 +2460,7 @@ function buildStageToolsRow(mode) {
       </div>`;
 
   if (mode === 'nota') {
-    row.innerHTML = grup('Görünüm', themeBtn) + grup('Sahne', sahneBtns, true);
+    row.innerHTML = grup(_sCev('sh.gorunum','Görünüm'), themeBtn) + grup(_sCev('sh.grupSahne','Sahne'), sahneBtns, true);
   } else {
     // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama ikisinde de geçerli
     const alignBtns = `
@@ -2463,14 +2471,14 @@ function buildStageToolsRow(mode) {
     // Notu olmayan eserde düğme göstermek "neyi kapatıyorum?" sorusu doğurur.
     const _knotVar = !!(item && PERSONAL_NOTES[String(item.workId)]);
     const knotBtn = _knotVar ? `
-      <button onclick="knotGosterToggle(event)" title="Kişisel notu göster/gizle" class="align-btn${KNOT_GOSTER?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;"><i class="ti ti-lock"></i> ${KNOT_GOSTER?'Açık':'Kapalı'}</button>` : '';
+      <button onclick="knotGosterToggle(event)" title="${_sCev('sh.knotToggleT','Kişisel notu göster/gizle')}" class="align-btn${KNOT_GOSTER?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;"><i class="ti ti-lock"></i> ${KNOT_GOSTER?_sCev('sh.acik','Açık'):_sCev('sh.kapali','Kapalı')}</button>` : '';
     row.innerHTML = grup('Hizalama', alignBtns)
-                  + grup('Yazı Boyutu', fontBlok)
+                  + grup(_sCev('sh.yaziBoyutu','Yazı Boyutu'), fontBlok)
                   + grup('Ton', tonBtns)
-                  + grup('Akor Yazımı', yazimBtns)
-                  + grup('Kişisel Not', knotBtn)
-                  + grup('Görünüm', themeBtn)
-                  + grup('Sahne', sahneBtns, true);
+                  + grup(_sCev('sh.akorYazimi','Akor Yazımı'), yazimBtns)
+                  + grup(_sCev('sh.kisiselNot','Kişisel Not'), knotBtn)
+                  + grup(_sCev('sh.gorunum','Görünüm'), themeBtn)
+                  + grup(_sCev('sh.grupSahne','Sahne'), sahneBtns, true);
     // Panel her yeniden kurulduğunda kaydırıcının dolgu rengi ve hiza
     // düğmelerinin aktif hâli sıfırlanır — kayıtlı değerlerden geri yazılır.
     updateFontSliderUI(_olcek);
@@ -2500,7 +2508,7 @@ function showStageChangeBar() {
     bar.remove();
     try { renderStage(); } catch (e) { location.reload(); }
   };
-  bar.textContent = 'Repertuvar güncellendi — yenilemek için dokun';
+  bar.textContent = _sCev('sh.repGuncellendi','Repertuvar güncellendi — yenilemek için dokun');
   bar.style.cssText =
     'position:fixed;left:50%;transform:translateX(-50%);top:calc(8px + env(safe-area-inset-top));' +
     'z-index:9999;background:var(--accent);color:#1a1200;border:none;border-radius:20px;' +
@@ -2558,7 +2566,8 @@ function showEndScreen(){
   applyStageTheme('picker');
   showScreen('endScreen');
   document.getElementById('ern').textContent = curRep.name || '';
-  document.getElementById('erc').textContent = (curRep.items||[]).length + ' eser seslendirdiniz';
+  document.getElementById('erc').textContent =
+    _sCev('sh.eserSeslendirdiniz','{n} eser seslendirdiniz').replace('{n}', (curRep.items||[]).length);
   // Paylaşım modunda Ana Sayfa ve Repertuvar Seç butonlarını gizle
   const isShared = !!new URLSearchParams(window.location.search).get('share');
   const btnRep = document.getElementById('btnRepertuvarSec');
@@ -2760,7 +2769,7 @@ function showScreen(id){
     kutu.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;z-index:99999;'+
       'background:rgba(0,0,0,.85);color:#0f0;font:12px/1.5 monospace;padding:8px 10px;'+
       'border-radius:8px;white-space:pre-wrap;pointer-events:none;';
-    kutu.textContent = 'PEDAL TEŞHİS — pedala bas (son 8 olay listelenir)';
+    kutu.textContent = _sCev('sh.pedalTeshis','PEDAL TEŞHİS — pedala bas (son 8 olay listelenir)');
     // (2026-08-19 düzeltme) Şerit ÜZERİNE YAZIYORDU, son olay öncekini siliyordu.
     // Pedal bir KOMBİNASYON gönderiyorsa (ör. Cmd+ArrowDown) sırayla dört olay
     // doğar (Meta ↓, Arrow ↓, Arrow ↑, Meta ↑) ve ekranda yalnız sonuncusu
@@ -3388,9 +3397,9 @@ function loadSideWork(id) {
 <nav id="v2StageBotNav">
   <!-- Stage screen: sahneye özel nav — picker/bitiş ekranlarında paylaşılan topnav.js alt nav'ı (#r-bottom-nav) kullanılıyor -->
   <div class="v2-bn-items" id="stageNavStage" style="display:none;">
-    <a href="#" class="v2-bn-item" id="btnGoBack" onclick="goBack(event)"><i class="ti ti-arrow-left" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Geri Dön</span></a>
-    <a href="index.html" class="v2-bn-item" id="btnStageHome"><i class="ti ti-home" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Ana Sayfa</span></a>
-    <button class="v2-bn-item v2-bn-exit" onclick="event.stopPropagation();exitStage(event)" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-x" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label">Çık</span></button>
+    <a href="#" class="v2-bn-item" id="btnGoBack" onclick="goBack(event)"><i class="ti ti-arrow-left" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" id="btnGoBackLbl" data-i18n="sh.geriDon">Geri Dön</span></a>
+    <a href="index.html" class="v2-bn-item" id="btnStageHome"><i class="ti ti-home" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" data-i18n="sh.anaSayfa">Ana Sayfa</span></a>
+    <button class="v2-bn-item v2-bn-exit" onclick="event.stopPropagation();exitStage(event)" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-x" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" data-i18n="sh.cik">Çık</span></button>
   </div>
 </nav>
 <script>
