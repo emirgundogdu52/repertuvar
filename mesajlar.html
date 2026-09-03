@@ -288,10 +288,12 @@ function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr);
   const m = Math.floor(diff / 60000);
   if (m < 1) return _msCev('ortak.azOnce','Az önce');
-  if (m < 60) return m + _msCev('ortak.dkOnce',' dk önce');
+  // (2026-09-03) Sozluk anahtarlari '{n} dk once' bicimindeydi ama burada
+  // sayi + metin olarak birlestiriliyordu; sonuc "9{n} h ago" oluyordu.
+  if (m < 60) return _msCev('ortak.dkOnce','{n} dk önce').replace('{n}', m);
   const h = Math.floor(m / 60);
-  if (h < 24) return h + _msCev('ortak.saOnce',' sa önce');
-  return Math.floor(h / 24) + _msCev('ortak.gunOnce',' gün önce');
+  if (h < 24) return _msCev('ortak.saOnce','{n} sa önce').replace('{n}', h);
+  return _msCev('ortak.gunOnce','{n} gün önce').replace('{n}', Math.floor(h / 24));
 }
 
 function switchTab(tab) {

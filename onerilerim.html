@@ -120,10 +120,12 @@ function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr);
   const m = Math.floor(diff / 60000);
   if (m < 1) return _onCev('ortak.azOnce','Az önce');
-  if (m < 60) return m + _onCev('ortak.dkOnce',' dk önce');
+  // (2026-09-03) Sozluk anahtarlari '{n} dk once' bicimindeydi ama burada
+  // sayi + metin olarak birlestiriliyordu; sonuc "3{n} d ago" oluyordu.
+  if (m < 60) return _onCev('ortak.dkOnce','{n} dk önce').replace('{n}', m);
   const h = Math.floor(m / 60);
-  if (h < 24) return h + _onCev('ortak.saOnce',' sa önce');
-  return Math.floor(h / 24) + _onCev('ortak.gunOnce',' gün önce');
+  if (h < 24) return _onCev('ortak.saOnce','{n} sa önce').replace('{n}', h);
+  return _onCev('ortak.gunOnce','{n} gün önce').replace('{n}', Math.floor(h / 24));
 }
 
 function esc(s) {
