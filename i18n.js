@@ -776,7 +776,6 @@
       'menu.cikis': 'Çıkış Yap',
       'menu.sahnemodu': 'Sahne Modu',
       'menu.aktifGrup': 'Aktif grup',
-      'menu.oturumKapat': 'Oturumu Kapat',
       'menu.hesap': 'Hesap',
       'menu.grupDegisemedi': 'Grup değiştirilemedi. Bağlantınızı kontrol edip tekrar deneyin.',
 
@@ -1791,7 +1790,6 @@
       'menu.cikis': 'Sign Out',
       'menu.sahnemodu': 'Stage Mode',
       'menu.aktifGrup': 'Active group',
-      'menu.oturumKapat': 'Sign Out',
       'menu.hesap': 'Account',
       'menu.grupDegisemedi': 'Could not switch group. Check your connection and try again.',
 
