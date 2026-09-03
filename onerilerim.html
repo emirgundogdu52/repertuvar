@@ -78,6 +78,11 @@
 .btn-add:hover{background:rgba(124,111,255,.2);}
 .btn-edit{padding:5px 14px;border-radius:7px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;}
 .btn-edit:hover{color:var(--text);}
+.btn-soz{padding:5px 14px;border-radius:7px;background:rgba(255,200,61,.08);border:1px solid rgba(255,200,61,.28);color:var(--accent,#FFC83D);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-soz:hover{background:rgba(255,200,61,.16);}
+.card-lyrics{display:none;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.7;color:var(--text2);max-height:60vh;overflow-y:auto;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
+.card-lyrics.acik{display:block;}
+.card-lyrics .soz-bos{color:var(--text3);font-style:italic;}
 .btn-restore{padding:5px 14px;border-radius:7px;background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.35);color:#3FB950;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
 .btn-restore:hover{background:rgba(63,185,80,.22);}
 .badge.deleted{background:rgba(192,84,68,.12);border:1px solid rgba(192,84,68,.35);color:#e07060;}
@@ -181,7 +186,8 @@ function cardHtml(w, kind) {
   // silinmiş bir kaydı düzenleyip kaybolmasına şaşırırdı.
   let actions = (kind === 'deleted')
     ? '<button class="btn-restore" onclick="restoreWork(' + w.id + ')">↩︎ Geri Al</button>'
-    : '<a href="' + editUrl(w.id) + '" class="btn-edit">' + _onCev('rep.duzenle','Düzenle') + '</a>';
+    : '<a href="' + editUrl(w.id) + '" class="btn-edit">' + _onCev('rep.duzenle','Düzenle') + '</a>'
+      + '<button class="btn-soz" onclick="sozAcKapa(this, ' + w.id + ')">' + _onCev('on.sozleriAc','🎵 Sözleri Aç') + '</button>';
   if (kind === 'pending') {
     actions += '<a href="repertoires.html?add_work=' + w.id + '" class="btn-add">' + _onCev('es.repertuvaraEkle','Repertuvara Ekle') + '</a>'
              + '<button class="btn-retract" onclick="retractSuggestion(' + w.id + ')">Öneriyi Geri Çek</button>';
@@ -194,7 +200,42 @@ function cardHtml(w, kind) {
     +   (w.submitted_at ? '<span>🕐 ' + timeAgo(w.submitted_at) + '</span>' : '')
     + '</div>'
     + '<div class="card-actions">' + actions + '</div>'
+    + (kind === 'deleted' ? '' : '<div class="card-lyrics" id="soz-' + w.id + '"></div>')
     + '</div>';
+}
+
+const _sozOnbellek = {};
+
+async function sozAcKapa(btn, id) {
+  const kutu = document.getElementById('soz-' + id);
+  if (!kutu) return;
+  if (kutu.classList.contains('acik')) {
+    kutu.classList.remove('acik');
+    btn.textContent = _onCev('on.sozleriAc','🎵 Sözleri Aç');
+    return;
+  }
+  kutu.classList.add('acik');
+  btn.textContent = _onCev('on.sozleriKapat','🎵 Sözleri Kapat');
+  if (id in _sozOnbellek) { sozYaz(kutu, _sozOnbellek[id]); return; }
+  kutu.innerHTML = '<span class="soz-bos">' + esc(_onCev('on.sozYukleniyor','Sözler yükleniyor…')) + '</span>';
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + encodeURIComponent(id) + '&select=lyrics',
+                          { headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const rows = await r.json();
+    const soz = (Array.isArray(rows) && rows.length) ? (rows[0].lyrics || '') : '';
+    _sozOnbellek[id] = soz;
+    sozYaz(kutu, soz);
+  } catch (e) {
+    kutu.innerHTML = '<span class="soz-bos">' + esc(_onCev('on.sozYuklenemedi','Sözler yüklenemedi: ') + e.message) + '</span>';
+  }
+}
+
+// Soz kullanicidan geliyor: HAM BASILMAZ, esc()'ten gecer.
+function sozYaz(kutu, soz) {
+  kutu.innerHTML = (soz && soz.trim())
+    ? esc(soz)
+    : '<span class="soz-bos">' + esc(_onCev('on.sozYok','Bu eserde söz kayıtlı değil.')) + '</span>';
 }
 
 function section(title, desc, items, kind, emptyText) {
