@@ -513,7 +513,7 @@ function _m(anahtar, tr) {
       <span class="dt-user-name" id="dtUserName">${name}</span>
       <div class="dt-user-dropdown" id="dtUserDropdown">
         <button class="dt-user-dd-item danger" onclick="logout()">
-          <i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> Çıkış Yap
+          <i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> ${_m('menu.cikis','Çıkış Yap')}
         </button>
       </div>
     `;
@@ -614,7 +614,7 @@ function _m(anahtar, tr) {
            + '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + _grpEsc(g.name) + '</span>'
            + '</button>';
     }).join('');
-    return '<div class="r-grp-head">Aktif grup</div>' + rows + '<div class="r-grp-sep"></div>';
+    return '<div class="r-grp-head">' + _m('menu.aktifGrup','Aktif grup') + '</div>' + rows + '<div class="r-grp-sep"></div>';
   }
 
   // (2026-08-06) TELEFONDA YÖNETİM. Sol menü yalnızca >=1024px'te çiziliyor ve
@@ -629,7 +629,8 @@ function _m(anahtar, tr) {
     const yetkili = (u && u.id === ADMIN_ID) || rol === 'admin' || rol === 'editor';
     if (!yetkili) return '';
     return '<a href="yonetim.html" class="r-tn-dd-item">'
-         + '<i class="ti ti-shield-lock" style="font-size:15px;"></i> Yönetim</a>';
+         + '<i class="ti ti-shield-lock" style="font-size:15px;"></i> '
+         + _m('menu.yonetim','Yönetim') + '</a>';
   }
 
   function refreshGroupMenus() {
@@ -648,7 +649,7 @@ function _m(anahtar, tr) {
     document.querySelectorAll('.sb-user-dropdown, .r-tn-dropdown').forEach(function(d) { d.classList.remove('open'); });
     const ok = await setActiveGroup(gid);
     if (ok) location.reload();
-    else alert('Grup değiştirilemedi. Bağlantınızı kontrol edip tekrar deneyin.');
+    else alert(_m('menu.grupDegisemedi','Grup değiştirilemedi. Bağlantınızı kontrol edip tekrar deneyin.'));
   };
 
   // Üyelik listesi arka planda tazelenince menüyü yeniden çiz.
@@ -668,16 +669,16 @@ function _m(anahtar, tr) {
         <div id="rTnGroups"></div>
         <div id="rTnAdmin"></div>
         <a href="calisma.html" class="r-tn-dd-item">
-          <i class="ti ti-headphones" style="font-size:15px;"></i> Çalışma Odası
+          <i class="ti ti-headphones" style="font-size:15px;"></i> ${_m('menu.calismaodasi','Çalışma Odası')}
         </a>
         <a href="metronom.html" class="r-tn-dd-item">
-          <i class="ti ti-metronome" style="font-size:15px;"></i> Metronom
+          <i class="ti ti-metronome" style="font-size:15px;"></i> ${_m('menu.metronom','Metronom')}
         </a>
         <a href="ayarlar.html" class="r-tn-dd-item">
-          <i class="ti ti-settings" style="font-size:15px;"></i> Ayarlar
+          <i class="ti ti-settings" style="font-size:15px;"></i> ${_m('menu.ayarlar','Ayarlar')}
         </a>
         <button class="r-tn-dd-item danger" onclick="logout()">
-          <i class="ti ti-logout" style="font-size:15px;"></i> Çıkış Yap
+          <i class="ti ti-logout" style="font-size:15px;"></i> ${_m('menu.cikis','Çıkış Yap')}
         </button>`;
       document.body.appendChild(dd);
       // Dışarı tıklayınca kapat
@@ -805,14 +806,14 @@ function _m(anahtar, tr) {
         <img src="${logo}" alt="repertuvar.app" style="height:42px;width:auto;max-width:230px;display:block;" data-logo="true">
       </div>
       <nav class="sb-nav">${navHtml}</nav>
-      <div class="sb-user-x" id="sbUserX" onclick="toggleSbDropdown(event)" title="Hesap">
+      <div class="sb-user-x" id="sbUserX" onclick="toggleSbDropdown(event)" title="${_m('menu.hesap','Hesap')}">
         <div class="sb-user-avatar"><i class="ti ti-user" style="font-size:15px;" aria-hidden="true"></i></div>
         <span class="sb-user-name" id="sbUserName">—</span>
         <i class="ti ti-chevron-up" style="font-size:14px;color:var(--text3,#5e5c8a);" aria-hidden="true"></i>
         <div class="sb-user-dropdown" id="sbUserDropdown">
           <div id="sbGroups"></div>
-          <a href="ayarlar.html" class="sb-dd-item"><i class="ti ti-settings" style="font-size:15px;" aria-hidden="true"></i> Ayarlar</a>
-          <button class="sb-dd-item danger" onclick="logout()"><i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> Oturumu Kapat</button>
+          <a href="ayarlar.html" class="sb-dd-item"><i class="ti ti-settings" style="font-size:15px;" aria-hidden="true"></i> ${_m('menu.ayarlar','Ayarlar')}</a>
+          <button class="sb-dd-item danger" onclick="logout()"><i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> ${_m('menu.oturumKapat','Oturumu Kapat')}</button>
         </div>
       </div>
       <div style="padding:8px 12px 4px;">
