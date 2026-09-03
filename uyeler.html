@@ -5,6 +5,7 @@
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Repertuvar — Üyeler</title>
+<script src="i18n.js"></script>
 <script src="topnav.js" defer></script>
 <script src="auth.js"></script>
 <!-- (2026-08-03) HATA DÜZELTMESİ: showToast bu blokta src="auth.js" ile AYNI
@@ -74,15 +75,15 @@ function showToast(msg) {
   <div class="page-header" style="display:flex;align-items:left
   ;gap:12px;flex-wrap:nowrap;justify-content:space-between;">
     <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
-      <div class="page-title">Üyeler</div>
+      <div class="page-title" data-i18n="uye.baslik">Üyeler</div>
       <div class="stat-chips">
-        <div class="stat-chip">Toplam: <span id="totalCount">—</span></div>
-        <div class="stat-chip">Editör: <span id="editorCount">—</span></div>
+        <div class="stat-chip"><span data-i18n="uye.toplam">Toplam: </span><span id="totalCount">—</span></div>
+        <div class="stat-chip"><span data-i18n="uye.editor">Editör: </span><span id="editorCount">—</span></div>
       </div>
     </div>
     <div style="position:relative;width:340px;flex-shrink:0;">
       <i class="ti ti-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;"></i>
-      <input type="text" id="searchInput" placeholder="İsim, e-posta veya rol ile ara..." oninput="filterMembers()"
+      <input type="text" id="searchInput" placeholder="İsim, e-posta veya rol ile ara..." data-i18n-ph="uye.ara_ph" oninput="filterMembers()"
         style="width: 85%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 36px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s;">
     </div>
   </div>
@@ -90,25 +91,35 @@ function showToast(msg) {
   <div id="deletionRequests" style="display:none;margin-bottom:16px;">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
       <i class="ti ti-trash" style="font-size:16px;color:var(--red);"></i>
-      <span style="font-size:13px;font-weight:700;color:var(--red);">Hesap Silme Talepleri</span>
+      <span style="font-size:13px;font-weight:700;color:var(--red);" data-i18n="uye.silmeTalepleri">Hesap Silme Talepleri</span>
       <span id="deletionCount" style="background:rgba(248,113,113,.2);border:1px solid rgba(248,113,113,.4);color:var(--red);border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;"></span>
     </div>
     <div id="deletionList"></div>
   </div>
-  <div id="memberList"><div style="text-align:center;color:var(--text3);padding:32px;">Yükleniyor...</div></div>
+  <div id="memberList"><div style="text-align:center;color:var(--text3);padding:32px;" data-i18n="uye.yukleniyor">Yükleniyor...</div></div>
 </div>
 </div>
 <div id="confirmModal">
   <div class="confirm-card">
-    <div class="confirm-title" id="confirmTitle">Emin misin?</div>
+    <div class="confirm-title" id="confirmTitle" data-i18n="uye.eminMisin">Emin misin?</div>
     <div class="confirm-text" id="confirmText"></div>
     <div class="confirm-actions">
-      <button class="btn-confirm-cancel" onclick="closeConfirm()">İptal</button>
-      <button class="btn-confirm-danger" onclick="confirmAction()">Onayla</button>
+      <button class="btn-confirm-cancel" onclick="closeConfirm()" data-i18n="uye.iptal">İptal</button>
+      <button class="btn-confirm-danger" onclick="confirmAction()" data-i18n="uye.onayla">Onayla</button>
     </div>
   </div>
 </div>
 <script>
+// (2026-09-03) JS'ten yazilan metinler icin ceviri yardimcisi.
+function _uCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+function _uYerel() {
+  try { return (window.i18n && window.i18n.dil() === 'en') ? 'en-GB' : 'tr-TR'; }
+  catch (e) { return 'tr-TR'; }
+}
+
 var allMembers = [];
 
 document.addEventListener('click', function(e) {
@@ -161,25 +172,25 @@ function initials(email) {
 }
 
 function roleBadge(role) {
-  var labels = { admin: 'Admin', editor: 'Editör', member: 'Üye' };
+  var labels = { admin: _uCev('uye.rolAdmin','Admin'), editor: _uCev('uye.rolEditor','Editör'), member: _uCev('uye.rolUye','Üye') };
   return '<span class="role-badge ' + role + '">' + (labels[role] || role) + '</span>';
 }
 
 function renderMembers(list) {
   var el = document.getElementById('memberList');
-  if (!list.length) { el.innerHTML = '<div style="text-align:center;color:var(--text3);padding:48px;">Üye bulunamadı</div>'; return; }
+  if (!list.length) { el.innerHTML = '<div style="text-align:center;color:var(--text3);padding:48px;">' + _uCev('uye.bulunamadi','Üye bulunamadı') + '</div>'; return; }
   var html = '';
   for (var i = 0; i < list.length; i++) {
     var m = list[i];
     var uid = m.id || '';
     var email = m.email || '—';
     var name = m.display_name || '';
-    var date = m.created_at ? new Date(m.created_at).toLocaleDateString('tr-TR') : '';
-    var roleBtn = m.role !== 'admin' ? '<button class="btn-sm promote" data-uid="' + uid + '" data-role="' + m.role + '" data-email="' + email + '">' + (m.role === 'editor' ? '↓ Üye Yap' : '↑ Editör Yap') + '</button>' : '';
-    var delBtn = m.role !== 'admin' ? '<button class="btn-sm danger" data-uid="' + uid + '" data-email="' + email + '">Kaldır</button>' : '';
+    var date = m.created_at ? new Date(m.created_at).toLocaleDateString(_uYerel()) : '';
+    var roleBtn = m.role !== 'admin' ? '<button class="btn-sm promote" data-uid="' + uid + '" data-role="' + m.role + '" data-email="' + email + '">' + (m.role === 'editor' ? _uCev('uye.uyeYap','↓ Üye Yap') : _uCev('uye.editorYap','↑ Editör Yap')) + '</button>' : '';
+    var delBtn = m.role !== 'admin' ? '<button class="btn-sm danger" data-uid="' + uid + '" data-email="' + email + '">' + _uCev('uye.kaldir','Kaldır') + '</button>' : '';
     html += '<div class="member-card">' +
       '<div class="member-avatar">' + (name || email).charAt(0).toUpperCase() + '</div>' +
-      '<div class="member-info"><div class="member-email" onclick="editName(this,\'' + uid + '\')" title="İsim düzenle">' + (name || email) + '</div>' +
+      '<div class="member-info"><div class="member-email" onclick="editName(this,\'' + uid + '\')" title="' + _uCev('uye.isimDuzenle','İsim düzenle') + '">' + (name || email) + '</div>' +
       '<div class="member-meta">' + (name ? email + ' · ' : '') + date + '</div></div>' +
       roleBadge(m.role) +
       '<div class="member-actions">' + roleBtn + delBtn + '</div></div>';
@@ -208,10 +219,10 @@ function editName(el, uid) {
       span.className = 'member-email';
       span.textContent = newName;
       span.onclick = function(){ editName(span, uid); };
-      span.title = 'İsim düzenle';
+      span.title = _uCev('uye.isimDuzenle','İsim düzenle');
       input.replaceWith(span);
-      showToast('✓ İsim güncellendi');
-    } else { alert('Hata!'); location.reload(); }
+      showToast(_uCev('uye.isimGuncellendi','✓ İsim güncellendi'));
+    } else { alert(_uCev('uye.hata','Hata!')); location.reload(); }
   }
   input.addEventListener('blur', save);
   input.addEventListener('keydown', function(e){ if(e.key==='Enter') input.blur(); if(e.key==='Escape') location.reload(); });
@@ -243,32 +254,32 @@ function renderDeletionRequests(members) {
   var count = document.getElementById('deletionCount');
   if (!pending.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
-  count.textContent = pending.length + ' talep';
+  count.textContent = pending.length + _uCev('uye.talep',' talep');
   list.innerHTML = pending.map(function(m) {
     var gun = Math.floor((Date.now() - new Date(m.deletion_requested_at)) / 86400000);
     var kalan = 30 - gun;
     var isSuspended = m.status === 'suspended';
     var suspendBtn = isSuspended
-      ? '<button class="btn-sm" style="border-color:rgba(250,180,50,.4);color:#facc15;background:rgba(250,180,50,.08);" onclick="hesabiAktifYap(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)"><i class="ti ti-lock-open"></i> Askıyı Kaldır</button>'
-      : '<button class="btn-sm" style="border-color:rgba(250,180,50,.4);color:#facc15;background:rgba(250,180,50,.08);" onclick="hesabiAskiyaAl(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)"><i class="ti ti-lock"></i> Askıya Al</button>';
-    var suspendedBadge = isSuspended ? ' <span style="background:rgba(250,180,50,.15);border:1px solid rgba(250,180,50,.35);color:#facc15;border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700;">Askıda</span>' : '';
+      ? '<button class="btn-sm" style="border-color:rgba(250,180,50,.4);color:#facc15;background:rgba(250,180,50,.08);" onclick="hesabiAktifYap(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)"><i class="ti ti-lock-open"></i> ' + _uCev('uye.askiyiKaldir','Askıyı Kaldır') + '</button>'
+      : '<button class="btn-sm" style="border-color:rgba(250,180,50,.4);color:#facc15;background:rgba(250,180,50,.08);" onclick="hesabiAskiyaAl(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)"><i class="ti ti-lock"></i> ' + _uCev('uye.askiyaAl','Askıya Al') + '</button>';
+    var suspendedBadge = isSuspended ? ' <span style="background:rgba(250,180,50,.15);border:1px solid rgba(250,180,50,.35);color:#facc15;border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700;">' + _uCev('uye.askida','Askıda') + '</span>' : '';
     return '<div class="member-card" style="border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.04);">' +
       '<div class="member-avatar" style="background:rgba(248,113,113,.3);">' + (m.email||'?').charAt(0).toUpperCase() + '</div>' +
       '<div class="member-info">' +
         '<div class="member-email">' + (m.email||'—') + suspendedBadge + '</div>' +
-        '<div class="member-meta">Talep: ' + new Date(m.deletion_requested_at).toLocaleDateString('tr-TR') + ' · ' + (kalan > 0 ? kalan + ' gün kaldı' : 'Süre doldu!') + '</div>' +
+        '<div class="member-meta">' + _uCev('uye.talepTarih','Talep: ') + new Date(m.deletion_requested_at).toLocaleDateString(_uYerel()) + ' · ' + (kalan > 0 ? _uCev('uye.gunKaldi','{n} gün kaldı').replace('{n}', kalan) : _uCev('uye.sureDoldu','Süre doldu!')) + '</div>' +
       '</div>' +
       '<div class="member-actions">' +
         suspendBtn +
-        '<button class="btn-sm danger" onclick="hesabiSil(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)"><i class="ti ti-trash"></i> Hesabı Sil</button>' +
-        '<button class="btn-sm" onclick="silmeyiIptal(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)">İptal Et</button>' +
+        '<button class="btn-sm danger" onclick="hesabiSil(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)"><i class="ti ti-trash"></i> ' + _uCev('uye.hesabiSil','Hesabı Sil') + '</button>' +
+        '<button class="btn-sm" onclick="silmeyiIptal(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)">' + _uCev('uye.iptalEt','İptal Et') + '</button>' +
       '</div>' +
     '</div>';
   }).join('');
 }
 
 async function hesabiAskiyaAl(userId, email) {
-  openConfirm('Hesabı Askıya Al', email + ' hesabı askıya alınacak ve giriş yapamayacak.', async function() {
+  openConfirm(_uCev('uye.hesabiAskiyaAl','Hesabı Askıya Al'), _uCev('uye.askiyaAlOnay','{e} hesabı askıya alınacak ve giriş yapamayacak.').replace('{e}', email), async function() {
     try {
       var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'PATCH',
@@ -276,14 +287,14 @@ async function hesabiAskiyaAl(userId, email) {
         body: JSON.stringify({ status: 'suspended' })
       });
       if (!r.ok) throw new Error(await r.text());
-      toast('Hesap askıya alındı ✓');
+      toast(_uCev('uye.askiyaAlindi','Hesap askıya alındı ✓'));
       await loadMembers();
-    } catch(e) { toast('Hata: ' + e.message, 'er'); }
+    } catch(e) { toast(_uCev('uye.hataOnek','Hata: ') + e.message, 'er'); }
   });
 }
 
 async function hesabiAktifYap(userId, email) {
-  openConfirm('Askıyı Kaldır', email + ' hesabı yeniden aktif edilecek.', async function() {
+  openConfirm(_uCev('uye.askiyiKaldir','Askıyı Kaldır'), _uCev('uye.aktifYapOnay','{e} hesabı yeniden aktif edilecek.').replace('{e}', email), async function() {
     try {
       var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'PATCH',
@@ -291,14 +302,14 @@ async function hesabiAktifYap(userId, email) {
         body: JSON.stringify({ status: 'active' })
       });
       if (!r.ok) throw new Error(await r.text());
-      toast('Hesap yeniden aktif edildi ✓');
+      toast(_uCev('uye.aktifEdildi','Hesap yeniden aktif edildi ✓'));
       await loadMembers();
-    } catch(e) { toast('Hata: ' + e.message, 'er'); }
+    } catch(e) { toast(_uCev('uye.hataOnek','Hata: ') + e.message, 'er'); }
   });
 }
 
 async function hesabiSil(userId, email) {
-  openConfirm('Hesabı Kalıcı Sil', email + ' hesabı ve tüm repertuvarları kalıcı olarak silinecek.', async function() {
+  openConfirm(_uCev('uye.hesabiKaliciSil','Hesabı Kalıcı Sil'), _uCev('uye.kaliciSilOnay','{e} hesabı ve tüm repertuvarları kalıcı olarak silinecek.').replace('{e}', email), async function() {
     try {
       // Repertuvarları sil
       await fetch(SUPA_URL + '/rest/v1/repertoires?user_id=eq.' + userId, {
@@ -316,24 +327,24 @@ async function hesabiSil(userId, email) {
         headers: authHeaders(),
         body: JSON.stringify({ user_id: userId })
       });
-      if (!delRes.ok) { var err = await delRes.json(); throw new Error(err.error || 'Auth silme hatası'); }
-      toast('Hesap kalıcı olarak silindi ✓');
+      if (!delRes.ok) { var err = await delRes.json(); throw new Error(err.error || _uCev('uye.authSilmeHatasi','Auth silme hatası')); }
+      toast(_uCev('uye.kaliciSilindi','Hesap kalıcı olarak silindi ✓'));
       await loadMembers();
-    } catch(e) { toast('Hata: ' + e.message, 'er'); }
+    } catch(e) { toast(_uCev('uye.hataOnek','Hata: ') + e.message, 'er'); }
   });
 }
 
 async function silmeyiIptal(userId, email) {
-  openConfirm('Silme Talebini İptal Et', email + ' için silme talebi iptal edilecek.', async function() {
+  openConfirm(_uCev('uye.silmeTalebiIptal','Silme Talebini İptal Et'), _uCev('uye.silmeIptalOnay','{e} için silme talebi iptal edilecek.').replace('{e}', email), async function() {
     try {
       await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'PATCH',
         headers: Object.assign(authHeaders(), { Prefer: 'return=minimal' }),
         body: JSON.stringify({ deletion_requested_at: null, status: 'active' })
       });
-      toast('Silme talebi iptal edildi ✓');
+      toast(_uCev('uye.silmeIptalEdildi','Silme talebi iptal edildi ✓'));
       await loadMembers();
-    } catch(e) { toast('Hata: ' + e.message, 'er'); }
+    } catch(e) { toast(_uCev('uye.hataOnek','Hata: ') + e.message, 'er'); }
   });
 }
 
@@ -348,11 +359,11 @@ async function loadMembers() {
     document.getElementById('editorCount').textContent = allMembers.filter(function(m){ return m.role === 'editor'; }).length;
     renderMembers(allMembers);
     renderDeletionRequests(allMembers);
-  } catch(e) { toast('Yüklenemedi: ' + e.message, 'er'); }
+  } catch(e) { toast(_uCev('uye.yuklenemedi','Yüklenemedi: ') + e.message, 'er'); }
 }
 
 async function changeRole(userId, newRole, email) {
-  openConfirm('Rol Değiştir', email + ' rolü ' + (newRole === 'editor' ? 'Editör' : 'Üye') + ' olacak.', async function() {
+  openConfirm(_uCev('uye.rolDegistir','Rol Değiştir'), _uCev('uye.rolDegistirOnay','{e} rolü {r} olacak.').replace('{e}', email).replace('{r}', newRole === 'editor' ? _uCev('uye.rolEditor','Editör') : _uCev('uye.rolUye','Üye')), async function() {
     try {
       var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
         method: 'PATCH',
@@ -360,14 +371,14 @@ async function changeRole(userId, newRole, email) {
         body: JSON.stringify({ role: newRole })
       });
       if (!r.ok) throw new Error(await r.text());
-      toast('Rol güncellendi ✓');
+      toast(_uCev('uye.rolGuncellendi','Rol güncellendi ✓'));
       await loadMembers();
-    } catch(e) { toast('Hata: ' + e.message, 'er'); }
+    } catch(e) { toast(_uCev('uye.hataOnek','Hata: ') + e.message, 'er'); }
   });
 }
 
 async function removeMember(userId, email) {
-  openConfirm('Üyeyi Kaldır', email + ' sistemden tamamen kaldırılacak. Bu işlem geri alınamaz.', async function() {
+  openConfirm(_uCev('uye.uyeyiKaldir','Üyeyi Kaldır'), _uCev('uye.kaldirOnay','{e} sistemden tamamen kaldırılacak. Bu işlem geri alınamaz.').replace('{e}', email), async function() {
     try {
       // 1. profiles tablosundan sil
       var r1 = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + userId, {
@@ -384,9 +395,9 @@ async function removeMember(userId, email) {
         var errBody = await r2.text();
         console.warn('auth.users silinemedi:', errBody);
       }
-      toast('Üye kaldırıldı ✓');
+      toast(_uCev('uye.uyeKaldirildi','Üye kaldırıldı ✓'));
       await loadMembers();
-    } catch(e) { toast('Hata: ' + e.message, 'er'); }
+    } catch(e) { toast(_uCev('uye.hataOnek','Hata: ') + e.message, 'er'); }
   });
 }
 
@@ -394,7 +405,7 @@ async function removeMember(userId, email) {
   var ok = await requireAuth();
   if (!ok) return;
   if (!isAdmin()) {
-    document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--text);text-align:center;padding:24px;"><div><div style="font-size:48px">🔒</div><h2>Bu sayfa yalnızca yöneticiye açık</h2><a href="index.html" style="color:var(--accent2);">Ana Sayfa</a></div></div>';
+    document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--text);text-align:center;padding:24px;"><div><div style="font-size:48px">🔒</div><h2>' + _uCev('uye.yalnizYonetici','Bu sayfa yalnızca yöneticiye açık') + '</h2><a href="index.html" style="color:var(--accent2);">' + _uCev('uye.anaSayfa','Ana Sayfa') + '</a></div></div>';
     return;
   }
   var u = getUser();
@@ -404,7 +415,7 @@ async function removeMember(userId, email) {
     ['sbUserName','tnUserName'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=name; });
     ['sbAvatar','tnAvatar'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=ini; });
     var roleEl = document.getElementById('sbUserRole');
-    if (roleEl) roleEl.textContent = isAdmin() ? 'Admin' : isEditor() ? 'Editör' : 'Üye';
+    if (roleEl) roleEl.textContent = isAdmin() ? _uCev('uye.rolAdmin','Admin') : isEditor() ? _uCev('uye.rolEditor','Editör') : _uCev('uye.rolUye','Üye');
     setTimeout(function(){ if(isAdmin()||isEditor()) document.querySelectorAll('.admin-only').forEach(function(el){ el.classList.remove('admin-only'); }); }, 300);
   }
   await loadMembers();

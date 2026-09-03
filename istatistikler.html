@@ -5,6 +5,7 @@
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Repertuvar — İstatistikler</title>
+<script src="i18n.js"></script>
 <script src="auth.js"></script>
 <script src="topnav.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -58,105 +59,115 @@
   <div class="page">
     <div class="stt-header">
       <div>
-        <h1 class="stt-title">📊 İstatistikler</h1>
-        <div class="stt-sub" id="sttSub">Yükleniyor...</div>
+        <h1 class="stt-title" data-i18n="ist.baslik">📊 İstatistikler</h1>
+        <div class="stt-sub" id="sttSub" data-i18n="ist.yukleniyor">Yükleniyor...</div>
       </div>
       <div class="stt-range" id="sttRange">
-        <button class="stt-range-btn" data-days="1">Bugün</button>
-        <button class="stt-range-btn active" data-days="7">7 gün</button>
-        <button class="stt-range-btn" data-days="30">30 gün</button>
-        <button class="stt-range-btn" data-days="0">Tümü</button>
+        <button class="stt-range-btn" data-days="1" data-i18n="ist.bugun">Bugün</button>
+        <button class="stt-range-btn active" data-days="7" data-i18n="ist.gun7">7 gün</button>
+        <button class="stt-range-btn" data-days="30" data-i18n="ist.gun30">30 gün</button>
+        <button class="stt-range-btn" data-days="0" data-i18n="ist.tumu">Tümü</button>
       </div>
     </div>
 
-    <div id="sttLoading" class="stt-loading">Veriler yükleniyor...</div>
+    <div id="sttLoading" class="stt-loading" data-i18n="ist.veriYukleniyor">Veriler yükleniyor...</div>
 
     <div id="sttContent" style="display:none;">
       <div class="stt-cards">
         <div class="stt-card">
-          <div class="stt-card-label"><i class="ti ti-eye"></i> Sayfa Görüntüleme</div>
+          <div class="stt-card-label"><i class="ti ti-eye"></i> <span data-i18n="ist.sayfaGoruntuleme">Sayfa Görüntüleme</span></div>
           <div class="stt-card-value" id="sttTotalViews">—</div>
         </div>
         <div class="stt-card">
-          <div class="stt-card-label"><i class="ti ti-users"></i> Benzersiz Oturum</div>
+          <div class="stt-card-label"><i class="ti ti-users"></i> <span data-i18n="ist.benzersizOturum">Benzersiz Oturum</span></div>
           <div class="stt-card-value" id="sttUniqueSessions">—</div>
         </div>
         <div class="stt-card">
-          <div class="stt-card-label"><i class="ti ti-device-mobile"></i> Mobil Oranı</div>
+          <div class="stt-card-label"><i class="ti ti-device-mobile"></i> <span data-i18n="ist.mobilOrani">Mobil Oranı</span></div>
           <div class="stt-card-value" id="sttMobileRatio">—</div>
         </div>
         <div class="stt-card">
-          <div class="stt-card-label"><i class="ti ti-login"></i> Giriş Yapmış</div>
+          <div class="stt-card-label"><i class="ti ti-login"></i> <span data-i18n="ist.girisYapmis">Giriş Yapmış</span></div>
           <div class="stt-card-value" id="sttLoggedInRatio">—</div>
         </div>
         <div class="stt-card">
-          <div class="stt-card-label"><i class="ti ti-user-check"></i> Kayıtlı Ziyaretçi</div>
+          <div class="stt-card-label"><i class="ti ti-user-check"></i> <span data-i18n="ist.kayitliZiyaretci">Kayıtlı Ziyaretçi</span></div>
           <div class="stt-card-value" id="sttUniqueUsers">—</div>
         </div>
         <div class="stt-card">
-          <div class="stt-card-label"><i class="ti ti-stack-2"></i> Oturum Başına Sayfa</div>
+          <div class="stt-card-label"><i class="ti ti-stack-2"></i> <span data-i18n="ist.oturumBasinaSayfa">Oturum Başına Sayfa</span></div>
           <div class="stt-card-value" id="sttPagesPerSession">—</div>
         </div>
       </div>
 
       <div class="stt-panel" style="margin-bottom:16px;">
-        <div class="stt-panel-title"><i class="ti ti-chart-line"></i> Zaman İçinde Görüntülemeler</div>
+        <div class="stt-panel-title"><i class="ti ti-chart-line"></i> <span data-i18n="ist.zamanIcinde">Zaman İçinde Görüntülemeler</span></div>
         <div class="stt-chart-wrap"><canvas id="sttTrendChart"></canvas></div>
       </div>
 
       <div class="stt-grid">
         <div class="stt-panel">
-          <div class="stt-panel-title"><i class="ti ti-file-text"></i> En Çok Ziyaret Edilen Sayfalar</div>
+          <div class="stt-panel-title"><i class="ti ti-file-text"></i> <span data-i18n="ist.enCokZiyaret">En Çok Ziyaret Edilen Sayfalar</span></div>
           <div id="sttTopPages"></div>
         </div>
         <div class="stt-panel">
-          <div class="stt-panel-title"><i class="ti ti-world"></i> Bölge <span style="font-weight:400;color:var(--text3);font-size:10px;">(saat dilimine göre yaklaşık)</span></div>
+          <div class="stt-panel-title"><i class="ti ti-world"></i> <span data-i18n="ist.bolge">Bölge</span> <span data-i18n="ist.bolgeNot" style="font-weight:400;color:var(--text3);font-size:10px;">(saat dilimine göre yaklaşık)</span></div>
           <div id="sttRegions"></div>
         </div>
       </div>
 
       <div class="stt-grid" style="margin-top:16px;">
         <div class="stt-panel">
-          <div class="stt-panel-title"><i class="ti ti-device-desktop"></i> Cihaz Türü</div>
+          <div class="stt-panel-title"><i class="ti ti-device-desktop"></i> <span data-i18n="ist.cihazTuru">Cihaz Türü</span></div>
           <div id="sttDevices"></div>
         </div>
         <div class="stt-panel">
-          <div class="stt-panel-title"><i class="ti ti-brand-appstore"></i> Platform</div>
+          <div class="stt-panel-title"><i class="ti ti-brand-appstore"></i> <span data-i18n="ist.platform">Platform</span></div>
           <div id="sttPlatforms"></div>
         </div>
       </div>
 
       <div class="stt-grid" style="margin-top:16px;">
         <div class="stt-panel">
-          <div class="stt-panel-title"><i class="ti ti-building-community"></i> Şehir / İl</div>
+          <div class="stt-panel-title"><i class="ti ti-building-community"></i> <span data-i18n="ist.sehir">Şehir / İl</span></div>
           <div id="sttCities"></div>
         </div>
         <div class="stt-panel">
-          <div class="stt-panel-title"><i class="ti ti-flag"></i> Ülke</div>
+          <div class="stt-panel-title"><i class="ti ti-flag"></i> <span data-i18n="ist.ulke">Ülke</span></div>
           <div id="sttCountries"></div>
         </div>
       </div>
 
       <div class="stt-grid" style="margin-top:16px;">
         <div class="stt-panel">
-          <div class="stt-panel-title"><i class="ti ti-clock"></i> Saat Dağılımı <span style="font-weight:400;color:var(--text3);font-size:10px;">(yerel saat)</span></div>
+          <div class="stt-panel-title"><i class="ti ti-clock"></i> <span data-i18n="ist.saatDagilimi">Saat Dağılımı</span> <span data-i18n="ist.yerelSaat" style="font-weight:400;color:var(--text3);font-size:10px;">(yerel saat)</span></div>
           <div id="sttHours"></div>
         </div>
         <div class="stt-panel">
-          <div class="stt-panel-title"><i class="ti ti-external-link"></i> Yönlendiren</div>
+          <div class="stt-panel-title"><i class="ti ti-external-link"></i> <span data-i18n="ist.yonlendiren">Yönlendiren</span></div>
           <div id="sttReferrers"></div>
         </div>
       </div>
 
       <div class="stt-panel" style="margin-top:16px;">
-        <div class="stt-panel-title"><i class="ti ti-user-check"></i> Kullanıcılar <span id="sttUserCount" style="font-weight:400;color:var(--text3);font-size:11px;"></span></div>
-        <div id="sttUsers"><div class="stt-loading" style="padding:20px 0;">Yükleniyor…</div></div>
+        <div class="stt-panel-title"><i class="ti ti-user-check"></i> <span data-i18n="ist.kullanicilar">Kullanıcılar</span> <span id="sttUserCount" style="font-weight:400;color:var(--text3);font-size:11px;"></span></div>
+        <div id="sttUsers"><div class="stt-loading" style="padding:20px 0;" data-i18n="ist.yukleniyor">Yükleniyor…</div></div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
+// (2026-09-03) JS'ten yazilan metinler icin ceviri yardimcisi.
+function _iCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+// Tarih/saat bicimi de dile bagli olmali.
+function _iYerel() {
+  try { return (window.i18n && window.i18n.dil() === 'en') ? 'en-GB' : 'tr-TR'; }
+  catch (e) { return 'tr-TR'; }
+}
 
 let sttRows = [];
 let sttChart = null;
@@ -187,7 +198,7 @@ async function fetchAllPageViews() {
     if (!Array.isArray(chunk) || chunk.length === 0) break;
     all = all.concat(chunk);
     const el = document.getElementById('sttLoading');
-    if (el) el.textContent = 'Veriler yükleniyor… (' + all.length + ' kayıt)';
+    if (el) el.textContent = _iCev('ist.veriYukleniyorN','Veriler yükleniyor… ({n} kayıt)').replace('{n}', all.length);
     if (chunk.length < STT_PAGE) break; // son sayfa
     from += STT_PAGE;
   }
@@ -202,7 +213,7 @@ async function loadStats() {
     document.getElementById('sttContent').style.display = 'block';
     renderStats(7);
   } catch (e) {
-    document.getElementById('sttLoading').textContent = 'Veriler yüklenemedi: ' + e.message;
+    document.getElementById('sttLoading').textContent = _iCev('ist.veriYuklenemedi','Veriler yüklenemedi: ') + e.message;
   }
 }
 
@@ -229,8 +240,12 @@ function topN(rows, field, n) {
 
 function renderStats(days) {
   const rows = filterByDays(days);
-  const rangeLabel = days === 1 ? 'bugün' : days === 7 ? 'son 7 gün' : days === 30 ? 'son 30 gün' : 'tüm zamanlar';
-  document.getElementById('sttSub').textContent = rows.length + ' görüntüleme — ' + rangeLabel;
+  const rangeLabel = days === 1 ? _iCev('ist.arBugun','bugün')
+                   : days === 7 ? _iCev('ist.arSon7','son 7 gün')
+                   : days === 30 ? _iCev('ist.arSon30','son 30 gün')
+                   : _iCev('ist.arTum','tüm zamanlar');
+  document.getElementById('sttSub').textContent =
+    _iCev('ist.altBaslik','{n} görüntüleme — {a}').replace('{n}', rows.length).replace('{a}', rangeLabel);
 
   const sessions = new Set(rows.map(r => r.session_id));
   const mobileCount = rows.filter(r => r.device_type === 'mobile').length;
@@ -245,27 +260,27 @@ function renderStats(days) {
   const pagesMax = pages.length ? pages[0][1] : 0;
   document.getElementById('sttTopPages').innerHTML = pages.length
     ? pages.map(([p,c]) => bar(p, c, pagesMax)).join('')
-    : '<div class="stt-empty">Henüz veri yok</div>';
+    : ('<div class="stt-empty">' + _iCev('ist.veriYok','Henüz veri yok') + '</div>');
 
   const regions = topN(rows, 'timezone', 8);
   const regionsMax = regions.length ? regions[0][1] : 0;
   document.getElementById('sttRegions').innerHTML = regions.length
-    ? regions.map(([tz,c]) => bar(tz === '—' ? 'Bilinmiyor' : tz.replace('_',' '), c, regionsMax)).join('')
-    : '<div class="stt-empty">Henüz veri yok</div>';
+    ? regions.map(([tz,c]) => bar(tz === '—' ? _iCev('ist.bilinmiyor','Bilinmiyor') : tz.replace('_',' '), c, regionsMax)).join('')
+    : ('<div class="stt-empty">' + _iCev('ist.veriYok','Henüz veri yok') + '</div>');
 
   const devices = topN(rows, 'device_type', 4);
   const devicesMax = devices.length ? devices[0][1] : 0;
-  const deviceLabels = { mobile: '📱 Mobil', desktop: '🖥️ Masaüstü' };
+  const deviceLabels = { mobile: _iCev('ist.mobil','📱 Mobil'), desktop: _iCev('ist.masaustu','🖥️ Masaüstü') };
   document.getElementById('sttDevices').innerHTML = devices.length
     ? devices.map(([d,c]) => bar(deviceLabels[d] || d, c, devicesMax)).join('')
-    : '<div class="stt-empty">Henüz veri yok</div>';
+    : ('<div class="stt-empty">' + _iCev('ist.veriYok','Henüz veri yok') + '</div>');
 
   const platforms = topN(rows, 'platform', 4);
   const platformsMax = platforms.length ? platforms[0][1] : 0;
   const platformLabels = { web: '🌐 Web', ios: '🍎 iOS', android: '🤖 Android' };
   document.getElementById('sttPlatforms').innerHTML = platforms.length
     ? platforms.map(([p,c]) => bar(platformLabels[p] || p, c, platformsMax)).join('')
-    : '<div class="stt-empty">Henüz veri yok</div>';
+    : ('<div class="stt-empty">' + _iCev('ist.veriYok','Henüz veri yok') + '</div>');
 
   // Kayıtlı (giriş yapmış) benzersiz kullanıcı ve oturum başına sayfa
   const uniqUsers = new Set(rows.filter(r => r.user_id).map(r => r.user_id));
@@ -277,14 +292,14 @@ function renderStats(days) {
   const cities = topN(rows, 'city', 10);
   const citiesMax = cities.length ? cities[0][1] : 0;
   document.getElementById('sttCities').innerHTML = cities.length
-    ? cities.map(([c,n]) => bar(c === '—' ? 'Bilinmiyor' : c, n, citiesMax)).join('')
-    : '<div class="stt-empty">Henüz veri yok</div>';
+    ? cities.map(([c,n]) => bar(c === '—' ? _iCev('ist.bilinmiyor','Bilinmiyor') : c, n, citiesMax)).join('')
+    : ('<div class="stt-empty">' + _iCev('ist.veriYok','Henüz veri yok') + '</div>');
 
   const countries = topN(rows, 'country', 8);
   const countriesMax = countries.length ? countries[0][1] : 0;
   document.getElementById('sttCountries').innerHTML = countries.length
-    ? countries.map(([c,n]) => bar(c === '—' ? 'Bilinmiyor' : c, n, countriesMax)).join('')
-    : '<div class="stt-empty">Henüz veri yok</div>';
+    ? countries.map(([c,n]) => bar(c === '—' ? _iCev('ist.bilinmiyor','Bilinmiyor') : c, n, countriesMax)).join('')
+    : ('<div class="stt-empty">' + _iCev('ist.veriYok','Henüz veri yok') + '</div>');
 
   // Saat dağılımı (0-23)
   const hourCounts = {};
@@ -294,21 +309,21 @@ function renderStats(days) {
     .sort((a,b) => hourCounts[b] - hourCounts[a])
     .slice(0,8)
     .map(h => bar(String(h).padStart(2,'0') + ':00', hourCounts[h], hourMax)).join('');
-  document.getElementById('sttHours').innerHTML = hoursHtml || '<div class="stt-empty">Henüz veri yok</div>';
+  document.getElementById('sttHours').innerHTML = hoursHtml || ('<div class="stt-empty">' + _iCev('ist.veriYok','Henüz veri yok') + '</div>');
 
   // Yönlendiren — sadece alan adı gösterilir (tam URL değil)
   const refCounts = {};
   rows.forEach(r => {
-    let key = 'Doğrudan';
+    let key = _iCev('ist.dogrudan','Doğrudan');
     if (r.referrer) { try { key = new URL(r.referrer).hostname || r.referrer; } catch(e) { key = r.referrer; } }
-    if (key === location.hostname) key = 'Site içi';
+    if (key === location.hostname) key = _iCev('ist.siteIci','Site içi');
     refCounts[key] = (refCounts[key]||0)+1;
   });
   const refs = Object.entries(refCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const refMax = refs.length ? refs[0][1] : 0;
   document.getElementById('sttReferrers').innerHTML = refs.length
     ? refs.map(([k,n]) => bar(k, n, refMax)).join('')
-    : '<div class="stt-empty">Henüz veri yok</div>';
+    : ('<div class="stt-empty">' + _iCev('ist.veriYok','Henüz veri yok') + '</div>');
 
   renderTrendChart(rows, days);
 }
@@ -375,15 +390,20 @@ async function loadUsers() {
     const rows = await r.json();
     const cnt = document.getElementById('sttUserCount');
     if (cnt) cnt.textContent = '(' + rows.length + ')';
-    if (!rows.length) { box.innerHTML = '<div class="stt-empty" style="padding:16px 0;color:var(--text3);font-size:13px;">Kullanıcı yok.</div>'; return; }
-    const fmt = function(d){ if(!d) return '—'; const x=new Date(d); return x.toLocaleDateString('tr-TR')+' '+x.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}); };
+    if (!rows.length) { box.innerHTML = '<div class="stt-empty" style="padding:16px 0;color:var(--text3);font-size:13px;">' + _iCev('ist.kullaniciYok','Kullanıcı yok.') + '</div>'; return; }
+    const fmt = function(d){ if(!d) return '—'; const x=new Date(d); const L=_iYerel(); return x.toLocaleDateString(L)+' '+x.toLocaleTimeString(L,{hour:'2-digit',minute:'2-digit'}); };
     const esc = function(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
     box.innerHTML =
       '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
       '<thead><tr style="text-align:left;color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.04em;">' +
-        '<th style="padding:8px 10px;">E-posta</th><th style="padding:8px 10px;">İsim</th><th style="padding:8px 10px;">Grup</th>' +
-        '<th style="padding:8px 10px;">Kayıt</th><th style="padding:8px 10px;">Son Giriş</th>' +
-        '<th style="padding:8px 10px;">Ziyaret</th><th style="padding:8px 10px;">Son Ziyaret</th><th style="padding:8px 10px;">Onaylı</th>' +
+        '<th style="padding:8px 10px;">' + _iCev('ist.thEposta','E-posta') + '</th>' +
+        '<th style="padding:8px 10px;">' + _iCev('ist.thIsim','İsim') + '</th>' +
+        '<th style="padding:8px 10px;">' + _iCev('ist.thGrup','Grup') + '</th>' +
+        '<th style="padding:8px 10px;">' + _iCev('ist.thKayit','Kayıt') + '</th>' +
+        '<th style="padding:8px 10px;">' + _iCev('ist.thSonGiris','Son Giriş') + '</th>' +
+        '<th style="padding:8px 10px;">' + _iCev('ist.thZiyaret','Ziyaret') + '</th>' +
+        '<th style="padding:8px 10px;">' + _iCev('ist.thSonZiyaret','Son Ziyaret') + '</th>' +
+        '<th style="padding:8px 10px;">' + _iCev('ist.thOnayli','Onaylı') + '</th>' +
       '</tr></thead><tbody>' +
       rows.map(function(u){
         return '<tr style="border-top:1px solid var(--border);">' +
@@ -399,14 +419,14 @@ async function loadUsers() {
       }).join('') +
       '</tbody></table></div>';
   } catch(e) {
-    box.innerHTML = '<div class="stt-empty" style="padding:16px 0;color:#c05444;font-size:13px;">Kullanıcılar yüklenemedi (' + (e.message||'') + ').</div>';
+    box.innerHTML = '<div class="stt-empty" style="padding:16px 0;color:#c05444;font-size:13px;">' + _iCev('ist.kullanicilarYuklenemedi','Kullanıcılar yüklenemedi') + ' (' + (e.message||'') + ').</div>';
   }
 }
 
 (async function init() {
   const ok = await requireAuth(); if (!ok) return;
   if (!isAdmin()) {
-    document.querySelector('.page').innerHTML = '<div class="stt-empty" style="padding:80px 20px;">Bu sayfayı görüntüleme yetkin yok.</div>';
+    document.querySelector('.page').innerHTML = '<div class="stt-empty" style="padding:80px 20px;">' + _iCev('ist.yetkiYok','Bu sayfayı görüntüleme yetkin yok.') + '</div>';
     return;
   }
   loadStats();
