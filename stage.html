@@ -567,7 +567,7 @@ body.day-theme #stageToolsPanel .st-grp + .st-grp{ border-top-color:rgba(0,0,0,.
   overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;}
 .knot-sahne.acik .kn-tx{-webkit-line-clamp:unset;display:block;}
 .knot-sahne .kn-dh{flex:0 0 auto;color:var(--text3);font-size:11px;margin-left:auto;align-self:center;}
-.wlyrics{font-size:calc(clamp(18px,2.8vw,28px) * var(--lyrics-scale,1));color:var(--text);text-align:left;width:100%;max-width:100%;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:2px;padding:0 4px 16px;box-sizing:border-box;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.wlyrics{font-size:calc(clamp(18px,2.8vw,28px) * var(--lyrics-scale,1) * var(--fit-scale,1));color:var(--text);text-align:left;width:100%;max-width:100%;line-height:1.9;opacity:0;animation:si .4s ease .28s forwards;margin-top:2px;padding:0 4px 16px;box-sizing:border-box;overflow-x:hidden;overflow-wrap:break-word;-webkit-overflow-scrolling:touch;}
 .wnota{display:flex;justify-content:center;align-items:center;opacity:0;animation:si .4s ease .28s forwards;margin-top:16px;padding:0 8px 40px;width:100%;}
 /* ═══ 2026-07-20: ÇOK SAYFALI NOTA — sayfa göstergesi + pager ═══ */
 .wnota{flex-direction:column;gap:10px;}
@@ -821,7 +821,7 @@ body.stage-active #r-bottom-nav{display:none !important;}
   }
   @media (max-width: 480px) {
     .wtitle { font-size:clamp(18px,5vw,26px); }
-    .wlyrics { font-size:calc(clamp(14px,4.2vw,20px) * var(--lyrics-scale,1)); line-height:1.8; padding:0 4px 20px; }
+    .wlyrics { font-size:calc(clamp(14px,4.2vw,20px) * var(--lyrics-scale,1) * var(--fit-scale,1)); line-height:1.8; padding:0 4px 20px; }
     .side-nav-btn { width:46px !important; height:108px !important; }
     .side-nav-left { left:6px !important; border-radius:10px !important; }
     .side-nav-right { right:6px !important; border-radius:10px !important; }
@@ -1625,12 +1625,54 @@ function setLyricsAlign(align) {
   });
 }
 
+/* ── SAHNE SIĞDIRMA (2026-09-05) ────────────────────────────────────────
+   Sorun: .wlyrics'te overflow-x:auto vardı. Sahnede yatay kaydırma işe
+   yaramaz — müzisyen çalarken yana kaydıramaz, taşan akor görünmez kalır.
+   Amaç TAŞMAYI ÖNLEMEK, boşluğu doldurmak değil: ölçek yalnızca küçültür,
+   asla büyütmez.
+   Kullanıcının sürgüsü ÜSTTE kalır: --fit-scale onun seçtiği --lyrics-scale'i
+   çarpar, ezmez. Sürgüyü kısınca sığdırma da gevşer.
+   Ölçek ESER BAŞINA hesaplanır (her renderStage'de sıfırlanır), satır başına
+   değil — satır başına olsaydı aynı sayfada farklı puntolar olurdu.
+   TABAN 14px: bunun altına inmek yerine yatay kaydırma geri açılır; okunmaz
+   bir sayfa, kaydırılabilir bir sayfadan kötüdür. */
+const FIT_MIN_PX = 14;
+let _fitRaf = null;
+function fitLyrics() {
+  const el = document.querySelector('#stageScreen .wlyrics') || document.querySelector('.wlyrics');
+  if (!el) return;
+  const root = document.documentElement;
+  root.style.setProperty('--fit-scale', 1);
+  el.style.overflowX = 'hidden';
+  // Taşma yoksa iş bitti — yaygın durum, tek ölçüm.
+  if (el.scrollWidth <= el.clientWidth + 1) return;
+  const basePx = parseFloat(getComputedStyle(el).fontSize) || 18;
+  const minFit = Math.min(1, FIT_MIN_PX / basePx);
+  let lo = minFit, hi = 1, best = minFit;
+  for (let i = 0; i < 6; i++) {
+    const mid = (lo + hi) / 2;
+    root.style.setProperty('--fit-scale', mid);
+    if (el.scrollWidth <= el.clientWidth + 1) { best = mid; lo = mid; }
+    else { hi = mid; }
+  }
+  root.style.setProperty('--fit-scale', best);
+  // Tabana rağmen sığmıyorsa kaydırmayı geri aç (uzun tek kelime, geniş akor).
+  if (el.scrollWidth > el.clientWidth + 1) el.style.overflowX = 'auto';
+}
+function fitLyricsSoon() {
+  if (_fitRaf) cancelAnimationFrame(_fitRaf);
+  _fitRaf = requestAnimationFrame(() => { _fitRaf = null; fitLyrics(); });
+}
+window.addEventListener('resize', fitLyricsSoon);
+window.addEventListener('orientationchange', fitLyricsSoon);
+
 const LYRICS_SCALE_MIN = 0.75, LYRICS_SCALE_MAX = 1.6;
 function setLyricsFontScale(scale) {
   scale = Math.min(LYRICS_SCALE_MAX, Math.max(LYRICS_SCALE_MIN, +parseFloat(scale).toFixed(2)));
   localStorage.setItem('stageLyricsScale', scale);
   document.documentElement.style.setProperty('--lyrics-scale', scale);
   updateFontSliderUI(scale);
+  fitLyrics();   // (2026-09-05) sürgü kullanıcının; sığdırma onun üstünde çalışır
 }
 function updateFontSliderUI(scale) {
   const slider = document.getElementById('lyricsFontSlider');
@@ -2182,6 +2224,7 @@ function renderStage(){
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'left';
   setLyricsAlign(savedAlign);
   updateFontSliderUI(savedScale);
+  fitLyrics();   // (2026-09-05) eser başına sığdırma — hiza/ölçek ile aynı karede
   if (viewMode === 'nota') notaPreloadNext(stageNotaPages(w), _notaPage);
   updateViewToggleUI(w);
   // ── POTPURİ: zincir rozeti + "Sıradaki" kartının potpuri hali ──

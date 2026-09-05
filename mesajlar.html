@@ -10,7 +10,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title data-i18n="ms.sayfaBaslik">Repertuvar — Mesajlar</title>
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <link rel="stylesheet" href="style.css">
@@ -182,6 +182,12 @@ body { -webkit-text-size-adjust: 100%; }
   }
   .compose-box input { font-size: 14px; padding: 12px 14px; }
   .btn-send { font-size: 14px; padding: 11px 20px; }
+
+/* (2026-09-05) iOS WKWebView çift dokunuş zoom'u — mesaj gövdelerinde kapalı.
+   manipulation: kaydırma ve tek dokunuş çalışmaya devam eder,
+   yalnızca çift dokunuş büyütmesi ve 300ms tıklama gecikmesi kalkar. */
+.thread-msg, .thread-msg-content, .thread-reply-box, .compose-box,
+.thread-msg-header, .thread-actions { touch-action: manipulation; }
 </style>
 </head>
 <body>
