@@ -945,6 +945,7 @@ function renderDetail(){
       <td class="col-kapanis">${cn?'<span class="cn">'+cn+'</span>':''}</td>
       <td class="col-not" style="color:var(--text3);font-size:12px;">${it.note||''}</td>
       <td><div class="ra">
+        ${_dinleDugme(it.workId)}
         ${_knotDugme(it.workId)}
         ${_canM?`
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
@@ -2642,6 +2643,19 @@ let _dnlRepId = null;
 // metin: youtu.be, watch?v=, /embed/, /shorts/, /live/, zaman damgalı ya da
 // çıplak kimlik gelebiliyor. Tanıyamazsa null döner (o eser "bağlantı yok"
 // sayılır — YouTube dışı bir bağlantı da buraya düşer, bilinçli).
+// (2026-09-05) Satır başına tek eser dinleme. Panelden farkı: gömülü oynatıcı
+// kurmaz, doğrudan YouTube'a gider — tek eserde gömme kapalıysa (101/150)
+// atlanacak bir sonraki eser yok, boş kutu kalırdı.
+function _dinleDugme(workId) {
+  const w = WL[String(workId)] || {};
+  const vid = _ytId(w.videoLink);
+  if (!vid) return '';
+  return '<a class="br" href="https://www.youtube.com/watch?v=' + vid + '"'
+       + ' target="_blank" rel="noopener" onclick="event.stopPropagation();"'
+       + ' title="' + _r('rep.dinleT', 'YouTube\u2019da dinle') + '"'
+       + ' style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">\u25B6</a>';
+}
+
 function _ytId(url) {
   if (!url) return null;
   const s = String(url).trim();

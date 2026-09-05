@@ -710,6 +710,9 @@
     background:rgba(255,200,61,.15); color:var(--accent); font-size:11px; font-weight:700;
   }
   .work-fav { background:none; border:none; font-size:20px; line-height:1; color:var(--text2); cursor:pointer; padding:4px; }
+  /* (2026-09-05) Satır dinle butonu — .work-fav ile aynı kutu ölçüsü. */
+  .work-listen { background:none; border:none; font-size:17px; line-height:1; color:var(--text2); cursor:pointer; padding:4px; text-decoration:none; }
+  .work-listen:active { color:var(--accent); }
   .work-fav.active { color:var(--accent); }
   @keyframes favPop { 0%{transform:scale(1);} 45%{transform:scale(1.55);} 100%{transform:scale(1);} }
   .work-fav.fav-pop { animation: favPop .35s cubic-bezier(.34,1.56,.64,1); }
@@ -2058,6 +2061,27 @@ async function openSharedWork(rawId) {
 }
 
 // 2026-07-19: detay başlığındaki favori butonu — detayı yeniden çizmeden yerinde güncellenir
+// (2026-09-05) repertoires.js'teki _ytId ile birebir aynı. İki sayfa aynı
+// bağlantıyı farklı yorumlarsa biri "dinlenebilir" öbürü "bağlantı yok" der.
+function _ytId(url) {
+  if (!url) return null;
+  const s = String(url).trim();
+  if (/^[A-Za-z0-9_-]{11}$/.test(s)) return s;
+  let m = s.match(/(?:youtube\.com|youtu\.be)\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/|v\/|e\/)?([A-Za-z0-9_-]{11})/);
+  if (m) return m[1];
+  m = s.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if (m) return m[1];
+  return null;
+}
+// Satır butonu: YouTube'u yeni sekmede açar. Satırın kendi onclick'i
+// (seç / toplu seç / kaydırma) tetiklenmesin diye olay burada durur.
+function dinleAc(url, ev) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  const id = _ytId(url);
+  if (!id) return;
+  window.open('https://www.youtube.com/watch?v=' + id, '_blank', 'noopener');
+}
+
 function toggleFavoriteInline(id) {
   toggleFavorite(id, null);
   const btn = document.getElementById('actFav_'+id);
@@ -2257,6 +2281,7 @@ function renderList() {
       </div>
       <div class="work-actions">
         ${countBadge}
+        ${_ytId(w.videoLink) ? `<button class="work-listen" onclick="dinleAc('${w.videoLink}', event)" title="${_esCev('es.t_dinle','YouTube\u2019da dinle')}" data-i18n-title="es.t_dinle" style="display:${bulkMode?'none':'flex'};">\u25B6</button>` : ''}
         <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori" data-i18n-title="es.t_favori" style="display:${bulkMode?'none':'flex'};">${isFav ? '★' : '☆'}</button>
         <span class="work-chevron" style="display:${bulkMode?'none':'inline'};">›</span>
       </div>
