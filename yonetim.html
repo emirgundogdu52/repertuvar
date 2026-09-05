@@ -281,7 +281,7 @@ async function trafikYukle() {
     const ks = d.kaynaklar || [];
     if (box && ks.length) {
       box.innerHTML = '<div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;'
-        + 'color:var(--text3);font-weight:700;margin-bottom:7px;">Nereden geldiler (30 gün)</div>'
+        + 'color:var(--text3);font-weight:700;margin-bottom:7px;">' + _yoCev('yo.nereden','Nereden geldiler (30 gün)') + '</div>'
         + '<div class="y-rows">' + ks.map(function (k) {
             return '<div class="y-row"><span class="y-row-lbl" style="overflow:hidden;'
               + 'text-overflow:ellipsis;white-space:nowrap;">' + String(k.kaynak).replace(/</g,'&lt;')
@@ -317,7 +317,7 @@ async function kullanimYukle() {
           }).join('') + '</div>';
     };
     const s1 = document.getElementById('pvSayfa');
-    if (s1) s1.innerHTML = liste(_yoCev('yo.enCokAcilan','En çok açılan sayfa (30 gün)'), d.sayfalar, _yoCev('yo.sayfaBirimi','sayfa'));
+    if (s1) s1.innerHTML = liste(_yoCev('yo.enCokAcilan','En çok açılan sayfa (30 gün)'), d.sayfalar, 'sayfa');
     const s2 = document.getElementById('pvCihaz');
     if (s2) s2.innerHTML = liste(_yoCev('yo.cihaz','Cihaz (30 gün)'), d.cihazlar, 'cihaz');
   } catch (e) { /* sessiz */ }
