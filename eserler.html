@@ -693,14 +693,6 @@
     display:flex; align-items:center; justify-content:center; font-size:15px;
   }
   .work-info { flex:1; min-width:0; }
-  /* (2026-09-05) İsim + repertuvar sayısı rozeti aynı satırda.
-     min-width:0 zinciri şart: olmazsa .work-name'in ellipsis'i çalışmaz ve
-     uzun eser adı rozeti satırdan dışarı iter. flex-shrink:0 ile kırpılacak
-     olan her zaman İSİM olur, rozet değil — rozet yarım görünürse sayı
-     okunamaz, oysa kısalmış isim hâlâ tanınabilir. */
-  .work-name-row { display:flex; align-items:flex-start; gap:8px; min-width:0; }
-  .work-name-row > .work-name { flex:1 1 auto; min-width:0; }
-  .work-name-row > .work-count-badge { flex-shrink:0; margin-top:3px; }
   .work-name { font-size:18px; font-weight:700; color:var(--text); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.01em; }
   .work-composer { font-size:13px; font-weight:400; color:var(--text2); }
   .work-title-divider { height:1px; background:var(--border); margin:8px 0; }
@@ -712,6 +704,17 @@
   .work-item.has-stripe::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; }
   .work-item.stripe-green::before { background:var(--ready-color,#34C759); }
   .work-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; align-self:center; }
+  /* (2026-09-05) Repertuvar sayısı rozeti ★'ın sağ ÜST köşesinde.
+     pointer-events:none KRİTİK: rozet yıldızın dokunma alanının üstünde
+     duruyor; olmazsa favori düğmesinin köşesine basınca hiçbir şey olmaz.
+     Rozet dışa taşıyor (top/right negatif) ki yıldızın kendisini örtmesin. */
+  .work-fav-wrap { position:relative; display:inline-flex; align-items:center; }
+  .work-fav-wrap > .work-count-badge {
+    position:absolute; top:-4px; right:-5px;
+    min-width:16px; height:16px; padding:0 4px; border-radius:8px;
+    background:var(--accent); color:#1a1200; font-size:10px; font-weight:800;
+    pointer-events:none;
+  }
   .work-count-badge {
     display:flex; align-items:center; justify-content:center;
     min-width:20px; height:20px; padding:0 5px; border-radius:10px;
@@ -2282,15 +2285,14 @@ function renderList() {
       <div class="work-icon">🎵</div>
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
-        <div class="work-name-row">
-        <div class="work-name">${w.name||_esCev('es.isimsiz','(isimsiz)')}${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="' + _esCev('es.yalnizcaSiz','Yalnızca siz görürsünüz') + '" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">🔒 Taslak</span>' : ''}${(w.visibility === 'group') ? ' <span title="Yalnızca grup üyeleriniz görür" style="font-size:10px;font-weight:700;color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">👥 Grup</span>' : ''}</div>${countBadge}</div>
+        <div class="work-name">${w.name||_esCev('es.isimsiz','(isimsiz)')}${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="' + _esCev('es.yalnizcaSiz','Yalnızca siz görürsünüz') + '" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">🔒 Taslak</span>' : ''}${(w.visibility === 'group') ? ' <span title="Yalnızca grup üyeleriniz görür" style="font-size:10px;font-weight:700;color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">👥 Grup</span>' : ''}</div>
         ${(turBadge || w.composer) ? `<div class="work-composer">${turBadge}${w.composer||''}</div>` : ''}
         <div class="work-title-divider"></div>
         <div class="work-rep-count"><span class="status-dot"></span> Offline</div>
       </div>
       <div class="work-actions">
         ${_ytId(w.videoLink) ? `<button class="work-listen" onclick="dinleAc('${w.videoLink}', event)" title="${_esCev('es.t_dinle','YouTube\u2019da dinle')}" data-i18n-title="es.t_dinle" style="display:${bulkMode?'none':'flex'};">\u25B6</button>` : ''}
-        <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori" data-i18n-title="es.t_favori" style="display:${bulkMode?'none':'flex'};">${isFav ? '★' : '☆'}</button>
+        <span class="work-fav-wrap" style="display:${bulkMode?'none':'inline-flex'};"><button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori" data-i18n-title="es.t_favori">${isFav ? '★' : '☆'}</button>${countBadge}</span>
         <span class="work-chevron" style="display:${bulkMode?'none':'inline'};">›</span>
       </div>
     </div>`;
