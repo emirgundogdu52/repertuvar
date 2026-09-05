@@ -2652,7 +2652,7 @@ function _dinleDugme(workId) {
   if (!vid) return '';
   return '<a class="br" href="https://www.youtube.com/watch?v=' + vid + '"'
        + ' target="_blank" rel="noopener" onclick="event.stopPropagation();"'
-       + ' title="' + _r('rep.dinleT', 'YouTube\u2019da dinle') + '"'
+       + ' title="' + _r('rep.tekDinleT', 'Bu eseri YouTube\u2019da dinle') + '"'
        + ' style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">\u25B6</a>';
 }
 
