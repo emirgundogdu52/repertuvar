@@ -708,12 +708,14 @@
      pointer-events:none KRİTİK: rozet yıldızın dokunma alanının üstünde
      duruyor; olmazsa favori düğmesinin köşesine basınca hiçbir şey olmaz.
      Rozet dışa taşıyor (top/right negatif) ki yıldızın kendisini örtmesin. */
-  .work-fav-wrap { position:relative; display:inline-flex; align-items:center; }
-  .work-fav-wrap > .work-count-badge {
-    position:absolute; top:-4px; right:-5px;
-    min-width:16px; height:16px; padding:0 4px; border-radius:8px;
-    background:var(--accent); color:#1a1200; font-size:10px; font-weight:800;
-    pointer-events:none;
+  /* Kartın sağ üst köşesi. .work-item zaten position:relative — konumlanma
+     ona göre. pointer-events:none: rozet bir bilgi, dokunma hedefi değil;
+     üstünde kalan alan kartın kendi tıklamasına geçsin. */
+  .work-item > .work-count-badge {
+    position:absolute; top:8px; right:10px;
+    min-width:18px; height:18px; padding:0 5px; border-radius:9px;
+    background:rgba(255,200,61,.16); color:var(--accent);
+    font-size:10px; font-weight:800; pointer-events:none; z-index:1;
   }
   .work-count-badge {
     display:flex; align-items:center; justify-content:center;
@@ -2281,6 +2283,7 @@ function renderList() {
     // (2026-08-06) onmousedown eklendi — kaydırma artık masaüstünde de çalışıyor.
     const touchAttrs = canEdit ? `ontouchstart="weTouchStart(event)" ontouchmove="weTouchMove(event)" ontouchend="weTouchEnd(event)" ontouchcancel="weTouchEnd(event)" onmousedown="weMouseStart(event)"` : '';
     const cardHtml = `<div class="work-item${stripeClass}${isChecked?' selected':(selectedId===w.id&&!bulkMode?' selected':_zi%2===1?' zebra':'')}" onclick="${cardOnclick}" data-id="${w.id}" ${touchAttrs}>
+      ${countBadge}
       ${checkbox}
       <div class="work-icon">🎵</div>
       <div class="work-num">${w.id||'—'}</div>
@@ -2292,7 +2295,7 @@ function renderList() {
       </div>
       <div class="work-actions">
         ${_ytId(w.videoLink) ? `<button class="work-listen" onclick="dinleAc('${w.videoLink}', event)" title="${_esCev('es.t_dinle','YouTube\u2019da dinle')}" data-i18n-title="es.t_dinle" style="display:${bulkMode?'none':'flex'};">\u25B6</button>` : ''}
-        <span class="work-fav-wrap" style="display:${bulkMode?'none':'inline-flex'};"><button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori" data-i18n-title="es.t_favori">${isFav ? '★' : '☆'}</button>${countBadge}</span>
+        <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori" data-i18n-title="es.t_favori" style="display:${bulkMode?'none':'flex'};">${isFav ? '★' : '☆'}</button>
         <span class="work-chevron" style="display:${bulkMode?'none':'inline'};">›</span>
       </div>
     </div>`;
