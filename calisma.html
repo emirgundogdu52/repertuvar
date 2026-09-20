@@ -32,6 +32,9 @@
 <title data-i18n="ca.sayfaBaslik">Çalışma Odası — Repertuvar</title>
 <link rel="stylesheet" href="style.css">
 <script src="i18n.js"></script>
+<script src="ses.js"></script>
+<script src="zamanlayici.js"></script>
+<script src="ritim.js"></script>
 <script src="auth.js"></script>
 <script src="db.js"></script>
 <script src="topnav.js" defer></script>
@@ -189,6 +192,25 @@
           font-size:15px; line-height:1.85; color:var(--text); white-space:pre-wrap;
           max-height:340px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .oy-soz.bos { color:var(--text3); font-style:italic; white-space:normal; }
+/* ── Sekmeler ve ritim paneli ── */
+.co-sekmeler { display:flex; gap:8px; margin-bottom:14px; }
+.co-sekme { flex:0 0 auto; padding:9px 16px; border-radius:10px; font-size:13px; font-weight:600;
+  background:var(--surface2); color:var(--text2); border:1px solid var(--border);
+  cursor:pointer; font-family:inherit; transition:all .12s; }
+.co-sekme.aktif { background:var(--accent); color:#111; border-color:var(--accent); }
+.rt-satir { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.rt-etiket { flex:0 0 72px; font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:.04em; }
+.rt-sec { flex:1; margin:0; }
+.rt-bpm { flex:1; display:flex; align-items:center; gap:14px; }
+.rt-bpm-deger { font-size:26px; font-weight:700; min-width:62px; text-align:center;
+  font-variant-numeric:tabular-nums; }
+.rt-adim { width:36px; height:36px; border-radius:9px; background:var(--surface2); color:var(--text);
+  border:1px solid var(--border); font-size:18px; cursor:pointer; font-family:inherit; }
+.rt-kaydirac { width:100%; margin:4px 0 16px; }
+.rt-dugmeler { display:flex; gap:10px; flex-wrap:wrap; }
+.rt-not { margin-top:12px; padding:9px 12px; border-radius:9px; font-size:12px; line-height:1.45;
+  background:var(--surface2); border:1px solid var(--border); color:var(--text2); }
+.rt-not.hata { border-color:var(--red); color:var(--red); background:rgba(255,77,79,.08); }
 </style>
 </head>
 <body>
@@ -205,6 +227,12 @@
     </div>
   </div>
 
+  <div class="co-sekmeler">
+    <button class="co-sekme aktif" id="sekKayit" onclick="sekmeAc('kayit')" data-i18n="ca.sekmeKayit">Kayıtlarım</button>
+    <button class="co-sekme" id="sekRitim" onclick="sekmeAc('ritim')" data-i18n="ca.sekmeRitim">Ritim</button>
+  </div>
+
+  <div id="bolumKayit">
   <div class="co-kota" id="kotaKart" style="display:none;">
     <div class="co-kota-ust">
       <span data-i18n="ca.depolama">DEPOLAMA</span>
@@ -230,6 +258,42 @@
     <button class="co-btn" id="ekleBtn" onclick="yeniKayit()">
       <i class="ti ti-upload" aria-hidden="true"></i> İlk kaydını ekle
     </button>
+  </div>
+  </div>
+
+  <!-- ── RİTİM ───────────────────────────────────────────────────────
+       Kalıp tabanlı ritim motoru (ritim.js). Seçenekler VERİDEN geliyor:
+       yeni usul/çalgı eklendiğinde bu HTML değişmez.
+       AŞAMA C: yalnızca Nim Sofyan + Bendir tanımlı. -->
+  <div id="bolumRitim" style="display:none;">
+    <div class="co-kota" style="display:block;">
+      <div class="rt-satir">
+        <label class="rt-etiket" for="rtUsul" data-i18n="ca.usul">Usul</label>
+        <select class="co-ara rt-sec" id="rtUsul" onchange="rtUsulSec(this.value)"></select>
+      </div>
+      <div class="rt-satir">
+        <label class="rt-etiket" for="rtCalgi" data-i18n="ca.calgi">Çalgı</label>
+        <select class="co-ara rt-sec" id="rtCalgi" onchange="rtCalgiSec(this.value)"></select>
+      </div>
+      <div class="rt-satir">
+        <label class="rt-etiket" for="rtBpm" data-i18n="ca.tempo">Tempo</label>
+        <div class="rt-bpm">
+          <button class="rt-adim" onclick="rtBpmKaydir(-1)" aria-label="-1">−</button>
+          <span class="rt-bpm-deger" id="rtBpmDeger">100</span>
+          <button class="rt-adim" onclick="rtBpmKaydir(1)" aria-label="+1">+</button>
+        </div>
+      </div>
+      <input type="range" id="rtBpm" min="30" max="300" step="1" value="100"
+             class="rt-kaydirac" oninput="rtBpmYaz(this.value)">
+      <div class="rt-dugmeler">
+        <button class="co-btn" id="rtCalBtn" onclick="rtCalDurdur()">
+          <i class="ti ti-player-play-filled" aria-hidden="true"></i>
+          <span id="rtCalMetin" data-i18n="me.baslat">Başlat</span>
+        </button>
+        <button class="co-btn ikincil" id="rtTapBtn" onclick="rtTap()" data-i18n="ca.tempoyuVur">Tempoyu vur</button>
+      </div>
+      <div class="rt-not" id="rtNot" hidden></div>
+    </div>
   </div>
 
 </div>
@@ -922,6 +986,12 @@ function _shifterKur() {
 
 async function oyOynatDurdur() {
   if (oyCaliyor) { oyDurdur(); return; }
+  // Ritim çalarken kayıt oynatılmıyor (ilk sürümde iki ses motoru aynı
+  // anda çalışmıyor). Sade davranış: ne yapılması gerektiğini söyle.
+  if (typeof rtCaliyor !== 'undefined' && rtCaliyor) {
+    alert(_caCev('ca.kayitKilit', 'Ses kaydını oynatmak için ritmi durdurun.'));
+    return;
+  }
   try {
     if (oyCtx && oyCtx.state === 'suspended') await oyCtx.resume();  // iOS
     oyShifter = _shifterKur();
@@ -929,6 +999,7 @@ async function oyOynatDurdur() {
     oyShifter.connect(oyCtx.destination);
     oyCaliyor = true;
     _oynatIkonu(true);
+    if (typeof rtKilitYenile === 'function') rtKilitYenile();
   } catch (e) { alert(_caCev('ca.oynatilamadi','Oynatılamadı: ') + (e && e.message ? e.message : e)); }
 }
 
@@ -936,6 +1007,7 @@ function oyDurdur() {
   if (oyShifter) { try { oyShifter.disconnect(); } catch (e) {} oyShifter = null; }
   oyCaliyor = false;
   _oynatIkonu(false);
+  if (typeof rtKilitYenile === 'function') rtKilitYenile();
 }
 
 // Üçgen = duruyor, iki çubuk = çalıyor. Duraklatma konumu KORUYOR (durdurma
@@ -1096,6 +1168,151 @@ async function oySil() {
   kayitlariYukle();
   eserleriYukle();
 })();
+
+// ── RİTİM (AŞAMA C) ─────────────────────────────────────────────────────
+// Motor ritim.js'te; burada yalnız arayüz, kilit ve tap tempo var.
+// Seçenekler Ritim.kaliplar / Ritim.kitler'den okunuyor — yeni usul ya da
+// çalgı eklendiğinde bu dosya DEĞİŞMEZ.
+let rtMotor = null;
+let rtCaliyor = false;
+let rtBpmDeg = 100;
+let rtTapZamanlari = [];
+
+function sekmeAc(ad) {
+  const ritimMi = ad === 'ritim';
+  document.getElementById('bolumKayit').style.display = ritimMi ? 'none' : '';
+  document.getElementById('bolumRitim').style.display = ritimMi ? '' : 'none';
+  document.getElementById('sekKayit').classList.toggle('aktif', !ritimMi);
+  document.getElementById('sekRitim').classList.toggle('aktif', ritimMi);
+  if (ritimMi) rtSecenekleriDoldur();
+}
+
+function rtSecenekleriDoldur() {
+  const u = document.getElementById('rtUsul');
+  const c = document.getElementById('rtCalgi');
+  if (u && !u.options.length) {
+    u.innerHTML = Object.values(Ritim.kaliplar).map(k => {
+      const ad = (k.ad && (k.ad[i18nDil()] || k.ad.tr)) || k.id;
+      return `<option value="${k.id}">${ad} · ${k.olcu}</option>`;
+    }).join('');
+  }
+  if (c && !c.options.length) {
+    c.innerHTML = Object.values(Ritim.kitler)
+      .map(k => `<option value="${k.id}">${k.ad}</option>`).join('');
+  }
+  rtKilitYenile();
+}
+
+function i18nDil() {
+  try { return (window.i18n && i18n.dil && i18n.dil()) || 'tr'; } catch (e) { return 'tr'; }
+}
+
+// ── Çakışma kilidi ──────────────────────────────────────────────────────
+// Kayıt oynatıcısı (oyCtx/SoundTouch) ile ritim motoru ayrı AudioContext
+// kullanıyor; ilk sürümde aynı anda çalmıyorlar. Teknik bir uyarı gibi
+// değil, sade bir davranış: çalışmayan düğme pasif görünür, dokununca
+// ne yapılması gerektiğini söyler.
+function rtKilitYenile() {
+  const rtBtn = document.getElementById('rtCalBtn');
+  if (rtBtn) rtBtn.disabled = oyCaliyor && !rtCaliyor;
+  const oyBtn = document.getElementById('oyOynatBtn');
+  if (oyBtn) oyBtn.disabled = rtCaliyor && !oyCaliyor;
+}
+
+function rtNot(metin, hataMi) {
+  const n = document.getElementById('rtNot');
+  if (!n) return;
+  if (!metin) { n.hidden = true; return; }
+  n.textContent = metin;
+  n.classList.toggle('hata', !!hataMi);
+  n.hidden = false;
+}
+
+// ── Çal / durdur ────────────────────────────────────────────────────────
+async function rtCalDurdur() {
+  if (rtCaliyor) { rtDurdur(); return; }
+  if (oyCaliyor) {
+    rtNot(_caCev('ca.ritimKilit', 'Ritmi kullanmak için mevcut ses kaydını durdurun.'));
+    return;
+  }
+  if (!rtMotor) {
+    rtMotor = Ritim.olustur({
+      kalip: document.getElementById('rtUsul').value || 'nim_sofyan',
+      kit: document.getElementById('rtCalgi').value || 'bendir',
+      bpm: rtBpmDeg
+    });
+  }
+  const r = await rtMotor.hazirla();
+  if (!r.ok) { rtNot(r.mesaj || _caCev('ca.ritimAcilamadi', 'Ritim başlatılamadı.'), true); return; }
+  rtMotor.bpmYaz(rtBpmDeg);
+  if (!rtMotor.basla()) { rtNot(_caCev('ca.ritimAcilamadi', 'Ritim başlatılamadı.'), true); return; }
+  rtCaliyor = true;
+  rtNot('');
+  rtDugmeYaz();
+  rtKilitYenile();
+}
+
+function rtDurdur() {
+  if (rtMotor) rtMotor.durdur();
+  rtCaliyor = false;
+  rtDugmeYaz();
+  rtKilitYenile();
+}
+
+function rtDugmeYaz() {
+  const m = document.getElementById('rtCalMetin');
+  const b = document.getElementById('rtCalBtn');
+  if (m) m.textContent = rtCaliyor ? _caCev('me.durdur', 'Durdur') : _caCev('me.baslat', 'Başlat');
+  if (b) {
+    const ik = b.querySelector('i');
+    if (ik) ik.className = 'ti ' + (rtCaliyor ? 'ti-player-stop-filled' : 'ti-player-play-filled');
+  }
+}
+
+// ── Seçim ve tempo ──────────────────────────────────────────────────────
+function rtUsulSec(id) {
+  if (!rtMotor) return;
+  const calarken = rtCaliyor;
+  if (calarken) rtDurdur();
+  rtMotor.kalipYaz(id);
+  if (calarken) rtCalDurdur();
+}
+
+function rtCalgiSec() {
+  // Kit değişimi yeni örnek yüklemesi gerektiriyor: motoru sıfırdan kur.
+  const calarken = rtCaliyor;
+  if (calarken) rtDurdur();
+  rtMotor = null;
+  if (calarken) rtCalDurdur();
+}
+
+function rtBpmYaz(v) {
+  rtBpmDeg = Math.min(300, Math.max(30, parseInt(v, 10) || rtBpmDeg));
+  const d = document.getElementById('rtBpmDeger');
+  const s = document.getElementById('rtBpm');
+  if (d) d.textContent = rtBpmDeg;
+  if (s && +s.value !== rtBpmDeg) s.value = rtBpmDeg;
+  // Çalarken de geçerli: bir sonraki planlanan olaydan itibaren.
+  if (rtMotor) rtMotor.bpmYaz(rtBpmDeg);
+}
+
+function rtBpmKaydir(d) { rtBpmYaz(rtBpmDeg + d); }
+
+// Tempoyu vur: son dokunuşların ortalaması. 2 saniyeden uzun ara verilirse
+// yeni ölçüm başlar — metronomdaki davranışın aynısı.
+function rtTap() {
+  const t = Date.now();
+  if (rtTapZamanlari.length && t - rtTapZamanlari[rtTapZamanlari.length - 1] > 2000) {
+    rtTapZamanlari = [];
+  }
+  rtTapZamanlari.push(t);
+  if (rtTapZamanlari.length > 5) rtTapZamanlari.shift();
+  if (rtTapZamanlari.length < 2) return;
+  const araliklar = rtTapZamanlari.slice(1).map((x, i) => x - rtTapZamanlari[i]);
+  const ort = araliklar.reduce((a, b) => a + b, 0) / araliklar.length;
+  if (ort > 150 && ort < 2000) rtBpmYaz(Math.round(60000 / ort));
+}
+
 </script>
 </body>
 </html>
