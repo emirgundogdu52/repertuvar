@@ -72,6 +72,7 @@
 <link rel="stylesheet" href="style.css">
 <script src="i18n.js"></script>
 <script src="ses.js"></script>
+<script src="zamanlayici.js"></script>
 <script src="auth.js"></script>
 <script src="topnav.js" defer></script>
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
@@ -397,11 +398,10 @@ function tempoTerm(v){
 // ── Ses motoru ──────────────────────────────────────────────────────────
 // Context, master ve sınırlayıcı artık ses.js'te (ritim aracıyla ortak).
 // Buradaki actx/master onun verdiği düğümlerin kısayolu.
-let actx = null, nextNoteTime = 0, beatIndex = 0, timerId = null;
+let actx = null;
 let master = null;   // Ses.cikis() — tüm sesin geçtiği ana kazanç düğümü
-const LOOKAHEAD = 25;        // ms — zamanlayıcının uyanma sıklığı
-const SCHEDULE_AHEAD = 0.12; // sn — bu kadar ilerisi önceden planlanır
-let visualQueue = [];
+// Planlama ve görsel kuyruğu artık zamanlayici.js'te (ritim motoruyla ortak).
+let transport = null;
 
 function beatSeconds(){ return 60.0 / bpm; }
 
@@ -447,15 +447,15 @@ function click(level, when){
   }
 }
 
-function scheduler(){
-  while (nextNoteTime < actx.currentTime + SCHEDULE_AHEAD) {
-    const level = pattern[beatIndex] ?? 1;
-    click(level, nextNoteTime);
-    visualQueue.push({ index: beatIndex, time: nextNoteTime });
-    nextNoteTime += beatSeconds();
-    beatIndex = (beatIndex + 1) % pattern.length;
-  }
-  timerId = setTimeout(scheduler, LOOKAHEAD);
+// Zamanlayıcıya kalıbı tarif ediyoruz; planlama döngüsü modülde.
+function transportKur(){
+  if (transport) return transport;
+  transport = Zamanlayici.olustur({
+    adimSayisi: () => pattern.length,
+    adimSuresi: beatSeconds,
+    cal: (adim, zaman) => click(pattern[adim] ?? 1, zaman)
+  });
+  return transport;
 }
 
 async function start(){
@@ -466,9 +466,7 @@ async function start(){
   $('sesUyari').hidden = true;
   actx = Ses.ctx(); master = Ses.cikis();
   running = true;
-  beatIndex = 0; visualQueue = [];
-  nextNoteTime = actx.currentTime + 0.06;
-  scheduler();
+  transportKur().basla();
   requestAnimationFrame(draw);
   $('play').classList.add('on');
   $('play').innerHTML = '<i class="ti ti-player-stop-filled"></i> <span data-i18n="me.durdur">' + _meCev('me.durdur','Durdur') + '</span>';
@@ -477,8 +475,7 @@ async function start(){
 
 function stop(){
   running = false;
-  clearTimeout(timerId);
-  visualQueue = [];
+  if (transport) transport.durdur();
   document.querySelectorAll('.mx-beat').forEach(b => b.classList.remove('now'));
   $('stage').classList.remove('pulse');
   $('play').classList.remove('on');
@@ -491,11 +488,7 @@ function stop(){
 let pendLeft = false;
 function draw(){
   if (!running) return;
-  const now = actx.currentTime;
-  while (visualQueue.length && visualQueue[0].time <= now) {
-    const b = visualQueue.shift();
-    showBeat(b.index);
-  }
+  transport.gorselAl().forEach(o => showBeat(o.adim));
   requestAnimationFrame(draw);
 }
 function showBeat(i){
