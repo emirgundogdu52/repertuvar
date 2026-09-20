@@ -59,11 +59,8 @@ window.Ritim = (function () {
   const KITLER = {
     bendir: {
       id: 'bendir', ad: 'Bendir',
-      // DEV PLACEHOLDER: production için onaylanmış ses dosyası henüz yok.
-      // kaynak:'dev' → sesler sentezle üretiliyor, repoda ses dosyası YOK.
-      // Gerçek dosyalar geldiğinde kaynak:'dosya' yapılıp yollar açılacak;
-      // motorun geri kalanı değişmez.
-      kaynak: 'dev',
+      // Gerçek kayıt (CC0). Kaynak ve işlem kaydı: /sesler/bendir/KAYNAK.md
+      kaynak: 'dosya',
       sesler: { DUM: '/sesler/bendir/dum.wav', TEK: '/sesler/bendir/tek.wav' }
     }
   };
@@ -101,26 +98,6 @@ window.Ritim = (function () {
     });
   }
 
-  /* DEV PLACEHOLDER SES ÜRETİMİ — production değildir.
-   * Lisansı belirsiz dosya eklememek için motoru sentetik seslerle test
-   * ediyoruz. Gerçek bendir kaydı geldiğinde bu yol hiç kullanılmayacak. */
-  function devSes(actx, tur) {
-    const sr = actx.sampleRate, sure = tur === 'DUM' ? 0.28 : 0.10;
-    const n = Math.floor(sr * sure);
-    const buf = actx.createBuffer(1, n, sr);
-    const d = buf.getChannelData(0);
-    const f0 = tur === 'DUM' ? 96 : 480;
-    const f1 = tur === 'DUM' ? 62 : 380;
-    for (let i = 0; i < n; i++) {
-      const t = i / sr, k = i / n;
-      const f = f0 + (f1 - f0) * k;
-      const zarf = Math.exp(-t * (tur === 'DUM' ? 14 : 45));
-      const gurultu = (Math.random() * 2 - 1) * (tur === 'DUM' ? 0.06 : 0.28);
-      d[i] = (Math.sin(2 * Math.PI * f * t) * 0.9 + gurultu) * zarf;
-    }
-    return buf;
-  }
-
   function kitYukle(kitId) {
     if (depo.has(kitId)) return depo.get(kitId);
     const kit = KITLER[kitId];
@@ -131,8 +108,7 @@ window.Ritim = (function () {
     const soz = (async () => {
       const m = new Map();
       for (const [vurus, yol] of Object.entries(kit.sesler)) {
-        if (kit.kaynak === 'dev') { m.set(vurus, devSes(actx, vurus)); continue; }
-        sayac.fetch++;
+          sayac.fetch++;
         const r = await fetch(yol);
         if (!r.ok) throw new Error(yol + ' yüklenemedi (' + r.status + ')');
         sayac.decode++;

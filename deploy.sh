@@ -28,6 +28,12 @@
 #       başka hiçbir dosya değişmese bile "1 file changed" commit'i çıkıyordu.
 #       Bu, 2026-08-15'te teslim dosyası indirilmediği hâlde deploy olmuş
 #       izlenimi verdi. Artık önce değişiklik var mı diye bakılıyor.
+# 2026-09-20 — SES KLASÖRÜ NATIVE PAKETE GİRMİYORDU.
+#   www/ kopyalaması yalnız KÖKTEKİ ./*.html, ./*.js vb. dosyaları alıyordu.
+#   sesler/bendir/*.wav bir ALT KLASÖR olduğu için www/ içine hiç girmiyor,
+#   dolayısıyla cap sync ile native pakete de gitmiyordu: web'de ritim
+#   çalışırken iOS/Android uygulamasında sessiz kalırdı. Artık sesler/
+#   klasör olarak kopyalanıyor ve doğrulamaya dahil.
 # ────────────────────────────────────────────────────────────
 set -uo pipefail
 
@@ -157,6 +163,16 @@ if ! $WEB_ONLY; then
     echo "   ✓ manuel kopyalama"
   fi
 
+  # Alt klasörler: yukarıdaki kopyalama yalnız KÖK seviyeyi alıyor.
+  # Ritim örnekleri (sesler/bendir/*.wav) burada, klasör olarak taşınıyor.
+  # npm run sync başarılı olsa bile çalışır — aynı içeriği yazar.
+  for d in sesler; do
+    if [ -d "$d" ]; then
+      rm -rf "www/$d"
+      cp -R "$d" www/ && echo "   ✓ $d/ → www/ ($(find "$d" -type f | wc -l | tr -d ' ') dosya)"
+    fi
+  done
+
   # --- 4) Capacitor → native klasörleri ---
   # 2026-08-15: Android eklendi. Hangi platform klasörü VARSA o sync ediliyor;
   # olmayan platform sessizce atlanıyor (repoda yoksa hata değil).
@@ -205,6 +221,24 @@ if ! $WEB_ONLY; then
     done
     if [ "$SORUN" -eq 1 ]; then FAIL=$((FAIL+1)); else OK=$((OK+1)); fi
   done
+
+  # sesler/ klasörü ayrı doğrulanıyor: yukarıdaki döngü yalnız köke bakıyor.
+  if [ -d sesler ]; then
+    while IFS= read -r f; do
+      rel="${f#./}"
+      if [ ! -f "www/$rel" ] || ! diff -q "$f" "www/$rel" >/dev/null 2>&1; then
+        echo "   ❌ www/$rel yok ya da farklı"; FAIL=$((FAIL+1)); continue
+      fi
+      SORUN=0
+      for nd in "${NATIVE_DIRS[@]:-}"; do
+        [ -z "$nd" ] && continue
+        if [ ! -f "$nd/$rel" ] || ! diff -q "$f" "$nd/$rel" >/dev/null 2>&1; then
+          echo "   ❌ $nd/$rel yok ya da farklı"; SORUN=1
+        fi
+      done
+      if [ "$SORUN" -eq 1 ]; then FAIL=$((FAIL+1)); else OK=$((OK+1)); fi
+    done < <(find ./sesler -type f ! -name '.*')
+  fi
 
   echo ""
   if [ "$FAIL" -eq 0 ]; then
