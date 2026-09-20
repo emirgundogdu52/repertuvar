@@ -1189,18 +1189,27 @@ function sekmeAc(ad) {
 
 function rtSecenekleriDoldur() {
   const u = document.getElementById('rtUsul');
-  const c = document.getElementById('rtCalgi');
   if (u && !u.options.length) {
-    u.innerHTML = Object.values(Ritim.kaliplar).map(k => {
+    // Yalnız müzikolojik olarak doğrulanmış kalıplar listeleniyor.
+    u.innerHTML = Ritim.kalipListesi().map(k => {
       const ad = (k.ad && (k.ad[i18nDil()] || k.ad.tr)) || k.id;
       return `<option value="${k.id}">${ad} · ${k.olcu}</option>`;
     }).join('');
   }
-  if (c && !c.options.length) {
-    c.innerHTML = Object.values(Ritim.kitler)
-      .map(k => `<option value="${k.id}">${k.ad}</option>`).join('');
-  }
+  rtCalgilariDoldur();
   rtKilitYenile();
+}
+
+// Çalgı listesi seçili usule bağlı: kalıbın uyumluKitler alanı neyi
+// izin veriyorsa o görünür. Yeni kit eklendiğinde bu kod değişmez.
+function rtCalgilariDoldur() {
+  const u = document.getElementById('rtUsul');
+  const c = document.getElementById('rtCalgi');
+  if (!c) return;
+  const onceki = c.value;
+  const liste = Ritim.kitListesi(u ? u.value : null);
+  c.innerHTML = liste.map(k => `<option value="${k.id}">${k.ad}</option>`).join('');
+  if (liste.some(k => k.id === onceki)) c.value = onceki;
 }
 
 function i18nDil() {
@@ -1271,19 +1280,21 @@ function rtDugmeYaz() {
 
 // ── Seçim ve tempo ──────────────────────────────────────────────────────
 function rtUsulSec(id) {
-  if (!rtMotor) return;
   const calarken = rtCaliyor;
   if (calarken) rtDurdur();
-  rtMotor.kalipYaz(id);
+  if (rtMotor) rtMotor.kalipYaz(id);
+  rtCalgilariDoldur();
   if (calarken) rtCalDurdur();
 }
 
-function rtCalgiSec() {
-  // Kit değişimi yeni örnek yüklemesi gerektiriyor: motoru sıfırdan kur.
+async function rtCalgiSec(id) {
+  // Kit değişimi yeni örnek havuzu gerektiriyor; motor korunuyor, yalnız
+  // kit değişiyor ve hazirla() tekrar çağrılıyor (havuz zaten yüklüyse
+  // bellekten gelir, yeniden indirilmez).
   const calarken = rtCaliyor;
   if (calarken) rtDurdur();
-  rtMotor = null;
-  if (calarken) rtCalDurdur();
+  if (rtMotor) rtMotor.kitYaz(id); else rtMotor = null;
+  if (calarken) await rtCalDurdur();
 }
 
 function rtBpmYaz(v) {
