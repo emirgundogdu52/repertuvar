@@ -22,3 +22,4 @@ client_secret*.json
 .DS_Store
 **/.DS_Store
 _not.md
+client_secret_*.json
