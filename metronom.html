@@ -71,6 +71,7 @@
 <title data-i18n="me.sayfaBaslik">Metronom — Repertuvar</title>
 <link rel="stylesheet" href="style.css">
 <script src="i18n.js"></script>
+<script src="ses.js"></script>
 <script src="auth.js"></script>
 <script src="topnav.js" defer></script>
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
@@ -231,6 +232,7 @@ button, .mx-btn, [role="button"] {
   .mx-tap{ width:92px; }
   .page-content{ padding:12px 14px 90px; }
 }
+.mx-ses-uyari{margin-top:10px;padding:9px 12px;border:1px solid var(--red);border-radius:8px;background:rgba(255,77,79,.08);color:var(--red);font-size:12px;line-height:1.45;}
 </style>
 </head>
 <body>
@@ -281,6 +283,7 @@ button, .mx-btn, [role="button"] {
       <button class="mx-play" id="play"><i class="ti ti-player-play-filled"></i> <span id="playText" data-i18n="me.baslat">Başlat</span></button>
       <button class="mx-tap" id="tap" data-i18n-html="me.tempoyuVur">Tempoyu<br>vur</button>
     </div>
+    <div class="mx-ses-uyari" id="sesUyari" hidden data-i18n="me.sesEngel">Tarayıcı sesi engelledi. Safari&apos;de Kilit Modu (Lockdown Mode) açıksa kapatıp sayfayı yenileyin.</div>
   </div>
 
   <div class="mx-card">
@@ -392,9 +395,10 @@ function tempoTerm(v){
 }
 
 // ── Ses motoru ──────────────────────────────────────────────────────────
+// Context, master ve sınırlayıcı artık ses.js'te (ritim aracıyla ortak).
+// Buradaki actx/master onun verdiği düğümlerin kısayolu.
 let actx = null, nextNoteTime = 0, beatIndex = 0, timerId = null;
-let master = null;   // tüm sesin geçtiği ana kazanç düğümü (ses seviyesi buradan)
-let limiter = null;  // yumuşak sınırlayıcı — seviye yükseldiğinde çatlamayı önler
+let master = null;   // Ses.cikis() — tüm sesin geçtiği ana kazanç düğümü
 const LOOKAHEAD = 25;        // ms — zamanlayıcının uyanma sıklığı
 const SCHEDULE_AHEAD = 0.12; // sn — bu kadar ilerisi önceden planlanır
 let visualQueue = [];
@@ -456,23 +460,18 @@ function scheduler(){
 
 async function start(){
   if (running) return;
-  if (!actx) {
-    actx = new (window.AudioContext || window.webkitAudioContext)();
-    master = actx.createGain();
-    master.gain.value = vol;
-    limiter = actx.createDynamicsCompressor();     // seviye yüksekken çatlamasın
-    limiter.threshold.value = -8; limiter.ratio.value = 6;
-    limiter.attack.value = 0.002; limiter.release.value = 0.12;
-    master.connect(limiter); limiter.connect(actx.destination);
-  }
-  if (actx.state === 'suspended') await actx.resume();   // iOS: dokunuş şart
+  // Ses açılmazsa (Lockdown Mode, izin yok) sessizce ölmek yerine uyarı göster.
+  const r = await Ses.hazirla();
+  if (!r.ok) { $('sesUyari').hidden = false; return; }
+  $('sesUyari').hidden = true;
+  actx = Ses.ctx(); master = Ses.cikis();
   running = true;
   beatIndex = 0; visualQueue = [];
   nextNoteTime = actx.currentTime + 0.06;
   scheduler();
   requestAnimationFrame(draw);
   $('play').classList.add('on');
-  $('play').innerHTML = '<i class="ti ti-player-stop-filled"></i> <span>Durdur</span>';
+  $('play').innerHTML = '<i class="ti ti-player-stop-filled"></i> <span data-i18n="me.durdur">' + _meCev('me.durdur','Durdur') + '</span>';
   if (wakeOn) requestWake();
 }
 
@@ -728,9 +727,8 @@ holdable($('plus'), 1);
 (function wireVolume(){
   const sl = $('volSlider');
   const apply = v => {
-    vol = Math.min(1, Math.max(0, v / 100));
+    vol = Ses.sesSeviyesi(v / 100);
     $('volView').textContent = Math.round(vol * 100) + '%';
-    if (master) master.gain.setTargetAtTime(vol, actx.currentTime, 0.01);
   };
   sl.addEventListener('input', () => apply(+sl.value));
   sl.addEventListener('change', saveState);
