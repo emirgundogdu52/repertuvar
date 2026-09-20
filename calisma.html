@@ -1298,6 +1298,28 @@ function rtBpmYaz(v) {
 
 function rtBpmKaydir(d) { rtBpmYaz(rtBpmDeg + d); }
 
+// ── Kilit/arka plan sonrası durum düzeltmesi ────────────────────────────
+// iOS ekran kilitlenince AudioContext askıya alınıyor ve ses susuyor.
+// Sorun susması değil (o kaçınılmaz), düğmenin hâlâ "Durdur" göstermesiydi:
+// kullanıcı çalıyor sanıyor, düğmeye basınca önce durduruyor, devam etmek
+// için ikinci kez basmak gerekiyordu. Artık geri dönüşte gerçek duruma
+// bakılıyor; ses açılmadıysa ritim durmuş sayılıp düğme "Başlat"a dönüyor.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !rtCaliyor) return;
+  const actx = (window.Ses && Ses.ctx) ? Ses.ctx() : null;
+  if (!actx) { rtDurdur(); return; }
+  if (actx.state === 'running') return;            // kesinti olmamış
+  // Sessizce geri açmayı dene; iOS çoğu zaman dokunuş ister.
+  const bitir = () => {
+    if (actx.state !== 'running') rtDurdur();      // düğme gerçeği göstersin
+  };
+  try {
+    const p = actx.resume();
+    if (p && typeof p.then === 'function') p.then(bitir, bitir);
+    else setTimeout(bitir, 250);
+  } catch (e) { bitir(); }
+});
+
 // Tempoyu vur: son dokunuşların ortalaması. 2 saniyeden uzun ara verilirse
 // yeni ölçüm başlar — metronomdaki davranışın aynısı.
 function rtTap() {

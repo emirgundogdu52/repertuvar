@@ -5,7 +5,7 @@ let hata=0; const yaz=(a,ok,ek='')=>{console.log((ok?'GEÇTİ ':'KALDI ')+a+(ek?
 // Sahte DOM
 const ogeler={};
 function oge(id){ if(!ogeler[id]) ogeler[id]={id,style:{},classList:{_s:new Set(),add(x){this._s.add(x)},remove(x){this._s.delete(x)},toggle(x,v){v?this._s.add(x):this._s.delete(x)},contains(x){return this._s.has(x)}},options:[],innerHTML:'',textContent:'',disabled:false,value:'',querySelector:()=>({className:''}),hidden:true}; return ogeler[id]; }
-global.document={ getElementById:oge };
+global.document={ getElementById:oge, visibilityState:'visible', addEventListener:()=>{} };
 global.window={};
 global.alert=(m)=>{ global._sonAlert=m; };
 global._caCev=(k,tr)=>tr;
