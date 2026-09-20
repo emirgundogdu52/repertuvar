@@ -36,10 +36,10 @@ function ortam(){
   {
     const o=ortam();
     const k=o.Ritim.kaliplar.nim_sofyan;
-    yaz('Nim Sofyan doğrulanmış', k.durum==='dogrulandi');
-    yaz('yalnız doğrulanmış kalıplar listeleniyor', o.Ritim.kalipListesi().length===1);
+    yaz('Nim Sofyan çalınabilir', k.calinabilir===true);
+    yaz('yalnız çalınabilir kalıplar listeleniyor', o.Ritim.kalipListesi().every(x=>x.calinabilir), o.Ritim.kalipListesi().map(x=>x.ad.tr).join(', '));
     yaz('kalıp modeli tüm alanları taşıyor',
-      ['id','ad','olcu','zaman','birim','gruplama','altBolunme','olaylar','varsayilanBpm','uyumluKitler','tavirlar','varyasyon','durum']
+      ['id','ad','olcu','zaman','birim','gruplama','altBolunme','olaylar','varsayilanBpm','uyumluKitler','tavirlar','varyasyon','kaynak','calinabilir']
         .every(a=>a in k));
     const kitler=o.Ritim.kitListesi('nim_sofyan').map(x=>x.id);
     yaz('arayüzde Bendir ve Darbuka', JSON.stringify(kitler)===JSON.stringify(['bendir','darbuka']), kitler.join(','));
@@ -174,6 +174,61 @@ function ortam(){
     const o=ortam(); o.sesAcilir=false;
     const r=await o.Ritim.olustur({}).hazirla();
     yaz('ses açılmazsa düzgün hata', r.ok===false && r.sebep==='ses');
+  }
+
+
+  // 11. Uzun darplı usuller — Türk Aksağı ve Aksak Semâi
+  for (const [kalip, zaman, beklenenOlay] of [['turk_aksagi',5,3],['aksak_semai',10,6]]) {
+    const o=ortam();
+    const m=o.Ritim.olustur({kalip, kit:'darbuka', bpm:120});
+    const r=await m.hazirla();
+    if(!r.ok){ yaz(kalip+' hazırlık', false, r.mesaj); continue; }
+    m.basla(); o.ilerlet(60);
+    const birim=60/120;
+    const olcuSuresi=zaman*birim;
+    // bir ölçüde kaç ses çalıyor
+    const ilkOlcu=o.calinan.filter(x=>x.zaman < o.calinan[0].zaman+olcuSuresi-1e-9);
+    yaz(`${kalip}: ölçüde ${beklenenOlay} darp`, ilkOlcu.length===beklenenOlay, ilkOlcu.length+' darp');
+    // ölçü başları tam olcuSuresi aralıkla gelmeli (loop gap yok)
+    const basSes=[]; const t0=o.calinan[0].zaman;
+    for(const x of o.calinan){ const k=(x.zaman-t0)/olcuSuresi; if(Math.abs(k-Math.round(k))<1e-9) basSes.push(x.zaman); }
+    const arl=basSes.slice(1).map((x,i)=>x-basSes[i]);
+    yaz(`${kalip}: ölçü sınırında boşluk yok`, arl.length>5 && Math.max(...arl.map(x=>Math.abs(x-olcuSuresi)))<1e-9,
+        `${basSes.length} ölçü, sapma ${(Math.max(...arl.map(x=>Math.abs(x-olcuSuresi)))*1e9).toFixed(1)} ns`);
+  }
+
+  // 12. Çalınamaz usul çalmaya kalkışmıyor
+  {
+    const o=ortam();
+    const m=o.Ritim.olustur({kalip:'curcuna', kit:'bendir'});
+    const r=await m.hazirla();
+    yaz('metadata-only usul çalınamıyor', r.ok===false && r.sebep==='kalip', r.mesaj);
+    yaz('kalipYaz çalınamaz usulü reddediyor', o.Ritim.olustur({}).kalipYaz('curcuna')===false);
+  }
+
+
+  // 13. On iki usulün tamamı, iki kitle, ölçü sınırı ve boşluk kontrolü
+  {
+    const o0=ortam();
+    const hepsi=o0.Ritim.kalipListesi().map(k=>k.id);
+    for (const kitId of ['bendir','darbuka']) {
+      for (const kid of hepsi) {
+        const o=ortam();
+        const k=o.Ritim.kaliplar[kid];
+        const m=o.Ritim.olustur({kalip:kid, kit:kitId, bpm:120});
+        const r=await m.hazirla();
+        if(!r.ok){ yaz(`${kitId}/${kid} hazırlık`, false, r.mesaj); continue; }
+        m.basla(); o.ilerlet(40);
+        const birim=0.5, olcu=k.zaman*birim;
+        const t0=o.calinan[0].zaman;
+        const ilkOlcu=o.calinan.filter(x=>x.zaman < t0+olcu-1e-9);
+        const olcuBaslari=o.calinan.filter(x=>{const q=(x.zaman-t0)/olcu; return Math.abs(q-Math.round(q))<1e-9;}).map(x=>x.zaman);
+        const arl=olcuBaslari.slice(1).map((x,i)=>x-olcuBaslari[i]);
+        const sapma=arl.length? Math.max(...arl.map(x=>Math.abs(x-olcu))) : 1;
+        yaz(`${kitId}/${k.ad.tr}`, ilkOlcu.length===k.olaylar.length && sapma<1e-9,
+            `${k.olaylar.length} darp/ölçü, ${olcuBaslari.length} ölçü, sapma ${(sapma*1e9).toFixed(1)} ns`);
+      }
+    }
   }
 
   console.log(hata? `\n${hata} TEST BAŞARISIZ` : '\nTÜM TESTLER GEÇTİ');
