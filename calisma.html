@@ -331,7 +331,10 @@
         <div class="yk-birak-alt" data-i18n="ca.veyaSec">veya dokunup seçin · mp3, m4a, wav</div>
       </div>
       <div class="yk-dosya" id="ykDosyaBilgi" style="display:none;"></div>
-      <div class="yk-not" data-i18n="ca.tekEser">Tek eser kaydı bekleniyor · en fazla <b id="ykMaxMb">8</b> MB</div>
+      <!-- data-i18n textContent yazıyor: etiketi DIŞ öğeye koyarsak içerideki
+           <b id="ykMaxMb"> siliniyordu ve yeniKayit() null'a çarpıp yükleme
+           katmanını hiç açamıyordu. Çeviri artık yalnız metin parçasında. -->
+      <div class="yk-not"><span data-i18n="ca.tekEser">Tek eser kaydı bekleniyor · en fazla</span> <b id="ykMaxMb">8</b> MB</div>
     </div>
 
     <div class="yk-adim" id="ykAdim3" style="display:none;">
@@ -666,7 +669,9 @@ function yeniKayit() {
   document.getElementById('ykIlerleme').style.display = 'none';
   document.getElementById('ykTon').value = '';
   document.getElementById('ykGrup').checked = false;
-  if (KOTA) document.getElementById('ykMaxMb').textContent = KOTA.dosya_mb_limit;
+  // Tek bir öğe eksikse bütün akış durmasın.
+  const _mx = document.getElementById('ykMaxMb');
+  if (KOTA && _mx) _mx.textContent = KOTA.dosya_mb_limit;
   document.getElementById('ykKatman').classList.add('acik');
   ykEserFiltre();
 }
