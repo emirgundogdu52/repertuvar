@@ -788,11 +788,35 @@ $('rkGenel').addEventListener('click', (e) => {
   c.addEventListener('pointerup', birak);
   c.addEventListener('pointercancel', birak);
 
-  // Tekerlek / izleme dörtgeni: imlecin olduğu yerde yakınlaş-uzaklaş.
+  // Tekerlek / izleme dörtgeni — ses düzenleyicilerindeki alışkanlık:
+  //   yana kaydırma      → görünümü sağa sola KAYDIRIR
+  //   yukarı-aşağı       → imlecin olduğu yerde yakınlaş / uzaklaş
+  //   iki parmak sıkıştırma (ctrlKey) → yakınlaş / uzaklaş
+  //   Shift + tekerlek   → yana kaydırma (yatay tekerleği olmayan fare)
+  // Eski sürüm yalnız deltaY'ye bakıyordu: yana kaydırmada deltaY = 0
+  // geldiği için her olay "yakınlaş" sayılıyor, görünüm hep daralıyordu.
   c.addEventListener('wheel', (e) => {
     if (!gorunum) return;
     e.preventDefault();
-    yakinlas(e.deltaY > 0 ? 1.25 : 0.8, c._t(px(e)));
+    // Satır / sayfa birimlerini piksele çevir (Firefox satır gönderebiliyor)
+    const birim = e.deltaMode === 1 ? 16 : (e.deltaMode === 2 ? c.clientWidth : 1);
+    let dx = e.deltaX * birim, dy = e.deltaY * birim;
+    if (e.shiftKey && !dx) { dx = dy; dy = 0; }
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+
+    if (!e.ctrlKey && Math.abs(dx) > Math.abs(dy)) {
+      // Yana kaydır: pencere genişliği aynı, konum değişir
+      const gen = gorunum.b - gorunum.a;
+      let a = gorunum.a + dx / c.clientWidth * gen;
+      a = Math.max(0, Math.min(a, toplamSn - gen));
+      gorunum = { a: a, b: a + gen };
+      yenidenCiz();
+    } else {
+      // Yakınlaş/uzaklaş: miktarla orantılı, akıcı. Fare çentiği ~100 px
+      // ≈ %16; izleme dörtgeninin küçük adımları küçük değişim yapar.
+      const kat = Math.min(4, Math.max(0.25, Math.exp(dy * (e.ctrlKey ? 0.01 : 0.0015))));
+      yakinlas(kat, c._t(px(e)));
+    }
   }, { passive: false });
 })();
 

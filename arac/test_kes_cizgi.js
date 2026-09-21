@@ -54,7 +54,9 @@ function ortam(kayitTempo=100){
     };`);
   const c=oge('rkYakin');
   const ev=(tur,x)=>dinle['rkYakin:'+tur]({clientX:x,pointerId:1,preventDefault(){},deltaY:0});
-  return {d:global.__d, v:r.v, ev, c, dinle};
+  const teker=(o)=>dinle['rkYakin:wheel'](Object.assign({clientX:450,deltaX:0,deltaY:0,deltaMode:0,
+    ctrlKey:false,shiftKey:false,preventDefault(){}},o));
+  return {d:global.__d, v:r.v, ev, c, dinle, teker};
 }
 
 // ── 1. Başlangıç çizgisini sürükle: bitiş yerinde kalmalı ──
@@ -203,6 +205,46 @@ function ortam(kayitTempo=100){
   yaz('limit 0 iken kaydet pasif', d.oge('rkKaydetBtn').disabled===true);
   d.kota={adet:3,adet_limit:50,bayt:0,mb_limit:500}; d.kaydetDurumu();
   yaz('limit varken kaydet etkin', d.oge('rkKaydetBtn').disabled===false);
+}
+
+
+// ── 14. Tekerlek / izleme dörtgeni ──
+{
+  const {d,teker}=ortam();
+  d.yakinlas(0.4, d.bas);                           // kaydırılacak yer olsun
+  let g0=d.gor, gen0=g0.b-g0.a;
+  for(let i=0;i<10;i++) teker({deltaX:40});          // sağa kaydır, deltaY yok
+  let g=d.gor;
+  yaz('yana kaydırma görünümü sağa kaydırıyor', g.a>g0.a, `${g0.a.toFixed(3)} → ${g.a.toFixed(3)}`);
+  yaz('yana kaydırma YAKINLAŞTIRMIYOR', Math.abs((g.b-g.a)-gen0)<1e-9, `genişlik ${gen0.toFixed(3)} → ${(g.b-g.a).toFixed(3)}`);
+  const gSag=d.gor;
+  for(let i=0;i<10;i++) teker({deltaX:-40});         // sola geri
+  yaz('ters yöne kaydırınca geri geliyor', Math.abs(d.gor.a-g0.a)<1e-6, `${d.gor.a.toFixed(3)}`);
+
+  g0=d.gor; gen0=g0.b-g0.a;
+  teker({deltaY:100});
+  yaz('aşağı tekerlek uzaklaştırıyor', (d.gor.b-d.gor.a)>gen0, `${gen0.toFixed(3)} → ${(d.gor.b-d.gor.a).toFixed(3)}`);
+  const genUz=d.gor.b-d.gor.a;
+  teker({deltaY:-100});
+  yaz('yukarı tekerlek yakınlaştırıyor ve geri dönüyor', Math.abs((d.gor.b-d.gor.a)-gen0)<1e-6,
+      `${genUz.toFixed(3)} → ${(d.gor.b-d.gor.a).toFixed(3)}`);
+
+  g0=d.gor;
+  teker({deltaX:0, deltaY:0});
+  yaz('sıfır hareket hiçbir şey yapmıyor', d.gor.a===g0.a && d.gor.b===g0.b);
+
+  g0=d.gor; gen0=g0.b-g0.a;
+  teker({shiftKey:true, deltaY:60});
+  yaz('Shift + tekerlek yana kaydırıyor', d.gor.a!==g0.a && Math.abs((d.gor.b-d.gor.a)-gen0)<1e-9);
+
+  gen0=d.gor.b-d.gor.a;
+  teker({ctrlKey:true, deltaY:-5});                  // iki parmakla sıkıştırma
+  yaz('sıkıştırma hareketi yakınlaştırıyor', (d.gor.b-d.gor.a)<gen0);
+
+  // izleme dörtgeninin küçük çapraz hareketi: baskın eksen karar verir
+  g0=d.gor; gen0=g0.b-g0.a;
+  teker({deltaX:12, deltaY:3});
+  yaz('çapraz harekette baskın eksen (yatay) kazanıyor', Math.abs((d.gor.b-d.gor.a)-gen0)<1e-9);
 }
 
 console.log(hata? `\n${hata} TEST BAŞARISIZ`:'\nTÜM TESTLER GEÇTİ');
