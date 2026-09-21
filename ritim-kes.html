@@ -60,6 +60,12 @@
 .rk-sec .ti { font-size: 26px; color: var(--accent); }
 .rk-sec-ad { font-size: 15px; font-weight: 700; color: var(--text); }
 .rk-sec-bilgi { font-size: 12px; color: var(--text3); margin-top: 2px; }
+/* Dosya açıkken kart bir düğmeye dönüşüyor: başka kayıt açmanın yolu görünsün. */
+.rk-degistir { margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
+               padding: 8px 13px; border-radius: 9px; font-size: 13px; font-weight: 600;
+               background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.rk-degistir[hidden] { display: none; }
+.rk-degistir .ti { font-size: 16px; color: var(--accent); }
 
 /* Dalga formları — sayfanın asıl işi burada */
 .rk-editor { display: none; margin-top: 16px; }
@@ -145,6 +151,9 @@
         <div class="rk-sec-ad" id="rkSecAd" data-i18n="rk.dosyaSec">Ritim kaydını seç ya da buraya bırak</div>
         <div class="rk-sec-bilgi" id="rkSecBilgi" data-i18n="rk.bicimler">WAV, AIFF, MP3, M4A</div>
       </div>
+      <!-- Kartın tamamı bir <label>: bu yazıya da, kartın herhangi bir yerine de
+           tıklamak dosya seçiciyi açar. Üstüne dosya sürüklemek de çalışır. -->
+      <span class="rk-degistir" id="rkDegistir" hidden><i class="ti ti-folder-open"></i><span data-i18n="rk.baskaKayit">Başka kayıt aç</span></span>
       <input type="file" id="rkDosya" accept="audio/*,.wav,.aif,.aiff,.mp3,.m4a" hidden>
     </label>
 
@@ -322,7 +331,11 @@ function kaydetDurumu() {
 
 // ── Dosya seçme ───────────────────────────────────────────────────────────
 const secAlan = $('rkSec');
-$('rkDosya').addEventListener('change', (e) => { if (e.target.files[0]) dosyaAc(e.target.files[0]); });
+$('rkDosya').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  e.target.value = '';           // aynı dosya tekrar seçilirse de 'change' gelsin
+  if (f) dosyaAc(f);
+});
 ['dragover', 'dragenter'].forEach(t => secAlan.addEventListener(t, (e) => { e.preventDefault(); secAlan.classList.add('uzerinde'); }));
 ['dragleave', 'drop'].forEach(t => secAlan.addEventListener(t, () => secAlan.classList.remove('uzerinde')));
 secAlan.addEventListener('drop', (e) => {
@@ -333,6 +346,9 @@ secAlan.addEventListener('drop', (e) => {
 
 async function dosyaAc(dosya) {
   onizDurdur();
+  // Önceki kayda ait her şey sıfırlansın: referans tempo, öneri, ad.
+  refTempo = null; oneriOlcu = null;
+  $('rkOneri').hidden = true;
   durum(_rkCev('rk.cozuluyor', 'Kayıt açılıyor…'));
   // Dosya seçimi bir kullanıcı dokunuşu: sesi burada açıyoruz (iOS şartı).
   const r = await Ses.hazirla();
@@ -351,7 +367,8 @@ async function dosyaAc(dosya) {
     $('rkSecAd').textContent = dosya.name;
     $('rkSecBilgi').textContent = dakikaSn(toplamSn) + ' · ' + (sr / 1000).toFixed(1) + ' kHz · ' +
       (kanallar.length === 2 ? _rkCev('rk.stereo', 'stereo') : _rkCev('rk.mono', 'mono'));
-    if (!$('rkAd').value) $('rkAd').value = dosya.name.replace(/\.[^.]+$/, '');
+    $('rkAd').value = dosya.name.replace(/\.[^.]+$/, '');   // her yeni kayıtta yenilenir
+    $('rkDegistir').hidden = false;
     adiOku(dosya.name);
     $('rkEditor').classList.add('acik');
     // Varsayılan başlangıç: ilk belirgin vuruş; bitiş tempodan.
@@ -864,7 +881,11 @@ async function kaydet() {
       } catch (e) {}
       throw new Error(sunucuMesaji(metin));
     }
-    durum(_rkCev('rk.kaydedildi', 'Kaydedildi. Aynı kayıttan başka bir döngü de kesebilirsin.') +
+    // Aynı kayıttan bir döngü daha kesilirse ad çakışmasın: "… 2", "… 3".
+    const adAlan = $('rkAd');
+    const m = /^(.*?)(?:\s+(\d+))?$/.exec(adAlan.value.trim());
+    adAlan.value = m[1] + ' ' + (m[2] ? +m[2] + 1 : 2);
+    durum(_rkCev('rk.kaydedildi', 'Kaydedildi. Aynı kayıttan başka bir döngü kesebilir ya da yukarıdan başka bir kayıt açabilirsin.') +
           ' (' + (wav.byteLength / 1048576).toFixed(1) + ' MB)', 'tamam');
     kotaYukle();
   } catch (e) {

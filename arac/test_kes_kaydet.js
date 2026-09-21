@@ -80,6 +80,18 @@ const g0=o=>JSON.parse(o.istekler.find(x=>x.url.endsWith('/rest/v1/ritimler')).b
     const g=JSON.parse(o.istekler.find(x=>x.url.endsWith('/rest/v1/ritimler')).body);
     yaz('grup işaretsizse group_id null', g.group_id===null);
   }
+
+  // 5. Aynı kayıttan ikinci döngü: ad numaralanıyor
+  {
+    const o=ortam({dosya:true,satir:true});
+    await o.kaydet();
+    yaz('ilk kayıttan sonra ad "… 2" oldu', o.oge('rkAd').value==='Deneme ritmi 2', o.oge('rkAd').value);
+    await o.kaydet();
+    yaz('ikinciden sonra "… 3"', o.oge('rkAd').value==='Deneme ritmi 3', o.oge('rkAd').value);
+    const adlar=o.istekler.filter(x=>x.url.endsWith('/rest/v1/ritimler')).map(x=>JSON.parse(x.body).ad);
+    yaz('sunucuya giden adlar farklı', adlar[0]==='Deneme ritmi' && adlar[1]==='Deneme ritmi 2', adlar.join(' | '));
+  }
+
   console.log(hata? `\n${hata} TEST BAŞARISIZ`:'\nTÜM TESTLER GEÇTİ');
   process.exit(hata?1:0);
 })();
