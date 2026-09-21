@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<!--
+  RITIM-KES.HTML — RİTİM KESME ARACI — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur)
+
+  - 2026-09-20: Sayfa oluşturuldu.
+    NİÇİN: Kullanıcılar ellerindeki uzun klavye ritimlerinden (Yamaha, Korg…)
+    kısa, kusursuz dönen döngüler kesip ritim bankasına koyuyor. Uzun orijinal
+    kayıt SUNUCUYA GİTMEZ; burada, kullanıcının cihazında kesilir, sunucuya
+    yalnız WAV döngü yüklenir (ritim-loops kovası + ritimler tablosu).
+    NİÇİN AYRI SAYFA: 10 dakikalık bir kaydı çözmek ~200 MB bellek tutuyor.
+    Çalışma Odası'na gömülseydi o sayfa ağırlaşır ve telefonda da yüklenirdi.
+    Bu ekran masaüstü ve iPad için; dar ekranda uyarı gösterir.
+
+  İLKE — KESME NOKTASINI KULLANICI GÖZLE SEÇMEZ.
+    Başlangıç kabaca işaretlenir, araç en yakın atağa oturtur. Bitiş noktası
+    seçilmez: tempo × zaman sayısı × ölçü sayısından hesaplanır. Önizlemede
+    çalan döngü, kaydedilecek dosyanın BİREBİR aynısıdır (dikiş dahil).
+
+  KABUK: calisma.html ile aynı (style.css + auth.js + topnav.js).
+  Çekirdek: dongu.js (saf fonksiyonlar, arac/test_dongu.js ile test edilir).
+-->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title data-i18n="rk.sayfaBaslik">Ritim Kes — Repertuvar</title>
+<link rel="stylesheet" href="style.css">
+<script src="i18n.js"></script>
+<script src="ses.js"></script>
+<script src="dongu.js"></script>
+<script src="auth.js"></script>
+<script src="topnav.js" defer></script>
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+<style>
+/* Dalga formu geniş alan istiyor: diğer sayfalardan geniş. */
+.page-content { max-width: 960px; margin: 0 auto; padding: 16px 20px 90px; font-family: inherit; }
+.page-content input, .page-content button, .page-content select { font-family: inherit; }
+#r-topnav-container { position: sticky; top: 0; z-index: 500; background: var(--bg); }
+
+.rk-head { margin-bottom: 14px; }
+.rk-title { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -.01em; }
+.rk-sub { font-size: 13px; color: var(--text3); margin-top: 3px; line-height: 1.5; max-width: 62ch; }
+
+.rk-kota { font-size: 12px; color: var(--text3); margin-bottom: 14px; }
+.rk-kota b { color: var(--text2); font-weight: 700; }
+
+/* Dar ekran: bu ekran büyük cihaz içindir */
+.rk-dar { display: none; padding: 34px 20px; text-align: center; color: var(--text3);
+          border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.rk-dar .ti { font-size: 38px; display: block; margin-bottom: 10px; opacity: .6; }
+@media (max-width: 699px) { .rk-dar { display: block; } .rk-genis { display: none; } }
+
+/* Dosya seçme */
+.rk-sec { display: flex; align-items: center; gap: 14px; padding: 18px;
+          border: 1.5px dashed var(--border); border-radius: 12px; background: var(--surface);
+          cursor: pointer; transition: border-color .14s; }
+.rk-sec:hover, .rk-sec.uzerinde { border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+.rk-sec .ti { font-size: 26px; color: var(--accent); }
+.rk-sec-ad { font-size: 15px; font-weight: 700; color: var(--text); }
+.rk-sec-bilgi { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+/* Dalga formları — sayfanın asıl işi burada */
+.rk-editor { display: none; margin-top: 16px; }
+.rk-editor.acik { display: block; }
+.rk-dalga { position: relative; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+.rk-dalga canvas { display: block; width: 100%; cursor: crosshair; }
+.rk-dalga-ad { position: absolute; top: 7px; left: 10px; font-size: 11px; color: var(--text3);
+               pointer-events: none; }
+.rk-dikis-ad { position: absolute; top: 7px; right: 10px; font-size: 11px; pointer-events: none; }
+.rk-dikis-ad.temiz { color: var(--green, #4ade80); }
+.rk-dikis-ad.uyari { color: var(--red, #f87171); }
+
+.rk-satir { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px; margin: 14px 0; }
+.rk-alan { display: flex; flex-direction: column; gap: 5px; }
+.rk-etiket { font-size: 12px; color: var(--text3); }
+.rk-sayac { display: flex; align-items: center; gap: 6px; }
+.rk-sayac input { width: 76px; text-align: center; padding: 8px 6px; border-radius: 9px;
+                  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+                  font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rk-kucuk { min-width: 34px; height: 36px; padding: 0 9px; border-radius: 9px;
+            background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+            font-size: 13px; cursor: pointer; font-variant-numeric: tabular-nums; }
+.rk-kucuk:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.rk-sure { font-size: 20px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+
+.rk-btn { display: inline-flex; align-items: center; gap: 7px; padding: 11px 18px; border-radius: 11px;
+          background: var(--accent); color: #1a1200; border: none; font-size: 14px; font-weight: 700;
+          cursor: pointer; }
+.rk-btn:disabled { opacity: .45; cursor: not-allowed; }
+.rk-btn.ikincil { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+.rk-kaydet { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 18px;
+             padding-top: 16px; border-top: 1px solid var(--border); }
+.rk-kaydet input[type=text] { flex: 1; min-width: 220px; padding: 11px 13px; border-radius: 10px;
+                              background: var(--surface2); border: 1px solid var(--border);
+                              color: var(--text); font-size: 15px; }
+.rk-onay { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text2); }
+
+.rk-durum { margin-top: 12px; font-size: 13px; line-height: 1.5; min-height: 1.5em; color: var(--text2); }
+.rk-durum.hata { color: var(--red, #f87171); }
+.rk-durum.tamam { color: var(--green, #4ade80); }
+
+.rk-ipucu { font-size: 12px; color: var(--text3); line-height: 1.55; margin-top: 4px; max-width: 70ch; }
+</style>
+</head>
+<body>
+<div id="r-topnav-container"></div>
+
+<div class="main-wrap">
+<div class="page-content">
+
+  <div class="rk-head">
+    <div class="rk-title" data-i18n="rk.baslik">Ritim kes</div>
+    <div class="rk-sub" data-i18n="rk.altBaslik">Elindeki uzun ritim kaydından kusursuz dönen bir döngü kes. Orijinal kayıt cihazından çıkmaz; yalnız kestiğin döngü kaydedilir.</div>
+  </div>
+
+  <div class="rk-kota" id="rkKota"></div>
+
+  <div class="rk-dar">
+    <i class="ti ti-device-desktop"></i>
+    <span data-i18n="rk.darEkran">Kesme ekranı daha büyük bir cihaz için tasarlandı. Bilgisayarda ya da tablette aç.</span>
+  </div>
+
+  <div class="rk-genis">
+    <label class="rk-sec" id="rkSec">
+      <i class="ti ti-file-music"></i>
+      <div>
+        <div class="rk-sec-ad" id="rkSecAd" data-i18n="rk.dosyaSec">Ritim kaydını seç ya da buraya bırak</div>
+        <div class="rk-sec-bilgi" id="rkSecBilgi" data-i18n="rk.bicimler">WAV, AIFF, MP3, M4A</div>
+      </div>
+      <input type="file" id="rkDosya" accept="audio/*,.wav,.aif,.aiff,.mp3,.m4a" hidden>
+    </label>
+
+    <div class="rk-editor" id="rkEditor">
+
+      <div class="rk-dalga">
+        <span class="rk-dalga-ad" data-i18n="rk.tumKayit">Tüm kayıt — yaklaşık yeri seç</span>
+        <canvas id="rkGenel" height="84"></canvas>
+      </div>
+
+      <div class="rk-dalga">
+        <span class="rk-dalga-ad" data-i18n="rk.yakin">Başlangıç — vuruşa tıkla, araç atağa oturtur</span>
+        <canvas id="rkYakin" height="120"></canvas>
+      </div>
+
+      <div class="rk-dalga">
+        <span class="rk-dalga-ad" data-i18n="rk.dikis">Dikiş — döngünün sonu | başı</span>
+        <span class="rk-dikis-ad" id="rkDikisDurum"></span>
+        <canvas id="rkDikis" height="72"></canvas>
+      </div>
+
+      <div class="rk-satir">
+        <div class="rk-alan">
+          <span class="rk-etiket" data-i18n="rk.tempo">Tempo</span>
+          <div class="rk-sayac">
+            <button class="rk-kucuk" onclick="tempoKaydir(-1)">−1</button>
+            <button class="rk-kucuk" onclick="tempoKaydir(-0.1)">−.1</button>
+            <input id="rkTempo" type="number" step="0.1" min="20" max="400" value="100" onchange="tempoYaz(this.value)">
+            <button class="rk-kucuk" onclick="tempoKaydir(0.1)">+.1</button>
+            <button class="rk-kucuk" onclick="tempoKaydir(1)">+1</button>
+            <button class="rk-kucuk" onclick="tap()" data-i18n="rk.tempoyuVur">Tempoyu vur</button>
+          </div>
+        </div>
+        <div class="rk-alan">
+          <span class="rk-etiket" data-i18n="rk.zamanSayisi">Zaman sayısı</span>
+          <div class="rk-sayac">
+            <button class="rk-kucuk" onclick="zamanKaydir(-1)">−</button>
+            <input id="rkZaman" type="number" min="1" max="64" value="4" onchange="zamanYaz(this.value)">
+            <button class="rk-kucuk" onclick="zamanKaydir(1)">+</button>
+          </div>
+        </div>
+        <div class="rk-alan">
+          <span class="rk-etiket" data-i18n="rk.olcuSayisi">Ölçü sayısı</span>
+          <div class="rk-sayac">
+            <button class="rk-kucuk" onclick="olcuKaydir(-1)">−</button>
+            <input id="rkOlcu" type="number" min="1" max="64" value="4" onchange="olcuYaz(this.value)">
+            <button class="rk-kucuk" onclick="olcuKaydir(1)">+</button>
+          </div>
+        </div>
+        <div class="rk-alan">
+          <span class="rk-etiket" data-i18n="rk.sure">Döngü</span>
+          <span class="rk-sure" id="rkSure">—</span>
+        </div>
+      </div>
+
+      <div class="rk-satir">
+        <div class="rk-alan">
+          <span class="rk-etiket" data-i18n="rk.inceAyar">Başlangıcı kaydır</span>
+          <div class="rk-sayac">
+            <button class="rk-kucuk" onclick="kaydir(-0.010)">−10 ms</button>
+            <button class="rk-kucuk" onclick="kaydir(-0.001)">−1 ms</button>
+            <button class="rk-kucuk" onclick="kaydir(0.001)">+1 ms</button>
+            <button class="rk-kucuk" onclick="kaydir(0.010)">+10 ms</button>
+          </div>
+        </div>
+        <div class="rk-alan">
+          <span class="rk-etiket">&nbsp;</span>
+          <button class="rk-btn ikincil" id="rkDinle" onclick="dinleDurdur()">
+            <i class="ti ti-player-play-filled"></i><span id="rkDinleMetin" data-i18n="rk.dinle">Döngüyü dinle</span>
+          </button>
+        </div>
+      </div>
+      <div class="rk-ipucu" data-i18n="rk.ipucu">Döngü kesintisiz dönüyor. Tur sınırında vuruş erken ya da geç geliyorsa tempoyu 0,1 adımlarla ayarla; tık duyuyorsan başlangıcı birkaç milisaniye kaydır.</div>
+
+      <div class="rk-kaydet">
+        <input type="text" id="rkAd" maxlength="120" placeholder="Ritmin adı" data-i18n-ph="rk.adYer">
+        <label class="rk-onay"><input type="checkbox" id="rkGrup"> <span data-i18n="rk.grupPaylas">Grubumla paylaş</span></label>
+        <button class="rk-btn" id="rkKaydetBtn" onclick="kaydet()">
+          <i class="ti ti-device-floppy"></i><span data-i18n="rk.kaydet">Kes ve kaydet</span>
+        </button>
+      </div>
+      <div class="rk-durum" id="rkDurum"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ── Yardımcılar ───────────────────────────────────────────────────────────
+function _rkCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+function authHeaders() {
+  const t = (typeof getToken === 'function') ? getToken() : localStorage.getItem('sb_token');
+  return { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' };
+}
+function uid() {
+  if (typeof getUserId === 'function') return getUserId();
+  try { return JSON.parse(localStorage.getItem('sb_user') || '{}').id || null; } catch (e) { return null; }
+}
+function durum(metin, tur) {
+  const d = document.getElementById('rkDurum');
+  d.textContent = metin || '';
+  d.className = 'rk-durum' + (tur ? ' ' + tur : '');
+}
+const $ = (id) => document.getElementById(id);
+
+// ── Durum ─────────────────────────────────────────────────────────────────
+let kanallar = null;     // Float32Array[] — çözülmüş orijinal kayıt (yalnız bellekte)
+let sr = 44100;
+let toplamSn = 0;
+let dosyaAdi = '';
+let basSn = 0;           // atak noktası
+let tempo = 100, zaman = 4, olcu = 4;
+let dongu = null;        // kesilmiş + dikişi yapılmış kanallar — kaydedilecek olanın AYNISI
+let onizSrc = null;
+let tapZamanlari = [];
+let KOTA = null;
+
+// ── Kota ──────────────────────────────────────────────────────────────────
+async function kotaYukle() {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/ritim_kullanim',
+      { method: 'POST', headers: authHeaders(), body: '{}' });
+    if (!r.ok) return;
+    KOTA = await r.json();
+    const mb = (KOTA.bayt / 1048576).toFixed(1);
+    $('rkKota').innerHTML =
+      '<b>' + KOTA.adet + ' / ' + KOTA.adet_limit + '</b> ' + _rkCev('rk.ritim', 'ritim') +
+      ' · <b>' + mb + ' / ' + KOTA.mb_limit + ' MB</b>';
+    if (KOTA.adet_limit === 0) {
+      durum(_rkCev('rk.planYok', 'Ritim bankası PRO planında. Döngü kesip dinleyebilirsin ama kaydetmek için PRO gerekiyor.'));
+    }
+  } catch (e) {}
+}
+
+// ── Dosya seçme ───────────────────────────────────────────────────────────
+const secAlan = $('rkSec');
+$('rkDosya').addEventListener('change', (e) => { if (e.target.files[0]) dosyaAc(e.target.files[0]); });
+['dragover', 'dragenter'].forEach(t => secAlan.addEventListener(t, (e) => { e.preventDefault(); secAlan.classList.add('uzerinde'); }));
+['dragleave', 'drop'].forEach(t => secAlan.addEventListener(t, () => secAlan.classList.remove('uzerinde')));
+secAlan.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) dosyaAc(f);
+});
+
+async function dosyaAc(dosya) {
+  onizDurdur();
+  durum(_rkCev('rk.cozuluyor', 'Kayıt açılıyor…'));
+  // Dosya seçimi bir kullanıcı dokunuşu: sesi burada açıyoruz (iOS şartı).
+  const r = await Ses.hazirla();
+  if (!r.ok) { durum(_rkCev('me.sesEngel', 'Tarayıcı sesi engelledi.'), 'hata'); return; }
+  try {
+    const ab = await dosya.arrayBuffer();
+    const buf = await new Promise((coz, red) => {
+      const s = Ses.ctx().decodeAudioData(ab, coz, red);
+      if (s && s.then) s.then(coz, red);
+    });
+    sr = buf.sampleRate;
+    toplamSn = buf.duration;
+    kanallar = [];
+    for (let c = 0; c < Math.min(2, buf.numberOfChannels); c++) kanallar.push(buf.getChannelData(c));
+    dosyaAdi = dosya.name;
+    $('rkSecAd').textContent = dosya.name;
+    $('rkSecBilgi').textContent = dakikaSn(toplamSn) + ' · ' + (sr / 1000).toFixed(1) + ' kHz · ' +
+      (kanallar.length === 2 ? _rkCev('rk.stereo', 'stereo') : _rkCev('rk.mono', 'mono'));
+    if (!$('rkAd').value) $('rkAd').value = dosya.name.replace(/\.[^.]+$/, '');
+    $('rkEditor').classList.add('acik');
+    // Varsayılan başlangıç: ilk belirgin vuruş
+    basSn = Dongu.atakBul(kanallar, sr, Math.min(1, toplamSn / 2), 1.0);
+    durum('');
+    guncelle();
+  } catch (e) {
+    kanallar = null;
+    // AIFF'i Chrome çözemez; Safari çözer. Mesaj buna göre.
+    durum(_rkCev('rk.cozulemedi', 'Bu dosya açılamadı. Başka bir biçimde (WAV, MP3, M4A) dene ya da Safari kullan.'), 'hata');
+  }
+}
+
+function dakikaSn(s) {
+  const d = Math.floor(s / 60), k = Math.floor(s % 60);
+  return d + ':' + String(k).padStart(2, '0');
+}
+
+// ── Parametreler ──────────────────────────────────────────────────────────
+function tempoYaz(v) { tempo = Math.min(400, Math.max(20, Math.round((+v || tempo) * 10) / 10)); $('rkTempo').value = tempo; guncelle(); }
+function tempoKaydir(d) { tempoYaz(tempo + d); }
+function zamanYaz(v) { zaman = Math.min(64, Math.max(1, Math.round(+v || zaman))); $('rkZaman').value = zaman; guncelle(); }
+function zamanKaydir(d) { zamanYaz(zaman + d); }
+function olcuYaz(v) { olcu = Math.min(64, Math.max(1, Math.round(+v || olcu))); $('rkOlcu').value = olcu; guncelle(); }
+function olcuKaydir(d) { olcuYaz(olcu + d); }
+function kaydir(d) { if (!kanallar) return; basSn = Math.max(0, basSn + d); guncelle(); }
+
+// Tempoyu vur: son beş dokunuşun ortalaması, 2 sn ara verilirse sıfırlanır.
+function tap() {
+  const t = performance.now();
+  if (tapZamanlari.length && t - tapZamanlari[tapZamanlari.length - 1] > 2000) tapZamanlari = [];
+  tapZamanlari.push(t);
+  if (tapZamanlari.length > 5) tapZamanlari.shift();
+  if (tapZamanlari.length < 2) return;
+  const a = tapZamanlari.slice(1).map((x, i) => x - tapZamanlari[i]);
+  const ort = a.reduce((s, x) => s + x, 0) / a.length;
+  if (ort > 120 && ort < 3000) tempoYaz(60000 / ort);
+}
+
+// ── Kesme ve güncelleme ───────────────────────────────────────────────────
+let _guncelleZaman = null;
+function guncelle() {
+  if (!kanallar) return;
+  const sure = Dongu.donguSuresi(tempo, zaman, olcu);
+  $('rkSure').textContent = sure.toFixed(2) + ' sn';
+  $('rkKaydetBtn').disabled = false;
+
+  if (sure > 120) {
+    dongu = null;
+    durum(_rkCev('rk.cokUzun', 'Döngü 120 saniyeden uzun olamaz. Ölçü sayısını azalt.'), 'hata');
+    $('rkKaydetBtn').disabled = true;
+  } else if (basSn + sure > toplamSn) {
+    dongu = null;
+    durum(_rkCev('rk.sonuAsiyor', 'Döngü kaydın sonunu aşıyor. Başlangıcı öne al ya da ölçü sayısını azalt.'), 'hata');
+    $('rkKaydetBtn').disabled = true;
+  } else {
+    dongu = Dongu.donguKes(kanallar, sr, basSn, sure);
+    if (!$('rkDurum').classList.contains('tamam')) durum('');
+  }
+  cizHepsi();
+  // Dinlerken değişiklik: kısa bir bekleme sonra yeni döngüyle yeniden başla.
+  if (onizSrc) {
+    clearTimeout(_guncelleZaman);
+    _guncelleZaman = setTimeout(() => { if (onizSrc) { onizDurdur(); onizBaslat(); } }, 180);
+  }
+}
+
+// ── Çizim ─────────────────────────────────────────────────────────────────
+function renk(ad, yedek) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(ad).trim();
+  return v || yedek;
+}
+function tuvalHazirla(c) {
+  const oran = window.devicePixelRatio || 1;
+  const w = c.clientWidth, h = parseInt(c.getAttribute('height'), 10);
+  if (c.width !== Math.round(w * oran)) { c.width = Math.round(w * oran); c.style.height = h + 'px'; }
+  c.height = Math.round(h * oran);
+  const g = c.getContext('2d');
+  g.setTransform(oran, 0, 0, oran, 0, 0);
+  return { g, w, h };
+}
+function dalgaCiz(g, kanal, a, b, w, h, rengi) {
+  const t = Dongu.tepeler(kanal, a, b, Math.max(1, Math.floor(w)));
+  g.fillStyle = rengi;
+  const orta = h / 2;
+  for (let x = 0; x < t.mn.length; x++) {
+    const y1 = orta - t.mx[x] * orta * 0.92, y2 = orta - t.mn[x] * orta * 0.92;
+    g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+  }
+}
+
+function cizHepsi() {
+  if (!kanallar) return;
+  const vurgu = renk('--accent', '#f5c542'), metin3 = renk('--text3', '#8a8fa3');
+  const sure = Dongu.donguSuresi(tempo, zaman, olcu);
+
+  // 1) Genel: tüm kayıt + döngü bölgesi
+  {
+    const { g, w, h } = tuvalHazirla($('rkGenel'));
+    g.clearRect(0, 0, w, h);
+    const x1 = basSn / toplamSn * w, x2 = Math.min(w, (basSn + sure) / toplamSn * w);
+    g.fillStyle = hexSaydam(vurgu, 0.16);
+    g.fillRect(x1, 0, Math.max(1, x2 - x1), h);
+    dalgaCiz(g, kanallar[0], 0, kanallar[0].length, w, h, metin3);
+    g.fillStyle = vurgu; g.fillRect(x1, 0, 2, h);
+  }
+
+  // 2) Yakın: başlangıcın ±1,5 sn'si + ölçü çizgileri
+  {
+    const { g, w, h } = tuvalHazirla($('rkYakin'));
+    g.clearRect(0, 0, w, h);
+    const pen = 1.5, a = Math.max(0, basSn - pen), b = Math.min(toplamSn, basSn + pen);
+    dalgaCiz(g, kanallar[0], Math.floor(a * sr), Math.floor(b * sr), w, h, metin3);
+    // birim (vuruş) çizgileri: başlangıçtan itibaren tempo ızgarası
+    const birim = 60 / tempo;
+    g.fillStyle = hexSaydam(vurgu, 0.35);
+    for (let k = -8; k <= 8; k++) {
+      const t = basSn + k * birim;
+      if (t < a || t > b) continue;
+      g.fillRect((t - a) / (b - a) * w, 0, 1, h);
+    }
+    g.fillStyle = vurgu;
+    g.fillRect((basSn - a) / (b - a) * w - 1, 0, 3, h);
+    $('rkYakin')._aralik = [a, b];
+  }
+
+  // 3) Dikiş: döngünün son 0,4 sn'si | ilk 0,4 sn'si — çalan döngünün aynısı
+  {
+    const { g, w, h } = tuvalHazirla($('rkDikis'));
+    g.clearRect(0, 0, w, h);
+    const dd = $('rkDikisDurum');
+    if (!dongu) { dd.textContent = ''; return; }
+    const n = dongu[0].length, pay = Math.min(Math.floor(0.4 * sr), Math.floor(n / 2));
+    const birlesik = new Float32Array(pay * 2);
+    birlesik.set(dongu[0].subarray(n - pay), 0);
+    birlesik.set(dongu[0].subarray(0, pay), pay);
+    dalgaCiz(g, birlesik, 0, birlesik.length, w, h, metin3);
+    g.fillStyle = vurgu; g.fillRect(w / 2 - 1, 0, 2, h);
+    const s = Dongu.dikisSicramasi(dongu);
+    const temiz = s < 3;
+    dd.textContent = temiz ? _rkCev('rk.dikisTemiz', 'dikiş temiz') : _rkCev('rk.dikisTik', 'dikişte tık olabilir');
+    dd.className = 'rk-dikis-ad ' + (temiz ? 'temiz' : 'uyari');
+  }
+}
+
+// color-mix canvas'ta her tarayıcıda çalışmıyor: hex'i rgba'ya çevir.
+function hexSaydam(renk, alfa) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(renk.replace(/\s/g, ''));
+  if (!m) return 'rgba(245,197,66,' + alfa + ')';
+  const n = parseInt(m[1], 16);
+  return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + alfa + ')';
+}
+
+// Tıklamalar: kaba yer seçimi ve atağa oturtma
+$('rkGenel').addEventListener('click', (e) => {
+  if (!kanallar) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  const t = (e.clientX - r.left) / r.width * toplamSn;
+  // Genel görünümde bir piksel onlarca milisaniye; pencere geniş tutuluyor.
+  const pencere = Math.max(0.15, toplamSn / r.width * 3);
+  basSn = Dongu.atakBul(kanallar, sr, t, pencere);
+  guncelle();
+});
+$('rkYakin').addEventListener('click', (e) => {
+  if (!kanallar) return;
+  const c = e.currentTarget, r = c.getBoundingClientRect();
+  const [a, b] = c._aralik || [0, toplamSn];
+  const t = a + (e.clientX - r.left) / r.width * (b - a);
+  basSn = Dongu.atakBul(kanallar, sr, t, 0.06);
+  guncelle();
+});
+window.addEventListener('resize', () => cizHepsi());
+
+// ── Önizleme ──────────────────────────────────────────────────────────────
+// Çalan döngü, kaydedilecek dosyanın BİREBİR aynısı: donguKes() çıktısı.
+function onizBaslat() {
+  if (!dongu) return;
+  const actx = Ses.ctx();
+  const buf = actx.createBuffer(dongu.length, dongu[0].length, sr);
+  dongu.forEach((d, i) => buf.copyToChannel ? buf.copyToChannel(d, i) : buf.getChannelData(i).set(d));
+  onizSrc = actx.createBufferSource();
+  onizSrc.buffer = buf;
+  onizSrc.loop = true;                 // Web Audio döngüsü örnek hassasiyetinde, boşluksuz
+  onizSrc.connect(Ses.cikis());
+  onizSrc.start();
+  $('rkDinleMetin').textContent = _rkCev('rk.durdur', 'Durdur');
+  $('rkDinle').querySelector('i').className = 'ti ti-player-stop-filled';
+}
+function onizDurdur() {
+  if (onizSrc) { try { onizSrc.stop(); } catch (e) {} onizSrc.disconnect(); onizSrc = null; }
+  $('rkDinleMetin').textContent = _rkCev('rk.dinle', 'Döngüyü dinle');
+  $('rkDinle').querySelector('i').className = 'ti ti-player-play-filled';
+}
+async function dinleDurdur() {
+  if (onizSrc) { onizDurdur(); return; }
+  const r = await Ses.hazirla();
+  if (!r.ok) { durum(_rkCev('me.sesEngel', 'Tarayıcı sesi engelledi.'), 'hata'); return; }
+  onizBaslat();
+}
+
+// ── Kaydet ────────────────────────────────────────────────────────────────
+// Sıra: önce dosya Storage'a, sonra tablo satırı. Satır yazılamazsa (kota
+// tetikleyicisi burada çalışır) dosya geri silinir, öksüz kalmaz.
+async function kaydet() {
+  if (!dongu) return;
+  const ad = $('rkAd').value.trim();
+  if (!ad) { durum(_rkCev('rk.adGerekli', 'Ritme bir ad ver.'), 'hata'); $('rkAd').focus(); return; }
+  const u = uid();
+  if (!u) { durum(_rkCev('rk.girisGerekli', 'Kaydetmek için giriş yapmalısın.'), 'hata'); return; }
+
+  const btn = $('rkKaydetBtn');
+  btn.disabled = true;
+  durum(_rkCev('rk.kaydediliyor', 'Kaydediliyor…'));
+
+  const wav = Dongu.wavKodla(dongu, sr);
+  const id = (crypto.randomUUID ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }));
+  const yol = u + '/' + id + '.wav';
+  const t = (typeof getToken === 'function') ? getToken() : localStorage.getItem('sb_token');
+
+  try {
+    const up = await fetch(SUPA_URL + '/storage/v1/object/ritim-loops/' + yol, {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + t, 'Content-Type': 'audio/wav', 'x-upsert': 'false' },
+      body: new Blob([wav], { type: 'audio/wav' })
+    });
+    if (!up.ok) throw new Error(await up.text());
+
+    const govde = {
+      id: id,
+      owner_id: u,
+      group_id: $('rkGrup').checked ? (localStorage.getItem('user_group_id') || null) : null,
+      ad: ad,
+      zaman_sayisi: zaman,
+      olcu_sayisi: olcu,
+      tempo: tempo,
+      sure_sn: +(dongu[0].length / sr).toFixed(3),
+      path: yol,
+      size_bytes: wav.byteLength,
+      kaynak_dosya: dosyaAdi || null
+    };
+    const ins = await fetch(SUPA_URL + '/rest/v1/ritimler', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify(govde)
+    });
+    if (!ins.ok) {
+      const metin = await ins.text();
+      try {
+        await fetch(SUPA_URL + '/storage/v1/object/ritim-loops/' + yol, {
+          method: 'DELETE', headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + t }
+        });
+      } catch (e) {}
+      throw new Error(sunucuMesaji(metin));
+    }
+    durum(_rkCev('rk.kaydedildi', 'Kaydedildi. Aynı kayıttan başka bir döngü de kesebilirsin.') +
+          ' (' + (wav.byteLength / 1048576).toFixed(1) + ' MB)', 'tamam');
+    kotaYukle();
+  } catch (e) {
+    durum((e && e.message) || _rkCev('rk.kaydedilemedi', 'Kaydedilemedi.'), 'hata');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Tetikleyicinin mesajı JSON içinde geliyor: okunur hale getir.
+function sunucuMesaji(ham) {
+  try { const j = JSON.parse(ham); return j.message || ham; } catch (e) { return ham; }
+}
+
+kotaYukle();
+</script>
+</body>
+</html>
