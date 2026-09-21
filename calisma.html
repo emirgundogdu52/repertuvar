@@ -33,8 +33,8 @@
 <link rel="stylesheet" href="style.css">
 <script src="i18n.js"></script>
 <script src="ses.js"></script>
-<script src="zamanlayici.js"></script>
-<script src="ritim.js"></script>
+<script src="dongu.js"></script>
+<script src="ritimcalar.js"></script>
 <script src="auth.js"></script>
 <script src="db.js"></script>
 <script src="topnav.js" defer></script>
@@ -211,6 +211,39 @@
 .rt-not { margin-top:12px; padding:9px 12px; border-radius:9px; font-size:12px; line-height:1.45;
   background:var(--surface2); border:1px solid var(--border); color:var(--text2); }
 .rt-not.hata { border-color:var(--red); color:var(--red); background:rgba(255,77,79,.08); }
+/* ── Ritim bankası ── */
+.rb-bas { font-size:13px; font-weight:700; color:var(--text2); margin:4px 2px 8px; }
+.rb-alt { font-size:12px; color:var(--text3); margin:12px 2px 6px; }
+.rb-bos { font-size:13px; color:var(--text3); padding:10px 2px; line-height:1.5; }
+.rb-bos[hidden], .rb-panel[hidden] { display:none; }
+.rb-panel { margin-top:12px; }
+.rb-eser-ust { display:flex; align-items:center; gap:10px; }
+.rb-eser-ad { flex:1; font-size:17px; font-weight:800; color:var(--text); }
+.rb-satir { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:11px;
+            background:var(--surface2); border:1px solid var(--border); }
+.rb-satir.simdi { border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface2)); }
+.rb-no { width:22px; text-align:center; font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; }
+.rb-ad { flex:1; min-width:0; }
+.rb-ad b { display:block; font-size:14px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.rb-ad small { font-size:12px; color:var(--text3); }
+.rb-ikon { width:34px; height:34px; border-radius:9px; background:transparent; color:var(--text2);
+           border:1px solid var(--border); cursor:pointer; font-size:15px; flex-shrink:0; }
+.rb-ikon:hover { border-color:color-mix(in srgb, var(--accent) 50%, transparent); color:var(--text); }
+.rb-ikon:disabled { opacity:.35; cursor:default; }
+.rb-ekle { padding:0 12px; width:auto; font-size:12px; font-weight:700; color:var(--accent); }
+.rb-oynatici { display:flex; align-items:center; gap:10px; margin-top:16px; flex-wrap:wrap; }
+.rb-oynatici .rb-cal { margin-top:0; }
+.rb-buyuk { width:44px; height:44px; font-size:18px; }
+.rb-simdi { font-size:13px; color:var(--text2); flex:1; min-width:140px; }
+.rb-ayarlar { display:flex; flex-wrap:wrap; gap:18px 26px; margin-top:14px; }
+.rb-ayar { display:flex; align-items:center; gap:8px; }
+.rb-ayar .rt-etiket { flex:0 0 auto; }
+.rb-ayar .rt-bpm-deger { font-size:20px; min-width:44px; }
+.rb-kucuk-not { font-size:12px; color:var(--text3); }
+.rb-banka-ust { display:flex; align-items:center; gap:10px; margin-top:22px; flex-wrap:wrap; }
+.rb-banka-ust .rb-bas { margin:0; }
+.rb-kota { font-size:12px; color:var(--text3); flex:1; }
+.rb-kes { margin-top:0; text-decoration:none; padding:8px 13px; font-size:13px; }
 </style>
 </head>
 <body>
@@ -261,39 +294,61 @@
   </div>
   </div>
 
-  <!-- ── RİTİM ───────────────────────────────────────────────────────
-       Kalıp tabanlı ritim motoru (ritim.js). Seçenekler VERİDEN geliyor:
-       yeni usul/çalgı eklendiğinde bu HTML değişmez.
-       AŞAMA C: yalnızca Nim Sofyan + Bendir tanımlı. -->
+  <!-- ── RİTİM BANKASI ───────────────────────────────────────────────────
+       2026-09-21: Kalıp tabanlı ritim motoru kaldırıldı. Yerine kullanıcının
+       kendi kestiği döngüler (ritim-kes.html → ritimler tablosu) geliyor.
+       Eser seç → bağlı ritimler sırayla → ileri/geri ölçü başında geçer.
+       Tempo ve ton eser başına kaydedilir. Çalıcı: ritimcalar.js -->
   <div id="bolumRitim" style="display:none;">
-    <div class="co-kota" style="display:block;">
-      <div class="rt-satir">
-        <label class="rt-etiket" for="rtUsul" data-i18n="ca.usul">Usul</label>
-        <select class="co-ara rt-sec" id="rtUsul" onchange="rtUsulSec(this.value)"></select>
+
+    <div class="rb-bas" data-i18n="ca.rbEser">Hangi eserle çalışacaksın?</div>
+    <input class="co-ara" id="rbEserAra" placeholder="Eser adı ara…" data-i18n-ph="ca.eserAra" oninput="rbEserFiltre()">
+    <div class="co-liste" id="rbEserListe"></div>
+
+    <div class="co-kota rb-panel" id="rbEserPanel" hidden>
+      <div class="rb-eser-ust">
+        <div class="rb-eser-ad" id="rbEserAd"></div>
+        <button class="rt-adim" onclick="rbEserKapat()" aria-label="Kapat" data-i18n-aria="ortak.kapat"><i class="ti ti-x"></i></button>
       </div>
-      <div class="rt-satir">
-        <label class="rt-etiket" for="rtCalgi" data-i18n="ca.calgi">Çalgı</label>
-        <select class="co-ara rt-sec" id="rtCalgi" onchange="rtCalgiSec(this.value)"></select>
+
+      <div class="rb-alt" data-i18n="ca.rbBagli">Bu esere bağlı ritimler</div>
+      <div class="co-liste" id="rbBagliListe"></div>
+      <div class="rb-bos" id="rbBagliBos" data-i18n="ca.rbBagliBos">Henüz ritim bağlanmadı. Aşağıdaki bankandan "Esere ekle" ile ekle.</div>
+
+      <div class="rb-oynatici">
+        <button class="rt-adim rb-buyuk" onclick="rbOnceki()" aria-label="Önceki"><i class="ti ti-player-skip-back-filled"></i></button>
+        <button class="co-btn rb-cal" id="rbCalBtn" onclick="rbCalDurdur()">
+          <i class="ti ti-player-play-filled"></i><span id="rbCalMetin" data-i18n="me.baslat">Başlat</span>
+        </button>
+        <button class="rt-adim rb-buyuk" onclick="rbSonraki()" aria-label="Sonraki"><i class="ti ti-player-skip-forward-filled"></i></button>
+        <div class="rb-simdi" id="rbSimdi"></div>
       </div>
-      <div class="rt-satir">
-        <label class="rt-etiket" for="rtBpm" data-i18n="ca.tempo">Tempo</label>
-        <div class="rt-bpm">
-          <button class="rt-adim" onclick="rtBpmKaydir(-1)" aria-label="-1">−</button>
-          <span class="rt-bpm-deger" id="rtBpmDeger">100</span>
-          <button class="rt-adim" onclick="rtBpmKaydir(1)" aria-label="+1">+</button>
+
+      <div class="rb-ayarlar">
+        <div class="rb-ayar">
+          <span class="rt-etiket" data-i18n="ca.tempo">Tempo</span>
+          <button class="rt-adim" onclick="rbTempoKaydir(-1)">−</button>
+          <span class="rt-bpm-deger" id="rbTempo">—</span>
+          <button class="rt-adim" onclick="rbTempoKaydir(1)">+</button>
+          <span class="rb-kucuk-not" id="rbTempoNot"></span>
+        </div>
+        <div class="rb-ayar">
+          <span class="rt-etiket" data-i18n="ca.rbTon">Ton</span>
+          <button class="rt-adim" onclick="rbTonKaydir(-1)">−</button>
+          <span class="rt-bpm-deger" id="rbTon">0</span>
+          <button class="rt-adim" onclick="rbTonKaydir(1)">+</button>
         </div>
       </div>
-      <input type="range" id="rtBpm" min="30" max="300" step="1" value="100"
-             class="rt-kaydirac" oninput="rtBpmYaz(this.value)">
-      <div class="rt-dugmeler">
-        <button class="co-btn" id="rtCalBtn" onclick="rtCalDurdur()">
-          <i class="ti ti-player-play-filled" aria-hidden="true"></i>
-          <span id="rtCalMetin" data-i18n="me.baslat">Başlat</span>
-        </button>
-        <button class="co-btn ikincil" id="rtTapBtn" onclick="rtTap()" data-i18n="ca.tempoyuVur">Tempoyu vur</button>
-      </div>
-      <div class="rt-not" id="rtNot" hidden></div>
+      <div class="rt-not" id="rbNot" hidden></div>
     </div>
+
+    <div class="rb-banka-ust">
+      <div class="rb-bas" data-i18n="ca.rbBanka">Ritim bankam</div>
+      <span class="rb-kota" id="rbKota"></span>
+      <a class="co-btn ikincil rb-kes" href="ritim-kes.html"><i class="ti ti-scissors"></i><span data-i18n="ca.rbYeniKes">Yeni ritim kes</span></a>
+    </div>
+    <div class="co-liste" id="rbBanka"></div>
+    <div class="rb-bos" id="rbBankaBos" hidden data-i18n="ca.rbBankaBos">Bankan boş. Elindeki bir ritim kaydından döngü kesmek için "Yeni ritim kes"e dokun.</div>
   </div>
 
 </div>
@@ -1174,14 +1229,22 @@ async function oySil() {
   eserleriYukle();
 })();
 
-// ── RİTİM (AŞAMA C) ─────────────────────────────────────────────────────
-// Motor ritim.js'te; burada yalnız arayüz, kilit ve tap tempo var.
-// Seçenekler Ritim.kaliplar / Ritim.kitler'den okunuyor — yeni usul ya da
-// çalgı eklendiğinde bu dosya DEĞİŞMEZ.
-let rtMotor = null;
+// ── RİTİM BANKASI (2026-09-21) ───────────────────────────────────────────
+// Kalıp tabanlı motorun yerine kullanıcının kendi kestiği döngüler.
+// Veri: ritimler (banka) + eser_ritimleri (eser ↔ ritim, sıra, tempo, ton).
+// Çalma: ritimcalar.js — döngüleri eser temposuna gerer, ölçü başında geçer.
+// Kilit: rtCaliyor / rtKilitYenile ADLARI korunuyor — kayıt oynatıcısı
+// (oyOynatDurdur) bunlara bakıyor; ikisi aynı anda çalmıyor.
 let rtCaliyor = false;
-let rtBpmDeg = 100;
-let rtTapZamanlari = [];
+let RB_BANKA = [];           // görünür ritimler (kendi + grupla paylaşılan)
+let RB_KOTA = null;
+let rbEser = null;           // {id, name}
+let rbBagli = [];            // [{satir(eser_ritimleri), ritim}]
+let rbTempo = null, rbTon = 0;
+let rbCalar = null;
+let rbOnizleme = null;       // bankadaki ▶ dinle — {src, id}
+const RB_TAMPON = new Map(); // ritimId → Promise<{kanallar, sr}>  (oturum boyu)
+let _ST2 = null;
 
 function sekmeAc(ad) {
   const ritimMi = ad === 'ritim';
@@ -1189,167 +1252,395 @@ function sekmeAc(ad) {
   document.getElementById('bolumRitim').style.display = ritimMi ? '' : 'none';
   document.getElementById('sekKayit').classList.toggle('aktif', !ritimMi);
   document.getElementById('sekRitim').classList.toggle('aktif', ritimMi);
-  if (ritimMi) rtSecenekleriDoldur();
+  if (ritimMi) { rbBankaYukle(); rbEserFiltre(); }
 }
 
-function rtSecenekleriDoldur() {
-  const u = document.getElementById('rtUsul');
-  if (u && !u.options.length) {
-    // Yalnız müzikolojik olarak doğrulanmış kalıplar listeleniyor.
-    u.innerHTML = Ritim.kalipListesi().map(k => {
-      const ad = (k.ad && (k.ad[i18nDil()] || k.ad.tr)) || k.id;
-      return `<option value="${k.id}">${ad} · ${k.olcu}</option>`;
-    }).join('');
-  }
-  rtCalgilariDoldur();
-  rtKilitYenile();
-}
-
-// Çalgı listesi seçili usule bağlı: kalıbın uyumluKitler alanı neyi
-// izin veriyorsa o görünür. Yeni kit eklendiğinde bu kod değişmez.
-function rtCalgilariDoldur() {
-  const u = document.getElementById('rtUsul');
-  const c = document.getElementById('rtCalgi');
-  if (!c) return;
-  const onceki = c.value;
-  const liste = Ritim.kitListesi(u ? u.value : null);
-  c.innerHTML = liste.map(k => `<option value="${k.id}">${k.ad}</option>`).join('');
-  if (liste.some(k => k.id === onceki)) c.value = onceki;
-}
-
-function i18nDil() {
-  try { return (window.i18n && i18n.dil && i18n.dil()) || 'tr'; } catch (e) { return 'tr'; }
-}
-
-// ── Çakışma kilidi ──────────────────────────────────────────────────────
-// Kayıt oynatıcısı (oyCtx/SoundTouch) ile ritim motoru ayrı AudioContext
-// kullanıyor; ilk sürümde aynı anda çalmıyorlar. Teknik bir uyarı gibi
-// değil, sade bir davranış: çalışmayan düğme pasif görünür, dokununca
-// ne yapılması gerektiğini söyler.
-function rtKilitYenile() {
-  const rtBtn = document.getElementById('rtCalBtn');
-  if (rtBtn) rtBtn.disabled = oyCaliyor && !rtCaliyor;
-  const oyBtn = document.getElementById('oyOynatBtn');
-  if (oyBtn) oyBtn.disabled = rtCaliyor && !oyCaliyor;
-}
-
-function rtNot(metin, hataMi) {
-  const n = document.getElementById('rtNot');
+function rbNot(metin, hataMi) {
+  const n = document.getElementById('rbNot');
   if (!n) return;
   if (!metin) { n.hidden = true; return; }
   n.textContent = metin;
   n.classList.toggle('hata', !!hataMi);
   n.hidden = false;
 }
+function rbKacis(s) { return String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function rbOzet(r) {
+  return r.zaman_sayisi + '/' + (r.zaman_sayisi % 3 === 0 && r.zaman_sayisi > 3 ? 8 : 4) + ' · ' +
+    r.olcu_sayisi + ' ' + _caCev('ca.rbOlcu', 'ölçü') + ' · ' + (+r.tempo).toFixed(r.tempo % 1 ? 1 : 0) + ' BPM · ' +
+    (+r.sure_sn).toFixed(1) + ' sn';
+}
 
-// ── Çal / durdur ────────────────────────────────────────────────────────
-async function rtCalDurdur() {
-  if (rtCaliyor) { rtDurdur(); return; }
-  if (oyCaliyor) {
-    rtNot(_caCev('ca.ritimKilit', 'Ritmi kullanmak için mevcut ses kaydını durdurun.'));
-    return;
+// ── Çakışma kilidi (kayıt oynatıcısıyla) ────────────────────────────────
+function rtKilitYenile() {
+  rtCaliyor = !!((rbCalar && rbCalar.calisiyorMu()) || rbOnizleme);
+  const rb = document.getElementById('rbCalBtn');
+  if (rb) rb.disabled = oyCaliyor && !rtCaliyor;
+  const oyBtn = document.getElementById('oyOynatBtn');
+  if (oyBtn) oyBtn.disabled = rtCaliyor && !oyCaliyor;
+}
+
+// ── Banka ────────────────────────────────────────────────────────────────
+async function rbBankaYukle() {
+  try {
+    const [r, k] = await Promise.all([
+      fetch(SUPA_URL + '/rest/v1/ritimler?select=*&order=created_at.desc', { headers: authHeaders() }),
+      fetch(SUPA_URL + '/rest/v1/rpc/ritim_kullanim', { method: 'POST', headers: authHeaders(), body: '{}' })
+    ]);
+    if (r.ok) RB_BANKA = await r.json();
+    if (k.ok) RB_KOTA = await k.json();
+  } catch (e) {}
+  rbBankaCiz();
+}
+
+function rbBankaCiz() {
+  const el = document.getElementById('rbBanka');
+  if (RB_KOTA) {
+    document.getElementById('rbKota').textContent =
+      RB_KOTA.adet + ' / ' + RB_KOTA.adet_limit + ' · ' + (RB_KOTA.bayt / 1048576).toFixed(1) + ' / ' + RB_KOTA.mb_limit + ' MB';
   }
-  if (!rtMotor) {
-    rtMotor = Ritim.olustur({
-      kalip: document.getElementById('rtUsul').value || 'nim_sofyan',
-      kit: document.getElementById('rtCalgi').value || 'bendir',
-      bpm: rtBpmDeg
+  document.getElementById('rbBankaBos').hidden = RB_BANKA.length > 0;
+  const bagliIdler = new Set(rbBagli.map(b => b.ritim.id));
+  const ben = uid();
+  el.innerHTML = RB_BANKA.map(r => {
+    const dinliyor = rbOnizleme && rbOnizleme.id === r.id;
+    const ekle = rbEser && !bagliIdler.has(r.id)
+      ? `<button class="rb-ikon rb-ekle" onclick="rbBagla('${r.id}')">${_caCev('ca.rbEsereEkle', 'Esere ekle')}</button>` : '';
+    const sil = r.owner_id === ben
+      ? `<button class="rb-ikon" onclick="rbRitimSil('${r.id}')" aria-label="Sil"><i class="ti ti-trash"></i></button>` : '';
+    const grup = r.group_id ? ' · <i class="ti ti-users" title="Grupla paylaşılıyor"></i>' : '';
+    return `<div class="rb-satir">
+      <button class="rb-ikon" onclick="rbOnizle('${r.id}')" aria-label="Dinle"><i class="ti ${dinliyor ? 'ti-player-stop-filled' : 'ti-player-play-filled'}"></i></button>
+      <div class="rb-ad"><b>${rbKacis(r.ad)}</b><small>${rbOzet(r)}${grup}</small></div>
+      ${ekle}${sil}
+    </div>`;
+  }).join('');
+}
+
+// Döngüyü indir ve çöz — oturum boyunca bellekte tutulur.
+function rbTamponAl(r) {
+  if (RB_TAMPON.has(r.id)) return RB_TAMPON.get(r.id);
+  const soz = (async () => {
+    const t = (typeof getToken === 'function') ? getToken() : localStorage.getItem('sb_token');
+    const s = await fetch(SUPA_URL + '/storage/v1/object/sign/ritim-loops/' + r.path, {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expiresIn: 3600 })
     });
+    if (!s.ok) throw new Error(await s.text());
+    const j = await s.json();
+    const ab = await (await fetch(SUPA_URL + '/storage/v1' + (j.signedURL || j.signedUrl))).arrayBuffer();
+    const buf = await new Promise((coz, red) => {
+      const p = Ses.ctx().decodeAudioData(ab, coz, red);
+      if (p && p.then) p.then(coz, red);
+    });
+    const kanallar = [];
+    for (let c = 0; c < Math.min(2, buf.numberOfChannels); c++) kanallar.push(buf.getChannelData(c));
+    return { kanallar, sr: buf.sampleRate };
+  })();
+  soz.catch(() => RB_TAMPON.delete(r.id));
+  RB_TAMPON.set(r.id, soz);
+  return soz;
+}
+
+async function rbOnizle(id) {
+  if (rbOnizleme) {
+    const ayni = rbOnizleme.id === id;
+    try { rbOnizleme.src.stop(); } catch (e) {}
+    rbOnizleme = null; rtKilitYenile(); rbBankaCiz();
+    if (ayni) return;
   }
-  const r = await rtMotor.hazirla();
-  if (!r.ok) { rtNot(r.mesaj || _caCev('ca.ritimAcilamadi', 'Ritim başlatılamadı.'), true); return; }
-  rtMotor.bpmYaz(rtBpmDeg);
-  if (!rtMotor.basla()) { rtNot(_caCev('ca.ritimAcilamadi', 'Ritim başlatılamadı.'), true); return; }
-  rtCaliyor = true;
-  rtNot('');
-  rtDugmeYaz();
-  rtKilitYenile();
+  if (oyCaliyor) { rbNot(_caCev('ca.ritimKilit', 'Ritmi kullanmak için mevcut ses kaydını durdurun.')); return; }
+  if (rbCalar && rbCalar.calisiyorMu()) rbDurdur();
+  const r = RB_BANKA.find(x => x.id === id);
+  if (!r) return;
+  const h = await Ses.hazirla();
+  if (!h.ok) { rbNot(_caCev('me.sesEngel', 'Tarayıcı sesi engelledi.'), true); return; }
+  try {
+    const t = await rbTamponAl(r);
+    const actx = Ses.ctx();
+    const buf = actx.createBuffer(t.kanallar.length, t.kanallar[0].length, t.sr);
+    t.kanallar.forEach((d, c) => buf.getChannelData(c).set(d));
+    const src = actx.createBufferSource();
+    src.buffer = buf; src.loop = true; src.connect(Ses.cikis()); src.start();
+    rbOnizleme = { src, id };
+  } catch (e) { rbNot(_caCev('ca.rbIndirilemedi', 'Ritim indirilemedi.'), true); }
+  rtKilitYenile(); rbBankaCiz();
 }
 
-function rtDurdur() {
-  if (rtMotor) rtMotor.durdur();
-  rtCaliyor = false;
-  rtDugmeYaz();
-  rtKilitYenile();
+async function rbRitimSil(id) {
+  const r = RB_BANKA.find(x => x.id === id);
+  if (!r || !confirm(_caCev('ca.rbSilOnay', 'Bu ritim bankandan silinsin mi? Bağlı olduğu eserlerden de kalkar.'))) return;
+  if (rbOnizleme && rbOnizleme.id === id) rbOnizle(id);
+  // Önce satır (bağlantılar da kademeli silinir), sonra dosya. Tersi olsaydı
+  // dosyasız bir satır kalabilirdi; bu sırayla en kötü ihtimal öksüz dosya.
+  const s = await fetch(SUPA_URL + '/rest/v1/ritimler?id=eq.' + id, { method: 'DELETE', headers: authHeaders() });
+  if (!s.ok) { alert(await s.text()); return; }
+  const t = (typeof getToken === 'function') ? getToken() : localStorage.getItem('sb_token');
+  try {
+    await fetch(SUPA_URL + '/storage/v1/object/ritim-loops/' + r.path,
+      { method: 'DELETE', headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + t } });
+  } catch (e) {}
+  RB_TAMPON.delete(id);
+  await rbBankaYukle();
+  if (rbEser) await rbBagliYukle();
 }
 
-function rtDugmeYaz() {
-  const m = document.getElementById('rtCalMetin');
-  const b = document.getElementById('rtCalBtn');
-  if (m) m.textContent = rtCaliyor ? _caCev('me.durdur', 'Durdur') : _caCev('me.baslat', 'Başlat');
-  if (b) {
-    const ik = b.querySelector('i');
-    if (ik) ik.className = 'ti ' + (rtCaliyor ? 'ti-player-stop-filled' : 'ti-player-play-filled');
+// ── Eser seçimi ──────────────────────────────────────────────────────────
+function rbEserFiltre() {
+  const q = (document.getElementById('rbEserAra').value || '').trim().toLocaleLowerCase('tr');
+  const el = document.getElementById('rbEserListe');
+  if (rbEser && !q) { el.innerHTML = ''; return; }
+  const liste = (q ? ESERLER.filter(e => e.name.toLocaleLowerCase('tr').includes(q)) : [])
+    .slice(0, 8);
+  el.innerHTML = liste.map(e =>
+    `<div class="co-item" onclick="rbEserSec('${String(e.id).replace(/'/g, '')}')">
+       <div class="co-ikon"><i class="ti ti-music"></i></div>
+       <div><div class="co-ad">${rbKacis(e.name)}</div></div>
+       <i class="ti ti-chevron-right co-sag"></i></div>`).join('');
+}
+
+async function rbEserSec(id) {
+  const e = ESERLER.find(x => String(x.id) === String(id));
+  if (!e) return;
+  rbDurdur();
+  rbEser = e;
+  document.getElementById('rbEserAra').value = '';
+  document.getElementById('rbEserListe').innerHTML = '';
+  document.getElementById('rbEserAd').textContent = e.name;
+  document.getElementById('rbEserPanel').hidden = false;
+  rbNot('');
+  await rbBagliYukle();
+}
+
+function rbEserKapat() {
+  rbDurdur();
+  rbEser = null; rbBagli = []; rbCalar = null;
+  document.getElementById('rbEserPanel').hidden = true;
+  rbBankaCiz();
+}
+
+async function rbBagliYukle() {
+  rbBagli = [];
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/eser_ritimleri?work_id=eq.' + encodeURIComponent(rbEser.id) +
+      '&select=*&order=sira.asc,created_at.asc', { headers: authHeaders() });
+    if (r.ok) {
+      const satirlar = await r.json();
+      const ben = uid(), gorulen = new Set();
+      // Aynı ritim hem kendi hem grup bağlantısıyla gelebilir: kendininki önce.
+      satirlar.sort((a, b) => (a.owner_id === ben ? 0 : 1) - (b.owner_id === ben ? 0 : 1) || a.sira - b.sira);
+      for (const s of satirlar) {
+        if (gorulen.has(s.ritim_id)) continue;
+        const ritim = RB_BANKA.find(x => x.id === s.ritim_id);
+        if (!ritim) continue;               // görülemeyen ritim (RLS) — atla
+        gorulen.add(s.ritim_id);
+        rbBagli.push({ satir: s, ritim });
+      }
+      rbBagli.sort((a, b) => a.satir.sira - b.satir.sira);
+    }
+  } catch (e) {}
+  const ilk = rbBagli.find(b => b.satir.owner_id === uid()) || rbBagli[0];
+  rbTempo = ilk ? (ilk.satir.hedef_tempo != null ? +ilk.satir.hedef_tempo : +ilk.ritim.tempo) : null;
+  rbTon = ilk ? (ilk.satir.ton_kaymasi || 0) : 0;
+  rbCalar = null;                           // döngüler çalınmadan önce hazırlanır
+  rbBagliCiz(); rbBankaCiz(); rbAyarCiz();
+}
+
+function rbBagliCiz() {
+  const el = document.getElementById('rbBagliListe');
+  document.getElementById('rbBagliBos').hidden = rbBagli.length > 0;
+  const simdi = rbCalar ? rbCalar.sira() : 0;
+  const ben = uid();
+  el.innerHTML = rbBagli.map((b, i) => {
+    const benim = b.satir.owner_id === ben;
+    return `<div class="rb-satir${rbCalar && rbCalar.calisiyorMu() && i === simdi ? ' simdi' : ''}">
+      <span class="rb-no">${i + 1}</span>
+      <div class="rb-ad"><b>${rbKacis(b.ritim.ad)}</b><small>${rbOzet(b.ritim)}</small></div>
+      <button class="rb-ikon" onclick="rbGit(${i})" aria-label="Buna geç"><i class="ti ti-player-play"></i></button>
+      <button class="rb-ikon" onclick="rbSiraDegistir(${i},-1)" ${!benim || i === 0 ? 'disabled' : ''} aria-label="Yukarı"><i class="ti ti-arrow-up"></i></button>
+      <button class="rb-ikon" onclick="rbSiraDegistir(${i},1)" ${!benim || i === rbBagli.length - 1 ? 'disabled' : ''} aria-label="Aşağı"><i class="ti ti-arrow-down"></i></button>
+      <button class="rb-ikon" onclick="rbBagKaldir(${i})" ${!benim ? 'disabled' : ''} aria-label="Kaldır"><i class="ti ti-x"></i></button>
+    </div>`;
+  }).join('');
+  const s = document.getElementById('rbSimdi');
+  if (rbCalar && rbCalar.calisiyorMu() && rbBagli[simdi]) {
+    s.textContent = (simdi + 1) + ' / ' + rbBagli.length + ' · ' + rbBagli[simdi].ritim.ad;
+  } else {
+    s.textContent = rbBagli.length ? rbBagli.length + ' ' + _caCev('ca.rbRitim', 'ritim') : '';
   }
 }
 
-// ── Seçim ve tempo ──────────────────────────────────────────────────────
-function rtUsulSec(id) {
-  const calarken = rtCaliyor;
-  if (calarken) rtDurdur();
-  if (rtMotor) rtMotor.kalipYaz(id);
-  rtCalgilariDoldur();
-  if (calarken) rtCalDurdur();
+async function rbBagla(ritimId) {
+  if (!rbEser) return;
+  const r = RB_BANKA.find(x => x.id === ritimId);
+  if (!r) return;
+  const sira = rbBagli.reduce((m, b) => Math.max(m, b.satir.sira), -1) + 1;
+  const govde = {
+    work_id: isNaN(Number(rbEser.id)) ? rbEser.id : Number(rbEser.id),
+    ritim_id: ritimId, owner_id: uid(), sira,
+    hedef_tempo: rbTempo != null ? rbTempo : +r.tempo,
+    ton_kaymasi: rbTon,
+    // Grupla paylaşılmış bir ritim bağlanırsa bağlantı da o grupta görünsün:
+    // grup üyeleri aynı eserde aynı ritimleri görür.
+    group_id: r.group_id || null
+  };
+  const s = await fetch(SUPA_URL + '/rest/v1/eser_ritimleri', {
+    method: 'POST', headers: { ...authHeaders(), 'Prefer': 'return=minimal' }, body: JSON.stringify(govde)
+  });
+  if (!s.ok) { rbNot(await s.text(), true); return; }
+  await rbBagliYukle();
 }
 
-async function rtCalgiSec(id) {
-  // Kit değişimi yeni örnek havuzu gerektiriyor; motor korunuyor, yalnız
-  // kit değişiyor ve hazirla() tekrar çağrılıyor (havuz zaten yüklüyse
-  // bellekten gelir, yeniden indirilmez).
-  const calarken = rtCaliyor;
-  if (calarken) rtDurdur();
-  if (rtMotor) rtMotor.kitYaz(id); else rtMotor = null;
-  if (calarken) await rtCalDurdur();
+async function rbBagKaldir(i) {
+  const b = rbBagli[i];
+  if (!b) return;
+  rbDurdur();
+  await fetch(SUPA_URL + '/rest/v1/eser_ritimleri?id=eq.' + b.satir.id, { method: 'DELETE', headers: authHeaders() });
+  await rbBagliYukle();
 }
 
-function rtBpmYaz(v) {
-  rtBpmDeg = Math.min(300, Math.max(30, parseInt(v, 10) || rtBpmDeg));
-  const d = document.getElementById('rtBpmDeger');
-  const s = document.getElementById('rtBpm');
-  if (d) d.textContent = rtBpmDeg;
-  if (s && +s.value !== rtBpmDeg) s.value = rtBpmDeg;
-  // Çalarken de geçerli: bir sonraki planlanan olaydan itibaren.
-  if (rtMotor) rtMotor.bpmYaz(rtBpmDeg);
+async function rbSiraDegistir(i, yon) {
+  const j = i + yon, a = rbBagli[i], b = rbBagli[j];
+  if (!a || !b) return;
+  rbDurdur();
+  // Sıraları takas et; eşitse ayrıştır.
+  let sa = a.satir.sira, sb = b.satir.sira;
+  if (sa === sb) { sa = i; sb = j; }
+  await Promise.all([
+    fetch(SUPA_URL + '/rest/v1/eser_ritimleri?id=eq.' + a.satir.id,
+      { method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ sira: sb }) }),
+    fetch(SUPA_URL + '/rest/v1/eser_ritimleri?id=eq.' + b.satir.id,
+      { method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ sira: sa }) })
+  ]);
+  await rbBagliYukle();
 }
 
-function rtBpmKaydir(d) { rtBpmYaz(rtBpmDeg + d); }
+// ── Çalma ────────────────────────────────────────────────────────────────
+async function rbHazirla() {
+  if (rbCalar) return true;
+  if (!rbBagli.length) return false;
+  rbNot(_caCev('ca.rbHazirlaniyor', 'Ritimler hazırlanıyor…'));
+  try {
+    if (!_ST2) _ST2 = (typeof _ST !== 'undefined' && _ST) ? _ST : await import('./soundtouch.js');
+    const tamponlar = await Promise.all(rbBagli.map(b => rbTamponAl(b.ritim)));
+    rbCalar = RitimCalar.olustur({ ctx: () => Ses.ctx(), cikis: () => Ses.cikis(), ST: _ST2, Dongu: Dongu });
+    rbCalar.dinle(() => { rbBagliCiz(); rbDugmeYaz(); });
+    // Önce hedef tempoyu ver, sonra yükle: döngüler bir kez gerilsin.
+    rbCalar.ayarla(rbTempo, rbTon);
+    rbCalar.yukle(rbBagli.map((b, i) => ({
+      id: b.ritim.id, ad: b.ritim.ad, tempo: +b.ritim.tempo,
+      zaman_sayisi: b.ritim.zaman_sayisi, olcu_sayisi: b.ritim.olcu_sayisi,
+      kanallar: tamponlar[i].kanallar, sr: tamponlar[i].sr
+    })));
+    rbNot('');
+    return true;
+  } catch (e) {
+    rbCalar = null;
+    rbNot(_caCev('ca.rbIndirilemedi', 'Ritim indirilemedi.') + ' ' + ((e && e.message) || ''), true);
+    return false;
+  }
+}
+
+async function rbCalDurdur() {
+  if (rbCalar && rbCalar.calisiyorMu()) { rbDurdur(); return; }
+  if (oyCaliyor) { rbNot(_caCev('ca.ritimKilit', 'Ritmi kullanmak için mevcut ses kaydını durdurun.')); return; }
+  if (rbOnizleme) rbOnizle(rbOnizleme.id);
+  const h = await Ses.hazirla();
+  if (!h.ok) { rbNot(_caCev('me.sesEngel', 'Tarayıcı sesi engelledi.'), true); return; }
+  if (!(await rbHazirla())) return;
+  rbCalar.basla(rbCalar.sira());
+  rtKilitYenile(); rbDugmeYaz(); rbBagliCiz();
+}
+function rbDurdur() {
+  if (rbCalar) rbCalar.durdur();
+  rtKilitYenile(); rbDugmeYaz(); rbBagliCiz();
+}
+function rbSonraki() { if (rbCalar) rbCalar.sonraki(); rbBagliCiz(); }
+function rbOnceki() { if (rbCalar) rbCalar.onceki(); rbBagliCiz(); }
+async function rbGit(i) {
+  if (rbCalar && rbCalar.calisiyorMu()) { rbCalar.git(i); rbBagliCiz(); return; }
+  if (await rbHazirla()) { rbCalar.git(i); await rbCalDurdur(); }
+}
+function rbDugmeYaz() {
+  const calar = rbCalar && rbCalar.calisiyorMu();
+  const m = document.getElementById('rbCalMetin');
+  if (m) m.textContent = calar ? _caCev('me.durdur', 'Durdur') : _caCev('me.baslat', 'Başlat');
+  const i = document.querySelector('#rbCalBtn i');
+  if (i) i.className = 'ti ' + (calar ? 'ti-player-stop-filled' : 'ti-player-play-filled');
+}
+
+// ── Tempo ve ton (eser başına kaydedilir) ────────────────────────────────
+function rbAyarCiz() {
+  document.getElementById('rbTempo').textContent = rbTempo != null ? (+rbTempo).toFixed(rbTempo % 1 ? 1 : 0) : '—';
+  document.getElementById('rbTon').textContent = (rbTon > 0 ? '+' : '') + rbTon;
+  const ilk = rbBagli[0];
+  document.getElementById('rbTempoNot').textContent = ilk && rbTempo != null && Math.abs(rbTempo - ilk.ritim.tempo) > 0.05
+    ? _caCev('ca.rbOrijinal', 'kayıt: {t}').replace('{t}', (+ilk.ritim.tempo).toFixed(ilk.ritim.tempo % 1 ? 1 : 0)) : '';
+}
+let _rbAyarZaman = null;
+function rbAyarUygula() {
+  rbAyarCiz();
+  clearTimeout(_rbAyarZaman);
+  // Germe işi birkaç yüz ms sürebilir: tuşa art arda basılırken bekle.
+  _rbAyarZaman = setTimeout(async () => {
+    if (rbCalar) rbCalar.ayarla(rbTempo, rbTon);
+    // Kaydet: bu kullanıcının bu eserdeki bütün bağlantıları aynı ayarı taşır.
+    if (rbEser && uid()) {
+      await fetch(SUPA_URL + '/rest/v1/eser_ritimleri?work_id=eq.' + encodeURIComponent(rbEser.id) +
+        '&owner_id=eq.' + uid(), {
+        method: 'PATCH', headers: authHeaders(),
+        body: JSON.stringify({ hedef_tempo: rbTempo, ton_kaymasi: rbTon })
+      }).catch(() => {});
+    }
+  }, 400);
+}
+function rbTempoKaydir(d) {
+  if (rbTempo == null) return;
+  rbTempo = Math.min(400, Math.max(20, Math.round(rbTempo + d)));
+  rbAyarUygula();
+}
+function rbTonKaydir(d) {
+  rbTon = Math.min(12, Math.max(-12, rbTon + d));
+  rbAyarUygula();
+}
 
 // ── Kilit/arka plan sonrası durum düzeltmesi ────────────────────────────
-// iOS ekran kilitlenince AudioContext askıya alınıyor ve ses susuyor.
-// Sorun susması değil (o kaçınılmaz), düğmenin hâlâ "Durdur" göstermesiydi:
-// kullanıcı çalıyor sanıyor, düğmeye basınca önce durduruyor, devam etmek
-// için ikinci kez basmak gerekiyordu. Artık geri dönüşte gerçek duruma
-// bakılıyor; ses açılmadıysa ritim durmuş sayılıp düğme "Başlat"a dönüyor.
+// iOS ekran kilitlenince AudioContext askıya alınıyor. Düğme "Durdur"
+// göstermeye devam etmesin: ses geri açılamazsa çalar durdurulur.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible' || !rtCaliyor) return;
   const actx = (window.Ses && Ses.ctx) ? Ses.ctx() : null;
-  if (!actx) { rtDurdur(); return; }
-  if (actx.state === 'running') return;            // kesinti olmamış
-  // Sessizce geri açmayı dene; iOS çoğu zaman dokunuş ister.
   const bitir = () => {
-    if (actx.state !== 'running') rtDurdur();      // düğme gerçeği göstersin
+    if (!actx || actx.state !== 'running') {
+      if (rbOnizleme) rbOnizle(rbOnizleme.id);
+      rbDurdur();
+    }
   };
+  if (!actx) { bitir(); return; }
+  if (actx.state === 'running') return;   // kesinti olmamış
   try {
     const p = actx.resume();
-    if (p && typeof p.then === 'function') p.then(bitir, bitir);
-    else setTimeout(bitir, 250);
+    if (p && typeof p.then === 'function') p.then(bitir, bitir); else setTimeout(bitir, 250);
   } catch (e) { bitir(); }
 });
 
-// Tempoyu vur: son dokunuşların ortalaması. 2 saniyeden uzun ara verilirse
-// yeni ölçüm başlar — metronomdaki davranışın aynısı.
-function rtTap() {
-  const t = Date.now();
-  if (rtTapZamanlari.length && t - rtTapZamanlari[rtTapZamanlari.length - 1] > 2000) {
-    rtTapZamanlari = [];
-  }
-  rtTapZamanlari.push(t);
-  if (rtTapZamanlari.length > 5) rtTapZamanlari.shift();
-  if (rtTapZamanlari.length < 2) return;
-  const araliklar = rtTapZamanlari.slice(1).map((x, i) => x - rtTapZamanlari[i]);
-  const ort = araliklar.reduce((a, b) => a + b, 0) / araliklar.length;
-  if (ort > 150 && ort < 2000) rtBpmYaz(Math.round(60000 / ort));
-}
+// Sayfa ?sekme=ritim&eser=ID ile açılırsa doğrudan o esere git
+// (ileride eser sayfasından "ritimle çalış" bağlantısı için).
+(function () {
+  try {
+    const q = new URLSearchParams(location.search);
+    if (q.get('sekme') !== 'ritim') return;
+    sekmeAc('ritim');
+    const id = q.get('eser');
+    if (!id) return;
+    const bekle = (n) => {
+      if (ESERLER.length) { rbBankaYukle().then(() => rbEserSec(id)); return; }
+      if (n > 40) return;
+      setTimeout(() => bekle(n + 1), 150);
+    };
+    bekle(0);
+  } catch (e) {}
+})();
 
 </script>
 </body>
