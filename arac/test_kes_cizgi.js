@@ -14,7 +14,7 @@ function kayit(tempo=100, sure=40, bas=0.37){
   return {k:[L,R], v};
 }
 
-function ortam(){
+function ortam(kayitTempo=100){
   const dinle={}; const W=900;
   const tuval=()=>({clientWidth:W,width:0,height:0,style:{},getAttribute:()=> '120',
     getContext:()=>new Proxy({},{get:(t,k)=> (k in t)? t[k] : ()=>{}, set:(t,k,v)=>{t[k]=v;return true;}}),
@@ -37,7 +37,7 @@ function ortam(){
   global.Ses={hazirla:async()=>({ok:true}),ctx:()=>null,cikis:()=>null};
   const html=fs.readFileSync(path.join(process.env.KOK||require('path').join(__dirname,'..'),'ritim-kes.html'),'utf8');
   const js=html.match(/<script>([\s\S]*?)<\/script>/)[1].replace(/kotaYukle\(\);\s*$/,'');
-  const r=kayit();
+  const r=kayit(kayitTempo);
   eval(js+`
     ;kanallar=r.k; sr=${sr}; toplamSn=40; tempo=100; zaman=4; olcu=4;
     basSn=D.atakBul(kanallar,sr,0.4,0.5); bitisiHesapla(); gorunumSigdir(); guncelle();
@@ -46,6 +46,10 @@ function ortam(){
       get gor(){return {...gorunum}}, get secili(){return secili},
       set bas(v){basSn=v}, set bitis(v){bitisSn=v},
       kaydir, tempoYaz, olcuYaz, cizgiSec, yakinlas, gorunumSigdir, cizHepsi,
+      guncelle, oneriUygula, sunucuMesaji, kaydetDurumu,
+      get ref(){return refTempo}, set ref(v){refTempo=v},
+      set zaman(v){zaman=v}, set olcu(v){olcu=v}, get olcu(){return olcu},
+      set kota(v){KOTA=v}, oge:(id)=>document.getElementById(id),
       x:(t)=>document.getElementById('rkYakin')._x(t)
     };`);
   const c=oge('rkYakin');
@@ -153,6 +157,52 @@ function ortam(){
   yaz('döngü taşındı ve başlangıç vuruşa oturdu', Math.abs(d.bas-v[3])<0.002, `${(d.bas*1000).toFixed(1)} / ${(v[3]*1000).toFixed(1)} ms`);
   yaz('döngü boyu korundu', Math.abs((d.bitis-d.bas)-boy0)<1e-9);
   yaz('tempo değişmedi', d.tempo===t0, `tempo ${d.tempo}`);
+}
+
+
+// ── 10. Ekran görüntüsündeki durum: 85 BPM, 2/4, seçim 6 vuruş, ölçü 4 girili ──
+{
+  const {d,v}=ortam(85);
+  d.zaman=2; d.olcu=4; d.ref=85;
+  d.bas=v[0]; d.bitis=v[6];                         // 6 vuruş = 3 ölçü 2/4
+  d.guncelle();
+  // Çizgiler taşınmadığı için tempo henüz türetilmedi; türet:
+  d.kaydir(0); 
+  yaz('yanlış ölçü sayısıyla tempo 113,3 çıkıyor', Math.abs(d.tempo-113.33)<0.1, `tempo ${d.tempo}`);
+  const kutu=d.oge('rkOneri');
+  yaz('öneri gösteriliyor', kutu.hidden===false, d.oge('rkOneriMetin').textContent);
+  yaz('öneri 3 ölçü diyor', /3 ölçü/.test(d.oge('rkOneriMetin').textContent));
+  const bas0=d.bas, bitis0=d.bitis;
+  d.oneriUygula();
+  yaz('öneri uygulanınca ölçü 3', d.olcu===3);
+  yaz('öneri uygulanınca tempo 85', Math.abs(d.tempo-85)<0.05, `tempo ${d.tempo}`);
+  yaz('öneri çizgileri taşımıyor', d.bas===bas0 && d.bitis===bitis0);
+  yaz('öneri kayboldu', d.oge('rkOneri').hidden===true);
+}
+// ── 11. Doğru girilmişse öneri çıkmamalı ──
+{
+  const {d,v}=ortam(85);
+  d.zaman=2; d.olcu=3; d.ref=85; d.bas=v[0]; d.bitis=v[6]; d.kaydir(0);
+  yaz('doğru ölçü sayısında öneri yok', d.oge('rkOneri').hidden===true);
+  d.ref=null; d.olcu=4; d.kaydir(0);
+  yaz('referans tempo yoksa öneri yok', d.oge('rkOneri').hidden===true);
+}
+// ── 12. Sunucu mesajları okunur Türkçe ──
+{
+  const {d}=ortam();
+  yaz('adet mesajı çevriliyor', d.sunucuMesaji('{"message":"Ritim adedi sinirina ulastiniz (0/0)."}')==='Ritim sınırına ulaştın (0/0).',
+      d.sunucuMesaji('{"message":"Ritim adedi sinirina ulastiniz (0/0)."}'));
+  yaz('depolama mesajı çevriliyor', d.sunucuMesaji('{"message":"Depolama siniri asiliyor (500 MB)."}')==='Depolama sınırı aşılıyor (500 MB).');
+  yaz('dosya mesajı çevriliyor', d.sunucuMesaji('{"message":"Dosya 25 MB sinirini asiyor."}')==='Dosya 25 MB sınırını aşıyor.');
+  yaz('bilinmeyen mesaj olduğu gibi', d.sunucuMesaji('baska bir hata')==='baska bir hata');
+}
+// ── 13. Plan sınırı 0 ise kaydet pasif ──
+{
+  const {d}=ortam();
+  d.kota={adet:0,adet_limit:0,bayt:0,mb_limit:0}; d.kaydetDurumu();
+  yaz('limit 0 iken kaydet pasif', d.oge('rkKaydetBtn').disabled===true);
+  d.kota={adet:3,adet_limit:50,bayt:0,mb_limit:500}; d.kaydetDurumu();
+  yaz('limit varken kaydet etkin', d.oge('rkKaydetBtn').disabled===false);
 }
 
 console.log(hata? `\n${hata} TEST BAŞARISIZ`:'\nTÜM TESTLER GEÇTİ');

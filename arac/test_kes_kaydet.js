@@ -63,7 +63,7 @@ const g0=o=>JSON.parse(o.istekler.find(x=>x.url.endsWith('/rest/v1/ritimler')).b
     const yuk=o.istekler.find(x=>x.url.includes('/storage/v1/object/ritim-loops/') && x.method==='POST');
     const sil=o.istekler.find(x=>x.method==='DELETE' && x.url===yuk.url);
     yaz('kota hatasında dosya geri siliniyor', !!sil);
-    yaz('kullanıcıya sunucunun mesajı gösteriliyor', o.oge('rkDurum').textContent.includes('Ritim adedi sinirina'), o.oge('rkDurum').textContent);
+    yaz('kullanıcıya sunucunun mesajı okunur Türkçe gösteriliyor', o.oge('rkDurum').textContent.includes('Ritim sınırına ulaştın (50/50)'), o.oge('rkDurum').textContent);
     yaz('düğme tekrar etkin', o.oge('rkKaydetBtn').disabled===false);
   }
   // 3. dosya yüklenemezse satır hiç yazılmamalı

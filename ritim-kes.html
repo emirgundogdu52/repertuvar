@@ -67,6 +67,14 @@
 .rk-dalga { position: relative; background: var(--surface); border: 1px solid var(--border);
             border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
 .rk-dalga canvas { display: block; width: 100%; cursor: crosshair; }
+.rk-baslik { font-size: 12px; color: var(--text3); margin: 0 2px 5px; line-height: 1.4; }
+.rk-baslik b { color: var(--text2); font-weight: 700; }
+.rk-oneri { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 4px;
+            padding: 9px 12px; border-radius: 10px; font-size: 13px; color: var(--text2);
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+            border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+.rk-oneri[hidden] { display: none; }
+.rk-kota .uyari { color: var(--accent); margin-left: 8px; }
 .rk-dalga-ad { position: absolute; top: 7px; left: 10px; font-size: 11px; color: var(--text3);
                pointer-events: none; }
 .rk-dikis-ad { position: absolute; top: 7px; right: 10px; font-size: 11px; pointer-events: none; }
@@ -142,18 +150,18 @@
 
     <div class="rk-editor" id="rkEditor">
 
+      <div class="rk-baslik" data-i18n="rk.tumKayit">Tüm kayıt — yaklaşık yere tıkla</div>
       <div class="rk-dalga">
-        <span class="rk-dalga-ad" data-i18n="rk.tumKayit">Tüm kayıt — yaklaşık yeri seç</span>
-        <canvas id="rkGenel" height="84"></canvas>
+        <canvas id="rkGenel" height="72"></canvas>
       </div>
 
+      <div class="rk-baslik" data-i18n="rk.dongu">Döngü — çizgiyi sürükle: o ucu taşır · arasını sürükle: bütün döngüyü taşır · dışını sürükle: görünümü kaydırır</div>
       <div class="rk-dalga">
-        <span class="rk-dalga-ad" data-i18n="rk.dongu">Döngü — çizgiyi sürükle: o ucu taşır · arasını sürükle: bütün döngüyü taşır · dışını sürükle: görünümü kaydırır</span>
-        <canvas id="rkYakin" height="132"></canvas>
+        <canvas id="rkYakin" height="140"></canvas>
       </div>
 
+      <div class="rk-baslik" data-i18n="rk.dikis">Dikiş — döngünün sonu ile başının birleştiği yer</div>
       <div class="rk-dalga">
-        <span class="rk-dalga-ad" data-i18n="rk.dikis">Dikiş — döngünün sonu | başı</span>
         <span class="rk-dikis-ad" id="rkDikisDurum"></span>
         <canvas id="rkDikis" height="72"></canvas>
       </div>
@@ -220,6 +228,10 @@
           </button>
         </div>
       </div>
+      <div class="rk-oneri" id="rkOneri" hidden>
+        <span id="rkOneriMetin"></span>
+        <button class="rk-kucuk" id="rkOneriBtn" onclick="oneriUygula()"></button>
+      </div>
       <div class="rk-ipucu" data-i18n="rk.ipucu">Başlangıcı ilk vuruşa, bitişi bir sonraki turun ilk vuruşuna koy — tempo iki çizgi arasından kendiliğinden hesaplanır. Kulakla ince ayar gerekirse çizgiyi seçip milisaniye milisaniye kaydır.</div>
 
       <div class="rk-kaydet">
@@ -269,6 +281,11 @@ let tempo = 100, zaman = 4, olcu = 4;
 // TÜRETİLİR (zaman × ölçü × 60 / süre). Kullanıcı tempo ya da ölçü sayısı
 // girerse bitiş çizgisi ona göre yer değiştirir.
 let secili = 'bas';      // ince ayar düğmelerinin taşıdığı çizgi
+// Referans tempo: kullanıcının BİLDİĞİ tempo — dosya adından, elle girişten
+// ya da tempoyu vur'dan. Çizgilerden türetilen tempodan ayrı tutuluyor:
+// çizgiler taşınınca aradaki vuruş sayısını tahmin etmek için kullanılıyor.
+let refTempo = null;
+let oneriOlcu = null;
 let gorunum = null;      // {a, b} sn — döngü görünümünün penceresi; kendiliğinden KAYMAZ
 let dongu = null;        // kesilmiş + dikişi yapılmış kanallar — kaydedilecek olanın AYNISI
 let onizSrc = null;
@@ -286,10 +303,21 @@ async function kotaYukle() {
     $('rkKota').innerHTML =
       '<b>' + KOTA.adet + ' / ' + KOTA.adet_limit + '</b> ' + _rkCev('rk.ritim', 'ritim') +
       ' · <b>' + mb + ' / ' + KOTA.mb_limit + ' MB</b>';
+    // Plan sınırı kalıcı gösteriliyor — durum satırı her değişiklikte
+    // temizlendiği için orada kaybolup gidiyordu.
     if (KOTA.adet_limit === 0) {
-      durum(_rkCev('rk.planYok', 'Ritim bankası PRO planında. Döngü kesip dinleyebilirsin ama kaydetmek için PRO gerekiyor.'));
+      const u = document.createElement('span');
+      u.className = 'uyari';
+      u.textContent = _rkCev('rk.planYok', 'Ritim bankası PRO planında. Döngü kesip dinleyebilirsin ama kaydetmek için PRO gerekiyor.');
+      $('rkKota').appendChild(u);
     }
+    kaydetDurumu();
   } catch (e) {}
+}
+
+function kaydetDurumu() {
+  const dolu = KOTA && KOTA.adet_limit != null && KOTA.adet >= KOTA.adet_limit;
+  $('rkKaydetBtn').disabled = !dongu || !!dolu;
 }
 
 // ── Dosya seçme ───────────────────────────────────────────────────────────
@@ -364,6 +392,7 @@ function dakikaSn(s) {
 // Tempo/ölçü girilince BİTİŞ çizgisi hareket eder, başlangıç yerinde kalır.
 function tempoYaz(v) {
   tempo = Math.min(400, Math.max(20, Math.round((+v || tempo) * 100) / 100));
+  refTempo = tempo;
   $('rkTempo').value = tempo;
   bitisiHesapla(); guncelle();
 }
@@ -386,6 +415,39 @@ function tempoTuret() {
     $('rkTempo').value = tempo;
   }
 }
+// Çizgiler arasında kaç vuruş var? Referans tempoyla süreyi çarpınca
+// neredeyse tam sayı çıkıyor ve zaman sayısına tam bölünüyorsa, ölçü sayısı
+// büyük ihtimalle yanlış girilmiş demektir. Örnek: 85 BPM, 2/4, 4,234 sn →
+// 6,00 vuruş = 3 ölçü; ama ölçü sayısı 4 girilmişse tempo 113,3 çıkar ve
+// kaydedilen tempo bilgisi yanlış olur. Döngünün SESİ doğru kalır, ama
+// Çalışma Odası esere uyarlarken yanlış oranla uzatır.
+function oneriHesapla() {
+  oneriOlcu = null;
+  const kutu = $('rkOneri');
+  if (!refTempo || !kanallar) { kutu.hidden = true; return; }
+  const vurus = (bitisSn - basSn) * refTempo / 60;
+  const tam = Math.round(vurus);
+  const olcuTahmin = tam / zaman;
+  if (tam >= zaman && Math.abs(vurus - tam) < 0.12 && Number.isInteger(olcuTahmin)
+      && olcuTahmin !== olcu && olcuTahmin <= 64) {
+    oneriOlcu = olcuTahmin;
+    $('rkOneriMetin').textContent = _rkCev('rk.oneri',
+      'Seçim {t} BPM’de {v} vuruş ediyor, yani {n} ölçü. Ölçü sayısı {o} girili olduğu için tempo yanlış hesaplanıyor.')
+      .replace('{t}', refTempo).replace('{v}', tam).replace('{n}', olcuTahmin).replace('{o}', olcu);
+    $('rkOneriBtn').textContent = _rkCev('rk.oneriUygula', 'Ölçü sayısını {n} yap').replace('{n}', olcuTahmin);
+    kutu.hidden = false;
+  } else {
+    kutu.hidden = true;
+  }
+}
+// Öneriyi uygula: ÇİZGİLER YERİNDE KALIR, yalnız ölçü sayısı değişir ve
+// tempo yeniden türetilir (olcuYaz'dan farklı: o bitiş çizgisini taşır).
+function oneriUygula() {
+  if (!oneriOlcu) return;
+  olcu = oneriOlcu; $('rkOlcu').value = olcu;
+  tempoTuret(); guncelle();
+}
+
 const MIN_DONGU = 0.2;
 function cizgiyiKoy(hangi, t) {
   if (hangi === 'bas') basSn = Math.max(0, Math.min(t, bitisSn - MIN_DONGU));
@@ -446,7 +508,6 @@ function guncelle() {
   if (!kanallar) return;
   const sure = bitisSn - basSn;
   $('rkSure').textContent = sure.toFixed(3) + ' sn';
-  $('rkKaydetBtn').disabled = false;
 
   if (sure > 120) {
     dongu = null;
@@ -460,6 +521,8 @@ function guncelle() {
     dongu = Dongu.donguKes(kanallar, sr, basSn, sure);
     if (!$('rkDurum').classList.contains('tamam')) durum('');
   }
+  kaydetDurumu();
+  oneriHesapla();
   cizHepsi();
   // Dinlerken değişiklik: kısa bir bekleme sonra yeni döngüyle yeniden başla.
   if (onizSrc) {
@@ -812,8 +875,19 @@ async function kaydet() {
 }
 
 // Tetikleyicinin mesajı JSON içinde geliyor: okunur hale getir.
+// Kota tetikleyicisi ASCII yazıyor ("sinirina ulastiniz"); kullanıcıya
+// düzgün, çevrilmiş cümle gösterilsin.
 function sunucuMesaji(ham) {
-  try { const j = JSON.parse(ham); return j.message || ham; } catch (e) { return ham; }
+  let m = ham;
+  try { const j = JSON.parse(ham); m = j.message || ham; } catch (e) {}
+  let r;
+  if ((r = /adedi sinirina ulastiniz \((\d+)\/(\d+)\)/i.exec(m)))
+    return _rkCev('rk.hataAdet', 'Ritim sınırına ulaştın ({n}).').replace('{n}', r[1] + '/' + r[2]);
+  if ((r = /Depolama siniri asiliyor \((\d+) MB\)/i.exec(m)))
+    return _rkCev('rk.hataDepolama', 'Depolama sınırı aşılıyor ({n} MB).').replace('{n}', r[1]);
+  if ((r = /Dosya (\d+) MB sinirini asiyor/i.exec(m)))
+    return _rkCev('rk.hataDosya', 'Dosya {n} MB sınırını aşıyor.').replace('{n}', r[1]);
+  return m;
 }
 
 kotaYukle();
