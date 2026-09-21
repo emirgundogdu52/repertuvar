@@ -84,6 +84,12 @@
             background: var(--surface2); color: var(--text); border: 1px solid var(--border);
             font-size: 13px; cursor: pointer; font-variant-numeric: tabular-nums; }
 .rk-kucuk:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.rk-secim { height: 36px; padding: 0 12px; border-radius: 9px; background: var(--surface2);
+            color: var(--text2); border: 1px solid var(--border); font-size: 13px; font-weight: 600;
+            cursor: pointer; }
+.rk-secim.aktif { background: var(--accent); color: #1a1200; border-color: var(--accent); }
+.rk-ayrac { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+#rkYakin { touch-action: none; }
 .rk-sure { font-size: 20px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
 
 .rk-btn { display: inline-flex; align-items: center; gap: 7px; padding: 11px 18px; border-radius: 11px;
@@ -142,7 +148,7 @@
       </div>
 
       <div class="rk-dalga">
-        <span class="rk-dalga-ad" data-i18n="rk.dongu">Döngü — başlangıç çizgisini taşımak için bir vuruşa tıkla</span>
+        <span class="rk-dalga-ad" data-i18n="rk.dongu">Döngü — çizgiyi sürükle: o ucu taşır · arasını sürükle: bütün döngüyü taşır · dışını sürükle: görünümü kaydırır</span>
         <canvas id="rkYakin" height="132"></canvas>
       </div>
 
@@ -188,12 +194,23 @@
 
       <div class="rk-satir">
         <div class="rk-alan">
-          <span class="rk-etiket" data-i18n="rk.inceAyar">Başlangıcı kaydır</span>
+          <span class="rk-etiket" data-i18n="rk.seciliCizgi">Seçili çizgiyi kaydır</span>
           <div class="rk-sayac">
+            <button class="rk-secim aktif" id="rkSecBas" onclick="cizgiSec('bas')" data-i18n="rk.baslangic">Başlangıç</button>
+            <button class="rk-secim" id="rkSecBitis" onclick="cizgiSec('bitis')" data-i18n="rk.bitis">Bitiş</button>
+            <span class="rk-ayrac"></span>
             <button class="rk-kucuk" onclick="kaydir(-0.010)">−10 ms</button>
             <button class="rk-kucuk" onclick="kaydir(-0.001)">−1 ms</button>
             <button class="rk-kucuk" onclick="kaydir(0.001)">+1 ms</button>
             <button class="rk-kucuk" onclick="kaydir(0.010)">+10 ms</button>
+          </div>
+        </div>
+        <div class="rk-alan">
+          <span class="rk-etiket" data-i18n="rk.gorunum">Görünüm</span>
+          <div class="rk-sayac">
+            <button class="rk-kucuk" onclick="yakinlas(0.5)" aria-label="+"><i class="ti ti-zoom-in"></i></button>
+            <button class="rk-kucuk" onclick="yakinlas(2)" aria-label="−"><i class="ti ti-zoom-out"></i></button>
+            <button class="rk-kucuk" onclick="gorunumSigdir(); cizHepsi();" data-i18n="rk.sigdir">Döngüye sığdır</button>
           </div>
         </div>
         <div class="rk-alan">
@@ -203,7 +220,7 @@
           </button>
         </div>
       </div>
-      <div class="rk-ipucu" data-i18n="rk.ipucu">Döngü kesintisiz dönüyor. Tur sınırında vuruş erken ya da geç geliyorsa tempoyu 0,1 adımlarla ayarla; tık duyuyorsan başlangıcı birkaç milisaniye kaydır.</div>
+      <div class="rk-ipucu" data-i18n="rk.ipucu">Başlangıcı ilk vuruşa, bitişi bir sonraki turun ilk vuruşuna koy — tempo iki çizgi arasından kendiliğinden hesaplanır. Kulakla ince ayar gerekirse çizgiyi seçip milisaniye milisaniye kaydır.</div>
 
       <div class="rk-kaydet">
         <input type="text" id="rkAd" maxlength="120" placeholder="Ritmin adı" data-i18n-ph="rk.adYer">
@@ -245,8 +262,14 @@ let kanallar = null;     // Float32Array[] — çözülmüş orijinal kayıt (ya
 let sr = 44100;
 let toplamSn = 0;
 let dosyaAdi = '';
-let basSn = 0;           // atak noktası
+let basSn = 0;           // başlangıç çizgisi (atak noktası)
+let bitisSn = 0;         // bitiş çizgisi — bir sonraki turun ilk vuruşu
 let tempo = 100, zaman = 4, olcu = 4;
+// ÇİZGİLER GERÇEĞİN KENDİSİ: döngü basSn–bitisSn arası. Tempo bu ikisinden
+// TÜRETİLİR (zaman × ölçü × 60 / süre). Kullanıcı tempo ya da ölçü sayısı
+// girerse bitiş çizgisi ona göre yer değiştirir.
+let secili = 'bas';      // ince ayar düğmelerinin taşıdığı çizgi
+let gorunum = null;      // {a, b} sn — döngü görünümünün penceresi; kendiliğinden KAYMAZ
 let dongu = null;        // kesilmiş + dikişi yapılmış kanallar — kaydedilecek olanın AYNISI
 let onizSrc = null;
 let tapZamanlari = [];
@@ -303,8 +326,10 @@ async function dosyaAc(dosya) {
     if (!$('rkAd').value) $('rkAd').value = dosya.name.replace(/\.[^.]+$/, '');
     adiOku(dosya.name);
     $('rkEditor').classList.add('acik');
-    // Varsayılan başlangıç: ilk belirgin vuruş
+    // Varsayılan başlangıç: ilk belirgin vuruş; bitiş tempodan.
     basSn = Dongu.atakBul(kanallar, sr, Math.min(1, toplamSn / 2), 1.0);
+    bitisiHesapla();
+    gorunumSigdir();
     durum('');
     guncelle();
   } catch (e) {
@@ -336,13 +361,72 @@ function dakikaSn(s) {
 }
 
 // ── Parametreler ──────────────────────────────────────────────────────────
-function tempoYaz(v) { tempo = Math.min(400, Math.max(20, Math.round((+v || tempo) * 10) / 10)); $('rkTempo').value = tempo; guncelle(); }
+// Tempo/ölçü girilince BİTİŞ çizgisi hareket eder, başlangıç yerinde kalır.
+function tempoYaz(v) {
+  tempo = Math.min(400, Math.max(20, Math.round((+v || tempo) * 100) / 100));
+  $('rkTempo').value = tempo;
+  bitisiHesapla(); guncelle();
+}
 function tempoKaydir(d) { tempoYaz(tempo + d); }
-function zamanYaz(v) { zaman = Math.min(64, Math.max(1, Math.round(+v || zaman))); $('rkZaman').value = zaman; guncelle(); }
+function zamanYaz(v) { zaman = Math.min(64, Math.max(1, Math.round(+v || zaman))); $('rkZaman').value = zaman; bitisiHesapla(); guncelle(); }
 function zamanKaydir(d) { zamanYaz(zaman + d); }
-function olcuYaz(v) { olcu = Math.min(64, Math.max(1, Math.round(+v || olcu))); $('rkOlcu').value = olcu; guncelle(); }
+function olcuYaz(v) { olcu = Math.min(64, Math.max(1, Math.round(+v || olcu))); $('rkOlcu').value = olcu; bitisiHesapla(); guncelle(); }
 function olcuKaydir(d) { olcuYaz(olcu + d); }
-function kaydir(d) { if (!kanallar) return; basSn = Math.max(0, basSn + d); guncelle(); }
+
+function bitisiHesapla() {
+  if (!kanallar) return;
+  bitisSn = basSn + Dongu.donguSuresi(tempo, zaman, olcu);
+  gorunumuGenislet();
+}
+// Çizgiler taşınınca tempo iki çizgi arasından türetilir.
+function tempoTuret() {
+  const sure = bitisSn - basSn;
+  if (sure > 0) {
+    tempo = Math.round(zaman * olcu * 60 / sure * 100) / 100;
+    $('rkTempo').value = tempo;
+  }
+}
+const MIN_DONGU = 0.2;
+function cizgiyiKoy(hangi, t) {
+  if (hangi === 'bas') basSn = Math.max(0, Math.min(t, bitisSn - MIN_DONGU));
+  else bitisSn = Math.min(toplamSn, Math.max(t, basSn + MIN_DONGU));
+}
+function cizgiSec(hangi) {
+  secili = hangi;
+  $('rkSecBas').classList.toggle('aktif', hangi === 'bas');
+  $('rkSecBitis').classList.toggle('aktif', hangi === 'bitis');
+  cizHepsi();
+}
+// İnce ayar: SEÇİLİ çizgiyi taşır, diğeri yerinde kalır → tempo yeniden türetilir.
+function kaydir(d) {
+  if (!kanallar) return;
+  cizgiyiKoy(secili, (secili === 'bas' ? basSn : bitisSn) + d);
+  tempoTuret(); gorunumuGenislet(); guncelle();
+}
+
+// ── Görünüm penceresi ──
+// Pencere kendiliğinden kaymıyor: çizgiler hareket eder, ses yerinde kalır.
+function gorunumSigdir() {
+  const sure = Math.max(MIN_DONGU, bitisSn - basSn);
+  const pay = Math.max(0.25, sure * 0.08);
+  gorunum = { a: Math.max(0, basSn - pay), b: Math.min(toplamSn, bitisSn + pay) };
+}
+// Çizgi pencere dışına çıkarsa yalnız GENİŞLET (ortalama yapma).
+function gorunumuGenislet() {
+  if (!gorunum) return gorunumSigdir();
+  const pay = (gorunum.b - gorunum.a) * 0.04;
+  if (basSn < gorunum.a) gorunum.a = Math.max(0, basSn - pay);
+  if (bitisSn > gorunum.b) gorunum.b = Math.min(toplamSn, bitisSn + pay);
+}
+function yakinlas(kat, merkez) {
+  if (!gorunum) return;
+  if (merkez == null) merkez = secili === 'bas' ? basSn : bitisSn;
+  const gen = Math.min(toplamSn, Math.max(0.05, (gorunum.b - gorunum.a) * kat));
+  let a = merkez - (merkez - gorunum.a) * (gen / (gorunum.b - gorunum.a));
+  a = Math.max(0, Math.min(a, toplamSn - gen));
+  gorunum = { a: a, b: a + gen };
+  cizHepsi();
+}
 
 // Tempoyu vur: son beş dokunuşun ortalaması, 2 sn ara verilirse sıfırlanır.
 function tap() {
@@ -360,15 +444,15 @@ function tap() {
 let _guncelleZaman = null;
 function guncelle() {
   if (!kanallar) return;
-  const sure = Dongu.donguSuresi(tempo, zaman, olcu);
-  $('rkSure').textContent = sure.toFixed(2) + ' sn';
+  const sure = bitisSn - basSn;
+  $('rkSure').textContent = sure.toFixed(3) + ' sn';
   $('rkKaydetBtn').disabled = false;
 
   if (sure > 120) {
     dongu = null;
     durum(_rkCev('rk.cokUzun', 'Döngü 120 saniyeden uzun olamaz. Ölçü sayısını azalt.'), 'hata');
     $('rkKaydetBtn').disabled = true;
-  } else if (basSn + sure > toplamSn) {
+  } else if (bitisSn > toplamSn + 1e-9) {
     dongu = null;
     durum(_rkCev('rk.sonuAsiyor', 'Döngü kaydın sonunu aşıyor. Başlangıcı öne al ya da ölçü sayısını azalt.'), 'hata');
     $('rkKaydetBtn').disabled = true;
@@ -411,7 +495,7 @@ function dalgaCiz(g, kanal, a, b, w, h, rengi) {
 function cizHepsi() {
   if (!kanallar) return;
   const vurgu = renk('--accent', '#f5c542'), metin3 = renk('--text3', '#8a8fa3');
-  const sure = Dongu.donguSuresi(tempo, zaman, olcu);
+  const sure = bitisSn - basSn;
 
   // 1) Genel: tüm kayıt + döngü bölgesi
   {
@@ -428,48 +512,56 @@ function cizHepsi() {
     g.fillRect(x1 + gen - 2, 0, 2, h);
   }
 
-  // 2) Döngü: başlangıçtan bitişe TAMAMI, iki yanında biraz bağlam.
-  //    Ölçü çizgileri kalın ve numaralı, vuruş çizgileri ince. Başlangıç ve
-  //    bitiş adlarıyla işaretli — kullanıcı neresinin kesileceğini görsün.
+  // 2) Döngü görünümü — pencere SABİT, çizgiler hareket eder.
+  //    Ölçü başları kalın ve numaralı, vuruşlar ince; ızgara iki çizgi
+  //    arasını tam bölüyor (tempo yuvarlamasından bağımsız).
   {
     const c = $('rkYakin');
     const { g, w, h } = tuvalHazirla(c);
     g.clearRect(0, 0, w, h);
-    const bitisSn = basSn + sure;
-    const pay = Math.max(0.3, sure * 0.08);
-    const a = Math.max(0, basSn - pay), b = Math.min(toplamSn, bitisSn + pay);
+    if (!gorunum) gorunumSigdir();
+    const a = gorunum.a, b = gorunum.b;
     const x = (t) => (t - a) / (b - a) * w;
-    c._aralik = [a, b];
+    c._x = x; c._t = (px) => a + px / w * (b - a);
 
-    // döngü dışı soluk, içi hafif vurgulu
     g.fillStyle = hexSaydam(vurgu, 0.08);
     g.fillRect(x(basSn), 0, x(bitisSn) - x(basSn), h);
     dalgaCiz(g, kanallar[0], Math.floor(a * sr), Math.floor(b * sr), w, h, metin3);
 
-    const birim = 60 / tempo, toplamBirim = zaman * olcu;
+    const toplamBirim = zaman * olcu, birim = sure / toplamBirim;
     g.font = '600 10px -apple-system, BlinkMacSystemFont, sans-serif';
     g.textBaseline = 'top';
-    for (let k = 0; k <= toplamBirim; k++) {
+    for (let k = 1; k < toplamBirim; k++) {
       const xx = x(basSn + k * birim);
+      if (xx < -2 || xx > w + 2) continue;
       const olcuBasi = k % zaman === 0;
-      g.fillStyle = hexSaydam(vurgu, olcuBasi ? 0.55 : 0.16);
-      g.fillRect(xx, olcuBasi ? 0 : h * 0.25, olcuBasi ? 1.5 : 1, olcuBasi ? h : h * 0.5);
-      if (olcuBasi && k < toplamBirim) {
-        g.fillStyle = hexSaydam(vurgu, 0.9);
-        g.fillText(String(k / zaman + 1), xx + 4, h - 14);
-      }
+      g.fillStyle = hexSaydam(vurgu, olcuBasi ? 0.5 : 0.15);
+      g.fillRect(xx, olcuBasi ? 0 : h * 0.3, olcuBasi ? 1.5 : 1, olcuBasi ? h : h * 0.4);
+      if (olcuBasi) { g.fillStyle = hexSaydam(vurgu, 0.85); g.fillText(String(k / zaman + 1), xx + 4, h - 14); }
     }
+    if (x(basSn) >= 0) { g.fillStyle = hexSaydam(vurgu, 0.85); g.fillText('1', x(basSn) + 4, h - 14); }
 
-    // başlangıç ve bitiş işaretçileri
-    g.fillStyle = vurgu;
-    g.fillRect(x(basSn) - 1, 0, 3, h);
-    g.fillRect(x(bitisSn) - 1, 0, 3, h);
-    g.font = '700 11px -apple-system, BlinkMacSystemFont, sans-serif';
-    g.textAlign = 'left';
-    g.fillText(_rkCev('rk.baslangic', 'Başlangıç') + ' ▸', x(basSn) + 6, 22);
-    g.textAlign = 'right';
-    g.fillText('◂ ' + _rkCev('rk.bitis', 'Bitiş'), x(bitisSn) - 6, 22);
-    g.textAlign = 'left';
+    // Çizgiler ve tutamaklar. Seçili olan kalın ve dolu.
+    const ciz = (t, hangi, etiket, sola) => {
+      const xx = x(t);
+      if (xx < -12 || xx > w + 12) return;
+      const sec = secili === hangi;
+      g.fillStyle = sec ? vurgu : hexSaydam(vurgu, 0.7);
+      g.fillRect(xx - (sec ? 1.5 : 1), 0, sec ? 3 : 2, h);
+      // tutamak: üstte, parmakla tutulabilecek kadar büyük
+      const tw = 14, th = 18;
+      g.fillRect(sola ? xx - tw : xx, 0, tw, th);
+      g.fillStyle = sec ? '#1a1200' : 'rgba(0,0,0,.55)';
+      g.fillRect(sola ? xx - tw + 4 : xx + 4, 5, 1.5, 8);
+      g.fillRect(sola ? xx - tw + 8 : xx + 8, 5, 1.5, 8);
+      g.fillStyle = sec ? vurgu : hexSaydam(vurgu, 0.75);
+      g.font = '700 11px -apple-system, BlinkMacSystemFont, sans-serif';
+      g.textAlign = sola ? 'right' : 'left';
+      g.fillText(etiket, sola ? xx - tw - 5 : xx + tw + 5, 3);
+      g.textAlign = 'left';
+    };
+    ciz(basSn, 'bas', _rkCev('rk.baslangic', 'Başlangıç'), false);
+    ciz(bitisSn, 'bitis', _rkCev('rk.bitis', 'Bitiş'), true);
   }
 
   // 3) Dikiş: döngünün son 0,4 sn'si | ilk 0,4 sn'si — çalan döngünün aynısı
@@ -513,19 +605,117 @@ $('rkGenel').addEventListener('click', (e) => {
   const t = (e.clientX - r.left) / r.width * toplamSn;
   // Genel görünümde bir piksel onlarca milisaniye; pencere geniş tutuluyor.
   const pencere = Math.max(0.15, toplamSn / r.width * 3);
+  const sure = bitisSn - basSn;
   basSn = Dongu.atakBul(kanallar, sr, t, pencere);
+  bitisSn = Math.min(toplamSn, basSn + sure);   // döngü boyu korunur
+  tempoTuret();
+  gorunumSigdir();
   guncelle();
 });
-$('rkYakin').addEventListener('click', (e) => {
-  if (!kanallar) return;
-  const c = e.currentTarget, r = c.getBoundingClientRect();
-  const [a, b] = c._aralik || [0, toplamSn];
-  const t = a + (e.clientX - r.left) / r.width * (b - a);
-  // Görünüm artık bütün döngüyü kapsıyor; bir piksel 10-20 ms edebilir.
-  const pencere = Math.max(0.04, (b - a) / r.width * 4);
-  basSn = Dongu.atakBul(kanallar, sr, t, pencere);
-  guncelle();
-});
+// ── Döngü görünümünde sürükleme ─────────────────────────────────────────
+// Çizgiye yakın tutulursa çizgi taşınır; boş yer tutulursa pencere kayar.
+// Bırakınca taşınan çizgi en yakın atağa oturur. Hareketsiz dokunuş:
+// seçili çizgiyi o noktaya koyar. Fare ve dokunmatik aynı (pointer events).
+(function () {
+  const c = $('rkYakin');
+  const YAKIN = 12;                     // px — çizgiyi yakalama mesafesi
+  let surukle = null;                   // {tur, x0, a0, b0, hareket}
+  let ciziliyor = false;
+
+  function px(e) { return e.clientX - c.getBoundingClientRect().left; }
+  function hangiCizgi(x) {
+    if (!c._x) return null;
+    const db = Math.abs(x - c._x(basSn)), de = Math.abs(x - c._x(bitisSn));
+    if (Math.min(db, de) > YAKIN) return null;
+    return db <= de ? 'bas' : 'bitis';
+  }
+  function yenidenCiz() {
+    if (ciziliyor) return;
+    ciziliyor = true;
+    requestAnimationFrame(() => { ciziliyor = false; cizHepsi(); });
+  }
+  function oturt(hangi) {
+    // Pencerenin ölçeğine göre arama genişliği: yakınlaşınca daha dar.
+    const sn = (gorunum.b - gorunum.a) / c.clientWidth;
+    const t = hangi === 'bas' ? basSn : bitisSn;
+    cizgiyiKoy(hangi, Dongu.atakBul(kanallar, sr, t, Math.max(0.015, sn * 6)));
+  }
+
+  c.addEventListener('pointerdown', (e) => {
+    if (!kanallar || !gorunum) return;
+    const x = px(e), cz = hangiCizgi(x);
+    // Çizgi üstü → o çizgi. İki çizginin ARASI → bütün döngüyü taşı (boyu
+    // korunur, tempo değişmez). Dışarısı → pencereyi kaydır.
+    const icinde = !cz && x > c._x(basSn) && x < c._x(bitisSn);
+    surukle = { tur: cz || (icinde ? 'tasi' : 'kaydir'), x0: x, a0: gorunum.a, b0: gorunum.b,
+                bas0: basSn, bitis0: bitisSn, hareket: false };
+    if (cz) cizgiSec(cz);
+    c.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  c.addEventListener('pointermove', (e) => {
+    if (!kanallar || !gorunum) return;
+    const x = px(e);
+    if (!surukle) {
+      const icinde = x > c._x(basSn) && x < c._x(bitisSn);
+      c.style.cursor = hangiCizgi(x) ? 'ew-resize' : (icinde ? 'move' : 'grab');
+      return;
+    }
+    if (Math.abs(x - surukle.x0) > 3) surukle.hareket = true;
+    if (!surukle.hareket) return;
+    if (surukle.tur === 'tasi') {
+      const boy = surukle.bitis0 - surukle.bas0;
+      let yeni = surukle.bas0 + (c._t(x) - c._t(surukle.x0));
+      yeni = Math.max(0, Math.min(yeni, toplamSn - boy));
+      basSn = yeni; bitisSn = yeni + boy;
+      c.style.cursor = 'grabbing';
+    } else if (surukle.tur === 'kaydir') {
+      const gen = surukle.b0 - surukle.a0;
+      let a = surukle.a0 - (x - surukle.x0) / c.clientWidth * gen;
+      a = Math.max(0, Math.min(a, toplamSn - gen));
+      gorunum = { a: a, b: a + gen };
+      c.style.cursor = 'grabbing';
+    } else {
+      // Sürüklerken yalnız çizgi hareket eder ve tempo güncellenir; döngü
+      // BIRAKINCA kesilir (uzun döngüde her harekette kesmek ağır).
+      cizgiyiKoy(surukle.tur, c._t(x));
+      tempoTuret();
+      $('rkSure').textContent = (bitisSn - basSn).toFixed(3) + ' sn';
+    }
+    yenidenCiz();
+  });
+
+  function birak(e) {
+    if (!surukle) return;
+    const s = surukle; surukle = null;
+    try { c.releasePointerCapture(e.pointerId); } catch (_) {}
+    if ((s.tur === 'kaydir' || s.tur === 'tasi') && !s.hareket) {
+      // Hareketsiz dokunuş: seçili çizgiyi oraya koy.
+      cizgiyiKoy(secili, c._t(s.x0));
+      oturt(secili);
+    } else if (s.tur === 'tasi') {
+      // Döngü taşındı: başlangıç atağa otursun, boy (dolayısıyla tempo) aynı kalsın.
+      const boy = s.bitis0 - s.bas0;
+      oturt('bas');
+      bitisSn = Math.min(toplamSn, basSn + boy);
+    } else if (s.tur !== 'kaydir') {
+      if (!s.hareket) return cizHepsi();       // yalnız seçildi
+      oturt(s.tur);
+    } else { return; }                          // pencere kaydırıldı
+    tempoTuret(); gorunumuGenislet(); guncelle();
+  }
+  c.addEventListener('pointerup', birak);
+  c.addEventListener('pointercancel', birak);
+
+  // Tekerlek / izleme dörtgeni: imlecin olduğu yerde yakınlaş-uzaklaş.
+  c.addEventListener('wheel', (e) => {
+    if (!gorunum) return;
+    e.preventDefault();
+    yakinlas(e.deltaY > 0 ? 1.25 : 0.8, c._t(px(e)));
+  }, { passive: false });
+})();
+
 window.addEventListener('resize', () => cizHepsi());
 
 // ── Önizleme ──────────────────────────────────────────────────────────────
