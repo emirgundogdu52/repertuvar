@@ -27,7 +27,8 @@ function ortam(kayitTempo=100){
       classList:{_s:new Set(),toggle(x,v){v?this._s.add(x):this._s.delete(x)},contains(){return false},add(){},remove(){}},
       querySelector:()=>({className:''}),addEventListener(){},focus(){}}, {id}));
   global.document={getElementById:oge,documentElement:{}};
-  global.window={devicePixelRatio:1,addEventListener(){}};
+  const pencereDinle={};
+global.window={devicePixelRatio:1,addEventListener(t,f){pencereDinle[t]=f;}};
   global.getComputedStyle=()=>({getPropertyValue:()=>''});
   global.requestAnimationFrame=f=>f();
   global.SUPA_URL='x'; global.SUPA_KEY='k';
@@ -56,7 +57,7 @@ function ortam(kayitTempo=100){
   const ev=(tur,x)=>dinle['rkYakin:'+tur]({clientX:x,pointerId:1,preventDefault(){},deltaY:0});
   const teker=(o)=>dinle['rkYakin:wheel'](Object.assign({clientX:450,deltaX:0,deltaY:0,deltaMode:0,
     ctrlKey:false,shiftKey:false,preventDefault(){}},o));
-  return {d:global.__d, v:r.v, ev, c, dinle, teker};
+  return {d:global.__d, v:r.v, ev, c, dinle, teker, pencereDinle};
 }
 
 // ── 1. Başlangıç çizgisini sürükle: bitiş yerinde kalmalı ──
@@ -99,13 +100,36 @@ function ortam(kayitTempo=100){
   yaz('çizgiler yerinde', d.bas===bas0 && d.bitis===bitis0);
 }
 
-// ── 4. Boş yere dokun: seçili çizgi oraya gelir ──
+// ── 4. Tıklamak çizgiyi TAŞIMAZ (yalnız sürüklemek taşır) ──
 {
   const {d,v,ev}=ortam();
   d.cizgiSec('bas');
-  const hedefX=d.x(v[2]+0.01);
+  const bas0=d.bas, bitis0=d.bitis;
+  const hedefX=d.x(v[2]+0.01);                 // döngünün içinde boş bir yer
   ev('pointerdown',hedefX); ev('pointerup',hedefX);
-  yaz('dokunulan yere seçili çizgi (başlangıç) geldi', Math.abs(d.bas-v[2])<0.002, `${(d.bas*1000).toFixed(1)} / ${(v[2]*1000).toFixed(1)} ms`);
+  yaz('boş yere tıklamak çizgiyi taşımıyor', d.bas===bas0 && d.bitis===bitis0, `${(d.bas*1000).toFixed(1)} ms`);
+  // çizgiye tıklamak yalnızca seçer
+  ev('pointerdown',d.x(d.bitis)); ev('pointerup',d.x(d.bitis));
+  yaz('çizgiye tıklamak yalnız seçer', d.secili==='bitis' && d.bitis===bitis0);
+  // art arda tıklamalar da taşımıyor (imlece yapışma hatası)
+  for (const t of [v[1],v[3],v[4]]) { const X=d.x(t); ev('pointerdown',X); ev('pointerup',X); }
+  yaz('art arda tıklamalarda çizgiler yerinde', d.bas===bas0 && d.bitis===bitis0);
+  // sürüklemek hâlâ çalışıyor
+  const X0=d.x(d.bas), X1=d.x(v[2]);
+  ev('pointerdown',X0); ev('pointermove',X0+6); ev('pointermove',X1); ev('pointerup',X1);
+  yaz('sürükleyince taşınıyor', Math.abs(d.bas-v[2])<0.002, `${(d.bas*1000).toFixed(1)} / ${(v[2]*1000).toFixed(1)} ms`);
+}
+// ── 4b. Tuval dışında bırakma: sürükleme takılı kalmıyor ──
+{
+  const {d,v,ev,pencereDinle}=ortam();
+  const bas0=d.bas;
+  const X0=d.x(d.bas);
+  ev('pointerdown',X0); ev('pointermove',X0+20);
+  pencereDinle['pointerup']({clientX:X0+20,pointerId:1,preventDefault(){}});   // pencere dışında bırakıldı
+  const basSonra=d.bas;
+  ev('pointermove',X0+200);                     // sonraki hareket çizgiyi SÜRÜKLEMEMELİ
+  yaz('tuval dışında bırakınca sürükleme bitiyor', d.bas===basSonra, `${(basSonra*1000).toFixed(1)} → ${(d.bas*1000).toFixed(1)} ms`);
+  yaz('bırakma sırasında çizgi taşınmıştı', d.bas!==bas0);
 }
 
 // ── 5. İnce ayar düğmeleri seçili çizgiyi taşır ──

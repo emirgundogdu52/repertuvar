@@ -693,9 +693,14 @@ $('rkGenel').addEventListener('click', (e) => {
   guncelle();
 });
 // ── Döngü görünümünde sürükleme ─────────────────────────────────────────
-// Çizgiye yakın tutulursa çizgi taşınır; boş yer tutulursa pencere kayar.
-// Bırakınca taşınan çizgi en yakın atağa oturur. Hareketsiz dokunuş:
-// seçili çizgiyi o noktaya koyar. Fare ve dokunmatik aynı (pointer events).
+// Çizgiye yakın tutulursa çizgi taşınır; iki çizginin arası bütün döngüyü
+// taşır; dışarısı görünümü kaydırır. Bırakınca taşınan çizgi en yakın atağa
+// oturur. Fare ve dokunmatik aynı (pointer events).
+//
+// 2026-09-22 DÜZELTME: Eskiden boş bir yere TIKLAMAK da seçili çizgiyi oraya
+// taşıyordu. Kullanıcı açısından çizgi imlece yapışmış gibi oluyordu: bir kez
+// tutup bıraktıktan sonra her tıklama onu oraya götürüyordu. Artık çizgi
+// yalnız SÜRÜKLENEREK taşınır; tıklamak yalnızca seçer.
 (function () {
   const c = $('rkYakin');
   const YAKIN = 12;                     // px — çizgiyi yakalama mesafesi
@@ -770,23 +775,28 @@ $('rkGenel').addEventListener('click', (e) => {
     if (!surukle) return;
     const s = surukle; surukle = null;
     try { c.releasePointerCapture(e.pointerId); } catch (_) {}
-    if ((s.tur === 'kaydir' || s.tur === 'tasi') && !s.hareket) {
-      // Hareketsiz dokunuş: seçili çizgiyi oraya koy.
-      cizgiyiKoy(secili, c._t(s.x0));
-      oturt(secili);
-    } else if (s.tur === 'tasi') {
+    if (!s.hareket) {
+      // Yalnızca tıklandı: çizgi taşınmaz. Çizgiye tıklandıysa zaten
+      // pointerdown'da seçilmişti; boş yere tıklamak hiçbir şey yapmaz.
+      cizHepsi();
+      return;
+    }
+    if (s.tur === 'tasi') {
       // Döngü taşındı: başlangıç atağa otursun, boy (dolayısıyla tempo) aynı kalsın.
       const boy = s.bitis0 - s.bas0;
       oturt('bas');
       bitisSn = Math.min(toplamSn, basSn + boy);
     } else if (s.tur !== 'kaydir') {
-      if (!s.hareket) return cizHepsi();       // yalnız seçildi
       oturt(s.tur);
     } else { return; }                          // pencere kaydırıldı
     tempoTuret(); gorunumuGenislet(); guncelle();
   }
   c.addEventListener('pointerup', birak);
   c.addEventListener('pointercancel', birak);
+  // Güvence: işaretçi tuvalin dışında bırakılırsa olay oraya gitmeyebilir;
+  // sürükleme durumu takılı kalmasın.
+  window.addEventListener('pointerup', (e) => { if (surukle) birak(e); });
+  window.addEventListener('blur', () => { if (surukle) { surukle = null; cizHepsi(); } });
 
   // Tekerlek / izleme dörtgeni — ses düzenleyicilerindeki alışkanlık:
   //   yana kaydırma      → görünümü sağa sola KAYDIRIR
