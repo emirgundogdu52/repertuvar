@@ -538,7 +538,19 @@ async function loadMyGroupRole(){
   try{
     const rows=await dbGet('group_members','select=role&user_id=eq.'+uid+'&group_id=eq.'+gid, AbortSignal.timeout(3500));
     const role=(rows&&rows[0]&&rows[0].role)||null;
+    const eski=MY_GROUP_ROLE;
     if(role){ MY_GROUP_ROLE=role; localStorage.setItem('myGroupRole',role); }
+    else { MY_GROUP_ROLE=null; localStorage.removeItem('myGroupRole'); }
+    // Rol yükleme load()'dan SONRA bitiyor; yetkiler ona göre hesaplandıysa
+    // eksik kalmış olabilir (grup yöneticisiyken tutamak çıkmaması). Rol
+    // değiştiyse listeyi yeniden hesapla.
+    if (eski !== MY_GROUP_ROLE && typeof reps !== 'undefined' && reps && reps.length) {
+      try {
+        const uid2 = getUserId() || '';
+        reps = reps.map(x => ({ ...x, canManage: (x.owner_id===uid2 || x.user_id===uid2) || (isGroupManager() && repAktifGruptaMi(x)) }));
+        renderList(); renderDetail();
+      } catch(e) {}
+    }
   }catch(e){ /* rolü tazeleyemedik — localStorage'daki son değerle devam */ }
 }
 
@@ -633,9 +645,31 @@ function selectUrlRepIfPresent() {
   } catch(e) {}
 }
 
+// (2026-09-23) canManage, applyRepsData çalıştığı ANDAKİ aktif gruba göre
+// hesaplanıyor. Kullanıcı başka sekmede grup değiştirip bu sayfaya geri
+// dönerse (ya da tarayıcı sayfayı geri/ileri önbelleğinden canlandırırsa)
+// yetkiler ESKİ gruba göre kalıyordu: başka grubun repertuvarında sıralama
+// tutamağı, "+ Eser Ekle" ve ⋯ menüsü görünüyor, kullanılınca sunucu
+// reddediyordu. Son çizimin hangi grupla yapıldığını tutup değişince
+// yeniden yüklüyoruz.
+let _CIZIM_GID = null;
+function grupDegistiMi(){ return _CIZIM_GID !== (getGroupId() || ''); }
+async function grupTazele(){
+  if (!grupDegistiMi()) return;
+  dbg('aktif grup değişti — yetkiler yeniden hesaplanıyor');
+  await loadMyGroupRole();     // yeni gruptaki rolüm
+  await load();
+}
+window.addEventListener('pageshow', (e) => { if (e.persisted) grupTazele(); });
+window.addEventListener('focus', grupTazele);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') grupTazele(); });
+// Başka sekmede grup değiştirilirse anında haber alınır.
+window.addEventListener('storage', (e) => { if (!e.key || e.key === 'user_group_id' || e.key === 'myGroupRole') grupTazele(); });
+
 async function load(){
   dbg('load() başladı');
   let localHadData = false;
+  _CIZIM_GID = getGroupId() || '';
   loadMyGroupRole(); // fire-and-forget: rol gelince bir sonraki çizimde düğmeler doğrulanır
 
   // ── 1) ÖNCELİKLE LOCAL'DEN ANINDA GÖSTER (sinyal zayıf/yokken bile beklemeden) ──
