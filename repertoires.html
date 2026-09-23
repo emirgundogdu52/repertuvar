@@ -350,6 +350,17 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
   .sb-dd-item.danger { color:var(--red); }
   .sb-dd-item.danger:hover { background:rgba(248,113,113,0.1); }
 
+/* Salt okunur repertuvar şeridi — neden düzenleyemediğini söyler. */
+.rep-salt { display:flex; align-items:center; gap:12px; margin:10px 0 4px; padding:11px 14px;
+            border-radius:11px; font-size:13px; line-height:1.45; color:var(--text2);
+            background:color-mix(in srgb, var(--accent) 8%, transparent);
+            border:1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+.rep-salt > .ti { font-size:20px; color:var(--accent); flex-shrink:0; }
+.rep-salt-metin { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.rep-salt-metin b { color:var(--text); font-size:13px; }
+.rep-salt-btn { flex-shrink:0; font-size:12px; padding:9px 12px; display:inline-flex;
+                align-items:center; gap:5px; white-space:nowrap; }
+@media (max-width:560px){ .rep-salt { flex-wrap:wrap; } .rep-salt-btn { width:100%; justify-content:center; } }
 </style>
 <script src="i18n.js"></script>
 <script src="auth.js"></script>

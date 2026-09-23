@@ -50,4 +50,15 @@ for (const [ad,ara] of [['pageshow',"addEventListener('pageshow'"],['focus',"add
     ['rol gelince yeniden çizim',"renderList(); renderDetail();"],['çizim grubu kaydı',"_CIZIM_GID = getGroupId()"]])
   yaz('kaynakta '+ad+' bağlı', src.includes(ara)||fs.readFileSync(path.join(KOK,'repertoires.js'),'utf8').includes(ara));
 
+
+// Salt okunur şerit: yalnız yönetilemeyen repertuvarda, kopya düğmesiyle
+const kaynak=fs.readFileSync(path.join(KOK,'repertoires.js'),'utf8');
+const stil=fs.readFileSync(path.join(KOK,'repertoires.html'),'utf8');
+yaz('şerit yalnız canManage false iken çiziliyor', /\$\{rep\.canManage \? '' : `/.test(kaynak));
+yaz('şeritte kopya düğmesi var', /rep-salt-btn[^`]*copyRep/.test(kaynak));
+yaz('eski yalın Kopyala düğmesi kaldırıldı', (kaynak.match(/onclick="copyRep\(/g)||[]).length===2, ((kaynak.match(/onclick="copyRep\(/g)||[]).length)+' yerde');
+yaz('şerit stili sayfada tanımlı', stil.includes('.rep-salt {') && stil.includes('.rep-salt-btn'));
+for (const k of ['rep.saltOkunurBaslik','rep.saltOkunurMetin','rep.kopyamiAl'])
+  yaz('metin '+k+' kodda', kaynak.includes("'"+k+"'"));
+
 console.log(hata?`\n${hata} TEST BAŞARISIZ`:'\nTÜM TESTLER GEÇTİ'); process.exit(hata?1:0);

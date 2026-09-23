@@ -1011,10 +1011,21 @@ function renderDetail(){
             ${rep.isOwner ? `<button class="ov-danger" onclick="delRep('${rep.id}')"><i class="ti ti-trash" aria-hidden="true"></i> Sil</button>` : ''}
           </div>
         </details>
-        ` : `
-        <button class="baw" style="font-size:12px;padding:9px 12px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;" onclick="copyRep('${rep.id}')"><i class="ti ti-copy" style="font-size:14px;" aria-hidden="true"></i> Kopyala</button>
-        `}
+        ` : ''}
       </div>
+      ${rep.canManage ? '' : `
+      <!-- (2026-09-23) Başkasının repertuvarını açan kullanıcı, düzenleyemediğini
+           ANLAMIYORDU: tutamak ve düğmeler sessizce yok oluyordu. Artık sebebi
+           yazıyor ve çıkış yolu (kendi kopyanı al) hemen yanında. -->
+      <div class="rep-salt">
+        <i class="ti ti-eye" aria-hidden="true"></i>
+        <div class="rep-salt-metin">
+          <b>${_r('rep.saltOkunurBaslik','Bu repertuvar senin değil')}</b>
+          <span>${_r('rep.saltOkunurMetin','Yalnızca görüntülüyorsun. Sıralamayı değiştirmek ya da eser eklemek için kendi kopyanı al; kopyandaki değişiklikler aslını etkilemez.')}</span>
+        </div>
+        <button class="baw rep-salt-btn" onclick="copyRep('${rep.id}')"><i class="ti ti-copy" aria-hidden="true"></i> ${_r('rep.kopyamiAl','Kopyamı oluştur')}</button>
+      </div>
+      `}
       <div class="dmr" style="gap:8px;padding-bottom:4px;flex-wrap:nowrap;overflow-x:auto;">
         <div class="mc"><span class="sp ${sc[rep.status]||'sc'}">${sl[rep.status]||'Taslak'}</span></div>
         ${_medleyN?`<div class="mc"><span class="rep-medley" title="Potpuri: kesintisiz çalınan eser zinciri">🔗 ${_medleyN} Potpuri</span></div>`:''}
