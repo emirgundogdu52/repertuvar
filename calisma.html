@@ -33,8 +33,10 @@
 <link rel="stylesheet" href="style.css">
 <script src="i18n.js"></script>
 <script src="ses.js"></script>
+<script src="zamanlayici.js"></script>
 <script src="dongu.js"></script>
 <script src="ritimcalar.js"></script>
+<script src="metronom.js"></script>
 <script src="auth.js"></script>
 <script src="db.js"></script>
 <script src="topnav.js" defer></script>
@@ -242,9 +244,7 @@
 .rb-ekle { padding:0 12px; width:auto; font-size:12px; font-weight:700; color:var(--accent); }
 .rb-oynatici { display:flex; align-items:center; gap:10px; margin-top:16px; flex-wrap:wrap; }
 .rb-oynatici .rb-cal { margin-top:0; }
-.rb-buyuk { width:44px; height:44px; font-size:20px;
-             color:var(--accent); border-color:color-mix(in srgb, var(--accent) 30%, transparent); }
-.rb-buyuk:hover { border-color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, transparent); }
+.rb-buyuk { width:44px; height:44px; font-size:18px; }
 .rb-simdi { font-size:13px; color:var(--text2); flex:1; min-width:140px; }
 .rb-ayarlar { display:flex; flex-wrap:wrap; gap:18px 26px; margin-top:14px; }
 .rb-ayar { display:flex; align-items:center; gap:8px; }
@@ -274,6 +274,7 @@
   <div class="co-sekmeler">
     <button class="co-sekme aktif" id="sekKayit" onclick="sekmeAc('kayit')" data-i18n="ca.sekmeKayit">Kayıtlarım</button>
     <button class="co-sekme" id="sekRitim" onclick="sekmeAc('ritim')" data-i18n="ca.sekmeRitim">Ritim</button>
+    <button class="co-sekme" id="sekMetronom" onclick="sekmeAc('metronom')" data-i18n="ca.sekmeMetronom">Metronom</button>
   </div>
 
   <div id="bolumKayit">
@@ -327,11 +328,11 @@
       <div class="rb-bos" id="rbBagliBos" data-i18n="ca.rbBagliBos">Henüz ritim bağlanmadı. Aşağıdaki bankandan "Esere ekle" ile ekle.</div>
 
       <div class="rb-oynatici">
-        <button class="rt-adim rb-buyuk" onclick="rbOnceki()" aria-label="Önceki"><i class="ti ti-player-skip-back"></i></button>
+        <button class="rt-adim rb-buyuk" onclick="rbOnceki()" aria-label="Önceki"><i class="ti ti-player-skip-back-filled"></i></button>
         <button class="co-btn rb-cal" id="rbCalBtn" onclick="rbCalDurdur()">
-          <i class="ti ti-player-play"></i><span id="rbCalMetin" data-i18n="me.baslat">Başlat</span>
+          <i class="ti ti-player-play-filled"></i><span id="rbCalMetin" data-i18n="me.baslat">Başlat</span>
         </button>
-        <button class="rt-adim rb-buyuk" onclick="rbSonraki()" aria-label="Sonraki"><i class="ti ti-player-skip-forward"></i></button>
+        <button class="rt-adim rb-buyuk" onclick="rbSonraki()" aria-label="Sonraki"><i class="ti ti-player-skip-forward-filled"></i></button>
         <div class="rb-simdi" id="rbSimdi"></div>
       </div>
 
@@ -361,6 +362,10 @@
     <div class="co-liste" id="rbBanka"></div>
     <div class="rb-bos" id="rbBankaBos" hidden data-i18n="ca.rbBankaBos">Bankan boş. Elindeki bir ritim kaydından döngü kesmek için "Yeni ritim kes"e dokun.</div>
   </div>
+
+  <!-- Metronom: arayüzü de motoru da metronom.js'te; kendi sayfasıyla (metronom.html)
+       AYNI modül. İlk açılışta kuruluyor, ses ritimle aynı AudioContext'ten çıkıyor. -->
+  <div id="bolumMetronom" style="display:none;"></div>
 
 </div>
 </div>
@@ -475,7 +480,7 @@
           </svg>
         </button>
         <!-- (2026-08-25) İKON ARTIK SATIR İÇİ SVG.
-             `ti-player-play` çizilmiyordu (dolu varyantlar bu webfont
+             `ti-player-play-filled` çizilmiyordu (dolu varyantlar bu webfont
              sürümünde eksik) ve düğme boş sarı daire görünüyordu. SVG hiçbir
              dış kaynağa bağlı değil — font yüklenmese de görünür. -->
         <button class="oy-oynat" id="oyOynatBtn" onclick="oyOynatDurdur()"
@@ -1257,13 +1262,29 @@ let rbOnizleme = null;       // bankadaki ▶ dinle — {src, id}
 const RB_TAMPON = new Map(); // ritimId → Promise<{kanallar, sr}>  (oturum boyu)
 let _ST2 = null;
 
+let rbMetronom = null;
 function sekmeAc(ad) {
-  const ritimMi = ad === 'ritim';
-  document.getElementById('bolumKayit').style.display = ritimMi ? 'none' : '';
-  document.getElementById('bolumRitim').style.display = ritimMi ? '' : 'none';
-  document.getElementById('sekKayit').classList.toggle('aktif', !ritimMi);
-  document.getElementById('sekRitim').classList.toggle('aktif', ritimMi);
-  if (ritimMi) { rbBankaYukle(); rbEserFiltre(); }
+  if (ad !== 'kayit' && ad !== 'ritim' && ad !== 'metronom') ad = 'kayit';
+  for (const [k, b, s] of [['kayit', 'bolumKayit', 'sekKayit'],
+                           ['ritim', 'bolumRitim', 'sekRitim'],
+                           ['metronom', 'bolumMetronom', 'sekMetronom']]) {
+    document.getElementById(b).style.display = (ad === k) ? '' : 'none';
+    document.getElementById(s).classList.toggle('aktif', ad === k);
+  }
+  if (ad === 'ritim') { rbBankaYukle(); rbEserFiltre(); }
+  if (ad === 'metronom' && !rbMetronom) {
+    // İlk açılışta kurulur: metronomu hiç açmayan kullanıcı bedelini ödemesin.
+    rbMetronom = Metronom.kur(document.getElementById('bolumMetronom'), {
+      // Kayıt oynatıcısı çalarken metronom başlamaz (ayrı AudioContext).
+      // Ritimle birlikte çalabilir: ikisi de aynı context ve aynı saatte.
+      izin: () => {
+        if (!oyCaliyor) return true;
+        alert(_caCev('ca.ritimKilit', 'Ritmi kullanmak için mevcut ses kaydını durdurun.'));
+        return false;
+      },
+      durum: () => rtKilitYenile()
+    });
+  }
 }
 
 function rbNot(metin, hataMi) {
@@ -1283,7 +1304,8 @@ function rbOzet(r) {
 
 // ── Çakışma kilidi (kayıt oynatıcısıyla) ────────────────────────────────
 function rtKilitYenile() {
-  rtCaliyor = !!((rbCalar && rbCalar.calisiyorMu()) || rbOnizleme);
+  rtCaliyor = !!((rbCalar && rbCalar.calisiyorMu()) || rbOnizleme ||
+                 (rbMetronom && rbMetronom.calisiyorMu()));
   const rb = document.getElementById('rbCalBtn');
   if (rb) rb.disabled = oyCaliyor && !rtCaliyor;
   const oyBtn = document.getElementById('oyOynatBtn');
@@ -1577,7 +1599,7 @@ function rbDugmeYaz() {
   const m = document.getElementById('rbCalMetin');
   if (m) m.textContent = calar ? _caCev('me.durdur', 'Durdur') : _caCev('me.baslat', 'Başlat');
   const i = document.querySelector('#rbCalBtn i');
-  if (i) i.className = 'ti ' + (calar ? 'ti-player-stop' : 'ti-player-play');
+  if (i) i.className = 'ti ' + (calar ? 'ti-player-stop-filled' : 'ti-player-play-filled');
 }
 
 // ── Tempo ve ton (eser başına kaydedilir) ────────────────────────────────
@@ -1624,6 +1646,7 @@ document.addEventListener('visibilitychange', () => {
   const bitir = () => {
     if (!actx || actx.state !== 'running') {
       if (rbOnizleme) rbOnizle(rbOnizleme.id);
+      if (rbMetronom) rbMetronom.durdur();
       rbDurdur();
     }
   };
