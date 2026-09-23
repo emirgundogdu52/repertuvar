@@ -229,6 +229,15 @@
 .rb-ikon { width:34px; height:34px; border-radius:9px; background:transparent; color:var(--text2);
            border:1px solid var(--border); cursor:pointer; font-size:15px; flex-shrink:0; }
 .rb-ikon:hover { border-color:color-mix(in srgb, var(--accent) 50%, transparent); color:var(--text); }
+/* Dinle/çal düğmesi koyu zeminde gri kalıyordu, simge görünmüyordu.
+   Kurumsal altın rengin kendisi; öne çıkmaması için simge İNCE çizgili
+   (dolu üçgen yerine çerçeve) ve kenarlık saydam altın. */
+.rb-oynat { color:var(--accent);
+            border-color:color-mix(in srgb, var(--accent) 30%, transparent);
+            font-size:18px; }
+.rb-oynat .ti { font-weight:400; -webkit-text-stroke:0; }
+.rb-oynat:hover { border-color:var(--accent);
+                  background:color-mix(in srgb, var(--accent) 10%, transparent); }
 .rb-ikon:disabled { opacity:.35; cursor:default; }
 .rb-ekle { padding:0 12px; width:auto; font-size:12px; font-weight:700; color:var(--accent); }
 .rb-oynatici { display:flex; align-items:center; gap:10px; margin-top:16px; flex-wrap:wrap; }
@@ -1309,7 +1318,7 @@ function rbBankaCiz() {
       ? `<button class="rb-ikon" onclick="rbRitimSil('${r.id}')" aria-label="Sil"><i class="ti ti-trash"></i></button>` : '';
     const grup = r.group_id ? ' · <i class="ti ti-users" title="Grupla paylaşılıyor"></i>' : '';
     return `<div class="rb-satir">
-      <button class="rb-ikon" onclick="rbOnizle('${r.id}')" aria-label="Dinle"><i class="ti ${dinliyor ? 'ti-player-stop-filled' : 'ti-player-play-filled'}"></i></button>
+      <button class="rb-ikon rb-oynat" onclick="rbOnizle('${r.id}')" aria-label="Dinle"><i class="ti ${dinliyor ? 'ti-player-stop' : 'ti-player-play'}"></i></button>
       <div class="rb-ad"><b>${rbKacis(r.ad)}</b><small>${rbOzet(r)}${grup}</small></div>
       ${ekle}${sil}
     </div>`;
@@ -1456,7 +1465,7 @@ function rbBagliCiz() {
     return `<div class="rb-satir${rbCalar && rbCalar.calisiyorMu() && i === simdi ? ' simdi' : ''}">
       <span class="rb-no">${i + 1}</span>
       <div class="rb-ad"><b>${rbKacis(b.ritim.ad)}</b><small>${rbOzet(b.ritim)}</small></div>
-      <button class="rb-ikon" onclick="rbGit(${i})" aria-label="Buna geç"><i class="ti ti-player-play"></i></button>
+      <button class="rb-ikon rb-oynat" onclick="rbGit(${i})" aria-label="Buna geç"><i class="ti ti-player-play"></i></button>
       <button class="rb-ikon" onclick="rbSiraDegistir(${i},-1)" ${!benim || i === 0 ? 'disabled' : ''} aria-label="Yukarı"><i class="ti ti-arrow-up"></i></button>
       <button class="rb-ikon" onclick="rbSiraDegistir(${i},1)" ${!benim || i === rbBagli.length - 1 ? 'disabled' : ''} aria-label="Aşağı"><i class="ti ti-arrow-down"></i></button>
       <button class="rb-ikon" onclick="rbBagKaldir(${i})" ${!benim ? 'disabled' : ''} aria-label="Kaldır"><i class="ti ti-x"></i></button>
