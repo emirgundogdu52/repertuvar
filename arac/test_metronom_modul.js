@@ -50,9 +50,12 @@ yaz('başlangıçta çalmıyor', m.calisiyorMu()===false);
   yaz('kendi AudioContext\'ini açmıyor', !/new\s+\(?\s*window\.AudioContext/.test(kaynak) && kaynak.includes('Ses.hazirla'));
   // metronom.html artık ince kabuk
   const kabuk=fs.readFileSync(path.join(KOK,'metronom.html'),'utf8');
-  yaz('metronom.html kabuğa indi', kabuk.length<9000 && kabuk.includes("Metronom.kur(document.getElementById('metronomKap')"));
-  yaz('kabukta stil ve kopya kod yok', !kabuk.includes('<style>') && !kabuk.includes('function start()'));
-  yaz('kabuk metronom.js ve zamanlayici.js yüklüyor', kabuk.includes('metronom.js') && kabuk.includes('zamanlayici.js'));
+  yaz('metronom.html yönlendirmeye indi', kabuk.length<1200 && kabuk.includes("location.replace('calisma.html?'"));
+  yaz('yönlendirme sekmeyi ve parametreleri taşıyor', kabuk.includes("q.set('sekme', 'metronom')"));
+  yaz('kabukta kopya kod yok', !kabuk.includes('<style>') && !kabuk.includes('function start()'));
+  const tn=fs.readFileSync(path.join(KOK,'topnav.js'),'utf8');
+  yaz('menüde metronom bağlantısı kalmadı', !/href:\s*'metronom\.html'/.test(tn) && !/href="metronom\.html"/.test(tn));
+  yaz('Çalışma Odası menüde duruyor', /href:\s*'calisma\.html'/.test(tn));
   // Çalışma Odası
   const cal=fs.readFileSync(path.join(KOK,'calisma.html'),'utf8');
   yaz('Çalışma Odası üçüncü sekmeyi taşıyor', cal.includes("sekmeAc('metronom')") && cal.includes('id="bolumMetronom"'));
@@ -60,5 +63,6 @@ yaz('başlangıçta çalmıyor', m.calisiyorMu()===false);
   yaz('kilit metronomu sayıyor', /rbMetronom && rbMetronom\.calisiyorMu\(\)/.test(cal));
   yaz('kayıt çalarken metronom engelleniyor', /izin: \(\) => \{\s*if \(!oyCaliyor\) return true;/.test(cal));
   yaz('Çalışma Odası metronom.js yüklüyor', cal.includes('<script src="metronom.js">'));
+  yaz('Çalışma Odası ?sekme=metronom karşılıyor', cal.includes("sekme === 'metronom'"));
   console.log(hata?`\n${hata} TEST BAŞARISIZ`:'\nTÜM TESTLER GEÇTİ'); process.exit(hata?1:0);
 })();

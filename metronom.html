@@ -1,101 +1,21 @@
 <!DOCTYPE html>
 <!--
-  METRONOM.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur)
-  - 2026-08-05: Sayfa oluşturuldu. BAĞIMSIZ bir araç: hiçbir eser ya da repertuvar
-    kaydına bağlı DEĞİL (Emir'in kararı — "ritmik çalışırken de metronoma ihtiyaç
-    var, ölçüyü works tablosundan alırsak eksik olur"). Vuruş sayısı ve vurgular
-    tamamen elle ayarlanır. İleride bir eserden açılırsa ?bpm= ile ön doldurma
-    yapılabilir, ama zorunlu bağ kurulmaz.
-
-  - 2026-08-05 (h): SES SEVİYESİ. Metronom telefonda cılız duyuluyordu. Üç neden,
-    üç önlem: (1) DÜM'ün gövdesi 78-190 Hz'de kalıyordu ve küçük hoparlörler bu
-    bandı basamıyor → üstüne bir oktav yukarıdan ikinci bir katman bindirildi,
-    kalın karakter korunarak telefonda duyulur hale geldi; (2) TEK'in seviyesi
-    0.42'den 0.75'e çıkarıldı; (3) tüm ses artık bir ana kazanç düğümünden ve
-    yumuşak bir sınırlayıcıdan geçiyor — seviye yükseldiğinde çatlamıyor.
-    Ayarlar kartına 0-100 arası SES SEVİYESİ kaydırıcısı eklendi (varsayılan %85,
-    kullanıcı bazlı olarak saklanıyor, çalarken de anında etki ediyor).
-  - 2026-08-05 (g): iOS'ta gruplama alanı inputmode="numeric" olduğu için yalnızca
-    rakam tuş takımı açılıyordu ve + yazılamıyordu. Üç önlem: inputmode="tel"
-    (iOS'ta "+*#" tuşu var), alanın yanına bir + düğmesi, ve ayırıcı olarak
-    boşluk/virgül/tire kabulü ("2 2 3" da "2+2+3" sayılıyor).
-  - 2026-08-05 (f): GRUPLAMA ELLE YAZILABİLİR. Listede olmayan bir usul (ör. 15/8)
-    için kullanıcı önce zaman sayısını girip sonra 15 vuruşa tek tek dokunmak
-    zorundaydı. Artık "2+2+3+3+3+2" yazıp Uygula'ya basmak yeterli; alan mevcut
-    gruplamayı da gösteriyor, yani desen değiştikçe kendini tazeliyor.
-  - 2026-08-05 (e): TÜRK MÜZİĞİNE ÖZEL USUL YAPISI (Emir'in dağarı). Tek tık yerine
-    DÜM (kalın, perdesi düşen sinüs) / TEK (ince) / BOŞ (sessiz) üç sesli vuruş.
-    Vuruşa dokundukça bu üçü arasında döner; her DÜM yeni grup başlatır, bu yüzden
-    gruplama ayrı bir veri değil — desenden türetiliyor ve noktalar arasına boşluk
-    olarak yansıyor. Üç sekmeli usul kütüphanesi: En çok kullanılan / Sanat müziği /
-    Halk müziği. Zaman sayısı çipleri 16'ya kadar, ayrıca 1-64 arası SERBEST giriş
-    (Devr-i Kebir 28 zamanlı gibi büyük usuller için). ?usul=2+2+2+3 ile eserden
-    ön doldurma desteği eklendi (zorunlu bağ değil, her şey elle değiştirilebilir).
-  - 2026-08-05 (d): BPM elle yazılabilir hale getirildi (dev sayı artık bir girdi
-    alanı; Enter/odak kaybında 30-300 aralığına oturuyor, ok tuşlarıyla ±1, Shift
-    ile ±10). Ayrıca −/+ düğmeleri basılı tutulunca adım kademeli büyüyor
-    (1 → 2 → 5), 200'den 100'e inmek saniyeler sürmüyor.
-  - 2026-08-05 (c): FONT + RENK DİLİ uygulamayla hizalandı. style.css body'ye
-    sistem fontunu veriyor (-apple-system / SF Pro Display); sayfaya boşuna
-    yüklenen Plus Jakarta Sans bağlantısı KALDIRILDI. Renkler style.css'in
-    SEMANTİK değişkenlerine bağlandı: --tempo-color (#4DA3FF, zaten "Tempo/BPM"
-    için tanımlı) sayfanın ana rengi; --accent (#FFC83D sarı) yalnızca VURGULU
-    vuruşta. Böylece iki bilgi renkle ayrışıyor: mavi = tempo, sarı = vurgu.
-  - 2026-08-05 (b): TEMA UYUMU. Sayfa zaten style.css değişkenlerini (--bg, --surface,
-    --surface2, --border, --text*, --accent) kullandığı için tema düğmesiyle birlikte
-    dönüyordu; ancak vurgu tonları #7c6fff olarak SABİT yazılmıştı ve açık temada
-    fazla ağır duruyordu. Hepsi color-mix(in srgb, var(--accent) …%, transparent)
-    ile accent değişkenine bağlandı — hem açık/koyu temada hem accent rengi ileride
-    değişirse kendiliğinden uyum sağlıyor.
-
-  TEKNİK NOTLAR
-  - Ses, Web Audio ile ÜRETİLİYOR: hiçbir ses dosyası yok, çevrimdışı çalışır.
-  - Zamanlama setInterval ile DEĞİL, "lookahead scheduler" ile yapılıyor
-    (Chris Wilson deseni): setTimeout yalnızca 25 ms'de bir uyanıp önümüzdeki
-    ~120 ms'lik vuruşları AudioContext saatine göre planlıyor. setInterval'in
-    kayması (sekme arka plana alınınca 1 sn'ye kadar) bu sayede sesi kaydırmıyor.
-  - Görsel, planlanan vuruş zamanlarını takip eden bir kuyruktan besleniyor;
-    böylece nokta/sarkaç sesle aynı anda hareket ediyor.
-  - iOS: AudioContext yalnızca kullanıcı dokunuşuyla başlatılabilir, o yüzden
-    ilk "Başlat" dokunuşunda resume() çağrılıyor. Cihazın sessize alma anahtarı
-    açıksa iOS Web Audio'yu kısabilir — kullanıcıya not olarak yazıldı.
-  - Ayarlar KULLANICI BAZLI anahtarla saklanıyor (metronom:<uid>); ortak anahtar
-    kullanmak, aynı cihazda hesap değiştirince önceki kullanıcının ayarlarını
-    devrediyordu (bkz. 2026-08-03 myGroupRole düzeltmesi).
+  METRONOM — 2026-09-23'te Çalışma Odası'nın üçüncü sekmesine taşındı.
+  Bu adres yalnız YER İMLERİ ve eski bağlantılar için duruyor; içeriği yok,
+  doğrudan sekmeye yönlendiriyor. Metronomun tamamı metronom.js'te.
+  ?bpm= ve ?usul= parametreleri korunarak aktarılır.
 -->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title data-i18n="me.sayfaBaslik">Metronom — Repertuvar</title>
-<link rel="stylesheet" href="style.css">
-<script src="i18n.js"></script>
-<script src="ses.js"></script>
-<script src="zamanlayici.js"></script>
-<script src="metronom.js"></script>
-<script src="auth.js"></script>
-<script src="topnav.js" defer></script>
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
-
-</head>
-<body>
-
-<div id="r-topnav-container"></div>
-
-<div class="main-wrap">
-<div class="page-content">
-  <div id="metronomKap"></div>
-
-</div>
-</div>
-
+<title>Metronom — Repertuvar</title>
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <script>
-// Metronomun tamamı metronom.js'te (Çalışma Odası ile ortak). Burası yalnız
-// kendi sayfasının kabuğu: kapsayıcıyı verip kuruyoruz.
-Metronom.kur(document.getElementById('metronomKap'), {});
+  const q = new URLSearchParams(location.search);
+  q.set('sekme', 'metronom');
+  location.replace('calisma.html?' + q.toString());
 </script>
-
-</body>
+</head>
+<body></body>
 </html>

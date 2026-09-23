@@ -671,9 +671,6 @@ function _m(anahtar, tr) {
         <a href="calisma.html" class="r-tn-dd-item">
           <i class="ti ti-headphones" style="font-size:15px;"></i> ${_m('menu.calismaodasi','Çalışma Odası')}
         </a>
-        <a href="metronom.html" class="r-tn-dd-item">
-          <i class="ti ti-metronome" style="font-size:15px;"></i> ${_m('menu.metronom','Metronom')}
-        </a>
         <a href="ayarlar.html" class="r-tn-dd-item">
           <i class="ti ti-settings" style="font-size:15px;"></i> ${_m('menu.ayarlar','Ayarlar')}
         </a>
@@ -778,8 +775,10 @@ function _m(anahtar, tr) {
       // (2026-08-24) Çalışma Odası, Metronom'un yanında: ikisi de İCRA DEĞİL
       // ÇALIŞMA aracı. Sahne ekranına bilerek konmadı — orası güvenilirlik
       // alanı, icra sırasında transpoze/tempo ile oynanmaz.
+      // (2026-09-23) Metronom menüden KALDIRILDI: artık Çalışma Odası'nın
+      // üçüncü sekmesi. Aynı aracın iki ayrı girişi olması gereksizdi;
+      // metronom.html adresi yer imleri için duruyor ve sekmeye yönlendiriyor.
       { href: 'calisma.html',     icon: 'ti-headphones',  label: _m('menu.calismaodasi','Çalışma Odası') },
-      { href: 'metronom.html',    icon: 'ti-metronome',   label: _m('menu.metronom','Metronom') },
       { divider: true },
       { href: 'mesajlar.html',    icon: 'ti-message',     label: _m('menu.mesajlar','Mesajlar') },
       // (2026-08-06) "Üyeler" menüden ÇIKARILDI, yerine YÖNETİM geldi. Üyeler

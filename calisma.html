@@ -1663,7 +1663,11 @@ document.addEventListener('visibilitychange', () => {
 (function () {
   try {
     const q = new URLSearchParams(location.search);
-    if (q.get('sekme') !== 'ritim') return;
+    const sekme = q.get('sekme');
+    // metronom.html buraya yönlendiriyor (?sekme=metronom&bpm=…&usul=…).
+    // Metronom modülü parametreleri kendi okuyor.
+    if (sekme === 'metronom') { sekmeAc('metronom'); return; }
+    if (sekme !== 'ritim') return;
     sekmeAc('ritim');
     const id = q.get('eser');
     if (!id) return;
