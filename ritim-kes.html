@@ -233,7 +233,7 @@
         <div class="rk-alan">
           <span class="rk-etiket">&nbsp;</span>
           <button class="rk-btn ikincil" id="rkDinle" onclick="dinleDurdur()">
-            <i class="ti ti-player-play-filled"></i><span id="rkDinleMetin" data-i18n="rk.dinle">Döngüyü dinle</span>
+            <i class="ti ti-player-play"></i><span id="rkDinleMetin" data-i18n="rk.dinle">Döngüyü dinle</span>
           </button>
         </div>
       </div>
@@ -845,12 +845,12 @@ function onizBaslat() {
   onizSrc.connect(Ses.cikis());
   onizSrc.start();
   $('rkDinleMetin').textContent = _rkCev('rk.durdur', 'Durdur');
-  $('rkDinle').querySelector('i').className = 'ti ti-player-stop-filled';
+  $('rkDinle').querySelector('i').className = 'ti ti-player-stop';
 }
 function onizDurdur() {
   if (onizSrc) { try { onizSrc.stop(); } catch (e) {} onizSrc.disconnect(); onizSrc = null; }
   $('rkDinleMetin').textContent = _rkCev('rk.dinle', 'Döngüyü dinle');
-  $('rkDinle').querySelector('i').className = 'ti ti-player-play-filled';
+  $('rkDinle').querySelector('i').className = 'ti ti-player-play';
 }
 async function dinleDurdur() {
   if (onizSrc) { onizDurdur(); return; }

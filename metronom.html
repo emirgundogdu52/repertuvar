@@ -281,7 +281,7 @@ button, .mx-btn, [role="button"] {
     <div class="mx-hint" data-i18n-html="me.vurusaDokunTam">Vuruşa dokundukça <b>DÜM → Tek → Boş</b> arasında döner. Listede olmayan bir usul için gruplamayı doğrudan yaz: <b>15/8</b> istiyorsan üstteki kutuya <b>2+2+3+3+3+2</b> yazıp Uygula'ya bas.</div>
 
     <div class="mx-main">
-      <button class="mx-play" id="play"><i class="ti ti-player-play-filled"></i> <span id="playText" data-i18n="me.baslat">Başlat</span></button>
+      <button class="mx-play" id="play"><i class="ti ti-player-play"></i> <span id="playText" data-i18n="me.baslat">Başlat</span></button>
       <button class="mx-tap" id="tap" data-i18n-html="me.tempoyuVur">Tempoyu<br>vur</button>
     </div>
     <div class="mx-ses-uyari" id="sesUyari" hidden data-i18n="me.sesEngel">Tarayıcı sesi engelledi. Safari&apos;de Kilit Modu (Lockdown Mode) açıksa kapatıp sayfayı yenileyin.</div>
@@ -469,7 +469,7 @@ async function start(){
   transportKur().basla();
   requestAnimationFrame(draw);
   $('play').classList.add('on');
-  $('play').innerHTML = '<i class="ti ti-player-stop-filled"></i> <span data-i18n="me.durdur">' + _meCev('me.durdur','Durdur') + '</span>';
+  $('play').innerHTML = '<i class="ti ti-player-stop"></i> <span data-i18n="me.durdur">' + _meCev('me.durdur','Durdur') + '</span>';
   if (wakeOn) requestWake();
 }
 
@@ -479,7 +479,7 @@ function stop(){
   document.querySelectorAll('.mx-beat').forEach(b => b.classList.remove('now'));
   $('stage').classList.remove('pulse');
   $('play').classList.remove('on');
-  $('play').innerHTML = '<i class="ti ti-player-play-filled"></i> <span data-i18n="me.baslat">Başlat</span>';
+  $('play').innerHTML = '<i class="ti ti-player-play"></i> <span data-i18n="me.baslat">Başlat</span>';
   releaseWake();
 }
 
