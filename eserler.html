@@ -1708,7 +1708,7 @@ function buildTurChips() {
       + val + ' <span class="tur-chip-n">' + e[1] + '</span></button>';
   }).join('');
   if (r.bos) {
-    html += '<button class="tur-chip tur-chip-bos" data-tur="__yok__" onclick="setTurFilter(\'__yok__\')" title="' + _esCev('es.t_turuYok','Turu henuz girilmemis eserler') + '">' + _esCev('es.tursuzCip','Tursuz') + ' <span class="tur-chip-n">' + r.bos + '</span></button>';
+    html += '<button class="tur-chip tur-chip-bos" data-tur="__yok__" onclick="setTurFilter(\'__yok__\')" title="' + _esCev('es.t_turuYok','Türü henüz belirlenmemiş eserler') + '">' + _esCev('es.tursuzCip','Türü belirlenmemiş') + ' <span class="tur-chip-n">' + r.bos + '</span></button>';
   }
   el.innerHTML = html;
   el.style.display = 'flex';
@@ -2248,7 +2248,7 @@ function renderList() {
     // "eserlerim gitmis" panigi yaratiyor.
     let _ipucu = '';
     if (activeFilters.tur) {
-      const _ad = activeFilters.tur === '__yok__' ? _esCev('es.tursuz','Türsüz') : activeFilters.tur;
+      const _ad = activeFilters.tur === '__yok__' ? _esCev('es.tursuz','Türü belirlenmemiş') : activeFilters.tur;
       _ipucu = '<div style="margin-top:8px;font-size:12px;color:var(--text3);">' + _esCev('es.acikTurSuzgeci','Açık tür süzgeci:') + ' <b>' + _ad + '</b>' + _esCev('es.cipeDokunKaldir',' — çipe tekrar dokunarak kaldırabilirsiniz.') + '</div>';
     }
     panel.innerHTML = '<div class="empty-list">' + _esCev('es.eserBulunamadi','Eser bulunamadı') + _ipucu + '</div>';
