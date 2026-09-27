@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Repertuvar — İstatistikler</title>
+<title data-i18n="ist.sayfaBaslik">Repertuvar — İstatistikler</title>
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
 <script src="topnav.js" defer></script>
@@ -198,7 +198,7 @@ async function fetchAllPageViews() {
     if (!Array.isArray(chunk) || chunk.length === 0) break;
     all = all.concat(chunk);
     const el = document.getElementById('sttLoading');
-    if (el) el.textContent = _iCev('ist.veriYukleniyorN','Veriler yükleniyor… ({n} kayıt)').replace('{n}', all.length);
+    if (el) el.textContent = (all.length === 1 ? _iCev('ist.veriYukleniyor1','Veriler yükleniyor… ({n} kayıt)') : _iCev('ist.veriYukleniyorN','Veriler yükleniyor… ({n} kayıt)')).replace('{n}', all.length);
     if (chunk.length < STT_PAGE) break; // son sayfa
     from += STT_PAGE;
   }
@@ -245,7 +245,7 @@ function renderStats(days) {
                    : days === 30 ? _iCev('ist.arSon30','son 30 gün')
                    : _iCev('ist.arTum','tüm zamanlar');
   document.getElementById('sttSub').textContent =
-    _iCev('ist.altBaslik','{n} görüntüleme — {a}').replace('{n}', rows.length).replace('{a}', rangeLabel);
+    (rows.length === 1 ? _iCev('ist.altBaslik1','{n} görüntüleme — {a}') : _iCev('ist.altBaslik','{n} görüntüleme — {a}')).replace('{n}', rows.length).replace('{a}', rangeLabel);
 
   const sessions = new Set(rows.map(r => r.session_id));
   const mobileCount = rows.filter(r => r.device_type === 'mobile').length;

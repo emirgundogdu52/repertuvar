@@ -36,8 +36,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Form Atama — Repertuvar</title>
+<title data-i18n="fa.sayfaBasligi">Form Atama — Repertuvar</title>
 <link rel="stylesheet" href="/style.css">
+<script src="/i18n.js"></script>
 <style>
   /* style.css `body`'ye sidebar düzenini dayatıyor (flex satır). Ham <body>
      kullanınca içerik dikey şeritlere sıkışıyor — sıfırlayıp .wrap kullanıyoruz. */
@@ -92,48 +93,47 @@
 <body>
 <div class="wrap">
 
-<h1>Tür ve Form Atama</h1>
-<div class="alt">
-  Her eserin yanındaki listelerden türünü ve (THM/TSM ise) formunu seçin. Değişiklikler <b>Kaydet</b> deyince
-  gönderilir — sayfa değiştirseniz de bekleyenler korunur.
-</div>
+<h1 data-i18n="fa.baslik">Tür ve Form Atama</h1>
+<div class="alt" data-i18n-html="fa.aciklama">Her eserin yanındaki listelerden türünü ve (THM/TSM ise) formunu seçin. Değişiklikler <b>Kaydet</b> deyince gönderilir — sayfa değiştirseniz de bekleyenler korunur.</div>
 
 <div class="sayac">
-  <span class="rozet vurgu" id="rzDolu">Formu olan: —</span>
-  <span class="rozet" id="rzToplam">Toplam: —</span>
-  <span class="rozet" id="rzBekleyen">Bekleyen: 0</span>
+  <span class="rozet vurgu" id="rzDolu" data-i18n="fa.rzDoluIlk">Formu olan: —</span>
+  <span class="rozet" id="rzToplam" data-i18n="fa.rzToplamIlk">Toplam: —</span>
+  <span class="rozet" id="rzBekleyen" data-i18n="fa.rzBekleyenIlk">Bekleyen: 0</span>
 </div>
 
 <div class="satir-ust">
-  <input type="search" id="ara" placeholder="Eser adı, yöre veya makam ara…"
+  <input type="search" id="ara" placeholder="Eser adı, yöre veya makam ara…" data-i18n-ph="fa.araPh"
          autocomplete="off" oninput="sayfa=0;ciz()">
   <select class="suz" id="suzgec" onchange="sayfa=0;ciz()">
-    <option value="bos">Formu olmayanlar</option>
-    <option value="hepsi">Hepsi</option>
-    <option value="dolu">Formu olanlar</option>
-    <option value="tursuz">Türü olmayanlar</option>
+    <option value="bos" data-i18n="fa.suzBos">Formu olmayanlar</option>
+    <option value="hepsi" data-i18n="fa.suzHepsi">Hepsi</option>
+    <option value="dolu" data-i18n="fa.suzDolu">Formu olanlar</option>
+    <option value="tursuz" data-i18n="fa.suzTursuz">Türü olmayanlar</option>
   </select>
 </div>
 
-<div class="durum" id="durum">Yükleniyor…</div>
+<div class="durum" id="durum" data-i18n="ortak.yukleniyor">Yükleniyor…</div>
 <div class="liste" id="liste"></div>
 
 <div class="sayfalama" id="sayfalama" style="display:none;">
-  <button class="btn ikincil" id="oncekiBtn" onclick="sayfaGit(-1)">‹ Önceki</button>
+  <button class="btn ikincil" id="oncekiBtn" onclick="sayfaGit(-1)" data-i18n="fa.onceki">‹ Önceki</button>
   <span class="sayfa-bilgi" id="sayfaBilgi">—</span>
-  <button class="btn ikincil" id="sonrakiBtn" onclick="sayfaGit(1)">Sonraki ›</button>
+  <button class="btn ikincil" id="sonrakiBtn" onclick="sayfaGit(1)" data-i18n="fa.sonraki">Sonraki ›</button>
 </div>
 
 </div><!-- /wrap -->
 
 <div class="cubuk">
-  <button class="btn ikincil" onclick="bekleyenTemizle()">Vazgeç</button>
+  <button class="btn ikincil" onclick="bekleyenTemizle()" data-i18n="fa.vazgec">Vazgeç</button>
   <span class="sayfa-bilgi" id="cubukBilgi"></span>
-  <button class="btn" id="kaydetBtn" onclick="kaydet()" disabled>Kaydet</button>
+  <button class="btn" id="kaydetBtn" onclick="kaydet()" disabled data-i18n="ortak.kaydet">Kaydet</button>
 </div>
 
 <script src="/auth.js"></script>
 <script>
+// Arayüz metni çevirisi (i18n.js yoksa Türkçe kalır). Veri değerleri çevrilmez.
+function _faCev(k,tr){try{return (window.i18n&&window.i18n.t)?window.i18n.t(k,tr):tr;}catch(e){return tr;}}
 // eserler.html ile AYNI listeler — iki yerde farklı form seti olmasın.
 const FORM_THM = ['Türkü','Kırık Hava','Uzun Hava','Bozlak','Maya','Hoyrat',
   'Divan','Gurbet Havası','Barak Havası','Mugam','Ağıt','Deyiş','Nefes','Semah','Duvaz-ı İmam',
@@ -179,7 +179,7 @@ function esc(x) {
 
 async function yukle() {
   if (typeof SUPA_URL === 'undefined' || typeof authHeaders !== 'function') {
-    document.getElementById('durum').textContent = 'Oturum bulunamadı. Önce uygulamaya giriş yapın.';
+    document.getElementById('durum').textContent = _faCev('fa.oturumYok', 'Oturum bulunamadı. Önce uygulamaya giriş yapın.');
     return;
   }
   try {
@@ -191,19 +191,22 @@ async function yukle() {
     document.getElementById('durum').style.display = 'none';
     ciz(); sayaclar();
   } catch (e) {
-    document.getElementById('durum').textContent = 'Liste alınamadı: ' + (e.message || e);
+    document.getElementById('durum').textContent = _faCev('fa.listeAlinamadi', 'Liste alınamadı: {e}').replace('{e}', () => String(e.message || e));
   }
 }
 
 function sayaclar() {
   const dolu = ESERLER.filter(w => (w.form || '').trim()).length;
   const turlu = ESERLER.filter(w => (w.tur || '').trim()).length;
-  document.getElementById('rzDolu').textContent = 'Formu olan: ' + dolu + '  ·  Türü olan: ' + turlu;
-  document.getElementById('rzToplam').textContent = 'Toplam: ' + ESERLER.length;
-  document.getElementById('rzBekleyen').textContent = 'Bekleyen: ' + BEKLEYEN.size;
+  document.getElementById('rzDolu').textContent = _faCev('fa.rzDolu', 'Formu olan: {dolu}  ·  Türü olan: {turlu}')
+    .replace('{dolu}', dolu).replace('{turlu}', turlu);
+  document.getElementById('rzToplam').textContent = _faCev('fa.rzToplam', 'Toplam: {n}').replace('{n}', ESERLER.length);
+  document.getElementById('rzBekleyen').textContent = _faCev('fa.rzBekleyen', 'Bekleyen: {n}').replace('{n}', BEKLEYEN.size);
   document.getElementById('kaydetBtn').disabled = BEKLEYEN.size === 0;
   document.getElementById('cubukBilgi').textContent =
-    BEKLEYEN.size ? BEKLEYEN.size + ' değişiklik kaydedilecek' : '';
+    BEKLEYEN.size ? (BEKLEYEN.size === 1
+      ? _faCev('fa.kaydedilecek1', '{n} değişiklik kaydedilecek')
+      : _faCev('fa.kaydedilecek', '{n} değişiklik kaydedilecek')).replace('{n}', BEKLEYEN.size) : '';
 }
 
 function _suzulmus() {
@@ -236,7 +239,8 @@ function ciz() {
   if (tumu.length > SAYFA_BOYU) {
     sp.style.display = '';
     document.getElementById('sayfaBilgi').textContent =
-      (sayfa + 1) + ' / ' + toplamSayfa + '  ·  ' + tumu.length + ' eser';
+      _faCev('fa.sayfaBilgi', '{s} / {t}  ·  {n} eser')
+        .replace('{s}', sayfa + 1).replace('{t}', toplamSayfa).replace('{n}', tumu.length);
     document.getElementById('oncekiBtn').disabled = (sayfa === 0);
     document.getElementById('sonrakiBtn').disabled = (sayfa >= toplamSayfa - 1);
   } else {
@@ -244,14 +248,14 @@ function ciz() {
   }
 
   const kap = document.getElementById('liste');
-  if (!liste.length) { kap.innerHTML = '<div class="durum">Eser yok.</div>'; return; }
+  if (!liste.length) { kap.innerHTML = '<div class="durum">' + _faCev('fa.eserYok', 'Eser yok.') + '</div>'; return; }
 
   kap.innerHTML = liste.map(w => {
     const tur  = _guncelTur(w);
     const form = _guncelForm(w);
     const meta = [w.region, w.makam].filter(Boolean).join(' · ');
 
-    const turSec = ['<option value="">— tür —</option>']
+    const turSec = ['<option value="">' + _faCev('fa.turSec', '— tür —') + '</option>']
       .concat(TUR_LISTESI.map(t =>
         `<option value="${esc(t)}"${t === tur ? ' selected' : ''}>${esc(t)}</option>`));
 
@@ -261,7 +265,7 @@ function ciz() {
     let formAlani;
     if (!formVar) {
       formAlani = `<select data-alan="form" data-id="${w.id}" disabled>
-        <option>${tur ? 'bu türde form yok' : 'önce tür seçin'}</option></select>`;
+        <option>${tur ? _faCev('fa.buTurdeFormYok', 'bu türde form yok') : _faCev('fa.onceTurSecin', 'önce tür seçin')}</option></select>`;
     } else {
       const fl = formListesi(tur);
       const secenekler = ['<option value="">— form —</option>']
@@ -313,14 +317,16 @@ document.addEventListener('change', ev => {
 });
 
 function bekleyenTemizle() {
-  if (BEKLEYEN.size && !confirm(BEKLEYEN.size + ' bekleyen değişiklik silinsin mi?')) return;
+  if (BEKLEYEN.size && !confirm((BEKLEYEN.size === 1
+      ? _faCev('fa.bekleyenSilinsin1', '{n} bekleyen değişiklik silinsin mi?')
+      : _faCev('fa.bekleyenSilinsin', '{n} bekleyen değişiklik silinsin mi?')).replace('{n}', BEKLEYEN.size))) return;
   BEKLEYEN.clear(); ciz(); sayaclar();
 }
 
 async function kaydet() {
   if (!BEKLEYEN.size) return;
   const btn = document.getElementById('kaydetBtn');
-  btn.disabled = true; btn.textContent = 'Kaydediliyor…';
+  btn.disabled = true; btn.textContent = _faCev('fa.kaydediliyor', 'Kaydediliyor…');
   let ok = 0, hata = 0;
 
   for (const [id, deg] of [...BEKLEYEN]) {
@@ -346,9 +352,10 @@ async function kaydet() {
     } catch (e) { hata++; }
   }
 
-  btn.textContent = 'Kaydet';
+  btn.textContent = _faCev('ortak.kaydet', 'Kaydet');
   ciz(); sayaclar();
-  alert(ok + ' eser güncellendi.' + (hata ? '\n' + hata + ' eser kaydedilemedi.' : ''));
+  alert((ok === 1 ? _faCev('fa.guncellendi1', '{n} eser güncellendi.') : _faCev('fa.guncellendi', '{n} eser güncellendi.')).replace('{n}', ok) +
+    (hata ? '\n' + (hata === 1 ? _faCev('fa.kaydedilemedi1', '{n} eser kaydedilemedi.') : _faCev('fa.kaydedilemedi', '{n} eser kaydedilemedi.')).replace('{n}', hata) : ''));
 }
 
 // Kaydedilmemiş değişiklikle sayfadan çıkma

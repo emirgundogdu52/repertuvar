@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Repertuvar — Üyeler</title>
+<title data-i18n="uye.sayfaBaslik">Repertuvar — Üyeler</title>
 <script src="i18n.js"></script>
 <script src="topnav.js" defer></script>
 <script src="auth.js"></script>
@@ -254,7 +254,7 @@ function renderDeletionRequests(members) {
   var count = document.getElementById('deletionCount');
   if (!pending.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
-  count.textContent = pending.length + _uCev('uye.talep',' talep');
+  count.textContent = pending.length + (pending.length === 1 ? _uCev('uye.talep1',' talep') : _uCev('uye.talep',' talep'));
   list.innerHTML = pending.map(function(m) {
     var gun = Math.floor((Date.now() - new Date(m.deletion_requested_at)) / 86400000);
     var kalan = 30 - gun;
@@ -267,7 +267,7 @@ function renderDeletionRequests(members) {
       '<div class="member-avatar" style="background:rgba(248,113,113,.3);">' + (m.email||'?').charAt(0).toUpperCase() + '</div>' +
       '<div class="member-info">' +
         '<div class="member-email">' + (m.email||'—') + suspendedBadge + '</div>' +
-        '<div class="member-meta">' + _uCev('uye.talepTarih','Talep: ') + new Date(m.deletion_requested_at).toLocaleDateString(_uYerel()) + ' · ' + (kalan > 0 ? _uCev('uye.gunKaldi','{n} gün kaldı').replace('{n}', kalan) : _uCev('uye.sureDoldu','Süre doldu!')) + '</div>' +
+        '<div class="member-meta">' + _uCev('uye.talepTarih','Talep: ') + new Date(m.deletion_requested_at).toLocaleDateString(_uYerel()) + ' · ' + (kalan > 0 ? (kalan === 1 ? _uCev('uye.gunKaldi1','{n} gün kaldı') : _uCev('uye.gunKaldi','{n} gün kaldı')).replace('{n}', kalan) : _uCev('uye.sureDoldu','Süre doldu!')) + '</div>' +
       '</div>' +
       '<div class="member-actions">' +
         suspendBtn +

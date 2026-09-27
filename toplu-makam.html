@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Toplu Makam Doldurma</title>
+<title data-i18n="tm.sayfaBasligi">Toplu Makam Doldurma</title>
+<script src="i18n.js"></script>
 <style>
   :root { --bg:#0a0d12; --surface:#12161f; --surface2:#1a1f2b; --border:#2a3140;
     --text:#e8ecf3; --text2:#9aa6b8; --accent:#FFC83D; --ok:#34C759; }
@@ -48,20 +49,17 @@
 </head>
 <body>
 <header>
-  <h1>🎵 Toplu Makam Doldurma</h1>
-  <div class="sayac">Kalan: <b id="kalan">—</b> / <span id="toplam">—</span></div>
+  <h1 data-i18n="tm.baslik">🎵 Toplu Makam Doldurma</h1>
+  <div class="sayac"><span data-i18n="tm.kalan">Kalan:</span> <b id="kalan">—</b> / <span id="toplam">—</span></div>
 </header>
 <div class="wrap">
-  <div class="ipucu">
-    Sadece <b>makamı boş</b> onaylı eserler listeleniyor. Makam kutusuna tıkla, listeden seç—
-    karar sesi otomatik dolar (istersen düzelt). <b>Kaydet</b> ile eser listeden düşer.
-    <b>Atla</b> ile boş bırakırsın. Kaynak olarak yan pencerede referansına bakabilirsin;
-    makamı <b>sen</b> girersin.
-  </div>
-  <div id="liste"><div class="yukleniyor">Yükleniyor…</div></div>
+  <div class="ipucu" data-i18n-html="tm.ipucu">Sadece <b>makamı boş</b> onaylı eserler listeleniyor. Makam kutusuna tıkla, listeden seç— karar sesi otomatik dolar (istersen düzelt). <b>Kaydet</b> ile eser listeden düşer. <b>Atla</b> ile boş bırakırsın. Kaynak olarak yan pencerede referansına bakabilirsin; makamı <b>sen</b> girersin.</div>
+  <div id="liste"><div class="yukleniyor" data-i18n="ortak.yukleniyor">Yükleniyor…</div></div>
 </div>
 
 <script>
+// Arayüz metni çevirisi (i18n.js yoksa Türkçe kalır). Makam adları/karar verisi çevrilmez.
+function _tmCev(k,tr){try{return (window.i18n&&window.i18n.t)?window.i18n.t(k,tr):tr;}catch(e){return tr;}}
 var SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
 var SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 function tok(){ return localStorage.getItem('sb_token') || SUPA_KEY; }
@@ -80,16 +78,16 @@ async function baslat(){
   try {
     var mr = await fetch(SUPA_URL+'/rest/v1/makams?select=ad,karar_latin&order=ad.asc', { headers:hdr() });
     MAKAMS = await mr.json();
-  } catch(e){ document.getElementById('liste').innerHTML='<div class="yukleniyor">Makamlar yüklenemedi. Giriş yapmış olman gerekir.</div>'; return; }
+  } catch(e){ document.getElementById('liste').innerHTML='<div class="yukleniyor">'+_tmCev('tm.makamlarYuklenemedi','Makamlar yüklenemedi. Giriş yapmış olman gerekir.')+'</div>'; return; }
 
   // makami bos approved eserler
   var wr, works;
   try {
     wr = await fetch(SUPA_URL+"/rest/v1/works?select=id,name,closing_note,region&status=eq.approved&or=(makam.is.null,makam.eq.)&order=name.asc&limit=1000", { headers:hdr() });
     works = await wr.json();
-  } catch(e){ document.getElementById('liste').innerHTML='<div class="yukleniyor">Eserler yüklenemedi.</div>'; return; }
+  } catch(e){ document.getElementById('liste').innerHTML='<div class="yukleniyor">'+_tmCev('tm.eserlerYuklenemedi','Eserler yüklenemedi.')+'</div>'; return; }
 
-  if (!works.length){ document.getElementById('liste').innerHTML='<div class="bitti">🎉 Makamı boş eser kalmadı!</div>'; document.getElementById('kalan').textContent='0'; document.getElementById('toplam').textContent='0'; return; }
+  if (!works.length){ document.getElementById('liste').innerHTML='<div class="bitti">'+_tmCev('tm.bosKalmadi','🎉 Makamı boş eser kalmadı!')+'</div>'; document.getElementById('kalan').textContent='0'; document.getElementById('toplam').textContent='0'; return; }
   KALAN = works.length;
   document.getElementById('kalan').textContent = KALAN;
   document.getElementById('toplam').textContent = KALAN;
@@ -106,7 +104,7 @@ function satirYap(w){
   row.appendChild(ad);
 
   var mk = document.createElement('div'); mk.className='mk';
-  var inp = document.createElement('input'); inp.placeholder='Makam seç…'; inp.autocomplete='off';
+  var inp = document.createElement('input'); inp.placeholder=_tmCev('tm.makamSecPh','Makam seç…'); inp.autocomplete='off';
   mk.appendChild(inp);
   var panel = document.createElement('div'); panel.className='panel'; mk.appendChild(panel);
   row.appendChild(mk);
@@ -114,8 +112,8 @@ function satirYap(w){
   var kr = document.createElement('input'); kr.className='kr'; kr.placeholder='karar'; kr.value=w.closing_note||'';
   row.appendChild(kr);
 
-  var kaydet = document.createElement('button'); kaydet.className='btn btn-kaydet'; kaydet.textContent='Kaydet'; kaydet.disabled=true;
-  var atla = document.createElement('button'); atla.className='btn btn-atla'; atla.textContent='Atla';
+  var kaydet = document.createElement('button'); kaydet.className='btn btn-kaydet'; kaydet.textContent=_tmCev('ortak.kaydet','Kaydet'); kaydet.disabled=true;
+  var atla = document.createElement('button'); atla.className='btn btn-atla'; atla.textContent=_tmCev('tm.atla','Atla');
   row.appendChild(kaydet); row.appendChild(atla);
 
   var secili = null;
@@ -127,7 +125,7 @@ function satirYap(w){
       d.onmousedown=function(e){ e.preventDefault(); inp.value=m.ad; secili=m; if(!kr.value && m.karar_latin) kr.value=m.karar_latin; kaydet.disabled=false; panel.style.display='none'; };
       panel.appendChild(d);
     });
-    if(!panel.children.length){ var d=document.createElement('div'); d.textContent='Eşleşen makam yok'; d.style.color='var(--text2)'; panel.appendChild(d); }
+    if(!panel.children.length){ var d=document.createElement('div'); d.textContent=_tmCev('tm.eslesenYok','Eşleşen makam yok'); d.style.color='var(--text2)'; panel.appendChild(d); }
     panel.style.display='block';
   }
   inp.addEventListener('focus', render);
@@ -142,8 +140,8 @@ function satirYap(w){
     try{
       var r=await fetch(SUPA_URL+'/rest/v1/works?id=eq.'+w.id, { method:'PATCH', headers:hdr({Prefer:'return=minimal'}), body:JSON.stringify(body) });
       if(r.ok || r.status===204){ dus(row); }
-      else { alert('Kayıt hatası: '+r.status+' '+(await r.text())); kaydet.disabled=false; kaydet.textContent='Kaydet'; }
-    }catch(e){ alert('Bağlantı hatası: '+e.message); kaydet.disabled=false; kaydet.textContent='Kaydet'; }
+      else { var _hm=r.status+' '+(await r.text()); alert(_tmCev('tm.kayitHatasi','Kayıt hatası: {e}').replace('{e}',function(){return _hm;})); kaydet.disabled=false; kaydet.textContent=_tmCev('ortak.kaydet','Kaydet'); }
+    }catch(e){ alert(_tmCev('tm.baglantiHatasi','Bağlantı hatası: {e}').replace('{e}',function(){return String(e.message);})); kaydet.disabled=false; kaydet.textContent=_tmCev('ortak.kaydet','Kaydet'); }
   };
   atla.onclick=function(){ dus(row); };
 
@@ -154,7 +152,7 @@ function dus(row){
   row.classList.add('kaydedildi');
   setTimeout(function(){ row.remove(); }, 320);
   KALAN--; document.getElementById('kalan').textContent=KALAN;
-  if(KALAN<=0){ document.getElementById('liste').innerHTML='<div class="bitti">🎉 Bitti! Tüm eserler işlendi.</div>'; }
+  if(KALAN<=0){ document.getElementById('liste').innerHTML='<div class="bitti">'+_tmCev('tm.bitti','🎉 Bitti! Tüm eserler işlendi.')+'</div>'; }
 }
 
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', baslat); else baslat();
