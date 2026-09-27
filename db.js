@@ -254,6 +254,8 @@ window.syncOfflineData = async function() {
     if (profRes.ok) await db.profiles.replaceAll(await profRes.json());
     // (2026-09-27, Offline Düzeltme 3) Kişisel katman (akor, ton, not, sahne tercihi).
     // Ayrı try: buradaki bir hata ana eşitlemeyi ve lastSync/lastSyncOk'u bozmasın.
+    // Önce çevrimdışı yapılmış kişisel değişiklikleri gönder, SONRA sunucudan çek.
+    try { await window.kisiselKuyrukGonder(); } catch (e) { console.warn('[db] kişisel kuyruk gönderilemedi:', e); }
     try { await _kisiselSenkron(SUPA_URL, headers, uid); } catch (e) { console.warn('[db] kişisel katman eşitlenemedi:', e); }
 
     await db.meta.set('lastSync', new Date().toISOString());
@@ -436,10 +438,19 @@ async function _kisiselTaban(uid) {
   return (k && k.uid === uid) ? k : { uid: uid, chords: {}, notes: {}, sahneKisiselNot: null };
 }
 // Ağdan TAM liste geldiğinde: parçayı (chords/notes/sahneKisiselNot + *At) yazar.
+// (2026-09-27, çevrimdışı düzenleme) Sunucudan gelen tam listeye, henüz
+// GÖNDERİLMEMİŞ çevrimdışı değişiklikler üstüne uygulanır — yoksa tazeleme
+// kullanıcının kuyruktaki düzenlemesini ekrandan silerdi. Birleşik kaydı döndürür.
 window.kisiselYaz = async function (parca) {
-  const uid = _aktifUid(); if (!uid) return;
+  const uid = _aktifUid(); if (!uid) return null;
   const k = Object.assign(await _kisiselTaban(uid), parca || {}, { uid: uid });
+  const bekleyen = await _kuyrukOku();
+  if (bekleyen.length) {
+    k.chords = Object.assign({}, k.chords); k.notes = Object.assign({}, k.notes);
+    _kuyrukUygula(k, bekleyen.filter((o) => (o.tur === 'not' || o.tur === 'notSil') ? !!(parca && parca.notes) : !!(parca && parca.chords)));
+  }
   await db.meta.set(_KISISEL, k);
+  return k;
 };
 // Tek eserlik başarılı yazma/silme sonrası önbelleği aynala. *At bayraklarına
 // DOKUNMAZ: tek satır, tam listenin eşitlendiği anlamına gelmez.
@@ -448,6 +459,121 @@ window.kisiselGuncelle = async function (fn) {
   const k = await _kisiselTaban(uid);
   try { fn(k); } catch (e) { return; }
   await db.meta.set(_KISISEL, k);
+};
+
+// ── ÇEVRİMDIŞI KİŞİSEL YAZMA KUYRUĞU (2026-09-27) ─────────────────────────────
+// Kişisel akor / ton / not yazması AĞ HATASIYLA düşerse işlem kaybolmaz:
+// meta['kisiselKuyruk'] = { uid, ops: [{tur, workId, deger, at}] } kuyruğuna
+// girer, yerel önbellek hemen güncellenir. Kuyruk syncOfflineData'nın başında
+// (bağlantı gelince, sayfa açılınca, sekmeye dönünce) sırayla gönderilir.
+// tur: 'akor' | 'ton' | 'akorSil' | 'not' | 'notSil'.
+// Aynı eser + aynı tür için yalnız SON işlem tutulur (5 kez ton = 1 istek).
+// Sunucu REDDEDERSE (yetki/400) işlem kuyruktan düşer ve konsola yazılır —
+// sonsuza dek denenip kuyruğu tıkamasın. Çakışma kuralı: son yazan kazanır
+// (veri kişisel; çakışma yalnız aynı kullanıcının iki cihazında olur).
+const _KUYRUK = 'kisiselKuyruk';
+const _Q_SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+const _Q_SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+function _kuyrukAnahtar(op) {
+  const t = op.tur === 'ton' ? 't' : ((op.tur === 'not' || op.tur === 'notSil') ? 'n' : 'a');
+  return t + ':' + op.workId;
+}
+async function _kuyrukOku() {
+  const uid = _aktifUid(); if (!uid) return [];
+  const k = await db.meta.get(_KUYRUK);
+  return (k && k.uid === uid && Array.isArray(k.ops)) ? k.ops : [];
+}
+async function _kuyrukYaz(ops) {
+  const uid = _aktifUid(); if (!uid) return;
+  await db.meta.set(_KUYRUK, { uid: uid, ops: ops });
+}
+function _kuyrukUygula(k, ops) {
+  (ops || []).forEach((op) => {
+    const w = String(op.workId);
+    if (op.tur === 'akor') k.chords[w] = Object.assign({ chords: '', transpose: 0 }, k.chords[w], { chords: op.deger });
+    else if (op.tur === 'ton') k.chords[w] = Object.assign({ chords: '', transpose: 0 }, k.chords[w], { transpose: parseInt(op.deger) || 0 });
+    else if (op.tur === 'akorSil') delete k.chords[w];
+    else if (op.tur === 'not') k.notes[w] = op.deger;
+    else if (op.tur === 'notSil') delete k.notes[w];
+  });
+}
+function _kuyrukYay(detay) {
+  try { window.dispatchEvent(new CustomEvent('kisisel-kuyruk', { detail: detay })); } catch (e) {}
+}
+// fetch ağ hatasında TypeError, zaman aşımında AbortError/TimeoutError fırlatır.
+window.kisiselAgHatasiMi = function (e) {
+  return !!e && (e.name === 'TypeError' || e.name === 'AbortError' || e.name === 'TimeoutError');
+};
+window.kisiselKuyrugaEkle = async function (op) {
+  const uid = _aktifUid(); if (!uid) return;
+  op = { tur: op.tur, workId: parseInt(op.workId), deger: op.deger, at: new Date().toISOString() };
+  const anahtar = _kuyrukAnahtar(op);
+  const ops = (await _kuyrukOku()).filter((o) => _kuyrukAnahtar(o) !== anahtar);
+  ops.push(op);
+  await _kuyrukYaz(ops);
+  await window.kisiselGuncelle((k) => _kuyrukUygula(k, [op]));
+  _kuyrukYay({ bekleyen: ops.length });
+};
+window.kisiselKuyrukSayisi = async function () { return (await _kuyrukOku()).length; };
+// Tek işlemi gönder: 'ok' | 'ag' (ağ yok) | 'yetki' (401) | 'red' (sunucu reddetti)
+async function _kuyrukIstek(op, jeton) {
+  const uid = _aktifUid();
+  const H = { apikey: _Q_SUPA_KEY, Authorization: 'Bearer ' + jeton };
+  try {
+    if (op.tur === 'akorSil' || op.tur === 'notSil') {
+      const tablo = op.tur === 'notSil' ? 'personal_work_notes' : 'personal_chords';
+      const r = await fetch(_Q_SUPA_URL + '/rest/v1/' + tablo + '?user_id=eq.' + uid + '&work_id=eq.' + op.workId,
+        { method: 'DELETE', headers: Object.assign({}, H, { Prefer: 'return=minimal' }) });
+      if (r.status === 401) return 'yetki';
+      return (r.ok || r.status === 204) ? 'ok' : 'red';
+    }
+    const tablo = op.tur === 'not' ? 'personal_work_notes' : 'personal_chords';
+    const govde = { user_id: uid, work_id: op.workId, updated_at: new Date().toISOString() };
+    if (op.tur === 'akor') govde.chords = op.deger;
+    else if (op.tur === 'ton') govde.transpose = parseInt(op.deger) || 0;
+    else govde.note = op.deger;
+    const r = await fetch(_Q_SUPA_URL + '/rest/v1/' + tablo + '?on_conflict=user_id,work_id', {
+      method: 'POST',
+      headers: Object.assign({}, H, { 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=representation' }),
+      body: JSON.stringify(govde)
+    });
+    if (r.status === 401) return 'yetki';
+    if (!r.ok) return 'red';
+    // 2xx tek başına başarı SAYILMAZ: RLS sessizce engellerse 0 satır döner.
+    let satirlar = []; try { satirlar = await r.json(); } catch (e) {}
+    return (Array.isArray(satirlar) && satirlar.length) ? 'ok' : 'red';
+  } catch (e) { return 'ag'; }
+}
+let _kuyrukGonderimi = null;
+window.kisiselKuyrukGonder = function () {
+  if (_kuyrukGonderimi) return _kuyrukGonderimi;
+  _kuyrukGonderimi = (async () => {
+    const sonuc = { gonderilen: 0, reddedilen: 0, kalan: 0 };
+    if (!(await _kuyrukOku()).length) return sonuc;
+    let jeton = localStorage.getItem('sb_token');
+    if (!jeton) { sonuc.kalan = (await _kuyrukOku()).length; return sonuc; }
+    if (typeof window.ensureValidToken === 'function') { try { jeton = (await window.ensureValidToken()) || jeton; } catch (e) {} }
+    for (;;) {
+      const ops = await _kuyrukOku();          // her turda TAZE oku: arada yeni işlem eklenmiş olabilir
+      if (!ops.length) break;
+      const op = ops[0];
+      let s = await _kuyrukIstek(op, jeton);
+      if (s === 'yetki' && typeof window.ensureValidToken === 'function') {
+        try { jeton = (await window.ensureValidToken()) || jeton; } catch (e) {}
+        s = await _kuyrukIstek(op, jeton);
+      }
+      if (s === 'ag' || s === 'yetki') break;  // bağlantı / oturum yok: sırayı koru, sonra dene
+      if (s === 'red') { sonuc.reddedilen++; console.warn('[kuyruk] sunucu reddetti, atlandı:', op); }
+      else sonuc.gonderilen++;
+      // Yalnız GÖNDERİLEN işlemi çıkar (aynı anahtarla daha yeni bir işlem geldiyse o kalır).
+      const guncel = await _kuyrukOku();
+      await _kuyrukYaz(guncel.filter((o) => !(o.at === op.at && _kuyrukAnahtar(o) === _kuyrukAnahtar(op))));
+    }
+    sonuc.kalan = (await _kuyrukOku()).length;
+    if (sonuc.gonderilen || sonuc.reddedilen) _kuyrukYay(sonuc);
+    return sonuc;
+  })().finally(() => { _kuyrukGonderimi = null; });
+  return _kuyrukGonderimi;
 };
 // syncOfflineData içinden: kişisel katmanı çek. 404 = tablo yok = o katman boş
 // (kesin cevap); ağ hatası / diğer HTTP hataları önbelleğe DOKUNMAZ.

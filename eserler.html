@@ -3676,8 +3676,25 @@ async function savePersonalTranspose(id, val){
         const w = String(parseInt(id)); k.chords[w] = Object.assign({ chords:'', transpose:0 }, k.chords[w], { transpose: parseInt(val) || 0 });
       }).catch(()=>{});
     }
-  } catch(e){ console.warn('[eserler] ton kaydedilemedi:', e.message); }
+  } catch(e){
+    // (2026-09-27) Çevrimdışı: ton tercihi kuyruğa, bağlantı gelince gönderilir.
+    if (window.kisiselAgHatasiMi && window.kisiselAgHatasiMi(e)) { _esKuyrukla({ tur:'ton', workId:id, deger:val }); return; }
+    console.warn('[eserler] ton kaydedilemedi:', e.message);
+  }
 }
+// ── ÇEVRİMDIŞI KİŞİSEL DÜZENLEME (2026-09-27) ──────────────────────────────
+// Kişisel akor/ton/not yazması AĞ HATASIYLA düşerse db.js kuyruğuna alınır
+// (yerel önbellek hemen güncellenir), bağlantı gelince gönderilir. Sunucu
+// reddederse (yetki vb.) eskisi gibi hata gösterilir — kuyruğa alınmaz.
+async function _esKuyrukla(op){
+  if (!window.kisiselKuyrugaEkle) return false;
+  try { await window.kisiselKuyrugaEkle(op); } catch(e) { return false; }
+  try { toastMsg(_esCev('ortak.kuyrugaAlindi','⏳ Çevrimdışı — bağlantı gelince kaydedilecek')); } catch(e) {}
+  return true;
+}
+window.addEventListener('kisisel-kuyruk', (e) => {
+  if (e.detail && e.detail.gonderilen) { try { toastMsg(_esCev('ortak.kuyrukGonderildi','✓ Çevrimdışı değişikliklerin kaydedildi')); } catch(_) {} }
+});
 function toggleChordsPreview(id){
   const prev = document.getElementById('chords_preview_'+id);
   const btn = document.getElementById('chords_preview_btn_'+id);
@@ -3711,7 +3728,8 @@ async function loadPersonalNotes(){
       else if (r.status === 404) notlar = {};   // tablo yok = not yok (kesin cevap)
       else console.warn('[not] personal_work_notes okunamadı — SQL çalıştırıldı mı?', r.status);
     } catch(e) { /* çevrimdışı */ }
-    if (notlar) { if (window.kisiselYaz) window.kisiselYaz({ notes: notlar, notesAt: new Date().toISOString() }).catch(()=>{}); }
+    // Ağdan geldiyse önbelleğe yaz; kuyruktaki (henüz gönderilmemiş) değişiklikler üstüne uygulanmış halini kullan.
+    if (notlar) { if (window.kisiselYaz) { try { const k = await window.kisiselYaz({ notes: notlar, notesAt: new Date().toISOString() }); if (k && k.notes) notlar = k.notes; } catch(e) {} } }
     else { const onb = window.kisiselOku ? await window.kisiselOku() : null; if (!onb || !onb.notes) return; notlar = onb.notes; }
     PERSONAL_NOTES = {};
     Object.keys(notlar).forEach(w => { if (notlar[w]) PERSONAL_NOTES[String(w)] = notlar[w]; });
@@ -3726,10 +3744,16 @@ async function savePersonalNoteRow(id, note){
   const uid = getUserId(); if(!uid) throw new Error(_esCev('ortak.oturumYok','Oturum yok'));
   const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY),
              'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'};
-  const r = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?on_conflict=user_id,work_id', {
-    method:'POST', headers:H,
-    body: JSON.stringify({ user_id: uid, work_id: parseInt(id), note: note, updated_at: new Date().toISOString() })
-  });
+  let r;
+  try {
+    r = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?on_conflict=user_id,work_id', {
+      method:'POST', headers:H,
+      body: JSON.stringify({ user_id: uid, work_id: parseInt(id), note: note, updated_at: new Date().toISOString() })
+    });
+  } catch(e) {
+    if (window.kisiselAgHatasiMi && window.kisiselAgHatasiMi(e) && await _esKuyrukla({ tur:'not', workId:id, deger:note })) return { kuyrukta: true };
+    throw e;
+  }
   if(!r.ok) throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,120));
   const rows = await r.json();
   if(!Array.isArray(rows) || !rows.length) throw new Error(_esCev('es.satirYazilmadi','Sunucu hiçbir satır yazmadı (yetki?)'));
@@ -3740,7 +3764,12 @@ async function savePersonalNoteRow(id, note){
 async function deletePersonalNoteRow(id){
   const uid = getUserId(); if(!uid) return;
   const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY)};
-  const r = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id), {method:'DELETE', headers:H});
+  let r;
+  try { r = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id), {method:'DELETE', headers:H}); }
+  catch(e) {
+    if (window.kisiselAgHatasiMi && window.kisiselAgHatasiMi(e) && await _esKuyrukla({ tur:'notSil', workId:id })) return;
+    throw e;
+  }
   if (r.ok && window.kisiselGuncelle) window.kisiselGuncelle(k => { delete k.notes[String(parseInt(id))]; }).catch(()=>{});
 }
 
@@ -3810,7 +3839,7 @@ async function loadPersonalChords(){
       else if (r.status === 404) akor = {};   // tablo yok = kişisel akor yok (kesin cevap)
     } catch(e) { console.warn('[eserler] kişisel akorlar ağdan alınamadı:', e.message); }
     // Ağdan geldiyse önbelleğe; gelmediyse (çevrimdışı) cihazdaki önbellekten.
-    if (akor) { if (window.kisiselYaz) window.kisiselYaz({ chords: akor, chordsAt: new Date().toISOString() }).catch(()=>{}); }
+    if (akor) { if (window.kisiselYaz) { try { const k = await window.kisiselYaz({ chords: akor, chordsAt: new Date().toISOString() }); if (k && k.chords) akor = k.chords; } catch(e) {} } }
     else { const onb = window.kisiselOku ? await window.kisiselOku() : null; if (!onb || !onb.chords) return; akor = onb.chords; }
     PERSONAL_CHORDS = {};
     Object.keys(akor).forEach(w=>{
@@ -3825,11 +3854,17 @@ async function loadPersonalChords(){
 // yüzden ortak yardımcı yerine yerinde denetim yapılıyor.
 async function savePersonalChordsRow(id, chords){
   const uid = getUserId();
-  const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?on_conflict=user_id,work_id', {
-    method:'POST',
-    headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'},
-    body: JSON.stringify({ user_id: uid, work_id: parseInt(id), chords: chords, updated_at: new Date().toISOString() })
-  });
+  let r;
+  try {
+    r = await fetch(SUPA_URL+'/rest/v1/personal_chords?on_conflict=user_id,work_id', {
+      method:'POST',
+      headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'},
+      body: JSON.stringify({ user_id: uid, work_id: parseInt(id), chords: chords, updated_at: new Date().toISOString() })
+    });
+  } catch(e) {
+    if (window.kisiselAgHatasiMi && window.kisiselAgHatasiMi(e)) return await _esKuyrukla({ tur:'akor', workId:id, deger:chords });
+    throw e;
+  }
   if (!r.ok && r.status !== 204) return false;
   let rows = []; try { rows = await r.json(); } catch(e) {}
   const yazildi = Array.isArray(rows) && rows.length > 0;
@@ -3842,10 +3877,16 @@ async function deletePersonalChordsRow(id){
   const uid = getUserId();
   // Silinecek satır olmayabilir (kişisel kopya hiç oluşmamışsa) — bu bir hata
   // değil, o yüzden burada 0 satır BAŞARI sayılıyor; yalnız HTTP hatası önemli.
-  const r = await fetch(SUPA_URL+'/rest/v1/personal_chords?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id), {
-    method:'DELETE',
-    headers:{...authHeaders(),'Prefer':'return=minimal'}
-  });
+  let r;
+  try {
+    r = await fetch(SUPA_URL+'/rest/v1/personal_chords?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id), {
+      method:'DELETE',
+      headers:{...authHeaders(),'Prefer':'return=minimal'}
+    });
+  } catch(e) {
+    if (window.kisiselAgHatasiMi && window.kisiselAgHatasiMi(e)) return await _esKuyrukla({ tur:'akorSil', workId:id });
+    throw e;
+  }
   const silindi = r.ok || r.status===204;
   // Satır tamamen silindi: kişisel akor da ton kaydırma da gitti.
   if (silindi && window.kisiselGuncelle) window.kisiselGuncelle(k => { delete k.chords[String(parseInt(id))]; }).catch(()=>{});

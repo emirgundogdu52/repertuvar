@@ -1260,7 +1260,11 @@ async function loadWL() {
           if (akor) { parca.chords = akor; parca.chordsAt = simdi; }
           if (notlar) { parca.notes = notlar; parca.notesAt = simdi; }
           if (sahneNot !== null) parca.sahneKisiselNot = sahneNot;
-          if (Object.keys(parca).length && window.kisiselYaz) await window.kisiselYaz(parca);
+          if (Object.keys(parca).length && window.kisiselYaz) {
+            // Kuyruktaki (henüz gönderilmemiş) çevrimdışı değişiklikler uygulanmış hali.
+            const k = await window.kisiselYaz(parca);
+            if (k) { if (parca.chords) akor = k.chords; if (parca.notes) notlar = k.notes; }
+          }
           if ((!akor || !notlar || sahneNot === null) && window.kisiselOku) {
             const onb = await window.kisiselOku();
             if (onb) {
@@ -1920,7 +1924,15 @@ async function savePersonalTranspose(workId, val) {
       headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+tok,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
       body: JSON.stringify({ user_id: uid, work_id: parseInt(workId), transpose: val, updated_at: new Date().toISOString() })
     });
-  } catch(e) { console.warn('[stage] ton kaydedilemedi:', e.message); }
+  } catch(e) {
+    // (2026-09-27) Sahnede internet yoksa ton tercihi kuyruğa alınır (db.js),
+    // bağlantı gelince gönderilir. Sahnede bildirim göstermiyoruz: dikkat dağıtmasın.
+    if (window.kisiselAgHatasiMi && window.kisiselAgHatasiMi(e) && window.kisiselKuyrugaEkle) {
+      window.kisiselKuyrugaEkle({ tur:'ton', workId: workId, deger: val }).catch(()=>{});
+      return;
+    }
+    console.warn('[stage] ton kaydedilemedi:', e.message);
+  }
 }
 
 function renderStageChords(text) { return renderChordPro(text); }

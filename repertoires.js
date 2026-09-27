@@ -3017,14 +3017,37 @@ async function knotYukle(){
   try{
     const uid = (typeof getUserId==='function') ? getUserId() : null;
     if(!uid) return;
-    const r = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?select=work_id,note&user_id=eq.'+uid,
-                          { headers: hdrFor('personal_work_notes') });
-    if(!r.ok){ console.warn('[not] personal_work_notes okunamadı', r.status); return; }
-    const rows = await r.json();
+    // (2026-09-27) Çevrimdışı: ağdan alınamazsa cihazdaki kişisel önbellekten
+    // (db.js); ağdan gelen önbelleğe yazılır ve kuyruktaki (henüz gönderilmemiş)
+    // çevrimdışı değişiklikler üstüne uygulanmış hali kullanılır.
+    let notlar = null;
+    try {
+      const r = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?select=work_id,note&user_id=eq.'+uid,
+                            { headers: hdrFor('personal_work_notes') });
+      if (r.ok) notlar = window._kisiselNotSatirlari ? window._kisiselNotSatirlari(await r.json()) : null;
+      else if (r.status === 404) notlar = {};
+      else console.warn('[not] personal_work_notes okunamadı', r.status);
+    } catch(e) { /* çevrimdışı */ }
+    if (notlar) {
+      if (window.kisiselYaz) { try { const k = await window.kisiselYaz({ notes: notlar, notesAt: new Date().toISOString() }); if (k && k.notes) notlar = k.notes; } catch(e) {} }
+    } else {
+      const onb = window.kisiselOku ? await window.kisiselOku() : null;
+      if (!onb || !onb.notes) return;
+      notlar = onb.notes;
+    }
     PERSONAL_NOTES = {};
-    (rows||[]).forEach(x => { if(x.note) PERSONAL_NOTES[String(x.work_id)] = x.note; });
+    Object.keys(notlar).forEach(w => { if (notlar[w]) PERSONAL_NOTES[String(w)] = notlar[w]; });
     _knotDugmeleriTazele();
-  }catch(e){ /* çevrimdışı — kişisel not katmanı atlanır */ }
+  }catch(e){ /* kişisel not katmanı atlanır */ }
+}
+
+// Çevrimdışı yazma: işlem db.js kuyruğuna, panel "bağlantı gelince kaydedilecek" deyip kapanır.
+async function _knotKuyrukla(op, d){
+  if (!window.kisiselKuyrugaEkle) return false;
+  try { await window.kisiselKuyrugaEkle(op); } catch(e) { return false; }
+  if (d) d.textContent = _r('ortak.kuyrugaAlindi','⏳ Çevrimdışı — bağlantı gelince kaydedilecek');
+  setTimeout(closeKnotSheet, 1200);
+  return true;
 }
 
 function _knotStil(){
@@ -3126,14 +3149,26 @@ async function knotSheetKaydet(){
       const rows = await r.json();
       if(!Array.isArray(rows) || !rows.length) throw new Error(_r('rep.satirYazilmadi','Sunucu hiçbir satır yazmadı (yetki?)'));
       PERSONAL_NOTES[String(id)] = yeni;
+      if (window.kisiselGuncelle) window.kisiselGuncelle(k => { k.notes[String(parseInt(id))] = yeni; }).catch(()=>{});
     } else {
       await fetch(SUPA_URL+'/rest/v1/personal_work_notes?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id),
                   { method:'DELETE', headers: hdrFor('personal_work_notes') });
       delete PERSONAL_NOTES[String(id)];
+      if (window.kisiselGuncelle) window.kisiselGuncelle(k => { delete k.notes[String(parseInt(id))]; }).catch(()=>{});
     }
     _knotDugmeleriTazele();
     closeKnotSheet();
-  }catch(e){ if(d) d.textContent = _r('ortak.kaydedilemedi','Kaydedilemedi: ') + e.message; }
+  }catch(e){
+    if (window.kisiselAgHatasiMi && window.kisiselAgHatasiMi(e)) {
+      const op = yeni ? { tur:'not', workId:id, deger:yeni } : { tur:'notSil', workId:id };
+      if (await _knotKuyrukla(op, d)) {
+        if (yeni) PERSONAL_NOTES[String(id)] = yeni; else delete PERSONAL_NOTES[String(id)];
+        _knotDugmeleriTazele();
+        return;
+      }
+    }
+    if(d) d.textContent = _r('ortak.kaydedilemedi','Kaydedilemedi: ') + e.message;
+  }
 }
 
 async function knotSheetSil(){
@@ -3144,9 +3179,17 @@ async function knotSheetSil(){
     await fetch(SUPA_URL+'/rest/v1/personal_work_notes?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id),
                 { method:'DELETE', headers: hdrFor('personal_work_notes') });
     delete PERSONAL_NOTES[String(id)];
+    if (window.kisiselGuncelle) window.kisiselGuncelle(k => { delete k.notes[String(parseInt(id))]; }).catch(()=>{});
     _knotDugmeleriTazele();
     closeKnotSheet();
-  }catch(e){ if(d) d.textContent = _r('rep.silinemedi','Silinemedi: ') + e.message; }
+  }catch(e){
+    if (window.kisiselAgHatasiMi && window.kisiselAgHatasiMi(e) && await _knotKuyrukla({ tur:'notSil', workId:id }, d)) {
+      delete PERSONAL_NOTES[String(id)];
+      _knotDugmeleriTazele();
+      return;
+    }
+    if(d) d.textContent = _r('rep.silinemedi','Silinemedi: ') + e.message;
+  }
 }
 
 // Açılışta bir kez — liste çizildikten sonra düğmeler kendini tazeliyor.
