@@ -2766,7 +2766,7 @@
       'rep.nPotpuriTekil': '{n} medley',
       'rep.nEserBaslik': '{n} pieces',
       'rep.nEserBaslikTekil': '{n} piece',
-      'rep.nSira': '{n} slots',
+      'rep.nSira': '{n} in running order',
       'rep.thSira': 'No.',
       'rep.thEserAdi': 'Title',
       'rep.thKapanis': 'Karar',
