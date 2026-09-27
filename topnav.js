@@ -470,7 +470,7 @@ function _m(anahtar, tr) {
   // ── Theme Toggle: tek standart kaynak ──
   // Tüm sayfalarda (sidebar, mobil header, eski desktop topbar) aynı switch.
   function themeToggleMarkup(id, theme) {
-    return `<button id="${id}" class="r-theme-toggle" title="Tema değiştir"><span class="toggle-knob">${theme === 'light' ? '☀️' : '🌙'}</span></button>`;
+    return `<button id="${id}" class="r-theme-toggle" title="${_m('menu.temaDegistir','Tema değiştir')}"><span class="toggle-knob">${theme === 'light' ? '☀️' : '🌙'}</span></button>`;
   }
   function bindThemeToggle(id) {
     const btn = document.getElementById(id);
@@ -1022,11 +1022,12 @@ function _m(anahtar, tr) {
   function _notifTime(iso){
     try {
       const d = new Date(iso), diff = (Date.now() - d.getTime())/1000;
-      if (diff < 60) return 'az önce';
-      if (diff < 3600) return Math.floor(diff/60)+' dk önce';
-      if (diff < 86400) return Math.floor(diff/3600)+' sa önce';
-      if (diff < 604800) return Math.floor(diff/86400)+' gün önce';
-      return d.toLocaleDateString('tr-TR', {day:'2-digit', month:'short'});
+      if (diff < 60) return _m('menu.azOnce','az önce');
+      if (diff < 3600) return _m('menu.dkOnce','{n} dk önce').replace('{n}', Math.floor(diff/60));
+      if (diff < 86400) return _m('menu.saOnce','{n} sa önce').replace('{n}', Math.floor(diff/3600));
+      if (diff < 604800) return _m('menu.gunOnce','{n} gün önce').replace('{n}', Math.floor(diff/86400));
+      // (2026-09-27) Tarih biçimi dile göre: yerel ayar kodu sözlükten gelir.
+      return d.toLocaleDateString(_m('menu.tarihYerel','tr-TR'), {day:'2-digit', month:'short'});
     } catch(e){ return ''; }
   }
   async function loadNotifBadge() {
@@ -1068,15 +1069,16 @@ function _m(anahtar, tr) {
     const p = document.getElementById('rNotifPanel');
     const a = _notifAuth();
     if (!p || !a) return;
-    p.innerHTML = '<div class="r-notif-head">Bildirimler</div><div style="padding:16px;color:#9aa4b2;font-size:13px;">Yükleniyor…</div>';
+    const _bBaslik = '<div class="r-notif-head">' + _m('menu.bildirimler','Bildirimler') + '</div>';
+    p.innerHTML = _bBaslik + '<div style="padding:16px;color:#9aa4b2;font-size:13px;">' + _m('menu.yukleniyor','Yükleniyor…') + '</div>';
     try {
       const r = await fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&order=created_at.desc&limit=10&select=id,type,title,body,is_read,created_at', { headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token } });
       const rows = r.ok ? await r.json() : [];
       if (!rows.length) {
-        p.innerHTML = '<div class="r-notif-head">Bildirimler</div><div style="padding:22px 16px;color:#6b7482;font-size:13px;text-align:center;">Henüz bildirim yok.</div>';
+        p.innerHTML = _bBaslik + '<div style="padding:22px 16px;color:#6b7482;font-size:13px;text-align:center;">' + _m('menu.bildirimYok','Henüz bildirim yok.') + '</div>';
         return;
       }
-      p.innerHTML = '<div class="r-notif-head">Bildirimler</div>' + rows.map(function(n){
+      p.innerHTML = _bBaslik + rows.map(function(n){
         return '<div class="r-notif-item' + (n.is_read ? '' : ' unread') + '">' +
           '<div class="r-notif-title">' + _notifEsc(n.title) + '</div>' +
           (n.body ? '<div class="r-notif-body">' + _notifEsc(n.body) + '</div>' : '') +
@@ -1091,7 +1093,7 @@ function _m(anahtar, tr) {
         body: JSON.stringify({ is_read: true })
       }).then(function(){ applyNotifBadge(0); }).catch(function(){});
     } catch(e) {
-      p.innerHTML = '<div class="r-notif-head">Bildirimler</div><div style="padding:16px;color:#c05444;font-size:13px;">Yüklenemedi.</div>';
+      p.innerHTML = _bBaslik + '<div style="padding:16px;color:#c05444;font-size:13px;">' + _m('menu.yuklenemedi','Yüklenemedi.') + '</div>';
     }
   }
   (function(){

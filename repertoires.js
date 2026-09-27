@@ -683,7 +683,7 @@ async function load(){
       if ((rLocal||[]).length) {
         applyRepsData(rLocal, iLocal, sLocal);
         localHadData = true;
-        sync('ok','Yerel veri');
+        sync('ok',_r('rep.yerelVeri','Yerel veri'));
         selectUrlRepIfPresent();
         renderList(); renderDetail();
         setTimeout(fixMobileHeight, 100);
@@ -729,7 +729,7 @@ async function load(){
       await db.repertoire_items.replaceAll(i||[]);
     }
     applyRepsData(r, i, s);
-    sync('ok','Senkronize');
+    sync('ok',_r('rep.senkronize','Senkronize'));
     selectUrlRepIfPresent();
     if (!_riSwipe && !_riOpenCard) { renderList(); renderDetail(); }
     setTimeout(fixMobileHeight, 100);
@@ -784,7 +784,7 @@ function hideRepFromView(id) {
 
 function renderList(){
   const el=document.getElementById('list');
-  if(!reps.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">Henüz repertuvar yok</div>';return;}
+  if(!reps.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">' + _r('rep.henuzRepYok','Henüz repertuvar yok') + '</div>';return;}
   // (2026-08-22) SIRALAMA ARTIK BURADA — KAYNAK NE OLURSA OLSUN AYNI.
   // Belirti (Emir bildirdi): telefon ile tablette repertuvar sırası farklıydı.
   // KANIT: telefonun sırası `created_at` artan (sunucu sırası), tabletinki ise
@@ -843,27 +843,27 @@ function renderList(){
   }
   function repCard(r, _zi){
     const mc = medleyCount(r);
-    const medleyChip = mc ? `<span class="rep-medley" title="${mc===1?'Bu repertuvarda bir potpuri var':'Bu repertuvarda '+mc+' potpuri var'}">🔗${mc>1?' '+mc:''}</span>` : '';
+    const medleyChip = mc ? `<span class="rep-medley" title="${mc===1?_r('rep.birPotpuriVar','Bu repertuvarda bir potpuri var'):_r('rep.nPotpuriVar','Bu repertuvarda {n} potpuri var').replace('{n}',mc)}">🔗${mc>1?' '+mc:''}</span>` : '';
     const touchAttrs = `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)" ontouchcancel="riTouchEnd(event)"`;
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
-      <div><div class="rn">${r.name}${repVis(r)==='public'&&r.isOwner?' <i class="ti ti-world" style="font-size:12px;color:#4ade80;vertical-align:-1px;" title="Herkese açık" aria-hidden="true"></i>':''}</div>
-      <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||'Taslak'}</span>${medleyChip}${r.date?'<span>'+r.date+'</span>':''}</div></div>
+      <div><div class="rn">${r.name}${repVis(r)==='public'&&r.isOwner?' <i class="ti ti-world" style="font-size:12px;color:#4ade80;vertical-align:-1px;" title="'+_r('yo.herkeseAcik','Herkese açık')+'" aria-hidden="true"></i>':''}</div>
+      <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||_r('rep.taslak','Taslak')}</span>${medleyChip}${r.date?'<span>'+r.date+'</span>':''}</div></div>
       <div class="rc">${(r.items||[]).length} ${_rBirim((r.items||[]).length)}</div>
     </div>`;
     // Kendi repertuvarında: gerçekten SİL (kırmızı). Başkasınınkinde: sadece kendi
     // görünümünden GİZLE (mavi) — orijinal veriye, sahibine ya da gruba hiç dokunmuyor.
     // Sağa kaydırınca (her ikisinde de) DEĞİŞTİR (mavi, sol) — kartı tıklamakla aynı.
-    const editBg = `<div class="ri-edit-bg" onclick="event.stopPropagation();riCloseOpenCard();sel('${r.id}')"><i class="ti ti-edit"></i>Değiştir</div>`;
+    const editBg = `<div class="ri-edit-bg" onclick="event.stopPropagation();riCloseOpenCard();sel('${r.id}')"><i class="ti ti-edit"></i>${_r('rep.degistir','Değiştir')}</div>`;
     if (r.isOwner) {
       return `<div class="ri-wrap">
         ${editBg}
-        <div class="ri-delete-bg" onclick="event.stopPropagation();riCloseOpenCard();delRep('${r.id}')"><i class="ti ti-trash"></i>Sil</div>
+        <div class="ri-delete-bg" onclick="event.stopPropagation();riCloseOpenCard();delRep('${r.id}')"><i class="ti ti-trash"></i>${_r('ortak.sil','Sil')}</div>
         ${cardHtml}
       </div>`;
     }
     return `<div class="ri-wrap">
       ${editBg}
-      <div class="ri-delete-bg ri-hide-bg" onclick="event.stopPropagation();riCloseOpenCard();hideRepFromView('${r.id}')"><i class="ti ti-eye-off"></i>Gizle</div>
+      <div class="ri-delete-bg ri-hide-bg" onclick="event.stopPropagation();riCloseOpenCard();hideRepFromView('${r.id}')"><i class="ti ti-eye-off"></i>${_r('rep.gizle','Gizle')}</div>
       ${cardHtml}
     </div>`;
   }
@@ -968,11 +968,11 @@ function renderDetail(){
                çıkıyordu (Emir bildirdi). Aktiflik zaten satır vurgusu + accent
                renkli kalın numarayla belli oluyor. -->
           <span style="color:${isActive?'var(--accent)':(linked?'var(--accent2)':'var(--text3)')};font-size:11px;font-weight:${isActive?'800':'600'};min-width:16px;" title="${linked?_r('rep.potpuriT','Potpuri — bir öncekiyle kesintisiz'):''}">${linked?'↳':_no[idx]}</span>
-          ${_canM?`<span class="drag-handle" onpointerdown="dragPointerStart(event)" title="Sürükleyerek taşı">⠿</span>`:''}
+          ${_canM?`<span class="drag-handle" onpointerdown="dragPointerStart(event)" title="${_r('rep.surukleT','Sürükleyerek taşı')}">⠿</span>`:''}
         </div>
       </td>
       <td style="padding-left:16px;cursor:pointer;" onclick="openLyricsSheet('${it.workId}','${rep.id}','${it.id}')" title="${_r('rep.sozleriGoster','Sözleri göster — düzenlemek için pencerede Düzenle')}">
-        <div class="wn">${linked?'<span class="medley-chip" title="Potpuri devamı">🔗</span> ':''}${w.name||'#'+it.workId}</div>
+        <div class="wn">${linked?'<span class="medley-chip" title="'+_r('rep.potpuriDevami','Potpuri devamı')+'">🔗</span> ':''}${w.name||'#'+it.workId}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
         ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
       </td>
@@ -984,31 +984,31 @@ function renderDetail(){
         ${_canM?`
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},-1)" ${idx===0?'disabled':''}>↑</button>
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
-        <button class="br bl${linked?' linked':''}" onclick="toggleLink('${rep.id}','${it.id}')" ${idx===0?'disabled':''} title="${linked?'Potpuri bağını çöz':_r('rep.potpuriYap','Bir öncekiyle potpuri yap (kesintisiz devam)')}">🔗</button>
+        <button class="br bl${linked?' linked':''}" onclick="toggleLink('${rep.id}','${it.id}')" ${idx===0?'disabled':''} title="${linked?_r('rep.potpuriCoz','Potpuri bağını çöz'):_r('rep.potpuriYap','Bir öncekiyle potpuri yap (kesintisiz devam)')}">🔗</button>
         <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
-        <button class="br dl" onclick="rmItem('${rep.id}','${it.id}','${(w.name||'Bu eser').replace(/'/g,"\\'")}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
+        <button class="br dl" onclick="rmItem('${rep.id}','${it.id}','${(w.name||_r('rep.buEser','Bu eser')).replace(/'/g,"\\'")}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
         `:''}
       </div></td>
     </tr>`;
-  }).join(''):`<tr><td colspan="5" class="ei">Henüz eser eklenmedi.</td></tr>`;
+  }).join(''):`<tr><td colspan="5" class="ei">${_r('rep.henuzEserYok','Henüz eser eklenmedi.')}</td></tr>`;
 
   dc.innerHTML=`
     <div class="dh" style="padding:10px 14px 8px;">
-      <div class="mobile-back-btn" onclick="goBackToList()" style="display:none;margin:-10px -14px 8px;padding:8px 14px;" id="mobileBackBtn">← Repertuvar Listesi</div>
+      <div class="mobile-back-btn" onclick="goBackToList()" style="display:none;margin:-10px -14px 8px;padding:8px 14px;" id="mobileBackBtn">${_r('rep.listeyeDon','← Repertuvar Listesi')}</div>
       <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:8px;">${rep.name}</div>
       <div class="cta-row">
-        <a href="stage.html" class="bstage-primary" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:15px;" aria-hidden="true"></i> Sahneye Çık</a>
-        ${(rep.items||[]).length ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openDinleSheet('${rep.id}')" title="${_r('rep.dinleT','Repertuvarı YouTube bağlantılarından sırayla dinle')}">🎧 Dinle</button>` : ''}
-        ${rep.canManage && (rep.items||[]).length>2 ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openSortSheet('${rep.id}')" title="${_r('rep.siralaT','Makam geçişlerine göre sıralama önerisi')}">🎼 Sırala</button>` : ''}
+        <a href="stage.html" class="bstage-primary" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:15px;" aria-hidden="true"></i> ${_r('rep.sahneyeCik','Sahneye Çık')}</a>
+        ${(rep.items||[]).length ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openDinleSheet('${rep.id}')" title="${_r('rep.dinleT','Repertuvarı YouTube bağlantılarından sırayla dinle')}">${_r('rep.dinleBtn','🎧 Dinle')}</button>` : ''}
+        ${rep.canManage && (rep.items||[]).length>2 ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openSortSheet('${rep.id}')" title="${_r('rep.siralaT','Makam geçişlerine göre sıralama önerisi')}">${_r('rep.siralaBtn','🎼 Sırala')}</button>` : ''}
         ${rep.canManage ? `
         <details class="ov-menu">
-          <summary class="bi" style="font-size:12px;padding:9px 12px;">⋯ Diğer</summary>
+          <summary class="bi" style="font-size:12px;padding:9px 12px;">${_r('rep.digerBtn','⋯ Diğer')}</summary>
           <div class="ov-menu-body">
-            <button onclick="openEdit('${rep.id}')"><i class="ti ti-edit" aria-hidden="true"></i> Düzenle</button>
-            <button onclick="shareRep('${rep.id}')"><i class="ti ti-share" aria-hidden="true"></i> Paylaş</button>
-            <button onclick="printR('${rep.id}')"><i class="ti ti-printer" aria-hidden="true"></i> Yazdır</button>
-            <button onclick="copyRep('${rep.id}')"><i class="ti ti-copy" aria-hidden="true"></i> Kopyala</button>
-            ${rep.isOwner ? `<button class="ov-danger" onclick="delRep('${rep.id}')"><i class="ti ti-trash" aria-hidden="true"></i> Sil</button>` : ''}
+            <button onclick="openEdit('${rep.id}')"><i class="ti ti-edit" aria-hidden="true"></i> ${_r('rep.duzenle','Düzenle')}</button>
+            <button onclick="shareRep('${rep.id}')"><i class="ti ti-share" aria-hidden="true"></i> ${_r('rep.paylas','Paylaş')}</button>
+            <button onclick="printR('${rep.id}')"><i class="ti ti-printer" aria-hidden="true"></i> ${_r('rep.yazdir','Yazdır')}</button>
+            <button onclick="copyRep('${rep.id}')"><i class="ti ti-copy" aria-hidden="true"></i> ${_r('rep.kopyalaRep','Kopyala')}</button>
+            ${rep.isOwner ? `<button class="ov-danger" onclick="delRep('${rep.id}')"><i class="ti ti-trash" aria-hidden="true"></i> ${_r('ortak.sil','Sil')}</button>` : ''}
           </div>
         </details>
         ` : ''}
@@ -1027,8 +1027,8 @@ function renderDetail(){
       </div>
       `}
       <div class="dmr" style="gap:8px;padding-bottom:4px;flex-wrap:nowrap;overflow-x:auto;">
-        <div class="mc"><span class="sp ${sc[rep.status]||'sc'}">${sl[rep.status]||'Taslak'}</span></div>
-        ${_medleyN?`<div class="mc"><span class="rep-medley" title="Potpuri: kesintisiz çalınan eser zinciri">🔗 ${_medleyN} Potpuri</span></div>`:''}
+        <div class="mc"><span class="sp ${sc[rep.status]||'sc'}">${sl[rep.status]||_r('rep.taslak','Taslak')}</span></div>
+        ${_medleyN?`<div class="mc"><span class="rep-medley" title="${_r('rep.potpuriChipT','Potpuri: kesintisiz çalınan eser zinciri')}">🔗 ${(_medleyN===1?_r('rep.nPotpuriTekil','{n} Potpuri'):_r('rep.nPotpuri','{n} Potpuri')).replace('{n}',_medleyN)}</span></div>`:''}
         <div class="mc" id="offRep_${rep.id}" style="display:none;white-space:nowrap;font-size:12px;color:var(--text3);"></div>
         ${rep.date?`<div class="mc" style="white-space:nowrap;">📅 <strong>${rep.date}</strong>${rep.venue?` &nbsp;📍 <strong>${rep.venue}</strong>`:''}</div>`:''}
         ${!rep.date&&rep.venue?`<div class="mc" style="white-space:nowrap;">📍 <strong>${rep.venue}</strong></div>`:''}
@@ -1037,8 +1037,8 @@ function renderDetail(){
       </div>
     </div>
     <div class="is">
-      <div class="ih"><h3>${items.length} Eser${_no.filter(n=>n!==null).length!==items.length?` <span style="font-weight:500;color:var(--text3);font-size:12px;">· ${_no.filter(n=>n!==null).length} sıra</span>`:''}</h3>${rep.canManage?`<button class="baw" onclick="openWM('${rep.id}')">+ Eser Ekle</button>`:''}</div>
-      <table><thead><tr><th class="sq" style="text-align:center;">Sıra</th><th>Eser Adı</th><th class="col-kapanis">Kapanış</th><th class="col-not">Not</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="ih"><h3>${(items.length===1?_r('rep.nEserBaslikTekil','{n} Eser'):_r('rep.nEserBaslik','{n} Eser')).replace('{n}',items.length)}${_no.filter(n=>n!==null).length!==items.length?` <span style="font-weight:500;color:var(--text3);font-size:12px;">· ${_r('rep.nSira','{n} sıra').replace('{n}',_no.filter(n=>n!==null).length)}</span>`:''}</h3>${rep.canManage?`<button class="baw" onclick="openWM('${rep.id}')">+ ${_r('rep.eserekle','Eser Ekle')}</button>`:''}</div>
+      <table><thead><tr><th class="sq" style="text-align:center;">${_r('rep.thSira','Sıra')}</th><th>${_r('rep.thEserAdi','Eser Adı')}</th><th class="col-kapanis">${_r('rep.thKapanis','Kapanış')}</th><th class="col-not">${_r('rep.thNot','Not')}</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
   _offRepRozet(rep.id);
 }
@@ -1082,7 +1082,7 @@ function visChip(rep){
   // İkonlar Tabler setinden (projenin standardı) — emoji KULLANILMIYOR.
   // ti-users-group, sol menüdeki "Grup / Koro" öğesiyle AYNI ikon (topnav.js:651).
   const map = {
-    public:  ['pub',  'ti-world', 'Genel',   _r('rep.genelT','Herkese açık — değiştirmek için tıkla')],
+    public:  ['pub',  'ti-world', _r('rep.genel','Genel'),   _r('rep.genelT','Herkese açık — değiştirmek için tıkla')],
     group:   ['grp',  'ti-users-group', _r('rep.grupKisa','Grup'),    _r('rep.grupT','Grup üyeleri görebilir — değiştirmek için tıkla')],
     private: ['priv', 'ti-lock',  _r('rep.kisisel','Kişisel'), _r('rep.kisiselT','Yalnızca sen görebilirsin — değiştirmek için tıkla')]
   };
@@ -1188,7 +1188,7 @@ async function saveRep(){
   // hâlâ eski modelle okuyan sayfalar var (stage.html, eserler.html — 3. aşamanın
   // kalan maddesi), göç bitene kadar ikisi tutarlı tutuluyor.
   const data={name,date:document.getElementById('fD').value||null,venue:document.getElementById('fV').value.trim()||null,status:document.getElementById('fS').value,notes:document.getElementById('fNo').value.trim()||null,visibility:vis,is_public:isPublic,group_id:groupId,user_id:getUserId()||undefined,owner_id:editId?undefined:(getUserId()||undefined)};
-  sync('spin','Kaydediliyor...');
+  sync('spin',_r('rep.kaydediliyor','Kaydediliyor...'));
   try{
     let repId=editId;
     if(editId){await dbPatch('repertoires',editId,data);}
@@ -1287,7 +1287,7 @@ function filterW(){
   const q=document.getElementById('ws').value.trim();
   // Türkçe duyarsız: "Gülşen" kaydı "gulsen", "Çeşm-i" kaydı "cesmi" ile bulunur.
   const list=q?WLIST.filter(w=>trMatch((w.name||'')+' '+(w.composer||'')+' '+(w.makam||''), q)):WLIST;
-  document.getElementById('wpl').innerHTML=list.slice(0,80).map(w=>`<div class="wpi${selWId===w.id?' sel':''}" onclick="pickW('${w.id}')"><div class="wpn">${w.name}</div><div class="wps">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--text3);">Bulunamadı</div>';
+  document.getElementById('wpl').innerHTML=list.slice(0,80).map(w=>`<div class="wpi${selWId===w.id?' sel':''}" onclick="pickW('${w.id}')"><div class="wpn">${w.name}</div><div class="wps">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--text3);">'+_r('rep.bulunamadi','Bulunamadı')+'</div>';
 }
 function pickW(id){
   selWId=id;
@@ -1343,7 +1343,7 @@ function openLyricsSheet(workId, repId, itemId){
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
             <button id="lycEditBtn" onclick="lycEdit()" style="display:none;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">
-              <i class="ti ti-edit" style="font-size:13px;" aria-hidden="true"></i> Düzenle
+              <i class="ti ti-edit" style="font-size:13px;" aria-hidden="true"></i> ${_r('rep.duzenle','Düzenle')}
             </button>
             <button onclick="closeLyricsSheet()" aria-label="${_r('ortak.kapat','Kapat')}" style="background:none;border:none;color:var(--text3);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;">×</button>
           </div>
@@ -1355,12 +1355,12 @@ function openLyricsSheet(workId, repId, itemId){
   }
   document.getElementById('lycName').textContent = w.name || ('#'+workId);
   document.getElementById('lycMeta').textContent =
-    [w.makam, w.composer, w.closingNote ? 'Karar: '+w.closingNote : ''].filter(Boolean).join(' · ');
+    [w.makam, w.composer, w.closingNote ? _r('rep.kararEtiket','Karar: ')+w.closingNote : ''].filter(Boolean).join(' · ');
   const body = document.getElementById('lycBody');
   const t = (w.lyrics||'').trim();
   body.innerHTML = t
     ? _lycEsc(t)
-    : '<span style="color:var(--text3);font-size:13px;">Bu eser için söz eklenmemiş.</span>';
+    : '<span style="color:var(--text3);font-size:13px;">'+_r('rep.sozYok','Bu eser için söz eklenmemiş.')+'</span>';
   body.scrollTop = 0;
 
   // Düzenle yalnızca yetki varsa ve satır bilgisi elimizdeyse görünür
@@ -1393,7 +1393,7 @@ async function addWork(){
     return;
   }
   const nextSeq=items.length?Math.max(...items.map(i=>i.seq))+1:1;
-  sync('spin','Ekleniyor...');
+  sync('spin',_r('rep.ekleniyor','Ekleniyor...'));
   try{
     // linked_prev açıkça false: kolon varsayılanı `true` olduğu için alan
     // gönderilmezse yeni eser kendiliğinden potpuriye bağlı doğuyordu (2026-08-06)
@@ -1496,7 +1496,7 @@ function workProfile(it){
 const _PCNAME=['Do','Reb','Re','Mib','Mi','Fa','Fa#','Sol','Lab','La','Sib','Si'];
 // İki profil arası geçiş maliyeti + insan okunur gerekçe
 function transitionCost(a,b){
-  if(a.karar===null||b.karar===null) return {c:2.5,txt:'karar sesi bilinmiyor',lvl:'na'};
+  if(a.karar===null||b.karar===null) return {c:2.5,txt:_r('rep.kararBilinmiyor','karar sesi bilinmiyor'),lvl:'na'};
   if(a.makamAd && a.makamAd===b.makamAd) return {c:0,txt:_r('rep.ayniMakam','aynı makam: {x}').replace('{x}',a.makamAd),lvl:'ok'};
   const d0=Math.abs(a.karar-b.karar)%12;
   const d=Math.min(d0,12-d0);
@@ -1582,19 +1582,19 @@ function openSortSheet(repId){
   ov.innerHTML=`
     <div class="sort-box">
       <div class="sort-head">
-        <div>🎼 Sıralama Önerisi</div>
+        <div>${_r('rep.siralamaOnerisi','🎼 Sıralama Önerisi')}</div>
         <button class="sort-x" onclick="closeSortSheet()">✕</button>
       </div>
       <div class="sort-modes">
-        <button class="sort-mode active" data-mode="akilli" onclick="runSort('akilli')">Akıllı akış</button>
-        <button class="sort-mode" data-mode="makam" onclick="runSort('makam')">Makama göre</button>
-        <button class="sort-mode" data-mode="karar" onclick="runSort('karar')">Karar sesine göre</button>
+        <button class="sort-mode active" data-mode="akilli" onclick="runSort('akilli')">${_r('rep.akilliAkis','Akıllı akış')}</button>
+        <button class="sort-mode" data-mode="makam" onclick="runSort('makam')">${_r('rep.makamaGore','Makama göre')}</button>
+        <button class="sort-mode" data-mode="karar" onclick="runSort('karar')">${_r('rep.kararaGore','Karar sesine göre')}</button>
       </div>
       <div class="sort-body" id="sortBody"></div>
       <div class="sort-foot">
         <span id="sortScore" class="sort-score"></span>
-        <button class="bi" onclick="closeSortSheet()">Vazgeç</button>
-        <button class="baw" onclick="applySort()">Uygula</button>
+        <button class="bi" onclick="closeSortSheet()">${_r('rep.vazgec','Vazgeç')}</button>
+        <button class="baw" onclick="applySort()">${_r('rep.uygula','Uygula')}</button>
       </div>
     </div>`;
   runSort('akilli');
@@ -2006,10 +2006,10 @@ function printR(repId){
 
   const printCSS = '*{margin:0;padding:0;box-sizing:border-box;}body{font-family:\'DM Sans\',sans-serif;font-size:14px;color:#111;padding:32px 40px;}h1{font-family:\'Playfair Display\',serif;font-size:28px;font-weight:400;margin-bottom:8px;}hr{border:none;border-top:2px solid #111;margin:16px 0;}table{width:100%;border-collapse:collapse;}th{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#888;text-align:left;padding:6px 12px;border-bottom:1px solid #ddd;}td{padding:9px 12px;border-bottom:1px solid #eee;vertical-align:middle;}';
   const printHTML = '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>' + rep.name + '</title><style>' + printCSS + '</style><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"></head><body>'
-    + '<div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:24px;">Repertuvar — ' + new Date().toLocaleDateString('tr-TR') + '</div>'
+    + '<div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:24px;">' + _r('rep.adsizRep','Repertuvar') + ' — ' + new Date().toLocaleDateString('tr-TR') + '</div>'
     + '<h1>' + rep.name + '</h1>'
-    + '<div style="display:flex;gap:16px;font-size:12px;color:#666;margin-bottom:16px;">' + (rep.date?'\uD83D\uDCC5 '+rep.date:'') + (rep.venue?' \uD83D\uDCCD '+rep.venue:'') + (rep.status?' \u25CF '+sl[rep.status]:'') + ' \uD83C\uDFBC ' + items.length + ' eser</div>'
-    + '<hr><table><thead><tr><th>#</th><th>Eser Ad\u0131</th><th>Kapan\u0131\u015f</th><th>Not</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '<div style="display:flex;gap:16px;font-size:12px;color:#666;margin-bottom:16px;">' + (rep.date?'\uD83D\uDCC5 '+rep.date:'') + (rep.venue?' \uD83D\uDCCD '+rep.venue:'') + (rep.status?' \u25CF '+sl[rep.status]:'') + ' \uD83C\uDFBC ' + items.length + ' ' + _rBirim(items.length) + '</div>'
+    + '<hr><table><thead><tr><th>#</th><th>' + _r('rep.thEserAdi','Eser Ad\u0131') + '</th><th>' + _r('rep.thKapanis','Kapan\u0131\u015f') + '</th><th>' + _r('rep.thNot','Not') + '</th></tr></thead><tbody>' + rows + '</tbody></table>'
     + '</body></html>';
   printViaIframe(printHTML, rep.name);
 }
@@ -2202,12 +2202,12 @@ function openShareModal(name){
            ov.addEventListener('click', e=>{ if(e.target===ov) closeShare(); }); }
   ov.innerHTML = `
     <div class="share-box">
-      <div class="share-head"><span>🔗 Misafir Bağlantısı</span><button class="sort-x" onclick="closeShare()">✕</button></div>
+      <div class="share-head"><span>${_r('rep.misafirBaglanti','🔗 Misafir Bağlantısı')}</span><button class="sort-x" onclick="closeShare()">✕</button></div>
       <div class="share-name">${name}</div>
-      <div class="share-note">Bağlantıyı açan kişi repertuvarı <b>salt okunur</b> görür — giriş yapmasına gerek yok. Süre dolunca bağlantı ölür. Akorlar paylaşılmaz.</div>
+      <div class="share-note">${_r('rep.misafirNot','Bağlantıyı açan kişi repertuvarı <b>salt okunur</b> görür — giriş yapmasına gerek yok. Süre dolunca bağlantı ölür. Akorlar paylaşılmaz.')}</div>
       <div class="share-foot" style="justify-content:flex-start;gap:8px;">
-        <button class="bi" onclick="createShareLink(12)">12 saat</button>
-        <button class="baw" onclick="createShareLink(24)">24 saat</button>
+        <button class="bi" onclick="createShareLink(12)">${_r('rep.nSaat','{n} saat').replace('{n}',12)}</button>
+        <button class="baw" onclick="createShareLink(24)">${_r('rep.nSaat','{n} saat').replace('{n}',24)}</button>
       </div>
       <div id="shareResult"></div>
     </div>`;
@@ -2218,7 +2218,7 @@ async function createShareLink(hours){
   const repId = shareRepId;
   if(!repId) return;
   const box = document.getElementById('shareResult');
-  if(box) box.innerHTML = '<div class="share-note">Bağlantı oluşturuluyor…</div>';
+  if(box) box.innerHTML = '<div class="share-note">' + _r('rep.baglantiOlusturuluyor','Bağlantı oluşturuluyor…') + '</div>';
   try{
     // Tek aktif bağlantı: bu repertuvarın eski bağlantılarını iptal et
     // (2026-08-22) Bu isteğin yanıtı da kontrol edilmiyordu. Burada sessizlik
@@ -2245,12 +2245,12 @@ async function createShareLink(hours){
       <div class="share-link" id="shareLink" data-url="${link}">${link}</div>
       <div id="shareQrWrap" style="display:none;text-align:center;margin:10px 14px 4px;">
         <div id="shareQr" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;"></div>
-        <div style="font-size:11px;color:var(--text3);margin-top:7px;">Misafir sanatçı kamerayla okutabilir</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:7px;">${_r('rep.qrNot','Misafir sanatçı kamerayla okutabilir')}</div>
       </div>
-      <div class="share-note">${hours} saat geçerli — ${new Date(expires).toLocaleString('tr-TR')}</div>
+      <div class="share-note">${_r('rep.nSaatGecerli','{n} saat geçerli').replace('{n}',hours)} — ${new Date(expires).toLocaleString('tr-TR')}</div>
       <div class="share-foot">
-        <button class="bi" onclick="closeShare()">Kapat</button>
-        <button class="baw" id="copyBtn" onclick="copyShareLink()">Kopyala</button>
+        <button class="bi" onclick="closeShare()">${_r('ortak.kapat','Kapat')}</button>
+        <button class="baw" id="copyBtn" onclick="copyShareLink()">${_r('rep.kopyalaLink','Kopyala')}</button>
       </div>`;
     _shareQrCiz(link);
     if(navigator.share){
@@ -2258,7 +2258,7 @@ async function createShareLink(hours){
       try{ await navigator.share({title:(rp&&rp.name)||_r('rep.adsizRep','Repertuvar'), url:link}); }catch(e){}
     }
   }catch(e){
-    if(box) box.innerHTML = '<div class="share-note" style="color:var(--red);">Bağlantı oluşturulamadı: '+e.message+'</div>';
+    if(box) box.innerHTML = '<div class="share-note" style="color:var(--red);">'+_r('rep.baglantiOlusturulamadi','Bağlantı oluşturulamadı: ')+e.message+'</div>';
   }
 }
 
@@ -2301,7 +2301,7 @@ function copyShareLink() {
   const el=document.getElementById('shareLink');
   const link=el?el.dataset.url:'';
   const done=()=>{ const btn=document.getElementById('copyBtn');
-    if(btn){ btn.textContent=_r('rep.kopyalandiOk','✓ Kopyalandı'); setTimeout(()=>{ if(btn) btn.textContent='Kopyala'; },2000); } };
+    if(btn){ btn.textContent=_r('rep.kopyalandiOk','✓ Kopyalandı'); setTimeout(()=>{ if(btn) btn.textContent=_r('rep.kopyalaLink','Kopyala'); },2000); } };
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(link).then(done).catch(()=>fallbackCopy(link,done));
   } else fallbackCopy(link,done);
@@ -2529,11 +2529,11 @@ function openRepMoveSheet(workId, fromRepId) {
     return `<button class="rlp-item" ${varMi ? 'disabled' : ''}
         onclick="rlpAddToRep('${r.id}')">
         <i class="ti ${ikon}" aria-hidden="true"></i>
-        <span class="rlp-nm">${_rlpEsc(r.name || '(isimsiz)')}</span>
+        <span class="rlp-nm">${_rlpEsc(r.name || _r('es.isimsiz','(isimsiz)'))}</span>
         <span class="rlp-hint">${varMi ? _r('rep.zatenVarKisa','zaten var') : ((r.items || []).length + ' ' + _rBirim((r.items || []).length))}</span>
       </button>`;
   }).join('')
-    : '<div style="padding:18px 20px;color:var(--text3);font-size:13px;">Ekleyebileceğin başka repertuvar yok.</div>';
+    : '<div style="padding:18px 20px;color:var(--text3);font-size:13px;">' + _r('rep.baskaRepYok','Ekleyebileceğin başka repertuvar yok.') + '</div>';
 
   // (2026-08-20) YENİ MODEL — hızlı oluşturmada görünürlük.
   // Varsayılan KİŞİSEL (`visibility:'private'`): bir jestin ortasında paylaşım
@@ -2545,13 +2545,13 @@ function openRepMoveSheet(workId, fromRepId) {
   const grupSecenegi = (_gid && typeof isGroupManager === 'function' && isGroupManager())
     ? `<label style="display:flex;align-items:center;gap:8px;margin-top:9px;font-size:13px;color:var(--text2);cursor:pointer;">
          <input type="checkbox" id="rlpNewGroup" style="accent-color:var(--accent);width:15px;height:15px;">
-         <i class="ti ti-users-group" style="font-size:15px;" aria-hidden="true"></i> Grupla paylaş
+         <i class="ti ti-users-group" style="font-size:15px;" aria-hidden="true"></i> ${_r('rep.gruplaPaylas','Grupla paylaş')}
        </label>`
     : '';
 
   sh.innerHTML = `
     <div style="padding:14px 20px 10px;border-bottom:1px solid var(--border);">
-      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">Repertuvara Ekle</div>
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">${_r('es.repertuvaraEkle','Repertuvara Ekle')}</div>
       <div style="font-size:14px;font-weight:600;color:var(--text);margin-top:4px;line-height:1.35;">${_rlpEsc(w.name || ('#' + workId))}</div>
     </div>
     <div id="rlpList" style="overflow-y:auto;flex:1;padding:4px 0;">${satirlar}</div>
@@ -2559,7 +2559,7 @@ function openRepMoveSheet(workId, fromRepId) {
     <div style="border-top:1px solid var(--border);padding:4px 0 8px;">
       <button class="rlp-item" id="rlpNewBtn" onclick="rlpShowNewForm()">
         <i class="ti ti-playlist-add" aria-hidden="true"></i>
-        <span class="rlp-nm" style="color:var(--accent);font-weight:600;">Yeni repertuvar oluştur</span>
+        <span class="rlp-nm" style="color:var(--accent);font-weight:600;">${_r('rep.yeniRepOlustur','Yeni repertuvar oluştur')}</span>
       </button>
       <div id="rlpNewForm" style="display:none;padding:4px 20px 8px;">
         <input id="rlpNewName" placeholder="${_r('rep.repAdiPh','Repertuvar adı')}" autocomplete="off"
@@ -2567,12 +2567,12 @@ function openRepMoveSheet(workId, fromRepId) {
                  border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;">
         ${grupSecenegi}
         <div style="display:flex;gap:8px;margin-top:8px;">
-          <button onclick="rlpHideNewForm()" style="flex:1;padding:9px;border-radius:8px;background:none;border:1px solid var(--border);color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer;">İptal</button>
-          <button onclick="rlpCreateAndAdd()" style="flex:2;padding:9px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">Oluştur ve Ekle</button>
+          <button onclick="rlpHideNewForm()" style="flex:1;padding:9px;border-radius:8px;background:none;border:1px solid var(--border);color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer;">${_r('ortak.iptal','İptal')}</button>
+          <button onclick="rlpCreateAndAdd()" style="flex:2;padding:9px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">${_r('rep.olusturVeEkle','Oluştur ve Ekle')}</button>
         </div>
       </div>
       <button class="rlp-item" onclick="closeRepMoveSheet()">
-        <i class="ti ti-x" aria-hidden="true"></i><span class="rlp-nm" style="color:var(--text2);">Kapat</span>
+        <i class="ti ti-x" aria-hidden="true"></i><span class="rlp-nm" style="color:var(--text2);">${_r('ortak.kapat','Kapat')}</span>
       </button>
     </div>`;
 
@@ -2621,7 +2621,7 @@ async function rlpAddToRep(repId) {
     return;
   }
   const nextSeq = items.length ? Math.max(...items.map(i => i.seq || 0)) + 1 : 1;
-  _rlpMsg('Ekleniyor...');
+  _rlpMsg(_r('rep.ekleniyor','Ekleniyor...'));
   try {
     await dbPost('repertoire_items', {
       repertoire_id: repId, work_id: _rlpWorkId, seq: nextSeq, linked_prev: false
@@ -2658,7 +2658,7 @@ async function rlpCreateAndAdd() {
       user_id: uid, owner_id: uid
     });
     const yeni = Array.isArray(r) ? r[0] : r;
-    if (!yeni || !yeni.id) throw new Error('repertuvar id dönmedi');
+    if (!yeni || !yeni.id) throw new Error(_r('rep.idDonmedi','repertuvar id dönmedi'));
     await dbPost('repertoire_items', {
       repertoire_id: yeni.id, work_id: _rlpWorkId, seq: 1, linked_prev: false
     });
@@ -2835,14 +2835,14 @@ function openDinleSheet(repId) {
       <div class="dnl-box">
         <div class="dnl-head">
           <div style="flex:1;min-width:0;">
-            <div style="font-size:15px;font-weight:700;">🎧 Repertuvarı Dinle</div>
+            <div style="font-size:15px;font-weight:700;">${_r('rep.dinleBaslik','🎧 Repertuvarı Dinle')}</div>
             <div style="font-size:12px;color:var(--text3);margin-top:3px;">${_dnlEsc(rep.name)}</div>
           </div>
           <button class="dnl-x" onclick="closeDinleSheet()" aria-label="${_r('ortak.kapat','Kapat')}">×</button>
         </div>
         <div style="padding:22px 18px;color:var(--text3);font-size:13px;line-height:1.6;">
-          Bu repertuvardaki hiçbir eserde YouTube bağlantısı yok.<br>
-          Eseri açıp <b>Düzenle</b> deyip <b>Video Bağlantısı</b> alanına ekleyebilirsin.
+          ${_r('rep.ytYok1','Bu repertuvardaki hiçbir eserde YouTube bağlantısı yok.')}<br>
+          ${_r('rep.ytYok2','Eseri açıp <b>Düzenle</b> deyip <b>Video Bağlantısı</b> alanına ekleyebilirsin.')}
         </div>
       </div>`;
     ov.classList.add('open');
@@ -2856,7 +2856,7 @@ function openDinleSheet(repId) {
   // hangileri olduğu dokununca açılıyor (başlıkta uzun liste yer kaplamasın).
   const uyari = eksik.length ? `
       <div class="dnl-warn" onclick="this.classList.toggle('acik')">
-        ⚠️ ${eksik.length} eserde YouTube bağlantısı yok — listeye alınmadı. <u>Hangileri?</u>
+        ⚠️ ${_r('rep.ytEksik','{n} eserde YouTube bağlantısı yok — listeye alınmadı.').replace('{n}',eksik.length)} <u>${_r('rep.hangileri','Hangileri?')}</u>
         <div class="dnl-warn-list">${eksik.map(x => _dnlEsc(x.name)).join(' · ')}</div>
       </div>` : '';
 
@@ -2864,8 +2864,8 @@ function openDinleSheet(repId) {
     <div class="dnl-box">
       <div class="dnl-head">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:15px;font-weight:700;">🎧 Repertuvarı Dinle</div>
-          <div style="font-size:12px;color:var(--text3);margin-top:3px;">${_dnlEsc(rep.name)} · ${calinabilir.length} eser</div>
+          <div style="font-size:15px;font-weight:700;">${_r('rep.dinleBaslik','🎧 Repertuvarı Dinle')}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px;">${_dnlEsc(rep.name)} · ${calinabilir.length} ${_rBirim(calinabilir.length)}</div>
         </div>
         <button class="dnl-x" onclick="closeDinleSheet()" aria-label="${_r('ortak.kapat','Kapat')}">×</button>
       </div>
@@ -2898,7 +2898,7 @@ function openDinleSheet(repId) {
     if (wrap) wrap.innerHTML =
       '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;' +
       'text-align:center;padding:16px;color:var(--text3);font-size:12.5px;line-height:1.6;">' +
-      _dnlEsc(err.message) + '<br>Bağlantını kontrol et ya da “YouTube\'da Aç”ı kullan.</div>';
+      _dnlEsc(err.message) + '<br>' + _r('rep.ytHataIpucu','Bağlantını kontrol et ya da “YouTube\'da Aç”ı kullan.') + '</div>';
   });
 }
 
@@ -3078,14 +3078,14 @@ function openKnotSheet(workId){
   }
 
   sh.innerHTML =
-    '<div class="ks-bas"><i class="ti ti-lock" aria-hidden="true"></i> Kişisel notum' +
-      '<span class="ks-ipuc">— yalnızca sen görürsün</span></div>' +
+    '<div class="ks-bas"><i class="ti ti-lock" aria-hidden="true"></i> ' + _r('rep.kisiselNotum','Kişisel notum') +
+      '<span class="ks-ipuc">' + _r('rep.yalnizSen','— yalnızca sen görürsün') + '</span></div>' +
     '<div class="ks-eser">' + _knotEsc(w.name || ('#' + workId)) + '</div>' +
-    '<textarea id="knotAlan" placeholder="Bu eserde kendine hatırlatmak istediklerin…">' + _knotEsc(not) + '</textarea>' +
+    '<textarea id="knotAlan" placeholder="' + _r('rep.knotPh','Bu eserde kendine hatırlatmak istediklerin…') + '">' + _knotEsc(not) + '</textarea>' +
     '<div class="ks-alt">' +
-      '<button class="rbtn rbtn-sm rbtn-primary" onclick="knotSheetKaydet()">Kaydet</button>' +
-      '<button class="rbtn rbtn-sm" onclick="closeKnotSheet()">İptal</button>' +
-      (not ? '<button class="rbtn rbtn-sm" onclick="knotSheetSil()">Sil</button>' : '') +
+      '<button class="rbtn rbtn-sm rbtn-primary" onclick="knotSheetKaydet()">' + _r('ortak.kaydet','Kaydet') + '</button>' +
+      '<button class="rbtn rbtn-sm" onclick="closeKnotSheet()">' + _r('ortak.iptal','İptal') + '</button>' +
+      (not ? '<button class="rbtn rbtn-sm" onclick="knotSheetSil()">' + _r('ortak.sil','Sil') + '</button>' : '') +
       '<span class="ks-durum" id="knotDurum"></span>' +
     '</div>';
 
@@ -3110,7 +3110,7 @@ async function knotSheetKaydet(){
   const id = _knotAcikWorkId; if(!id) return;
   const t = document.getElementById('knotAlan'); if(!t) return;
   const yeni = t.value.trim();
-  const d = document.getElementById('knotDurum'); if(d) d.textContent = 'Kaydediliyor…';
+  const d = document.getElementById('knotDurum'); if(d) d.textContent = _r('rk.kaydediliyor','Kaydediliyor…');
   try{
     const uid = getUserId(); if(!uid) throw new Error(_r('ortak.oturumYok','Oturum yok'));
     if (yeni) {
@@ -3138,7 +3138,7 @@ async function knotSheetKaydet(){
 
 async function knotSheetSil(){
   const id = _knotAcikWorkId; if(!id) return;
-  const d = document.getElementById('knotDurum'); if(d) d.textContent = 'Siliniyor…';
+  const d = document.getElementById('knotDurum'); if(d) d.textContent = _r('rep.siliniyor','Siliniyor…');
   try{
     const uid = getUserId(); if(!uid) return;
     await fetch(SUPA_URL+'/rest/v1/personal_work_notes?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id),
@@ -3146,7 +3146,7 @@ async function knotSheetSil(){
     delete PERSONAL_NOTES[String(id)];
     _knotDugmeleriTazele();
     closeKnotSheet();
-  }catch(e){ if(d) d.textContent = 'Silinemedi: ' + e.message; }
+  }catch(e){ if(d) d.textContent = _r('rep.silinemedi','Silinemedi: ') + e.message; }
 }
 
 // Açılışta bir kez — liste çizildikten sonra düğmeler kendini tazeliyor.

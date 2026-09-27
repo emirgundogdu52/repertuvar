@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
-const CACHE_NAME = 'repertuvar-v513';
+const CACHE_NAME = 'repertuvar-v514';
 
 // Açılışta öncelikli önbelleğe alınacak çekirdek dosyalar.
 const PRECACHE = [
@@ -64,14 +64,20 @@ function networkFirst(request) {
 function cevrimdisiYanit(request) {
   const gezinme = request.mode === 'navigate' || request.destination === 'document';
   if (gezinme) {
+    // (2026-09-27) DİL: service worker i18n.js'e ve localStorage'a erişemez;
+    // tarayıcı dili Türkçe değilse İngilizce (i18n.js'teki varsayılan kuralla aynı).
+    let tr = true;
+    try { tr = ((self.navigator && self.navigator.language) || 'tr').slice(0, 2).toLowerCase() === 'tr'; } catch (e) {}
+    const metin = tr
+      ? '<b>Çevrimdışısınız</b><br>Bu sayfa henüz kaydedilmemiş.<br>Bağlantı gelince tekrar deneyin.'
+      : '<b>You are offline</b><br>This page has not been saved on this device yet.<br>Please try again when you are back online.';
     return new Response(
-      '<!DOCTYPE html><meta charset="utf-8">' +
+      '<!DOCTYPE html><html lang="' + (tr ? 'tr' : 'en') + '"><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width,initial-scale=1">' +
       '<body style="margin:0;background:#0b0f18;color:#dfe6f2;' +
       'font:15px/1.6 -apple-system,system-ui,sans-serif;display:flex;' +
       'align-items:center;justify-content:center;height:100vh;text-align:center">' +
-      '<div><b>Çevrimdışısınız</b><br>Bu sayfa henüz kaydedilmemiş.<br>' +
-      'Bağlantı gelince tekrar deneyin.</div></body>',
+      '<div>' + metin + '</div></body>',
       { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
     );
   }

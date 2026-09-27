@@ -32,9 +32,15 @@ function getUser() {
   try { return JSON.parse(localStorage.getItem('sb_user')); } catch(e) { return null; }
 }
 function getUserId() { return getUser()?.id || null; }
+// (2026-09-27) auth.js i18n.js'ten ÖNCE yüklenebilir; çağrı anında i18n hazır
+// değilse Türkçe varsayılan döner (davranış eskisiyle aynı kalır).
+function _auCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
 function getUserName() {
   const u = getUser();
-  return u?.user_metadata?.full_name || u?.email?.split('@')[0] || 'Kullanıcı';
+  return u?.user_metadata?.full_name || u?.email?.split('@')[0] || _auCev('ortak.kullanici', 'Kullanıcı');
 }
 function getGroupId() {
   return localStorage.getItem('user_group_id') || null;
@@ -879,12 +885,12 @@ function logoutSilent() {
 function logout() {
   try { localStorage.removeItem('defaultMusicFields'); } catch (e) {}
   if (!navigator.onLine) {
-    var devam = confirm(
+    var devam = confirm(_auCev('ortak.cevrimdisiCikisOnay',
       'İnternet bağlantısı yok.\n\n' +
       'Şimdi çıkarsanız internet gelene kadar tekrar giriş yapamazsınız. ' +
       'Yerel verileriniz silinir; bağlantı sağlandığında yeniden yüklenir.\n\n' +
       'Çıkmak istediğinize emin misiniz?'
-    );
+    ));
     if (!devam) return;
   }
   logoutSilent().then(function() {

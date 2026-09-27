@@ -461,6 +461,18 @@ function _c(k, tr) {
   catch (e) { return tr; }
 }
 
+// Pedal gorselinin alt metni: i18n.js `alt` ozniteligini cevirmiyor.
+(function () {
+  function yaz() {
+    try {
+      var img = document.querySelector('img.hero-pedal');
+      if (img) img.setAttribute('alt', _c('ana.pedalAlt', 'Sayfa çevirme pedalı (harici cihaz, ayrıca satın alınır)'));
+    } catch (e) {}
+  }
+  yaz();
+  window.addEventListener('dil-degisti', yaz);
+})();
+
 // theme chips removed from index, handled in stage.html
 
 (async function() {
@@ -565,11 +577,11 @@ function _c(k, tr) {
           <div class="wc-play">▶</div>
         </a>`).join('');
     } else if (container) {
-      container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">Henüz eser yok.</div>';
+      container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">' + _c('ana.henuzEserYok', 'Henüz eser yok.') + '</div>';
     }
   } catch(e) {
     const container = document.getElementById('recentWorks');
-    if (container) container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">Yüklenemedi.</div>';
+    if (container) container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">' + _c('ana.yuklenemedi', 'Yüklenemedi.') + '</div>';
   }
 
 

@@ -549,8 +549,9 @@ window.offlineRozetMetni = function (status) {
         'color:#F9A04A;padding:7px 13px;border-radius:20px;font-size:12px;' +
         'font-weight:600;font-family:inherit;display:flex;align-items:center;gap:8px;' +
         'box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;';
-      el.textContent = '⚠️ Canlı güncelleme kesildi — yeniden bağlanılıyor';
-      el.title = 'Dokunursanız hemen yeniden denenir';
+      var _ct = function (k, v) { try { return (window.i18n && window.i18n.t) ? window.i18n.t(k, v) : v; } catch (e) { return v; } };
+      el.textContent = _ct('ortak.canliKesildi', '⚠️ Canlı güncelleme kesildi — yeniden bağlanılıyor');
+      el.title = _ct('ortak.canliKesildiT', 'Dokunursanız hemen yeniden denenir');
       el.onclick = function () { gecikme = 2000; baglan(); };
       document.body.appendChild(el);
     } catch (e) {}

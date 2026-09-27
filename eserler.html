@@ -1390,7 +1390,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
       <div id="turChipRow" style="display:none;"></div>
     </div>
     <div class="toolbar">
-      <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;"><i class="ti ti-adjustments-horizontal"></i> Filtreler<span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
+      <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;"><i class="ti ti-adjustments-horizontal"></i> <span data-i18n="es.filtreler">Filtreler</span><span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
       <button id="btnAdminNewEser" class="admin-only fab-new-eser" onclick="openNewEserModal()" title="Yeni Eser Ekle" data-i18n-title="es.yenieserKisa" style="position:fixed;right:20px;bottom:24px;width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;box-shadow:0 8px 24px rgba(255,200,61,0.4);display:none;align-items:center;justify-content:center;font-size:22px;line-height:1;color:#111;font-weight:600;cursor:pointer;z-index:500;">+</button>
       <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:none;align-items:center;gap:5px;background:rgba(249,160,74,.12);border:1px solid rgba(249,160,74,.3);border-radius:20px;padding:4px 10px 4px 8px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);"><span data-i18n="es.onayBekleyenBtn">⏳ Onay Bekleyen</span> <span id="pendingCountDesktop" style="background:#F9A04A;color:#1a1000;border-radius:10px;padding:1px 7px;font-size:10px;">0</span></button>
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;margin-left:auto;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);" data-i18n="es.oner">🎵 Öner</button>
@@ -1708,7 +1708,7 @@ function buildTurChips() {
       + val + ' <span class="tur-chip-n">' + e[1] + '</span></button>';
   }).join('');
   if (r.bos) {
-    html += '<button class="tur-chip tur-chip-bos" data-tur="__yok__" onclick="setTurFilter(\'__yok__\')" title="Turu henuz girilmemis eserler">Tursuz <span class="tur-chip-n">' + r.bos + '</span></button>';
+    html += '<button class="tur-chip tur-chip-bos" data-tur="__yok__" onclick="setTurFilter(\'__yok__\')" title="' + _esCev('es.t_turuYok','Turu henuz girilmemis eserler') + '">' + _esCev('es.tursuzCip','Tursuz') + ' <span class="tur-chip-n">' + r.bos + '</span></button>';
   }
   el.innerHTML = html;
   el.style.display = 'flex';
@@ -1863,9 +1863,9 @@ function openRepAddSheet(workId) {
   const sheet = document.getElementById('repAddSheet');
   if (!overlay || !sheet) return;
   sheet.innerHTML = `
-    <div class="more-sheet-title">Repertuvara Ekle</div>
+    <div class="more-sheet-title">${_esCev('es.repertuvaraEkle','Repertuvara Ekle')}</div>
     <div id="repAddList" style="max-height:50vh;overflow-y:auto;">
-      <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Yükleniyor...</div>
+      <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">${_esCev('rep.yukleniyor','Yükleniyor...')}</div>
     </div>
     <div id="repAddMsg" style="padding:10px 20px 4px;font-size:12px;color:var(--text3);display:none;"></div>
   `;
@@ -1887,16 +1887,16 @@ function openRepAddSheet(workId) {
     .then(r => r.json())
     .then(reps => {
       if (!Array.isArray(reps) || !reps.length) {
-        list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Henüz bir repertuvarın yok.</div>';
+        list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">' + _esCev('es.henuzRepYok','Henüz bir repertuvarın yok.') + '</div>';
         return;
       }
       list.innerHTML = reps.map(r => `
         <button class="more-sheet-item" onclick="pickRepertoireForAdd('${r.id}', '${(r.name||'').replace(/'/g,"\\'")}')">
-          <i class="ti ti-playlist"></i> ${r.name || '(isimsiz)'}
+          <i class="ti ti-playlist"></i> ${r.name || _esCev('es.isimsiz','(isimsiz)')}
         </button>`).join('');
     })
     .catch(() => {
-      list.innerHTML = '<div style="padding:20px;text-align:center;color:#e07060;font-size:13px;">Repertuvarlar yüklenemedi.</div>';
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:#e07060;font-size:13px;">' + _esCev('es.repYuklenemedi','Repertuvarlar yüklenemedi.') + '</div>';
     });
 }
 
@@ -1912,7 +1912,7 @@ async function pickRepertoireForAdd(repId, repName) {
   const headers = { ...authHeaders(), Prefer: 'return=representation' };
   msg.style.display = 'block';
   msg.style.color = 'var(--text3)';
-  msg.textContent = 'Ekleniyor...';
+  msg.textContent = _esCev('es.ekleniyor','Ekleniyor...');
   try {
     // Mükerrer kontrolü — repertoires.js'deki aynı mantık
     const existingR = await fetch(SUPA_URL + '/rest/v1/repertoire_items?select=id,seq,work_id&repertoire_id=eq.' + repId, { headers });
@@ -1954,14 +1954,14 @@ function toggleMoreSheet(show, id) {
     const w = DATA.find(x => x.id === id);
     const isFavNow = getFavs().has(id);
     sheet.innerHTML = `
-      <div class="more-sheet-title">Diğer İşlemler</div>
-      <button class="more-sheet-item" onclick="toggleMoreSheet(false);openRepAddSheet(${id})"><i class="ti ti-playlist-add"></i> Repertuvara Ekle</button>
-      <button class="more-sheet-item" onclick="shareWork(${id})"><i class="ti ti-share"></i> Paylaş</button>
+      <div class="more-sheet-title">${_esCev('es.digerIslemler','Diğer İşlemler')}</div>
+      <button class="more-sheet-item" onclick="toggleMoreSheet(false);openRepAddSheet(${id})"><i class="ti ti-playlist-add"></i> ${_esCev('es.repertuvaraEkle','Repertuvara Ekle')}</button>
+      <button class="more-sheet-item" onclick="shareWork(${id})"><i class="ti ti-share"></i> ${_esCev('es.paylasBtn','Paylaş')}</button>
       <button class="more-sheet-item" onclick="toggleFavoriteFromMore(${id})"><i class="ti ti-star${isFavNow?'-filled fav-star':''}"></i> ${isFavNow?_esCev('es.favCikar','Favoriden Çıkar'):_esCev('es.favEkle','Favoriye Ekle')}</button>
-      <button class="more-sheet-item" onclick="stubAction(_esCev('es.stubPdf','PDF / Nota görüntüleme'))"><i class="ti ti-file-music"></i> PDF / Nota</button>
-      <button class="more-sheet-item" onclick="stubAction(_esCev('es.stubKopya','Kopyasını oluşturma'))"><i class="ti ti-copy"></i> Kopyasını Oluştur</button>
-      <button class="more-sheet-item" onclick="toggleMoreSheet(false);openEditEserModal(${id})" style="display:${(isAdmin() || isEditor() || w.submitted_by === getUserId()) ? 'flex' : 'none'}"><i class="ti ti-edit"></i> Düzenle</button>
-      <button class="more-sheet-item danger" onclick="toggleMoreSheet(false);showDeleteConfirm(${id})" style="display:${(isAdmin() || isEditor() || w.submitted_by === getUserId()) ? 'flex' : 'none'}"><i class="ti ti-trash"></i> Sil</button>
+      <button class="more-sheet-item" onclick="stubAction(_esCev('es.stubPdf','PDF / Nota görüntüleme'))"><i class="ti ti-file-music"></i> ${_esCev('es.pdfNota','PDF / Nota')}</button>
+      <button class="more-sheet-item" onclick="stubAction(_esCev('es.stubKopya','Kopyasını oluşturma'))"><i class="ti ti-copy"></i> ${_esCev('es.kopyasiniOlustur','Kopyasını Oluştur')}</button>
+      <button class="more-sheet-item" onclick="toggleMoreSheet(false);openEditEserModal(${id})" style="display:${(isAdmin() || isEditor() || w.submitted_by === getUserId()) ? 'flex' : 'none'}"><i class="ti ti-edit"></i> ${_esCev('ortak.duzenle','Düzenle')}</button>
+      <button class="more-sheet-item danger" onclick="toggleMoreSheet(false);showDeleteConfirm(${id})" style="display:${(isAdmin() || isEditor() || w.submitted_by === getUserId()) ? 'flex' : 'none'}"><i class="ti ti-trash"></i> ${_esCev('ortak.sil','Sil')}</button>
     `;
   }
   overlay.classList.toggle('open', show);
@@ -2104,7 +2104,7 @@ function toggleFavoriteInline(id) {
   const ic = btn.querySelector('i');
   if (ic) ic.className = 'ti ti-star' + (nowFav ? '-filled' : '');
   const lb = btn.querySelector('.act-lbl');
-  if (lb) lb.textContent = nowFav ? 'Favoride' : 'Favori';
+  if (lb) lb.textContent = nowFav ? _esCev('es.favoride','Favoride') : _esCev('es.t_favori','Favori');
 }
 
 function toggleFavoriteFromMore(id) {
@@ -2249,9 +2249,9 @@ function renderList() {
     let _ipucu = '';
     if (activeFilters.tur) {
       const _ad = activeFilters.tur === '__yok__' ? _esCev('es.tursuz','Türsüz') : activeFilters.tur;
-      _ipucu = '<div style="margin-top:8px;font-size:12px;color:var(--text3);">Açık tür süzgeci: <b>' + _ad + '</b> — çipe tekrar dokunarak kaldırabilirsiniz.</div>';
+      _ipucu = '<div style="margin-top:8px;font-size:12px;color:var(--text3);">' + _esCev('es.acikTurSuzgeci','Açık tür süzgeci:') + ' <b>' + _ad + '</b>' + _esCev('es.cipeDokunKaldir',' — çipe tekrar dokunarak kaldırabilirsiniz.') + '</div>';
     }
-    panel.innerHTML = '<div class="empty-list">Eser bulunamadı' + _ipucu + '</div>';
+    panel.innerHTML = '<div class="empty-list">' + _esCev('es.eserBulunamadi','Eser bulunamadı') + _ipucu + '</div>';
     return;
   }
   const favs = getFavs();
@@ -2262,7 +2262,7 @@ function renderList() {
   const swipeAllowedContext = !bulkMode;
   panel.innerHTML = filteredData.map((w, _zi) => {
     const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
-    const countBadge = repCount > 0 ? `<span class="work-count-badge" title="${repCount} repertuvarda kullanılıyor">${repCount}</span>` : '';
+    const countBadge = repCount > 0 ? `<span class="work-count-badge" title="${_esCev('es.nRepKullaniliyor','{n} repertuvarda kullanılıyor').replace('{n}', repCount)}">${repCount}</span>` : '';
     const isFav = favs.has(w.id);
     // (2026-08-21) Tur rozeti — cip ile suzunce "bu neden cikti/cikmadi"
     // sorusunun kart uzerindeki cevabi.
@@ -2288,21 +2288,21 @@ function renderList() {
       <div class="work-icon">🎵</div>
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
-        <div class="work-name">${w.name||_esCev('es.isimsiz','(isimsiz)')}${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="' + _esCev('es.yalnizcaSiz','Yalnızca siz görürsünüz') + '" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">🔒 Taslak</span>' : ''}${(w.visibility === 'group') ? ' <span title="Yalnızca grup üyeleriniz görür" style="font-size:10px;font-weight:700;color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">👥 Grup</span>' : ''}</div>
+        <div class="work-name">${w.name||_esCev('es.isimsiz','(isimsiz)')}${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="' + _esCev('es.yalnizcaSiz','Yalnızca siz görürsünüz') + '" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.taslakRozet','🔒 Taslak') + '</span>' : ''}${(w.visibility === 'group') ? ' <span title="' + _esCev('es.t_yalnizGrup','Yalnızca grup üyeleriniz görür') + '" style="font-size:10px;font-weight:700;color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.grupRozet','👥 Grup') + '</span>' : ''}</div>
         ${(turBadge || w.composer) ? `<div class="work-composer">${turBadge}${w.composer||''}</div>` : ''}
         <div class="work-title-divider"></div>
         <div class="work-rep-count"><span class="status-dot"></span> Offline</div>
       </div>
       <div class="work-actions">
         ${_ytId(w.videoLink) ? `<button class="work-listen" onclick="dinleAc('${w.videoLink}', event)" title="${_esCev('es.t_dinle','YouTube\u2019da dinle')}" data-i18n-title="es.t_dinle" style="display:${bulkMode?'none':'flex'};">\u25B6</button>` : ''}
-        <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="Favori" data-i18n-title="es.t_favori" style="display:${bulkMode?'none':'flex'};">${isFav ? '★' : '☆'}</button>
+        <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="${_esCev('es.t_favori','Favori')}" data-i18n-title="es.t_favori" style="display:${bulkMode?'none':'flex'};">${isFav ? '★' : '☆'}</button>
         <span class="work-chevron" style="display:${bulkMode?'none':'inline'};">›</span>
       </div>
     </div>`;
     if (!canEdit) return cardHtml;
     return `<div class="we-wrap">
-      <div class="we-edit-bg" onclick="event.stopPropagation();weCloseOpenCard();openEditEserModal(${w.id})"><i class="ti ti-edit"></i>Değiştir</div>
-      <div class="we-delete-bg" onclick="event.stopPropagation();weCloseOpenCard();esSilOnay(${w.id});"><i class="ti ti-trash"></i>Sil</div>
+      <div class="we-edit-bg" onclick="event.stopPropagation();weCloseOpenCard();openEditEserModal(${w.id})"><i class="ti ti-edit"></i>${_esCev('es.degistir','Değiştir')}</div>
+      <div class="we-delete-bg" onclick="event.stopPropagation();weCloseOpenCard();esSilOnay(${w.id});"><i class="ti ti-trash"></i>${_esCev('ortak.sil','Sil')}</div>
       ${cardHtml}
     </div>`;
   }).join('');
@@ -2564,9 +2564,9 @@ function bulkAddToRepertoire() {
   if (!overlay || !sheet) return;
   const count = bulkSelectedIds.size;
   sheet.innerHTML = `
-    <div class="more-sheet-title">${count} Eseri Repertuvara Ekle</div>
+    <div class="more-sheet-title">${_esCev('es.nEseriRepEkle','{n} Eseri Repertuvara Ekle').replace('{n}', count)}</div>
     <div id="repAddList" style="max-height:50vh;overflow-y:auto;">
-      <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Yükleniyor...</div>
+      <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">${_esCev('rep.yukleniyor','Yükleniyor...')}</div>
     </div>
     <div id="repAddMsg" style="padding:10px 20px 4px;font-size:12px;color:var(--text3);display:none;"></div>
   `;
@@ -2588,16 +2588,16 @@ function bulkAddToRepertoire() {
     .then(r => r.json())
     .then(reps => {
       if (!Array.isArray(reps) || !reps.length) {
-        list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Henüz bir repertuvarın yok.</div>';
+        list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">' + _esCev('es.henuzRepYok','Henüz bir repertuvarın yok.') + '</div>';
         return;
       }
       list.innerHTML = reps.map(r => `
         <button class="more-sheet-item" onclick="pickRepertoireForBulkAdd('${r.id}', '${(r.name||'').replace(/'/g,"\\'")}')">
-          <i class="ti ti-playlist"></i> ${r.name || '(isimsiz)'}
+          <i class="ti ti-playlist"></i> ${r.name || _esCev('es.isimsiz','(isimsiz)')}
         </button>`).join('');
     })
     .catch(() => {
-      list.innerHTML = '<div style="padding:20px;text-align:center;color:#e07060;font-size:13px;">Repertuvarlar yüklenemedi.</div>';
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:#e07060;font-size:13px;">' + _esCev('es.repYuklenemedi','Repertuvarlar yüklenemedi.') + '</div>';
     });
 }
 
@@ -2606,7 +2606,7 @@ async function pickRepertoireForBulkAdd(repId, repName) {
   const headers = { ...authHeaders(), Prefer: 'return=representation' };
   msg.style.display = 'block';
   msg.style.color = 'var(--text3)';
-  msg.textContent = 'Ekleniyor...';
+  msg.textContent = _esCev('es.ekleniyor','Ekleniyor...');
   try {
     const existingR = await fetch(SUPA_URL + '/rest/v1/repertoire_items?select=id,seq,work_id&repertoire_id=eq.' + repId, { headers });
     const existing = await existingR.json();
@@ -2652,14 +2652,14 @@ function selectWork(id, silent) {
   dc.style.display = 'block';
 
   const chips = [
-    w.makam ? `<span class="chip makam" title="Makam"><i class="ti ti-music"></i> ${w.makam}</span>` : '',
+    w.makam ? `<span class="chip makam" title="${_esCev('alan.makam','Makam')}"><i class="ti ti-music"></i> ${w.makam}</span>` : '',
     // (2026-08-30) Çip başlıkları netleşti: bu alan ÖLÇÜ tutuyor (4/4, 15/8),
     // usul değil. Usul ayrı sütunda (`ritim`) ve kendi çipini alıyor —
     // ikisi aynı kutuda görünürse yine karışırdı.
-    w.measurement ? `<span class="chip meas" title="Ölçü"><i class="ti ti-clock"></i> ${w.measurement}</span>` : '',
-    w.ritim ? `<span class="chip meas" title="Usul"><i class="ti ti-wave-sine"></i> ${w.ritim}</span>` : '',
-    w.form ? `<span class="chip form" title="Form"><i class="ti ti-category"></i> ${w.form}</span>` : '',
-    w.tuning ? `<span class="chip tuning" title="Akort"><i class="ti ti-adjustments"></i> ${w.tuning}</span>` : '',
+    w.measurement ? `<span class="chip meas" title="${_esCev('alan.olcu','Ölçü')}"><i class="ti ti-clock"></i> ${w.measurement}</span>` : '',
+    w.ritim ? `<span class="chip meas" title="${_esCev('alan.usul','Usul')}"><i class="ti ti-wave-sine"></i> ${w.ritim}</span>` : '',
+    w.form ? `<span class="chip form" title="${_esCev('es.form','Form')}"><i class="ti ti-category"></i> ${w.form}</span>` : '',
+    w.tuning ? `<span class="chip tuning" title="${_esCev('alan.akort','Akort')}"><i class="ti ti-adjustments"></i> ${w.tuning}</span>` : '',
   ].filter(Boolean).join('');
 
   function row(label, val) {
@@ -2674,16 +2674,16 @@ function selectWork(id, silent) {
   const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video</a>` : '';
   const stageId = String(parseInt(w.id));
   const lastTab = 'gufte';  // Her eser açılışında güfteden başla
-  const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="openStageFromDetail('${stageId}');return false;">🎭 Sahne Modunda Aç</a>`;
+  const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="openStageFromDetail('${stageId}');return false;">${_esCev('es.sahneModundaAc','🎭 Sahne Modunda Aç')}</a>`;
   const isFavNow = getFavs().has(w.id);
   // 2026-07-19: ••• kebab yerine yan yana işlem butonları (yer kalmazsa alt satıra sarar)
   const _canEditW = (isAdmin() || isEditor() || w.submitted_by === getUserId());
   const moreBtn = `
       <div class="act-bar">
-        <button class="act-btn" onclick="event.stopPropagation();openRepAddSheet(${w.id})" title="${_esCev('es.repertuvaraEkle','Repertuvara Ekle')}"><i class="ti ti-playlist-add"></i> Repertuvara Ekle</button>
+        <button class="act-btn" onclick="event.stopPropagation();openRepAddSheet(${w.id})" title="${_esCev('es.repertuvaraEkle','Repertuvara Ekle')}"><i class="ti ti-playlist-add"></i> ${_esCev('es.repertuvaraEkle','Repertuvara Ekle')}</button>
         <button class="act-btn" onclick="event.stopPropagation();shareWork(${w.id})" title="${_esCev('es.paylasBtn','Paylaş')}"><i class="ti ti-share"></i> ${_esCev('es.paylasBtn','Paylaş')}</button>
-        <button class="act-btn${isFavNow?' is-fav':''}" id="actFav_${w.id}" onclick="event.stopPropagation();toggleFavoriteInline(${w.id})" title="Favori" data-i18n-title="es.t_favori"><i class="ti ti-star${isFavNow?'-filled':''}"></i> <span class="act-lbl">${isFavNow?'Favoride':'Favori'}</span></button>
-        ${_canEditW ? `<button class="act-btn" onclick="event.stopPropagation();openEditEserModal(${w.id})" title="${_esCev('rep.duzenle','Düzenle')}"><i class="ti ti-edit"></i> Düzenle</button>` : ''}
+        <button class="act-btn${isFavNow?' is-fav':''}" id="actFav_${w.id}" onclick="event.stopPropagation();toggleFavoriteInline(${w.id})" title="${_esCev('es.t_favori','Favori')}" data-i18n-title="es.t_favori"><i class="ti ti-star${isFavNow?'-filled':''}"></i> <span class="act-lbl">${isFavNow?_esCev('es.favoride','Favoride'):_esCev('es.t_favori','Favori')}</span></button>
+        ${_canEditW ? `<button class="act-btn" onclick="event.stopPropagation();openEditEserModal(${w.id})" title="${_esCev('rep.duzenle','Düzenle')}"><i class="ti ti-edit"></i> ${_esCev('rep.duzenle','Düzenle')}</button>` : ''}
         ${_canEditW ? `<button class="act-btn danger" onclick="event.stopPropagation();showDeleteConfirm(${w.id})" title="${_esCev('ortak.sil','Sil')}"><i class="ti ti-trash"></i> ${_esCev('ortak.sil','Sil')}</button>` : ''}
       </div>`;
 
@@ -2703,7 +2703,7 @@ function selectWork(id, silent) {
   const dispLyrics = _pc ? chordsToLyrics(_pc) : (w.lyrics || '');
 
   dc.innerHTML = `
-    <div class="back-btn" onclick="backFromDetail()">← Listeye Dön</div>
+    <div class="back-btn" onclick="backFromDetail()">${_esCev('es.listeyeDon','← Listeye Dön')}</div>
     <div class="detail-header">
       <div class="detail-title">${w.name||_esCev('es.isimsiz','(isimsiz)')}</div>
       ${(w.region || w.sourcePerson || w.composer) ? `<div class="detail-subtitle">${[w.region ? `📍 ${w.region}` : '', (w.sourcePerson||w.composer) ? `👤 ${w.sourcePerson||w.composer}` : ''].filter(Boolean).join(' &nbsp;•&nbsp; ')}</div>` : ''}
@@ -2714,20 +2714,20 @@ function selectWork(id, silent) {
         ${moreBtn}
       </div>
       <div class="confirm-bar" id="confirm-${w.id}">
-        <span>Bu eseri silmek istediğinize emin misiniz?</span>
-        <button class="confirm-yes" onclick="deleteWork(${w.id})">Evet, Sil</button>
-        <button class="confirm-no" onclick="hideDeleteConfirm(${w.id})" data-i18n="ortak.iptal">İptal</button>
+        <span>${_esCev('es.silEminMisiniz','Bu eseri silmek istediğinize emin misiniz?')}</span>
+        <button class="confirm-yes" onclick="deleteWork(${w.id})">${_esCev('es.evetSil','Evet, Sil')}</button>
+        <button class="confirm-no" onclick="hideDeleteConfirm(${w.id})" data-i18n="ortak.iptal">${_esCev('ortak.iptal','İptal')}</button>
       </div>
       ${getUserId() ? knotHtml(w.id) : ''}
     </div>
 
     <div class="tab-divider"></div>
     <div class="detail-tabs">
-      <button class="dtab${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">🎵 Söz</button>
-      <button class="dtab${lastTab==='akorlar'?' active':''}" onclick="switchDetailTab('akorlar')">🎸 Akorlar</button>
-      <button class="dtab${lastTab==='nota'?' active':''}" onclick="switchDetailTab('nota')">🎼 Nota</button>
-      <button class="dtab${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">📋 Bilgiler</button>
-      <button class="dtab${lastTab==='hikaye'?' active':''}" onclick="switchDetailTab('hikaye')">📖 Hikaye</button>
+      <button class="dtab${lastTab==='gufte'?' active':''}" onclick="switchDetailTab('gufte')">${_esCev('es.tabSoz','🎵 Söz')}</button>
+      <button class="dtab${lastTab==='akorlar'?' active':''}" onclick="switchDetailTab('akorlar')">${_esCev('es.tabAkorlar','🎸 Akorlar')}</button>
+      <button class="dtab${lastTab==='nota'?' active':''}" onclick="switchDetailTab('nota')">${_esCev('es.tabNota','🎼 Nota')}</button>
+      <button class="dtab${lastTab==='bilgiler'?' active':''}" onclick="switchDetailTab('bilgiler')">${_esCev('es.tabBilgiler','📋 Bilgiler')}</button>
+      <button class="dtab${lastTab==='hikaye'?' active':''}" onclick="switchDetailTab('hikaye')">${_esCev('es.tabHikaye','📖 Hikaye')}</button>
     </div>
 
     <div id="tab-gufte" class="detail-tab-content detail-body${lastTab==='gufte'?' active':''}">
@@ -2745,7 +2745,7 @@ function selectWork(id, silent) {
       })()}
       ${dispLyrics ? `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <span style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.06em;">SÖZLER</span>
+        <span style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.06em;">${_esCev('es.sozlerBaslik','SÖZLER')}</span>
         <div class="font-slider-wrap" title="${_esCev('sh.yaziBoyutu','Yazı Boyutu')}">
           <span class="fs-a-sm">A</span>
           <input type="range" id="lyricsFontSlider" class="font-slider" min="${LYRICS_STEP_MIN}" max="${LYRICS_STEP_MAX}" step="1" value="0"
@@ -2755,35 +2755,35 @@ function selectWork(id, silent) {
       </div>` : ''}
       ${dispLyrics
         ? `<div class="lyrics-box" id="lyricsBoxDisplay">${renderLyricsHtml(dispLyrics)}</div>`
-        : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">Bu eser için söz eklenmemiş.</div>`
+        : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">${_esCev('es.sozYok','Bu eser için söz eklenmemiş.')}</div>`
       }
     </div>
 
     <div id="tab-akorlar" class="detail-tab-content detail-body${lastTab==='akorlar'?' active':''}">
       ${getUserId() ? `
         <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-          ${_canShared ? `<button id="scope_ortak_${w.id}" onclick="setChordScope(${w.id},'ortak')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">🎼 Eserin akoru</button>` : ''}
-          <button id="scope_kisisel_${w.id}" onclick="setChordScope(${w.id},'kisisel')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">👤 Kişisel kopyam</button>
+          ${_canShared ? `<button id="scope_ortak_${w.id}" onclick="setChordScope(${w.id},'ortak')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">${_esCev('es.scopeOrtak','🎼 Eserin akoru')}</button>` : ''}
+          <button id="scope_kisisel_${w.id}" onclick="setChordScope(${w.id},'kisisel')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">${_esCev('es.scopeKisisel','👤 Kişisel kopyam')}</button>
         </div>
         <div id="scope_help_${w.id}" style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;"></div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-          <span style="font-size:12px;color:var(--text3);">Ton:</span>
+          <span style="font-size:12px;color:var(--text3);">${_esCev('es.tonEtiket','Ton:')}</span>
           <button onclick="stepTranspose(${w.id},-1)" title="${_esCev('es.yariTonPes','Yarım ton pes')}" class="rbtn rbtn-sm rbtn-ico">−</button>
-          <button id="ton_badge_${w.id}" onclick="resetTranspose(${w.id})" title="${_esCev('es.t_orijinalTon','Orijinal tona dön')}" class="rbtn rbtn-sm" style="min-width:56px;">Orijinal</button>
+          <button id="ton_badge_${w.id}" onclick="resetTranspose(${w.id})" title="${_esCev('es.t_orijinalTon','Orijinal tona dön')}" class="rbtn rbtn-sm" style="min-width:56px;">${_esCev('es.orijinal','Orijinal')}</button>
           <button onclick="stepTranspose(${w.id},1)" title="${_esCev('es.yariTonTiz','Yarım ton tiz')}" class="rbtn rbtn-sm rbtn-ico">+</button>
           <span id="karar_lbl_${w.id}" style="font-size:12px;font-weight:700;color:var(--text2);margin-left:4px;"></span>
-          <span style="font-size:11px;color:var(--text3);">sadece görünümü kaydırır, kayıtlı akoru değiştirmez</span>
+          <span style="font-size:11px;color:var(--text3);">${_esCev('es.tonNotu','sadece görünümü kaydırır, kayıtlı akoru değiştirmez')}</span>
         </div>
         <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="_cpGrow(this);updateChordsPreview(${w.id})" style="width:100%;min-height:min(46vh,608px);padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
-          placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm" data-i18n-ph="es.ph_akorOrnek"></textarea>
+          placeholder="${_esCev('es.ph_akorOrnek','[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm\n[C]Telim örülürken [F]ağladı gözüm')}" data-i18n-ph="es.ph_akorOrnek"></textarea>
         <div class="rbtn-row" style="margin-top:10px;">
-          <button onclick="saveChords(${w.id})" class="rbtn rbtn-primary" data-i18n="ortak.kaydet">Kaydet</button>
+          <button onclick="saveChords(${w.id})" class="rbtn rbtn-primary" data-i18n="ortak.kaydet">${_esCev('ortak.kaydet','Kaydet')}</button>
           <span class="rbtn-group">
-            <button id="chords_preview_btn_${w.id}" onclick="toggleChordsPreview(${w.id})" class="rbtn">Önizle</button>
-            <button onclick="convertChordsInEditor(${w.id})" title="${_esCev('es.chordProT','Akorlar sözlerin üstünde ayrı satırdaysa [Am] biçimine çevirir')}" class="rbtn"><span class="rgl">⇄</span> ChordPro'ya çevir</button>
-            <button id="chords_nudge_btn_${w.id}" onclick="toggleNudgeEditor(${w.id})" title="${_esCev('es.nudgeT','Akora dokun, ◀ ▶ veya ok tuşlarıyla hece hece kaydır')}" data-i18n-title="es.t_akorKaydir" class="rbtn"><span class="rgl">↔</span> Akoru kaydır</button>
+            <button id="chords_preview_btn_${w.id}" onclick="toggleChordsPreview(${w.id})" class="rbtn">${_esCev('es.onizle','Önizle')}</button>
+            <button onclick="convertChordsInEditor(${w.id})" title="${_esCev('es.chordProT','Akorlar sözlerin üstünde ayrı satırdaysa [Am] biçimine çevirir')}" class="rbtn"><span class="rgl">⇄</span> ${_esCev('es.chordProyaCevir','ChordPro\'ya çevir')}</button>
+            <button id="chords_nudge_btn_${w.id}" onclick="toggleNudgeEditor(${w.id})" title="${_esCev('es.nudgeT','Akora dokun, ◀ ▶ veya ok tuşlarıyla hece hece kaydır')}" data-i18n-title="es.t_akorKaydir" class="rbtn"><span class="rgl">↔</span> ${_esCev('es.akoruKaydir','Akoru kaydır')}</button>
           </span>
-          <button id="delpc_${w.id}" onclick="deletePersonalChords(${w.id})" class="rbtn rbtn-danger rbtn-sm" style="display:none;">Kişiseli sil</button>
+          <button id="delpc_${w.id}" onclick="deletePersonalChords(${w.id})" class="rbtn rbtn-danger rbtn-sm" style="display:none;">${_esCev('es.kisiseliSil','Kişiseli sil')}</button>
         </div>
         <div id="chords_scale_${w.id}" style="display:none;margin-top:10px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
         <div id="chords_nudge_${w.id}" style="display:none;margin-top:10px;padding:10px 12px;border:1px solid var(--accent);border-radius:8px;"></div>
@@ -2793,8 +2793,8 @@ function selectWork(id, silent) {
           ${dispChords && dispChords.trim()
             ? renderChords(transposeChordPro(dispChords.trim(), getTranspose(w.id)))
             : (dispLyrics
-                ? `<span style="color:var(--text3);font-size:12px;">Akor bilgisi henüz eklenmemiş.</span>`
-                : `<span style="color:var(--text3);font-size:12px;">Söz ve akor bilgisi yok.</span>`)
+                ? `<span style="color:var(--text3);font-size:12px;">${_esCev('es.akorHenuzYok','Akor bilgisi henüz eklenmemiş.')}</span>`
+                : `<span style="color:var(--text3);font-size:12px;">${_esCev('es.sozAkorYok','Söz ve akor bilgisi yok.')}</span>`)
           }
         </div>
       `}
@@ -2802,9 +2802,9 @@ function selectWork(id, silent) {
 
     <div id="tab-bilgiler" class="detail-tab-content detail-body${lastTab==='bilgiler'?' active':''}">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
-        ${row2('Besteci', w.composer)}
+        ${row2(_esCev('es.bestecialan','Besteci'), w.composer)}
         ${row2(_esCev('es.sozyazari','Söz Yazarı'), w.lyricWriter)}
-        ${row2('Form', w.form)}
+        ${row2(_esCev('es.form','Form'), w.form)}
         ${row2(_esCev('alan.enstruman','Enstrüman'), w.instrument)}
         ${row2(_esCev('alan.yore','Yöre/Bölge'), w.region)}
         ${row2(_esCev('alan.kaynak','Kaynak Kişi'), w.sourcePerson)}
@@ -2817,23 +2817,23 @@ function selectWork(id, silent) {
       ${renderNotaPagesBlock(w)}
       ${(isAdmin() || isEditor()) ? `
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;">
-          <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">Sayfa Ekle</div>
+          <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">${_esCev('es.sayfaEkle','Sayfa Ekle')}</div>
           <input type="file" id="notaFile_${w.id}" accept="image/*,.pdf" multiple
             style="display:none;" onchange="uploadNota(${w.id}, this)">
           <div class="nota-drop" id="notaDrop_${w.id}" data-work="${w.id}"
                onclick="document.getElementById('notaFile_${w.id}').click()">
             <div class="nota-drop-icon">🎼</div>
-            <div class="nota-drop-main" data-i18n="es.notaSurukle">Notayı buraya sürükle veya yapıştır</div>
-            <div class="nota-drop-sub"><span data-i18n="es.notaAlt">Yeni dosyalar mevcut sayfaların SONUNA eklenir</span><br><span data-i18n="es.notaBoyut">(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)</span></div>
+            <div class="nota-drop-main" data-i18n="es.notaSurukle">${_esCev('es.notaSurukle','Notayı buraya sürükle veya yapıştır')}</div>
+            <div class="nota-drop-sub"><span data-i18n="es.notaAlt">${_esCev('es.notaAlt','Yeni dosyalar mevcut sayfaların SONUNA eklenir')}</span><br><span data-i18n="es.notaBoyut">${_esCev('es.notaBoyut','(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)')}</span></div>
           </div>
           <div class="nota-paste" id="notaPaste_${w.id}" data-work="${w.id}"
                data-ipucu="${_esCev('es.notaYapistirKutu','📋  Buraya basılı tut → Yapıştır')}"
                contenteditable="true" inputmode="none" role="button"
                aria-label="${_esCev('es.panoYapistir','Panodaki görseli yapıştır')}"
                onclick="event.stopPropagation()"></div>
-          <div class="nota-paste-hint" data-i18n-html="es.notaYapistirIpucu">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
+          <div class="nota-paste-hint" data-i18n-html="es.notaYapistirIpucu">${_esCev('es.notaYapistirIpucu','Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.')}</div>
           <div id="notaUploadStatus_${w.id}" style="margin-top:8px;font-size:12px;color:var(--text3);"></div>
-          ${notaPagesOf(w).length ? `<button onclick="deleteNota(${w.id})" style="margin-top:8px;display:block;background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">🗑 Tüm Sayfaları Kaldır</button>` : ''}
+          ${notaPagesOf(w).length ? `<button onclick="deleteNota(${w.id})" style="margin-top:8px;display:block;background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;">${_esCev('es.tumSayfalariKaldir','🗑 Tüm Sayfaları Kaldır')}</button>` : ''}
         </div>
       ` : ''}
     </div>
@@ -2842,10 +2842,10 @@ function selectWork(id, silent) {
       ${w.story ? `<div style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;margin-bottom:16px;">${_cpEsc(w.story)}</div>` : ''}
       ${(w.submitter_email||w.submitted_by||w.submitted_at)
         ? `<div style="display:flex;flex-direction:column;gap:10px;">
-            ${(w.submitted_by||w.submitter_email) ? `<div class="detail-row"><div class="detail-row-label">Ekleyen</div><div class="detail-row-value">${displayUserName(w.submitted_by, w.submitter_email)}</div></div>` : ''}
-            ${w.submitted_at ? `<div class="detail-row"><div class="detail-row-label">Eklenme Tarihi</div><div class="detail-row-value">${new Date(w.submitted_at).toLocaleDateString('tr-TR',{year:'numeric',month:'long',day:'numeric'})}</div></div>` : ''}
+            ${(w.submitted_by||w.submitter_email) ? `<div class="detail-row"><div class="detail-row-label">${_esCev('es.ekleyen','Ekleyen')}</div><div class="detail-row-value">${displayUserName(w.submitted_by, w.submitter_email)}</div></div>` : ''}
+            ${w.submitted_at ? `<div class="detail-row"><div class="detail-row-label">${_esCev('es.eklenmeTarihi','Eklenme Tarihi')}</div><div class="detail-row-value">${new Date(w.submitted_at).toLocaleDateString('tr-TR',{year:'numeric',month:'long',day:'numeric'})}</div></div>` : ''}
            </div>`
-        : (w.story ? '' : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">Bu eser için hikâye bilgisi yok.</div>`)
+        : (w.story ? '' : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">${_esCev('es.hikayeYok','Bu eser için hikâye bilgisi yok.')}</div>`)
       }
     </div>`;
 
@@ -3295,16 +3295,16 @@ function convertChordsInEditor(id){
     sh.style.display='block';
     sh.innerHTML =
       '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
-      + '<span style="font-size:13px;font-weight:600;color:var(--text2);">Akor hizası</span>'
+      + '<span style="font-size:13px;font-weight:600;color:var(--text2);">' + _esCev('es.akorHizasi','Akor hizası') + '</span>'
       + '<input id="conv_scale_'+id+'" class="rslider" type="range" min="70" max="130" value="100" oninput="applyConvScale('+id+',this.value)">'
       + '<span id="conv_scale_lbl_'+id+'" style="font-size:12px;font-weight:700;color:var(--accent);min-width:34px;font-variant-numeric:tabular-nums;">1.00</span>'
-      + '<button onclick="suggestConvScale('+id+')" class="rbtn rbtn-sm">Öner</button>'
-      + '<button onclick="undoConvert('+id+')" class="rbtn rbtn-sm">Geri al</button>'
-      + '<button onclick="handoffToNudge('+id+')" title="Hizayı kilitle ve kalan akorları elle düzelt" data-i18n-title="es.t_hizaKilit" class="rbtn rbtn-sm is-on"><span class=\'rgl\'>↔</span> ' + _esCev('es.elleKaydir','Elle kaydır') + '</button>'
-      + '<button onclick="closeConvScale('+id+')" class="rbtn rbtn-sm">Bitti</button>'
+      + '<button onclick="suggestConvScale('+id+')" class="rbtn rbtn-sm">' + _esCev('es.onerBtn','Öner') + '</button>'
+      + '<button onclick="undoConvert('+id+')" class="rbtn rbtn-sm">' + _esCev('es.geriAl','Geri al') + '</button>'
+      + '<button onclick="handoffToNudge('+id+')" title="' + _esCev('es.t_hizaKilit','Hizayı kilitle ve kalan akorları elle düzelt') + '" data-i18n-title="es.t_hizaKilit" class="rbtn rbtn-sm is-on"><span class=\'rgl\'>↔</span> ' + _esCev('es.elleKaydir','Elle kaydır') + '</button>'
+      + '<button onclick="closeConvScale('+id+')" class="rbtn rbtn-sm">' + _esCev('es.bitti','Bitti') + '</button>'
       + '</div>'
-      + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">Sürgüyü çekerken akorlar güftenin üstünde birlikte kayar — önizlemeye bakarak doğru yerde bırak. Kaynaktaki hiza tek bir ölçekten kaymışsa bu tek hareket bütün eseri düzeltir.</div>'
-      + '<div style="margin-top:8px;padding:8px 10px;background:rgba(245,158,11,.10);border-left:3px solid var(--accent);border-radius:4px;font-size:12px;color:var(--text2);line-height:1.55;">⚠️ <b>Bu sürgü yalnızca şimdi, çevirme sırasında çalışır.</b> Kaydettikten sonra bu eserde ölçeği değiştiremezsin — değiştirmek için kaynak metni yeniden yapıştırıp baştan çevirmen gerekir. Sıra: <b>önce sürgü</b>, sonra <b>↔ Elle kaydır</b>, en son <b data-i18n="ortak.kaydet">Kaydet</b>. Elle rötuş kaydettikten sonra da her zaman yapılabilir.</div>';
+      + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">' + _esCev('es.surguIpucu','Sürgüyü çekerken akorlar güftenin üstünde birlikte kayar — önizlemeye bakarak doğru yerde bırak. Kaynaktaki hiza tek bir ölçekten kaymışsa bu tek hareket bütün eseri düzeltir.') + '</div>'
+      + '<div style="margin-top:8px;padding:8px 10px;background:rgba(245,158,11,.10);border-left:3px solid var(--accent);border-radius:4px;font-size:12px;color:var(--text2);line-height:1.55;">' + _esCev('es.surguUyari','⚠️ <b>Bu sürgü yalnızca şimdi, çevirme sırasında çalışır.</b> Kaydettikten sonra bu eserde ölçeği değiştiremezsin — değiştirmek için kaynak metni yeniden yapıştırıp baştan çevirmen gerekir. Sıra: <b>önce sürgü</b>, sonra <b>↔ Elle kaydır</b>, en son <b data-i18n="ortak.kaydet">Kaydet</b>. Elle rötuş kaydettikten sonra da her zaman yapılabilir.') + '</div>';
   }
   updateChordsPreview(id);
   toastMsg(_esCev('es.cevrildi','✓ Çevrildi — hiza kaymışsa sürgüyle ayarla, sonra Kaydet'));
@@ -3552,17 +3552,17 @@ function renderNudgeEditor(id){
     + 'class="rbtn rbtn-sm' + (ico ? ' rbtn-ico' : '') + '">' + label + '</button>';
   host.innerHTML =
     '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
-    + '<span style="font-size:12px;font-weight:600;color:var(--text2);">Akoru kaydır</span>'
+    + '<span style="font-size:12px;font-weight:600;color:var(--text2);">' + _esCev('es.akoruKaydir','Akoru kaydır') + '</span>'
     + btn('◀', 'nudgeChord(' + id + ',-1)', has, true)
     + btn('▶', 'nudgeChord(' + id + ',1)', has, true)
     + '<span style="width:1px;height:24px;background:var(--border);margin:0 2px;"></span>'
     + btn(_esCev('es.tumuSol','⟪ Tümü'), 'nudgeAll(' + id + ',-1)', true)
     + btn(_esCev('es.tumuSag','Tümü ⟫'), 'nudgeAll(' + id + ',1)', true)
     + '<span style="flex:1;min-width:8px;"></span>'
-    + '<button onclick="toggleNudgeEditor(' + id + ')" class="rbtn rbtn-sm is-on">Bitti</button>'
+    + '<button onclick="toggleNudgeEditor(' + id + ')" class="rbtn rbtn-sm is-on">' + _esCev('es.bitti','Bitti') + '</button>'
     + '</div>'
     + '<div style="margin-top:7px;font-size:12px;color:var(--text3);line-height:1.5;">'
-    + (has ? _esCev('es.akorKaydirIpucu','Seçili akoru bir hece kaydırır — ok tuşları da çalışır.') : '<b>Aşağıdaki önizlemede taşımak istediğin akora dokun.</b>')
+    + (has ? _esCev('es.akorKaydirIpucu','Seçili akoru bir hece kaydırır — ok tuşları da çalışır.') : '<b>' + _esCev('es.akoraDokunIpucu','Aşağıdaki önizlemede taşımak istediğin akora dokun.') + '</b>')
     + _esCev('es.kaydetUnutma',' Değişiklikler metin kutusuna yazılır, <b>{kaydet}</b> düğmesine basmayı unutma.').replace('{kaydet}', _esCev('ortak.kaydet','Kaydet')) + '</div>';
   updateChordsPreview(id);
 }
@@ -3591,7 +3591,7 @@ function updateChordsPreview(id){
   if(prev.style.display !== 'block') return; // gizliyken boşuna render etme
   const val = ta.value.trim();
   if(!hasRealChords(val)){
-    prev.innerHTML = '<span style="color:var(--text3);font-size:12px;">Önizlemek için akor ([Am]) ekleyin.</span>';
+    prev.innerHTML = '<span style="color:var(--text3);font-size:12px;">' + _esCev('es.onizlemeAkorEkle','Önizlemek için akor ([Am]) ekleyin.') + '</span>';
     return;
   }
   const nh = document.getElementById('chords_nudge_'+id);
@@ -3605,7 +3605,7 @@ function updateTonBadge(id){
   const b = document.getElementById('ton_badge_'+id);
   const v = getTranspose(id);
   if(b){
-    b.textContent = v > 0 ? '+'+v : (v < 0 ? String(v) : 'Orijinal');
+    b.textContent = v > 0 ? '+'+v : (v < 0 ? String(v) : _esCev('es.orijinal','Orijinal'));
     b.style.color = v ? 'var(--accent)' : 'var(--text2)';
     b.classList.toggle('is-on', !!v);
   }
@@ -3616,8 +3616,8 @@ function updateTonBadge(id){
     const cur = kararLabel(w.closingNote, v);
     if(cur){
       const orig = v ? kararLabel(w.closingNote, 0) : null;
-      kl.textContent = 'Karar: ' + cur;
-      kl.title = orig ? ('Orijinal karar: ' + orig) : '';
+      kl.textContent = _esCev('es.kararEtiket','Karar: ') + cur;
+      kl.title = orig ? (_esCev('es.orijinalKarar','Orijinal karar: ') + orig) : '';
       kl.style.color = v ? 'var(--accent)' : 'var(--text2)';
     } else {
       // Tanınmayan yazım (ör. perde adı) — kaydırmadan olduğu gibi göster
@@ -3739,21 +3739,21 @@ function knotHtml(id){ return '<div class="knot-kutu" id="knot_'+id+'">'+knotIce
 
 function knotIcerik(id, duzenle){
   const not = PERSONAL_NOTES[String(id)] || '';
-  const bas = '<div class="knot-bas"><i class="ti ti-lock" aria-hidden="true"></i> Kişisel notum'
-            + '<span class="knot-ipuc">— yalnızca sen görürsün</span></div>';
+  const bas = '<div class="knot-bas"><i class="ti ti-lock" aria-hidden="true"></i> ' + _esCev('es.kisiselNotum','Kişisel notum')
+            + '<span class="knot-ipuc">' + _esCev('es.yalnizcaSenIpucu','— yalnızca sen görürsün') + '</span></div>';
   if(duzenle){
     return bas
-      + '<textarea class="knot-alan" id="knot_alan_'+id+'" placeholder="Bu eserde kendine hatırlatmak istediklerin…" data-i18n-ph="es.ph_kisiselnot">'+_knotEsc(not)+'</textarea>'
+      + '<textarea class="knot-alan" id="knot_alan_'+id+'" placeholder="' + _esCev('es.ph_kisiselnot','Bu eserde kendine hatırlatmak istediklerin…') + '" data-i18n-ph="es.ph_kisiselnot">'+_knotEsc(not)+'</textarea>'
       + '<div class="knot-dugmeler">'
-      +   '<button class="rbtn rbtn-sm rbtn-primary" onclick="knotKaydet('+id+')" data-i18n="ortak.kaydet">Kaydet</button>'
-      +   '<button class="rbtn rbtn-sm" onclick="knotCiz('+id+')" data-i18n="ortak.iptal">İptal</button>'
-      +   (not ? '<button class="rbtn rbtn-sm" onclick="knotSil('+id+')">Sil</button>' : '')
+      +   '<button class="rbtn rbtn-sm rbtn-primary" onclick="knotKaydet('+id+')" data-i18n="ortak.kaydet">' + _esCev('ortak.kaydet','Kaydet') + '</button>'
+      +   '<button class="rbtn rbtn-sm" onclick="knotCiz('+id+')" data-i18n="ortak.iptal">' + _esCev('ortak.iptal','İptal') + '</button>'
+      +   (not ? '<button class="rbtn rbtn-sm" onclick="knotSil('+id+')">' + _esCev('ortak.sil','Sil') + '</button>' : '')
       +   '<span class="knot-durum" id="knot_durum_'+id+'"></span>'
       + '</div>';
   }
   return bas + (not
-    ? '<div class="knot-metin" onclick="knotAc('+id+')" title="Düzenlemek için dokun" data-i18n-title="es.t_dokunDuzenle">'+_knotEsc(not)+'</div>'
-    : '<div class="knot-bos" onclick="knotAc('+id+')">+ Not ekle</div>');
+    ? '<div class="knot-metin" onclick="knotAc('+id+')" title="' + _esCev('es.t_dokunDuzenle','Düzenlemek için dokun') + '" data-i18n-title="es.t_dokunDuzenle">'+_knotEsc(not)+'</div>'
+    : '<div class="knot-bos" onclick="knotAc('+id+')">' + _esCev('es.notEkle','+ Not ekle') + '</div>');
 }
 
 function knotCiz(id){ const el=document.getElementById('knot_'+id); if(el) el.innerHTML=knotIcerik(id); }
@@ -3766,7 +3766,7 @@ function knotAc(id){
 async function knotKaydet(id){
   const t=document.getElementById('knot_alan_'+id); if(!t) return;
   const yeni=t.value.trim();
-  const d=document.getElementById('knot_durum_'+id); if(d) d.textContent='Kaydediliyor…';
+  const d=document.getElementById('knot_durum_'+id); if(d) d.textContent=_esCev('es.kaydediliyor','Kaydediliyor…');
   try{
     if(yeni){ await savePersonalNoteRow(id, yeni); PERSONAL_NOTES[String(id)]=yeni; }
     else { await deletePersonalNoteRow(id); delete PERSONAL_NOTES[String(id)]; }
@@ -3775,9 +3775,9 @@ async function knotKaydet(id){
 }
 
 async function knotSil(id){
-  const d=document.getElementById('knot_durum_'+id); if(d) d.textContent='Siliniyor…';
+  const d=document.getElementById('knot_durum_'+id); if(d) d.textContent=_esCev('es.siliniyor','Siliniyor…');
   try{ await deletePersonalNoteRow(id); delete PERSONAL_NOTES[String(id)]; knotCiz(id); }
-  catch(e){ if(d) d.textContent='Silinemedi: '+e.message; }
+  catch(e){ if(d) d.textContent=_esCev('es.silinemediIki','Silinemedi: ')+e.message; }
 }
 
 async function loadPersonalChords(){
@@ -3857,9 +3857,9 @@ function setChordScope(id, scope){
   // gizli bir taslakta "herkes" yazısını görüp eserin yayımlandığını sandı.
   if(help) help.innerHTML = scope==='ortak'
     ? (w.visibility === 'private'
-        ? '<b>Eserin kendi akorunu</b> düzenliyorsunuz — kaydedince eserde saklanır. Eser gizli olduğu için yine yalnızca siz görürsünüz. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.'
-        : '<b>Eserin kendi akorunu</b> düzenliyorsunuz — eseri gören herkes bu akoru görür. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.')
-    : '<b>Kendi kopyanızı</b> düzenliyorsunuz — yalnız siz görürsünüz, eserin akoru değişmez. <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.';
+        ? _esCev('es.scopeHelpOrtakGizli','<b>Eserin kendi akorunu</b> düzenliyorsunuz — kaydedince eserde saklanır. Eser gizli olduğu için yine yalnızca siz görürsünüz. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.')
+        : _esCev('es.scopeHelpOrtak','<b>Eserin kendi akorunu</b> düzenliyorsunuz — eseri gören herkes bu akoru görür. Akoru <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.'))
+    : _esCev('es.scopeHelpKisisel','<b>Kendi kopyanızı</b> düzenliyorsunuz — yalnız siz görürsünüz, eserin akoru değişmez. <code style="color:#58A6FF;">[Am]</code> gibi hecenin önüne yaz.');
   const del=document.getElementById('delpc_'+id);
   if(del) del.style.display = (scope==='kisisel' && personal) ? 'inline-flex' : 'none';
   updateChordsPreview(id);
@@ -3908,7 +3908,7 @@ function _afterChordsSaved(id, hasCh, chords, isShared){
     // 2026-07-28: parantezsiz ama dolu metin de gösterilsin (kaydedildiği belli olsun)
     prev.innerHTML = (hasCh || chords)
       ? renderChords(chords)
-      : '<span style="color:var(--text3);font-size:12px;">Akor bilgisi yok.</span>';
+      : '<span style="color:var(--text3);font-size:12px;">' + _esCev('es.akorBilgisiYok','Akor bilgisi yok.') + '</span>';
     prev.style.display = 'block';
     _rbtnOn(document.getElementById('chords_preview_btn_'+id), true);
   }
@@ -3938,7 +3938,7 @@ async function saveChords(id) {
   // (açılışta çıkan pop-up refleksle kapatılır, buradaki kapatılamaz).
   const _sh = document.getElementById('chords_scale_' + id);
   if (_sh && _sh.style.display !== 'none') {
-    if (!confirm('AKOR HİZASI SÜRGÜSÜ HÂLÂ AÇIK\n\nKaydedince sürgü kapanır: bu eserde ölçeği bir daha değiştiremezsin. Değiştirmek istersen kaynak metni yeniden yapıştırıp baştan çevirmen gerekir.\n\nElle kaydırma (↔ Akoru kaydır) kaydettikten sonra da her zaman yapılabilir.\n\nTAMAM: bu hizayla kaydet\nİPTAL: sürgüye dön')) return;
+    if (!confirm(_esCev('es.surguAcikOnay','AKOR HİZASI SÜRGÜSÜ HÂLÂ AÇIK\n\nKaydedince sürgü kapanır: bu eserde ölçeği bir daha değiştiremezsin. Değiştirmek istersen kaynak metni yeniden yapıştırıp baştan çevirmen gerekir.\n\nElle kaydırma (↔ Akoru kaydır) kaydettikten sonra da her zaman yapılabilir.\n\nTAMAM: bu hizayla kaydet\nİPTAL: sürgüye dön'))) return;
     closeConvScale(id);
   }
   const scope = ta.dataset.scope || 'kisisel';
@@ -4062,12 +4062,12 @@ async function saveNotaPages(id, pages) {
 function renderNotaPagesBlock(w) {
   const pages = notaPagesOf(w);
   const canEdit = (isAdmin() || isEditor());
-  if (!pages.length) return `<div style="color:var(--text3);font-size:13px;padding:12px 0 4px;">Bu eser için nota eklenmemiş.</div>`;
-  let html = `<div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">${pages.length} sayfa</div>`;
+  if (!pages.length) return `<div style="color:var(--text3);font-size:13px;padding:12px 0 4px;">${_esCev('es.notaYok','Bu eser için nota eklenmemiş.')}</div>`;
+  let html = `<div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">${_esCev('es.nSayfa','{n} sayfa').replace('{n}', pages.length)}</div>`;
   pages.forEach((u, i) => {
     html += `<div style="margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <span style="font-size:12px;color:var(--text3);">Sayfa ${i+1} / ${pages.length}</span>
+        <span style="font-size:12px;color:var(--text3);">${_esCev('es.sayfaXY','Sayfa {i} / {n}').replace('{i}', i+1).replace('{n}', pages.length)}</span>
         ${canEdit ? `<span style="display:flex;gap:10px;">
           ${i > 0 ? `<button onclick="moveNotaPage(${w.id},${i},-1)" title="${_esCev('es.yukari','Yukarı')}" style="background:none;border:none;color:var(--text2);font-size:14px;cursor:pointer;">↑</button>` : ''}
           ${i < pages.length-1 ? `<button onclick="moveNotaPage(${w.id},${i},1)" title="${_esCev('es.asagi','Aşağı')}" style="background:none;border:none;color:var(--text2);font-size:14px;cursor:pointer;">↓</button>` : ''}
@@ -4075,18 +4075,18 @@ function renderNotaPagesBlock(w) {
         </span>` : ''}
       </div>
       ${isNotaImage(u)
-        ? `<img src="${u}" style="width:100%;border-radius:8px;border:1px solid var(--border);" alt="Nota sayfa ${i+1}">`
+        ? `<img src="${u}" style="width:100%;border-radius:8px;border:1px solid var(--border);" alt="${_esCev('es.a_notaSayfa','Nota sayfa {n}').replace('{n}', i+1)}">`
         : `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px;">
              <span style="font-size:24px;">📄</span>
              <div>
-               <div style="font-size:13px;color:var(--text);margin-bottom:4px;">Nota dosyası (PDF)</div>
-               <a href="${u}" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none;">↗ Notayı Aç / İndir</a>
+               <div style="font-size:13px;color:var(--text);margin-bottom:4px;">${_esCev('es.notaDosyasiPdf','Nota dosyası (PDF)')}</div>
+               <a href="${u}" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none;">${_esCev('es.notayiAcIndir','↗ Notayı Aç / İndir')}</a>
              </div>
            </div>`}
     </div>`;
   });
   if (pages.some(isNotaImage)) {
-    html += `<button onclick="localStorage.setItem('stageViewMode','nota');localStorage.setItem('stageSource','eserler');window.location.href='stage.html?work=${w.id}';" style="margin-top:2px;width:100%;padding:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#1a1200;font-size:13px;font-weight:700;cursor:pointer;">🎼 Tam Ekran Gör (Sahne Modu)</button>`;
+    html += `<button onclick="localStorage.setItem('stageViewMode','nota');localStorage.setItem('stageSource','eserler');window.location.href='stage.html?work=${w.id}';" style="margin-top:2px;width:100%;padding:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#1a1200;font-size:13px;font-weight:700;cursor:pointer;">${_esCev('es.tamEkranSahne','🎼 Tam Ekran Gör (Sahne Modu)')}</button>`;
   }
   return html;
 }
@@ -4106,7 +4106,7 @@ async function deleteNotaPage(id, i) {
   if (!confirm(_esCev('es.sayfaSilOnay','{n}. sayfayı silmek istediğine emin misin?').replace('{n}', i+1))) return;
   pages.splice(i, 1);
   try { await saveNotaPages(id, pages); selectWork(id, true); switchDetailTab('nota'); }
-  catch(e) { alert('Silinemedi: ' + e.message); }
+  catch(e) { alert(_esCev('es.silinemediIki','Silinemedi: ') + e.message); }
 }
 
 // Sürükle-bırak alanını ve panodan yapıştırmayı kurar (her detay çiziminde çağrılır)
@@ -4240,7 +4240,7 @@ async function deleteNota(id) {
   const n = notaPagesById(id).length;
   if (!confirm(n > 1 ? _esCev('es.tumSayfalarSil','{n} nota sayfasının TAMAMI silinecek. Emin misin?').replace('{n}',n) : _esCev('es.notaKaldirOnay','Notayı kaldırmak istediğinizden emin misiniz?'))) return;
   try { await saveNotaPages(id, []); selectWork(id, true); switchDetailTab('nota'); }
-  catch(e) { alert('Silinemedi: ' + e.message); }
+  catch(e) { alert(_esCev('es.silinemediIki','Silinemedi: ') + e.message); }
 }
 
 function openStageFromDetail(stageId) {
@@ -4507,7 +4507,7 @@ function rkComboCiz() {
         return '<div class="rk-opt" data-i="' + i + '">' +
                v.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div>';
       }).join('')
-    : '<div class="rk-bos">Eşleşen form yok — yazdığın değer olduğu gibi kaydedilir.</div>';
+    : '<div class="rk-bos">' + _esCev('es.eslesenFormYok','Eşleşen form yok — yazdığın değer olduğu gibi kaydedilir.') + '</div>';
 }
 
 function rkComboYerlestir() {
@@ -4609,16 +4609,16 @@ function neOpenConvScale(){
   h.style.display = 'block';
   h.innerHTML =
     '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
-    + '<span style="font-size:13px;font-weight:600;color:var(--text2);">Akor hizası</span>'
+    + '<span style="font-size:13px;font-weight:600;color:var(--text2);">' + _esCev('es.akorHizasi','Akor hizası') + '</span>'
     + '<input id="ne_convScale" class="rslider" type="range" min="70" max="130" value="100" oninput="neApplyConvScale(this.value)">'
     + '<span id="ne_convScaleLbl" style="font-size:12px;font-weight:700;color:var(--accent);min-width:34px;font-variant-numeric:tabular-nums;">1.00</span>'
-    + '<button type="button" onclick="neSuggestConvScale()" class="rbtn rbtn-sm">Öner</button>'
-    + '<button type="button" onclick="neNudgeAll(-1)" class="rbtn rbtn-sm" title="Tüm akorları bir hece sola">◀ Hepsi</button>'
-    + '<button type="button" onclick="neNudgeAll(1)" class="rbtn rbtn-sm" title="Tüm akorları bir hece sağa">Hepsi ▶</button>'
-    + '<button type="button" onclick="neUndoConvert()" class="rbtn rbtn-sm">Geri al</button>'
-    + '<button type="button" onclick="neCloseConvScale()" class="rbtn rbtn-sm">Bitti</button>'
+    + '<button type="button" onclick="neSuggestConvScale()" class="rbtn rbtn-sm">' + _esCev('es.onerBtn','Öner') + '</button>'
+    + '<button type="button" onclick="neNudgeAll(-1)" class="rbtn rbtn-sm" title="' + _esCev('es.t_hepsiSola','Tüm akorları bir hece sola') + '">' + _esCev('es.hepsiSolKisa','◀ Hepsi') + '</button>'
+    + '<button type="button" onclick="neNudgeAll(1)" class="rbtn rbtn-sm" title="' + _esCev('es.t_hepsiSaga','Tüm akorları bir hece sağa') + '">' + _esCev('es.hepsiSagKisa','Hepsi ▶') + '</button>'
+    + '<button type="button" onclick="neUndoConvert()" class="rbtn rbtn-sm">' + _esCev('es.geriAl','Geri al') + '</button>'
+    + '<button type="button" onclick="neCloseConvScale()" class="rbtn rbtn-sm">' + _esCev('es.bitti','Bitti') + '</button>'
     + '</div>'
-    + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">Sürgüyü çekerken akorlar güftenin üstünde birlikte kayar — aşağıdaki önizlemeye bakarak doğru yerde bırak. Kaynaktaki hiza tek bir ölçekten kaymışsa bu tek hareket bütün eseri düzeltir.</div>'
+    + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">' + _esCev('es.surguIpucuAsagi','Sürgüyü çekerken akorlar güftenin üstünde birlikte kayar — aşağıdaki önizlemeye bakarak doğru yerde bırak. Kaynaktaki hiza tek bir ölçekten kaymışsa bu tek hareket bütün eseri düzeltir.') + '</div>'
     + '<div id="ne_convPreview" style="margin-top:10px;max-height:260px;overflow:auto;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;"></div>';
   neUpdateConvPreview();
 }
@@ -4636,7 +4636,7 @@ function neApplyConvScale(val){
   const ta = document.getElementById('ne_chords');
   if (!ta || _neConvSrc === undefined) return;
   if (_neNudged) {
-    if (!confirm('Akorları toplu kaydırdın.\n\nSürgü metni kaynaktan baştan çevirir, yani o kaydırmalar SİLİNİR.\n\nTAMAM: sürgüyle devam et\nİPTAL: kaydırmaları koru')) {
+    if (!confirm(_esCev('es.topluKaydirildiOnay','Akorları toplu kaydırdın.\n\nSürgü metni kaynaktan baştan çevirir, yani o kaydırmalar SİLİNİR.\n\nTAMAM: sürgüyle devam et\nİPTAL: kaydırmaları koru'))) {
       const sl = document.getElementById('ne_convScale');
       if (sl) sl.value = Math.round((_neLastK || 1) * 100);
       return;
@@ -4708,12 +4708,12 @@ function neOpenNudgeOnly(){
   h.style.display = 'block';
   h.innerHTML =
     '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
-    + '<span style="font-size:13px;font-weight:600;color:var(--text2);">Akorları kaydır</span>'
-    + '<button type="button" onclick="neNudgeAll(-1)" class="rbtn rbtn-sm" title="Tüm akorları bir hece sola">◀ Hepsi sola</button>'
-    + '<button type="button" onclick="neNudgeAll(1)" class="rbtn rbtn-sm" title="Tüm akorları bir hece sağa">Hepsi sağa ▶</button>'
-    + '<button type="button" onclick="neCloseConvScale()" class="rbtn rbtn-sm">Bitti</button>'
+    + '<span style="font-size:13px;font-weight:600;color:var(--text2);">' + _esCev('es.akorlariKaydir','Akorları kaydır') + '</span>'
+    + '<button type="button" onclick="neNudgeAll(-1)" class="rbtn rbtn-sm" title="' + _esCev('es.t_hepsiSola','Tüm akorları bir hece sola') + '">' + _esCev('es.hepsiSola','◀ Hepsi sola') + '</button>'
+    + '<button type="button" onclick="neNudgeAll(1)" class="rbtn rbtn-sm" title="' + _esCev('es.t_hepsiSaga','Tüm akorları bir hece sağa') + '">' + _esCev('es.hepsiSaga','Hepsi sağa ▶') + '</button>'
+    + '<button type="button" onclick="neCloseConvScale()" class="rbtn rbtn-sm">' + _esCev('es.bitti','Bitti') + '</button>'
     + '</div>'
-    + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">Kayıtlı eserde kaynak metin olmadığı için ölçek sürgüsü yok; akorların tamamı hece hece kaydırılır. Tek tek düzeltme için eser detayındaki “↔ Akoru kaydır” aracını kullan.</div>'
+    + '<div style="margin-top:8px;font-size:12px;color:var(--text3);line-height:1.5;">' + _esCev('es.kayitliSurguYok','Kayıtlı eserde kaynak metin olmadığı için ölçek sürgüsü yok; akorların tamamı hece hece kaydırılır. Tek tek düzeltme için eser detayındaki “↔ Akoru kaydır” aracını kullan.') + '</div>'
     + '<div id="ne_convPreview" style="margin-top:10px;max-height:260px;overflow:auto;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;"></div>';
   neUpdateConvPreview();
 }
@@ -4859,7 +4859,7 @@ function renderNeNotaList(msg) {
   const n = w ? notaPagesOf(w).length : 0;
   el.innerHTML = n
     ? '<div style="color:var(--text3);">' + _esCev('es.notaSayfaVar','Bu eserde {n} nota sayfası var. Sayfa silme ve sıralama eser detayındaki Nota sekmesinde.').replace('{n}', n) + '</div>'
-    : '<div style="color:var(--text3);">Henüz nota yok.</div>';
+    : '<div style="color:var(--text3);">' + _esCev('es.henuzNotaYok','Henüz nota yok.') + '</div>';
 }
 
 function openNewEserModal() {
@@ -5509,7 +5509,7 @@ function _kaydetDugmesi() {
 function _kilitAc() {
   _eserKaydediliyor = false;
   const b = _kaydetDugmesi();
-  if (b) { b.disabled = false; b.style.opacity = ''; b.textContent = 'Kaydet'; }
+  if (b) { b.disabled = false; b.style.opacity = ''; b.textContent = _esCev('ortak.kaydet','Kaydet'); }
 }
 
 function saveNewEser() {
@@ -5702,7 +5702,7 @@ function saveNewEser() {
     // gereksiz yere kapanmış olmasın.
     _eserKaydediliyor = true;
     const _btn = _kaydetDugmesi();
-    if (_btn) { _btn.disabled = true; _btn.style.opacity = '.55'; _btn.textContent = 'Kaydediliyor…'; }
+    if (_btn) { _btn.disabled = true; _btn.style.opacity = '.55'; _btn.textContent = _esCev('es.kaydediliyor','Kaydediliyor…'); }
 
     fetch(SUPA_URL + '/rest/v1/works', {
       method: 'POST',
@@ -5910,7 +5910,7 @@ document.addEventListener('keydown', function(e) {
     updateMySuggestionsCount();
   }
   // Yükleniyor göstergesi
-  const _lp = document.getElementById('listPanel'); if(_lp) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">Eserler yükleniyor...</div>';
+  const _lp = document.getElementById('listPanel'); if(_lp) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">' + _esCev('es.eserlerYukleniyor','Eserler yükleniyor...') + '</div>';
   
   await loadWorksFromSupabase();
   loadPersonalChords(); // kişisel akorları arka planda yükle (listeyi bloklamaz)
@@ -5938,18 +5938,18 @@ document.addEventListener('keydown', function(e) {
 async function showEditorManager() {
   document.getElementById('editorModal').style.display = 'flex';
   const list = document.getElementById('editorList');
-  list.innerHTML = '<div style="color:var(--text3);font-size:13px;">Yükleniyor...</div>';
+  list.innerHTML = '<div style="color:var(--text3);font-size:13px;">' + _esCev('rep.yukleniyor','Yükleniyor...') + '</div>';
   const r = await fetch(SUPA_URL + '/rest/v1/profiles?role=eq.editor&select=id,email,role', {
     headers: authHeaders()
   });
   const editors = await r.json();
   if (!editors.length) {
-    list.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Henüz editör yok.</div>';
+    list.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">' + _esCev('es.editorYok','Henüz editör yok.') + '</div>';
   } else {
     list.innerHTML = editors.map(e => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;">
         <span style="font-size:13px;color:var(--text);">${e.email || e.id}</span>
-        <button onclick="removeEditor('${e.id}')" style="padding:4px 10px;border-radius:6px;background:rgba(192,84,68,.1);border:1px solid rgba(192,84,68,.3);color:#e07060;font-size:12px;cursor:pointer;font-family:inherit;">Kaldır</button>
+        <button onclick="removeEditor('${e.id}')" style="padding:4px 10px;border-radius:6px;background:rgba(192,84,68,.1);border:1px solid rgba(192,84,68,.3);color:#e07060;font-size:12px;cursor:pointer;font-family:inherit;">${_esCev('es.kaldir','Kaldır')}</button>
       </div>`).join('');
   }
 }
@@ -6016,7 +6016,7 @@ function _pmEsc(t){
 }
 async function showPendingWorks() {
   const list = document.getElementById('pendingList');
-  list.innerHTML = '<div class="pm-empty">Yükleniyor...</div>';
+  list.innerHTML = '<div class="pm-empty">' + _esCev('rep.yukleniyor','Yükleniyor...') + '</div>';
   document.getElementById('pendingModal').style.display = 'flex';
   // (2026-08-15) ONAY KUYRUĞU GİZLİ ESERLERİ ASLA GÖSTERMEZ. Çift emniyet:
   // kayıt tarafı private'ı zaten 'pending' yapmıyor, ama eski sürümlerden
@@ -6028,11 +6028,11 @@ async function showPendingWorks() {
   });
   const pendingWorks = r.ok ? await r.json() : [];
   if (!pendingWorks.length) {
-    list.innerHTML = '<div class="pm-empty">Bekleyen eser yok 🎉</div>';
+    list.innerHTML = '<div class="pm-empty">' + _esCev('es.bekleyenYok','Bekleyen eser yok 🎉') + '</div>';
   } else {
     list.innerHTML = pendingWorks.map(w => `
       <div class="pm-item" id="pm-item-${w.id}">
-        <div class="pm-item-name">${_pmEsc(w.name) || '(isimsiz)'}</div>
+        <div class="pm-item-name">${_pmEsc(w.name) || _esCev('es.isimsiz','(isimsiz)')}</div>
         <div class="pm-item-meta">
           ${w.submitter_email ? `<span>👤 ${w.submitter_email}</span>` : ''}
           ${w.submitted_at ? `<span>🕐 ${new Date(w.submitted_at).toLocaleString('tr-TR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
@@ -6041,12 +6041,12 @@ async function showPendingWorks() {
           ${w.region ? `<span>📍 ${w.region}</span>` : ''}
           ${w.measurement ? `<span>♩ ${w.measurement}</span>` : ''}
         </div>
-        ${w.lyrics ? `<div class="pm-sec-lbl">SÖZ</div><div class="pm-item-lyrics">${_pmEsc(w.lyrics)}</div>` : ''}
-        ${w.chords ? `<div class="pm-sec-lbl">AKOR</div><div class="pm-item-chords">${_pmEsc(w.chords)}</div>` : ''}
+        ${w.lyrics ? `<div class="pm-sec-lbl">${_esCev('es.pmSoz','SÖZ')}</div><div class="pm-item-lyrics">${_pmEsc(w.lyrics)}</div>` : ''}
+        ${w.chords ? `<div class="pm-sec-lbl">${_esCev('es.pmAkor','AKOR')}</div><div class="pm-item-chords">${_pmEsc(w.chords)}</div>` : ''}
         <div class="pm-actions">
-          <button class="pm-approve" onclick="approveWork(${w.id})">✓ Onayla</button>
-          <button class="pm-edit"    onclick="closePendingModal();openEditEserModal(${w.id})">✏️ Düzenle</button>
-          <button class="pm-reject"  onclick="rejectWork(${w.id})">✕ Reddet</button>
+          <button class="pm-approve" onclick="approveWork(${w.id})">${_esCev('es.onayla','✓ Onayla')}</button>
+          <button class="pm-edit"    onclick="closePendingModal();openEditEserModal(${w.id})">${_esCev('es.pmDuzenle','✏️ Düzenle')}</button>
+          <button class="pm-reject"  onclick="rejectWork(${w.id})">${_esCev('es.reddet','✕ Reddet')}</button>
         </div>
       </div>`).join('');
   }
@@ -6065,11 +6065,11 @@ async function approveWork(id) {
     const w = DATA.find(x => x.id === id);
     if (w) w.status = 'approved';
     const item = document.getElementById('pm-item-'+id);
-    if (item) { item.style.opacity = '.4'; item.innerHTML = '<div style="padding:8px;color:#3FB950;font-size:13px;">✓ Onaylandı</div>'; }
+    if (item) { item.style.opacity = '.4'; item.innerHTML = '<div style="padding:8px;color:#3FB950;font-size:13px;">' + _esCev('es.onaylandi','✓ Onaylandı') + '</div>'; }
     updatePendingCount();
   } else {
     alert(_esCev('mod.hata','Hata: ') + await r.text());
-    if (btn) { btn.disabled = false; btn.textContent = '✓ Onayla'; }
+    if (btn) { btn.disabled = false; btn.textContent = _esCev('es.onayla','✓ Onayla'); }
   }
 }
 
@@ -6312,7 +6312,7 @@ function openSuggestModal() { openNewEserModal(); }
              listeyi rkCombo* fonksiyonları kendisi çiziyor. -->
         <div class="rk-combo">
           <input id="ne_form" class="ne-inp" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Form seç ya da yaz..." data-i18n-ph="es.ph_form">
-          <button type="button" class="rk-combo-btn" id="ne_formOk" aria-label="Form listesini aç">&#9662;</button>
+          <button type="button" class="rk-combo-btn" id="ne_formOk" aria-label="Form listesini aç" data-i18n-aria="es.a_formListesiAc">&#9662;</button>
         </div>
         <datalist id="formListesi"></datalist>
       </div>
@@ -6449,7 +6449,7 @@ function openSuggestModal() { openNewEserModal(); }
             <div class="nota-drop-sub"><span data-i18n="es.notaAlt">Yeni dosyalar mevcut sayfaların SONUNA eklenir</span><br><span data-i18n="es.notaBoyut">(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)</span></div>
           </div>
           <div class="nota-paste" id="notaPaste_ne" contenteditable="true" inputmode="none" role="button"
-               aria-label="${_esCev('es.panoYapistir','Panodaki görseli yapıştır')}" onclick="event.stopPropagation()"></div>
+               aria-label="Panodaki görseli yapıştır" data-i18n-aria="es.panoYapistir" onclick="event.stopPropagation()"></div>
           <div class="nota-paste-hint" data-i18n-html="es.notaYapistirIpucu">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
           <div id="ne_notaList" style="margin-top:12px;font-size:12px;color:var(--text2);"></div>
         </div>

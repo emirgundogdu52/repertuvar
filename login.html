@@ -9,7 +9,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Repertuvar — Giriş</title>
+<title data-i18n="giris.sayfaBaslik">Repertuvar — Giriş</title>
 <link rel="icon" href="Repertuvar_logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Inter:wght@500;900&display=swap" rel="stylesheet">
 <style>
@@ -190,6 +190,9 @@ const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
 const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
+// Arayuz metni cevirisi. i18n.js yuklenmemisse Turkceye duser.
+function _gCev(k, tr) { try { return (window.i18n && window.i18n.t) ? window.i18n.t(k, tr) : tr; } catch (e) { return tr; } }
+
 // Email onay / şifre sıfırlama token'ını yakala
 (async () => {
   const hash = window.location.hash;
@@ -207,12 +210,12 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
           window.location.href = 'reset-password.html' + window.location.hash;
           return;
         } else {
-          showMsg('ok', 'E-posta doğrulandı! Yönlendiriliyorsunuz...');
+          showMsg('ok', _gCev('giris.epostaDogrulandi', 'E-posta doğrulandı! Yönlendiriliyorsunuz...'));
           setTimeout(() => window.location.href = 'index.html', 1500);
         }
         return;
       } else {
-        showMsg('err', 'Doğrulama başarısız. Lütfen tekrar deneyin.');
+        showMsg('err', _gCev('giris.dogrulamaBasarisiz', 'Doğrulama başarısız. Lütfen tekrar deneyin.'));
       }
     }
   }
@@ -222,10 +225,10 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 // Sadece localStorage token kontrolü - SDK session cache değil
 // Silme talebi mesajı
 if(window.location.search.includes('msg=silme-talebi')) {
-  setTimeout(() => showMsg('ok', 'Hesap silme talebiniz alındı. 30 gün içinde tüm verileriniz silinecek ve e-posta ile bilgilendirileceksiniz.'), 100);
+  setTimeout(() => showMsg('ok', _gCev('giris.silmeTalebiAlindi', 'Hesap silme talebiniz alındı. 30 gün içinde tüm verileriniz silinecek ve e-posta ile bilgilendirileceksiniz.')), 100);
 }
 if(window.location.search.includes('suspended=1')) {
-  setTimeout(() => showMsg('err', 'Hesabınız askıya alınmıştır.<br><br>' +
+  setTimeout(() => showMsg('err', _gCev('giris.askiyaAlindi', 'Hesabınız askıya alınmıştır.') + '<br><br>' +
     '<a href="mailto:info@repertuvar.app?subject=Hesap%20Ask%C4%B1ya%20Alma" style="color:var(--red);text-decoration:underline;">✉️ info@repertuvar.app</a>' +
     '&nbsp;&nbsp;&nbsp;' +
     '<a href="https://wa.me/31621301222?text=Merhaba%2C%20hesab%C4%B1m%20ask%C4%B1ya%20al%C4%B1nd%C4%B1." target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
@@ -237,7 +240,7 @@ if(window.location.search.includes('deletion_requested=1')) {
     const waText = encodeURIComponent('Merhaba, hesap silme talebimi geri almak istiyorum. E-posta: ' + emailParam);
     const mailSubject = encodeURIComponent('Silme Talebi İptali');
     const mailBody = encodeURIComponent('Merhaba,\n\nHesap silme talebimi geri almak istiyorum.\nE-posta: ' + emailParam);
-    showMsg('err', 'Hesabınız silme sürecindedir ve erişiminiz kısıtlanmıştır.<br>Talebinizi geri almak için:<br><br>' +
+    showMsg('err', _gCev('giris.silmeSurecinde', 'Hesabınız silme sürecindedir ve erişiminiz kısıtlanmıştır.') + '<br>' + _gCev('giris.silmeGeriAl', 'Talebinizi geri almak için:') + '<br><br>' +
       '<a href="mailto:info@repertuvar.app?subject=' + mailSubject + '&body=' + mailBody + '" style="color:var(--red);text-decoration:underline;">✉️ info@repertuvar.app</a>' +
       '&nbsp;&nbsp;&nbsp;' +
       '<a href="https://wa.me/31621301222?text=' + waText + '" target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
@@ -247,7 +250,7 @@ if(window.location.search.includes('deletion_requested=1')) {
 // Oturum sunucu tarafından reddedildi (auth.js → endDeadSession). Kullanıcı
 // sessizce boş liste görmek yerine ne olduğunu öğrensin.
 if(window.location.search.includes('expired=1')) {
-  setTimeout(() => showMsg('err', 'Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.'), 100);
+  setTimeout(() => showMsg('err', _gCev('giris.oturumDoldu', 'Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.')), 100);
 }
 // Davet token'ını sakla
 const _inviteToken = new URLSearchParams(window.location.search).get('invite');
@@ -292,7 +295,7 @@ async function showInviteConfirm(token) {
 
   let eposta = '';
   try { eposta = (JSON.parse(localStorage.getItem('sb_user')) || {}).email || ''; } catch (e) {}
-  const grup = (bilgi && bilgi.group_name) ? bilgi.group_name : 'grup';
+  const grup = (bilgi && bilgi.group_name) ? bilgi.group_name : _gCev('giris.grupVarsayilan', 'grup');
 
   const kutu = document.createElement('div');
   kutu.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:99999;display:flex;'
@@ -300,33 +303,37 @@ async function showInviteConfirm(token) {
 
   let govde;
   if (bilgi && bilgi.ok === false) {
-    govde = '<div style="font-size:14px;color:#e07060;">Davet bağlantısı geçersiz.</div>';
+    govde = '<div style="font-size:14px;color:#e07060;">' + _gCev('giris.davetBaglantiGecersiz', 'Davet bağlantısı geçersiz.') + '</div>';
   } else if (bilgi && bilgi.already_member) {
     // (2026-08-06) Buraya da ÇIKIŞ seçeneği kondu: davet büyük olasılıkla
     // başkasına gönderilmiş ve o kişi bu cihazda açıyor olabilir. Eskiden
     // yalnızca "Uygulamaya git" vardı, kullanıcı çıkışı elle aramak zorundaydı.
-    govde = '<div style="font-size:14px;line-height:1.6;">Zaten <b>' + esc(grup) + '</b> grubunun üyesisiniz. '
-          + 'Bu davet <b>kullanılmadı</b>, dilediğiniz kişiye iletebilirsiniz.</div>'
+    govde = '<div style="font-size:14px;line-height:1.6;">'
+          + _gCev('giris.zatenUye', 'Zaten <b>{grup}</b> grubunun üyesisiniz. Bu davet <b>kullanılmadı</b>, dilediğiniz kişiye iletebilirsiniz.').replace('{grup}', function () { return esc(grup); })
+          + '</div>'
           + '<div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;">'
           + '<button id="invNo" style="flex:1;min-width:130px;background:#FFC83D;color:#1a1200;border:none;'
-          + 'border-radius:9px;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;">Farklı hesapla gir</button>'
+          + 'border-radius:9px;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;">' + _gCev('giris.farkliHesap', 'Farklı hesapla gir') + '</button>'
           + '<button id="invClose" style="flex:1;min-width:130px;background:transparent;color:#c9d1e0;'
           + 'border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:11px 14px;font-size:13px;'
-          + 'font-weight:600;cursor:pointer;">Uygulamaya git</button></div>';
+          + 'font-weight:600;cursor:pointer;">' + _gCev('giris.uygulamayaGit', 'Uygulamaya git') + '</button></div>';
   } else if (bilgi && (bilgi.used || bilgi.expired)) {
-    govde = '<div style="font-size:14px;color:#e07060;line-height:1.6;">Bu davet '
-          + (bilgi.used ? 'daha önce kullanılmış' : 'süresi dolmuş') + '. Yeni bir davet isteyin.</div>';
+    govde = '<div style="font-size:14px;color:#e07060;line-height:1.6;">'
+          + (bilgi.used ? _gCev('giris.davetKullanilmis', 'Bu davet daha önce kullanılmış. Yeni bir davet isteyin.')
+                        : _gCev('giris.davetSuresiDolmus', 'Bu davet süresi dolmuş. Yeni bir davet isteyin.')) + '</div>';
   } else {
-    govde = '<div style="font-size:14px;line-height:1.7;"><b>' + esc(grup) + '</b> grubuna davet edildiniz.<br>'
-          + '<span style="color:#9aa3b8;">Şu anda <b>' + esc(eposta) + '</b> hesabıyla girişlisiniz — '
-          + 'davet bu hesapla kullanılacak.</span><br><br>'
-          + '<span style="color:#9aa3b8;">Davet başkasına aitse aşağıdan çıkış yapın; bağlantı korunur.</span></div>'
+    govde = '<div style="font-size:14px;line-height:1.7;">'
+          + _gCev('giris.davetEdildiniz', '<b>{grup}</b> grubuna davet edildiniz.').replace('{grup}', function () { return esc(grup); }) + '<br>'
+          + '<span style="color:#9aa3b8;">'
+          + _gCev('giris.suAnGirisli', 'Şu anda <b>{eposta}</b> hesabıyla girişlisiniz — davet bu hesapla kullanılacak.').replace('{eposta}', function () { return esc(eposta); })
+          + '</span><br><br>'
+          + '<span style="color:#9aa3b8;">' + _gCev('giris.davetBaskasina', 'Davet başkasına aitse aşağıdan çıkış yapın; bağlantı korunur.') + '</span></div>'
           + '<div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;">'
           + '<button id="invYes" style="flex:1;min-width:130px;background:#FFC83D;color:#1a1200;border:none;'
-          + 'border-radius:9px;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;">Bu hesapla katıl</button>'
+          + 'border-radius:9px;padding:11px 14px;font-size:13px;font-weight:700;cursor:pointer;">' + _gCev('giris.buHesaplaKatil', 'Bu hesapla katıl') + '</button>'
           + '<button id="invNo" style="flex:1;min-width:130px;background:transparent;color:#c9d1e0;'
           + 'border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:11px 14px;font-size:13px;'
-          + 'font-weight:600;cursor:pointer;">Farklı hesapla gir</button></div>';
+          + 'font-weight:600;cursor:pointer;">' + _gCev('giris.farkliHesap', 'Farklı hesapla gir') + '</button></div>';
   }
 
   kutu.innerHTML = '<div style="background:#19233F;border:1px solid rgba(255,255,255,.14);border-radius:14px;'
@@ -335,18 +342,18 @@ async function showInviteConfirm(token) {
     + ((govde.indexOf('invYes') === -1 && govde.indexOf('invClose') === -1)
         ? '<div style="margin-top:18px;"><button id="invClose" style="width:100%;background:#222B45;color:#fff;'
           + 'border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:11px;font-size:13px;font-weight:600;'
-          + 'cursor:pointer;">Uygulamaya git</button></div>'
+          + 'cursor:pointer;">' + _gCev('giris.uygulamayaGit', 'Uygulamaya git') + '</button></div>'
         : '')
     + '</div>';
   document.body.appendChild(kutu);
 
   const yes = document.getElementById('invYes');
   if (yes) yes.onclick = async function () {
-    yes.disabled = true; yes.textContent = 'Katılınıyor...';
+    yes.disabled = true; yes.textContent = _gCev('giris.katiliniyor', 'Katılınıyor...');
     try { localStorage.setItem('invite_confirmed', '1'); } catch (e) {}
     const d = await handlePendingInvite();
     if (d && d.ok === true) window.location.href = 'index.html?joined=1';
-    else { yes.disabled = false; yes.textContent = 'Bu hesapla katıl'; }
+    else { yes.disabled = false; yes.textContent = _gCev('giris.buHesaplaKatil', 'Bu hesapla katıl'); }
   };
   const no = document.getElementById('invNo');
   if (no) no.onclick = function () {
@@ -368,7 +375,7 @@ async function showInviteConfirm(token) {
       }
     } catch (e) {}
     kutu.remove();
-    showMsg('ok', 'Çıkış yapıldı. Davetli kişi aşağıdan giriş yapabilir ya da kayıt olabilir — davet korunuyor.');
+    showMsg('ok', _gCev('giris.cikisYapildi', 'Çıkış yapıldı. Davetli kişi aşağıdan giriş yapabilir ya da kayıt olabilir — davet korunuyor.'));
   };
   const kapat = document.getElementById('invClose');
   if (kapat) kapat.onclick = function () {
@@ -404,16 +411,16 @@ async function handlePendingInvite(userId) {
     const d = await r.json();
     localStorage.removeItem('pending_invite');
     if (!d || d.ok !== true) {
-      if (d && d.reason === 'expired') showMsg('err', 'Davet linkinin süresi dolmuş.');
-      else if (d && d.reason === 'used') showMsg('err', 'Bu davet linki daha önce kullanılmış.');
-      else if (d && d.reason === 'notfound') showMsg('err', 'Davet linki geçersiz.');
-      else showMsg('err', 'Davet kullanılamadı.');
+      if (d && d.reason === 'expired') showMsg('err', _gCev('giris.davetLinkiDolmus', 'Davet linkinin süresi dolmuş.'));
+      else if (d && d.reason === 'used') showMsg('err', _gCev('giris.davetLinkiKullanilmis', 'Bu davet linki daha önce kullanılmış.'));
+      else if (d && d.reason === 'notfound') showMsg('err', _gCev('giris.davetLinkiGecersiz', 'Davet linki geçersiz.'));
+      else showMsg('err', _gCev('giris.davetKullanilamadi', 'Davet kullanılamadı.'));
     }
     return d;   // çağıran (girişli kullanıcı yolu) sonuca göre yönlendirir
   } catch(e) {
     console.error('Invite error:', e);
     localStorage.removeItem('pending_invite');
-    showMsg('err', 'Davet işlenemedi — bağlantınızı kontrol edip linke tekrar tıklayın.');
+    showMsg('err', _gCev('giris.davetIslenemedi', 'Davet işlenemedi — bağlantınızı kontrol edip linke tekrar tıklayın.'));
     return null;
   }
 }
@@ -435,11 +442,11 @@ function showMsg(type, text) {
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const pass  = document.getElementById('loginPass').value;
-  if(!email || !pass) { showMsg('err','E-posta ve şifre gerekli.'); return; }
+  if(!email || !pass) { showMsg('err',_gCev('giris.epostaSifreGerekli', 'E-posta ve şifre gerekli.')); return; }
   const btn = document.getElementById('loginBtn');
-  btn.disabled = true; btn.textContent = 'Giriş yapılıyor...';
+  btn.disabled = true; btn.textContent = _gCev('giris.girisYapiliyor', 'Giriş yapılıyor...');
   const {data, error} = await sb.auth.signInWithPassword({email, password: pass});
-  if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent='Giriş Yap'; return; }
+  if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent=_gCev('giris.girisyap', 'Giriş Yap'); return; }
   if(data.session) {
     localStorage.setItem('sb_token', data.session.access_token);
     localStorage.setItem('sb_refresh', data.session.refresh_token);
@@ -465,13 +472,13 @@ async function doRegister() {
   const fullName = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const pass  = document.getElementById('regPass').value;
-  if(!fullName) { showMsg('err','Ad Soyad zorunludur.'); document.getElementById('regName').focus(); return; }
-  if(!email || !pass) { showMsg('err','E-posta ve şifre gerekli.'); return; }
-  if(pass.length < 6) { showMsg('err','Şifre en az 6 karakter olmalı.'); return; }
+  if(!fullName) { showMsg('err',_gCev('giris.adSoyadZorunlu', 'Ad Soyad zorunludur.')); document.getElementById('regName').focus(); return; }
+  if(!email || !pass) { showMsg('err',_gCev('giris.epostaSifreGerekli', 'E-posta ve şifre gerekli.')); return; }
+  if(pass.length < 6) { showMsg('err',_gCev('giris.sifreEnAz6', 'Şifre en az 6 karakter olmalı.')); return; }
   const btn = document.getElementById('regBtn');
-  btn.disabled = true; btn.textContent = 'Kaydediliyor...';
+  btn.disabled = true; btn.textContent = _gCev('giris.kaydediliyor', 'Kaydediliyor...');
   const {data, error} = await sb.auth.signUp({email, password: pass, options: { data: { full_name: fullName } }});
-  if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent='Kayıt Ol'; return; }
+  if(error) { showMsg('err', error.message); btn.disabled=false; btn.textContent=_gCev('giris.kayitol', 'Kayıt Ol'); return; }
 
   _signupName = fullName;
   _signupEmail = email;
@@ -487,28 +494,28 @@ async function doRegister() {
   }
 
   // Confirm email ACIK ise session yok -> 8 haneli kod doğrulama ekrani goster
-  showMsg('ok', email + ' adresine 8 haneli doğrulama kodu gönderildi.');
+  showMsg('ok', _gCev('giris.kodGonderildi', '{eposta} adresine 8 haneli doğrulama kodu gönderildi.').replace('{eposta}', function () { return email; }));
   document.getElementById('registerForm').innerHTML =
     '<div class="field">' +
-      '<label>E-posta</label>' +
+      '<label>' + _gCev('giris.eposta', 'E-posta') + '</label>' +
       '<input type="email" id="suEmail" value="' + email + '" readonly style="opacity:.6;">' +
     '</div>' +
     '<div class="field">' +
-      '<label>E-postanıza gelen 8 haneli kod</label>' +
+      '<label>' + _gCev('giris.gelenKod', 'E-postanıza gelen 8 haneli kod') + '</label>' +
       '<input type="text" id="suCode" placeholder="00000000" maxlength="8" inputmode="numeric" autocomplete="one-time-code" ' +
         'style="letter-spacing:.3em;font-size:20px;text-align:center;" ' +
         'onkeydown="if(event.key===\'Enter\') verifySignup()">' +
     '</div>' +
-    '<button class="btn-primary" onclick="verifySignup()">Kodu Doğrula</button>' +
-    '<button class="forgot" onclick="location.reload()">&larr; Geri dön</button>';
+    '<button class="btn-primary" onclick="verifySignup()">' + _gCev('giris.koduDogrula', 'Kodu Doğrula') + '</button>' +
+    '<button class="forgot" onclick="location.reload()">&larr; ' + _gCev('giris.geriDon', 'Geri dön') + '</button>';
 }
 
 async function verifySignup() {
   const email = _signupEmail || (document.getElementById('suEmail') ? document.getElementById('suEmail').value.trim() : '');
   const token = document.getElementById('suCode').value.trim();
-  if(!token || token.length < 8) { showMsg('err','8 haneli kodu girin.'); return; }
+  if(!token || token.length < 8) { showMsg('err',_gCev('giris.kodGirin', '8 haneli kodu girin.')); return; }
   const {data, error} = await sb.auth.verifyOtp({ email, token, type: 'signup' });
-  if(error) { showMsg('err', 'Kod hatalı veya süresi dolmuş.'); return; }
+  if(error) { showMsg('err', _gCev('giris.kodHatali', 'Kod hatalı veya süresi dolmuş.')); return; }
   if(data && data.session) {
     localStorage.setItem('sb_token', data.session.access_token);
     localStorage.setItem('sb_refresh', data.session.refresh_token);
@@ -520,36 +527,36 @@ async function verifySignup() {
 
 async function doReset() {
   const email = document.getElementById('loginEmail').value.trim();
-  if(!email) { showMsg('err','Önce e-posta adresinizi girin.'); return; }
+  if(!email) { showMsg('err',_gCev('giris.onceEposta', 'Önce e-posta adresinizi girin.')); return; }
   const {error} = await sb.auth.signInWithOtp({
     email,
     options: { shouldCreateUser: false }
   });
   if(error) { showMsg('err', error.message); return; }
-  showMsg('ok','8 haneli kod e-postanıza gönderildi.');
+  showMsg('ok',_gCev('giris.kodEpostaya', '8 haneli kod e-postanıza gönderildi.'));
   // OTP giriş formunu göster
   document.getElementById('loginForm').innerHTML = `
     <div class="field">
-      <label>E-posta</label>
+      <label>${_gCev('giris.eposta', 'E-posta')}</label>
       <input type="email" id="otpEmail" value="${email}" readonly style="opacity:.6;">
     </div>
     <div class="field">
-      <label>E-postanıza gelen 8 haneli kod</label>
+      <label>${_gCev('giris.gelenKod', 'E-postanıza gelen 8 haneli kod')}</label>
       <input type="text" id="otpCode" placeholder="00000000" maxlength="8" autocomplete="one-time-code"
         style="letter-spacing:.3em;font-size:20px;text-align:center;"
         onkeydown="if(event.key==='Enter') verifyOtp()">
     </div>
-    <button class="btn-primary" onclick="verifyOtp()">Kodu Doğrula</button>
-    <button class="forgot" onclick="location.reload()">← Geri dön</button>
+    <button class="btn-primary" onclick="verifyOtp()">${_gCev('giris.koduDogrula', 'Kodu Doğrula')}</button>
+    <button class="forgot" onclick="location.reload()">← ${_gCev('giris.geriDon', 'Geri dön')}</button>
   `;
 }
 
 async function verifyOtp() {
   const email = document.getElementById('otpEmail').value.trim();
   const token = document.getElementById('otpCode').value.trim();
-  if(!token || token.length < 8) { showMsg('err','8 haneli kodu girin.'); return; }
+  if(!token || token.length < 8) { showMsg('err',_gCev('giris.kodGirin', '8 haneli kodu girin.')); return; }
   const {data, error} = await sb.auth.verifyOtp({ email, token, type: 'email' });
-  if(error) { showMsg('err', 'Kod hatalı veya süresi dolmuş.'); return; }
+  if(error) { showMsg('err', _gCev('giris.kodHatali', 'Kod hatalı veya süresi dolmuş.')); return; }
   if(data.session) {
     localStorage.setItem('sb_token', data.session.access_token);
     localStorage.setItem('sb_refresh', data.session.refresh_token);
