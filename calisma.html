@@ -136,7 +136,7 @@
 /* Telefonda sürükleme yok — metin yanıltmasın. */
 @media (hover:none) and (pointer:coarse) {
   .yk-birak-ana { display:none; }
-  .yk-birak-alt::before { content:'Dosya seç · '; }
+  .yk-birak-alt::before { content:var(--ca-dosya-sec, 'Dosya seç · '); }
 }
 
 /* Oynatıcı */
@@ -158,7 +158,7 @@
 /* "10 sn" bilgisi ikonun İÇİNDE değil ALTINDA — dairede yer yok, üst üste
    binince okunmuyordu. */
 .oy-tus[data-etiket] .oy-yuvarlak::after {
-  content:'10 sn'; position:absolute; bottom:-17px; left:50%;
+  content:var(--ca-on-sn, '10 sn'); position:absolute; bottom:-17px; left:50%;
   transform:translateX(-50%); font-size:10px; font-weight:600;
   color:var(--text3); white-space:nowrap; pointer-events:none;
 }
@@ -559,6 +559,18 @@ function _caCev(anahtar, tr) {
   try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
   catch (e) { return tr; }
 }
+// (2026-09-27) CSS `content` içindeki metinler çevrilemiyordu. Değer CSS
+// değişkeninden okunuyor (varsayılanı Türkçe, CSS'te); burada dile göre
+// dolduruluyor ve dil değişince tazeleniyor.
+function _caCssMetin() {
+  try {
+    const kok = document.documentElement.style;
+    kok.setProperty('--ca-dosya-sec', JSON.stringify(_caCev('ca.dosyaSecOn', 'Dosya seç · ')));
+    kok.setProperty('--ca-on-sn', JSON.stringify(_caCev('ca.onSn', '10 sn')));
+  } catch (e) {}
+}
+_caCssMetin();
+window.addEventListener('dil-degisti', _caCssMetin);
 
 // ── Sunucu bağlantısı ─────────────────────────────────────────────────────
 // (2026-08-24 DÜZELTME) SUPA_URL / SUPA_KEY BURADA TANIMLANMIYOR.
@@ -1499,7 +1511,7 @@ function rbBagliCiz() {
   if (rbCalar && rbCalar.calisiyorMu() && rbBagli[simdi]) {
     s.textContent = (simdi + 1) + ' / ' + rbBagli.length + ' · ' + rbBagli[simdi].ritim.ad;
   } else {
-    s.textContent = rbBagli.length ? rbBagli.length + ' ' + _caCev('ca.rbRitim', 'ritim') : '';
+    s.textContent = rbBagli.length ? rbBagli.length + ' ' + (rbBagli.length === 1 ? _caCev('ca.rbRitimTek', 'ritim') : _caCev('ca.rbRitim', 'ritim')) : '';
   }
 }
 
