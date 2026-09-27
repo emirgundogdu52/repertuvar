@@ -302,7 +302,7 @@ async function loadAll() {
       : await sb.from('solistler').select('*').eq('user_id', uid).order('name');
     if (error) throw error;
     artists = data;
-    setSyncStatus('ok', 'Senkronize');
+    setSyncStatus('ok', _soCev('rep.senkronize','Senkronize'));
     renderList();
     if (selectedId) renderDetail();
     else if (artists.length) { selectedId = artists[0].id; renderList(); renderDetail(); }
@@ -337,7 +337,7 @@ function renderList() {
       <div class="artist-avatar">${initials(a.name)}</div>
       <div class="artist-info">
         <div class="artist-name">${a.name}</div>
-        <div class="artist-sub">${a.phone || a.email || (_soCev('so.eserSayisi','{n} eser').replace('{n}', (a.works||[]).length))}</div>
+        <div class="artist-sub">${a.phone || a.email || (((a.works||[]).length === 1 ? _soCev('so.eserSayisiTek','{n} eser') : _soCev('so.eserSayisi','{n} eser')).replace('{n}', (a.works||[]).length))}</div>
       </div>
     </div>`).join('');
 }
@@ -411,7 +411,7 @@ async function saveArtist() {
     email: document.getElementById('fEmail').value.trim() || null,
     notes: document.getElementById('fNotes').value.trim() || null,
   };
-  setSyncStatus('loading', 'Kaydediliyor...');
+  setSyncStatus('loading', _soCev('rep.kaydediliyor','Kaydediliyor...'));
   try {
     if (editingId) {
       const { data: upd, error } = await sb.from('solistler').update(data).eq('id', editingId).select('id');

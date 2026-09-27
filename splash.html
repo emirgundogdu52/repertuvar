@@ -77,7 +77,13 @@
 Akıllı Sahne ve Repertuvar Yönetimi</div>
   </div>
 
+  <script src="i18n.js"></script>
   <script>
+    // (2026-09-27) Slogan arayuz diline gore; login.html ile ayni anahtarlar.
+    try {
+      if (window.t) document.getElementById('slogan').textContent = t('giris.slogan1') + '\n' + t('giris.slogan2');
+    } catch (e) {}
+
     // Toplam süre ~2.6 sn (eskiden ~8 sn idi: daktilo efekti + 2sn bekleme kaldırıldı)
     function anim(el, props, duration, delay, easing){
       return new Promise(resolve=>{

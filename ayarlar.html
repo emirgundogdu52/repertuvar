@@ -6,7 +6,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Repertuvar — Ayarlar</title>
+<title data-i18n="ay.sayfaBaslik">Repertuvar — Ayarlar</title>
 <link rel="icon" href="Repertuvar_logo.png">
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
@@ -97,7 +97,7 @@ function linkKopyala() {
   navigator.clipboard.writeText(DAVET_URL).then(() => {
     const btn = document.getElementById('kopyalaBtn');
     btn.textContent = _t('ay.kopyalandi','✓ Kopyalandı');
-    setTimeout(() => btn.textContent = '📋 Kopyala', 2000);
+    setTimeout(() => btn.textContent = _t('ay.kopyala','📋 Kopyala'), 2000);
   });
 }
 
@@ -129,7 +129,7 @@ async function davetGonder() {
   if (!email) { 
     msg.style.display = 'block';
     msg.style.color = '#f87171';
-    msg.textContent = 'E-posta adresi girin.';
+    msg.textContent = _t('ay.epostaGirin','E-posta adresi girin.');
     return; 
   }
   const btn = document.getElementById('davetBtn');
@@ -377,14 +377,14 @@ html, body { overflow-x: hidden; }
         <div class="profile-info">
           <div class="profile-name" id="profileName">—</div>
           <div class="profile-email" id="profileEmail">—</div>
-          <div class="profile-role" id="profileRole">Üye</div>
+          <div class="profile-role" id="profileRole" data-i18n="ortak.uye">Üye</div>
         </div>
       </div>
       <div class="setting-row">
         <div style="flex:1;min-width:0;">
           <div class="setting-label" data-i18n="ay.adsoyad">Ad Soyad</div>
           <div class="setting-desc" data-i18n="ay.adsoyad_alt">Eklediğin eserlerde ve grup listelerinde bu isim görünür</div>
-          <input id="setName" type="text" placeholder="Adınız ve soyadınız" autocomplete="name"
+          <input id="setName" type="text" placeholder="Adınız ve soyadınız" data-i18n-ph="giris.adsoyad_ph" autocomplete="name"
             style="margin-top:8px;width:100%;max-width:320px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;box-sizing:border-box;">
           <div id="setNameMsg" style="margin-top:6px;font-size:12px;display:none;"></div>
         </div>
@@ -564,7 +564,7 @@ html, body { overflow-x: hidden; }
       <div class="section-header">
         <span class="section-icon">📋</span>
         <div>
-          <div class="section-title">Önerilerim <span id="pendingCountBadge" style="display:none;background:rgba(249,160,74,.2);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:14px;font-weight:700;border-radius:10px;padding:1px 8px;margin-left:4px;"></span></div>
+          <div class="section-title"><span data-i18n="ay.onerilerim">Önerilerim</span> <span id="pendingCountBadge" style="display:none;background:rgba(249,160,74,.2);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:14px;font-weight:700;border-radius:10px;padding:1px 8px;margin-left:4px;"></span></div>
           <div class="section-subtitle" style="font-size:14px;color:var(--text3);margin-top:2px;" data-i18n="ay.onerilerim_alt">Gönderdiğiniz eser önerileri ve onay durumları</div>
         </div>
       </div>
@@ -855,7 +855,7 @@ function ayarAlanTikla(k) {
   if (i >= 0) _ayarSecili.splice(i, 1); else _ayarSecili.push(k);
   ayarAlanlariCiz();
   const d = document.getElementById('alanDurum');
-  if (d) { d.textContent = 'Kaydedilmedi'; d.style.color = ''; }
+  if (d) { d.textContent = _t('ay.kaydedilmedi','Kaydedilmedi'); d.style.color = ''; }
 }
 
 async function ayarAlanlariTazele() {
@@ -886,7 +886,7 @@ async function alanVarsayilanKaydet() {
     return;
   }
   try {
-    d.style.color = ''; d.textContent = 'Kaydediliyor…';
+    d.style.color = ''; d.textContent = _t('es.kaydediliyor','Kaydediliyor…');
     const uid = getUserId();
     const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
       method: 'PATCH',
@@ -1130,7 +1130,7 @@ async function verifyEmailChange() {
         const pending = await rp.json();
         const badge = document.getElementById('pendingCountBadge');
         if (badge && pending.length > 0) {
-          badge.textContent = pending.length + ' bekliyor';
+          badge.textContent = _t('ay.bekliyorSayi','{n} bekliyor').replace('{n}', pending.length);
           badge.style.display = 'inline';
         }
       }

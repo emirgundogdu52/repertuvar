@@ -298,10 +298,10 @@
   <div class="co-bos" id="bosDurum" style="display:none;">
     <i class="ti ti-music-plus" aria-hidden="true"></i>
     <b data-i18n="ca.kayitYok">Henüz kaydın yok</b>
-    Bir eser seçip kendi çalışma kaydını yükle;<br><span data-i18n="ca.kayitYokAlt">tonunu ve temposunu istediğin gibi ayarla.</span>
+    <span data-i18n="ca.kayitYokUst">Bir eser seçip kendi çalışma kaydını yükle;</span><br><span data-i18n="ca.kayitYokAlt">tonunu ve temposunu istediğin gibi ayarla.</span>
     <br>
     <button class="co-btn" id="ekleBtn" onclick="yeniKayit()">
-      <i class="ti ti-upload" aria-hidden="true"></i> İlk kaydını ekle
+      <i class="ti ti-upload" aria-hidden="true"></i> <span data-i18n="ca.ilkKayit">İlk kaydını ekle</span>
     </button>
   </div>
   </div>
@@ -328,11 +328,11 @@
       <div class="rb-bos" id="rbBagliBos" data-i18n="ca.rbBagliBos">Henüz ritim bağlanmadı. Aşağıdaki bankandan "Esere ekle" ile ekle.</div>
 
       <div class="rb-oynatici">
-        <button class="rt-adim rb-buyuk" onclick="rbOnceki()" aria-label="Önceki"><i class="ti ti-player-skip-back-filled"></i></button>
+        <button class="rt-adim rb-buyuk" onclick="rbOnceki()" aria-label="Önceki" data-i18n-aria="ca.onceki"><i class="ti ti-player-skip-back-filled"></i></button>
         <button class="co-btn rb-cal" id="rbCalBtn" onclick="rbCalDurdur()">
           <i class="ti ti-player-play-filled"></i><span id="rbCalMetin" data-i18n="me.baslat">Başlat</span>
         </button>
-        <button class="rt-adim rb-buyuk" onclick="rbSonraki()" aria-label="Sonraki"><i class="ti ti-player-skip-forward-filled"></i></button>
+        <button class="rt-adim rb-buyuk" onclick="rbSonraki()" aria-label="Sonraki" data-i18n-aria="ca.sonraki"><i class="ti ti-player-skip-forward-filled"></i></button>
         <div class="rb-simdi" id="rbSimdi"></div>
       </div>
 
@@ -433,7 +433,7 @@
       </label>
 
       <button class="co-btn" id="ykGonder" onclick="ykGonder()">
-        <i class="ti ti-cloud-upload" aria-hidden="true"></i> Yükle
+        <i class="ti ti-cloud-upload" aria-hidden="true"></i> <span data-i18n="ca.yukle">Yükle</span>
       </button>
       <div class="yk-ilerleme" id="ykIlerleme" style="display:none;">
         <div class="co-bar"><i style="width:0%"></i></div>
@@ -669,7 +669,7 @@ function ciz() {
   document.getElementById('araKutu').style.display = '';
 
   if (!gosterilecek.length) {
-    liste.innerHTML = '<div class="co-bos" style="padding:24px;">Aramaya uyan kayıt yok.</div>';
+    liste.innerHTML = '<div class="co-bos" style="padding:24px;">' + _caCev('ca.aramaSonucYok', 'Aramaya uyan kayıt yok.') + '</div>';
     return;
   }
 
@@ -690,7 +690,7 @@ function ciz() {
     </div>`;
   }).join('')
   + `<button class="co-btn ikincil" id="ekleBtn" onclick="yeniKayit()" style="align-self:flex-start;">
-       <i class="ti ti-plus" aria-hidden="true"></i> <span data-i18n="ca.yeniKayitEkle">Yeni kayıt ekle</span>
+       <i class="ti ti-plus" aria-hidden="true"></i> <span data-i18n="ca.yeniKayitEkle">${_caCev('ca.yeniKayitEkle', 'Yeni kayıt ekle')}</span>
      </button>`;
 
   kotaCiz();   // yeni eklenen düğmenin de durumu güncellensin
@@ -766,7 +766,7 @@ function ykEserFiltre() {
        <div class="co-ikon"><i class="ti ti-music" aria-hidden="true"></i></div>
        <div><div class="co-ad">${_kacis(e.name)}</div></div>
      </div>`).join('')
-    || '<div class="yk-not">Eser bulunamadı.</div>';
+    || '<div class="yk-not">' + _caCev('ca.eserBulunamadi', 'Eser bulunamadı.') + '</div>';
 }
 
 function _kacis(x) {
@@ -904,7 +904,7 @@ async function ykGonder() {
     });
     if (!up.ok) throw new Error(_caCev('ca.dosyaYuklenemedi','Dosya yüklenemedi: ') + (await up.text()));
     cubuk.style.width = '70%';
-    yazi.textContent = 'Kaydediliyor…';
+    yazi.textContent = _caCev('rk.kaydediliyor', 'Kaydediliyor…');
 
     // 2) Veritabanı satırı — kota tetikleyicisi BURADA çalışır
     const govde = {
@@ -993,7 +993,7 @@ async function ac(id) {
   document.getElementById('oyBaslik').textContent = oyKayit.eserAdi;
   document.getElementById('oyPanel').style.display = 'none';
   document.getElementById('oyDurum').style.display = '';
-  document.getElementById('oyDurum').textContent = 'Ses indiriliyor…';
+  document.getElementById('oyDurum').textContent = _caCev('ca.sesIndiriliyor', 'Ses indiriliyor…');
   document.getElementById('oyKatman').classList.add('acik');
 
   const _sz = document.getElementById('oySoz');
@@ -1097,8 +1097,8 @@ function _oynatIkonu(caliyor) {
       '<rect x="13.5" y="4.5" width="4" height="15" rx="1.2"></rect>'
     : '<polygon points="7,4.5 20,12 7,19.5"></polygon>';
   if (bt) {
-    bt.setAttribute('aria-label', caliyor ? 'Duraklat' : 'Oynat');
-    bt.title = caliyor ? 'Duraklat' : 'Oynat';
+    bt.setAttribute('aria-label', caliyor ? _caCev('ca.duraklat', 'Duraklat') : _caCev('ca.oynat', 'Oynat'));
+    bt.title = caliyor ? _caCev('ca.duraklat', 'Duraklat') : _caCev('ca.oynat', 'Oynat');
   }
 }
 
@@ -1211,7 +1211,7 @@ async function sozleriGetir() {
 // ── Silme: kotayı boşaltmanın tek yolu ────────────────────────────────────
 async function oySil() {
   if (!oyKayit) return;
-  if (!confirm('"' + oyKayit.eserAdi + '" kaydı silinsin mi?')) return;
+  if (!confirm(_caCev('ca.kayitSilOnay', '"{ad}" kaydı silinsin mi?').replace('{ad}', () => oyKayit.eserAdi))) return;
   const t = (typeof getToken === 'function') ? getToken() : localStorage.getItem('sb_token');
   try {
     // Önce satır, sonra dosya. Ters sırada olsaydı satır kalır, dosya
@@ -1233,7 +1233,7 @@ async function oySil() {
     await kotaYukle();
     await kayitlariYukle();
   } catch (e) {
-    alert('Silinemedi: ' + (e && e.message ? e.message : e));
+    alert(_caCev('rep.silinemedi', 'Silinemedi: ') + (e && e.message ? e.message : e));
   }
 }
 
@@ -1299,7 +1299,7 @@ function rbKacis(s) { return String(s || '').replace(/[&<>"]/g, c => ({ '&': '&a
 function rbOzet(r) {
   return r.zaman_sayisi + '/' + (r.zaman_sayisi % 3 === 0 && r.zaman_sayisi > 3 ? 8 : 4) + ' · ' +
     r.olcu_sayisi + ' ' + _caCev('ca.rbOlcu', 'ölçü') + ' · ' + (+r.tempo).toFixed(r.tempo % 1 ? 1 : 0) + ' BPM · ' +
-    (+r.sure_sn).toFixed(1) + ' sn';
+    (+r.sure_sn).toFixed(1) + ' ' + _caCev('ca.sn', 'sn');
 }
 
 // ── Çakışma kilidi (kayıt oynatıcısıyla) ────────────────────────────────
@@ -1339,10 +1339,10 @@ function rbBankaCiz() {
     const ekle = rbEser && !bagliIdler.has(r.id)
       ? `<button class="rb-ikon rb-ekle" onclick="rbBagla('${r.id}')">${_caCev('ca.rbEsereEkle', 'Esere ekle')}</button>` : '';
     const sil = r.owner_id === ben
-      ? `<button class="rb-ikon" onclick="rbRitimSil('${r.id}')" aria-label="Sil"><i class="ti ti-trash"></i></button>` : '';
-    const grup = r.group_id ? ' · <i class="ti ti-users" title="Grupla paylaşılıyor"></i>' : '';
+      ? `<button class="rb-ikon" onclick="rbRitimSil('${r.id}')" aria-label="${_caCev('ortak.sil', 'Sil')}"><i class="ti ti-trash"></i></button>` : '';
+    const grup = r.group_id ? ' · <i class="ti ti-users" title="' + _caCev('ca.grupPaylasiliyor', 'Grupla paylaşılıyor') + '"></i>' : '';
     return `<div class="rb-satir">
-      <button class="rb-ikon rb-oynat" onclick="rbOnizle('${r.id}')" aria-label="Dinle"><i class="ti ${dinliyor ? 'ti-player-stop' : 'ti-player-play'}"></i></button>
+      <button class="rb-ikon rb-oynat" onclick="rbOnizle('${r.id}')" aria-label="${_caCev('ca.dinle', 'Dinle')}"><i class="ti ${dinliyor ? 'ti-player-stop' : 'ti-player-play'}"></i></button>
       <div class="rb-ad"><b>${rbKacis(r.ad)}</b><small>${rbOzet(r)}${grup}</small></div>
       ${ekle}${sil}
     </div>`;
@@ -1489,10 +1489,10 @@ function rbBagliCiz() {
     return `<div class="rb-satir${rbCalar && rbCalar.calisiyorMu() && i === simdi ? ' simdi' : ''}">
       <span class="rb-no">${i + 1}</span>
       <div class="rb-ad"><b>${rbKacis(b.ritim.ad)}</b><small>${rbOzet(b.ritim)}</small></div>
-      <button class="rb-ikon rb-oynat" onclick="rbGit(${i})" aria-label="Buna geç"><i class="ti ti-player-play"></i></button>
-      <button class="rb-ikon" onclick="rbSiraDegistir(${i},-1)" ${!benim || i === 0 ? 'disabled' : ''} aria-label="Yukarı"><i class="ti ti-arrow-up"></i></button>
-      <button class="rb-ikon" onclick="rbSiraDegistir(${i},1)" ${!benim || i === rbBagli.length - 1 ? 'disabled' : ''} aria-label="Aşağı"><i class="ti ti-arrow-down"></i></button>
-      <button class="rb-ikon" onclick="rbBagKaldir(${i})" ${!benim ? 'disabled' : ''} aria-label="Kaldır"><i class="ti ti-x"></i></button>
+      <button class="rb-ikon rb-oynat" onclick="rbGit(${i})" aria-label="${_caCev('ca.bunaGec', 'Buna geç')}"><i class="ti ti-player-play"></i></button>
+      <button class="rb-ikon" onclick="rbSiraDegistir(${i},-1)" ${!benim || i === 0 ? 'disabled' : ''} aria-label="${_caCev('es.yukari', 'Yukarı')}"><i class="ti ti-arrow-up"></i></button>
+      <button class="rb-ikon" onclick="rbSiraDegistir(${i},1)" ${!benim || i === rbBagli.length - 1 ? 'disabled' : ''} aria-label="${_caCev('es.asagi', 'Aşağı')}"><i class="ti ti-arrow-down"></i></button>
+      <button class="rb-ikon" onclick="rbBagKaldir(${i})" ${!benim ? 'disabled' : ''} aria-label="${_caCev('es.kaldir', 'Kaldır')}"><i class="ti ti-x"></i></button>
     </div>`;
   }).join('');
   const s = document.getElementById('rbSimdi');

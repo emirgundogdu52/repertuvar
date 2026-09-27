@@ -208,7 +208,7 @@ body { -webkit-text-size-adjust: 100%; }
 
   <!-- Admin: Yeni Mesaj butonu -->
   <div id="newMsgBtnWrap" class="admin-only" style="display:none;margin-bottom:16px;">
-    <button class="btn-new-msg" onclick="openNewMsgModal()"><i class="ti ti-edit" style="font-size:14px;"></i> Yeni Mesaj</button>
+    <button class="btn-new-msg" onclick="openNewMsgModal()"><i class="ti ti-edit" style="font-size:14px;"></i> <span data-i18n="ms.yeniMesaj">Yeni Mesaj</span></button>
   </div>
 
   <!-- Admin: Duyuru yaz -->
@@ -355,7 +355,7 @@ async function loadMessages() {
     const r = await fetch(url, { headers: H() });
     const data = await r.json();
     if (!Array.isArray(data) || !data.length) {
-      panel.innerHTML = '<div class="empty">Henüz mesaj yok.<br>Admin\'e mesaj göndererek başlayabilirsiniz.</div>';
+      panel.innerHTML = '<div class="empty">' + _msCev('ms.mesajYok','Henüz mesaj yok.') + '<br>' + _msCev('ms.mesajYokAlt','Admin\'e mesaj göndererek başlayabilirsiniz.') + '</div>';
       return;
     }
     const ADMIN_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
@@ -363,7 +363,7 @@ async function loadMessages() {
       const groups = {};
       data.forEach(m => {
         const key = m.from_id || m.from_email;
-        if (!groups[key]) groups[key] = { email: m.from_email || 'Bilinmiyor', messages: [], unread: 0 };
+        if (!groups[key]) groups[key] = { email: m.from_email || _msCev('ist.bilinmiyor','Bilinmiyor'), messages: [], unread: 0 };
         groups[key].messages.push(m);
         if (!m.read_at) groups[key].unread++;
       });
@@ -389,18 +389,18 @@ async function loadMessages() {
       panel.innerHTML = data.map(m => `
         <div class="thread-msg" id="msg-${m.id}">
           <div class="thread-msg-header">
-            <span class="thread-msg-from">Siz</span>
+            <span class="thread-msg-from">${_msCev('ms.siz','Siz')}</span>
             <span class="thread-msg-date">${timeAgo(m.created_at)}</span>
           </div>
           <div class="thread-msg-content">${m.content}</div>
-          ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">Admin Yanıtı · ${timeAgo(m.replied_at)}</div>${m.admin_reply}</div>` : ''}
+          ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">${_msCev('ms.adminYaniti','Admin Yanıtı')} · ${timeAgo(m.replied_at)}</div>${m.admin_reply}</div>` : ''}
           <div class="thread-actions">
-            <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:11px;"></i> Sil</button>
+            <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:11px;"></i> ${_msCev('ortak.sil','Sil')}</button>
           </div>
         </div>`).join('');
     }
   } catch(e) {
-    panel.innerHTML = '<div class="empty">Mesajlar yüklenemedi.</div>';
+    panel.innerHTML = '<div class="empty">' + _msCev('ms.mesajlarYuklenemedi','Mesajlar yüklenemedi.') + '</div>';
   }
 }
 
@@ -412,7 +412,7 @@ function openThread(fromId, email) {
       const unread = data.filter(m => !m.read_at).map(m => m.id);
       if (unread.length) markRead(unread);
       panel.innerHTML = `<div class="thread-header">
-          <button class="btn-back" onclick="loadMessages()"><i class="ti ti-arrow-left"></i> Geri</button>
+          <button class="btn-back" onclick="loadMessages()"><i class="ti ti-arrow-left"></i> ${_msCev('ortak.geri','Geri')}</button>
           <div class="thread-email">${email}</div>
         </div>` +
         data.map(m => `
@@ -422,14 +422,14 @@ function openThread(fromId, email) {
               <span class="thread-msg-date">${timeAgo(m.created_at)}</span>
             </div>
             <div class="thread-msg-content">${m.content}</div>
-            ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">Admin Yanıtı · ${timeAgo(m.replied_at)}</div>${m.admin_reply}</div>` : ''}
+            ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">${_msCev('ms.adminYaniti','Admin Yanıtı')} · ${timeAgo(m.replied_at)}</div>${m.admin_reply}</div>` : ''}
             <div class="thread-actions">
-              ${!m.admin_reply ? `<button class="btn-reply" onclick="toggleReplyThread('${m.id}')"><i class="ti ti-reply"></i> Yanıtla</button>` : ''}
-              <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:11px;"></i> Sil</button>
+              ${!m.admin_reply ? `<button class="btn-reply" onclick="toggleReplyThread('${m.id}')"><i class="ti ti-reply"></i> ${_msCev('ms.yanitla','Yanıtla')}</button>` : ''}
+              <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:11px;"></i> ${_msCev('ortak.sil','Sil')}</button>
             </div>
             <div class="reply-form" id="reply-${m.id}" style="display:none;">
               <textarea placeholder="${_msCev('ms.phYanit','Yanıtınızı yazın...')}" id="replyText-${m.id}" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:12px;font-family:inherit;outline:none;resize:vertical;min-height:70px;margin-top:8px;"></textarea>
-              <button class="btn-send" style="margin-top:8px;padding:7px 16px;font-size:12px;" onclick="sendReply('${m.id}','${fromId}','${email.replace(/'/g,"\\'")}')" data-i18n="ms.gonder">Gönder</button>
+              <button class="btn-send" style="margin-top:8px;padding:7px 16px;font-size:12px;" onclick="sendReply('${m.id}','${fromId}','${email.replace(/'/g,"\\'")}')" data-i18n="ms.gonder">${_msCev('ms.gonder','Gönder')}</button>
             </div>
           </div>`).join('');
       setTimeout(() => { panel.scrollTop = panel.scrollHeight; }, 50);
@@ -468,13 +468,13 @@ async function openNewMsgModal() {
   updateNmCount();
   const list = document.getElementById('nmMemberList');
   if (nmAllMembers.length) { renderNmList(nmAllMembers); return; }
-  list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;" data-i18n="ortak.yukleniyor">Yükleniyor...</div>';
+  list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;" data-i18n="ortak.yukleniyor">' + _msCev('ortak.yukleniyor','Yükleniyor...') + '</div>';
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/profiles?select=id,email,display_name&order=email', { headers: H() });
     nmAllMembers = await r.json();
     renderNmList(nmAllMembers);
   } catch(e) {
-    list.innerHTML = '<div style="padding:12px;color:var(--red);font-size:12px;">Yüklenemedi</div>';
+    list.innerHTML = '<div style="padding:12px;color:var(--red);font-size:12px;">' + _msCev('ms.yuklenemedi','Yüklenemedi') + '</div>';
   }
 }
 
@@ -486,7 +486,7 @@ function renderNmList(members) {
     trMatch((p.display_name || '') + ' ' + (p.email || ''), q)
   ) : members;
   const list = document.getElementById('nmMemberList');
-  if (!filtered.length) { list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;">Sonuç yok</div>'; return; }
+  if (!filtered.length) { list.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;">' + _msCev('ms.sonucYok','Sonuç yok') + '</div>'; return; }
   list.innerHTML = filtered.map(p => {
     const label = p.email || p.display_name || p.id;   // data-email için (gönderim akışı bunu kullanıyor)
     // Satırda isim üstte, e-posta altta: isimle arayan kişinin sonucu görebilmesi için.
@@ -512,7 +512,7 @@ function toggleNmCheck(id) {
 function updateNmCount() {
   const checked = document.querySelectorAll('#nmMemberList input[type=checkbox]:checked');
   const el = document.getElementById('nmSelectedCount');
-  if (el) el.textContent = checked.length ? '(' + checked.length + ' seçili)' : '';
+  if (el) el.textContent = checked.length ? _msCev('ms.seciliSayi','({n} seçili)').replace('{n}', checked.length) : '';
 }
 
 function toggleSelectAll() {
@@ -548,7 +548,7 @@ async function sendNewMessage() {
         })
       })
     ));
-    toast(checked.length + _msCev('ms.uyeyeGonderildiKisa',' üyeye mesaj gönderildi ✓'));
+    toast((checked.length === 1 ? _msCev('ms.uyeyeGonderildiTek','{n} üyeye mesaj gönderildi ✓') : _msCev('ms.uyeyeGonderildi','{n} üyeye mesaj gönderildi ✓')).replace('{n}', checked.length));
     closeNewMsgModal();
     loadMessages();
   } catch(e) { toast(_msCev('mod.hata','Hata: ') + e.message, 'er'); }
@@ -605,7 +605,7 @@ async function loadAnnouncements() {
     const r = await fetch(SUPA_URL + '/rest/v1/announcements?order=created_at.desc', { headers: H() });
     const data = await r.json();
     if (!data.length) {
-      panel.innerHTML = '<div class="empty">Henüz duyuru yok.</div>';
+      panel.innerHTML = '<div class="empty">' + _msCev('ms.duyuruYok','Henüz duyuru yok.') + '</div>';
       return;
     }
     panel.innerHTML = data.map(a => `
@@ -615,7 +615,7 @@ async function loadAnnouncements() {
         <div class="ann-date">${timeAgo(a.created_at)}</div>
       </div>`).join('');
   } catch(e) {
-    panel.innerHTML = '<div class="empty">Duyurular yüklenemedi.</div>';
+    panel.innerHTML = '<div class="empty">' + _msCev('ms.duyurularYuklenemedi','Duyurular yüklenemedi.') + '</div>';
   }
 }
 

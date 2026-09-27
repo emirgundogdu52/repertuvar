@@ -249,18 +249,18 @@ button, .mx-btn, [role="button"] {
     <div class="mx-title" data-i18n="me.ayarlar">Ayarlar</div>
     <div class="mx-switch">
       <div>
-        <div class="mx-switch-label"><i class="ti ti-volume"></i> Ses</div>
+        <div class="mx-switch-label"><i class="ti ti-volume"></i> <span data-i18n="me.ses">Ses</span></div>
         <div class="mx-switch-sub" data-i18n="me.gorselNot">Kapalıyken yalnızca görsel çalışır — prova ortamında işe yarar</div>
       </div>
       <div class="mx-toggle on" id="tgSound"></div>
     </div>
     <div class="mx-switch" style="display:block;">
-      <div class="mx-switch-label" style="margin-bottom:9px;"><i class="ti ti-volume-2"></i> Ses seviyesi <span id="volView" style="margin-left:auto;color:var(--text3);font-size:12px;">85%</span></div>
+      <div class="mx-switch-label" style="margin-bottom:9px;"><i class="ti ti-volume-2"></i> <span data-i18n="me.sesSeviyesi">Ses seviyesi</span> <span id="volView" style="margin-left:auto;color:var(--text3);font-size:12px;">85%</span></div>
       <input type="range" id="volSlider" min="0" max="100" value="85" style="width:100%;accent-color:var(--tempo-color);height:24px;">
     </div>
     <div class="mx-switch">
       <div>
-        <div class="mx-switch-label"><i class="ti ti-bulb"></i> Ekran açık kalsın</div>
+        <div class="mx-switch-label"><i class="ti ti-bulb"></i> <span data-i18n="me.ekranAcik">Ekran açık kalsın</span></div>
         <div class="mx-switch-sub" data-i18n="me.ekranNot">Çalışırken ekran kendiliğinden kararmaz</div>
       </div>
       <div class="mx-toggle" id="tgWake"></div>
@@ -338,9 +338,9 @@ button, .mx-btn, [role="button"] {
     function tempoTerm(v){
       if (v < 40)  return _meCev('me.grave','Grave — çok ağır');
       if (v < 60)  return _meCev('me.largo','Largo — ağır');
-      if (v < 76)  return 'Adagio — sakin';
+      if (v < 76)  return _meCev('me.adagio','Adagio — sakin');
       if (v < 108) return _meCev('me.andante','Andante — yürüyüş temposu');
-      if (v < 120) return 'Moderato — orta';
+      if (v < 120) return _meCev('me.moderato','Moderato — orta');
       if (v < 156) return _meCev('me.allegro','Allegro — canlı');
       if (v < 200) return _meCev('me.vivace','Vivace — hızlı');
       return _meCev('me.presto','Presto — çok hızlı');
@@ -434,7 +434,7 @@ button, .mx-btn, [role="button"] {
       document.querySelectorAll('.mx-beat').forEach(b => b.classList.remove('now'));
       $('stage').classList.remove('pulse');
       $('play').classList.remove('on');
-      $('play').innerHTML = '<i class="ti ti-player-play"></i> <span data-i18n="me.baslat">Başlat</span>';
+      $('play').innerHTML = '<i class="ti ti-player-play"></i> <span data-i18n="me.baslat">' + _meCev('me.baslat','Başlat') + '</span>';
       releaseWake();
     }
 
@@ -563,7 +563,7 @@ button, .mx-btn, [role="button"] {
         { ad:'5/8',  g:[2,3],        not:_meCev('me.turkuler','Türküler') },
         { ad:'5/8',  g:[3,2],        not:_meCev('me.turkuler','Türküler') },
         { ad:'6/8',  g:[3,3],        not:'Halay, Roman' },
-        { ad:'7/8',  g:[2,2,3],      not:'Karadeniz, Ege' },
+        { ad:'7/8',  g:[2,2,3],      not:_meCev('me.karadenizEge','Karadeniz, Ege') },
         { ad:'8/8',  g:[3,2,3],      not:_meCev('me.turkuler','Türküler') },
         { ad:'8/8',  g:[2,3,3],      not:_meCev('me.turkuler','Türküler') },
         { ad:'9/8',  g:[2,2,2,3],    not:'Zeybek' },

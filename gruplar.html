@@ -190,7 +190,7 @@ html { -webkit-text-size-adjust: 100%; }
              `gm_delete` politikası `user_id = auth.uid()` ile kendi satırını
              silmeye İZİN VERİYORDU — eksik olan sadece arayüzdü. -->
         <div id="groupLeaveBtn" style="display:none;flex-shrink:0;">
-          <button class="btn btn-secondary" style="padding:5px 10px;font-size:12px;" onclick="leaveGroup()"><i class="ti ti-logout" style="font-size:13px;"></i> Ayrıl</button>
+          <button class="btn btn-secondary" style="padding:5px 10px;font-size:12px;" onclick="leaveGroup()"><i class="ti ti-logout" style="font-size:13px;"></i> <span data-i18n="gr.ayril">Ayrıl</span></button>
         </div>
       </div>
       <div id="groupDescEl" style="font-size:13px;color:var(--text2);margin-bottom:16px;"></div>
@@ -279,6 +279,11 @@ html { -webkit-text-size-adjust: 100%; }
 function _grCev(anahtar, tr) {
   try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
   catch (e) { return tr; }
+}
+// Tarih bicimi arayuz diliyle ayni olsun (Ingilizce arayuzde Turkce ay adi cikmasin).
+function _grTarihDili() {
+  try { return (window.i18n && window.i18n.dil && window.i18n.dil() === 'en') ? 'en-GB' : 'tr-TR'; }
+  catch (e) { return 'tr-TR'; }
 }
 
 let currentGroup = null;
@@ -574,7 +579,7 @@ function renderMembersList(members) {
         <div class="member-instrument" id="instr-display-${m.user_id}">
           ${_enstrListe(m).length
             ? `<i class="ti ti-guitar-pick" style="font-size:11px;"></i> ${_enstrListe(m).join(', ')}`
-            : '<span style="color:var(--text3);font-style:italic;">Enstrüman belirtilmemiş</span>'}
+            : '<span style="color:var(--text3);font-style:italic;">' + _grCev('gr.enstrumanYok','Enstrüman belirtilmemiş') + '</span>'}
         </div>
         <div id="instr-edit-${m.user_id}" style="display:none;margin-top:6px;">
           <div id="instr-chips-${m.user_id}" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;"></div>
@@ -582,14 +587,14 @@ function renderMembersList(members) {
                  list="instrOneriler" placeholder="${_grCev('gr.phEnstruman','Enstrüman yazın, Enter ile ekleyin...')}"
                  onkeydown="if(event.key==='Enter'){event.preventDefault();_enstrEkle('${m.user_id}');}">
           <div style="display:flex;gap:6px;margin-top:6px;">
-            <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="_enstrEkle('${m.user_id}')">+ Ekle</button>
-            <button class="btn btn-primary" style="padding:4px 12px;font-size:11px;" onclick="saveInstrument('${m.user_id}')" data-i18n="ortak.kaydet">Kaydet</button>
-            <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="cancelInstrument('${m.user_id}')" data-i18n="ortak.iptal">İptal</button>
+            <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="_enstrEkle('${m.user_id}')">${_grCev('gr.ekleArti','+ Ekle')}</button>
+            <button class="btn btn-primary" style="padding:4px 12px;font-size:11px;" onclick="saveInstrument('${m.user_id}')" data-i18n="ortak.kaydet">${_grCev('ortak.kaydet','Kaydet')}</button>
+            <button class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="cancelInstrument('${m.user_id}')" data-i18n="ortak.iptal">${_grCev('ortak.iptal','İptal')}</button>
           </div>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
-        <span class="role-badge ${roleClass[m.role]||'role-member'}">${roleLabels[m.role]||'Üye'}</span>
+        <span class="role-badge ${roleClass[m.role]||'role-member'}">${roleLabels[m.role]||_grCev('gr.uyeBuyuk','Üye')}</span>
         ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="editInstrument('${m.user_id}')"><i class="ti ti-pencil" style="font-size:11px;"></i></button>` : ''}
         ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="addMemberAsSolist('${m.user_id}')" title="${_grCev('gr.solistlereEkle','Solistler listesine ekle')}"><i class="ti ti-microphone" style="font-size:11px;"></i></button>` : ''}
         ${(isAdmin() || userRole==='owner') && m.user_id !== uid ? `
@@ -602,11 +607,11 @@ function renderMembersList(members) {
               <button onclick="pickRole('${m.user_id}','admin')" class="${m.role==='admin'?'active':''}"><i class="ti ti-shield" style="font-size:14px;"></i> ${_grCev('gr.admin','Admin')}</button>
               <button onclick="pickRole('${m.user_id}','owner')" class="${m.role==='owner'?'active':''}"><i class="ti ti-crown" style="font-size:14px;"></i> ${_grCev('gr.kurucu','Kurucu')}</button>
               <div style="border-top:1px solid var(--border);margin:4px 0;"></div>
-              <button onclick="removeMember('${m.user_id}')" style="color:var(--red);"><i class="ti ti-user-minus" style="font-size:14px;"></i> Çıkar</button>
+              <button onclick="removeMember('${m.user_id}')" style="color:var(--red);"><i class="ti ti-user-minus" style="font-size:14px;"></i> ${_grCev('gr.cikar','Çıkar')}</button>
             </div>
           </div>` : ''}
       </div>
-    </div>`).join('') || '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Henüz üye yok.</div>';
+    </div>`).join('') || '<div style="color:var(--text3);font-size:13px;padding:12px 0;">' + _grCev('gr.henuzUyeYok','Henüz üye yok.') + '</div>';
 }
 
 // ── 2026-08-23: KAREKODLU DAVET ───────────────────────────────────────────
@@ -634,7 +639,7 @@ function _qrCiz(link) {
     // Cizildi ama GIZLI durur — kullanici acikca istemeli.
     wrap.style.display = 'none';
     var btn = document.getElementById('inviteQrToggle');
-    if (btn) { btn.style.display = ''; btn.textContent = '📷 Karekodu Göster'; }
+    if (btn) { btn.style.display = ''; btn.textContent = _grCev('gr.karekodGoster','📷 Karekodu Göster'); }
   } catch (e) {
     wrap.style.display = 'none';
     console.warn('karekod cizilemedi:', e);
@@ -683,7 +688,7 @@ async function generateInvite() {
     const link = shareBase + '/login.html?invite=' + invite.token;
     currentInviteLink = link;
     document.getElementById('inviteLinkText').textContent = link;
-    document.getElementById('inviteExpiry').textContent = '⏳ ' + new Date(invite.expires_at).toLocaleDateString('tr-TR', {day:'2-digit',month:'long',year:'numeric'}) + _grCev('gr.tarihineKadar',' tarihine kadar geçerli');
+    document.getElementById('inviteExpiry').textContent = '⏳ ' + _grCev('gr.gecerliTarih','{tarih} tarihine kadar geçerli').replace('{tarih}', new Date(invite.expires_at).toLocaleDateString(_grTarihDili(), {day:'2-digit',month:'long',year:'numeric'}));
     document.getElementById('inviteLinkBox').style.display = '';
     _qrCiz(link);
     _kontenjanYaz(invite);
@@ -722,8 +727,9 @@ async function aktifDavetiYukle() {
 
     document.getElementById('inviteLinkText').textContent = link;
     document.getElementById('inviteExpiry').textContent = '⏳ '
-      + new Date(inv.expires_at).toLocaleDateString('tr-TR',
-          {day:'2-digit',month:'long',year:'numeric'}) + _grCev('gr.tarihineKadar',' tarihine kadar geçerli');
+      + _grCev('gr.gecerliTarih','{tarih} tarihine kadar geçerli').replace('{tarih}',
+          new Date(inv.expires_at).toLocaleDateString(_grTarihDili(),
+          {day:'2-digit',month:'long',year:'numeric'}));
     document.getElementById('inviteLinkBox').style.display = '';
     _qrCiz(link);
     _kontenjanYaz(inv);
@@ -737,7 +743,7 @@ function copyInviteLink() {
 
 function shareViaWhatsApp() {
   if (!currentInviteLink) return;
-  const text = '🎵 ' + (currentGroup?.name || 'Repertuvar') + ' grubuna davetlisiniz!\n\n' + currentInviteLink;
+  const text = _grCev('gr.waDavet','🎵 {ad} grubuna davetlisiniz!').replace('{ad}', currentGroup?.name || 'Repertuvar') + '\n\n' + currentInviteLink;
   window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
 }
 
@@ -803,7 +809,7 @@ function filterMembers(q) {
     trMatch([m.display_name, m.email, _enstrListe(m).join(' '), m.phone].filter(Boolean).join(' '), lq)
   ) : currentMembers;
   if (lq && filtered.length === 0) {
-    document.getElementById('membersList').innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Sonuç bulunamadı.</div>';
+    document.getElementById('membersList').innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0;">' + _grCev('gr.sonucYok','Sonuç bulunamadı.') + '</div>';
   } else {
     renderMembersList(filtered);
   }
@@ -917,7 +923,7 @@ function _enstrCizChips(userId) {
       + '<button onclick="_enstrSil(\'' + userId + '\',' + i + ')" '
       + 'style="background:none;border:none;color:var(--text3);cursor:pointer;'
       + 'font-size:13px;line-height:1;padding:0;">×</button></span>';
-  }).join('') : '<span style="font-size:11px;color:var(--text3);font-style:italic;">Henüz eklenmedi</span>';
+  }).join('') : '<span style="font-size:11px;color:var(--text3);font-style:italic;">' + _grCev('gr.henuzEklenmedi','Henüz eklenmedi') + '</span>';
 }
 
 function _esc(x) {
@@ -1033,7 +1039,7 @@ async function leaveGroup() {
     toast(_grCev('gr.kurucuAyrilamaz','Kurucu gruptan ayrılamaz. Önce kuruculuğu devredin ya da grubu silin.'), 'err');
     return;
   }
-  if (!confirm('"' + g.name + '" grubundan ayrılmak istediğinize emin misiniz?\n\nGrubun repertuvarlarını ve gruba açılmış eserleri artık göremezsiniz. Kendi eserleriniz ve kişisel notlarınız sizde kalır.')) return;
+  if (!confirm(_grCev('gr.ayrilOnay','"{ad}" grubundan ayrılmak istediğinize emin misiniz?\n\nGrubun repertuvarlarını ve gruba açılmış eserleri artık göremezsiniz. Kendi eserleriniz ve kişisel notlarınız sizde kalır.').replace('{ad}', g.name))) return;
 
   try {
     // Satırı KENDİ kimliğimizle ve BU grup için siliyoruz; kaç satır silindiği

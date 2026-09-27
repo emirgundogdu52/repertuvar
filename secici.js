@@ -30,6 +30,12 @@
 
   var cache = {};  // tablo -> [{ad,status}]
 
+  // JS'ten yazilan metinler icin ceviri yardimcisi (IIFE icinde, cakismaz).
+  function _seCev(anahtar, tr) {
+    try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+    catch (e) { return tr; }
+  }
+
   async function load(table) {
     if (cache[table]) return cache[table];
     var col = table === 'makams' ? 'ad' : 'ad,status';
@@ -124,7 +130,7 @@
         return a.ad.localeCompare(b.ad, 'tr');
       });
       matches.slice(0, 40).forEach(function (m) {
-        panel.appendChild(row(m.ad, m.status === 'suggested' ? 'öneri' : '', function () {
+        panel.appendChild(row(m.ad, m.status === 'suggested' ? _seCev('es.seciciOneri', 'öneri') : '', function () {
           input.value = m.ad; close();
         }));
       });
@@ -132,10 +138,10 @@
       // acik liste + tam eslesme yoksa: + ekle
       var exact = list.some(function (x) { return norm(x.ad) === nq; });
       if (!field.closed && q && !exact) {
-        var add = row('+ "' + q + '" ekle', 'yeni öneri', async function () {
+        var add = row(_seCev('es.seciciEkle', '+ "{q}" ekle').replace('{q}', function () { return q; }), _seCev('es.seciciYeniOneri', 'yeni öneri'), async function () {
           var ok = await suggest(field.table, q);
           input.value = q; close();
-          if (!ok) alert('Öneri kaydedilemedi, ama alana yazıldı. Kaydettiğinde yine de eklenir.');
+          if (!ok) alert(_seCev('es.seciciKaydedilemedi', 'Öneri kaydedilemedi, ama alana yazıldı. Kaydettiğinde yine de eklenir.'));
         });
         add.style.borderTop = '1px solid var(--border,#2a3140)';
         add.firstChild.style.color = 'var(--accent,#FFC83D)';
@@ -145,7 +151,7 @@
       if (!panel.children.length) {
         var empty = document.createElement('div');
         empty.style.cssText = 'padding:9px 11px;font-size:12px;color:var(--text2,#9aa6b8);';
-        empty.textContent = field.closed ? 'Eşleşen makam yok' : 'Sonuç yok';
+        empty.textContent = field.closed ? _seCev('es.seciciMakamYok', 'Eşleşen makam yok') : _seCev('es.seciciSonucYok', 'Sonuç yok');
         panel.appendChild(empty);
       }
       open();

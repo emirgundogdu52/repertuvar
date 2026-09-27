@@ -225,8 +225,8 @@
         <div class="rk-alan">
           <span class="rk-etiket" data-i18n="rk.gorunum">Görünüm</span>
           <div class="rk-sayac">
-            <button class="rk-kucuk" onclick="yakinlas(0.5)" aria-label="+"><i class="ti ti-zoom-in"></i></button>
-            <button class="rk-kucuk" onclick="yakinlas(2)" aria-label="−"><i class="ti ti-zoom-out"></i></button>
+            <button class="rk-kucuk" onclick="yakinlas(0.5)" aria-label="+" data-i18n-aria="rk.yakinlas"><i class="ti ti-zoom-in"></i></button>
+            <button class="rk-kucuk" onclick="yakinlas(2)" aria-label="−" data-i18n-aria="rk.uzaklas"><i class="ti ti-zoom-out"></i></button>
             <button class="rk-kucuk" onclick="gorunumSigdir(); cizHepsi();" data-i18n="rk.sigdir">Döngüye sığdır</button>
           </div>
         </div>
@@ -524,7 +524,7 @@ let _guncelleZaman = null;
 function guncelle() {
   if (!kanallar) return;
   const sure = bitisSn - basSn;
-  $('rkSure').textContent = sure.toFixed(3) + ' sn';
+  $('rkSure').textContent = sure.toFixed(3) + ' ' + _rkCev('ca.sn', 'sn');
 
   if (sure > 120) {
     dongu = null;
@@ -766,7 +766,7 @@ $('rkGenel').addEventListener('click', (e) => {
       // BIRAKINCA kesilir (uzun döngüde her harekette kesmek ağır).
       cizgiyiKoy(surukle.tur, c._t(x));
       tempoTuret();
-      $('rkSure').textContent = (bitisSn - basSn).toFixed(3) + ' sn';
+      $('rkSure').textContent = (bitisSn - basSn).toFixed(3) + ' ' + _rkCev('ca.sn', 'sn');
     }
     yenidenCiz();
   });

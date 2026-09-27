@@ -152,7 +152,11 @@ function kalanGun(silinme) {
   if (!silinme) return '';
   const gecen = (Date.now() - new Date(silinme)) / 86400000;
   const kalan = Math.max(0, Math.ceil(30 - gecen));
-  return kalan > 0 ? ' · ' + kalan + _onCev('on.gunKaldi',' gün kaldı') : _onCev('on.bugunKaldirilacak',' · bugün kaldırılacak');
+  // (2026-09-27) Sozlukteki deger '{n} gün kaldı' bicimindeydi ama sayi onune
+  // ekleniyordu; sonuc "5{n} gün kaldı" oluyordu. Tekil icin ayri anahtar.
+  return kalan > 0
+    ? ' · ' + (kalan === 1 ? _onCev('on.gunKaldiTek','{n} gün kaldı') : _onCev('on.gunKaldi','{n} gün kaldı')).replace('{n}', kalan)
+    : _onCev('on.bugunKaldirilacak',' · bugün kaldırılacak');
 }
 
 // (2026-08-15) Yumuşak silmeyi geri alır. Toast 8 saniye duruyor; onu kaçıran
@@ -176,21 +180,21 @@ async function restoreWork(id) {
 
 function cardHtml(w, kind) {
   const badge = (kind === 'deleted')
-    ? '<span class="badge deleted">🗑 Silindi' + kalanGun(w.deleted_at) + '</span>'
+    ? '<span class="badge deleted">' + _onCev('on.rozetSilindi','🗑 Silindi') + kalanGun(w.deleted_at) + '</span>'
     : (kind === 'draft')
-      ? '<span class="badge private">🔒 Gizli taslak</span>'
+      ? '<span class="badge private">' + _onCev('on.rozetTaslak','🔒 Gizli taslak') + '</span>'
       : (kind === 'pending'
-          ? '<span class="badge pending">⏳ Onay bekliyor</span>'
-          : '<span class="badge approved">✓ Yayımlandı</span>');
+          ? '<span class="badge pending">' + _onCev('on.rozetBekliyor','⏳ Onay bekliyor') + '</span>'
+          : '<span class="badge approved">' + _onCev('on.rozetYayimlandi','✓ Yayımlandı') + '</span>');
   // Silinmiş eser DÜZENLENMEZ — önce geri alınması gerekir; yoksa kullanıcı
   // silinmiş bir kaydı düzenleyip kaybolmasına şaşırırdı.
   let actions = (kind === 'deleted')
-    ? '<button class="btn-restore" onclick="restoreWork(' + w.id + ')">↩︎ Geri Al</button>'
+    ? '<button class="btn-restore" onclick="restoreWork(' + w.id + ')">' + _onCev('on.geriAlBtn','↩︎ Geri Al') + '</button>'
     : '<a href="' + editUrl(w.id) + '" class="btn-edit">' + _onCev('rep.duzenle','Düzenle') + '</a>'
       + '<button class="btn-soz" onclick="sozAcKapa(this, ' + w.id + ')">' + _onCev('on.sozleriAc','🎵 Sözleri Aç') + '</button>';
   if (kind === 'pending') {
     actions += '<a href="repertoires.html?add_work=' + w.id + '" class="btn-add">' + _onCev('es.repertuvaraEkle','Repertuvara Ekle') + '</a>'
-             + '<button class="btn-retract" onclick="retractSuggestion(' + w.id + ')">Öneriyi Geri Çek</button>';
+             + '<button class="btn-retract" onclick="retractSuggestion(' + w.id + ')">' + _onCev('on.geriCekBtn','Öneriyi Geri Çek') + '</button>';
   }
   return '<div class="card">'
     + '<div class="card-header"><div class="card-name">' + esc(w.name || '—') + '</div>' + badge + '</div>'
@@ -254,7 +258,7 @@ function section(title, desc, items, kind, emptyText) {
 async function loadSuggestions() {
   const panel = document.getElementById('listPanel');
   const uid = getUserId();
-  if (!uid) { panel.innerHTML = '<div class="empty">Giriş yapılmamış.</div>'; return; }
+  if (!uid) { panel.innerHTML = '<div class="empty">' + _onCev('on.girisYok','Giriş yapılmamış.') + '</div>'; return; }
   try {
     const r = await fetch(
       SUPA_URL + '/rest/v1/works?submitted_by=eq.' + uid + '&order=id.desc&select=id,name,composer,makam,status,visibility,submitted_at,deleted_at',
@@ -262,7 +266,7 @@ async function loadSuggestions() {
     );
     const data = await r.json();
     if (!Array.isArray(data) || !data.length) {
-      panel.innerHTML = '<div class="empty">Henüz eser eklemediniz.<br><a href="eserler.html">Eserler sayfasından ekleyebilirsiniz →</a></div>';
+      panel.innerHTML = '<div class="empty">' + _onCev('on.bos1','Henüz eser eklemediniz.') + '<br><a href="eserler.html">' + _onCev('on.bos2','Eserler sayfasından ekleyebilirsiniz →') + '</a></div>';
       return;
     }
     // Gizli taslaklar öneri DEĞİLDİR — ayrı bölümde. Bir eser hem gizli hem
@@ -287,11 +291,11 @@ async function loadSuggestions() {
       + section(_onCev('on.yayimlanan','✓ Yayımlanan Eserlerim'),
                 _onCev('on.yayimlananAlt','Kataloğa girmiş, herkesin görebildiği eserleriniz.'),
                 approved, 'approved', '')
-      + section('🗑 Silinenler',
+      + section(_onCev('on.silinenler','🗑 Silinenler'),
                 _onCev('on.copAlt','Silinen eserler 30 gün burada bekler, sonra kalıcı olarak kaldırılır. Bu süre içinde geri alabilirsiniz.'),
                 deleted, 'deleted', '');
   } catch(e) {
-    panel.innerHTML = '<div class="empty">Yüklenemedi: ' + esc(e.message) + '</div>';
+    panel.innerHTML = '<div class="empty">' + _onCev('uye.yuklenemedi','Yüklenemedi: ') + esc(e.message) + '</div>';
   }
 }
 
