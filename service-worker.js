@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
-const CACHE_NAME = 'repertuvar-v519';
+const CACHE_NAME = 'repertuvar-v520';
 
 // (2026-09-27, Offline Düzeltme 2) DEPLOY SONRASI OFFLINE KAYBI KAPATILDI.
 // Eskiden burada yalnız '/' ve '/index.html' vardı ve activate eski önbelleği
@@ -41,6 +41,19 @@ const PRECACHE = [
   '/pwa-192.png', '/pwa-512.png', '/assets/pedal-foto.png',
 ];
 
+// (2026-09-27) DIŞ KAYNAKLAR: ikon fontu offline'da kayboluyordu (farklı origin
+// olduğu için SW hiç dokunmuyordu). Yalnız SÜRÜMÜ SABİT olanlar cache-first:
+// Tabler ikon fontu @3.x ve Google Fonts. supabase-js@2 gibi hareketli etiketler
+// BİLEREK dışarıda — önbellekte eski bir kütüphane sürümünde donmasın.
+function disOnbellekMi(u) {
+  if (u.hostname === 'cdn.jsdelivr.net') return u.pathname.indexOf('/npm/@tabler/icons-webfont@3.') === 0;
+  return u.hostname === 'fonts.googleapis.com' || u.hostname === 'fonts.gstatic.com';
+}
+const DIS_PRECACHE = [
+  'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css',
+  'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0',
+];
+
 // ── INSTALL: uygulama kabuğunu önbelleğe al ──
 // Dosya dosya indiriliyor: addAll tek bir 404'te HİÇBİR ŞEYİ yazmıyordu (ve hata
 // yutuluyordu). `cache: 'reload'` tarayıcının HTTP önbelleğini atlar — yeni
@@ -54,10 +67,16 @@ self.addEventListener('install', (event) => {
           if (res && res.ok && res.type === 'basic') return cache.put(url, res);
           throw new Error(url + ' ' + (res && res.status));
         })
-      )))
+      ).concat(DIS_PRECACHE.map((url) =>
+        // Önbellekte zaten varsa (sürüm sabit) yeniden indirme.
+        cache.match(url).then((var_) => var_ || fetch(url, { mode: 'cors' }).then((res) => {
+          if (res && res.ok) return cache.put(url, res);
+          throw new Error(url + ' ' + (res && res.status));
+        }))
+      ))))
       .then((sonuc) => {
         const hata = sonuc.filter((s) => s.status === 'rejected').length;
-        if (hata) console.warn('[SW] önbelleğe alınamayan dosya:', hata, '/', PRECACHE.length);
+        if (hata) console.warn('[SW] önbelleğe alınamayan dosya:', hata, '/', PRECACHE.length + DIS_PRECACHE.length);
       })
       .then(() => self.skipWaiting()) // yeni SW beklemeden aktifleşsin
   );
@@ -158,6 +177,22 @@ function cacheFirst(request) {
   });
 }
 
+// Dış kaynak (ikon fontu, Google Fonts) — cache-first. <link> ile gelen stil
+// istekleri no-cors olduğu için yanıt "opaque" olabilir; o da saklanır (durumu
+// okunamaz ama tarayıcı stil olarak kullanabilir). Ne ağ ne önbellek varsa boş 503.
+function disCacheFirst(request) {
+  return caches.match(request).then((cached) => {
+    if (cached) return cached;
+    return fetch(request).then((res) => {
+      if (res && (res.ok || res.type === 'opaque')) {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((c) => c.put(request, copy)).catch(() => {});
+      }
+      return res;
+    }).catch(() => new Response('', { status: 503, statusText: 'Cevrimdisi' }));
+  });
+}
+
 // ── FETCH ──
 self.addEventListener('fetch', (event) => {
   const req = event.request;
@@ -177,7 +212,11 @@ self.addEventListener('fetch', (event) => {
 
   // Supabase / API / farklı origin istekleri: SW'ye uğratma, doğrudan ağa gitsin.
   // (Auth, veri fetch'leri her zaman canlı olmalı; cache'lenmemeli.)
-  if (url.origin !== self.location.origin) return;
+  // İstisna: sürümü sabit ikon fontu + Google Fonts (bkz. disOnbellekMi).
+  if (url.origin !== self.location.origin) {
+    if (disOnbellekMi(url)) event.respondWith(disCacheFirst(req));
+    return;
+  }
   if (url.pathname.includes('/rest/v1/') || url.pathname.includes('/auth/v1/')) return;
 
   const path = url.pathname;

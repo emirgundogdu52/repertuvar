@@ -252,6 +252,9 @@ window.syncOfflineData = async function() {
     if (grpRes.ok) await db.groups.replaceAll(await grpRes.json());
     if (gmRes.ok) await db.group_members.replaceAll(await gmRes.json());
     if (profRes.ok) await db.profiles.replaceAll(await profRes.json());
+    // (2026-09-27, Offline Düzeltme 3) Kişisel katman (akor, ton, not, sahne tercihi).
+    // Ayrı try: buradaki bir hata ana eşitlemeyi ve lastSync/lastSyncOk'u bozmasın.
+    try { await _kisiselSenkron(SUPA_URL, headers, uid); } catch (e) { console.warn('[db] kişisel katman eşitlenemedi:', e); }
 
     await db.meta.set('lastSync', new Date().toISOString());
     // (2026-09-27) `lastSync` istek başarısız olsa da yazılıyordu (mevcut davranış,
@@ -318,8 +321,10 @@ async function _offGet(store, id) {
 window.checkWorkOfflineReady = async function (workId) {
   if (!HAS_IDB) return { status: 'not_ready', reason: 'idb_yok' };
   const w = await _offGet(db.works, workId);
-  if (_eserMetniTamMi(w)) return { status: 'ready' };
-  return { status: window._offlineSyncing ? 'syncing' : 'not_ready', reason: w ? 'eksik_alan' : 'eser_yok' };
+  const kisiselTamam = await _kisiselHazirMi();
+  if (_eserMetniTamMi(w) && kisiselTamam) return { status: 'ready' };
+  return { status: window._offlineSyncing ? 'syncing' : 'not_ready',
+           reason: !w ? 'eser_yok' : (!_eserMetniTamMi(w) ? 'eksik_alan' : 'kisisel_yok') };
 };
 
 window.checkRepertoireOfflineReady = async function (repId) {
@@ -357,6 +362,10 @@ window.checkRepertoireOfflineReady = async function (repId) {
       else sonuc.reason = sonuc.badItems ? 'satir_eksik_alan' : 'eser_eksik';
     }
   }
+  // (2026-09-27, Offline Düzeltme 3) Oturum açık kullanıcının kişisel katmanı
+  // (akor/ton/not) cihazda yoksa sahnede ortak akora düşülür → hazır DEĞİL.
+  sonuc.kisisel = await _kisiselHazirMi();
+  if (sonuc.status === 'ready' && !sonuc.kisisel) { sonuc.status = 'not_ready'; sonuc.reason = 'kisisel_yok'; }
   // Eksik varken eşitleme sürüyorsa "hazırlanıyor"; bitmişse "hazır değil".
   if (sonuc.status === 'not_ready' && window._offlineSyncing) sonuc.status = 'syncing';
 
@@ -368,6 +377,85 @@ window.checkRepertoireOfflineReady = async function (repId) {
   } catch (e) {}
   return sonuc;
 };
+
+// ── KİŞİSEL KATMAN ÖNBELLEĞİ (2026-09-27, Offline Düzeltme 3) ─────────────────
+// Kişisel akor + ton kaydırma (personal_chords), kişisel not (personal_work_notes)
+// ve "sahnede kişisel notu göster" tercihi (profiles.sahne_kisisel_not) eskiden
+// YALNIZ canlı çekiliyordu; offline'da sessizce ortak akora dönülüyordu.
+// Artık mevcut `meta` store'unda tek kayıt: meta['kisisel'] =
+//   { uid, chords: {work_id: {chords, transpose}}, notes: {work_id: metin},
+//     sahneKisiselNot: bool|null, chordsAt, notesAt }
+// Kayıt KULLANICIYA bağlı: uid tutmazsa okunmaz (cihazı paylaşan 2. kullanıcı).
+// Çıkışta clearOfflineData zaten meta'yı siliyor. Yeni store / şema değişikliği yok.
+const _KISISEL = 'kisisel';
+function _aktifUid() {
+  try {
+    if (typeof getUserId === 'function') return getUserId();
+    const u = JSON.parse(localStorage.getItem('sb_user') || 'null');
+    return (u && u.id) || null;
+  } catch (e) { return null; }
+}
+window._kisiselAkorSatirlari = function (rows) {
+  const c = {};
+  (rows || []).forEach((x) => {
+    if (x.chords || x.transpose) c[String(x.work_id)] = { chords: x.chords || '', transpose: parseInt(x.transpose) || 0 };
+  });
+  return c;
+};
+window._kisiselNotSatirlari = function (rows) {
+  const n = {};
+  (rows || []).forEach((x) => { if (x.note) n[String(x.work_id)] = x.note; });
+  return n;
+};
+window.kisiselOku = async function () {
+  const uid = _aktifUid(); if (!uid) return null;
+  const k = await db.meta.get(_KISISEL);
+  return (k && k.uid === uid) ? k : null;
+};
+async function _kisiselTaban(uid) {
+  const k = await db.meta.get(_KISISEL);
+  return (k && k.uid === uid) ? k : { uid: uid, chords: {}, notes: {}, sahneKisiselNot: null };
+}
+// Ağdan TAM liste geldiğinde: parçayı (chords/notes/sahneKisiselNot + *At) yazar.
+window.kisiselYaz = async function (parca) {
+  const uid = _aktifUid(); if (!uid) return;
+  const k = Object.assign(await _kisiselTaban(uid), parca || {}, { uid: uid });
+  await db.meta.set(_KISISEL, k);
+};
+// Tek eserlik başarılı yazma/silme sonrası önbelleği aynala. *At bayraklarına
+// DOKUNMAZ: tek satır, tam listenin eşitlendiği anlamına gelmez.
+window.kisiselGuncelle = async function (fn) {
+  const uid = _aktifUid(); if (!uid) return;
+  const k = await _kisiselTaban(uid);
+  try { fn(k); } catch (e) { return; }
+  await db.meta.set(_KISISEL, k);
+};
+// syncOfflineData içinden: kişisel katmanı çek. 404 = tablo yok = o katman boş
+// (kesin cevap); ağ hatası / diğer HTTP hataları önbelleğe DOKUNMAZ.
+async function _kisiselSenkron(base, headers, uid) {
+  if (!uid) return;
+  const simdi = new Date().toISOString();
+  const parca = {};
+  let r = await fetch(base + '/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.' + uid, { headers });
+  if (!r.ok && r.status !== 404) r = await fetch(base + '/rest/v1/personal_chords?select=work_id,chords&user_id=eq.' + uid, { headers });
+  if (r.ok) { parca.chords = window._kisiselAkorSatirlari(await r.json()); parca.chordsAt = simdi; }
+  else if (r.status === 404) { parca.chords = {}; parca.chordsAt = simdi; }
+  const n = await fetch(base + '/rest/v1/personal_work_notes?select=work_id,note&user_id=eq.' + uid, { headers });
+  if (n.ok) { parca.notes = window._kisiselNotSatirlari(await n.json()); parca.notesAt = simdi; }
+  else if (n.status === 404) { parca.notes = {}; parca.notesAt = simdi; }
+  try {
+    const p = await fetch(base + '/rest/v1/profiles?select=sahne_kisisel_not&id=eq.' + uid, { headers });
+    if (p.ok) { const rr = await p.json(); parca.sahneKisiselNot = !(rr && rr.length && rr[0].sahne_kisisel_not === false); }
+  } catch (e) {}
+  if (Object.keys(parca).length) await window.kisiselYaz(parca);
+}
+// Offline Hazır için: oturum açık kullanıcının kişisel katmanı en az bir kez
+// TAM eşitlenmiş mi? Oturum yoksa kişisel katman yoktur → engel değil.
+async function _kisiselHazirMi() {
+  const uid = _aktifUid(); if (!uid) return true;
+  const k = await window.kisiselOku();
+  return !!(k && k.chordsAt && k.notesAt);
+}
 
 // Tüm sayfalar aynı metni kullansın diye rozet metni tek yerde.
 window.offlineRozetMetni = function (status) {

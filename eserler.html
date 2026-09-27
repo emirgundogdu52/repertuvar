@@ -3671,6 +3671,10 @@ async function savePersonalTranspose(id, val){
       // Ton tercihi süs bir ayar; kullanıcıyı uyarı penceresiyle rahatsız etmiyoruz
       // ama sessiz kalmıyoruz da — konsola düşsün, teşhis kolay olsun.
       console.warn('[eserler] ton tercihi kaydedilemedi (0 satır) — yetki sorunu olabilir');
+    } else if (window.kisiselGuncelle) {
+      window.kisiselGuncelle(k => {
+        const w = String(parseInt(id)); k.chords[w] = Object.assign({ chords:'', transpose:0 }, k.chords[w], { transpose: parseInt(val) || 0 });
+      }).catch(()=>{});
     }
   } catch(e){ console.warn('[eserler] ton kaydedilemedi:', e.message); }
 }
@@ -3700,14 +3704,20 @@ async function loadPersonalNotes(){
     const uid = (typeof getUserId==='function') ? getUserId() : null;
     if(!uid) return;
     const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY)};
-    const r = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?select=work_id,note&user_id=eq.'+uid, {headers:H});
-    if(!r.ok){ console.warn('[not] personal_work_notes okunamadı — SQL çalıştırıldı mı?', r.status); return; }
-    const rows = await r.json();
+    let notlar = null;   // (2026-09-27, Offline Düzeltme 3) null = ağdan alınamadı
+    try {
+      const r = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?select=work_id,note&user_id=eq.'+uid, {headers:H});
+      if (r.ok) notlar = window._kisiselNotSatirlari ? window._kisiselNotSatirlari(await r.json()) : null;
+      else if (r.status === 404) notlar = {};   // tablo yok = not yok (kesin cevap)
+      else console.warn('[not] personal_work_notes okunamadı — SQL çalıştırıldı mı?', r.status);
+    } catch(e) { /* çevrimdışı */ }
+    if (notlar) { if (window.kisiselYaz) window.kisiselYaz({ notes: notlar, notesAt: new Date().toISOString() }).catch(()=>{}); }
+    else { const onb = window.kisiselOku ? await window.kisiselOku() : null; if (!onb || !onb.notes) return; notlar = onb.notes; }
     PERSONAL_NOTES = {};
-    (rows||[]).forEach(x => { if(x.note) PERSONAL_NOTES[String(x.work_id)] = x.note; });
+    Object.keys(notlar).forEach(w => { if (notlar[w]) PERSONAL_NOTES[String(w)] = notlar[w]; });
     // Detay açıksa tazele — not ağ gecikmesiyle sonradan gelebilir.
     try{ if(selectedId != null) knotCiz(selectedId); }catch(e){}
-  }catch(e){ /* çevrimdışı — kişisel not katmanı atlanır */ }
+  }catch(e){ /* kişisel not katmanı atlanır */ }
 }
 
 // Yazma: 204 tek başına başarı SAYILMAZ, dönen satıra bakılır (bu projede
@@ -3723,13 +3733,15 @@ async function savePersonalNoteRow(id, note){
   if(!r.ok) throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,120));
   const rows = await r.json();
   if(!Array.isArray(rows) || !rows.length) throw new Error(_esCev('es.satirYazilmadi','Sunucu hiçbir satır yazmadı (yetki?)'));
+  if (window.kisiselGuncelle) window.kisiselGuncelle(k => { k.notes[String(parseInt(id))] = note; }).catch(()=>{});
   return rows[0];
 }
 
 async function deletePersonalNoteRow(id){
   const uid = getUserId(); if(!uid) return;
   const H = {'apikey':SUPA_KEY,'Authorization':'Bearer '+(localStorage.getItem('sb_token')||SUPA_KEY)};
-  await fetch(SUPA_URL+'/rest/v1/personal_work_notes?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id), {method:'DELETE', headers:H});
+  const r = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?user_id=eq.'+uid+'&work_id=eq.'+parseInt(id), {method:'DELETE', headers:H});
+  if (r.ok && window.kisiselGuncelle) window.kisiselGuncelle(k => { delete k.notes[String(parseInt(id))]; }).catch(()=>{});
 }
 
 // ── Kişisel not kutusu (eser detayı) ──────────────────────────────────────
@@ -3787,17 +3799,24 @@ async function loadPersonalChords(){
     const H = authHeaders();
     // transpose sütunu henüz eklenmemişse istek 400 döner — o durumda sütunsuz tekrar
     // dene, yoksa kişisel AKORLAR da yüklenemez (sessiz yan hasar).
-    let r = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, { headers:H });
-    if(!r.ok){
-      console.warn('[eserler] transpose sütunu yok gibi görünüyor — SQL çalıştırıldı mı? Sütunsuz deneniyor.');
-      r = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords&user_id=eq.'+uid, { headers:H });
-    }
-    if(!r.ok) return;
-    const rows = await r.json();
+    let akor = null;   // (2026-09-27, Offline Düzeltme 3) null = ağdan alınamadı
+    try {
+      let r = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, { headers:H });
+      if(!r.ok){
+        console.warn('[eserler] transpose sütunu yok gibi görünüyor — SQL çalıştırıldı mı? Sütunsuz deneniyor.');
+        r = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords&user_id=eq.'+uid, { headers:H });
+      }
+      if (r.ok) akor = window._kisiselAkorSatirlari ? window._kisiselAkorSatirlari(await r.json()) : null;
+      else if (r.status === 404) akor = {};   // tablo yok = kişisel akor yok (kesin cevap)
+    } catch(e) { console.warn('[eserler] kişisel akorlar ağdan alınamadı:', e.message); }
+    // Ağdan geldiyse önbelleğe; gelmediyse (çevrimdışı) cihazdaki önbellekten.
+    if (akor) { if (window.kisiselYaz) window.kisiselYaz({ chords: akor, chordsAt: new Date().toISOString() }).catch(()=>{}); }
+    else { const onb = window.kisiselOku ? await window.kisiselOku() : null; if (!onb || !onb.chords) return; akor = onb.chords; }
     PERSONAL_CHORDS = {};
-    (rows||[]).forEach(x=>{
-      if(x.chords) PERSONAL_CHORDS[String(x.work_id)] = x.chords;
-      if(x.transpose) TRANSPOSE[String(x.work_id)] = parseInt(x.transpose) || 0;
+    Object.keys(akor).forEach(w=>{
+      const x = akor[w];
+      if(x.chords) PERSONAL_CHORDS[String(w)] = x.chords;
+      if(x.transpose) TRANSPOSE[String(w)] = parseInt(x.transpose) || 0;
     });
   }catch(e){ console.warn('[eserler] kişisel akorlar yüklenemedi:', e.message); }
 }
@@ -3813,7 +3832,11 @@ async function savePersonalChordsRow(id, chords){
   });
   if (!r.ok && r.status !== 204) return false;
   let rows = []; try { rows = await r.json(); } catch(e) {}
-  return Array.isArray(rows) && rows.length > 0;
+  const yazildi = Array.isArray(rows) && rows.length > 0;
+  if (yazildi && window.kisiselGuncelle) window.kisiselGuncelle(k => {
+    const w = String(parseInt(id)); k.chords[w] = Object.assign({ chords:'', transpose:0 }, k.chords[w], { chords: chords });
+  }).catch(()=>{});
+  return yazildi;
 }
 async function deletePersonalChordsRow(id){
   const uid = getUserId();
@@ -3823,7 +3846,10 @@ async function deletePersonalChordsRow(id){
     method:'DELETE',
     headers:{...authHeaders(),'Prefer':'return=minimal'}
   });
-  return r.ok || r.status===204;
+  const silindi = r.ok || r.status===204;
+  // Satır tamamen silindi: kişisel akor da ton kaydırma da gitti.
+  if (silindi && window.kisiselGuncelle) window.kisiselGuncelle(k => { delete k.chords[String(parseInt(id))]; }).catch(()=>{});
+  return silindi;
 }
 async function deletePersonalChords(id){
   if(!confirm(_esCev('es.kisiselAkorSilOnay','Kişisel akorun silinecek, ortak akora döneceksin. Emin misin?'))) return;

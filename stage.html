@@ -1208,34 +1208,39 @@ async function loadWL() {
       });
     } catch(e) {}
     // Kişisel akor overlay — kullanıcının kendi akoru varsa sahne görünümü ondan türer
+    // (2026-09-27, Offline Düzeltme 3) Ağdan alınamayan her parça (akor+ton / not /
+    // sahne tercihi) IndexedDB'deki kişisel önbellekten gelir (db.js kisiselOku);
+    // ağdan gelen parça önbelleği tazeler. Eskiden offline'da sessizce ortak akora
+    // dönülüyordu.
     try {
       const uid = (typeof getUserId==='function') ? getUserId() : null;
       if (uid) {
         const tok = localStorage.getItem('sb_token') || SUPA_KEY;
         const _pH = {'apikey':SUPA_KEY,'Authorization':'Bearer '+tok};
+        let akor = null, notlar = null, sahneNot = null;   // null = ağdan alınamadı
         // transpose sütunu yoksa istek 400 döner — sütunsuz tekrar dene, yoksa
         // kişisel AKORLAR da yüklenmez (sessiz yan hasar).
-        let pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, {
-          headers:_pH, signal: AbortSignal.timeout(4000)
-        });
-        if (!pr.ok) {
-          console.warn('[stage] transpose sütunu yok gibi — SQL çalıştırıldı mı? Sütunsuz deneniyor.');
-          pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords&user_id=eq.'+uid, {
+        try {
+          let pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, {
             headers:_pH, signal: AbortSignal.timeout(4000)
           });
-        }
+          if (!pr.ok) {
+            console.warn('[stage] transpose sütunu yok gibi — SQL çalıştırıldı mı? Sütunsuz deneniyor.');
+            pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords&user_id=eq.'+uid, {
+              headers:_pH, signal: AbortSignal.timeout(4000)
+            });
+          }
+          if (pr.ok) akor = window._kisiselAkorSatirlari ? window._kisiselAkorSatirlari(await pr.json()) : null;
+          else if (pr.status === 404) akor = {};
+        } catch(e) {}
         // (2026-08-21) Kişisel NOTLAR — akorlarla aynı turda, ayrı tablodan.
-        // Ayrı `try` DEĞİL, aynı blokta: yetki/ağ sorununda ikisi de sessizce
-        // atlanır, sahne yine açılır. Tablo yoksa 404/400 döner, yutulur.
+        // Tablo yoksa 404 döner: o zaman "not yok" kesin cevaptır.
         try {
           const nr = await fetch(SUPA_URL+'/rest/v1/personal_work_notes?select=work_id,note&user_id=eq.'+uid, {
             headers:_pH, signal: AbortSignal.timeout(4000)
           });
-          if (nr.ok) {
-            (await nr.json() || []).forEach(x => {
-              if (x.note) PERSONAL_NOTES[String(parseInt(x.work_id))] = x.note;
-            });
-          }
+          if (nr.ok) notlar = window._kisiselNotSatirlari ? window._kisiselNotSatirlari(await nr.json()) : null;
+          else if (nr.status === 404) notlar = {};
         } catch(e) {}
         // Sahnede notu gösterme tercihi HESAPTA saklanıyor (cihazda değil):
         // telefonda kapatınca tablette de kapalı gelsin.
@@ -1245,13 +1250,30 @@ async function loadWL() {
           });
           if (cr.ok) {
             const crows = await cr.json();
-            if (crows && crows.length && crows[0].sahne_kisisel_not === false) KNOT_GOSTER = false;
+            sahneNot = !(crows && crows.length && crows[0].sahne_kisisel_not === false);
           }
         } catch(e) {}
-        if (pr.ok) {
-          const prows = await pr.json();
-          (prows||[]).forEach(x => {
-            const id = String(parseInt(x.work_id));
+        // Ağdan gelen → önbelleğe; gelmeyen → önbellekten.
+        try {
+          const simdi = new Date().toISOString(), parca = {};
+          if (akor) { parca.chords = akor; parca.chordsAt = simdi; }
+          if (notlar) { parca.notes = notlar; parca.notesAt = simdi; }
+          if (sahneNot !== null) parca.sahneKisiselNot = sahneNot;
+          if (Object.keys(parca).length && window.kisiselYaz) await window.kisiselYaz(parca);
+          if ((!akor || !notlar || sahneNot === null) && window.kisiselOku) {
+            const onb = await window.kisiselOku();
+            if (onb) {
+              if (!akor && onb.chords) akor = onb.chords;
+              if (!notlar && onb.notes) notlar = onb.notes;
+              if (sahneNot === null && typeof onb.sahneKisiselNot === 'boolean') sahneNot = onb.sahneKisiselNot;
+            }
+          }
+        } catch(e) {}
+        if (notlar) Object.keys(notlar).forEach(w => { PERSONAL_NOTES[String(parseInt(w))] = notlar[w]; });
+        if (sahneNot === false) KNOT_GOSTER = false;
+        if (akor) {
+          Object.keys(akor).forEach(w => {
+            const id = String(parseInt(w)), x = akor[w];
             // Ton kaydırma eser başına saklanır (0 ise satır olsa bile etkisiz)
             if (x.transpose) TRANSPOSE[id] = parseInt(x.transpose) || 0;
             if (!x.chords) return;
@@ -1261,7 +1283,7 @@ async function loadWL() {
           });
         }
       }
-    } catch(e) { /* offline / yetki yok — kişisel katman atlanır */ }
+    } catch(e) { /* yetki yok — kişisel katman atlanır */ }
   } catch(e) { console.error('WL yüklenemedi:', e); }
   finally { WL_loaded = true; } // works yükleme denemesi bitti (başarılı/başarısız)
 }// (2026-08-21) KİŞİSEL ESER NOTU — sahnede SALT OKUNUR gösterim.
