@@ -60,6 +60,15 @@ DEGISIKLIK=false
 if [ -n "$(git status --porcelain -- . ':(exclude)service-worker.js')" ]; then
   DEGISIKLIK=true
 fi
+# 2026-09-27: service-worker.js'in KENDİSİ değiştiyse de sürüm artmalı.
+# Eskiden bu dosya kontrolün tamamen dışındaydı: yalnız SW değişen bir deploy'da
+# sürüm artmıyor, canlı doğrulama da eski sürümü görüp "yayında" diyordu
+# (2026-09-27 Offline Düzeltme 2'de oldu). Yarım kalmış bir deploy'un bıraktığı
+# YALNIZ sürüm satırı farkı ise hâlâ değişiklik sayılmıyor (boş commit olmasın).
+if ! $DEGISIKLIK && [ -f service-worker.js ]; then
+  SW_FARK="$(git diff -U0 -- service-worker.js | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | grep -vE 'repertuvar-v[0-9]+')"
+  [ -n "$SW_FARK" ] && DEGISIKLIK=true
+fi
 UNPUSHED=0
 if git rev-parse --verify --quiet origin/main >/dev/null; then
   UNPUSHED=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
