@@ -668,6 +668,61 @@ window.notaIndir = function (anahtar, urls) {
   return _notaIndirme[anahtar];
 };
 
+// ── KUYRUK GÖSTERGESİ (2026-09-27) ────────────────────────────────────────────
+// Çevrimdışı yapılmış ve henüz gönderilmemiş kişisel değişiklik varsa sağ altta
+// küçük bir hap: "⏳ 2 değişiklik bekliyor". Dokununca hemen göndermeyi dener.
+// Kuyruk boşalınca kaybolur. Sahnede (window._stageActive) GİZLİ — performans
+// sırasında dikkat dağıtmasın. Konum canlı güncelleme şeridinin (rt-durum, sol
+// alt) tersi: sağ alt, mobilde alt menünün üstünde.
+(function () {
+  if (typeof document === 'undefined' || typeof window.addEventListener !== 'function') return;
+  var el = null, calisiyor = false;
+  var t = function (k, v) { try { return (window.i18n && window.i18n.t) ? window.i18n.t(k, v) : v; } catch (e) { return v; } };
+  function kaldir() { if (el) { try { el.remove(); } catch (e) {} el = null; } }
+  function metin(n) {
+    return n === 1 ? t('ortak.kuyrukBekliyorTek', '⏳ 1 değişiklik bekliyor')
+                   : t('ortak.kuyrukBekliyor', '⏳ {n} değişiklik bekliyor').replace('{n}', n);
+  }
+  async function tazele() {
+    if (calisiyor) return;
+    var n = 0;
+    try { n = (typeof window.kisiselKuyrukSayisi === 'function') ? await window.kisiselKuyrukSayisi() : 0; } catch (e) {}
+    if (!n || window._stageActive || !document.body) { kaldir(); return; }
+    if (el && !el.isConnected) el = null;   // başka bir kod sayfadan kaldırdıysa yeniden kur
+    if (!el) {
+      el = document.createElement('button');
+      el.type = 'button';
+      el.id = 'kuyruk-durum';
+      el.style.cssText = 'position:fixed;right:16px;' +
+        'z-index:9998;max-width:calc(100vw - 32px);box-sizing:border-box;cursor:pointer;' +
+        'background:rgba(45,212,191,.14);border:1px solid rgba(45,212,191,.5);color:#2dd4bf;' +
+        'padding:7px 13px;border-radius:20px;font:600 12px/1.3 inherit;font-family:inherit;' +
+        'box-shadow:0 6px 18px rgba(0,0,0,.35);';
+      el.onclick = function () {
+        calisiyor = true;
+        el.textContent = t('ortak.kuyrukGonderiliyor', '⏳ Gönderiliyor…');
+        var bitti = function () { calisiyor = false; tazele(); };
+        Promise.resolve(window.kisiselKuyrukGonder ? window.kisiselKuyrukGonder() : null).then(bitti, bitti);
+      };
+      document.body.appendChild(el);
+    }
+    // Konum her tazelemede: ekran döndürülür / pencere daralırsa alt menü değişir.
+    var mobil = window.matchMedia && window.matchMedia('(max-width: 1023px)').matches;
+    el.style.bottom = mobil ? 'calc(84px + env(safe-area-inset-bottom, 0px))' : '16px';
+    el.textContent = metin(n);
+    el.title = t('ortak.kuyrukT', 'Çevrimdışı yaptığın değişiklikler bağlantı gelince kaydedilecek. Hemen denemek için dokun.');
+    el.setAttribute('aria-label', el.title);
+  }
+  window.kuyrukGostergesiTazele = tazele;
+  window.addEventListener('kisisel-kuyruk', tazele);
+  window.addEventListener('stageEnter', kaldir);
+  window.addEventListener('stageExit', function () { setTimeout(tazele, 300); });
+  window.addEventListener('online', function () { setTimeout(tazele, 2500); });   // eşitleme göndermiş olabilir
+  window.addEventListener('resize', function () { if (el) tazele(); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(tazele, 600); });
+  else setTimeout(tazele, 600);
+})();
+
 // Tüm sayfalar aynı metni kullansın diye rozet metni tek yerde.
 window.offlineRozetMetni = function (status) {
   const t = (k, v) => { try { return (window.i18n && window.i18n.t) ? window.i18n.t(k, v) : v; } catch (e) { return v; } };
