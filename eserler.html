@@ -4048,6 +4048,96 @@ function notaPagesById(id) {
 }
 function isNotaImage(u) { return /\.(jpe?g|png|gif|webp|heic|tiff?)(\?|$)/i.test(u || ''); }
 
+// ── PDF NOTA — eser detayında sayfa sayfa (2026-09-27) ────────────────────────
+// Eskiden PDF yalnız "📄 Nota dosyası (PDF) + ↗ Aç" kartıydı. Artık sahnedeki gibi
+// pdf.js (yerel pdf.min.js, sürüm 3.11.174) ile her sayfa ayrı canvas'a çizilir.
+// Bu sekme TÜM sayfaları alt alta gösterdiği için çizim TEMBEL: sayfa ekrana
+// yaklaşınca (IntersectionObserver) çizilir — 20 sayfalık PDF telefonda yüzlerce
+// MB bellek yemesin; sekme gizliyken hiçbir şey çizilmez. PDF `fetch` ile TAM
+// alınır → service worker'ın nota önbelleğinden geçer, offline'da da açılır.
+function isNotaPdf(u) { return /\.pdf(\?|#|$)/i.test(u || ''); }
+const _esPdfBelgeler = {};
+let _esPdfKutuphaneSoz = null, _esPdfGozlemci = null;
+function _esPdfKutuphane() {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (!_esPdfKutuphaneSoz) _esPdfKutuphaneSoz = new Promise((coz, red) => {
+    const s = document.createElement('script');
+    s.src = 'pdf.min.js';
+    s.onload = () => { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js'; coz(window.pdfjsLib); } catch (e) { red(e); } };
+    s.onerror = () => { _esPdfKutuphaneSoz = null; red(new Error('pdf.js yüklenemedi')); };
+    document.head.appendChild(s);
+  });
+  return _esPdfKutuphaneSoz;
+}
+function _esPdfBelge(url) {
+  if (!_esPdfBelgeler[url]) {
+    _esPdfBelgeler[url] = _esPdfKutuphane()
+      .then(lib => fetch(url).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
+      .then(buf => lib.getDocument({ data: buf }).promise))
+      .catch(e => { delete _esPdfBelgeler[url]; throw e; });
+  }
+  return _esPdfBelgeler[url];
+}
+function _esPdfSayfaCiz(cv) {
+  const url = cv.getAttribute('data-pdf'), no = parseInt(cv.getAttribute('data-sayfa')) || 1;
+  _esPdfBelge(url).then(doc => doc.getPage(no)).then(sayfa => {
+    if (!cv.isConnected) return;
+    const v1 = sayfa.getViewport({ scale: 1 });
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const hedefW = Math.min(1600, Math.max(600, (cv.clientWidth || 800) * dpr));
+    const v = sayfa.getViewport({ scale: hedefW / v1.width });
+    cv.width = Math.floor(v.width); cv.height = Math.floor(v.height);
+    cv.style.aspectRatio = v1.width + ' / ' + v1.height;   // bu sayfanın gerçek oranı
+    return sayfa.render({ canvasContext: cv.getContext('2d'), viewport: v }).promise
+      .then(() => cv.setAttribute('data-cizildi', '1'));
+  }).catch(() => {});
+}
+function _esPdfCiz() {
+  const kutular = document.querySelectorAll('.es-pdf[data-pdf]:not([data-hazir])');
+  if (!kutular.length) return;
+  if (!_esPdfGozlemci && 'IntersectionObserver' in window) {
+    _esPdfGozlemci = new IntersectionObserver((girdiler) => {
+      girdiler.forEach(g => { if (g.isIntersecting) { _esPdfGozlemci.unobserve(g.target); _esPdfSayfaCiz(g.target); } });
+    }, { rootMargin: '600px 0px' });
+  }
+  kutular.forEach(kutu => {
+    kutu.setAttribute('data-hazir', '1');
+    const url = kutu.getAttribute('data-pdf');
+    // Yer tutucular çizilmeden önce GERÇEK yükseklikte olmalı (ilk sayfanın oranı);
+    // yoksa hepsi kısa kalır, birlikte ekrana sığar ve tembel çizim işe yaramaz.
+    _esPdfBelge(url).then(doc => doc.getPage(1).then(p1 => {
+      const v1 = p1.getViewport({ scale: 1 });
+      return { doc, oran: v1.width + ' / ' + v1.height };
+    })).then(({ doc, oran }) => {
+      if (!kutu.isConnected) return;
+      kutu.innerHTML = '';
+      for (let n = 1; n <= doc.numPages; n++) {
+        const sar = document.createElement('div');
+        sar.style.cssText = 'margin-bottom:10px;';
+        if (doc.numPages > 1) {
+          const no = document.createElement('div');
+          no.style.cssText = 'font-size:11px;color:var(--text3);margin-bottom:4px;';
+          no.textContent = _esCev('es.pdfSayfa', 'PDF sayfa {i} / {n}').replace('{i}', n).replace('{n}', doc.numPages);
+          sar.appendChild(no);
+        }
+        const cv = document.createElement('canvas');
+        cv.setAttribute('data-pdf', url); cv.setAttribute('data-sayfa', n);
+        cv.setAttribute('role', 'img');
+        cv.setAttribute('aria-label', _esCev('es.pdfSayfa', 'PDF sayfa {i} / {n}').replace('{i}', n).replace('{n}', doc.numPages));
+        cv.width = 0; cv.height = 0;   // HTML varsayılanı 300×150; çizilene kadar boş kalsın
+        cv.style.cssText = 'width:100%;height:auto;aspect-ratio:' + oran + ';display:block;border-radius:8px;border:1px solid var(--border);background:#fff;';
+        sar.appendChild(cv);
+        kutu.appendChild(sar);
+        if (_esPdfGozlemci) _esPdfGozlemci.observe(cv); else _esPdfSayfaCiz(cv);
+      }
+    }).catch(() => {
+      if (!kutu.isConnected) return;
+      kutu.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;color:var(--text2);">'
+        + _esCev('es.pdfAcilamadi', '📄 PDF burada açılamadı — bağlantı yoksa bu nota henüz cihaza indirilmemiş olabilir. Aşağıdaki bağlantıyla açmayı deneyebilirsin.') + '</div>';
+    });
+  });
+}
+
 // SUNUCUDAN TAZE liste: yerel kopya bayatsa (ya da başka cihazdan sayfa
 // eklendiyse) yeni sayfa eskisini EZMESİN diye eklemeden önce buradan okunur.
 async function currentNotaPages(id) {
@@ -4102,6 +4192,9 @@ function renderNotaPagesBlock(w) {
       </div>
       ${isNotaImage(u)
         ? `<img src="${u}" style="width:100%;border-radius:8px;border:1px solid var(--border);" alt="${_esCev('es.a_notaSayfa','Nota sayfa {n}').replace('{n}', i+1)}">`
+        : isNotaPdf(u)
+        ? `<div class="es-pdf" data-pdf="${u}"><div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;color:var(--text2);">${_esCev('es.pdfYukleniyor','📄 PDF yükleniyor…')}</div></div>
+           <a href="${u}" target="_blank" style="display:inline-block;margin-top:6px;font-size:12px;color:var(--accent);text-decoration:none;">${_esCev('es.notayiAcIndir','↗ Notayı Aç / İndir')}</a>`
         : `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px;">
              <span style="font-size:24px;">📄</span>
              <div>
@@ -4111,7 +4204,10 @@ function renderNotaPagesBlock(w) {
            </div>`}
     </div>`;
   });
-  if (pages.some(isNotaImage)) {
+  // PDF kutuları sayfaya basıldıktan SONRA çizilir (bu fonksiyon şablon içinde çağrılıyor).
+  if (pages.some(isNotaPdf)) setTimeout(_esPdfCiz, 0);
+  // Sahne artık PDF'i de sayfa sayfa gösteriyor → tam ekran düğmesi PDF'te de var.
+  if (pages.some(u => isNotaImage(u) || isNotaPdf(u))) {
     html += `<button onclick="localStorage.setItem('stageViewMode','nota');localStorage.setItem('stageSource','eserler');window.location.href='stage.html?work=${w.id}';" style="margin-top:2px;width:100%;padding:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#1a1200;font-size:13px;font-weight:700;cursor:pointer;">${_esCev('es.tamEkranSahne','🎼 Tam Ekran Gör (Sahne Modu)')}</button>`;
   }
   return html;
