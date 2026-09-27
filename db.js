@@ -322,9 +322,12 @@ window.checkWorkOfflineReady = async function (workId) {
   if (!HAS_IDB) return { status: 'not_ready', reason: 'idb_yok' };
   const w = await _offGet(db.works, workId);
   const kisiselTamam = await _kisiselHazirMi();
-  if (_eserMetniTamMi(w) && kisiselTamam) return { status: 'ready' };
+  // (2026-09-27, Offline Düzeltme 4) Notası varsa cihazda olmalı; yoksa indir.
+  const notaEksik = w ? await _notaEksikler(_notaUrlleri(w)) : [];
+  if (notaEksik.length) window.notaIndir('w:' + w.id, notaEksik);
+  if (_eserMetniTamMi(w) && kisiselTamam && !notaEksik.length) return { status: 'ready' };
   return { status: window._offlineSyncing ? 'syncing' : 'not_ready',
-           reason: !w ? 'eser_yok' : (!_eserMetniTamMi(w) ? 'eksik_alan' : 'kisisel_yok') };
+           reason: !w ? 'eser_yok' : (!_eserMetniTamMi(w) ? 'eksik_alan' : (!kisiselTamam ? 'kisisel_yok' : 'nota_eksik')) };
 };
 
 window.checkRepertoireOfflineReady = async function (repId) {
@@ -366,6 +369,22 @@ window.checkRepertoireOfflineReady = async function (repId) {
   // (akor/ton/not) cihazda yoksa sahnede ortak akora düşülür → hazır DEĞİL.
   sonuc.kisisel = await _kisiselHazirMi();
   if (sonuc.status === 'ready' && !sonuc.kisisel) { sonuc.status = 'not_ready'; sonuc.reason = 'kisisel_yok'; }
+  // (2026-09-27, Offline Düzeltme 4) Repertuvardaki eserlerin nota görselleri ve
+  // PDF'leri cihazda olmalı. Eksik varsa arka planda indirilir (notaIndir;
+  // başarısız denemeden sonra 60 sn tekrar denenmez) — o sürede "hazırlanıyor".
+  if (Array.isArray(tumSatirlar) && rep) {
+    const urls = [];
+    for (const t of tumSatirlar.filter((x) => String(x.repertoire_id) === String(repId))) {
+      _notaUrlleri(await _offGet(db.works, t.work_id)).forEach((u) => { if (urls.indexOf(u) < 0) urls.push(u); });
+    }
+    const eksik = await _notaEksikler(urls);
+    sonuc.notaGerekli = urls.length;
+    sonuc.notaVar = urls.length - eksik.length;
+    if (eksik.length) {
+      window.notaIndir('r:' + repId, eksik);
+      if (sonuc.status === 'ready') { sonuc.status = 'not_ready'; sonuc.reason = 'nota_eksik'; }
+    }
+  }
   // Eksik varken eşitleme sürüyorsa "hazırlanıyor"; bitmişse "hazır değil".
   if (sonuc.status === 'not_ready' && window._offlineSyncing) sonuc.status = 'syncing';
 
@@ -456,6 +475,72 @@ async function _kisiselHazirMi() {
   const k = await window.kisiselOku();
   return !!(k && k.chordsAt && k.notesAt);
 }
+
+// ── NOTA / PDF ÖNBELLEĞİ (2026-09-27, Offline Düzeltme 4) ─────────────────────
+// Nota görselleri ve PDF'ler Supabase Storage'dan (farklı origin) geliyor ve
+// eskiden HİÇ önbelleğe alınmıyordu. Artık service worker 'repertuvar-nota'
+// önbelleğini kullanıyor (sürümden bağımsız, kalıcı). Burada: açılan repertuvarın
+// / eserin notalarını ÖNCEDEN indirme (notaIndir) ve Offline Hazır için "cihazda
+// mı?" kontrolü. Ad service-worker.js'teki NOTA_CACHE ile AYNI olmalı.
+const _NOTA_CACHE = 'repertuvar-nota';
+function _notaUrlleri(w) {
+  if (!w) return [];
+  const p = Array.isArray(w.nota_pages) ? w.nota_pages.filter(Boolean) : [];
+  return p.length ? p : (w.nota_url ? [w.nota_url] : []);
+}
+async function _notaEksikler(urls) {
+  if (typeof caches === 'undefined') return urls.slice();
+  const c = await caches.open(_NOTA_CACHE);
+  const eksik = [];
+  for (const u of urls) { if (!(await c.match(u))) eksik.push(u); }
+  return eksik;
+}
+const _notaIndirme = {};     // anahtar → Promise (aynı anda ikinci kez başlatma)
+const _notaSonHata = {};     // anahtar → zaman (başarısızsa 60 sn tekrar deneme yok)
+let _notaKalicilikIstendi = false;
+window.addEventListener('online', () => { for (const k in _notaSonHata) delete _notaSonHata[k]; });
+// urls içinden cihazda olmayanları indirir. Döner: {indirilen, hata, kota}.
+window.notaIndir = function (anahtar, urls) {
+  if (_notaIndirme[anahtar]) return _notaIndirme[anahtar];
+  if (_notaSonHata[anahtar] && Date.now() - _notaSonHata[anahtar] < 60000) return Promise.resolve({ indirilen: 0, hata: 0, atlandi: true });
+  if (typeof caches === 'undefined' || !urls || !urls.length) return Promise.resolve({ indirilen: 0, hata: 0 });
+  _offSyncBasla();
+  _notaIndirme[anahtar] = (async () => {
+    const sonuc = { indirilen: 0, hata: 0, kota: false };
+    try {
+      // Tarayıcıdan kalıcı depolama iste (izin verilirse baskı altında silinmez).
+      if (!_notaKalicilikIstendi && navigator.storage && navigator.storage.persist) {
+        _notaKalicilikIstendi = true;
+        try { await navigator.storage.persist(); } catch (e) {}
+      }
+      // Depolama %90 dolduysa indirme yapma — kalan yeri tüketmeyelim.
+      if (navigator.storage && navigator.storage.estimate) {
+        try {
+          const e = await navigator.storage.estimate();
+          if (e.quota && e.usage / e.quota > 0.9) { sonuc.kota = true; console.warn('[nota] depolama dolu, indirme atlandı'); return sonuc; }
+        } catch (e) {}
+      }
+      const c = await caches.open(_NOTA_CACHE);
+      const kuyruk = (await _notaEksikler(urls)).slice();
+      const isci = async () => {
+        while (kuyruk.length) {
+          const u = kuyruk.shift();
+          try {
+            const r = await fetch(u, { mode: 'cors' });
+            if (r.ok) { await c.put(u, r); sonuc.indirilen++; } else sonuc.hata++;
+          } catch (e) { sonuc.hata++; }
+        }
+      };
+      await Promise.all([isci(), isci(), isci()]);   // aynı anda en fazla 3 indirme
+    } finally {
+      if (sonuc.hata || sonuc.kota) _notaSonHata[anahtar] = Date.now(); else delete _notaSonHata[anahtar];
+      delete _notaIndirme[anahtar];
+      _offSyncBitir();                                // rozetler yeniden kontrol edilir
+    }
+    return sonuc;
+  })();
+  return _notaIndirme[anahtar];
+};
 
 // Tüm sayfalar aynı metni kullansın diye rozet metni tek yerde.
 window.offlineRozetMetni = function (status) {

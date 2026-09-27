@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
-const CACHE_NAME = 'repertuvar-v520';
+const CACHE_NAME = 'repertuvar-v521';
 
 // (2026-09-27, Offline Düzeltme 2) DEPLOY SONRASI OFFLINE KAYBI KAPATILDI.
 // Eskiden burada yalnız '/' ve '/index.html' vardı ve activate eski önbelleği
@@ -39,7 +39,34 @@ const PRECACHE = [
   // görseller ve manifest
   '/manifest.json', '/Repertuvar_logo.png', '/logo_dark.png', '/logo_light.png',
   '/pwa-192.png', '/pwa-512.png', '/assets/pedal-foto.png',
+  // (2026-09-27, Offline Düzeltme 4) PDF nota görüntüleyici — yerel kopya:
+  // worker başka origin'den çalıştırılamadığı için CDN değil, uygulamanın dosyası.
+  '/pdf.min.js', '/pdf.worker.min.js',
 ];
+
+// (2026-09-27, Offline Düzeltme 4) NOTA DOSYALARI — ayrı ve KALICI önbellek.
+// Supabase Storage "notalar" kovası; her yükleme zaman damgalı yeni bir ad alır
+// (works/<id>/nota_<ts>_<n>.<uzantı>), yani bir URL'nin içeriği değişmez →
+// cache-first güvenli. Sürüm önbelleğinden AYRI: deploy'da yüzlerce MB taşınmasın
+// ve silinmesin (bkz. eskiOnbellegiTasi). Sayfa tarafı (db.js notaIndir) açılan
+// repertuvarın notalarını aynı önbelleğe önceden indirir.
+const NOTA_CACHE = 'repertuvar-nota';
+function notaMi(u) {
+  return /\.supabase\.co$/.test(u.hostname) && u.pathname.indexOf('/storage/v1/object/public/notalar/') === 0;
+}
+// <img> istekleri no-cors'tur; yanıtı "opaque" saklamak Chrome'da kotaya dosya
+// başına ~7 MB yazılır. Bu yüzden ağdan CORS ile alınıp gerçek boyutuyla saklanır
+// (no-cors isteğe CORS yanıtı dönmek geçerlidir). Önbellek anahtarı düz URL.
+function notaCacheFirst(request) {
+  const url = request.url;
+  return caches.open(NOTA_CACHE).then((c) => c.match(url).then((var_) => {
+    if (var_) return var_;
+    return fetch(url, { mode: 'cors' }).then((res) => {
+      if (res && res.ok) c.put(url, res.clone()).catch(() => {});
+      return res;
+    }).catch(() => fetch(request)).catch(() => new Response('', { status: 503, statusText: 'Cevrimdisi' }));
+  }));
+}
 
 // (2026-09-27) DIŞ KAYNAKLAR: ikon fontu offline'da kayboluyordu (farklı origin
 // olduğu için SW hiç dokunmuyordu). Yalnız SÜRÜMÜ SABİT olanlar cache-first:
@@ -85,7 +112,8 @@ self.addEventListener('install', (event) => {
 // ── ACTIVATE: eski önbellekten eksikleri taşı, SONRA sil; sekmeleri devral ──
 async function eskiOnbellegiTasi() {
   const yeni = await caches.open(CACHE_NAME);
-  const adlar = (await caches.keys()).filter((k) => k !== CACHE_NAME);
+  // Nota önbelleği sürümden bağımsız ve kalıcı: ne taşınır ne silinir.
+  const adlar = (await caches.keys()).filter((k) => k !== CACHE_NAME && k !== NOTA_CACHE);
   for (const ad of adlar) {
     // Yalnız bu uygulamanın önbellekleri taşınır; başka bir şey varsa yalnız silinir.
     if (ad.indexOf('repertuvar-') === 0) {
@@ -214,7 +242,8 @@ self.addEventListener('fetch', (event) => {
   // (Auth, veri fetch'leri her zaman canlı olmalı; cache'lenmemeli.)
   // İstisna: sürümü sabit ikon fontu + Google Fonts (bkz. disOnbellekMi).
   if (url.origin !== self.location.origin) {
-    if (disOnbellekMi(url)) event.respondWith(disCacheFirst(req));
+    if (notaMi(url)) event.respondWith(notaCacheFirst(req));
+    else if (disOnbellekMi(url)) event.respondWith(disCacheFirst(req));
     return;
   }
   if (url.pathname.includes('/rest/v1/') || url.pathname.includes('/auth/v1/')) return;

@@ -572,6 +572,7 @@ body.day-theme #stageToolsPanel .st-grp + .st-grp{ border-top-color:rgba(0,0,0,.
 /* ═══ 2026-07-20: ÇOK SAYFALI NOTA — sayfa göstergesi + pager ═══ */
 .wnota{flex-direction:column;gap:10px;}
 .wnota img{max-width:100%;max-height:70vh;border-radius:8px;}
+.wnota canvas.nota-pdf-sayfa{max-width:100%;border-radius:8px;background:#fff;}
 .nota-count{position:absolute;top:10px;right:12px;z-index:40;font-size:12px;font-weight:800;letter-spacing:.04em;
   padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.18);
   backdrop-filter:blur(6px);pointer-events:none;}
@@ -2149,6 +2150,9 @@ function startStage(){
   if(!localStorage.getItem('stageTheme')) localStorage.setItem('stageTheme','night');
   window._stageActive = true;
   window.dispatchEvent(new Event('stageEnter'));
+  // (2026-09-27, Offline Düzeltme 4) Bağlantı varken repertuvarın notalarını
+  // (görsel + PDF) arka planda cihaza indir; sahnede internet kesilirse hazır olsun.
+  try { if (window.checkRepertoireOfflineReady) window.checkRepertoireOfflineReady(curRep.id); } catch(e) {}
   applyStageTheme('stage');
   showScreen('stageScreen');
   document.getElementById('strn').textContent=curRep.name;
@@ -2250,7 +2254,7 @@ function renderStage(){
   setLyricsAlign(savedAlign);
   updateFontSliderUI(savedScale);
   fitLyrics();   // (2026-09-05) eser başına sığdırma — hiza/ölçek ile aynı karede
-  if (viewMode === 'nota') notaPreloadNext(stageNotaPages(w), _notaPage);
+  if (viewMode === 'nota') { pdfCizimleri(); notaPreloadNext(stageNotaPages(w), _notaPage); }
   updateViewToggleUI(w);
   // ── POTPURİ: zincir rozeti + "Sıradaki" kartının potpuri hali ──
   const ch = stageChainInfo(items, curIdx);
@@ -2303,10 +2307,86 @@ let _notaPage = 0, _notaWorkKey = null, _notaEnterFromEnd = false;
 function stageNotaPages(w) {
   if (!w) return [];
   const p = Array.isArray(w.notaPages) ? w.notaPages.filter(Boolean) : [];
-  if (p.length) return p;
-  return w.notaUrl ? [w.notaUrl] : [];
+  const ham = p.length ? p : (w.notaUrl ? [w.notaUrl] : []);
+  // (2026-09-27, Offline Düzeltme 4) PDF, sayfa sayısı bilindiğinde SANAL SAYFALARA
+  // açılır ("<url>#pdfsayfa=N"): pedal/kaydırma/nokta gezinmesi ve eser geçişi
+  // görsel notayla birebir aynı çalışır. Sayı henüz bilinmiyorsa tek giriş kalır;
+  // notaViewHtml PDF'i açar ve görünümü tazeler.
+  const out = [];
+  ham.forEach(u => {
+    const n = isStagePdf(u) ? _pdfSayfaSayisi[u] : 0;
+    if (n > 0) { for (let k = 1; k <= n; k++) out.push(u + PDF_SAYFA + k); }
+    else out.push(u);
+  });
+  return out;
 }
 function isStageNotaImage(u){ return /\.(jpe?g|png|gif|webp|heic|tiff?)(\?|$)/i.test(u||''); }
+
+// ── PDF NOTA (2026-09-27, Offline Düzeltme 4) ─────────────────────────────
+// Eskiden sahne PDF'i HİÇ göstermiyordu ("sayfaları görsel olarak yükle" + dış
+// link). Artık pdf.js (uygulamanın yerel dosyası: pdf.min.js / pdf.worker.min.js,
+// sürüm 3.11.174) ile sayfa sayfa canvas'a çizilir. PDF `fetch` ile TAM alınır
+// (Range isteği yok): istek service worker'ın nota önbelleğinden geçer → offline'da
+// da açılır. pdf.js yalnız bir PDF gerektiğinde, bir kez yüklenir.
+const PDF_SAYFA = '#pdfsayfa=';
+const _pdfSayfaSayisi = {};   // url → sayfa sayısı
+const _pdfBelgeler = {};      // url → Promise<PDFDocumentProxy>
+let _pdfKutuphaneSoz = null;
+function isStagePdf(u){ return /\.pdf(\?|#|$)/i.test(u||''); }
+function _pdfParcala(u){ const i = (u||'').indexOf(PDF_SAYFA); return i < 0 ? null : { url: u.slice(0, i), sayfa: parseInt(u.slice(i + PDF_SAYFA.length)) || 1 }; }
+function pdfKutuphane(){
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (!_pdfKutuphaneSoz) _pdfKutuphaneSoz = new Promise((coz, red) => {
+    const s = document.createElement('script');
+    s.src = 'pdf.min.js';
+    s.onload = () => { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js'; coz(window.pdfjsLib); } catch(e) { red(e); } };
+    s.onerror = () => { _pdfKutuphaneSoz = null; red(new Error('pdf.js yüklenemedi')); };
+    document.head.appendChild(s);
+  });
+  return _pdfKutuphaneSoz;
+}
+function pdfBelge(url){
+  if (!_pdfBelgeler[url]) {
+    _pdfBelgeler[url] = pdfKutuphane()
+      .then(lib => fetch(url).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
+      .then(buf => lib.getDocument({ data: buf }).promise))
+      .then(doc => { _pdfSayfaSayisi[url] = doc.numPages; return doc; })
+      .catch(e => { delete _pdfBelgeler[url]; throw e; });
+  }
+  return _pdfBelgeler[url];
+}
+// #sm içindeki PDF yer tutucularını / canvas'larını işler (innerHTML sonrası çağrılır).
+function pdfCizimleri(){
+  const sm = document.getElementById('sm'); if (!sm) return;
+  // Sayfa sayısı bilinmeyen PDF: aç, sonra aynı eserdeysek görünümü tazele.
+  sm.querySelectorAll('[data-pdf-bekle]').forEach(el => {
+    const url = el.getAttribute('data-pdf-bekle'), anahtar = _notaWorkKey;
+    pdfBelge(url).then(() => {
+      if (_notaWorkKey !== anahtar || !currentNotaPages().length) return;
+      notaGoPage(Math.min(_notaPage, currentNotaPages().length - 1));
+    }).catch(() => { el.innerHTML = _sCev('sh.pdfAcilamadi', '📄 PDF açılamadı — bağlantı yoksa bu nota henüz cihaza indirilmemiş olabilir.'); });
+  });
+  sm.querySelectorAll('canvas[data-pdf]').forEach(cv => {
+    const url = cv.getAttribute('data-pdf'), no = parseInt(cv.getAttribute('data-sayfa')) || 1;
+    pdfBelge(url).then(doc => doc.getPage(no)).then(sayfa => {
+      if (!cv.isConnected) return;
+      // Görsel notadaki kuralla aynı: genişliğe sığ, yükseklik en fazla %70.
+      const kapW = Math.max(200, (cv.parentElement ? cv.parentElement.clientWidth : window.innerWidth) - 16);
+      const kapH = window.innerHeight * 0.7;
+      const v1 = sayfa.getViewport({ scale: 1 });
+      const olcek = Math.min(kapW / v1.width, kapH / v1.height);
+      const dpr = Math.min(window.devicePixelRatio || 1, 3);
+      const v = sayfa.getViewport({ scale: olcek * dpr });
+      cv.width = Math.floor(v.width); cv.height = Math.floor(v.height);
+      cv.style.width = Math.floor(v.width / dpr) + 'px'; cv.style.height = Math.floor(v.height / dpr) + 'px';
+      return sayfa.render({ canvasContext: cv.getContext('2d'), viewport: v }).promise;
+    }).catch(() => {
+      const d = document.createElement('div'); d.className = 'nota-pdf';
+      d.textContent = _sCev('sh.pdfAcilamadi', '📄 PDF açılamadı — bağlantı yoksa bu nota henüz cihaza indirilmemiş olabilir.');
+      if (cv.isConnected) cv.replaceWith(d);
+    });
+  });
+}
 
 // Şu an nota görünümünde miyiz? (öyleyse aktif eserin sayfa listesini döner)
 function currentNotaPages() {
@@ -2319,8 +2399,14 @@ function currentNotaPages() {
 
 function notaViewHtml(pages, i) {
   const u = pages[i];
+  const _ps = _pdfParcala(u);
+  const _alt = _sCev('sh.notaSayfa','Nota sayfa {n}').replace('{n}', i+1);
   const body = isStageNotaImage(u)
-    ? `<img id="notaImg" src="${u}" alt="${_sCev('sh.notaSayfa','Nota sayfa {n}').replace('{n}', i+1)}">`
+    ? `<img id="notaImg" src="${u}" alt="${_alt}">`
+    : _ps
+    ? `<canvas class="nota-pdf-sayfa" data-pdf="${_ps.url}" data-sayfa="${_ps.sayfa}" role="img" aria-label="${_alt}"></canvas>`
+    : isStagePdf(u)
+    ? `<div class="nota-pdf" data-pdf-bekle="${u}">${_sCev('sh.pdfYukleniyor','📄 PDF yükleniyor…')}</div>`
     : `<div class="nota-pdf">${_sCev('sh.pdfNota','📄 PDF nota — sayfa geçişi için sayfaları ayrı görsel olarak yükle.')}<br>
          <a href="${u}" target="_blank" style="color:var(--accent);">${_sCev('sh.notaAc','↗ Aç')}</a></div>`;
   const counter = pages.length > 1 ? `<div class="nota-count" id="notaCount">${i+1} / ${pages.length}</div>` : '';
@@ -2349,6 +2435,7 @@ function notaGoPage(i) {
   const sm = document.getElementById('sm');
   if (!sm) return;
   sm.innerHTML = notaViewHtml(pages, i);
+  pdfCizimleri();
   notaPreloadNext(pages, i);
 }
 
