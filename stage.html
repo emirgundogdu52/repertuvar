@@ -1437,7 +1437,7 @@ function stageRepMatchesSearch(r, q) {
 
 function renderPicker(){
   const el=document.getElementById('rsl');
-  if(!reps.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);line-height:1.8;">Henüz repertuvar yok.<br><a href="repertoires.html" style="color:var(--accent)">Repertuvar sayfasında</a> repertuvar oluşturun.</div>';return;}
+  if(!reps.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);line-height:1.8;">' + _sCev('sh.henuzRepYok','Henüz repertuvar yok.') + '<br>' + _sCev('sh.repOlusturun','{link} repertuvar oluşturun.').replace('{link}', '<a href="repertoires.html" style="color:var(--accent)">' + _sCev('sh.repSayfasi','Repertuvar sayfasında') + '</a>') + '</div>';return;}
   const filtered = reps.filter(r=>stageRepMatchesSearch(r, stageSearchQuery));
   if(stageSearchQuery && !filtered.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);">' + _sCev('sh.sonucYok','"{q}" için sonuç bulunamadı').replace('{q}', stageSearchQuery) + '</div>';return;}
   const sl={concept:_sCev('sh.dTaslak','Taslak'),confirmed:_sCev('sh.dOnaylandi','Onaylandı'),archive:_sCev('sh.dArsiv','Arşiv')};
@@ -1446,9 +1446,9 @@ function renderPicker(){
     const isOwner = r.owner_id === uid || r.user_id === uid;
     const cardHtml = `<div class="rsi${selId===r.id?' sel':''}" onclick="rsCardClick(event,'${r.id}')" ontouchstart="rsTouchStart(event)" ontouchmove="rsTouchMove(event)" ontouchend="rsTouchEnd(event)" ontouchcancel="rsTouchEnd(event)">
       <div><div class="rsn">${r.name}</div><div class="rsm">${[r.date,r.venue,sl[r.status]].filter(Boolean).join(' · ')}</div></div>
-      <div class="rsc">${(r.items||[]).length} eser</div>
+      <div class="rsc">${_sCev('sh.nEser','{n} eser').replace('{n}', (r.items||[]).length)}</div>
     </div>`;
-    const editBg = `<div class="rs-edit-bg" onclick="event.stopPropagation();rsCloseOpenCard();window.location.href='repertoires.html?rep=${r.id}'"><i class="ti ti-edit"></i>Değiştir</div>`;
+    const editBg = `<div class="rs-edit-bg" onclick="event.stopPropagation();rsCloseOpenCard();window.location.href='repertoires.html?rep=${r.id}'"><i class="ti ti-edit"></i>${_sCev('sh.degistir','Değiştir')}</div>`;
     const rightBg = isOwner
       ? `<div class="rs-delete-bg" onclick="event.stopPropagation();rsCloseOpenCard();rsDeleteRep('${r.id}')"><i class="ti ti-trash"></i>Sil</div>`
       : `<div class="rs-delete-bg rs-hide-bg" onclick="event.stopPropagation();rsCloseOpenCard();rsHideRep('${r.id}')"><i class="ti ti-eye-off"></i>Gizle</div>`;
@@ -2156,14 +2156,17 @@ function renderStage(){
       // (2026-08-23) KADRO en uste yakin: sahnede "bu eserde kim caliyor"
       // sorusu esere girerken sorulur, teknik ayrintilardan once gelir.
       item.performer ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.kadro','Kadro')}</span><span class="sip-val">${item.performer}</span></div>` : '',
-      w.makam ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.makam','Makam')}</span><span class="sip-val">${w.makam}</span></div>` : '',
+      // (2026-09-27) Türk müziği terimleri İngilizcede ÇEVRİLMİYOR, yanına kısa
+      // açıklama geliyor ("Makam (melodic mode)"). alan.* anahtarları dar
+      // çiplerde de kullanıldığı için uzatılmadı; sahneye özel anahtar var.
+      w.makam ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.lblMakam','Makam')}</span><span class="sip-val">${w.makam}</span></div>` : '',
       (item.closingNote||w.closingNote) ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.kapanis','Kapanış')}</span><span class="sip-val">${item.closingNote||w.closingNote}</span></div>` : '',
       w.tuning ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.akort','Akort')}</span><span class="sip-val">${w.tuning}</span></div>` : '',
       w.form ? `<div class="sip-row"><span class="sip-label">${_sCev('es.form','Form')}</span><span class="sip-val">${w.form}</span></div>` : '',
       // (2026-08-30) `measurement` ÖLÇÜ tutuyor (4/4, 9/8), usul değil.
       // Usul ayrı sütunda (`ritim`) ve o da burada gösteriliyor.
       w.measurement ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.olcu','Ölçü')}</span><span class="sip-val">${w.measurement}</span></div>` : '',
-      w.ritim ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.usul','Usul')}</span><span class="sip-val">${w.ritim}</span></div>` : '',
+      w.ritim ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.lblUsul','Usul')}</span><span class="sip-val">${w.ritim}</span></div>` : '',
       w.region ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.bolge','Bölge')}</span><span class="sip-val">${w.region}</span></div>` : '',
       w.composer ? `<div class="sip-row"><span class="sip-label">${_sCev('es.bestecialan','Besteci')}</span><span class="sip-val">${w.composer}</span></div>` : '',
       w.lyricWriter ? `<div class="sip-row"><span class="sip-label">${_sCev('es.sozyazari','Söz Yazarı')}</span><span class="sip-val">${w.lyricWriter}</span></div>` : '',
@@ -2295,9 +2298,9 @@ function currentNotaPages() {
 function notaViewHtml(pages, i) {
   const u = pages[i];
   const body = isStageNotaImage(u)
-    ? `<img id="notaImg" src="${u}" alt="Nota sayfa ${i+1}">`
-    : `<div class="nota-pdf">📄 PDF nota — sayfa geçişi için sayfaları ayrı görsel olarak yükle.<br>
-         <a href="${u}" target="_blank" style="color:var(--accent);">↗ Aç</a></div>`;
+    ? `<img id="notaImg" src="${u}" alt="${_sCev('sh.notaSayfa','Nota sayfa {n}').replace('{n}', i+1)}">`
+    : `<div class="nota-pdf">${_sCev('sh.pdfNota','📄 PDF nota — sayfa geçişi için sayfaları ayrı görsel olarak yükle.')}<br>
+         <a href="${u}" target="_blank" style="color:var(--accent);">${_sCev('sh.notaAc','↗ Aç')}</a></div>`;
   const counter = pages.length > 1 ? `<div class="nota-count" id="notaCount">${i+1} / ${pages.length}</div>` : '';
   const pager = pages.length > 1 ? `
     <div class="nota-pager" id="notaPager">
@@ -2629,11 +2632,11 @@ function backToPicker(){
     if (pi) {
       pi.innerHTML = `
         <div class="plogo"><img src="logo_dark.png" alt="repertuvar.app" data-logo="true" style="width:180px;display:block;"></div>
-        <h1 class="ptitle">Paylaşılan Repertuvar</h1>
+        <h1 class="ptitle">${_sCev('sh.paylasilanRep','Paylaşılan Repertuvar')}</h1>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;margin-top:16px;"
           onclick="startSharedRep()">
           <div style="font-size:15px;font-weight:600;color:var(--text);">${curRep.name||_sCev('sh.adsizRep','Repertuvar')}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px;">${(curRep.items||[]).length} eser</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px;">${_sCev('sh.nEser','{n} eser').replace('{n}', (curRep.items||[]).length)}</div>
         </div>`;
     }
     return;

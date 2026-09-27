@@ -69,39 +69,83 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 <script>
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
+// (2026-09-27) DİL. Misafir solist çoğu zaman Türkçe bilmiyor. Bu sayfa i18n.js
+// YÜKLEMEZ (auth.js gibi yalıtım: hafif, bağımsız); küçük bir TR/EN sözlük
+// burada. Dil seçimi i18n.js ile AYNI kural: kayıtlı tercih → tarayıcı dili;
+// Türkçe olmayan her dil → İngilizce. Tercih yalnız OKUNUR, cihaza bir şey
+// YAZILMAZ ("misafirin cihazında kopya kalmasın" kuralı korunuyor).
+// Türk müziği terimleri (makam, karar) ÇEVRİLMEZ; İngilizcede yanına açıklama.
+const DIL = (function(){
+  try { const k = localStorage.getItem('uiLang'); if (k === 'tr' || k === 'en') return k; } catch(e){}
+  try { const s = localStorage.getItem('uiLangSunucu'); if (s === 'tr' || s === 'en') return s; } catch(e){}
+  try { return (navigator.language || 'tr').slice(0,2).toLowerCase() === 'tr' ? 'tr' : 'en'; } catch(e){ return 'tr'; }
+})();
+const METIN = {
+  tr: {
+    yukleniyor: 'Yükleniyor…',
+    suresiDoldu: 'Bu bağlantının süresi doldu',
+    suresiDolduMetin: 'Misafir bağlantıları kısa süre geçerlidir. Repertuvarı paylaşan kişiden yeni bir bağlantı isteyebilirsin.',
+    kesfet: 'repertuvar.app\'i keşfet',
+    eser: 'Eser', repertuvar: 'Repertuvar',
+    gecerlilik: 'Bu bağlantı {t} tarihinde geçerliliğini yitirir. ',
+    internet: 'Sahnede internet olmayabilir — yazdırıp yanında bulundurabilirsin.',
+    yazdir: '🖨 Yazdır',
+    olustur: 'Kendi repertuvarını oluştur',
+    acilamadi: 'Repertuvar açılamadı',
+    kontrol: 'Bağlantını kontrol et ya da tekrar dene.',
+    makam: '', karar: ''            // Türkçede etiketsiz (önceki görünüm)
+  },
+  en: {
+    yukleniyor: 'Loading…',
+    suresiDoldu: 'This link has expired',
+    suresiDolduMetin: 'Guest links are only valid for a short time. Ask the person who shared the setlist for a new link.',
+    kesfet: 'Discover repertuvar.app',
+    eser: 'Piece', repertuvar: 'Setlist',
+    gecerlilik: 'This link expires on {t}. ',
+    internet: 'There may be no internet on stage — you can print this page and keep it with you.',
+    yazdir: '🖨 Print',
+    olustur: 'Create your own setlist',
+    acilamadi: 'Couldn\'t open the setlist',
+    kontrol: 'Check your connection or try again.',
+    makam: 'Makam (melodic mode): ', karar: 'Karar (tonic): '
+  }
+};
+const T = METIN[DIL];
+document.documentElement.lang = DIL;
+document.title = T.repertuvar;
+(function(){ const y = document.querySelector('#root .msg'); if (y) y.textContent = T.yukleniyor; })();
+
 function expired(){
   document.getElementById('root').innerHTML =
-    '<div class="msg"><b>Bu bağlantının süresi doldu</b>' +
-    'Misafir bağlantıları kısa süre geçerlidir. Repertuvarı paylaşan kişiden yeni bir bağlantı isteyebilirsin.</div>' +
-    '<a class="cta" href="https://www.repertuvar.app">repertuvar.app\'i keşfet</a>';
+    '<div class="msg"><b>' + T.suresiDoldu + '</b>' + T.suresiDolduMetin + '</div>' +
+    '<a class="cta" href="https://www.repertuvar.app">' + T.kesfet + '</a>';
 }
 
 function render(d){
   const items = d.items || [];
   const rows = items.map(it => {
-    const sub = [it.makam, it.composer].filter(Boolean).join(' · ');
+    const sub = [it.makam ? T.makam + it.makam : '', it.composer].filter(Boolean).join(' · ');
     return '<li class="' + (it.linked_prev ? 'linked' : '') + '"><div>' +
-      '<div class="nm">' + esc(it.name || 'Eser') + '</div>' +
+      '<div class="nm">' + esc(it.name || T.eser) + '</div>' +
       (sub ? '<div class="sub">' + esc(sub) + '</div>' : '') +
       (it.performer ? '<div class="perf">🎤 ' + esc(it.performer) + '</div>' : '') +
-      (it.closing_note ? '<div class="cl">' + esc(it.closing_note) + '</div>' : '') +
+      (it.closing_note ? '<div class="cl">' + esc(T.karar + it.closing_note) + '</div>' : '') +
       (it.note ? '<div class="sub">' + esc(it.note) + '</div>' : '') +
       (it.lyrics ? '<div class="ly">' + esc(it.lyrics) + '</div>' : '') +
       '</div></li>';
   }).join('');
 
   const meta = [d.date, d.venue].filter(Boolean).map(esc).join(' · ');
+  const bitis = new Date(d.expires_at).toLocaleString(DIL === 'tr' ? 'tr-TR' : (navigator.language || 'en-GB'));
   document.getElementById('root').innerHTML =
     '<div class="brand">repertuvar.app</div>' +
-    '<h1>' + esc(d.name || 'Repertuvar') + '</h1>' +
+    '<h1>' + esc(d.name || T.repertuvar) + '</h1>' +
     (meta ? '<div class="meta">' + meta + '</div>' : '') +
     (d.notes ? '<div class="note">' + esc(d.notes) + '</div>' : '') +
-    '<div class="expires">Bu bağlantı ' +
-      new Date(d.expires_at).toLocaleString('tr-TR') + ' tarihinde geçerliliğini yitirir. ' +
-      'Sahnede internet olmayabilir — yazdırıp yanında bulundurabilirsin.</div>' +
-    '<button class="btn" onclick="window.print()">🖨 Yazdır</button>' +
+    '<div class="expires">' + T.gecerlilik.replace('{t}', esc(bitis)) + T.internet + '</div>' +
+    '<button class="btn" onclick="window.print()">' + T.yazdir + '</button>' +
     '<ol style="margin-top:16px;">' + rows + '</ol>' +
-    '<a class="cta" href="https://www.repertuvar.app">Kendi repertuvarını oluştur</a>';
+    '<a class="cta" href="https://www.repertuvar.app">' + T.olustur + '</a>';
 }
 
 (async function(){
@@ -119,7 +163,7 @@ function render(d){
     render(d);
   }catch(e){
     document.getElementById('root').innerHTML =
-      '<div class="msg"><b>Repertuvar açılamadı</b>Bağlantını kontrol et ya da tekrar dene.</div>';
+      '<div class="msg"><b>' + T.acilamadi + '</b>' + T.kontrol + '</div>';
   }
 })();
 </script>
