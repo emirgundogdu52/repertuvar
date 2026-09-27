@@ -206,6 +206,10 @@ window.syncOfflineData = async function() {
   // Token dolmuş olabilir (1 saatlik ömür) — sync fetch'lerinden ÖNCE yenile.
   let token = localStorage.getItem('sb_token');
   if (!token) return;
+  // (2026-09-27) "Hazırlanıyor" durumu için: eşitleme sürerken bayrak açık.
+  // Aynı anda iki çağrı gelebiliyor (focus + visibilitychange); sayaçla tutuyoruz
+  // ki ilki bitince ikincisi sürerken bayrak erken kapanmasın.
+  _offSyncBasla();
   if (typeof window.ensureValidToken === 'function') {
     try { token = (await window.ensureValidToken()) || token; } catch(e) {}
   }
@@ -250,13 +254,128 @@ window.syncOfflineData = async function() {
     if (profRes.ok) await db.profiles.replaceAll(await profRes.json());
 
     await db.meta.set('lastSync', new Date().toISOString());
+    // (2026-09-27) `lastSync` istek başarısız olsa da yazılıyordu (mevcut davranış,
+    // dokunulmadı). Sahne için gereken üç tablonun HEPSİ başarıyla geldiyse ayrıca
+    // `lastSyncOk` tutuluyor — Offline Hazır raporunda gösterilir.
+    if (worksRes.ok && repsRes.ok && itemsRes.ok) {
+      await db.meta.set('lastSyncOk', new Date().toISOString());
+    }
     console.log('[db] Offline sync tamamlandı:', new Date().toLocaleTimeString('tr-TR'));
     // Sync bitti — dinleyen sayfalar (repertuvarlar, sahne) kendini tazelesin.
     try { window.dispatchEvent(new CustomEvent('data-synced')); } catch (e) {}
     if (typeof window.realtimeBaglan === 'function') window.realtimeBaglan();
   } catch (e) {
     console.warn('[db] Sync hatası:', e);
+  } finally {
+    _offSyncBitir();
   }
+};
+
+// ── GERÇEK "OFFLINE HAZIR" KONTROLÜ (2026-09-27, Offline Düzeltme 1) ─────────
+// Eskiden eserler.html'de "🟢 Offline Hazır" koşulsuz basılan sabit bir metindi.
+// Artık IndexedDB'deki GERÇEK kayıtlara bakılıyor. Kapsam (bu adım): sahnede
+// gereken METİN verisi. Nota/PDF ve kişisel akor/not bu adımda kriter DEĞİL.
+//
+// Bir eser "hazır" sayılır: kayıt var, silinmemiş, adı dolu ve söz/akor/makam/
+// usul/karar ALANLARI kayıtta mevcut. Alanın BOŞ olması sorun değil (eserin
+// gerçekten sözü olmayabilir); ANAHTARIN hiç olmaması "henüz yüklenmedi" demek
+// (ör. yalnız hafif liste gelmiş satır).
+// Bir repertuvar "hazır" sayılır: kayıt var, satırları okunabildi, en az bir
+// satır var, her satırda sıra/potpuri/karar/solist/not alanları mevcut ve her
+// satırın eseri yukarıdaki anlamda hazır.
+// Ağ isteğinin başarısız olması tek başına hiçbir şeyi "hazır" yapmaz; karar
+// yalnızca cihazdaki veriye göre verilir.
+const _OFF_ESER_ALANLARI = ['lyrics', 'chords', 'makam', 'measurement', 'closing_note'];
+const _OFF_SATIR_ALANLARI = ['seq', 'linked_prev', 'closing_note', 'performer', 'note'];
+
+let _offSyncSayac = 0;
+window._offlineSyncing = false;
+function _offSyncYay() {
+  try { window.dispatchEvent(new CustomEvent('offline-sync-state', { detail: { syncing: window._offlineSyncing } })); } catch (e) {}
+}
+function _offSyncBasla() { _offSyncSayac++; window._offlineSyncing = true; _offSyncYay(); }
+function _offSyncBitir() {
+  _offSyncSayac = Math.max(0, _offSyncSayac - 1);
+  window._offlineSyncing = _offSyncSayac > 0;
+  _offSyncYay();
+}
+
+function _eserMetniTamMi(w) {
+  if (!w || w.deleted_at) return false;
+  if (!String(w.name || '').trim()) return false;
+  return _OFF_ESER_ALANLARI.every((k) => k in w);
+}
+
+// IndexedDB anahtar tipi sunucudakiyle aynı (works.id sayı, repertoires.id
+// metin olabilir); çağıran taraf string verebilir — iki biçimi de dene.
+async function _offGet(store, id) {
+  let r = await store.get(id);
+  if (r === undefined && typeof id === 'string' && /^\d+$/.test(id)) r = await store.get(Number(id));
+  if (r === undefined && typeof id === 'number') r = await store.get(String(id));
+  return r;
+}
+
+window.checkWorkOfflineReady = async function (workId) {
+  if (!HAS_IDB) return { status: 'not_ready', reason: 'idb_yok' };
+  const w = await _offGet(db.works, workId);
+  if (_eserMetniTamMi(w)) return { status: 'ready' };
+  return { status: window._offlineSyncing ? 'syncing' : 'not_ready', reason: w ? 'eksik_alan' : 'eser_yok' };
+};
+
+window.checkRepertoireOfflineReady = async function (repId) {
+  const sonuc = {
+    status: 'not_ready', repId: repId, required: 0, present: 0,
+    missingWorks: [], badItems: 0, checkedAt: new Date().toISOString(), lastSyncOk: null
+  };
+  if (!HAS_IDB) { sonuc.reason = 'idb_yok'; return sonuc; }
+  sonuc.lastSyncOk = (await db.meta.get('lastSyncOk')) || null;
+
+  const rep = await _offGet(db.repertoires, repId);
+  // getAll'ın 3 sn kalkanı zaman aşımında [] döndürür; o da "satır yok" gibi
+  // görünürdü. Burada kalkansız okuyoruz: okunamazsa HAZIR DEĞİL.
+  let tumSatirlar = null;
+  try { tumSatirlar = await storeOp('repertoire_items', 'readonly', (s) => s.getAll()); } catch (e) { tumSatirlar = null; }
+
+  if (!rep) sonuc.reason = 'repertuvar_yok';
+  else if (!Array.isArray(tumSatirlar)) sonuc.reason = 'satir_okunamadi';
+  else {
+    const satirlar = tumSatirlar.filter((t) => String(t.repertoire_id) === String(repId));
+    if (!satirlar.length) {
+      sonuc.status = 'empty';
+      sonuc.reason = 'satir_yok';
+    } else {
+      sonuc.badItems = satirlar.filter((t) =>
+        t.work_id == null || !_OFF_SATIR_ALANLARI.every((k) => k in t)
+      ).length;
+      const eserIdleri = [...new Set(satirlar.map((t) => t.work_id).filter((x) => x != null))];
+      sonuc.required = eserIdleri.length;
+      for (const id of eserIdleri) {
+        if (_eserMetniTamMi(await _offGet(db.works, id))) sonuc.present++;
+        else sonuc.missingWorks.push(id);
+      }
+      if (!sonuc.badItems && !sonuc.missingWorks.length) sonuc.status = 'ready';
+      else sonuc.reason = sonuc.badItems ? 'satir_eksik_alan' : 'eser_eksik';
+    }
+  }
+  // Eksik varken eşitleme sürüyorsa "hazırlanıyor"; bitmişse "hazır değil".
+  if (sonuc.status === 'not_ready' && window._offlineSyncing) sonuc.status = 'syncing';
+
+  try {
+    await db.meta.set('offlineReady:' + repId, {
+      status: sonuc.status, required: sonuc.required, present: sonuc.present,
+      checkedAt: sonuc.checkedAt, lastSyncOk: sonuc.lastSyncOk
+    });
+  } catch (e) {}
+  return sonuc;
+};
+
+// Tüm sayfalar aynı metni kullansın diye rozet metni tek yerde.
+window.offlineRozetMetni = function (status) {
+  const t = (k, v) => { try { return (window.i18n && window.i18n.t) ? window.i18n.t(k, v) : v; } catch (e) { return v; } };
+  if (status === 'ready') return t('es.offlineHazir', '🟢 Offline Hazır');
+  if (status === 'syncing') return t('es.offlineHazirlaniyor', '🟡 Hazırlanıyor…');
+  if (status === 'not_ready') return t('es.offlineHazirDegil', '⚪ Offline hazır değil');
+  return '';
 };
 
 // ── AŞAĞI ÇEKİP BIRAKARAK TAZELEME (2026-08-06) ──────────────────────────

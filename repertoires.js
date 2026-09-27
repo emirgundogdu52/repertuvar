@@ -1029,6 +1029,7 @@ function renderDetail(){
       <div class="dmr" style="gap:8px;padding-bottom:4px;flex-wrap:nowrap;overflow-x:auto;">
         <div class="mc"><span class="sp ${sc[rep.status]||'sc'}">${sl[rep.status]||'Taslak'}</span></div>
         ${_medleyN?`<div class="mc"><span class="rep-medley" title="Potpuri: kesintisiz çalınan eser zinciri">🔗 ${_medleyN} Potpuri</span></div>`:''}
+        <div class="mc" id="offRep_${rep.id}" style="display:none;white-space:nowrap;font-size:12px;color:var(--text3);"></div>
         ${rep.date?`<div class="mc" style="white-space:nowrap;">📅 <strong>${rep.date}</strong>${rep.venue?` &nbsp;📍 <strong>${rep.venue}</strong>`:''}</div>`:''}
         ${!rep.date&&rep.venue?`<div class="mc" style="white-space:nowrap;">📍 <strong>${rep.venue}</strong></div>`:''}
         ${rep.isOwner?`<div class="mc">${visChip(rep)}</div>`:''}
@@ -1039,7 +1040,25 @@ function renderDetail(){
       <div class="ih"><h3>${items.length} Eser${_no.filter(n=>n!==null).length!==items.length?` <span style="font-weight:500;color:var(--text3);font-size:12px;">· ${_no.filter(n=>n!==null).length} sıra</span>`:''}</h3>${rep.canManage?`<button class="baw" onclick="openWM('${rep.id}')">+ Eser Ekle</button>`:''}</div>
       <table><thead><tr><th class="sq" style="text-align:center;">Sıra</th><th>Eser Adı</th><th class="col-kapanis">Kapanış</th><th class="col-not">Not</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
+  _offRepRozet(rep.id);
 }
+
+// (2026-09-27) Repertuvarın GERÇEK offline durumu (db.js checkRepertoireOfflineReady).
+// Yalnız cihazdaki veriye bakar; ağ hatası tek başına "hazır" saydırmaz.
+async function _offRepRozet(repId){
+  if (!document.getElementById('offRep_'+repId) || typeof window.checkRepertoireOfflineReady !== 'function') return;
+  let r;
+  try { r = await window.checkRepertoireOfflineReady(repId); } catch (e) { r = { status:'not_ready' }; }
+  const el = document.getElementById('offRep_'+repId);   // beklerken başka repertuvar seçilmiş olabilir
+  if (!el) return;
+  const metin = window.offlineRozetMetni ? window.offlineRozetMetni(r.status) : '';
+  el.textContent = metin;
+  el.style.display = metin ? '' : 'none';
+  el.title = (r.status !== 'ready' && r.required)
+    ? _r('rep.offlineEksik','{p}/{n} eser cihazda').replace('{p}', r.present).replace('{n}', r.required)
+    : '';
+}
+window.addEventListener('offline-sync-state', () => { if (typeof selId !== 'undefined' && selId) _offRepRozet(selId); });
 
 // (2026-08-05) Karttaki görünürlük çipi ikili (Public/Private) kalmıştı — modaldaki
 // üçlü seçimle (Kişisel/Grup/Genel) uyumsuzdu ve grup repertuvarı "🔒 Private"

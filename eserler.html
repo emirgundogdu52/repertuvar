@@ -2737,9 +2737,11 @@ function selectWork(id, silent) {
         const bits = [
           repCount > 0 ? _esCev('es.repSayaci','📂 {n} Repertuvar').replace('{n}',repCount) : '',
           groupCount > 0 ? _esCev('es.grupSayaci','👥 {n} Grup').replace('{n}',groupCount) : '',
-          _esCev('es.offlineHazir','🟢 Offline Hazır'),
         ].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
-        return `<div style="font-size:11px;font-weight:500;color:var(--text3);margin-bottom:12px;">${bits}</div>`;
+        // (2026-09-27) "Offline Hazır" artık SABİT DEĞİL: yer tutucu çizilir,
+        // IndexedDB kontrolü (db.js checkWorkOfflineReady) bitince dolar.
+        setTimeout(() => { if (typeof window._offEserRozet === 'function') window._offEserRozet(w.id); }, 0);
+        return `<div style="font-size:11px;font-weight:500;color:var(--text3);margin-bottom:12px;">${bits}<span id="offb_${w.id}" data-sep="${bits ? 1 : 0}"></span></div>`;
       })()}
       ${dispLyrics ? `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
@@ -5012,6 +5014,20 @@ function _esCev(anahtar, tr) {
   try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
   catch (e) { return tr; }
 }
+
+// (2026-09-27) Eser detayındaki Offline durum rozeti — gerçek IndexedDB kontrolü.
+window._offEserRozet = async function (id) {
+  if (!document.getElementById('offb_' + id) || typeof window.checkWorkOfflineReady !== 'function') return;
+  let r;
+  try { r = await window.checkWorkOfflineReady(id); } catch (e) { r = { status: 'not_ready' }; }
+  const el = document.getElementById('offb_' + id);   // beklerken detay değişmiş olabilir
+  if (!el) return;
+  const metin = window.offlineRozetMetni ? window.offlineRozetMetni(r.status) : '';
+  el.innerHTML = metin ? (el.dataset.sep === '1' ? '&nbsp;&nbsp;·&nbsp;&nbsp;' : '') + metin : '';
+};
+['data-synced', 'offline-sync-state'].forEach((ev) => window.addEventListener(ev, () => {
+  document.querySelectorAll('[id^="offb_"]').forEach((el) => window._offEserRozet(el.id.slice(5)));
+}));
 const MUZIK_ALANLARI = [
   { k:'makam',        ad:_esCev('alan.makam','Makam') },
   { k:'usul',         ad:_esCev('alan.usul','Usul') },
