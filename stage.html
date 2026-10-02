@@ -1180,25 +1180,7 @@ async function loadWL() {
       if (window.db) rows = await db.works.getAll();
       stageOfflineToast(); // bağlantı yoksa ve yerelden gösteriliyorsa bildir (kendi içinde offline kontrolü var)
     }
-    rows.forEach(w => {
-      WL[String(w.id)] = {
-        name: w.name || '',
-        composer: w.composer || '',
-        lyricWriter: w.lyric_writer || '',
-        makam: w.makam || '',
-        instrument: w.instrument || '',
-        closingNote: w.closing_note || '',
-        tuning: w.tuning || '',
-        form: w.form || '',
-        measurement: w.measurement || '',
-        region: w.region || '',
-        lyrics: w.lyrics || '',
-        chords: w.chords || '',
-        notaUrl: w.nota_url || '',
-        // 2026-07-20: çok sayfalı nota — nota_pages asıl kaynak, yoksa tek nota_url'e düş
-        notaPages: Array.isArray(w.nota_pages) ? w.nota_pages.filter(Boolean) : (w.nota_url ? [w.nota_url] : [])
-      };
-    });
+    rows.forEach(w => { WL[String(w.id)] = stageWorkToWL(w); });
     // customWorks patch
     try {
       const customs = JSON.parse(localStorage.getItem('customWorks') || '[]');
@@ -1291,7 +1273,60 @@ async function loadWL() {
     } catch(e) { /* yetki yok — kişisel katman atlanır */ }
   } catch(e) { console.error('WL yüklenemedi:', e); }
   finally { WL_loaded = true; } // works yükleme denemesi bitti (başarılı/başarısız)
-}// (2026-08-21) KİŞİSEL ESER NOTU — sahnede SALT OKUNUR gösterim.
+}
+
+function stageWorkToWL(w) {
+  return {
+    name: w.name || '',
+    composer: w.composer || '',
+    lyricWriter: w.lyric_writer || '',
+    makam: w.makam || '',
+    instrument: w.instrument || '',
+    closingNote: w.closing_note || '',
+    tuning: w.tuning || '',
+    form: w.form || '',
+    measurement: w.measurement || '',
+    region: w.region || '',
+    lyrics: w.lyrics || '',
+    chords: w.chords || '',
+    notaUrl: w.nota_url || '',
+    notaPages: Array.isArray(w.nota_pages) ? w.nota_pages.filter(Boolean) : (w.nota_url ? [w.nota_url] : [])
+  };
+}
+
+async function ensureStageWorks(rep) {
+  const missing = [...new Set((rep.items || [])
+    .filter(item => !WL[String(item.workId)]?.name && /^\d+$/.test(String(item.workId)))
+    .map(item => String(item.workId)))];
+  if (!missing.length) return [];
+
+  if (window.db) {
+    try {
+      const cached = await db.works.getAll();
+      (cached || []).forEach(work => {
+        const id = String(work.id);
+        if (missing.includes(id) && !WL[id]?.name) WL[id] = stageWorkToWL(work);
+      });
+    } catch (error) {
+      console.warn('[stage] eksik eserler yerel önbellekten okunamadı:', error);
+    }
+  }
+  const unresolved = missing.filter(id => !WL[id]?.name);
+  if (!unresolved.length) return [];
+
+  const response = await fetch(
+    SUPA_URL + '/rest/v1/works?select=*&deleted_at=is.null&id=in.(' + unresolved.join(',') + ')',
+    { headers: H, signal: AbortSignal.timeout(4000) }
+  );
+  if (!response.ok) throw new Error('works ' + response.status);
+  const rows = await response.json();
+  if (!Array.isArray(rows)) throw new Error('works yanıtı geçersiz');
+  rows.forEach(work => { WL[String(work.id)] = stageWorkToWL(work); });
+  if (window.db && rows.length) await db.works.saveAll(rows);
+  return unresolved.filter(id => !WL[id]?.name);
+}
+
+// (2026-08-21) KİŞİSEL ESER NOTU — sahnede SALT OKUNUR gösterim.
 // Düzenleme bilerek yok: sahnede klavye açmak, yanlış dokunuşla şarkı
 // ortasında düzenleme moduna düşmek demek. Yazma yeri eser detayı ve
 // repertuvar listesindeki alt sayfa.
@@ -2155,9 +2190,21 @@ function setTheme(t){
     el.style.background=s.background; el.style.borderColor=s.borderColor; el.style.color=s.color;
   });
 }
-function startStage(){
+async function startStage(){
   curRep=reps.find(r=>r.id===selId);
   if(!curRep||(curRep.items||[]).length===0)return;
+  const startButton = document.getElementById('bstart');
+  if (startButton) startButton.disabled = true;
+  try {
+    const missing = await ensureStageWorks(curRep);
+    if (missing.length) throw new Error('Missing work IDs: ' + missing.join(', '));
+  } catch (error) {
+    console.error('[stage] eser adları doğrulanamadı; sahne başlangıcı durduruldu:', error);
+    if (startButton) startButton.disabled = false;
+    alert(_sCev('sh.eserlerYuklenemedi', 'Bazı eser bilgileri yüklenemedi. Sahne açılmadı. Bağlantıyı kontrol edip tekrar deneyin.'));
+    return;
+  }
+  if (startButton) startButton.disabled = false;
   curIdx=0;
   if(!localStorage.getItem('stageTheme')) localStorage.setItem('stageTheme','night');
   window._stageActive = true;
