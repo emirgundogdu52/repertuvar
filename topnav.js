@@ -40,7 +40,7 @@ function _m(anahtar, tr) {
         /* Üst güvenli alan (status bar) — sayfa içeriği bunu hesaba katıyordu ama
            sidebar top:0'dan başladığı için logo hero bölümünden yukarıda kalıyordu. */
         padding-top: env(safe-area-inset-top, 0px);
-        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
       }
       .sb-brand {
         padding: 18px 16px 14px;

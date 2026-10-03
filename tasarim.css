@@ -1,0 +1,300 @@
+/* ────────────────────────────────────────────────────────────
+ * Repertuvar — yeni tasarım (landing tasarım dili)
+ *
+ * BÜTÜN kurallar html[data-tasarim="v3"] altında: tasarim.js bayrağı
+ * açmadıkça bu dosya hiçbir şeyi etkilemez.
+ * Kapsam: font, renk paleti, düğme/kart/girdi biçimi, emoji yerine gelen
+ * ikonlar. İşlev, düzen ve veri değişmez.
+ * ──────────────────────────────────────────────────────────── */
+
+/* ── 1. Font ── */
+html[data-tasarim="v3"] {
+  --font-ui: "Inter Tight", -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  --font: var(--font-ui);
+  /* Landing'in birincil düğmesi temadan bağımsız: sarı zemin, koyu yazı */
+  --yt-btn: #FFC83D;
+  --yt-btn-hover: #FFD463;
+  --yt-btn-yazi: #1A1305;
+  --yt-odak: 0 0 0 4px rgba(255, 200, 61, .25);
+}
+html[data-tasarim="v3"] body {
+  font-family: var(--font-ui);
+  font-feature-settings: "cv11", "ss01";
+}
+/* Form öğeleri fontu kendiliğinden miras almaz. Sıfır özgüllük: sınıf ve
+   satır içi (ör. monospace) bildirimler her zaman kazanır. */
+:where(html[data-tasarim="v3"]) :where(button, input, select, textarea) {
+  font-family: inherit;
+}
+/* Şarkı sözü ve akor alanları eski fontunda kalır: sahnedeki sığdırma (fitLyrics)
+   ve akor hizası ölçüme dayanıyor. Sıfır özgüllük → kendi font kuralı olan kazanır. */
+:where(html[data-tasarim="v3"]) :where(.wlyrics, .cp-lyric, .cp-chord, .lyrics-box, #lyricsBoxDisplay, #ne_lyrics_editor, #ne_lyrics, #ne_chords) {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+}
+/* stage.html'de gövde yığınında Plus Jakarta Sans da vardı (Android'de o görünüyordu) */
+:where(html[data-tasarim="v3"][data-sayfa="stage"]) :where(.wlyrics, .cp-lyric, .cp-chord) {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif;
+}
+
+/* ── 2. İkonlar: ince çizgili Tabler (yüklenemezse normal Tabler) ── */
+html[data-tasarim="v3"] .ti {
+  font-family: "tabler-icons-300", "tabler-icons" !important;
+}
+html[data-tasarim="v3"] .yt-ik {
+  display: inline-block;
+  font-size: 1.08em;
+  line-height: 1;
+  vertical-align: -0.14em;
+  font-style: normal;
+}
+html[data-tasarim="v3"] .yt-uyari { color: #E8A33D; }
+html[data-tasarim="v3"] .yt-hata { color: #FF6B5F; }
+html[data-tasarim="v3"] .yt-nokta {
+  display: inline-block;
+  width: .62em; height: .62em;
+  border-radius: 50%;
+  vertical-align: .04em;
+  background: #8A93A6;
+}
+html[data-tasarim="v3"] .yt-nokta-yesil { background: #34C759; }
+html[data-tasarim="v3"] .yt-nokta-sari { background: #FFC83D; }
+html[data-tasarim="v3"] .yt-nokta-kirmizi { background: #FF5A5F; }
+html[data-tasarim="v3"] .yt-nokta-gri { background: transparent; box-shadow: inset 0 0 0 1.5px #8A93A6; }
+
+/* Ana sayfa "sahne" kartındaki dev 🎭 süsü → maske ikonu */
+html[data-tasarim="v3"] .stage-banner::before {
+  content: "\f263";
+  font-family: "tabler-icons-300", "tabler-icons";
+  font-size: 84px;
+  right: 6px; top: 2px;
+  opacity: .07;
+}
+
+/* ── 3. Renk paleti (landing "ink") ──
+   topnav.js bu değişkenleri <html>'e satır içi yazıyor; !important onları geçer. */
+html[data-tasarim="v3"][data-theme="dark"] {
+  --bg: #070A0F !important;
+  --bg2: #090D14 !important;
+  --surface: #111722 !important;
+  --surface2: #1A2130 !important;
+  --border: rgba(255, 255, 255, .08) !important;
+  --border2: rgba(255, 255, 255, .14) !important;
+  --accent: #FFC83D !important;      /* 6 haneli hex kalmalı: ritim-kes canvas bunu ayrıştırıyor */
+  --accent2: #4DA3FF !important;
+  --accent3: #8CC5FF !important;
+  --text: #FFFFFF !important;
+  --text2: #AEB6C5 !important;
+  --text3: #8A93A6 !important;
+}
+html[data-tasarim="v3"][data-theme="light"] {
+  --bg: #F7F6F2 !important;
+  --bg2: #F0EFE7 !important;
+  --surface: #FFFFFF !important;
+  --surface2: #FBF8F1 !important;
+  --border: rgba(17, 23, 34, .10) !important;
+  --border2: rgba(17, 23, 34, .18) !important;
+  --accent: #D68A00 !important;
+  --accent2: #0B6FDE !important;
+  --accent3: #0B6FDE !important;
+  --text: #0B0F17 !important;
+  --text2: #566074 !important;
+  --text3: #8A93A6 !important;
+}
+/* topnav'ın açık temadaki sabit zeminleri */
+html[data-tasarim="v3"][data-theme="light"] body { background: var(--bg) !important; color: var(--text) !important; }
+html[data-tasarim="v3"][data-theme="light"] .page,
+html[data-tasarim="v3"][data-theme="light"] .main-wrap,
+html[data-tasarim="v3"][data-theme="light"] .v2-main-wrap { background: var(--bg); }
+html[data-tasarim="v3"][data-theme="light"] .r-topnav { background: rgba(247, 246, 242, .94); border-bottom-color: rgba(17, 23, 34, .08); }
+html[data-tasarim="v3"][data-theme="light"] .sidebar,
+html[data-tasarim="v3"][data-theme="light"] aside.sidebar,
+html[data-tasarim="v3"][data-theme="light"] .v2-sidebar { background: #FFFFFF !important; border-right-color: rgba(17, 23, 34, .08) !important; }
+html[data-tasarim="v3"][data-theme="light"] ::-webkit-scrollbar-track { background: var(--bg) !important; }
+
+/* Koyu temada mavi tonlu sabit yüzeyler → ink */
+@media (min-width: 1024px) {
+  html[data-tasarim="v3"][data-theme="dark"] .sidebar { background: rgba(9, 13, 20, .96); }
+}
+html[data-tasarim="v3"] .sidebar { font-family: var(--font-ui); }
+html[data-tasarim="v3"][data-theme="dark"] .r-topnav { background: rgba(7, 10, 15, .92); border-bottom-color: rgba(255, 255, 255, .08); }
+html[data-tasarim="v3"][data-theme="dark"] .r-tn-dropdown,
+html[data-tasarim="v3"][data-theme="dark"] .dt-user-dropdown { background: #111722; border-color: rgba(255, 255, 255, .12); border-radius: 14px; }
+html[data-tasarim="v3"] .sb-item { border-radius: 12px; }
+html[data-tasarim="v3"] .sb-item.active { background: rgba(255, 200, 61, .12); color: var(--accent); }
+html[data-tasarim="v3"][data-theme="light"] .sb-item.active { color: #8A5A00; }
+
+/* ── 4. Birincil düğmeler: düz sarı hap (landing .btn-y) ── */
+html[data-tasarim="v3"] .hero-btn-primary,
+html[data-tasarim="v3"] .stage-go-btn,
+html[data-tasarim="v3"] .rbtn-primary,
+html[data-tasarim="v3"] .bs,
+html[data-tasarim="v3"] .bstage-primary,
+html[data-tasarim="v3"] .bn,
+html[data-tasarim="v3"] .bstart,
+html[data-tasarim="v3"] .setting-btn.primary,
+html[data-tasarim="v3"] .btn-primary,
+html[data-tasarim="v3"] .btn-send,
+html[data-tasarim="v3"] .btn-nm-send,
+html[data-tasarim="v3"] .btn-save,
+html[data-tasarim="v3"] .btn-new,
+html[data-tasarim="v3"] .btn-kaydet,
+html[data-tasarim="v3"][data-sayfa="reset-password"] .btn,
+html[data-tasarim="v3"][data-sayfa="form-atama"] .btn:not(.ikincil),
+html[data-tasarim="v3"][data-sayfa="calisma"] .co-btn:not(.ikincil),
+html[data-tasarim="v3"][data-sayfa="ritim-kes"] .rk-btn:not(.ikincil) {
+  background: var(--yt-btn);
+  color: var(--yt-btn-yazi);
+  border-color: transparent;
+  border-radius: 200px;
+  font-weight: 600;
+  letter-spacing: .1px;
+  box-shadow: none;
+}
+html[data-tasarim="v3"] .hero-btn-primary:hover,
+html[data-tasarim="v3"] .stage-go-btn:hover,
+html[data-tasarim="v3"] .rbtn-primary:hover,
+html[data-tasarim="v3"] .bs:hover,
+html[data-tasarim="v3"] .bstage-primary:hover,
+html[data-tasarim="v3"] .bn:hover,
+html[data-tasarim="v3"] .bstart:hover,
+html[data-tasarim="v3"] .setting-btn.primary:hover,
+html[data-tasarim="v3"] .btn-primary:hover,
+html[data-tasarim="v3"] .btn-send:hover,
+html[data-tasarim="v3"] .btn-nm-send:hover,
+html[data-tasarim="v3"] .btn-save:hover,
+html[data-tasarim="v3"] .btn-new:hover,
+html[data-tasarim="v3"] .btn-kaydet:hover {
+  background: var(--yt-btn-hover);
+  opacity: 1;
+}
+/* rbtn-group içindeki birincil düğme grubun köşelerini bozmasın */
+html[data-tasarim="v3"] .rbtn-group > .rbtn-primary { border-radius: 0; }
+
+/* ── 5. İkincil düğmeler: hap + ince kenar (landing .btn-ghost) ── */
+html[data-tasarim="v3"] .hero-btn-secondary,
+html[data-tasarim="v3"] .bc,
+html[data-tasarim="v3"] .btn-secondary,
+html[data-tasarim="v3"] .btn-new-msg,
+html[data-tasarim="v3"] .btn-nm-cancel,
+html[data-tasarim="v3"][data-sayfa="calisma"] .co-btn.ikincil,
+html[data-tasarim="v3"][data-sayfa="ritim-kes"] .rk-btn.ikincil,
+html[data-tasarim="v3"][data-sayfa="form-atama"] .btn.ikincil {
+  border-radius: 200px;
+  font-weight: 600;
+}
+html[data-tasarim="v3"][data-theme="dark"] .hero-btn-secondary {
+  background: rgba(255, 255, 255, .06);
+  border-color: rgba(255, 255, 255, .16);
+  color: var(--text);
+}
+html[data-tasarim="v3"] .setting-btn,
+html[data-tasarim="v3"] .rbtn:not(.rbtn-group > .rbtn),
+html[data-tasarim="v3"][data-sayfa="gruplar"] .btn,
+html[data-tasarim="v3"] .btn-add,
+html[data-tasarim="v3"] .btn-restore,
+html[data-tasarim="v3"] .btn-edit,
+html[data-tasarim="v3"] .btn-soz,
+html[data-tasarim="v3"] .btn-retract,
+html[data-tasarim="v3"] .btn-reply,
+html[data-tasarim="v3"] .btn-sm {
+  border-radius: 200px;
+}
+
+/* ── 6. Kartlar ve yüzeyler ── */
+html[data-tasarim="v3"] .active-card,
+html[data-tasarim="v3"] .stage-banner,
+html[data-tasarim="v3"] .feat-card,
+html[data-tasarim="v3"] .coming-soon-card,
+html[data-tasarim="v3"] .hero-feature-card,
+html[data-tasarim="v3"] .settings-section,
+html[data-tasarim="v3"] .msg-card,
+html[data-tasarim="v3"] .ann-card,
+html[data-tasarim="v3"] .compose-box,
+html[data-tasarim="v3"] .member-card,
+html[data-tasarim="v3"] .y-card,
+html[data-tasarim="v3"] .stt-card,
+html[data-tasarim="v3"] .stt-panel,
+html[data-tasarim="v3"] .pm-card,
+html[data-tasarim="v3"] .info-card,
+html[data-tasarim="v3"] .co-item,
+html[data-tasarim="v3"][data-sayfa="onerilerim"] .card,
+html[data-tasarim="v3"][data-sayfa="gruplar"] .section,
+html[data-tasarim="v3"][data-sayfa="gruplar"] .invite-box {
+  border-radius: 18px;
+}
+html[data-tasarim="v3"] .stage-banner {
+  background: linear-gradient(135deg, rgba(255, 200, 61, .12) 0%, rgba(255, 200, 61, .03) 100%);
+  border-color: rgba(255, 200, 61, .40);
+}
+html[data-tasarim="v3"] .feat-card-accent {
+  background: linear-gradient(135deg, rgba(255, 200, 61, .12), rgba(255, 200, 61, .03));
+  border-color: rgba(255, 200, 61, .40);
+}
+html[data-tasarim="v3"] .feat-icon,
+html[data-tasarim="v3"] .cs-icon { color: var(--accent); }
+html[data-tasarim="v3"] .feat-card:hover { border-color: rgba(255, 200, 61, .45); box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .35); }
+html[data-tasarim="v3"] .qb-icon { border-radius: 18px; }
+html[data-tasarim="v3"] .qb-stage .qb-icon { background: rgba(255, 200, 61, .14); }
+html[data-tasarim="v3"] .qb-stage .qb-label { color: var(--accent); }
+
+/* Ana sayfa karşılama kartı: lacivert gradyan → landing ink (.feat bölümü gibi) */
+html[data-tasarim="v3"][data-theme="dark"][data-sayfa="index"] .hero-section {
+  background:
+    radial-gradient(circle at 82% 12%, rgba(255, 200, 61, .10), transparent 42%),
+    linear-gradient(180deg, #0D121B 0%, #090D14 100%);
+  border-color: rgba(255, 255, 255, .08);
+  border-radius: 28px;
+}
+html[data-tasarim="v3"][data-theme="light"][data-sayfa="index"] .hero-section {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFF7E6 100%);
+  border-color: rgba(17, 23, 34, .08);
+  border-radius: 28px;
+}
+/* Alt menüdeki "Sahne Modu": mavi gradyan yerine sarı ton (landing .bi) */
+html[data-tasarim="v3"] .bn-stage {
+  background: rgba(255, 200, 61, .12);
+  border-color: rgba(255, 200, 61, .30);
+  color: var(--accent) !important;
+}
+
+/* Modallar ve alt sayfalar: daha yumuşak köşe */
+html[data-tasarim="v3"] .modal-card,
+html[data-tasarim="v3"] .nm-card,
+html[data-tasarim="v3"] .confirm-card,
+html[data-tasarim="v3"] .share-modal,
+html[data-tasarim="v3"] .sort-box { border-radius: 22px; }
+
+/* ── 7. Girdiler: yuvarlak köşe + landing odak halkası ── */
+html[data-tasarim="v3"] .fi,
+html[data-tasarim="v3"] .si,
+html[data-tasarim="v3"] .ne-inp,
+html[data-tasarim="v3"] .setting-select,
+html[data-tasarim="v3"] .field input,
+html[data-tasarim="v3"] .search-bar input,
+html[data-tasarim="v3"] .co-ara,
+html[data-tasarim="v3"] .form-input {
+  border-radius: 14px;
+}
+html[data-tasarim="v3"] :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea):focus-visible {
+  outline: none;
+  border-color: #D68A00;
+  box-shadow: var(--yt-odak);
+}
+html[data-tasarim="v3"] :focus-visible { outline-color: #D68A00; }
+
+/* ── 8. Tipografi: landing'in sakin başlıkları ── */
+html[data-tasarim="v3"] .hero-title { font-weight: 600; letter-spacing: -.025em; }
+html[data-tasarim="v3"] .sb-title { font-weight: 600; letter-spacing: -.02em; }
+html[data-tasarim="v3"] .sec-title { font-weight: 600; letter-spacing: .1em; }
+html[data-tasarim="v3"] .feat-title { font-weight: 600; }
+html[data-tasarim="v3"] .feat-section-title { font-weight: 500; letter-spacing: -.01em; }
+
+/* ── 9. Taşma güvenceleri ── */
+html[data-tasarim="v3"] .qb-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 600px) {
+  html[data-tasarim="v3"][data-sayfa="ayarlar"] .toast {
+    white-space: normal;
+    max-width: calc(100vw - 32px);
+    text-align: center;
+  }
+}

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="tasarim.js"></script>
 <title data-i18n="tm.sayfaBasligi">Toplu Makam Doldurma</title>
 <script src="i18n.js"></script>
 <style>
@@ -10,7 +11,7 @@
     --text:#e8ecf3; --text2:#9aa6b8; --accent:#FFC83D; --ok:#34C759; }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif; font-size:14px; }
+    font-family:var(--font-ui, -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif); font-size:14px; }
   header { position:sticky; top:0; z-index:50; background:var(--surface);
     border-bottom:1px solid var(--border); padding:14px 20px;
     display:flex; align-items:center; justify-content:space-between; gap:16px; }
@@ -46,6 +47,7 @@
   .yukleniyor, .bitti { text-align:center; padding:40px; color:var(--text2); }
   .bitti { font-size:16px; }
 </style>
+<link rel="stylesheet" href="tasarim.css">
 </head>
 <body>
 <header>

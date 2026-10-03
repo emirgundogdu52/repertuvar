@@ -985,6 +985,10 @@
       'menu.grupDegisemedi': 'Grup değiştirilemedi. Bağlantınızı kontrol edip tekrar deneyin.',
 
       'ayar.dil': 'Arayüz Dili',
+      'ayar.tasarim': 'Yeni Tasarım',
+      'ayar.tasarim_alt': 'Yeni görünümü aç ya da eski görünüme dön',
+      'ayar.tasarimAcik': 'Açık',
+      'ayar.tasarimKapali': 'Kapalı',
 
       'ana.hosgeldin': 'Hoş geldiniz 👋',
       'ana.sahnehazir': 'Sahneye hazır',
@@ -2564,6 +2568,10 @@
       'menu.grupDegisemedi': 'Could not switch group. Check your connection and try again.',
 
       'ayar.dil': 'Interface Language',
+      'ayar.tasarim': 'New Design',
+      'ayar.tasarim_alt': 'Turn on the new look or go back to the old one',
+      'ayar.tasarimAcik': 'On',
+      'ayar.tasarimKapali': 'Off',
 
       'ana.hosgeldin': 'Welcome 👋',
       'ana.sahnehazir': 'Stage ready',

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script src="tasarim.js"></script>
 <title data-i18n="ist.sayfaBaslik">Repertuvar — İstatistikler</title>
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
@@ -14,7 +15,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js" defer crossorigin="anonymous"></script>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif; }
+  body { font-family: var(--font-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif); }
   .page { padding: 24px 20px 40px; max-width: 1080px; margin: 0 auto; }
   @media(min-width:1024px) { .page { padding: 32px 32px 48px; } }
 
@@ -50,6 +51,7 @@
 
   .stt-loading { padding:60px 0; text-align:center; color:var(--text3); font-size:13px; }
 </style>
+<link rel="stylesheet" href="tasarim.css">
 </head>
 <body>
 

@@ -36,6 +36,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script src="/tasarim.js"></script>
 <title data-i18n="fa.sayfaBasligi">Form Atama — Repertuvar</title>
 <link rel="stylesheet" href="/style.css">
 <script src="/i18n.js"></script>
@@ -43,7 +44,7 @@
   /* style.css `body`'ye sidebar düzenini dayatıyor (flex satır). Ham <body>
      kullanınca içerik dikey şeritlere sıkışıyor — sıfırlayıp .wrap kullanıyoruz. */
   body { margin:0; display:block; background:var(--bg,#07071a); color:var(--text,#e2e0ff);
-         font-family:system-ui,-apple-system,sans-serif; -webkit-text-size-adjust:100%;
+         font-family:var(--font-ui, system-ui,-apple-system,sans-serif); -webkit-text-size-adjust:100%;
          touch-action:manipulation; }
   .wrap { max-width:900px; margin:0 auto; padding:16px 16px 110px; }
   h1 { font-size:20px; margin:0 0 4px; }
@@ -89,6 +90,7 @@
   .btn.ikincil { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
   .durum { padding:20px; text-align:center; color:var(--text3); font-size:14px; }
 </style>
+<link rel="stylesheet" href="/tasarim.css">
 </head>
 <body>
 <div class="wrap">

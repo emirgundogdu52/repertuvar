@@ -14,6 +14,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script src="tasarim.js"></script>
 <title>Repertuvar — v2 Preview</title>
 <link rel="icon" href="Repertuvar_logo.png">
 <script src="i18n.js"></script>
@@ -35,7 +36,7 @@
     /* ═══ index.html'e özgü hero yerleşimi ve animasyonları ═══
        Renkler artık merkezi style.css'teki :root değişkenlerinden geliyor,
        burada ayrı bir renk paleti tanımlanmıyor. */
-    body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif; }
+    body { font-family: var(--font-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif); }
     .hero-title-accent { color: var(--accent); }
     .hero-btn-primary {
       background: linear-gradient(135deg,var(--accent),var(--accent2));
@@ -270,6 +271,7 @@
   
     .pedal-ic { display:inline-block; width:1em; height:1em; vertical-align:-.125em; background-color:currentColor; -webkit-mask:var(--pedal-mask) center/contain no-repeat; mask:var(--pedal-mask) center/contain no-repeat; }
   </style>
+<link rel="stylesheet" href="tasarim.css">
 </head>
 <body>
 <div class="bg-glow"></div>

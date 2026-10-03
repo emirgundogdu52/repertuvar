@@ -60,7 +60,7 @@ html {
 
 body {
   background: var(--bg);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  font-family: var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;

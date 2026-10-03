@@ -11,6 +11,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="tasarim.js"></script>
 <meta name="robots" content="noindex, nofollow">
 <title>Repertuvar</title>
 <style>
@@ -18,7 +19,7 @@
          --text:#fff; --text2:#9d9bc4; --text3:#5e5c8a; --accent:#FFC83D; --accent2:#4DA3FF; }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);
-       font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+       font-family:var(--font-ui, -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);
        padding:16px 14px 48px;-webkit-text-size-adjust:100%;}
   .wrap{max-width:720px;margin:0 auto;}
   .brand{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.4px;margin-bottom:14px;}
@@ -52,6 +53,7 @@
     .btn,.cta,.expires,.brand{display:none;}
   }
 </style>
+<link rel="stylesheet" href="tasarim.css">
 </head>
 <body>
 <div class="wrap" id="root">

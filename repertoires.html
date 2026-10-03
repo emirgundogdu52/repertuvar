@@ -12,13 +12,14 @@
 <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script src="tasarim.js"></script>
 <title data-i18n="rep.sayfaBaslik">Repertuvar</title>
 <style>
 :root{--bg:#07071a;--surface:#0f0f2e;--surface2:#13132e;--border:rgba(140,120,255,0.38);--border2:rgba(140,120,255,0.58);--accent:#7c6fff;--accent2:#a78bfa;--accent3:#c4b5fd;--text:#e2e0ff;--text2:#9d9bc4;--text3:#5e5c8a;--red:#f87171;--green:#4ade80;}
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;background:var(--bg);}
-body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;font-size:14px;}
-.nb{padding:5px 14px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;cursor:pointer;background:none;transition:all .15s;text-decoration:none;display:inline-block;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);font-size:14px;}
+.nb{padding:5px 14px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;cursor:pointer;background:none;transition:all .15s;text-decoration:none;display:inline-block;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);}
 .nb:hover{background:var(--surface2);color:var(--text);}
 .nb.active{background:rgba(201,150,58,.12);border-color:rgba(201,150,58,.3);color:var(--accent);}
 .nb.stage{background:rgba(201,150,58,.18);border-color:rgba(201,150,58,.5);color:var(--accent);font-weight:500;}
@@ -31,7 +32,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .lp{width:300px;min-width:300px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;}
 .lph{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .lph h2{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}
-.bn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;padding:5px 12px;color:#1a1000;font-size:12px;font-weight:500;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;cursor:pointer;}
+.bn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;padding:5px 12px;color:#1a1000;font-size:12px;font-weight:500;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);cursor:pointer;}
 .bn:hover{background:var(--accent2);}
 .ls{overflow-y:auto;overflow-x:hidden;flex:1;padding:10px 10px 4px;}
 .ls::-webkit-scrollbar{width:4px;}.ls::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
@@ -65,12 +66,12 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .dh{padding:8px 14px 0;border-bottom:1px solid var(--border);background:var(--surface);}
 .dht{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:16px;}
 .did{font-size:11px;color:var(--text3);margin-bottom:4px;}
-.dn{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;font-size:18px;font-weight:700;color:var(--text);}
+.dn{font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);font-size:18px;font-weight:700;color:var(--text);}
 .da{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;}
 .da-wrap{position:relative;}
 .da-fade{position:absolute;top:0;right:0;bottom:0;width:26px;pointer-events:none;background:linear-gradient(to right,transparent,var(--surface) 75%);border-radius:0 6px 6px 0;display:none;}
 @media (max-width:1023px){.da-fade{display:block;}}
-.bi{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text2);font-size:12px;cursor:pointer;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;transition:all .15s;text-decoration:none;display:inline-block;}
+.bi{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);transition:all .15s;text-decoration:none;display:inline-block;}
 .bi:hover{border-color:var(--border2);color:var(--text);}
 .bd{border-color:rgba(192,84,68,.3);color:var(--red);}
 .bd:hover{background:rgba(192,84,68,.1);border-color:var(--red);}
@@ -82,7 +83,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .is{padding:4px 14px;flex:1;}
 .ih{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
 .ih h3{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}
-.baw{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;color:var(--text2);font-size:12px;cursor:pointer;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;transition:all .15s;}
+.baw{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);transition:all .15s;}
 .baw:hover{border-color:var(--accent);color:var(--accent);}
 table{width:100%;border-collapse:collapse;}
 th{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);}
@@ -92,7 +93,7 @@ tr:nth-child(even) td{background:var(--surface);}tr.zebra-tr td{background:var(-
 .col-kapanis{width:80px;}
 .col-not{width:60px;}
 @media(max-width:768px){.col-kapanis,.col-not{display:none;} .sq{width:24px;}}
-.si{width:44px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:4px 6px;color:var(--accent);font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;font-weight:500;text-align:center;outline:none;cursor:pointer;transition:border-color .15s;-moz-appearance:textfield;}
+.si{width:44px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:4px 6px;color:var(--accent);font-size:13px;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);font-weight:500;text-align:center;outline:none;cursor:pointer;transition:border-color .15s;-moz-appearance:textfield;}
 .si::-webkit-outer-spin-button,.si::-webkit-inner-spin-button{-webkit-appearance:none;}
 .si:focus{border-color:var(--accent);}
 .wn{color:var(--text);font-weight:500;}
@@ -111,7 +112,7 @@ tr:nth-child(even) td{background:var(--surface);}tr.zebra-tr td{background:var(-
 tr:hover .ra{opacity:1;}
 tr.item-active .ra{opacity:1;}
 @media (hover:none){ .ra{opacity:.8;} }   /* dokunmatikte daha okunur */
-.br{background:none;border:1px solid var(--border);border-radius:5px;padding:5px 9px;font-size:14px;color:var(--text3);cursor:pointer;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;transition:all .12s;}
+.br{background:none;border:1px solid var(--border);border-radius:5px;padding:5px 9px;font-size:14px;color:var(--text3);cursor:pointer;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);transition:all .12s;}
 .br.active{border-color:var(--accent);color:var(--accent);}
 .br:hover{color:var(--text);border-color:var(--border2);}
 .br.dl:hover{color:var(--red);border-color:var(--red);}
@@ -197,14 +198,14 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 .ei{padding:40px 0;text-align:center;color:var(--text3);font-size:13px;}
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;}
 .md{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;width:480px;max-width:92vw;max-height:85vh;overflow-y:auto;}
-.md h2{font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;font-size:18px;margin-bottom:18px;color:var(--text);}
+.md h2{font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);font-size:18px;margin-bottom:18px;color:var(--text);}
 .fr{margin-bottom:14px;}
 .fl{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;display:block;}
-.fi{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-size:14px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;outline:none;transition:border-color .2s;}
+.fi{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-size:14px;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);outline:none;transition:border-color .2s;}
 .fi:focus{border-color:var(--accent);}
 .fa{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
-.bc{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 18px;color:var(--text2);font-size:13px;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;cursor:pointer;}
-.bs{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:7px;padding:8px 18px;color:#1a1000;font-size:13px;font-weight:500;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;cursor:pointer;}
+.bc{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 18px;color:var(--text2);font-size:13px;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);cursor:pointer;}
+.bs{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:7px;padding:8px 18px;color:#1a1000;font-size:13px;font-weight:500;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);cursor:pointer;}
 .bs:hover{background:var(--accent2);}
 .wpl{max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:7px;}
 .wpl::-webkit-scrollbar{width:4px;}.wpl::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
@@ -372,6 +373,7 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
   <link rel="manifest" href="manifest.json">
   <script src="db.js"></script>
+<link rel="stylesheet" href="tasarim.css">
 </head>
 <body>
 <div id="r-topnav-container"></div>

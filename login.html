@@ -9,6 +9,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script src="tasarim.js"></script>
 <title data-i18n="giris.sayfaBaslik">Repertuvar — Giriş</title>
 <link rel="icon" href="Repertuvar_logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Inter:wght@500;900&display=swap" rel="stylesheet">
@@ -67,7 +68,7 @@ body { overflow: hidden; }
   --border:#303A55;--text:#FFFFFF;--text2:#B8BFD2;--text3:#8A93AB;
   --accent:#FFC83D;--accent2:#4DA3FF;--green:#3FB950;--red:#F85149;
 }
-body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
 
 .logo-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:32px;}
 /* Yeni yazı logosu — splash ve üst çubuktakiyle aynı kimlik (eski logo_slogan_dark.png yerine) */
@@ -106,6 +107,7 @@ body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-he
 .msg.err{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red);}
 .msg.ok{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--green);}
 </style>
+<link rel="stylesheet" href="tasarim.css">
 </head>
 <body>
 

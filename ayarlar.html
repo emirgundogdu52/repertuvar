@@ -6,6 +6,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script src="tasarim.js"></script>
 <title data-i18n="ay.sayfaBaslik">Repertuvar — Ayarlar</title>
 <link rel="icon" href="Repertuvar_logo.png">
 <script src="i18n.js"></script>
@@ -353,6 +354,7 @@ html, body { overflow-x: hidden; }
 </style>
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="tasarim.css">
 </head>
 <body>
 
@@ -435,6 +437,28 @@ html, body { overflow-x: hidden; }
                 style="padding:9px 12px;border-radius:9px;background:var(--surface2);
                        border:1px solid var(--border);color:var(--text);font-size:14px;
                        font-family:inherit;"></select>
+      </div>
+      <!-- (2026-10-04) Yeni tasarım anahtarı (tasarim.js). Native uygulamada URL
+           parametresi verilemediği için uygulama içi geri dönüş yolu da budur. -->
+      <div class="setting-row" id="tasarimSatir">
+        <div>
+          <div class="setting-label" data-i18n="ayar.tasarim">Yeni Tasarım</div>
+          <div class="setting-desc" data-i18n="ayar.tasarim_alt">Yeni görünümü aç ya da eski görünüme dön</div>
+        </div>
+        <select class="setting-select" id="tasarimSecim"
+                onchange="window.RTasarim && window.RTasarim.ayarla(this.value === '1')">
+          <option value="1" data-i18n="ayar.tasarimAcik">Açık</option>
+          <option value="0" data-i18n="ayar.tasarimKapali">Kapalı</option>
+        </select>
+        <script>
+          (function () {
+            var T = window.RTasarim, s = document.getElementById('tasarimSecim');
+            if (s) s.value = (T && T.acik) ? '1' : '0';
+            // Varsayılan kapalıyken satır yalnız yeni tasarımı açmış kişiye görünür
+            var satir = document.getElementById('tasarimSatir');
+            if (satir && !(T && (T.acik || T.varsayilan))) satir.style.display = 'none';
+          })();
+        </script>
       </div>
     </div>
 

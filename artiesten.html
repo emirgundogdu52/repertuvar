@@ -15,6 +15,7 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script src="tasarim.js"></script>
 <title data-i18n="so.sayfaBaslik">Solistler — Repertuvar</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -26,9 +27,9 @@
   
   *{margin:0;padding:0;box-sizing:border-box;}
 html{background:var(--bg);}
-  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-ui, 'DM Sans',sans-serif);font-size:14px;min-height:100vh;}
   nav.artist-topnav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:80px;display:flex;align-items:center;gap:4px;position:sticky;top:0;z-index:200;}
-  .nav-btn{padding:5px 14px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;background:none;transition:all .15s;text-decoration:none;display:inline-block;}
+  .nav-btn{padding:5px 14px;border-radius:6px;border:1px solid transparent;color:var(--text2);font-size:13px;font-family:var(--font-ui, 'DM Sans',sans-serif);cursor:pointer;background:none;transition:all .15s;text-decoration:none;display:inline-block;}
   .nav-btn:hover{background:var(--surface2);color:var(--text);}
   .nav-btn.active{background:rgba(88,166,255,.12);border-color:rgba(88,166,255,.3);color:var(--accent);}
   .sync-status{margin-left:auto;font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px;}
@@ -41,14 +42,14 @@ html{background:var(--bg);}
   .artist-list-panel{width:280px;min-width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
   .panel-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
   .panel-header h2{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}
-  .btn-new{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;padding:5px 12px;color:#1a1000;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;}
+  .btn-new{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;padding:5px 12px;color:#1a1000;font-size:12px;font-weight:500;font-family:var(--font-ui, 'DM Sans',sans-serif);cursor:pointer;}
   .list-scroll{overflow-y:auto;flex:1;}
   .artist-item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;display:flex;align-items:center;gap:12px;-webkit-user-select:none;-webkit-touch-callout:none;user-select:none;}
   .artist-item:nth-child(even):not(.active){background:rgba(124,111,255,0.06);}
   [data-theme="light"] .artist-item:nth-child(even):not(.active){background:rgba(124,111,255,0.05);}
   .artist-item:hover{background:var(--surface2);}
   .artist-item.active{background:var(--surface2);border-left:3px solid var(--accent);padding-left:13px;}
-  .artist-avatar{width:36px;height:36px;border-radius:50%;background:var(--surface3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:var(--accent);flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif;}
+  .artist-avatar{width:36px;height:36px;border-radius:50%;background:var(--surface3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:var(--accent);flex-shrink:0;font-family:var(--font-ui, 'Plus Jakarta Sans',sans-serif);}
   .artist-info{min-width:0;}
   .artist-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .artist-sub{font-size:11px;color:var(--text3);margin-top:2px;}
@@ -56,10 +57,10 @@ html{background:var(--bg);}
   .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3);gap:12px;}
   .detail-inner{max-width:680px;padding:32px;}
   .detail-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;gap:20px;}
-  .detail-avatar{width:72px;height:72px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:600;color:var(--accent);flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif;}
-  .detail-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;color:var(--text);margin-bottom:4px;}
+  .detail-avatar{width:72px;height:72px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:600;color:var(--accent);flex-shrink:0;font-family:var(--font-ui, 'Plus Jakarta Sans',sans-serif);}
+  .detail-name{font-family:var(--font-ui, 'Plus Jakarta Sans',sans-serif);font-size:26px;color:var(--text);margin-bottom:4px;}
   .detail-actions{display:flex;gap:6px;}
-  .btn-icon{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+  .btn-icon{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font-ui, 'DM Sans',sans-serif);transition:all .15s;}
   .btn-icon:hover{border-color:var(--border2);color:var(--text);}
   .btn-danger{border-color:rgba(192,84,68,.3);color:var(--red);}
   .btn-danger:hover{background:rgba(192,84,68,.1);border-color:var(--red);}
@@ -75,7 +76,7 @@ html{background:var(--bg);}
   .works-chips{display:flex;flex-wrap:wrap;gap:6px;}
   .work-chip{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px;}
   .work-chip span{color:var(--text3);font-size:10px;}
-  .btn-add-work-chip{background:none;border:1px dashed var(--border2);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+  .btn-add-work-chip{background:none;border:1px dashed var(--border2);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text3);cursor:pointer;font-family:var(--font-ui, 'DM Sans',sans-serif);transition:all .15s;}
   .btn-add-work-chip:hover{border-color:var(--accent);color:var(--accent);}
   /* (2026-08-05) "+ Eser Ekle" düğmesi: openWorkModal() tanımlıydı ama onu
      çağıran düğme kartta yoktu — özellik erişilemez durumdaydı. */
@@ -85,14 +86,14 @@ html{background:var(--bg);}
   .work-chip-remove:hover{color:var(--red);}
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;}
   .modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;width:460px;max-width:92vw;max-height:85vh;overflow-y:auto;}
-  .modal h2{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:18px;color:var(--text);}
+  .modal h2{font-family:var(--font-ui, 'Playfair Display',serif);font-size:18px;margin-bottom:18px;color:var(--text);}
   .form-row{margin-bottom:14px;}
   .form-label{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;display:block;}
-  .form-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+  .form-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-size:14px;font-family:var(--font-ui, 'DM Sans',sans-serif);outline:none;transition:border-color .2s;}
   .form-input:focus{border-color:var(--accent);}
   .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
-  .btn-cancel{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 18px;color:var(--text2);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;}
-  .btn-save{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:7px;padding:8px 18px;color:#1a1000;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;}
+  .btn-cancel{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 18px;color:var(--text2);font-size:13px;font-family:var(--font-ui, 'DM Sans',sans-serif);cursor:pointer;}
+  .btn-save{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:7px;padding:8px 18px;color:#1a1000;font-size:13px;font-weight:500;font-family:var(--font-ui, 'DM Sans',sans-serif);cursor:pointer;}
   .work-picker-list{max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:7px;margin-top:8px;}
   .work-pick-item{padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;}
   .work-pick-item:last-child{border-bottom:none;}
@@ -141,6 +142,7 @@ html{background:var(--bg);}
 <style>
 #r-sidebar .sb-item { justify-content: flex-start !important; text-align: left !important; }
 </style>
+<link rel="stylesheet" href="tasarim.css">
 </head>
 <body>
 <div id="r-topnav-container"></div>

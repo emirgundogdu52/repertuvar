@@ -325,6 +325,7 @@
 <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<script src="tasarim.js"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title data-i18n="sh.sayfaBaslik">Sahne Modu</title>
@@ -335,7 +336,7 @@
 :root{--bg:#080810;--surface:#0f0f1a;--surface2:#161625;--border:#484860;--accent:#a855f7;--accent2:#c084fc;--text:#f1f0ff;--text2:#8b8aa8;--text3:#3d3d58;--green:#4a9462;--red:#c05444;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;background:var(--bg);}
-body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Plus Jakarta Sans', sans-serif;position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;user-select:none;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Plus Jakarta Sans', sans-serif);position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;user-select:none;}
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;}
 /* Picker ve bitiş ekranlarında üst nav görünür kalıyor — bu ekranlar onun gerçek
    yüksekliğinin (66px içerik + safe-area) altından başlamalı. Sahne performans ekranında
@@ -378,7 +379,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 }
 /* Picker ekranı: marka paleti (altın/mavi) — sahne performans ekranı kendi mor gece paletinde kalıyor */
 #pickerScreen{--accent:#FFC83D;--accent2:#4DA3FF;}
-.bstart{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;padding:9px;color:#0a0818;font-size:16px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;box-shadow:0 4px 14px rgba(255,200,61,.22);}
+.bstart{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;padding:9px;color:#0a0818;font-size:16px;font-weight:500;font-family:var(--font-ui, 'DM Sans',sans-serif);cursor:pointer;transition:opacity .15s,transform .1s;box-shadow:0 4px 14px rgba(255,200,61,.22);}
 .bstart:hover{opacity:.92;}
 .bstart:active{transform:scale(.98);}
 .bstart:disabled{opacity:.35;cursor:not-allowed;}
@@ -400,7 +401,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacS
 .pbar{width:96px;height:4px;border-radius:999px;background:var(--border);overflow:hidden;}
 .pbar span{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s;}
 .stc{display:inline;font-size:11px;font-weight:600;color:var(--text2);margin-left:6px;}
-.bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;}
+.bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:var(--font-ui, 'DM Sans',sans-serif);cursor:pointer;transition:all .15s;}
 .bex:hover{color:var(--red);border-color:var(--red);}
 
 /* ═══ Görünüm seçici: Söz / Akor / Nota — SEKME (tab) stili, üst barda ═══ */
@@ -544,7 +545,7 @@ body.day-theme #stageToolsPanel .st-grp + .st-grp{ border-top-color:rgba(0,0,0,.
 @media (min-width:768px){
   #stageToolsPanel{ left:auto !important; width:fit-content !important; max-width:calc(100vw - 24px) !important; }
 }
-.wtitle{font-family:'DM Sans',sans-serif;font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:100%;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
+.wtitle{font-family:var(--font-ui, 'DM Sans',sans-serif);font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:100%;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
 /* Karar sesi rozeti — başlığın altında, ton değiştikçe güncellenir */
 .wkarar{font-size:clamp(15px,2.1vw,22px);font-weight:800;letter-spacing:.05em;color:var(--text2,#9aa4b2);text-align:center;margin:0;opacity:0;animation:si .4s ease .12s forwards;}
 .wkarar.shifted{color:var(--accent,#FFC83D);}
@@ -670,15 +671,15 @@ body.stage-active #r-bottom-nav{display:none !important;}
 .nmv{font-size:12px;color:var(--text2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 .nmx{width:1px;height:13px;background:var(--border);flex-shrink:0;display:block;}
 .th{font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;line-height:1.5;opacity:0;animation:fi .5s ease .5s forwards;}
-.th kbd{display:inline-block;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;font-family:'DM Sans',sans-serif;color:var(--text3);}
+.th kbd{display:inline-block;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;font-family:var(--font-ui, 'DM Sans',sans-serif);color:var(--text3);}
 
 #endScreen{background:var(--bg);align-items:center;justify-content:center;text-align:center;padding:40px 24px;}
 .ei{font-size:56px;margin-bottom:24px;animation:pls 2s ease infinite;}
-.et{font-family:'Playfair Display',serif;font-size:36px;color:var(--accent);margin-bottom:12px;}
+.et{font-family:var(--font-ui, 'Playfair Display',serif);font-size:36px;color:var(--accent);margin-bottom:12px;}
 .es{font-size:15px;color:var(--text2);margin-bottom:8px;}
 .ec{font-size:13px;color:var(--text3);margin-bottom:36px;}
 .ea{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-.be{padding:12px 24px;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;}
+.be{padding:12px 24px;border-radius:8px;font-size:14px;font-family:var(--font-ui, 'DM Sans',sans-serif);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;}
 .bep{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#0a0818;font-weight:500;}
 .bep:hover{opacity:.92;}
 .beg{background:none;border:1px solid var(--border);color:var(--text2);}
@@ -759,7 +760,7 @@ body.stage-active #r-bottom-nav{display:none !important;}
 .ton-nota small{display:block;font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.04em;}
 /* Telefonda DARALTMIYORUZ: kontrol artık alt şeritte değil panelde, yer var. */
 @media (max-width:768px){ .font-slider-wrap .fs-a-sm{font-size:12px;} .font-slider-wrap .fs-a-lg{font-size:18px;} }
-.stage-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;} .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+.stage-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;} .stage-nav a{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);font-size:11px;font-family:var(--font-ui, 'DM Sans',sans-serif);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
 .stage-nav a:hover{border-color:var(--accent);color:var(--accent);}
 
 /* (2026-08-06) YAN OKLAR ARTIK YALNIZCA MASAÜSTÜNDE.
@@ -787,7 +788,7 @@ body.stage-active #r-bottom-nav{display:none !important;}
   transition: background .2s, border-color .2s, transform .2s;
   z-index: 60;
   user-select: none;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-ui, 'DM Sans', sans-serif);
 }
 .snb-arrow { font-size: 28px; line-height: 1; }
 .snb-label { font-size: 11px; font-weight: 600; letter-spacing: .04em; opacity: .8; }
@@ -974,6 +975,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
   <link rel="manifest" href="manifest.json">
   <script src="db.js"></script>
+<link rel="stylesheet" href="tasarim.css">
 </head>
 <body>
 <div id="r-topnav-container"></div>
