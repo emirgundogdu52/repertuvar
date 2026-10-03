@@ -140,8 +140,9 @@ body{background:var(--bg);font-family:"Sora",sans-serif;color:var(--text);min-he
     <button class="tab" onclick="switchTab('register')" data-i18n="giris.kayitol">Kayıt Ol</button>
   </div>
 
-  <!-- Google -->
-  <button class="btn-google" onclick="loginGoogle()">
+  <!-- Google: web'de Google'ın resmi butonu (#gsi) çizilir, bu buton yalnızca native uygulamada / yedek olarak kalır -->
+  <div id="gsi" style="display:none;justify-content:center;min-height:44px;margin-bottom:4px"></div>
+  <button class="btn-google" id="btnGoogle" onclick="loginGoogle()">
     <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
     <span data-i18n="giris.google">Google ile devam et</span>
   </button>
@@ -193,30 +194,61 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 // Arayuz metni cevirisi. i18n.js yuklenmemisse Turkceye duser.
 function _gCev(k, tr) { try { return (window.i18n && window.i18n.t) ? window.i18n.t(k, tr) : tr; } catch (e) { return tr; } }
 
-// Email onay / şifre sıfırlama token'ını yakala
+// Email onay / şifre sıfırlama token'ını yakala.
+// (2026-10-03) Landing'den (repertuvar.app/giris.html, kayit.html) devir ve web Google
+// dönüşü de buradan geçer. Güvenlik notları (bağımsız incelemeden):
+//  - token'lar adres çubuğundan HEMEN silinir (geçmişte/üçüncü taraf betiklerde kalmasın)
+//  - hesap değişince yalnızca oturum anahtarları silinir; scope_uid KALIR ki auth.js
+//    enforceUserScope önceki kullanıcının çevrimdışı verisini temizlesin
+//  - davet yalnızca AYNI adreste ?invite= ile geldiyse kullanılır (eski bekleyen davet,
+//    hazırlanmış bir bağlantıyla başkasının hesabına harcanamasın)
+//  - güvenilmeyen bir kaynaktan gelen bağlantı girişli kullanıcıyı başka hesaba geçirmeden önce sorar
+window._hashOturum = false;
 (async () => {
   const hash = window.location.hash;
   if (hash.includes('access_token')) {
     const params = new URLSearchParams(hash.substring(1));
     const access_token = params.get('access_token');
     const refresh_token = params.get('refresh_token');
-    const type = params.get('type'); // signup veya recovery
+    const type = params.get('type'); // signup, recovery, landing ya da yok (Google dönüşü)
+    window._hashOturum = true;
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
     if (access_token) {
       const { data, error } = await sb.auth.setSession({ access_token, refresh_token });
       if (data?.session) {
+        let eski = null;
+        try { eski = JSON.parse(localStorage.getItem('sb_user')) || null; } catch (e) {}
+        if (eski && eski.id && eski.id !== data.session.user.id) {
+          const guvenilir = /^https:\/\/(repertuvar\.app|app\.repertuvar\.app|accounts\.google\.com|ehytkzxdhjyjuubizdnl\.supabase\.co)\//.test(document.referrer || '');
+          if (!guvenilir && !confirm(_gCev('giris.hesapDegistir', 'Bu bağlantı oturumu başka bir hesaba geçiriyor: {eposta}. Devam edilsin mi?').replace('{eposta}', data.session.user.email || '?'))) {
+            await sb.auth.signOut({ scope: 'local' }).catch(function () {});
+            if (localStorage.getItem('sb_token')) window.location.replace('index.html');
+            return;
+          }
+          ['sb_token','sb_refresh','sb_user','user_role','user_status','user_group_id','user_groups','myGroupRole','uiLangSunucu']
+            .forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+        }
         localStorage.setItem('sb_token', data.session.access_token);
         localStorage.setItem('sb_refresh', data.session.refresh_token);
+        localStorage.setItem('sb_user', JSON.stringify(data.session.user));
         if (type === 'recovery') {
-          window.location.href = 'reset-password.html' + window.location.hash;
+          window.location.replace('reset-password.html');   // oturum yukarıda kaydedildi; token adrese taşınmaz
           return;
-        } else {
-          showMsg('ok', _gCev('giris.epostaDogrulandi', 'E-posta doğrulandı! Yönlendiriliyorsunuz...'));
-          setTimeout(() => window.location.href = 'index.html', 1500);
         }
+        if (type === 'landing' || !type) {
+          const urlDavet = new URLSearchParams(location.search).get('invite');
+          const d = urlDavet ? await handlePendingInvite(data.session.user.id) : null;
+          const git = function () { window.location.replace(d && d.ok === true ? 'index.html?joined=1' : 'index.html'); };
+          if (d && d.ok !== true) setTimeout(git, 4500); else git();   // davet hatası (açılış perdesinden sonra) okunabilsin
+          return;
+        }
+        showMsg('ok', _gCev('giris.epostaDogrulandi', 'E-posta doğrulandı! Yönlendiriliyorsunuz...'));
+        setTimeout(() => window.location.replace('index.html'), 1500);
         return;
-      } else {
-        showMsg('err', _gCev('giris.dogrulamaBasarisiz', 'Doğrulama başarısız. Lütfen tekrar deneyin.'));
       }
+      showMsg('err', _gCev('giris.dogrulamaBasarisiz', 'Doğrulama başarısız. Lütfen tekrar deneyin.'));
+      // devir başarısız ama cihazda zaten bir oturum varsa onunla devam et
+      if (localStorage.getItem('sb_token')) setTimeout(() => window.location.replace('index.html'), 2500);
     }
   }
 })();
@@ -256,7 +288,10 @@ if(window.location.search.includes('expired=1')) {
 const _inviteToken = new URLSearchParams(window.location.search).get('invite');
 if (_inviteToken) localStorage.setItem('pending_invite', _inviteToken);
 
-if(!window.location.search.includes('logout=1') && !window.location.hash.includes('type=recovery')) {
+// (2026-10-03) Adreste yeni oturum (#access_token) varsa "zaten girişli" yönlendirmesi
+// YAPILMAZ: yukarıdaki setSession bitmeden index'e gidilirse tarayıcıdaki ESKİ kullanıcı
+// girişli kalıyordu (landing'den başka hesapla girişte).
+if(!window.location.search.includes('logout=1') && !window.location.hash.includes('type=recovery') && !window._hashOturum) {
   const token = localStorage.getItem('sb_token');
   if (token) {
     // (2026-08-06) ZATEN GİRİŞLİ KULLANICI + DAVET LİNKİ.
@@ -570,6 +605,47 @@ async function loginGoogle() {
     options: {redirectTo: 'https://app.repertuvar.app/login.html'}
   });
 }
+
+// (2026-10-03) WEB'DE RESMİ GOOGLE BUTONU. signInWithOAuth Supabase'in kendi
+// adresinden geçtiği için Google penceresinde "ehytkzxdhjyjuubizdnl.supabase.co
+// uygulamasına devam edin" yazıyordu. Google Identity Services + signInWithIdToken
+// ile pencerede uygulama adı ve app.repertuvar.app görünür. Native (Capacitor)
+// uygulamada Google gömülü web görünümünü engellediği için eski yol aynen kalır.
+(function googleResmi() {
+  const native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  if (native || window._hashOturum) return;   // devir sırasında üçüncü taraf betik yükleme
+  const CLIENT_ID = '33396018913-5h3jfncqf93a4js20k4e3gfgluc3v4l8.apps.googleusercontent.com';
+  const hex = b => Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+  async function nonce() {
+    const ham = hex(crypto.getRandomValues(new Uint8Array(24)));
+    return { ham, ozet: hex(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ham)))) };
+  }
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+  s.onload = async function () {
+    let n = await nonce();
+    const kutu = document.getElementById('gsi'), eski = document.getElementById('btnGoogle');
+    function kur() {
+      google.accounts.id.initialize({
+        client_id: CLIENT_ID, nonce: n.ozet, ux_mode: 'popup', itp_support: true, use_fedcm_for_button: true,
+        callback: async function (r) {
+          const { data, error } = await sb.auth.signInWithIdToken({ provider: 'google', token: r.credential, nonce: n.ham });
+          if (error || !data.session) { showMsg('err', (error && error.message) || 'Google'); n = await nonce(); kur(); return; }
+          localStorage.setItem('sb_token', data.session.access_token);
+          localStorage.setItem('sb_refresh', data.session.refresh_token);
+          localStorage.setItem('sb_user', JSON.stringify(data.session.user));
+          await handlePendingInvite(data.session.user.id);
+          window.location.replace('index.html');
+        }
+      });
+      kutu.innerHTML = '';
+      google.accounts.id.renderButton(kutu, { theme: 'outline', size: 'large', shape: 'rectangular', text: 'continue_with', width: Math.min(400, kutu.parentNode.clientWidth || 360), locale: (document.documentElement.lang || 'tr').slice(0, 2) });
+    }
+    kur();
+    kutu.style.display = 'flex'; eski.style.display = 'none';
+  };
+  document.head.appendChild(s);   // yüklenemezse eski buton (OAuth) görünür kalır
+})();
 </script>
 <script>
 (async function() {

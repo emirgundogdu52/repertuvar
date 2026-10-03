@@ -1281,6 +1281,7 @@
       'ortak.kuyrukT': 'Çevrimdışı yaptığın değişiklikler bağlantı gelince kaydedilecek. Hemen denemek için dokun.',
       'giris.sayfaBaslik': 'Repertuvar — Giriş',
       'giris.epostaDogrulandi': 'E-posta doğrulandı! Yönlendiriliyorsunuz...',
+      'giris.hesapDegistir': 'Bu bağlantı oturumu başka bir hesaba geçiriyor: {eposta}. Devam edilsin mi?',
       'giris.dogrulamaBasarisiz': 'Doğrulama başarısız. Lütfen tekrar deneyin.',
       'giris.silmeTalebiAlindi': 'Hesap silme talebiniz alındı. 30 gün içinde tüm verileriniz silinecek ve e-posta ile bilgilendirileceksiniz.',
       'giris.askiyaAlindi': 'Hesabınız askıya alınmıştır.',
@@ -2846,6 +2847,7 @@
       'ortak.kuyrukT': 'Changes you made offline will be saved when you\'re back online. Tap to try now.',
       'giris.sayfaBaslik': 'Repertuvar — Sign in',
       'giris.epostaDogrulandi': 'Email verified! Redirecting...',
+      'giris.hesapDegistir': 'This link switches the session to another account: {eposta}. Continue?',
       'giris.dogrulamaBasarisiz': 'Verification failed. Please try again.',
       'giris.silmeTalebiAlindi': 'Your account deletion request has been received. All your data will be deleted within 30 days and you\'ll be notified by email.',
       'giris.askiyaAlindi': 'Your account has been suspended.',
@@ -3188,6 +3190,13 @@
   // Tarayıcı dili yalnızca İLK açılışta bakılır; kullanıcı bir kez seçtiyse
   // cihaz dili değişse bile tercihi korunur.
   function dilBelirle() {
+    try {
+      // (2026-10-03) repertuvar.app landing'i girişte seçili dili ?lang=en|tr ile
+      // gönderir (başka köken, localStorage paylaşılmıyor). Az önce yapılmış açık bir
+      // seçim olduğu için kayıtlı tercihin önüne geçer ve kalıcı yazılır.
+      const url = new URLSearchParams(location.search).get('lang');
+      if (url && Object.prototype.hasOwnProperty.call(DILLER, url)) { try { localStorage.setItem('uiLang', url); } catch (e) {} return url; }
+    } catch (e) {}
     try {
       const kayitli = localStorage.getItem('uiLang');
       if (kayitli && DILLER[kayitli]) return kayitli;
