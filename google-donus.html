@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Repertuvar</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+         background: #070A0F; color: #fff; text-align: center; padding: 24px; box-sizing: border-box;
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  a { display: inline-block; margin-top: 18px; padding: 12px 24px; border-radius: 200px;
+      background: #FFC83D; color: #1A1305; font-weight: 600; text-decoration: none; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div>
+  <p id="mesaj"></p>
+  <a id="don" href="#" hidden></a>
+</div>
+<script>
+// (2026-10-04) NATIVE GOOGLE GİRİŞİ DÖNÜŞ KÖPRÜSÜ.
+// Uygulama Google'ı doğrudan açar (redirect_uri = bu sayfa) ki Google penceresinde
+// Supabase'in proje adresi değil app.repertuvar.app görünsün. Google id_token'ı bu
+// sayfanın # kısmına koyar; # sunucuya hiç gönderilmez, sayfa onu yalnız uygulamaya
+// (com.repertuvar.app://giris) aktarır. Belirteç tek başına işe yaramaz: Supabase
+// uygulamanın sakladığı nonce'u da ister (login.html → _googleIdTokenIle).
+(function () {
+  var tr = (navigator.language || '').toLowerCase().indexOf('tr') === 0;
+  var mesaj = document.getElementById('mesaj'), don = document.getElementById('don');
+  var h = location.hash || '';
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  var p = new URLSearchParams(h.replace(/^#/, ''));
+  if (!p.get('id_token') && !p.get('error')) {
+    mesaj.textContent = tr ? 'Geçersiz bağlantı.' : 'Invalid link.';
+    return;
+  }
+  var hedef = 'com.repertuvar.app://giris' + h;
+  mesaj.textContent = tr ? 'Repertuvar\'a dönülüyor…' : 'Returning to Repertuvar…';
+  don.textContent = tr ? 'Repertuvar\'a dön' : 'Return to Repertuvar';
+  don.href = hedef;
+  location.replace(hedef);
+  // Android Chrome sekmesi kullanıcı dokunuşu olmadan uygulamayı açmayı reddedebilir
+  setTimeout(function () { don.hidden = false; }, 1200);
+})();
+</script>
+</body>
+</html>

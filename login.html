@@ -603,15 +603,20 @@ async function verifyOtp() {
 
 // (2026-10-04) NATIVE GOOGLE GİRİŞİ. Google gömülü WebView'da girişi engelliyor; eskiden
 // Capacitor dış adresi Chrome/Safari'de açıyor, giriş WEB'de bitiyor, uygulamaya hiç
-// dönülmüyordu. Artık Supabase com.repertuvar.app://giris#access_token=… adresine döner:
-//  - iOS: ASWebAuthenticationSession (yerel GirisOturumu eklentisi, GirisOturumu.swift) dönüşü
-//    kendisi yakalar ve sonucu doğrudan verir; "Repertuvar'da açılsın mı?" onayı çıkmaz.
-//  - Android (ve eklentisi olmayan eski iOS kurulumu): uygulama içi sekme (@capacitor/browser);
-//    dönüş bağlantısı AndroidManifest intent-filter / iOS URL şeması + SceneDelegate ile gelir.
-// Her iki yolda dönüşün #… kısmı login.html'e verilir; oturumu yukarıdaki mevcut işleyici kurar.
-// Supabase → Authentication → URL Configuration → Redirect URLs'te bu adres izinli olmalı.
+// dönülmüyordu. Akış (web'deki resmi Google düğmesiyle aynı mantık):
+//  1. Uygulama Google'ı DOĞRUDAN açar (id_token + nonce + state). Supabase'in authorize
+//     adresinden geçilmediği için Google penceresinde proje adresi (…supabase.co) değil
+//     app.repertuvar.app görünür. Google Cloud'da web istemcisinin Authorized redirect
+//     URIs listesinde google-donus.html olmalı.
+//  2. google-donus.html belirteci com.repertuvar.app://giris#id_token=… ile uygulamaya aktarır:
+//     iOS'ta ASWebAuthenticationSession (GirisOturumu eklentisi) yakalar; Android'de
+//     uygulama içi sekme (@capacitor/browser) + AndroidManifest intent-filter.
+//  3. _googleIdTokenIle → sb.auth.signInWithIdToken (nonce yalnız uygulamada; yolda
+//     yakalanan belirteç tek başına oturum açamaz).
 const NATIVE_DONUS = 'com.repertuvar.app://giris';
 const NATIVE_SEMA = 'com.repertuvar.app';
+const GOOGLE_WEB_ISTEMCI = '33396018913-5h3jfncqf93a4js20k4e3gfgluc3v4l8.apps.googleusercontent.com';
+const GOOGLE_DONUS_SAYFASI = 'https://app.repertuvar.app/google-donus.html';
 const GOOGLE_BEKLIYOR = 'r_google_bekliyor';
 function _nativeMi() {
   const c = window.Capacitor;
@@ -640,6 +645,8 @@ function _nativeDonusIsle(url) {
   if (!bas || Date.now() - bas > 15 * 60 * 1000) return;
   const i = url.indexOf('#');
   const parca = i === -1 ? '' : url.substring(i);
+  const prm = new URLSearchParams(parca.replace(/^#/, ''));
+  if (prm.get('id_token')) { _googleIdTokenIle(prm); return; }
   if (parca.indexOf('access_token') !== -1) {
     // Aynı sayfada yalnız # değişirse yeniden yüklenmez; sorgu farkı tam yükleme sağlar
     window.location.replace('login.html?donus=google' + parca);
@@ -649,6 +656,52 @@ function _nativeDonusIsle(url) {
   if (q.get('error')) {
     showMsg('err', _gCev('giris.googleIptal', 'Google girişi tamamlanmadı.') + (q.get('error_description') ? ' (' + q.get('error_description').replace(/[<>&]/g, '') + ')' : ''));
   }
+}
+
+function _hex(b) { return Array.from(b, function (x) { return x.toString(16).padStart(2, '0'); }).join(''); }
+// Google OAuth adresi: nonce'un ham hâli ve state yalnız bu cihazda saklanır
+async function _googleAdresi() {
+  const ham = _hex(crypto.getRandomValues(new Uint8Array(24)));
+  const ozet = _hex(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ham))));
+  const durum = _hex(crypto.getRandomValues(new Uint8Array(16)));
+  localStorage.setItem('r_google_nonce', ham);
+  localStorage.setItem('r_google_state', durum);
+  const q = new URLSearchParams({
+    client_id: GOOGLE_WEB_ISTEMCI, redirect_uri: GOOGLE_DONUS_SAYFASI,
+    response_type: 'id_token', scope: 'openid email profile',
+    nonce: ozet, state: durum, prompt: 'select_account'
+  });
+  return 'https://accounts.google.com/o/oauth2/v2/auth?' + q.toString();
+}
+
+async function _googleIdTokenIle(prm) {
+  let ham = null, durum = null;
+  try {
+    ham = localStorage.getItem('r_google_nonce'); durum = localStorage.getItem('r_google_state');
+    localStorage.removeItem('r_google_nonce'); localStorage.removeItem('r_google_state');
+  } catch (e) {}
+  if (!ham || !durum || prm.get('state') !== durum) {
+    showMsg('err', _gCev('giris.dogrulamaBasarisiz', 'Doğrulama başarısız. Lütfen tekrar deneyin.'));
+    return;
+  }
+  const { data, error } = await sb.auth.signInWithIdToken({ provider: 'google', token: prm.get('id_token'), nonce: ham });
+  if (error || !data || !data.session) {
+    showMsg('err', _gCev('giris.dogrulamaBasarisiz', 'Doğrulama başarısız. Lütfen tekrar deneyin.'));
+    return;
+  }
+  // Hesap değiştiyse önceki kullanıcının oturum anahtarlarını temizle (hash işleyicisiyle aynı);
+  // scope_uid KALIR ki auth.js enforceUserScope önceki kullanıcının çevrimdışı verisini temizlesin
+  let eski = null;
+  try { eski = JSON.parse(localStorage.getItem('sb_user')) || null; } catch (e) {}
+  if (eski && eski.id && eski.id !== data.session.user.id) {
+    ['sb_token','sb_refresh','sb_user','user_role','user_status','user_group_id','user_groups','myGroupRole','uiLangSunucu']
+      .forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+  }
+  localStorage.setItem('sb_token', data.session.access_token);
+  localStorage.setItem('sb_refresh', data.session.refresh_token);
+  localStorage.setItem('sb_user', JSON.stringify(data.session.user));
+  await handlePendingInvite(data.session.user.id);
+  window.location.replace('index.html');
 }
 
 async function _iosGirisOturumu(url) {
@@ -661,7 +714,7 @@ async function _iosGirisOturumu(url) {
     _nativeDonusIsle(r && r.url);
   } catch (e) {
     if (e && e.code === 'UNIMPLEMENTED') return false;
-    try { localStorage.removeItem(GOOGLE_BEKLIYOR); } catch (_) {}
+    try { [GOOGLE_BEKLIYOR, 'r_google_nonce', 'r_google_state'].forEach(function (k) { localStorage.removeItem(k); }); } catch (_) {}
     if (!(e && e.code === 'IPTAL')) _googleHatasi();
   }
   return true;
@@ -669,16 +722,13 @@ async function _iosGirisOturumu(url) {
 
 async function loginGoogle() {
   if (_nativeMi()) {
-    const { data, error } = await sb.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: NATIVE_DONUS, skipBrowserRedirect: true }
-    });
-    if (error || !data || !data.url) { _googleHatasi(); return; }
+    let url;
+    try { url = await _googleAdresi(); } catch (e) { _googleHatasi(); return; }
     try { localStorage.setItem(GOOGLE_BEKLIYOR, String(Date.now())); } catch (e) {}
-    if (await _iosGirisOturumu(data.url)) return;
+    if (await _iosGirisOturumu(url)) return;
     const tarayici = _nativeEklenti('Browser');
-    if (tarayici) { await tarayici.open({ url: data.url, toolbarColor: '#070A0F' }); return; }
-    window.location.href = data.url;   // eklenti de yoksa eski davranış
+    if (tarayici) { await tarayici.open({ url: url, toolbarColor: '#070A0F' }); return; }
+    window.location.href = url;   // eklenti de yoksa
     return;
   }
   await sb.auth.signInWithOAuth({
@@ -710,7 +760,7 @@ async function loginGoogle() {
 (function googleResmi() {
   const native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   if (native || window._hashOturum) return;   // devir sırasında üçüncü taraf betik yükleme
-  const CLIENT_ID = '33396018913-5h3jfncqf93a4js20k4e3gfgluc3v4l8.apps.googleusercontent.com';
+  const CLIENT_ID = GOOGLE_WEB_ISTEMCI;
   const hex = b => Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
   async function nonce() {
     const ham = hex(crypto.getRandomValues(new Uint8Array(24)));
