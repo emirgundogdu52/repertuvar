@@ -864,6 +864,8 @@
       'giris.slogan1': 'Modern Müzisyenler İçin',
       'giris.slogan2': 'Akıllı Sahne ve Repertuvar Yönetimi',
       'giris.google': 'Google ile devam et',
+      'giris.apple': 'Apple ile devam et',
+      'giris.appleAcilamadi': 'Apple ile giriş başlatılamadı. Lütfen tekrar deneyin.',
       'giris.veya': 'veya',
 
       'menu.anasayfa': 'Ana Sayfa',
@@ -2437,6 +2439,8 @@
       'giris.slogan1': 'For the Modern Musician',
       'giris.slogan2': 'Smart Stage and Repertoire Management',
       'giris.google': 'Continue with Google',
+      'giris.apple': 'Continue with Apple',
+      'giris.appleAcilamadi': 'Couldn\'t start Sign in with Apple. Please try again.',
       'giris.veya': 'or',
 
       'menu.anasayfa': 'Home',

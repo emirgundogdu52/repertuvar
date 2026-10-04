@@ -95,6 +95,8 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 
 .btn-google{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:border-color .15s;margin-bottom:20px;}
 .btn-google:hover{border-color:var(--text2);}
+.btn-apple{width:100%;padding:10px;border-radius:8px;border:1px solid #fff;background:#fff;color:#000;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;}
+.btn-apple[hidden]{display:none;}
 
 .divider{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
 .divider hr{flex:1;border:none;border-top:1px solid var(--border);}
@@ -144,6 +146,11 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 
   <!-- Google: web'de Google'ın resmi butonu (#gsi) çizilir, bu buton yalnızca native uygulamada / yedek olarak kalır -->
   <div id="gsi" style="display:none;justify-content:center;min-height:44px;margin-bottom:4px"></div>
+  <!-- (2026-10-04) Apple ile Giriş: yalnız iOS uygulamasında, APPLE_GIRIS_AKTIF açıkken görünür -->
+  <button class="btn-apple" id="btnApple" hidden onclick="loginApple()">
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M16.37 12.4c-.02-2.3 1.88-3.4 1.96-3.45-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.76 2.27-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.37-3.89ZM14.1 5.66c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.68-1.09 1.76-.96 2.8 1.02.08 2.05-.52 2.68-1.28Z"/></svg>
+    <span data-i18n="giris.apple">Apple ile devam et</span>
+  </button>
   <button class="btn-google" id="btnGoogle" onclick="loginGoogle()">
     <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
     <span data-i18n="giris.google">Google ile devam et</span>
@@ -691,18 +698,70 @@ async function _googleIdTokenIle(prm) {
   }
   // Hesap değiştiyse önceki kullanıcının oturum anahtarlarını temizle (hash işleyicisiyle aynı);
   // scope_uid KALIR ki auth.js enforceUserScope önceki kullanıcının çevrimdışı verisini temizlesin
+  await _oturumuKaydet(data.session);
+}
+
+// Kimlik belirteciyle (Google/Apple) açılan oturumu kaydet ve uygulamaya geç
+async function _oturumuKaydet(session, ad) {
   let eski = null;
   try { eski = JSON.parse(localStorage.getItem('sb_user')) || null; } catch (e) {}
-  if (eski && eski.id && eski.id !== data.session.user.id) {
+  if (eski && eski.id && eski.id !== session.user.id) {
     ['sb_token','sb_refresh','sb_user','user_role','user_status','user_group_id','user_groups','myGroupRole','uiLangSunucu']
       .forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
   }
-  localStorage.setItem('sb_token', data.session.access_token);
-  localStorage.setItem('sb_refresh', data.session.refresh_token);
-  localStorage.setItem('sb_user', JSON.stringify(data.session.user));
-  await handlePendingInvite(data.session.user.id);
+  localStorage.setItem('sb_token', session.access_token);
+  localStorage.setItem('sb_refresh', session.refresh_token);
+  localStorage.setItem('sb_user', JSON.stringify(session.user));
+  // Apple adı yalnız ilk girişte verir: profilde ad yoksa yaz (landing profilAdi ile aynı alanlar)
+  if (ad) {
+    try {
+      const { data: p } = await sb.from('profiles').select('full_name').eq('id', session.user.id).maybeSingle();
+      if (!p || !p.full_name) await sb.from('profiles').update({ full_name: ad, display_name: ad }).eq('id', session.user.id);
+    } catch (e) {}
+  }
+  await handlePendingInvite(session.user.id);
   window.location.replace('index.html');
 }
+
+// (2026-10-04) APPLE İLE GİRİŞ — App Store kuralı 4.8 (Google girişi olduğu için gerekli).
+// iOS'ta yerel GirisOturumu.apple (ASAuthorizationController) → identityToken →
+// signInWithIdToken({ provider: 'apple', nonce: ham }). Açmak için hepsi gerekli:
+//  1) Ücretli Apple Developer üyeliği; Xcode → Signing & Capabilities → + Sign in with Apple
+//     (şimdilik App.entitlements yalnız simülatör derlemesine bağlı: CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*])
+//  2) Supabase → Authentication → Providers → Apple: Enabled, Client IDs: com.repertuvar.app
+//  3) APPLE_GIRIS_AKTIF = true + yayın
+// Hesap silmede Apple belirteçlerinin iptali (Apple kuralı 5.1.1(v)) ayrıca gerekecek.
+const APPLE_GIRIS_AKTIF = false;
+function _appleKullanilabilir() {
+  const c = window.Capacitor;
+  return APPLE_GIRIS_AKTIF && !!(c && c.getPlatform && c.getPlatform() === 'ios') && !!_nativeEklenti('GirisOturumu');
+}
+async function loginApple() {
+  const eklenti = _nativeEklenti('GirisOturumu');
+  if (!eklenti) return;
+  let ham, ozet;
+  try {
+    ham = _hex(crypto.getRandomValues(new Uint8Array(24)));
+    ozet = _hex(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ham))));
+  } catch (e) { showMsg('err', _gCev('giris.appleAcilamadi', 'Apple ile giriş başlatılamadı. Lütfen tekrar deneyin.')); return; }
+  let r;
+  try { r = await eklenti.apple({ nonce: ozet }); }
+  catch (e) {
+    if (!(e && (e.code === 'IPTAL' || e.code === 'MESGUL'))) showMsg('err', _gCev('giris.appleAcilamadi', 'Apple ile giriş başlatılamadı. Lütfen tekrar deneyin.'));
+    return;
+  }
+  const { data, error } = await sb.auth.signInWithIdToken({ provider: 'apple', token: r && r.identityToken, nonce: ham });
+  if (error || !data || !data.session) {
+    showMsg('err', _gCev('giris.dogrulamaBasarisiz', 'Doğrulama başarısız. Lütfen tekrar deneyin.'));
+    return;
+  }
+  const ad = [r.ad, r.soyad].filter(Boolean).join(' ').trim();
+  await _oturumuKaydet(data.session, ad);
+}
+(function appleDugmesi() {
+  const b = document.getElementById('btnApple');
+  if (b && _appleKullanilabilir()) b.hidden = false;
+})();
 
 async function _iosGirisOturumu(url) {
   // true: oturum açıldı/kapandı (iş bitti); false: eklenti yok → tarayıcı yoluna düş.
