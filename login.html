@@ -601,12 +601,80 @@ async function verifyOtp() {
   }
 }
 
+// (2026-10-04) NATIVE GOOGLE GİRİŞİ. Google gömülü WebView'da girişi engelliyor; eskiden
+// Capacitor dış adresi Chrome/Safari'de açıyor, giriş WEB'de bitiyor, uygulamaya hiç
+// dönülmüyordu. Artık uygulama içi tarayıcı sekmesi (Android Custom Tab / iOS Safari
+// görünümü) açılır, Supabase com.repertuvar.app://giris#access_token=… adresine döner
+// (AndroidManifest intent-filter, iOS Info.plist URL şeması + SceneDelegate). Dönüşün
+// #… kısmı login.html'e verilir; oturumu yukarıdaki mevcut işleyici kurar.
+// Supabase → Authentication → URL Configuration → Redirect URLs'te bu adres izinli olmalı.
+const NATIVE_DONUS = 'com.repertuvar.app://giris';
+const GOOGLE_BEKLIYOR = 'r_google_bekliyor';
+function _nativeEklenti(ad) {
+  const c = window.Capacitor;
+  return (c && c.isNativePlatform && c.isNativePlatform() && c.Plugins && c.Plugins[ad]) || null;
+}
+
 async function loginGoogle() {
+  const tarayici = _nativeEklenti('Browser');
+  if (tarayici) {
+    const { data, error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: NATIVE_DONUS, skipBrowserRedirect: true }
+    });
+    if (error || !data || !data.url) {
+      showMsg('err', _gCev('giris.googleAcilamadi', 'Google girişi başlatılamadı. Bağlantınızı kontrol edip tekrar deneyin.'));
+      return;
+    }
+    // Dönüş yalnız bizim başlattığımız bir girişten beklenir: başka bir uygulamanın/sitenin
+    // açtığı sahte com.repertuvar.app://giris#access_token=… bağlantısı oturum kuramasın.
+    try { localStorage.setItem(GOOGLE_BEKLIYOR, String(Date.now())); } catch (e) {}
+    await tarayici.open({ url: data.url, toolbarColor: '#070A0F' });
+    return;
+  }
   await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {redirectTo: 'https://app.repertuvar.app/login.html'}
   });
 }
+
+// Native Google dönüşü. Olay, sayfa sonradan açılsa da bekletilir (appUrlOpen); uygulama
+// dönüş bağlantısıyla soğuk açıldıysa getLaunchUrl() verir. İkisi de aynı adresi
+// getirebileceği için bekleme işareti tek kullanımlık.
+(function nativeGoogleDonusu() {
+  const app = _nativeEklenti('App');
+  if (!app) return;
+  // getLaunchUrl() (özellikle iOS) süreç boyunca AYNI eski adresi döndürür: yeni bir giriş
+  // beklerken sayfa yeniden yüklenirse eski dönüş işaretimizi tüketmesin.
+  function iz(s) { let h = 5381; for (let k = 0; k < s.length; k++) h = ((h << 5) + h + s.charCodeAt(k)) | 0; return String(h); }
+  function isle(url) {
+    if (!url || url.indexOf(NATIVE_DONUS) !== 0) return;
+    try { if (localStorage.getItem('r_google_son') === iz(url)) return; localStorage.setItem('r_google_son', iz(url)); } catch (e) {}
+    let bas = 0;
+    try { bas = +localStorage.getItem(GOOGLE_BEKLIYOR) || 0; localStorage.removeItem(GOOGLE_BEKLIYOR); } catch (e) {}
+    const tarayici = _nativeEklenti('Browser');
+    if (tarayici) { const p = tarayici.close(); if (p && p.catch) p.catch(function () {}); }
+    if (!bas || Date.now() - bas > 15 * 60 * 1000) return;
+    const i = url.indexOf('#');
+    const parca = i === -1 ? '' : url.substring(i);
+    if (parca.indexOf('access_token') !== -1) {
+      // Aynı sayfada yalnız # değişirse yeniden yüklenmez; sorgu farkı tam yükleme sağlar
+      window.location.replace('login.html?donus=google' + parca);
+      return;
+    }
+    const q = new URLSearchParams((url.split('?')[1] || '').split('#')[0] + '&' + parca.replace(/^#/, ''));
+    if (q.get('error')) {
+      showMsg('err', _gCev('giris.googleIptal', 'Google girişi tamamlanmadı.') + (q.get('error_description') ? ' (' + q.get('error_description').replace(/[<>&]/g, '') + ')' : ''));
+    }
+  }
+  try {
+    app.addListener('appUrlOpen', function (e) { isle(e && e.url); });
+    if (!window.location.search.includes('logout=1')) {
+      const p = app.getLaunchUrl();
+      if (p && p.then) p.then(function (r) { isle(r && r.url); }).catch(function () {});
+    }
+  } catch (e) {}
+})();
 
 // (2026-10-03) WEB'DE RESMİ GOOGLE BUTONU. signInWithOAuth Supabase'in kendi
 // adresinden geçtiği için Google penceresinde "ehytkzxdhjyjuubizdnl.supabase.co
