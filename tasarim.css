@@ -126,6 +126,8 @@ html[data-tasarim="v3"][data-theme="light"] .sb-item.active { color: #8A5A00; }
 /* ── 4. Birincil düğmeler: düz sarı hap (landing .btn-y) ── */
 html[data-tasarim="v3"] .hero-btn-primary,
 html[data-tasarim="v3"] .stage-go-btn,
+html[data-tasarim="v3"] .stage-open-btn,
+html[data-tasarim="v3"] .dtab.active,
 html[data-tasarim="v3"] .rbtn-primary,
 html[data-tasarim="v3"] .bs,
 html[data-tasarim="v3"] .bstage-primary,
@@ -152,6 +154,7 @@ html[data-tasarim="v3"][data-sayfa="ritim-kes"] .rk-btn:not(.ikincil) {
 }
 html[data-tasarim="v3"] .hero-btn-primary:hover,
 html[data-tasarim="v3"] .stage-go-btn:hover,
+html[data-tasarim="v3"] .stage-open-btn:hover,
 html[data-tasarim="v3"] .rbtn-primary:hover,
 html[data-tasarim="v3"] .bs:hover,
 html[data-tasarim="v3"] .bstage-primary:hover,
@@ -167,6 +170,18 @@ html[data-tasarim="v3"] .btn-kaydet:hover {
   background: var(--yt-btn-hover);
   opacity: 1;
 }
+/* topnav.js açık temada [data-theme="light"] .btn'i !important ile beyaz/gri yapıyor
+   (gruplar "Yeni Davet Linki" düğmesi görünmez oluyordu); ayarlar davet düğmesi
+   satır içi stilli. İkisi de ancak !important ile geçilir. */
+html[data-tasarim="v3"][data-theme="light"] .btn.btn-primary,
+html[data-tasarim="v3"] #davetBtn {
+  background: var(--yt-btn) !important;
+  color: var(--yt-btn-yazi) !important;
+  border-color: transparent !important;
+  border-radius: 200px !important;
+}
+html[data-tasarim="v3"][data-theme="light"] .btn.btn-primary:hover,
+html[data-tasarim="v3"] #davetBtn:hover { background: var(--yt-btn-hover) !important; }
 /* rbtn-group içindeki birincil düğme grubun köşelerini bozmasın */
 html[data-tasarim="v3"] .rbtn-group > .rbtn-primary { border-radius: 0; }
 

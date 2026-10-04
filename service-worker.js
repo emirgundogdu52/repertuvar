@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
-const CACHE_NAME = 'repertuvar-v529';
+const CACHE_NAME = 'repertuvar-v530';
 
 // (2026-09-27, Offline Düzeltme 2) DEPLOY SONRASI OFFLINE KAYBI KAPATILDI.
 // Eskiden burada yalnız '/' ve '/index.html' vardı ve activate eski önbelleği
@@ -81,6 +81,9 @@ function disOnbellekMi(u) {
 const DIS_PRECACHE = [
   'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css',
   'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0',
+  // Yeni tasarımın ince çizgi ikonları (tasarim.js yüklüyor)
+  'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons-300.min.css',
+  'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons-300.woff2?v3.44.0',
 ];
 
 // ── INSTALL: uygulama kabuğunu önbelleğe al ──

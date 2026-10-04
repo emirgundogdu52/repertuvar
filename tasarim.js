@@ -17,7 +17,7 @@
 (function () {
   'use strict';
 
-  var VARSAYILAN_ACIK = false;
+  var VARSAYILAN_ACIK = true;
   var ANAHTAR = 'r_tasarim';
 
   var tercih = null;
@@ -88,7 +88,7 @@
     '✏': 'ti-pencil', '✍': 'ti-writing', '📍': 'ti-map-pin', '📷': 'ti-camera',
     '📊': 'ti-chart-bar', '📱': 'ti-device-mobile', '🖥': 'ti-device-desktop',
     '🍎': 'ti-brand-apple', '🤖': 'ti-brand-android', '🖨': 'ti-printer',
-    '⏳': 'ti-hourglass', '🕐': 'ti-clock', '📅': 'ti-calendar',
+    '⏳': 'ti-hourglass', '🕐': 'ti-clock', '📅': 'ti-calendar', 'ℹ': 'ti-info-circle',
     '🏨': 'ti-bed', '🚐': 'ti-bus', '✋': 'ti-hand-stop',
     '🙈': 'ti-eye-off', '👁': 'ti-eye', '🔎': 'ti-search', '💾': 'ti-device-floppy', '➕': 'ti-plus',
     '🟢': 'nokta:yesil', '🟡': 'nokta:sari', '⚪': 'nokta:gri', '🔴': 'nokta:kirmizi',

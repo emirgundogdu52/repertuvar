@@ -330,11 +330,11 @@
       <div class="rb-bos" id="rbBagliBos" data-i18n="ca.rbBagliBos">Henüz ritim bağlanmadı. Aşağıdaki bankandan "Esere ekle" ile ekle.</div>
 
       <div class="rb-oynatici">
-        <button class="rt-adim rb-buyuk" onclick="rbOnceki()" aria-label="Önceki" data-i18n-aria="ca.onceki"><i class="ti ti-player-skip-back-filled"></i></button>
+        <button class="rt-adim rb-buyuk" onclick="rbOnceki()" aria-label="Önceki" data-i18n-aria="ca.onceki"><i class="ti ti-player-skip-back"></i></button>
         <button class="co-btn rb-cal" id="rbCalBtn" onclick="rbCalDurdur()">
-          <i class="ti ti-player-play-filled"></i><span id="rbCalMetin" data-i18n="me.baslat">Başlat</span>
+          <i class="ti ti-player-play"></i><span id="rbCalMetin" data-i18n="me.baslat">Başlat</span>
         </button>
-        <button class="rt-adim rb-buyuk" onclick="rbSonraki()" aria-label="Sonraki" data-i18n-aria="ca.sonraki"><i class="ti ti-player-skip-forward-filled"></i></button>
+        <button class="rt-adim rb-buyuk" onclick="rbSonraki()" aria-label="Sonraki" data-i18n-aria="ca.sonraki"><i class="ti ti-player-skip-forward"></i></button>
         <div class="rb-simdi" id="rbSimdi"></div>
       </div>
 
@@ -695,7 +695,7 @@ function ciz() {
     const ton = k.source_key ? k.source_key : '';
     const meta = [ton, sure, mb].filter(Boolean).join(' · ');
     return `<div class="co-item" onclick="ac('${k.id}')">
-      <div class="co-ikon"><i class="ti ti-waveform" aria-hidden="true"></i></div>
+      <div class="co-ikon"><i class="ti ti-wave-sine" aria-hidden="true"></i></div>
       <div>
         <div class="co-ad">${k.eserAdi}</div>
         ${meta ? `<div class="co-meta">${meta}</div>` : ''}
@@ -1613,7 +1613,7 @@ function rbDugmeYaz() {
   const m = document.getElementById('rbCalMetin');
   if (m) m.textContent = calar ? _caCev('me.durdur', 'Durdur') : _caCev('me.baslat', 'Başlat');
   const i = document.querySelector('#rbCalBtn i');
-  if (i) i.className = 'ti ' + (calar ? 'ti-player-stop-filled' : 'ti-player-play-filled');
+  if (i) i.className = 'ti ' + (calar ? 'ti-player-stop' : 'ti-player-play');
 }
 
 // ── Tempo ve ton (eser başına kaydedilir) ────────────────────────────────
