@@ -919,7 +919,28 @@ function _m(anahtar, tr) {
       }
     });
 
+    sistemCubuklariniAyarla(isLight);
+  }
 
+  // (2026-10-04) Native: durum/gezinme çubuğu ikonları uygulama temasını izlesin.
+  // capacitor.config.json varsayılanı DARK (açık ikon); Capacitor'ın DEFAULT'u telefonun
+  // sistem temasını izliyordu → aydınlık moddaki telefonda koyu uygulama üstünde koyu ikon.
+  // Android'de Capacitor içeriği yalnız WebView 140+ ve viewport-fit=cover ile çubukların
+  // altına uzatır; aksi hâlde çubuk arkasında koyu pencere zemini (styles.xml) kalır → hep DARK.
+  function sistemCubuklariniAyarla(isLight) {
+    try {
+      const cap = window.Capacitor;
+      const sb = cap && cap.isNativePlatform && cap.isNativePlatform() && cap.Plugins && cap.Plugins.SystemBars;
+      if (!sb) return;
+      let kenarKenara = true;   // iOS: contentInset "never", içerik hep çubukların altında
+      if (cap.getPlatform() === 'android') {
+        const m = navigator.userAgent.match(/Chrome\/(\d+)/);
+        const vp = document.querySelector('meta[name=viewport]');
+        kenarKenara = !!(m && +m[1] >= 140 && vp && /viewport-fit=cover/.test(vp.content));
+      }
+      const p = sb.setStyle({ style: (kenarKenara && isLight) ? 'LIGHT' : 'DARK' });
+      if (p && p.catch) p.catch(function () {});
+    } catch (e) {}
   }
 
   // Sayfa yüklenince uygula
