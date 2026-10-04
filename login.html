@@ -603,33 +603,82 @@ async function verifyOtp() {
 
 // (2026-10-04) NATIVE GOOGLE GİRİŞİ. Google gömülü WebView'da girişi engelliyor; eskiden
 // Capacitor dış adresi Chrome/Safari'de açıyor, giriş WEB'de bitiyor, uygulamaya hiç
-// dönülmüyordu. Artık uygulama içi tarayıcı sekmesi (Android Custom Tab / iOS Safari
-// görünümü) açılır, Supabase com.repertuvar.app://giris#access_token=… adresine döner
-// (AndroidManifest intent-filter, iOS Info.plist URL şeması + SceneDelegate). Dönüşün
-// #… kısmı login.html'e verilir; oturumu yukarıdaki mevcut işleyici kurar.
+// dönülmüyordu. Artık Supabase com.repertuvar.app://giris#access_token=… adresine döner:
+//  - iOS: ASWebAuthenticationSession (yerel GirisOturumu eklentisi, GirisOturumu.swift) dönüşü
+//    kendisi yakalar ve sonucu doğrudan verir; "Repertuvar'da açılsın mı?" onayı çıkmaz.
+//  - Android (ve eklentisi olmayan eski iOS kurulumu): uygulama içi sekme (@capacitor/browser);
+//    dönüş bağlantısı AndroidManifest intent-filter / iOS URL şeması + SceneDelegate ile gelir.
+// Her iki yolda dönüşün #… kısmı login.html'e verilir; oturumu yukarıdaki mevcut işleyici kurar.
 // Supabase → Authentication → URL Configuration → Redirect URLs'te bu adres izinli olmalı.
 const NATIVE_DONUS = 'com.repertuvar.app://giris';
+const NATIVE_SEMA = 'com.repertuvar.app';
 const GOOGLE_BEKLIYOR = 'r_google_bekliyor';
+function _nativeMi() {
+  const c = window.Capacitor;
+  return !!(c && c.isNativePlatform && c.isNativePlatform());
+}
 function _nativeEklenti(ad) {
   const c = window.Capacitor;
-  return (c && c.isNativePlatform && c.isNativePlatform() && c.Plugins && c.Plugins[ad]) || null;
+  return (_nativeMi() && c.Plugins && c.Plugins[ad]) || null;
+}
+function _googleHatasi() {
+  showMsg('err', _gCev('giris.googleAcilamadi', 'Google girişi başlatılamadı. Bağlantınızı kontrol edip tekrar deneyin.'));
+}
+
+// getLaunchUrl() (özellikle iOS) süreç boyunca AYNI eski adresi döndürür: yeni bir giriş
+// beklerken sayfa yeniden yüklenirse eski dönüş işaretimizi tüketmesin.
+function _donusIzi(s) { let h = 5381; for (let k = 0; k < s.length; k++) h = ((h << 5) + h + s.charCodeAt(k)) | 0; return String(h); }
+function _nativeDonusIsle(url) {
+  if (!url || url.indexOf(NATIVE_DONUS) !== 0) return;
+  try { if (localStorage.getItem('r_google_son') === _donusIzi(url)) return; localStorage.setItem('r_google_son', _donusIzi(url)); } catch (e) {}
+  let bas = 0;
+  try { bas = +localStorage.getItem(GOOGLE_BEKLIYOR) || 0; localStorage.removeItem(GOOGLE_BEKLIYOR); } catch (e) {}
+  const tarayici = _nativeEklenti('Browser');
+  if (tarayici) { const p = tarayici.close(); if (p && p.catch) p.catch(function () {}); }
+  // Dönüş yalnız bizim başlattığımız bir girişten beklenir: başka bir uygulamanın/sitenin
+  // açtığı sahte com.repertuvar.app://giris#access_token=… bağlantısı oturum kuramasın.
+  if (!bas || Date.now() - bas > 15 * 60 * 1000) return;
+  const i = url.indexOf('#');
+  const parca = i === -1 ? '' : url.substring(i);
+  if (parca.indexOf('access_token') !== -1) {
+    // Aynı sayfada yalnız # değişirse yeniden yüklenmez; sorgu farkı tam yükleme sağlar
+    window.location.replace('login.html?donus=google' + parca);
+    return;
+  }
+  const q = new URLSearchParams((url.split('?')[1] || '').split('#')[0] + '&' + parca.replace(/^#/, ''));
+  if (q.get('error')) {
+    showMsg('err', _gCev('giris.googleIptal', 'Google girişi tamamlanmadı.') + (q.get('error_description') ? ' (' + q.get('error_description').replace(/[<>&]/g, '') + ')' : ''));
+  }
+}
+
+async function _iosGirisOturumu(url) {
+  // true: oturum açıldı/kapandı (iş bitti); false: eklenti yok → tarayıcı yoluna düş.
+  // Varlık kontrolü şart: kayıtsız eklentiye yapılan çağrının promise'i iOS'ta hiç dönmüyor.
+  const eklenti = _nativeEklenti('GirisOturumu');
+  if (!eklenti) return false;
+  try {
+    const r = await eklenti.baslat({ url: url, donusSemasi: NATIVE_SEMA });
+    _nativeDonusIsle(r && r.url);
+  } catch (e) {
+    if (e && e.code === 'UNIMPLEMENTED') return false;
+    try { localStorage.removeItem(GOOGLE_BEKLIYOR); } catch (_) {}
+    if (!(e && e.code === 'IPTAL')) _googleHatasi();
+  }
+  return true;
 }
 
 async function loginGoogle() {
-  const tarayici = _nativeEklenti('Browser');
-  if (tarayici) {
+  if (_nativeMi()) {
     const { data, error } = await sb.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: NATIVE_DONUS, skipBrowserRedirect: true }
     });
-    if (error || !data || !data.url) {
-      showMsg('err', _gCev('giris.googleAcilamadi', 'Google girişi başlatılamadı. Bağlantınızı kontrol edip tekrar deneyin.'));
-      return;
-    }
-    // Dönüş yalnız bizim başlattığımız bir girişten beklenir: başka bir uygulamanın/sitenin
-    // açtığı sahte com.repertuvar.app://giris#access_token=… bağlantısı oturum kuramasın.
+    if (error || !data || !data.url) { _googleHatasi(); return; }
     try { localStorage.setItem(GOOGLE_BEKLIYOR, String(Date.now())); } catch (e) {}
-    await tarayici.open({ url: data.url, toolbarColor: '#070A0F' });
+    if (await _iosGirisOturumu(data.url)) return;
+    const tarayici = _nativeEklenti('Browser');
+    if (tarayici) { await tarayici.open({ url: data.url, toolbarColor: '#070A0F' }); return; }
+    window.location.href = data.url;   // eklenti de yoksa eski davranış
     return;
   }
   await sb.auth.signInWithOAuth({
@@ -638,40 +687,17 @@ async function loginGoogle() {
   });
 }
 
-// Native Google dönüşü. Olay, sayfa sonradan açılsa da bekletilir (appUrlOpen); uygulama
+// Tarayıcı yolunun dönüşü. Olay, sayfa sonradan açılsa da bekletilir (appUrlOpen); uygulama
 // dönüş bağlantısıyla soğuk açıldıysa getLaunchUrl() verir. İkisi de aynı adresi
 // getirebileceği için bekleme işareti tek kullanımlık.
 (function nativeGoogleDonusu() {
   const app = _nativeEklenti('App');
   if (!app) return;
-  // getLaunchUrl() (özellikle iOS) süreç boyunca AYNI eski adresi döndürür: yeni bir giriş
-  // beklerken sayfa yeniden yüklenirse eski dönüş işaretimizi tüketmesin.
-  function iz(s) { let h = 5381; for (let k = 0; k < s.length; k++) h = ((h << 5) + h + s.charCodeAt(k)) | 0; return String(h); }
-  function isle(url) {
-    if (!url || url.indexOf(NATIVE_DONUS) !== 0) return;
-    try { if (localStorage.getItem('r_google_son') === iz(url)) return; localStorage.setItem('r_google_son', iz(url)); } catch (e) {}
-    let bas = 0;
-    try { bas = +localStorage.getItem(GOOGLE_BEKLIYOR) || 0; localStorage.removeItem(GOOGLE_BEKLIYOR); } catch (e) {}
-    const tarayici = _nativeEklenti('Browser');
-    if (tarayici) { const p = tarayici.close(); if (p && p.catch) p.catch(function () {}); }
-    if (!bas || Date.now() - bas > 15 * 60 * 1000) return;
-    const i = url.indexOf('#');
-    const parca = i === -1 ? '' : url.substring(i);
-    if (parca.indexOf('access_token') !== -1) {
-      // Aynı sayfada yalnız # değişirse yeniden yüklenmez; sorgu farkı tam yükleme sağlar
-      window.location.replace('login.html?donus=google' + parca);
-      return;
-    }
-    const q = new URLSearchParams((url.split('?')[1] || '').split('#')[0] + '&' + parca.replace(/^#/, ''));
-    if (q.get('error')) {
-      showMsg('err', _gCev('giris.googleIptal', 'Google girişi tamamlanmadı.') + (q.get('error_description') ? ' (' + q.get('error_description').replace(/[<>&]/g, '') + ')' : ''));
-    }
-  }
   try {
-    app.addListener('appUrlOpen', function (e) { isle(e && e.url); });
+    app.addListener('appUrlOpen', function (e) { _nativeDonusIsle(e && e.url); });
     if (!window.location.search.includes('logout=1')) {
       const p = app.getLaunchUrl();
-      if (p && p.then) p.then(function (r) { isle(r && r.url); }).catch(function () {});
+      if (p && p.then) p.then(function (r) { _nativeDonusIsle(r && r.url); }).catch(function () {});
     }
   } catch (e) {}
 })();
