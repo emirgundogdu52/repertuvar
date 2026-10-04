@@ -146,7 +146,11 @@ function _m(anahtar, tr) {
     }
     /* iPhone genişlikleri: logo + zil + tema + avatar tek satıra sığsın */
     @media (max-width: 430px) {
-      .r-topnav { padding: 0 12px; gap: 8px; }
+      /* (2026-10-04) Yalnız yanlar: "padding: 0 12px" kısaltması yukarıdaki
+         padding-top: env(safe-area-inset-top) değerini sıfırlıyordu → iPhone'da (ve WebView
+         140+ Android'de) nav durum çubuğunun/Dynamic Island'ın altında kalıyor, avatar
+         dokunulamıyordu. */
+      .r-topnav { padding-left: 12px; padding-right: 12px; gap: 8px; }
       .r-topnav img.r-logo { height: 40px; }
       .r-topnav .r-tn-right { gap: 6px; }
       .r-tn-bell { padding: 4px; }
