@@ -16,6 +16,20 @@
 async function hesapSilOnay() {
   document.getElementById('silOnayEmail').value = '';
   document.getElementById('silHataMsg').style.display = 'none';
+  // (2026-10-05) Apple'ın gizli e-postasını kullanan kişi adresi bilmez: "SİL" yazarak onaylar
+  const _gizli = _gizliAppleEposta(getUser()?.email);
+  const _metin = document.getElementById('silOnayMetin'), _giris = document.getElementById('silOnayEmail');
+  if (_metin) {
+    _metin.setAttribute('data-i18n', _gizli ? 'mod.sil_p3Apple' : 'mod.sil_p3');
+    _metin.textContent = _gizli
+      ? _t('mod.sil_p3Apple', "Apple'ın gizli e-posta adresini kullanıyorsunuz. Onaylamak için SİL yazın:")
+      : _t('mod.sil_p3', 'Onaylamak için e-posta adresinizi yazın:');
+  }
+  if (_giris) {
+    _giris.type = _gizli ? 'text' : 'email';
+    _giris.setAttribute('data-i18n-ph', _gizli ? 'mod.sil_kelime' : 'mod.sil_ph');
+    _giris.placeholder = _gizli ? _t('mod.sil_kelime', 'SİL') : _t('mod.sil_ph', 'e-posta adresiniz');
+  }
 
   // Repertuvar ve sahip olunan grup sayısını çek
   try {
@@ -49,6 +63,35 @@ function hesapSilKapat() {
   document.getElementById('hesapSilModal').classList.remove('open');
 }
 
+// (2026-10-05) APPLE İLE GİRİŞ — hesap silme ve erişim yardımcıları.
+// Apple belirteç iptali (App Store kuralı 5.1.1(v)): iOS'ta Apple ile yeniden yetkilendirip
+// authorizationCode'u Edge Function apple-iptal'e verir (supabase/functions/apple-iptal).
+// Android/web'de Apple kodu alınamaz: iptal yapılamaz ama silme ENGELLENMEZ (kullanıcının
+// silme hakkı önce gelir; uygulamayı Apple Kimliği ayarlarından da kaldırabilir).
+function _appleKullanicisi(u) {
+  const m = (u && u.app_metadata) || {};
+  return (m.providers || []).indexOf('apple') !== -1 || m.provider === 'apple';
+}
+function _gizliAppleEposta(e) { return /@privaterelay\.appleid\.com$/i.test(e || ''); }
+async function _appleIptal() {
+  const c = window.Capacitor;
+  const ek = c && c.isNativePlatform && c.isNativePlatform() && c.getPlatform && c.getPlatform() === 'ios'
+    && c.Plugins && c.Plugins.GirisOturumu;
+  if (!ek) return { yapildi: false };
+  let r;
+  try { r = await ek.apple({}); }
+  catch (e) { return (e && e.code === 'IPTAL') ? { kullaniciVazgecti: true } : { yapildi: false }; }
+  if (!r || !r.authorizationCode) return { yapildi: false };
+  try {
+    const res = await fetch(SUPA_URL + '/functions/v1/apple-iptal', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: r.authorizationCode, istemci: 'ios' })
+    });
+    return { yapildi: res.ok };
+  } catch (e) { return { yapildi: false }; }
+}
+
 // (2026-08-30) JS'ten yazilan metinler icin ceviri yardimcisi. data-i18n
 // yalnizca HTML'de duran metinleri cozer; toast ve dogrulama mesajlari
 // calisma aninda uretildigi icin sozluge buradan bakiyorlar.
@@ -63,11 +106,27 @@ async function hesapSil() {
   const user = getUser();
   const hata = document.getElementById('silHataMsg');
   
-  if (!email) { hata.style.display='block'; hata.textContent=_t('mod.sil_epostaGir','E-posta adresinizi girin.'); return; }
-  if (email !== user?.email) { hata.style.display='block'; hata.textContent=_t('mod.sil_eslesmiyor','E-posta adresi eşleşmiyor.'); return; }
+  const gizli = _gizliAppleEposta(user?.email);
+  const kelime = _t('mod.sil_kelime', 'SİL');
+  if (!email) { hata.style.display='block'; hata.textContent = gizli ? _t('mod.sil_kelimeYanlis','Onaylamak için SİL yazın.') : _t('mod.sil_epostaGir','E-posta adresinizi girin.'); return; }
+  const _buyuk = (x) => x.toLocaleUpperCase('tr').replace(/İ/g, 'I');   // "SIL" (Türkçe olmayan klavye) da kabul
+  const onay = email === user?.email || (gizli && _buyuk(email) === _buyuk(kelime));
+  if (!onay) { hata.style.display='block'; hata.textContent = gizli ? _t('mod.sil_kelimeYanlis','Onaylamak için SİL yazın.') : _t('mod.sil_eslesmiyor','E-posta adresi eşleşmiyor.'); return; }
 
   const btn = document.getElementById('silOnayla');
   btn.disabled = true; btn.textContent = _t('mod.sil_siliniyor','Siliniyor...');
+
+  // Apple ile giriş yapmış hesap: silmeden önce Apple belirteçlerini iptal et (App Store 5.1.1(v))
+  if (_appleKullanicisi(user)) {
+    const a = await _appleIptal();
+    if (a.kullaniciVazgecti) {
+      hata.style.display = 'block';
+      hata.textContent = _t('mod.sil_appleGerekli', 'Hesabı silmek için Apple ile doğrulamanız gerekiyor.');
+      btn.disabled = false; btn.textContent = _t('ay.hesapsil','Hesabımı Sil');
+      return;
+    }
+    if (!a.yapildi) console.warn('[hesapSil] Apple belirteçleri iptal edilemedi; silme sürüyor');
+  }
 
   try {
     // Sunucu tarafı kalıcı silme (tüm veri + auth kaydı)
@@ -406,6 +465,22 @@ html, body { overflow-x: hidden; }
         </div>
         <button class="setting-btn" onclick="openEmailModal()" data-i18n="ay.degistir">Değiştir</button>
       </div>
+      <!-- (2026-10-05) Apple ile açılmış hesap: başka cihazda/platformda da hesabına ulaşabilsin.
+           Apple girişi iOS, Android ve web'de var; yedek olarak şifre belirleme / gerçek e-posta. -->
+      <div class="setting-row" id="appleBilgi" style="display:none;">
+        <div class="setting-desc" id="appleBilgiMetin" style="line-height:1.5;"></div>
+      </div>
+      <script>
+        (function () {
+          const u = getUser();
+          if (!_appleKullanicisi(u)) return;
+          const gizli = _gizliAppleEposta(u.email);
+          document.getElementById('appleBilgiMetin').textContent = gizli
+            ? _t('ay.appleGizliBilgi', 'Hesabın Apple ile açıldı ve Apple e-postanı gizliyor ({eposta}). Başka bir cihazda "Apple ile devam et" ile girebilirsin. İstersen yukarıdan bir şifre belirleyip gerçek e-postanı ekleyebilirsin; böylece e-posta ve şifreyle de girersin.').replace('{eposta}', u.email)
+            : _t('ay.appleBilgi', 'Hesabın Apple ile açıldı. Başka bir cihazda "Apple ile devam et" ile girebilirsin; istersen yukarıdan bir şifre belirleyerek e-posta ve şifreyle de girebilirsin.');
+          document.getElementById('appleBilgi').style.display = '';
+        })();
+      </script>
       <!-- Oturumu Kapat satırı 2026-08-01'de KALDIRILDI — çıkış artık sidebar'daki
            avatar/hesap menüsünde (masaüstü) ve mobil üst çubuktaki avatar menüsünde.
            Tek yerde durması "çıkış nerede?" karışıklığını bitiriyor. logout() fonksiyonu
@@ -698,7 +773,7 @@ html, body { overflow-x: hidden; }
     <p style="font-size:16px;color:var(--text2);margin-bottom:8px;"><strong data-i18n="mod.sil_p1a">Bu işlem geri alınamaz.</strong> <span data-i18n="mod.sil_p1b">Tüm hesap bilgileriniz kalıcı olarak silinecek.</span></p>
     <p id="silRepUyari" style="font-size:16px;color:var(--red);font-weight:600;margin-bottom:8px;display:none;"></p>
     <p style="font-size:16px;color:var(--text2);margin-bottom:8px;" data-i18n="mod.sil_p2">Onayladığınızda hesabınız ve tüm verileriniz hemen ve kalıcı olarak silinir. Sahibi olduğunuz gruplarda başka üye varsa yönetim onlara devredilir.</p>
-    <p style="font-size:16px;color:var(--text2);margin-bottom:16px;" data-i18n="mod.sil_p3">Onaylamak için e-posta adresinizi yazın:</p>
+    <p id="silOnayMetin" style="font-size:16px;color:var(--text2);margin-bottom:16px;" data-i18n="mod.sil_p3">Onaylamak için e-posta adresinizi yazın:</p>
     <input type="email" id="silOnayEmail" placeholder="e-posta adresiniz" data-i18n-ph="mod.sil_ph"
       style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:16px;font-family:var(--font);outline:none;margin-bottom:16px;">
     <div id="silHataMsg" style="font-size:15px;color:var(--red);display:none;margin-bottom:8px;"></div>

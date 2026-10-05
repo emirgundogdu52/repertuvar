@@ -725,20 +725,43 @@ async function _oturumuKaydet(session, ad) {
 
 // (2026-10-04) APPLE İLE GİRİŞ — App Store kuralı 4.8 (Google girişi olduğu için gerekli).
 // iOS'ta yerel GirisOturumu.apple (ASAuthorizationController) → identityToken →
-// signInWithIdToken({ provider: 'apple', nonce: ham }). Açmak için hepsi gerekli:
+// signInWithIdToken({ provider: 'apple', nonce: ham }); Android'de Supabase OAuth (aşağıda).
+// Açmak için hepsi gerekli (ayrıntılı liste: _not.md → "Apple ile Giriş açılış listesi"):
 //  1) Ücretli Apple Developer üyeliği; Xcode → Signing & Capabilities → + Sign in with Apple
 //     (şimdilik App.entitlements yalnız simülatör derlemesine bağlı: CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*])
-//  2) Supabase → Authentication → Providers → Apple: Enabled, Client IDs: com.repertuvar.app
+//  2) Supabase → Authentication → Providers → Apple: Enabled, Client IDs: com.repertuvar.app,app.repertuvar.web,
+//     Secret Key (Android/web OAuth için; .p8'den üretilen JWT, 6 ayda bir yenilenir)
 //  3) APPLE_GIRIS_AKTIF = true + yayın
-// Hesap silmede Apple belirteçlerinin iptali (Apple kuralı 5.1.1(v)) ayrıca gerekecek.
+// Hesap silmede Apple belirteçleri iptal edilir: ayarlar.html _appleIptal → Edge Function apple-iptal.
 const APPLE_GIRIS_AKTIF = false;
+// Android (2026-10-05): iPhone'da Apple ile kaydolup Android'e geçen kullanıcı (şifresiz,
+// çoğu zaman gizli e-postalı hesap) giriş yapabilsin diye Apple Android'de de var. Android'de
+// Apple'ın yerel girişi olmadığından Supabase OAuth + uygulama içi sekme; dönüş Google ile aynı
+// com.repertuvar.app://giris#access_token=… yolundan (_nativeDonusIsle) gelir. Supabase Apple
+// sağlayıcısında Services ID + gizli anahtar (6 ayda bir yenilenir) gerektirir.
 function _appleKullanilabilir() {
+  if (!APPLE_GIRIS_AKTIF || !_nativeMi()) return false;
   const c = window.Capacitor;
-  return APPLE_GIRIS_AKTIF && !!(c && c.getPlatform && c.getPlatform() === 'ios') && !!_nativeEklenti('GirisOturumu');
+  if (c.getPlatform() === 'ios') return !!_nativeEklenti('GirisOturumu');
+  return !!_nativeEklenti('Browser');
+}
+async function _appleTarayiciIle() {
+  const tarayici = _nativeEklenti('Browser');
+  if (!tarayici) return;
+  const { data, error } = await sb.auth.signInWithOAuth({
+    provider: 'apple',
+    options: { redirectTo: NATIVE_DONUS, skipBrowserRedirect: true, scopes: 'name email' }
+  });
+  if (error || !data || !data.url) {
+    showMsg('err', _gCev('giris.appleAcilamadi', 'Apple ile giriş başlatılamadı. Lütfen tekrar deneyin.'));
+    return;
+  }
+  try { localStorage.setItem(GOOGLE_BEKLIYOR, String(Date.now())); } catch (e) {}
+  await tarayici.open({ url: data.url, toolbarColor: '#070A0F' });
 }
 async function loginApple() {
   const eklenti = _nativeEklenti('GirisOturumu');
-  if (!eklenti) return;
+  if (!eklenti) { await _appleTarayiciIle(); return; }
   let ham, ozet;
   try {
     ham = _hex(crypto.getRandomValues(new Uint8Array(24)));
