@@ -135,7 +135,7 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
        önce de metin logodan durağan görsele dönülmüştü — giriş ekranı o
        kararın dışında kalmış. Tek kaynak = kayma yok. -->
   <img class="brand-img" id="brandImg" src="logo_dark.png" alt="repertuvar.app">
-  <p class="brand-slogan"><span data-i18n="giris.slogan1">Modern Müzisyenler İçin</span><br><span data-i18n="giris.slogan2">Akıllı Sahne ve Repertuvar Yönetimi</span></p>
+  <p class="brand-slogan"><span data-i18n="giris.slogan1">Müzisyenler İçin</span><br><span data-i18n="giris.slogan2">Repertuvar ve Sahne Yönetimi</span></p>
 </div>
 
 <div class="card">
@@ -914,8 +914,8 @@ async function loginGoogle() {
   // (2026-08-30) Splash sloganı JS'ten yazılıyor, bu yüzden data-i18n
   // işaretlemesi yetmiyor — çeviri burada da alınıyor. i18n yüklenmemişse
   // Türkçeye düşer, splash asla boş kalmaz.
-  slogan.textContent = (window.t ? t('giris.slogan1') : 'Modern Müzisyenler İçin') + '\n' +
-                       (window.t ? t('giris.slogan2') : 'Akıllı Sahne ve Repertuvar Yönetimi');
+  slogan.textContent = (window.t ? t('giris.slogan1') : 'Müzisyenler İçin') + '\n' +
+                       (window.t ? t('giris.slogan2') : 'Repertuvar ve Sahne Yönetimi');
   slogan.style.opacity = '0';
   slogan.style.transform = 'translateY(8px)';
   await anim(slogan, { opacity:'1', transform:'translateY(0)' }, 320, 0);
