@@ -387,7 +387,7 @@ function _applyWorksRows(rows) {
   (rows||[]).forEach(w => {
     const id = String(w.id);
     // (2026-08-20) videoLink eklendi — 🎧 Repertuvarı Dinle bunu kullanıyor.
-    WL[id] = { name: w.name||'', composer: w.composer||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'', videoLink: w.video_link||'' };
+    WL[id] = { name: w.name||'', composer: w.composer||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'', videoLink: w.video_link||'', olcu: w.measurement||'' };
     WLIST.push({ id, name: w.name||'', composer: w.composer||'', makam: w.makam||'' });
   });
   // customWorks patch (yerel override'lar)
@@ -999,7 +999,7 @@ function renderDetail(){
       <div class="cta-row">
         <a href="stage.html" class="bstage-primary" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:15px;" aria-hidden="true"></i> ${_r('rep.sahneyeCik','Sahneye Çık')}</a>
         ${(rep.items||[]).length ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openDinleSheet('${rep.id}')" title="${_r('rep.dinleT','Repertuvarı YouTube bağlantılarından sırayla dinle')}">${_r('rep.dinleBtn','🎧 Dinle')}</button>` : ''}
-        ${rep.canManage && (rep.items||[]).length>2 ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openSortSheet('${rep.id}')" title="${_r('rep.siralaT','Makam geçişlerine göre sıralama önerisi')}">${_r('rep.siralaBtn','🎼 Sırala')}</button>` : ''}
+        ${rep.canManage && (rep.items||[]).length>2 ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openSortSheet('${rep.id}')" title="${_r('rep.siralaT','Sıralama önerisi: makam geçişleri, makam, karar sesi ya da ölçü')}">${_r('rep.siralaBtn','🎼 Sırala')}</button>` : ''}
         ${rep.canManage ? `
         <details class="ov-menu">
           <summary class="bi" style="font-size:12px;padding:9px 12px;">${_r('rep.digerBtn','⋯ Diğer')}</summary>
@@ -1489,8 +1489,21 @@ function workProfile(it){
   let base=pitchOf(it.closingNote); if(base===null) base=pitchOf(w.closingNote);
   if(base===null||base===undefined) base=mk?mk.karar:null;
   const karar=(base===null||base===undefined)?null:(((base+tr)%12)+12)%12;
+  const olcu=olcuAnahtari(w.olcu);
   return {name:w.name||('#'+it.workId), makamAd:mk?mk.ad:'', aile:mk?mk.aile:'',
-          karar, bilinmiyor:!mk && (base===null||base===undefined), kararTxt:it.closingNote||w.closingNote||(mk?mk.kararPerde:'')};
+          karar, bilinmiyor:!mk && (base===null||base===undefined), kararTxt:it.closingNote||w.closingNote||(mk?mk.kararPerde:''),
+          olcuTxt:olcu?olcu.txt:'', olcuSira:olcu?olcu.sira:null};
+}
+
+// (2026-10-05) Ölçüye göre sıralama: "9/8", "Aksak 9/8", " 4/4 " → {txt:'9/8', sira}.
+// Sıra önce PAYDA, sonra PAY: 2/4, 3/4, 4/4, 5/8, 6/8, 7/8, 9/8, 10/8, 15/8 …
+// (kesir değeriyle sıralansaydı 3/4 ile 6/8 aynı değere düşüp birbirine karışırdı).
+function olcuAnahtari(s){
+  const m=String(s||'').match(/(\d{1,2})\s*\/\s*(\d{1,2})/);
+  if(!m) return null;
+  const pay=+m[1], payda=+m[2];
+  if(!pay||!payda) return null;
+  return {txt:pay+'/'+payda, sira:payda*1000+pay};
 }
 
 const _PCNAME=['Do','Reb','Re','Mib','Mi','Fa','Fa#','Sol','Lab','La','Sib','Si'];
@@ -1552,13 +1565,17 @@ function optimizeAtoms(movable){
   return order;
 }
 
-// mode: 'akilli' | 'makam' | 'karar'
+// mode: 'akilli' | 'makam' | 'karar' | 'olcu'
 function proposeOrder(items, mode){
   const atoms=buildAtoms(items);
   const slots=[]; const movable=[];
-  atoms.forEach((a,i)=>{ if(a.fixed) return; slots.push(i); movable.push(a); });
+  // Ölçü modunda sabit eser yok: makam bilgisi gerekmiyor, ölçüsü olmayanlar sona gider
+  atoms.forEach((a,i)=>{ if(a.fixed && mode!=='olcu') return; slots.push(i); movable.push(a); });
   let sorted;
-  if(mode==='makam'){
+  if(mode==='olcu'){
+    // Aynı ölçüdekiler art arda; grup içinde mevcut sıra korunur (sort kararlı). Ölçüsüz sona.
+    sorted=movable.slice().sort((x,y)=> (x.inP.olcuSira??1e9)-(y.inP.olcuSira??1e9));
+  }else if(mode==='makam'){
     sorted=movable.slice().sort((x,y)=> (x.inP.makamAd||'zzz').localeCompare(y.inP.makamAd||'zzz','tr'));
   }else if(mode==='karar'){
     sorted=movable.slice().sort((x,y)=> (x.inP.karar??99)-(y.inP.karar??99));
@@ -1589,6 +1606,7 @@ function openSortSheet(repId){
         <button class="sort-mode active" data-mode="akilli" onclick="runSort('akilli')">${_r('rep.akilliAkis','Akıllı akış')}</button>
         <button class="sort-mode" data-mode="makam" onclick="runSort('makam')">${_r('rep.makamaGore','Makama göre')}</button>
         <button class="sort-mode" data-mode="karar" onclick="runSort('karar')">${_r('rep.kararaGore','Karar sesine göre')}</button>
+        <button class="sort-mode" data-mode="olcu" onclick="runSort('olcu')">${_r('rep.olcuyeGore','Ölçüye göre')}</button>
       </div>
       <div class="sort-body" id="sortBody"></div>
       <div class="sort-foot">
@@ -1617,14 +1635,18 @@ function runSort(mode){
   after.forEach((it,i)=>{
     const p=workProfile(it);
     const linked=i>0 && it.linkedPrev;
-    if(i>0 && !linked){
+    if(mode==='olcu'){
+      // Ölçü modunda makam geçiş notu yerine ölçü grubu başlığı (ölçü değişince)
+      if(!linked && (i===0 || workProfile(after[i-1]).olcuTxt!==p.olcuTxt))
+        html+=`<div class="sort-tr ok">${p.olcuTxt||_r('rep.olcuYok','ölçü ?')}</div>`;
+    }else if(i>0 && !linked){
       const t=transitionCost(workProfile(after[i-1]),p);
       html+=`<div class="sort-tr ${t.lvl}">${t.lvl==='bad'?'⚠':(t.lvl==='ok'?'✓':'·')} ${t.txt}</div>`;
     }
     html+=`<div class="sort-row${linked?' chained':''}">
       <span class="sort-no">${linked?'↳':(i+1)}</span>
       <span class="sort-name">${linked?'🔗 ':''}${p.name}</span>
-      <span class="sort-mk">${p.makamAd||'<i>makam ?</i>'}${p.kararTxt?' · '+p.kararTxt:''}</span>
+      <span class="sort-mk">${mode==='olcu' ? (p.olcuTxt||'<i>'+_r('rep.olcuYok','ölçü ?')+'</i>')+(p.makamAd?' · '+p.makamAd:'') : (p.makamAd||'<i>makam ?</i>')+(p.kararTxt?' · '+p.kararTxt:'')}</span>
     </div>`;
   });
   body.innerHTML=html;
@@ -2071,7 +2093,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeRM();closeWM()
         if(w.lyrics !== undefined) WL[sid].lyrics = w.lyrics;
         if(w.composer) WL[sid].composer = w.composer;
       } else {
-        WL[sid] = {name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||''};
+        WL[sid] = {name:w.name||'',lyrics:w.lyrics||'',composer:w.composer||'',makam:w.makam||'',instrument:w.instrument||'',closingNote:w.closingNote||'',olcu:w.measurement||w.olcu||''};
       }
     }
   } catch(e){ console.warn('patch err',e); }
