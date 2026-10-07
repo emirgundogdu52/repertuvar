@@ -90,7 +90,7 @@
 .co-bos b { display:block; color:var(--text2); font-size:15px; margin-bottom:6px; }
 
 .co-btn { display:inline-flex; align-items:center; gap:7px; padding:11px 18px; border-radius:11px;
-          background:var(--accent); color:#1a1200; border:none; font-size:14px; font-weight:700;
+          background:var(--yt-btn,var(--accent)); color:#1a1200; border:none; font-size:14px; font-weight:700;
           cursor:pointer; margin-top:14px; }
 .co-btn:disabled { opacity:.45; cursor:not-allowed; }
 .co-btn.ikincil { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
@@ -147,7 +147,7 @@
 .oy-zaman input[type=range] { flex:1; }
 .oy-tus { display:flex; align-items:center; justify-content:center; gap:18px; margin:14px 0 22px; }
 .oy-oynat { width:64px; height:64px; border-radius:50%; border:none; cursor:pointer;
-            background:var(--accent); color:#1a1200; font-size:26px;
+            background:var(--yt-btn,var(--accent)); color:#1a1200; font-size:26px;
             display:flex; align-items:center; justify-content:center; }
 .oy-yuvarlak { width:46px; height:46px; border-radius:50%; cursor:pointer; position:relative;
                background:var(--surface2); border:1px solid var(--border);
@@ -200,7 +200,7 @@
 .co-sekme { flex:0 0 auto; padding:9px 16px; border-radius:10px; font-size:13px; font-weight:600;
   background:var(--surface2); color:var(--text2); border:1px solid var(--border);
   cursor:pointer; font-family:inherit; transition:all .12s; }
-.co-sekme.aktif { background:var(--accent); color:#111; border-color:var(--accent); }
+.co-sekme.aktif { background:var(--yt-btn,var(--accent)); color:#111; border-color:var(--yt-btn,var(--accent)); }
 .rt-satir { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
 .rt-etiket { flex:0 0 72px; font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:.04em; }
 .rt-sec { flex:1; margin:0; }

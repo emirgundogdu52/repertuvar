@@ -86,26 +86,32 @@ html[data-tasarim="v3"][data-theme="dark"] {
   --text2: #AEB6C5 !important;
   --text3: #8A93A6 !important;
 }
+/* (2026-10-08) AÇIK MOD PALETİ YENİLENDİ — landing'deki Sahne Modu "gündüz" ailesi (sıcak krem + ink),
+   tonlar WCAG AA'ya (normal metin ≥ 4.5:1) göre koyulaştırıldı. Eski değerler okunmuyordu:
+   text3 #8A93A6 → 2.8:1, accent #D68A00 metin olarak → 2.8:1 (226 sorunlu metnin 174'ü bu ikisiydi).
+   --accent artık METİN/ikon/kenar rengi (koyu amber); koyu yazılı SARI DOLGU gereken yerler
+   --yt-btn (#FFC83D) kullanır — aşağıdaki "açık mod: dolgu ve rozetler" bölümüne bak. */
 html[data-tasarim="v3"][data-theme="light"] {
-  --bg: #F7F6F2 !important;
-  --bg2: #F0EFE7 !important;
+  --bg: #F7F5EF !important;
+  --bg2: #EFEADF !important;
   --surface: #FFFFFF !important;
   --surface2: #FBF8F1 !important;
-  --border: rgba(17, 23, 34, .10) !important;
-  --border2: rgba(17, 23, 34, .18) !important;
-  --accent: #D68A00 !important;
-  --accent2: #0B6FDE !important;
-  --accent3: #0B6FDE !important;
-  --text: #0B0F17 !important;
-  --text2: #566074 !important;
-  --text3: #8A93A6 !important;
+  --border: rgba(17, 23, 34, .12) !important;
+  --border2: rgba(17, 23, 34, .20) !important;
+  --accent: #9A5B00 !important;      /* beyazda 5.4, kremde 5.1, beyaz yazı üstünde 5.4 — 6 haneli hex kalmalı */
+  --accent2: #0A5BC2 !important;     /* bağlantılar: beyazda 6.4 */
+  --accent3: #0A5BC2 !important;
+  --text: #111722 !important;        /* landing ink */
+  --text2: #4A5466 !important;       /* 7.6 */
+  --text3: #5F6878 !important;       /* 5.6 — en koyu zeminde (#EEE8DA) bile 4.6 */
+  --yt-btn: #FFC83D;                 /* marka sarısı dolgu (koyu yazıyla 12:1) */
 }
 /* topnav'ın açık temadaki sabit zeminleri */
 html[data-tasarim="v3"][data-theme="light"] body { background: var(--bg) !important; color: var(--text) !important; }
 html[data-tasarim="v3"][data-theme="light"] .page,
 html[data-tasarim="v3"][data-theme="light"] .main-wrap,
 html[data-tasarim="v3"][data-theme="light"] .v2-main-wrap { background: var(--bg); }
-html[data-tasarim="v3"][data-theme="light"] .r-topnav { background: rgba(247, 246, 242, .94); border-bottom-color: rgba(17, 23, 34, .08); }
+html[data-tasarim="v3"][data-theme="light"] .r-topnav { background: rgba(247, 245, 239, .94); border-bottom-color: rgba(17, 23, 34, .08); }
 html[data-tasarim="v3"][data-theme="light"] .sidebar,
 html[data-tasarim="v3"][data-theme="light"] aside.sidebar,
 html[data-tasarim="v3"][data-theme="light"] .v2-sidebar { background: #FFFFFF !important; border-right-color: rgba(17, 23, 34, .08) !important; }
@@ -313,3 +319,103 @@ html[data-tasarim="v3"] .qb-label { max-width: 100%; overflow: hidden; text-over
     text-align: center;
   }
 }
+
+/* ── AÇIK MOD: OKUNURLUK DÜZELTMELERİ (2026-10-08) ─────────────────────────────
+   Kontrast denetimiyle (WCAG AA, normal metin ≥ 4.5:1) bulunan sabit renkler. Hepsi yalnız
+   yeni tasarım + açık modda; koyu mod ve sayfa kaynakları değişmez. Sayfaya gömülü (satır içi)
+   renkler !important ve [style]/[onclick] seçicileriyle eziliyor. */
+html[data-tasarim="v3"][data-theme="light"] {
+  --yt-amber-yazi: #8A5A00;   /* sarı iz zemin üstünde aktif öğe yazısı (5.7) */
+}
+/* topnav.js açık temada aktif öğeleri sabit #E5A900 ile boyuyordu (2.0:1) */
+html[data-tasarim="v3"][data-theme="light"] .sb-item.active,
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-item.active,
+html[data-tasarim="v3"][data-theme="light"] .bn-item.active,
+html[data-tasarim="v3"][data-theme="light"] .v2-bn-item.active { color: var(--yt-amber-yazi) !important; }
+html[data-tasarim="v3"][data-theme="light"] .tn-tab.active { color: var(--yt-amber-yazi) !important; border-bottom-color: var(--yt-btn) !important; }
+html[data-tasarim="v3"][data-theme="light"] .wb-key,
+html[data-tasarim="v3"][data-theme="light"] .meta-badge,
+html[data-tasarim="v3"][data-theme="light"] .role-badge,
+html[data-tasarim="v3"][data-theme="light"] .chord-line { color: var(--accent) !important; }
+/* Mesajlar sekmesi: beyaz yazı + sarı zemin (2.1) → koyu yazı + marka sarısı */
+html[data-tasarim="v3"][data-theme="light"] .tab-btn.active { background: var(--yt-btn) !important; color: #1A1305 !important; }
+
+/* Kaydırınca çıkan eylem zeminleri (beyaz yazı) */
+html[data-tasarim="v3"][data-theme="light"] .we-delete-bg,
+html[data-tasarim="v3"][data-theme="light"] .ri-delete-bg,
+html[data-tasarim="v3"][data-theme="light"] .rs-delete-bg { background: #C8333A; }
+html[data-tasarim="v3"][data-theme="light"] .rs-delete-bg.rs-hide-bg { background: #2F6DB5; }
+html[data-tasarim="v3"][data-theme="light"] .rs-edit-bg { background: #0A5BC2; }
+
+/* Eser detayı çipleri (beyaz yazı) */
+html[data-tasarim="v3"][data-theme="light"] .chip.meas { background: #2563C9; }
+html[data-tasarim="v3"][data-theme="light"] .chip.form { background: #1F7A4A; }
+html[data-tasarim="v3"][data-theme="light"] .chip.tuning { background: #9A5B00; }
+
+/* Rozet ve etiketler (açık renkli zemin üstünde renkli yazı) */
+html[data-tasarim="v3"][data-theme="light"] span[style*="58A6FF" i] { color: #0A5BC2 !important; }          /* 🔒 Taslak */
+html[data-tasarim="v3"][data-theme="light"] span[style*="c4b5fd" i] { color: #6D4AB8 !important; }          /* yalnız grup */
+html[data-tasarim="v3"][data-theme="light"] .knot-bas { color: #0F766E; }                                   /* Kişisel notum */
+html[data-tasarim="v3"][data-theme="light"] .badge.pending,
+html[data-tasarim="v3"][data-theme="light"] .btn-retract { color: #A3530B; }
+html[data-tasarim="v3"][data-theme="light"] .badge.approved { color: #1A6E34; }
+html[data-tasarim="v3"][data-theme="light"] .badge.private { color: #0A5BC2; }
+
+/* Eser formu araç çubuğu: "❗ Önemli Satır" ve bölüm işaretleri (Nakarat/Bağlantı…) */
+html[data-tasarim="v3"][data-theme="light"] button[onclick^="lyricsInsert('❗"] { color: #B42323 !important; }
+html[data-tasarim="v3"][data-theme="light"] button[onclick^="chordMark"],
+html[data-tasarim="v3"][data-theme="light"] button[onclick^="lyricsInsert"][style*="4DA3FF" i] { color: var(--accent2) !important; }
+
+/* Ayarlar → davet paylaş: WhatsApp / SMS; JS'in yazdığı yeşil durum metni; giriş sayfası WhatsApp bağlantısı */
+html[data-tasarim="v3"][data-theme="light"] button[onclick="paylasBilesen('whatsapp')"] { color: #13803F !important; }
+html[data-tasarim="v3"][data-theme="light"] button[onclick="paylasBilesen('sms')"] { color: #15803D !important; }
+html[data-tasarim="v3"][data-theme="light"] [style*="rgb(74, 222, 128)"] { color: #15803D !important; }
+html[data-tasarim="v3"][data-theme="light"] a[href^="https://wa.me"] { color: #13803F !important; }
+
+/* Sahne seçim ekranı: Gündüz / Gece anahtarı (renkleri JS satır içi yazıyor) */
+html[data-tasarim="v3"][data-theme="light"] #tc-day,
+html[data-tasarim="v3"][data-theme="light"] #tc-night { color: var(--text2) !important; }
+html[data-tasarim="v3"][data-theme="light"] #tc-day[style*="255, 200, 61"],
+html[data-tasarim="v3"][data-theme="light"] #tc-night[style*="255, 200, 61"] { color: var(--yt-amber-yazi) !important; }
+/* Çalışma Odası sekmesi: koyu yazı + (artık koyu amber olan) --accent zemini (3.5) → marka sarısı */
+html[data-tasarim="v3"][data-theme="light"] .co-sekme.aktif { background: var(--yt-btn); border-color: var(--yt-btn); color: #1A1305; }
+/* Sahne: repertuvar seçilmeden "Sahneye Çık" devre dışı — açık modda biraz daha okunur kalsın */
+html[data-tasarim="v3"][data-theme="light"] .bstart:disabled { opacity: .55; }
+/* Amber→mavi gradyanlı, KOYU yazılı düğmeler: açık modda --accent koyu amber olduğu için gradyan
+   koyulaştı (yazı 2.9:1). Sınıfları birincil düğme listesinde olmayanlar + sayfaya gömülü olanlar. */
+html[data-tasarim="v3"][data-theme="light"] .bep,
+html[data-tasarim="v3"][data-theme="light"] [style*="var(--accent),var(--accent2)"],
+html[data-tasarim="v3"][data-theme="light"] [style*="var(--accent), var(--accent2)"] {
+  background: var(--yt-btn) !important;
+  color: #1A1305 !important;
+  border-color: transparent !important;
+}
+/* Telefon alt gezinme çubuğu: pasif sekme yazısı #9390B0 (2.8:1) — topnav.js sabit yazıyor */
+html[data-tasarim="v3"][data-theme="light"] .bn-item,
+html[data-tasarim="v3"][data-theme="light"] .v2-bn-item,
+html[data-tasarim="v3"][data-theme="light"] .bn-item .bn-label,
+html[data-tasarim="v3"][data-theme="light"] .v2-bn-item .bn-label { color: var(--text2) !important; }
+html[data-tasarim="v3"][data-theme="light"] .bn-item.active,
+html[data-tasarim="v3"][data-theme="light"] .v2-bn-item.active,
+html[data-tasarim="v3"][data-theme="light"] .bn-item.active .bn-label,
+html[data-tasarim="v3"][data-theme="light"] .v2-bn-item.active .bn-label { color: var(--yt-amber-yazi) !important; }
+html[data-tasarim="v3"][data-theme="light"] .bottom-nav { background: rgba(247, 245, 239, .97) !important; border-top-color: rgba(17, 23, 34, .10) !important; }
+/* "Onay bekleyen" turuncusu (#F9A04A beyazda 1.8) → koyu turuncu; db.js cssText ile yazdığı için rgb() biçimi de */
+html[data-tasarim="v3"][data-theme="light"] .pending-badge,
+html[data-tasarim="v3"][data-theme="light"] [style*="color:#F9A04A" i],
+html[data-tasarim="v3"][data-theme="light"] [style*="color: rgb(249, 160, 74)"] { color: #A3530B !important; }
+/* Anlamsal renkler (style.css/sayfa :root'ları koyu tema için açık tonlarda: #4DA3FF beyazda 2.6, #FF5A5F 3.2,
+   #34C759 2.2) — açık modda metin olarak okunur tonlar. Metronom, uyarı/silme yazıları, hazır/favori işaretleri. */
+html[data-tasarim="v3"][data-theme="light"] {
+  --tempo-color: #0A5BC2 !important;
+  --chord-color: #0A5BC2 !important;
+  --key-color: #9A5B00 !important;
+  --favorite-color: #C8333A !important;
+  --ready-color: #1A7F3C !important;
+  --warning-color: #A3530B !important;
+  --red: #C8333A !important;
+  --green: #1A7F3C !important;
+}
+/* Sarı/amber %16 zeminli küçük rozetler: zemin koyulaşınca amber 4.35'e iniyordu */
+html[data-tasarim="v3"][data-theme="light"] .co-plan { color: var(--yt-amber-yazi) !important; }
+html[data-tasarim="v3"][data-theme="light"] .grp-chip.active .grp-role { color: var(--text2) !important; }

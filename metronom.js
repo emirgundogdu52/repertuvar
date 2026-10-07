@@ -98,7 +98,7 @@ button, .mx-btn, [role="button"] {
 .mx-beat.dum{ background:color-mix(in srgb, var(--accent) 18%, transparent); border-color:color-mix(in srgb, var(--accent) 50%, transparent); color:var(--accent); }
 .mx-beat.bos{ opacity:.4; }
 .mx-beat.now{ transform:scale(1.22); box-shadow:0 0 0 3px color-mix(in srgb, var(--tempo-color) 30%, transparent); }
-.mx-beat.now.dum{ background:var(--accent); color:#0b1226; }
+.mx-beat.now.dum{ background:var(--yt-btn,var(--accent)); color:#0b1226; }
 .mx-hint{ text-align:center; font-size:11px; color:var(--text3); margin-top:8px; line-height:1.5; }
 /* (2026-08-05 f) Gruplamayı ELLE YAZMA. Listede olmayan bir usul (ör. 15/8)
    için tek tek vuruşa dokunmak işkenceydi: "2+2+3+3+3+2" yazıp Uygula yeter. */

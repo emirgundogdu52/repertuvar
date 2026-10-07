@@ -106,7 +106,7 @@
       'background:var(--surface2);color:var(--text);font:inherit;font-size:14px;font-weight:600;line-height:1.2;cursor:pointer;' +
       'transition:background-color .15s ease,border-color .15s ease,color .15s ease;-webkit-tap-highlight-color:transparent}' +
       '.mt-cip:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--border))}' +
-      '.mt-cip.on{background:var(--accent,#FFC83D);border-color:var(--accent,#FFC83D);color:#1a1200}' +
+      '.mt-cip.on{background:var(--yt-btn,#FFC83D);border-color:var(--yt-btn,#FFC83D);color:#1a1200}' +
       '.mt-cip.on::before{content:"✓";font-weight:800}' +
       '.mt-cip:focus-visible,.ob-btn:focus-visible,.ob-seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}' +
       '.mt-cipler{display:flex;flex-wrap:wrap;gap:8px}' +
@@ -121,9 +121,9 @@
       '.ob-dil span{font-size:13px;font-weight:600;color:var(--text2)}' +
       '.ob-seg{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--surface2);border:1px solid var(--border)}' +
       '.ob-seg button{border:0;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--text2);padding:6px 12px;border-radius:8px;cursor:pointer}' +
-      '.ob-seg button[aria-pressed="true"]{background:var(--accent);color:#1a1200}' +
+      '.ob-seg button[aria-pressed="true"]{background:var(--yt-btn,#FFC83D);color:#1a1200}' +
       '.ob-btn{display:flex;width:100%;align-items:center;justify-content:center;min-height:48px;margin-top:20px;border:0;border-radius:12px;' +
-      'background:var(--accent);color:#1a1200;font:inherit;font-size:15px;font-weight:700;cursor:pointer}' +
+      'background:var(--yt-btn,#FFC83D);color:#1a1200;font:inherit;font-size:15px;font-weight:700;cursor:pointer}' +
       '.ob-btn:disabled{opacity:.45;cursor:default}' +
       '.ob-gec{display:block;margin:10px auto 0;border:0;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--text2);padding:8px 12px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}' +
       '.ob-not{margin:6px 0 0;text-align:center;font-size:12px;color:var(--text3)}' +
