@@ -650,6 +650,9 @@
   .tur-chip-n { background:rgba(255,255,255,.07); border-radius:9px; padding:0 5px; font-size:10px; font-weight:700; color:var(--text3); }
   .tur-chip.active .tur-chip-n { background:rgba(88,166,255,.22); color:var(--accent); }
   .tur-chip-bos { border-style:dashed; }
+  /* (2026-10-08) dil çipleri: tür çipleriyle aynı görünüm + küre ikonu; iki grup arasında ince ayraç */
+  .dil-chip .ti { font-size:13px; }
+  .chip-ayrac { flex:0 0 1px; align-self:stretch; margin:3px 4px; background:var(--border); }
   .work-tur-badge { display:inline-block; font-size:10px; font-weight:700; letter-spacing:.02em; color:var(--text3); background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:0 6px; margin-right:6px; vertical-align:middle; white-space:nowrap; }
 
   /* WORK LIST */
@@ -1455,6 +1458,9 @@ function mapWorkRow(w) {
     // (2026-08-20) Üst katman: THM/TSM/Türk Pop… Form bunun ALTINDA kalır ve
     // yalnız THM/TSM'de anlamlıdır (bkz. neTurDegisti).
     tur: w.tur || '',
+    // (2026-10-08) Eserin (sözlerinin) dili, ISO 639-1. Türden ve arayüz dilinden bağımsız.
+    // Sütun gelmemişse (eski önbellek) 'tr' — katalog o güne kadar Türkçeydi.
+    dil: w.dil || 'tr',
     metronom: (w.metronom == null ? '' : String(w.metronom)), genre: '', instrument: w.instrument || '',
     tuning: w.tuning || '', closingNote: w.closing_note || '',
     area: '', region: w.region || '', sourcePerson: w.source_person || '',
@@ -1550,7 +1556,7 @@ async function syncWorksFromServer(hadLocalData) {
     // ── FAZ 1: HAFİF liste (güfte/akor/nota HARİÇ) — ilk boyama hızlı olsun.
     //    Liste ve filtreler bu alanlara ihtiyaç duymaz; ağır güfte/akor metnini
     //    ilk yükte çekmek soğuk açılışı yavaşlatan asıl sebepti. ──
-    const lightSel = 'select=id,name,composer,lyric_writer,makam,tur,form,measurement,instrument,tuning,closing_note,region,source_person,collector,story,metronom,ritim,active_music_fields,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id,deleted_at';
+    const lightSel = 'select=id,name,composer,lyric_writer,makam,tur,form,measurement,instrument,tuning,closing_note,region,source_person,collector,story,metronom,ritim,active_music_fields,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id,deleted_at,dil';
     const r = await fetch(SUPA_URL+base+'&'+lightSel, {
       headers: hdr,
       signal: AbortSignal.timeout(hadLocalData ? 8000 : 5000)
@@ -1631,7 +1637,7 @@ async function syncWorksFromServer(hadLocalData) {
 let filteredData = [...DATA];
 let selectedId = null;
 let sortMode = 'name';
-let activeFilters = { form: null, tuning: null, region: null, makam: null, tur: null };
+let activeFilters = { form: null, tuning: null, region: null, makam: null, tur: null, dil: null };
 let favOnly = false;               // "Tümü / Favoriler" toggle durumu
 // (2026-08-15) "🔒 Taslaklarım" görünümü. Gerekçe (Emir): "Private eserlerin
 // sıralandığı bir başlık açalım, bestecilere veya eserlerini yayınlamak
@@ -1690,6 +1696,7 @@ function turSayilari() {
     if (w.deleted_at) return;
     if (w.status === 'pending' && w.submitted_by !== uid) return;
     if (w.visibility === 'private' && w.submitted_by !== uid) return;
+    if (activeFilters.dil && (w.dil || 'tr') !== activeFilters.dil) return;   // (2026-10-08) dil seçiliyse yalnız o dilin türleri
     const t = (w.tur || '').trim();
     if (t) c[t] = (c[t] || 0) + 1; else bos++;
   });
@@ -1699,11 +1706,50 @@ function turSayilari() {
   };
 }
 
+// ── Dil çipleri (2026-10-08) ─────────────────────────────────────────────────
+// Eserin DİLİ (works.dil) — tür ve arayüz dilinden bağımsız üçüncü eksen. Tür çipleriyle aynı
+// kurallar: tek seçim, tekrar dokununca kalkar, KALICI DEĞİL, "Tümü" sıfırlar. Katalogda tek dil
+// varsa hiç çizilmez. Ad, dilin KENDİ adıyla (Türkçe, English, Deutsch…) — arayüz dili ne olursa olsun.
+function dilAdi(kod) {
+  try { const a = new Intl.DisplayNames([kod], { type: 'language' }).of(kod); if (a && a !== kod) return a.charAt(0).toLocaleUpperCase(kod) + a.slice(1); } catch (e) {}
+  return ({ tr: 'Türkçe', en: 'English' })[kod] || kod.toUpperCase();
+}
+function dilSayilari() {   // görünürlük kuralları turSayilari ile aynı; tür süzgecinden BAĞIMSIZ
+  const uid = getUserId(), c = {};
+  (DATA || []).forEach(function (w) {
+    if (w.deleted_at) return;
+    if (w.status === 'pending' && w.submitted_by !== uid) return;
+    if (w.visibility === 'private' && w.submitted_by !== uid) return;
+    const d = w.dil || 'tr'; c[d] = (c[d] || 0) + 1;
+  });
+  return Object.entries(c).sort(function (a, b) { return b[1] - a[1]; });
+}
+function setDilFilter(kod) {
+  activeFilters.dil = (activeFilters.dil === kod) ? null : kod;
+  // Seçili tür yeni dilde yoksa kaldır (görünmeyen bir çip listeyi sessizce boşaltmasın)
+  if (activeFilters.tur) {
+    const r = turSayilari();
+    const var_ = activeFilters.tur === '__yok__' ? r.bos > 0 : r.liste.some(function (e) { return e[0] === activeFilters.tur; });
+    if (!var_) activeFilters.tur = null;
+  }
+  buildTurChips();
+  applyFilters();
+}
+
 function buildTurChips() {
   const el = document.getElementById('turChipRow');
   if (!el) return;
   const r = turSayilari();
-  if (!r.liste.length && !r.bos) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  const diller = dilSayilari();
+  if (!r.liste.length && !r.bos && diller.length < 2) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  let dilHtml = '';
+  if (diller.length > 1) {
+    dilHtml = diller.map(function (e) {
+      const kod = String(e[0]).replace(/[^a-z]/g, '');
+      return '<button class="tur-chip dil-chip" data-dil="' + kod + '" lang="' + kod + '" onclick="setDilFilter(\'' + kod + '\')" title="' + _esCev('es.t_eserDili','Eserin dili') + '">'
+        + '<i class="ti ti-world" aria-hidden="true"></i>' + dilAdi(kod) + ' <span class="tur-chip-n">' + e[1] + '</span></button>';
+    }).join('') + '<span class="chip-ayrac" aria-hidden="true"></span>';
+  }
   let html = r.liste.map(function (e) {
     const val = String(e[0]);
     return '<button class="tur-chip" data-tur="' + val.replace(/"/g, '&quot;') + '" onclick="setTurFilter(\'' + val.replace(/'/g, "\\'") + '\')">'
@@ -1712,7 +1758,7 @@ function buildTurChips() {
   if (r.bos) {
     html += '<button class="tur-chip tur-chip-bos" data-tur="__yok__" onclick="setTurFilter(\'__yok__\')" title="' + _esCev('es.t_turuYok','Türü henüz belirlenmemiş eserler') + '">' + _esCev('es.tursuzCip','Türü belirlenmemiş') + ' <span class="tur-chip-n">' + r.bos + '</span></button>';
   }
-  el.innerHTML = html;
+  el.innerHTML = dilHtml + html;
   el.style.display = 'flex';
   updateTurChips();
 }
@@ -1728,7 +1774,7 @@ function setTurFilter(val) {
 
 function updateTurChips() {
   document.querySelectorAll('#turChipRow .tur-chip').forEach(function (b) {
-    b.classList.toggle('active', activeFilters.tur === b.dataset.tur);
+    b.classList.toggle('active', b.dataset.dil ? activeFilters.dil === b.dataset.dil : activeFilters.tur === b.dataset.tur);
   });
 }
 
@@ -1746,10 +1792,10 @@ function updateFilterButtons() {
 }
 
 function clearFilters() {
-  activeFilters = { form: null, tuning: null, region: null, makam: null, tur: null };
+  activeFilters = { form: null, tuning: null, region: null, makam: null, tur: null, dil: null };
   document.getElementById('searchInput').value = '';
   updateFilterButtons();
-  updateTurChips();
+  buildTurChips();   // dil kalkınca tür sayıları da geri gelsin
   applyFilters();
 }
 
@@ -1772,6 +1818,7 @@ function applyFilters() {
     if (activeFilters.tuning && w.tuning !== activeFilters.tuning) return false;
     if (activeFilters.region && w.region !== activeFilters.region) return false;
     if (activeFilters.makam && w.makam !== activeFilters.makam) return false;
+    if (activeFilters.dil && (w.dil || 'tr') !== activeFilters.dil) return false;   // (2026-10-08) dil çipi
     // (2026-08-21) Tur cipi. '__yok__' = turu henuz girilmemis eserler.
     if (activeFilters.tur) {
       const _t = (w.tur || '').trim();
@@ -1831,7 +1878,7 @@ function setDraftOnly(on) {
 function tumunuGoster() {
   Object.keys(activeFilters).forEach(function (k) { activeFilters[k] = null; });
   updateFilterButtons();
-  updateTurChips();
+  buildTurChips();
   setFavOnly(false);              // görünümü sıfırlar ve applyFilters'ı çağırır
 }
 // "Tümü" yalnız GERÇEKTEN hiçbir süzgeç yokken aktif görünsün (applyFilters sonunda çağrılır).
@@ -2335,9 +2382,12 @@ function renderList() {
     // (2026-08-21) Acik tur cipi varsa sebebini SOYLE — sessiz bos liste
     // "eserlerim gitmis" panigi yaratiyor.
     let _ipucu = '';
+    if (activeFilters.dil) {
+      _ipucu += '<div style="margin-top:8px;font-size:12px;color:var(--text3);">' + _esCev('es.acikDilSuzgeci','Açık dil süzgeci:') + ' <b>' + dilAdi(activeFilters.dil) + '</b>' + _esCev('es.cipeDokunKaldir',' — çipe tekrar dokunarak kaldırabilirsiniz.') + '</div>';
+    }
     if (activeFilters.tur) {
       const _ad = activeFilters.tur === '__yok__' ? _esCev('es.tursuz','Türü belirlenmemiş') : activeFilters.tur;
-      _ipucu = '<div style="margin-top:8px;font-size:12px;color:var(--text3);">' + _esCev('es.acikTurSuzgeci','Açık tür süzgeci:') + ' <b>' + _ad + '</b>' + _esCev('es.cipeDokunKaldir',' — çipe tekrar dokunarak kaldırabilirsiniz.') + '</div>';
+      _ipucu += '<div style="margin-top:8px;font-size:12px;color:var(--text3);">' + _esCev('es.acikTurSuzgeci','Açık tür süzgeci:') + ' <b>' + _ad + '</b>' + _esCev('es.cipeDokunKaldir',' — çipe tekrar dokunarak kaldırabilirsiniz.') + '</div>';
     }
     panel.innerHTML = '<div class="empty-list">' + _esCev('es.eserBulunamadi','Eser bulunamadı') + _ipucu + '</div>';
     return;
