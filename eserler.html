@@ -1709,11 +1709,16 @@ function turSayilari() {
 // ── Dil çipleri (2026-10-08) ─────────────────────────────────────────────────
 // Eserin DİLİ (works.dil) — tür ve arayüz dilinden bağımsız üçüncü eksen. Tür çipleriyle aynı
 // kurallar: tek seçim, tekrar dokununca kalkar, KALICI DEĞİL, "Tümü" sıfırlar. Katalogda tek dil
-// varsa hiç çizilmez. Ad, dilin KENDİ adıyla (Türkçe, English, Deutsch…) — arayüz dili ne olursa olsun.
+// varsa hiç çizilmez. Ad ARAYÜZ DİLİNDE (EN: Turkish / English · TR: Türkçe / İngilizce): bu bir
+// içerik süzgeci, dil seçici değil. (Uygulama dili seçicileri ise her dili kendi adıyla gösterir.)
 function dilAdi(kod) {
-  try { const a = new Intl.DisplayNames([kod], { type: 'language' }).of(kod); if (a && a !== kod) return a.charAt(0).toLocaleUpperCase(kod) + a.slice(1); } catch (e) {}
-  return ({ tr: 'Türkçe', en: 'English' })[kod] || kod.toUpperCase();
+  const ui = (window.i18n && i18n.dil && i18n.dil()) || 'tr';
+  try { const a = new Intl.DisplayNames([ui], { type: 'language' }).of(kod); if (a && a !== kod) return a.charAt(0).toLocaleUpperCase(ui) + a.slice(1); } catch (e) {}
+  const Y = { tr: { tr: 'Türkçe', en: 'İngilizce' }, en: { tr: 'Turkish', en: 'English' } };
+  return (Y[ui] && Y[ui][kod]) || kod.toUpperCase();
 }
+// Uygulama dili sayfa açıkken değişirse çip adları da değişsin
+window.addEventListener('dil-degisti', function () { if (typeof buildTurChips === 'function') buildTurChips(); });
 function dilSayilari() {   // görünürlük kuralları turSayilari ile aynı; tür süzgecinden BAĞIMSIZ
   const uid = getUserId(), c = {};
   (DATA || []).forEach(function (w) {
