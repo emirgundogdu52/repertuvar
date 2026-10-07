@@ -1,0 +1,93 @@
+<!doctype html>
+<!--
+  404 — 2026-10-07
+  app.repertuvar.app'te 404 sayfası YOKTU: olmayan her adreste GitHub Pages'in
+  Octocat'li "Page not found" sayfası çıkıyordu. GitHub Pages kökteki 404.html'i
+  bulunamayan HER yol için sunar (iç içe yollar dahil) → tüm bağlantılar KÖKTEN (/).
+
+  Önce yaygın yazım hatalarını düzeltip gerçek sayfaya yönlendirir; düzeltilemiyorsa
+  markalı mesaj gösterir. Döngü olmaz: yalnız SAYFALAR listesindeki bir adrese gider.
+  Yeni bir sayfa eklenirse SAYFALAR'a da eklenmeli (eklenmezse yalnız düzeltme çalışmaz).
+-->
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#070B18">
+<title>Sayfa bulunamadı · Repertuvar</title>
+<link rel="icon" href="/Repertuvar_logo.png">
+<script>
+(function () {
+  var SAYFALAR = ['index','eserler','repertoires','gruplar','stage','ayarlar','login','mesajlar','istatistikler',
+    'onerilerim','uyeler','artiesten','calisma','metronom','paylas','reset-password','google-donus','yonetim',
+    'toplu-makam','form-atama','ritim-kes','pedaltest','splash'];
+  // Hukuki/destek sayfaları landing'de; uygulama alan adında açılırsa oraya gönder.
+  var LANDING = { privacy: 'https://repertuvar.app/privacy/', gizlilik: 'https://repertuvar.app/privacy/',
+    terms: 'https://repertuvar.app/terms/', kosullar: 'https://repertuvar.app/terms/',
+    support: 'https://repertuvar.app/support/', destek: 'https://repertuvar.app/support/' };
+  var ek = location.search + location.hash;
+  var yol = decodeURIComponent(location.pathname).replace(/^\/+|\/+$/g, '').toLowerCase();
+  var ad = yol.replace(/\.html?$/, '');
+  if (LANDING[ad]) { location.replace(LANDING[ad]); return; }
+  if (SAYFALAR.indexOf(ad) !== -1) {
+    var hedef = '/' + ad + '.html';
+    if (hedef !== location.pathname) { location.replace(hedef + ek); return; }
+  }
+})();
+</script>
+<style>
+  :root{--bg:#070B18;--bg2:#10172C;--border:rgba(48,58,85,.6);--accent:#FFC83D;--text:#fff;--text2:#B8BFD2;--text3:#78829A}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:radial-gradient(120% 80% at 50% 0%,#121a33 0%,var(--bg) 60%);color:var(--text);
+    font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    display:grid;place-items:center;padding:24px;padding-top:max(24px,env(safe-area-inset-top));text-align:center}
+  .kutu{max-width:420px;width:100%}
+  .logo{display:block;width:200px;max-width:70%;height:auto;margin:0 auto 36px}
+  .kod{font-size:72px;line-height:1;font-weight:800;letter-spacing:-2px;color:var(--accent);margin:0 0 12px}
+  h1{font-size:22px;line-height:1.3;margin:0 0 10px;font-weight:700}
+  p{color:var(--text2);font-size:15px;line-height:1.6;margin:0 0 28px}
+  .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 20px;border-radius:12px;
+    font:inherit;font-size:15px;font-weight:700;text-decoration:none}
+  .btn-y{background:var(--accent);color:#1a1200}
+  .btn-w{border:1px solid var(--border);background:var(--bg2);color:var(--text)}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .alt{margin-top:40px;font-size:12px;color:var(--text3)}
+  .alt a{color:var(--text3)}
+</style>
+</head>
+<body>
+<main class="kutu">
+  <img class="logo" src="/logo_dark.png" alt="repertuvar.app" width="664" height="127">
+  <p class="kod" aria-hidden="true">404</p>
+  <h1 data-t="baslik">Bu sayfa bulunamadı</h1>
+  <p data-t="metin">Aradığın sayfa taşınmış ya da hiç var olmamış olabilir. Eserlerine ve repertuvarlarına buradan dönebilirsin.</p>
+  <div class="btns">
+    <a class="btn btn-y" href="/eserler.html" data-t="eserler">Eserlere dön</a>
+    <a class="btn btn-w" href="/" data-t="ana">Ana sayfa</a>
+  </div>
+  <p class="alt"><a href="https://repertuvar.app/support/" data-t="destek">Destek</a> · repertuvar.app · StageFlow B.V.</p>
+</main>
+<script>
+/* Dil: uygulamadaki tercih (uiLang → uiLangSunucu), yoksa tarayıcı dili — i18n.js ile aynı sıra. */
+(function () {
+  var dil = 'tr';
+  try {
+    var k = localStorage.getItem('uiLang') || localStorage.getItem('uiLangSunucu');
+    dil = k || ((navigator.language || 'tr').slice(0, 2).toLowerCase() === 'tr' ? 'tr' : 'en');
+  } catch (e) {}
+  if (dil === 'tr') return;
+  var EN = {
+    baslik: 'This page could not be found',
+    metin: 'The page you are looking for may have moved or never existed. You can get back to your pieces and setlists from here.',
+    eserler: 'Back to pieces', ana: 'Home', destek: 'Support'
+  };
+  document.documentElement.lang = 'en';
+  document.title = 'Page not found · Repertuvar';
+  document.querySelectorAll('[data-t]').forEach(function (el) { var t = EN[el.getAttribute('data-t')]; if (t) el.textContent = t; });
+})();
+</script>
+</body>
+</html>
