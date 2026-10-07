@@ -1380,7 +1380,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
           oninput="applyFilters();">
       </div>
       <div class="fav-toggle-wrap" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-        <button id="favToggleAll" class="fav-toggle-btn active" onclick="setFavOnly(false)"
+        <button id="favToggleAll" class="fav-toggle-btn active" onclick="tumunuGoster()"
           style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;" data-i18n="es.tumu">Tümü</button>
         <button id="favToggleFav" class="fav-toggle-btn" onclick="setFavOnly(true)"
           style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;" data-i18n="es.favoriler">★ Favoriler</button>
@@ -1787,6 +1787,7 @@ function applyFilters() {
   sortData();
   renderList();
   updateDraftToggle();
+  tumuDurumunuYaz();
   const countBadgeEl = document.getElementById('countBadge');
   if (countBadgeEl) countBadgeEl.textContent = filteredData.length + ' eser';
 }
@@ -1821,6 +1822,26 @@ function setDraftOnly(on) {
   if (allBtn) { allBtn.classList.toggle('active', !on && !favOnly); allBtn.style.background = (!on && !favOnly) ? 'var(--surface2)' : 'none'; allBtn.style.color = (!on && !favOnly) ? 'var(--text)' : 'var(--text2)'; }
   if (favBtn && on) { favBtn.classList.remove('active'); favBtn.style.background = 'none'; favBtn.style.color = 'var(--text2)'; }
   applyFilters();
+}
+
+// ── Tümü (2026-10-08) ──
+// Eskiden "Tümü" yalnız Favoriler/Taslaklar'ı kapatıyordu; seçili tür çipi (THM, Folk…) ve
+// Filtreler panelindeki seçimler kalıyordu, liste süzülü olduğu hâlde "Tümü" aktif görünüyordu.
+// Artık tüm süzgeçleri sıfırlar. Arama kutusundaki yazıya DOKUNMAZ (o ayrı, bilinçli bir giriş).
+function tumunuGoster() {
+  Object.keys(activeFilters).forEach(function (k) { activeFilters[k] = null; });
+  updateFilterButtons();
+  updateTurChips();
+  setFavOnly(false);              // görünümü sıfırlar ve applyFilters'ı çağırır
+}
+// "Tümü" yalnız GERÇEKTEN hiçbir süzgeç yokken aktif görünsün (applyFilters sonunda çağrılır).
+function tumuDurumunuYaz() {
+  const allBtn = document.getElementById('favToggleAll');
+  if (!allBtn) return;
+  const hepsi = !favOnly && !draftOnly && !Object.keys(activeFilters).some(function (k) { return activeFilters[k]; });
+  allBtn.classList.toggle('active', hepsi);
+  allBtn.style.background = hepsi ? 'var(--surface2)' : 'none';
+  allBtn.style.color = hepsi ? 'var(--text)' : 'var(--text2)';
 }
 
 // ── Tümü / Favoriler toggle ──
@@ -4491,8 +4512,10 @@ function switchNeTab(name) {
 // okunan bağımsız şiirler için, repertuvarda kendi başına bir sıra öğesi
 // olarak dursun diye. FORMU_OLAN_TURLER'e girmediği için Form kutusu
 // kendiliğinden gizleniyor; ayrıca bir şey yapmaya gerek yok.
+// (2026-10-08) İngilizce eser türleri eklendi (works_tur_check ile aynı; _ingilizce_eserler/ingilizce_eserler.sql).
 const TUR_LISTESI = ['THM','TSM','Türk Pop','Türk Rock','Arabesk / Fantezi','Özgün Müzik',
-  'Türkçe Rap / Hip-Hop','Yabancı Pop','Yabancı Rock','Caz / Blues','Şiir','Diğer'];
+  'Türkçe Rap / Hip-Hop','Yabancı Pop','Yabancı Rock','Caz / Blues','Şiir','Diğer',
+  'Folk','Gospel / Hymn','Spiritual','Christmas','Sea Shanty',"Children's Song",'Parlour Song'];
 
 // Form YALNIZ THM ve TSM'de anlamlı (Türkü, Deyiş, Semai, Peşrev…). Pop, rock,
 // rap, caz gibi türlerde form kavramı işlemiyor; alan görünürse ya boş kalır ya
@@ -4506,6 +4529,11 @@ function fillTurSelect(secili) {
   // uygulanmadığı için metin Türkçe kalıyordu. Çeviri doğrudan burada alınıyor.
   sel.innerHTML = '<option value="">' + _esCev('es.secilmedi','— seçilmedi —') + '</option>' +
     TUR_LISTESI.map(t => '<option value="' + t.replace(/"/g,'&quot;') + '">' + t + '</option>').join('');
+  // (2026-10-08) Listede olmayan bir tür gelirse SİLME: seçenek olarak ekle. Yoksa select '' olur ve
+  // kayıtta eserin türü boşalırdı (yeni tür DB'ye eklenip burada unutulursa).
+  if (secili && !TUR_LISTESI.includes(secili)) {
+    const o = document.createElement('option'); o.value = secili; o.textContent = secili; sel.appendChild(o);
+  }
   sel.value = secili || '';
 }
 
