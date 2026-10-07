@@ -633,14 +633,52 @@ function pingLastSeen() {
     var d = (window.i18n && window.i18n.dil) ? window.i18n.dil() : null;
     if (d) govde.ui_lang_effective = d;
   } catch(e) {}
-  try {
-    fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
+  // (2026-10-08) 🐛 `ui_lang_effective` sütunu veritabanında YOK: istek 31 Ağustos'tan beri
+  // 400 alıyor ve last_seen_at da yazılmıyordu (Yönetim'deki 24 sa/7 g/30 g sayıları dondu).
+  // Sütun hatası (42703) gelirse yalnız last_seen_at ile bir kez daha dene.
+  var gonder = function (b) {
+    return fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid, {
       method: 'PATCH',
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || ''),
                  'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify(govde)
+      body: JSON.stringify(b)
+    });
+  };
+  try {
+    gonder(govde).then(function (r) {
+      if (r.status === 400 && govde.ui_lang_effective) return gonder({ last_seen_at: govde.last_seen_at });
     }).catch(function(){});
   } catch(e) {}
+}
+
+// ── Profil dilini yaz (2026-10-08) ─────────────────────────────────────────
+// Ayarlar ve onboarding ortak kullanır. ESKİDEN her tıklama ayrı PATCH atıyordu; hızlı
+// "Türkçe → English" iki isteği yarıştırıyor, sunucuya ters sırayla varan istek profilde
+// 'tr' bırakıyordu: ekranda English, profilde Türkçe → sonraki her yeni cihaz Türkçe açılıyordu.
+// Artık istekler ZİNCİRLE sırayla gider; arada daha yeni seçim geldiyse eskisi hiç gönderilmez.
+// Promise: true = profile yazıldı (uiLangSunucu güncellendi), false = yazılamadı (yalnız bu cihazda).
+var _dilYazZinciri = Promise.resolve(), _dilYazSon = null;
+function profilDiliniYaz(yeni) {
+  _dilYazSon = yeni;
+  var is = _dilYazZinciri.then(function () {
+    if (_dilYazSon !== yeni) return null;          // daha yenisi var; sırası gelince o yazılacak
+    var uid = getUserId(); if (!uid) return false;
+    // `return=minimal` yok: RLS engellerse 0 satır döner, başarıyla karışmasın.
+    return fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + uid + '&select=ui_lang', {
+      method: 'PATCH',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + (getToken() || ''),
+                 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ ui_lang: yeni })
+    }).then(function (r) { return r.ok ? r.json().catch(function () { return []; }) : []; })
+      .then(function (satir) {
+        if (!satir || !satir.length) return false;
+        // Kendi yazdığımızı önbelleğe al: sonraki açılışta "başka cihazda değişmiş" sanılmasın.
+        if (_dilYazSon === yeni) { try { localStorage.setItem('uiLangSunucu', yeni); } catch (e) {} }
+        return true;
+      }).catch(function () { return false; });
+  });
+  _dilYazZinciri = is.catch(function () {});
+  return is;
 }
 
 async function requireAuth() {

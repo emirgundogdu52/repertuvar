@@ -71,16 +71,10 @@
   }
 
   // Ayarlar'daki dilDegistir ile aynı: yerelde uygula, profile yaz, kendi yazdığını önbelleğe al.
+  // (2026-10-08) auth.js'teki sıralı ortak yazıcı: hızlı Türkçe→English tıklamalarında profilde SON seçim kalır.
   function dilYaz(k) {
     if (!window.i18n || !i18n.ayarla(k)) return;
-    var u = uid(); if (!u) return;
-    fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + u + '&select=ui_lang', {
-      method: 'PATCH',
-      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + (jeton() || ''), 'Content-Type': 'application/json', Prefer: 'return=representation' },
-      body: JSON.stringify({ ui_lang: k })
-    }).then(function (r) { return r.ok ? r.json() : []; })
-      .then(function (s) { if (s && s.length) { try { localStorage.setItem('uiLangSunucu', k); } catch (e) {} } })
-      .catch(function () {});
+    if (typeof profilDiliniYaz === 'function') profilDiliniYaz(k);
   }
 
   /* Seçilebilir çipler — onboarding penceresi ve Ayarlar ortak kullanır. */
