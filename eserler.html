@@ -1877,6 +1877,69 @@ function getFavs() {
   try { return new Set(JSON.parse(localStorage.getItem(getFavKey()) || '[]').map(Number)); }
   catch(e) { return new Set(); }
 }
+
+// ── Favoriler HESABA bağlı (2026-10-08) ──────────────────────────────────
+// Eskiden yalnız bu cihazın localStorage'ındaydı: başka cihazda / telefon uygulamasında /
+// başka tarayıcıda görünmüyor, "favorilerim kayboldu" sanılıyordu. Artık public.work_favorites
+// (sql/favoriler.sql, RLS: kişi yalnız kendini). localStorage = ANLIK önbellek + çevrimdışı:
+//  - ekle/çıkar önce yerelde uygulanır ve kuyruğa yazılır, sonra hesaba gönderilir (bağlantı
+//    yoksa kuyrukta bekler, 'online'da yazılır) — local-first, sahnede hiçbir şey beklemez;
+//  - her cihaz İLK açılışta kendi eski favorilerini BİR KEZ yükler (cihazların birleşimi korunur);
+//  - açılışta / sekmeye dönünce hesaptaki liste çekilir, bekleyenler üstüne uygulanır.
+// Tablo yoksa (SQL çalıştırılmadıysa) 404 → eskisi gibi yalnız cihazda çalışır, kuyruk korunur.
+function _favBekleyenKey() { return getFavKey() + '_bekleyen'; }
+function _favTasindiKey()  { return getFavKey() + '_hesapta'; }
+function _favBekleyen() { try { return JSON.parse(localStorage.getItem(_favBekleyenKey()) || '[]'); } catch (e) { return []; } }
+function _favBekleyenYaz(l) { try { localStorage.setItem(_favBekleyenKey(), JSON.stringify(l)); } catch (e) {} }
+function _favKuyruga(id, op) {   // aynı eser için yalnız SON işlem kalır
+  const l = _favBekleyen().filter(function (x) { return x.id !== id; });
+  l.push({ id: id, op: op }); _favBekleyenYaz(l);
+}
+let _favMesgul = false, _favTabloYok = false;
+async function favEsitle(cek) {
+  const uid = getUserId(), tok = getToken();
+  if (!uid || !tok || _favMesgul || _favTabloYok || navigator.onLine === false) return;
+  _favMesgul = true;
+  const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json' };
+  const URL_ = SUPA_URL + '/rest/v1/work_favorites';
+  const yok = function (r) { if (r.status === 404) { _favTabloYok = true; return true; } return false; };
+  const ekle = function (ids) {
+    return fetch(URL_, { method: 'POST', headers: Object.assign({ 'Prefer': 'resolution=ignore-duplicates,return=minimal' }, H),
+      body: JSON.stringify(ids.map(function (id) { return { user_id: uid, work_id: id }; })) });
+  };
+  try {
+    // 1) Bu cihazın eski (hesaba hiç gitmemiş) favorileri — bir kez
+    if (!localStorage.getItem(_favTasindiKey())) {
+      const yerel = Array.from(getFavs()).filter(function (x) { return Number.isFinite(x); });
+      if (yerel.length) { const r = await ekle(yerel); if (yok(r) || !r.ok) return; }
+      localStorage.setItem(_favTasindiKey(), '1');
+    }
+    // 2) Bekleyen ekle/çıkar
+    for (const b of _favBekleyen()) {
+      const r = b.op === '+' ? await ekle([b.id])
+        : await fetch(URL_ + '?user_id=eq.' + uid + '&work_id=eq.' + b.id, { method: 'DELETE', headers: H });
+      if (yok(r) || !r.ok) return;
+      _favBekleyenYaz(_favBekleyen().filter(function (x) { return !(x.id === b.id && x.op === b.op); }));
+    }
+    if (cek === false) return;
+    // 3) Hesaptaki liste → önbellek (arada yapılmış ama henüz gitmemiş işlemler üstüne uygulanır)
+    const r = await fetch(URL_ + '?select=work_id&limit=10000', { headers: H });
+    if (yok(r) || !r.ok) return;
+    const s = new Set((await r.json()).map(function (x) { return Number(x.work_id); }));
+    _favBekleyen().forEach(function (b) { if (b.op === '+') s.add(b.id); else s.delete(b.id); });
+    const sirala = function (a) { return Array.from(a).sort(function (x, y) { return x - y; }); };
+    const once = JSON.stringify(sirala(getFavs())), sonra = sirala(s);
+    if (once !== JSON.stringify(sonra)) {
+      localStorage.setItem(getFavKey(), JSON.stringify(sonra));
+      if (typeof applyFilters === 'function' && Array.isArray(DATA) && DATA.length) applyFilters();
+    }
+  } catch (e) {
+    // ağ hatası: kuyruk duruyor, bir sonraki fırsatta yeniden denenir
+  } finally { _favMesgul = false; }
+}
+window.addEventListener('load', function () { setTimeout(favEsitle, 900); });
+window.addEventListener('online', function () { favEsitle(); });
+document.addEventListener('visibilitychange', function () { if (!document.hidden) favEsitle(); });
 // ── Repertuvara Ekle sheet'i ──
 let repAddWorkId = null;
 
@@ -2141,6 +2204,8 @@ function toggleFavorite(id, ev) {
   const nowFav = !favs.has(id);
   if (nowFav) favs.add(id); else favs.delete(id);
   localStorage.setItem(getFavKey(), JSON.stringify([...favs]));
+  _favKuyruga(id, nowFav ? '+' : '-');   // hesaba (2026-10-08) — bağlantı yoksa kuyrukta bekler
+  favEsitle(false);
   renderList();
   if (nowFav) {
     const btn = document.querySelector('.work-item[data-id="'+id+'"] .work-fav');
