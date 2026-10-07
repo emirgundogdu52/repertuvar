@@ -37,7 +37,7 @@ const PRECACHE = [
   '/metronom.js', '/ritimcalar.js', '/ses.js', '/dongu.js', '/zamanlayici.js',
   '/qrcode.min.js', '/soundtouch.js', '/style.css',
   // (2026-10-04) yeni tasarım anahtarı — her sayfanın <head>'inde yükleniyor
-  '/tasarim.js', '/tasarim.css',
+  '/tasarim.js', '/tasarim.css', '/onboarding.js',
   // görseller ve manifest
   '/manifest.json', '/Repertuvar_logo.png', '/logo_dark.png', '/logo_light.png',
   '/pwa-192.png', '/pwa-512.png', '/assets/pedal-foto.png',

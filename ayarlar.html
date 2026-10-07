@@ -11,6 +11,7 @@
 <link rel="icon" href="Repertuvar_logo.png">
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
+<script src="onboarding.js"></script>
 <script src="topnav.js" defer></script>
 <script>
 async function hesapSilOnay() {
@@ -537,6 +538,27 @@ html, body { overflow-x: hidden; }
       </div>
     </div>
 
+    <!-- 2026-10-07: MÜZİK TERCİHLERİM — kayıttaki "Hangi tür müzikle uğraşıyorsunuz?" sorusunun
+         kalıcı yeri (profiles.music_preferences, sabit anahtarlar). Hiçbir eseri GİZLEMEZ: yalnız
+         öneri/sıralama sinyali. Uygulama dilinden ve eser dilinden bağımsız. Çipler onboarding.js'te. -->
+    <div class="settings-section">
+      <div class="section-header">
+        <span class="section-icon">🎵</span>
+        <div><div class="section-title" data-i18n="ay.muzikTercih">Müzik Tercihlerim</div>
+             <div class="section-subtitle" data-i18n="ay.muzikTercih_alt">Hangi tür müzikle uğraşıyorsunuz?</div></div>
+      </div>
+
+      <div class="setting-row" style="display:block;">
+        <div class="setting-desc" style="margin-bottom:12px;line-height:1.6;" data-i18n="ay.muzikTercihAciklama">Size uygun eserleri ve içerikleri öne çıkarmak için kullanılır; hiçbir eseri gizlemez. Uygulama dilinden bağımsızdır.</div>
+        <div id="muzikTercihKutulari"></div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-desc" id="muzikTercihDurum" style="flex:1;"></div>
+        <button class="setting-btn" onclick="muzikTercihKaydet()" data-i18n="ay.kaydet">Kaydet</button>
+      </div>
+    </div>
+
     <!-- (2026-08-30) MÜZİK ALANLARI — "gelenek seçimi" KALDIRILDI.
          Önceki hâli "Türk Halk Müziği / Türk Sanat Müziği / Batı Müziği" diye
          soruyordu. İki sorunu vardı: (a) kullanıcıyı bir kimliğe yerleştiriyor,
@@ -1008,6 +1030,31 @@ async function alanVarsayilanKaydet() {
 }
 
 document.addEventListener('DOMContentLoaded', ayarAlanlariniYukle);
+
+// ── Müzik tercihlerim (2026-10-07) — çipler ve kayıt onboarding.js'te (MuzikTercihi) ──
+// Sütun henüz yoksa (SQL çalıştırılmadı) seçim yerelde kalır, sütun gelince index'te eşitlenir.
+let _mtCip = null;
+async function muzikTercihYukle() {
+  const kap = document.getElementById('muzikTercihKutulari');
+  if (!kap || !window.MuzikTercihi) return;
+  _mtCip = MuzikTercihi.cipler(kap, MuzikTercihi.yerelOku() || [], () => {
+    const d = document.getElementById('muzikTercihDurum');
+    if (d) { d.textContent = _t('ay.kaydedilmedi','Kaydedilmedi'); d.style.color = ''; }
+  });
+  try {
+    const r = await MuzikTercihi.sunucudanOku();
+    if (r.sutunVar && Array.isArray(r.deger)) _mtCip.ayarla(r.deger);
+  } catch (e) {}
+}
+async function muzikTercihKaydet() {
+  const d = document.getElementById('muzikTercihDurum');
+  if (!_mtCip || !d) return;
+  d.style.color = ''; d.textContent = _t('es.kaydediliyor','Kaydediliyor…');
+  let ok = false;
+  try { ok = await MuzikTercihi.kaydet(_mtCip.secili()); } catch (e) {}
+  d.textContent = ok ? _t('ay.muzikTercihKaydedildi','Kaydedildi ✓') : _t('ay.muzikTercihYerelde','Bu cihazda kaydedildi; bağlantı kurulunca eşitlenecek.');
+}
+document.addEventListener('DOMContentLoaded', muzikTercihYukle);
 
 function saveSetting(key, value) {
   localStorage.setItem(key, value);
