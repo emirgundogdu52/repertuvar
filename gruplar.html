@@ -217,7 +217,7 @@ html { -webkit-text-size-adjust: 100%; }
       <datalist id="instrOneriler"></datalist>
       <div id="inviteSection" style="display:none;">
         <div class="section-title" data-i18n="gr.davetLinki">Davet Linki</div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;" data-i18n="gr.davetAciklama">Bu linki paylaşarak ya da karekodu okutarak yeni üyeler davet edebilirsiniz. Link 7 gün geçerlidir.</p>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;" data-i18n="gr.davetAciklama">Bu linki paylaşarak ya da QR kodu okutarak yeni üyeler davet edebilirsiniz. Link 7 gün geçerlidir.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <label style="font-size:13px;color:var(--text2);"><span data-i18n="gr.kacKisi">Kaç kişi katılabilsin?</span>
             <input type="number" id="inviteMaxUses" value="1" min="1" max="200" step="1"
@@ -236,7 +236,7 @@ html { -webkit-text-size-adjust: 100%; }
                ekranda durmasi, yanindaki birinin izinsiz okutmasina aciktir. -->
           <div style="margin-top:12px;">
             <button class="btn btn-secondary" id="inviteQrToggle"
-                    onclick="_qrGosterGizle()" style="display:none;" data-i18n="gr.karekodGoster">📷 Karekodu Göster</button>
+                    onclick="_qrGosterGizle()" style="display:none;" data-i18n="gr.karekodGoster">📷 QR Kodu Göster</button>
           </div>
           <div id="inviteQrWrap" style="display:none;margin-top:14px;text-align:center;">
             <div id="inviteQr" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;"></div>
@@ -641,7 +641,7 @@ function _qrCiz(link) {
     // Cizildi ama GIZLI durur — kullanici acikca istemeli.
     wrap.style.display = 'none';
     var btn = document.getElementById('inviteQrToggle');
-    if (btn) { btn.style.display = ''; btn.textContent = _grCev('gr.karekodGoster','📷 Karekodu Göster'); }
+    if (btn) { btn.style.display = ''; btn.textContent = _grCev('gr.karekodGoster','📷 QR Kodu Göster'); }
   } catch (e) {
     wrap.style.display = 'none';
     console.warn('karekod cizilemedi:', e);
@@ -656,7 +656,7 @@ function _qrGosterGizle() {
   if (!wrap) return;
   var acik = wrap.style.display !== 'none';
   wrap.style.display = acik ? 'none' : '';
-  if (btn) btn.textContent = acik ? _grCev('gr.karekodGoster','📷 Karekodu Göster') : _grCev('gr.karekodGizle','🙈 Karekodu Gizle');
+  if (btn) btn.textContent = acik ? _grCev('gr.karekodGoster','📷 QR Kodu Göster') : _grCev('gr.karekodGizle','🙈 QR Kodu Gizle');
 }
 
 function _kontenjanYaz(invite) {
