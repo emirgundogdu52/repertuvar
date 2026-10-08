@@ -309,6 +309,9 @@ html[data-tasarim="v3"] .sb-title { font-weight: 600; letter-spacing: -.02em; }
 html[data-tasarim="v3"] .sec-title { font-weight: 600; letter-spacing: .1em; }
 html[data-tasarim="v3"] .feat-title { font-weight: 600; }
 html[data-tasarim="v3"] .feat-section-title { font-weight: 500; letter-spacing: -.01em; }
+/* (2026-10-08) "Neler Yapabilirsiniz?" ile kart arası 18px → 6px (alt pay 14+4 → 2+0; kaydırma alanının 4px üst payı
+   kartın hover kalkışı kırpılmasın diye kalır). */
+html[data-tasarim="v3"] .feat-section-title { margin-bottom: 2px; padding-bottom: 0; }
 
 /* ── 9. Taşma güvenceleri ── */
 html[data-tasarim="v3"] .qb-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
@@ -455,3 +458,68 @@ html[data-tasarim="v3"][data-theme="light"] .work-item.stripe-green::before { ba
 html[data-tasarim="v3"][data-theme="light"] .work-item { border-color: var(--border); box-shadow: none; }
 html[data-tasarim="v3"][data-theme="light"] .work-item:active { border-color: var(--accent); }
 html[data-tasarim="v3"][data-theme="light"] .work-item.zebra { background: var(--surface2); }
+/* (2026-10-08) YATAY iPhone: çentik/Dynamic Island yana geçer, sol ya da sağda ~60px güvenli alan. Yalnız üst güvenli
+   alan hesaba katılıyordu → logo ve kartlar çentiğin altında kalıp kesiliyordu. env() = 0 olan her yerde (dikey, Android,
+   masaüstü, iPad) HİÇBİR ŞEY DEĞİŞMEZ.
+   - Doğal kaydırmalı sayfalar: html'e yan pay (body içeriği kayar).
+   - Kabuk sayfalar (eserler/repertuvarlar/sahne: body position:fixed; inset:0): body'nin sol/sağı (static body yok sayar).
+   - Sabit üst çubuk (doğal sayfalarda fixed) ve alt menü: tam genişlikte kalır, içeriğine pay. */
+/* Yan güvenli alan 22px kısılarak kullanılır (kullanıcı: çentikle içerik arası çok boş). iOS yatayda ~62px verir, Dynamic
+   Island kenardan ~48px'te biter → kartlar 40+16 = 56px'te, adanın dışında. Güvenli alan yoksa max(0, …) = 0. */
+html[data-tasarim="v3"] {
+  --yan-sol: max(0px, calc(env(safe-area-inset-left, 0px) - 22px));
+  --yan-sag: max(0px, calc(env(safe-area-inset-right, 0px) - 22px));
+}
+/* Doğal kaydırmalı sayfalar: pay body'nin İÇİNDE (padding). html'de olunca body daralıyor, body'nin overflow-x:hidden'ı
+   kenara uzanan hero bandını kırpıyordu. r-natural-scroll-page sınıfını topnav.js koyar. */
+html[data-tasarim="v3"].r-natural-scroll-page body { padding-left: var(--yan-sol); padding-right: var(--yan-sag); }
+html[data-tasarim="v3"] body { left: var(--yan-sol); right: var(--yan-sag); }
+/* Üst çubuk yan boşluğu = hero'nun içerik hizası (hero kenardan kenara düz bant, yan kenarlık yok, 24px iç pay → yazılar 24px'te).
+   Logo plakası kutudan 10px taşar → sol 34px ile plaka 24px'te başlar; sağda avatar 24px'te biter. (2026-10-08 kullanıcı:
+   "logo hero bloğundan daha sola kaymış" — plaka 2–6px'teydi.) Üst çubuk yalnız <1024px'te görünür. Yatay iPhone'da
+   doğal sayfalarda (fixed çubuk) güvenli alan eklenir; kabuk sayfalarda body zaten içeride. */
+@media (max-width: 1023px) {
+  html[data-tasarim="v3"] .r-topnav { padding-left: 34px !important; padding-right: 24px !important; }
+  html[data-tasarim="v3"].r-natural-scroll-page .r-topnav {
+    padding-left: calc(34px + var(--yan-sol)) !important; padding-right: calc(24px + var(--yan-sag)) !important;
+  }
+}
+html[data-tasarim="v3"] .bottom-nav { padding-left: var(--yan-sol); padding-right: var(--yan-sag); }
+/* Eserler "+" düğmesi: ≤768px'te eserler.html zaten alt menünün üstüne alıyor (right 16px — dokunma). 769–1023px'te alt menü
+   görünür ama düğme bottom:24px'te kalıp menünün üstüne biniyordu (yatay iPhone, dikey iPad Air). */
+@media (min-width: 769px) {
+  html[data-tasarim="v3"] .fab-new-eser { right: calc(20px + var(--yan-sag)) !important; }
+}
+@media (min-width: 769px) and (max-width: 1023px) {
+  html[data-tasarim="v3"] .fab-new-eser { bottom: calc(var(--bottom-h, 72px) + 16px) !important; }
+}
+/* (2026-10-08) Ana sayfa "Son Eklenen Eserler": üstteki kartlarla aynı genişlik ve çerçeve. style.css .work-list
+   margin:0 -14px ile iki yandan 14px taşıyordu. Kartlar gibi 18px köşe + 1px var(--border); satır içi pay simetrik.
+   Açık modda zebra satır soğuk gri/lavanta yerine sıcak krem (--surface2), Eserler listesiyle aynı. */
+html[data-tasarim="v3"] #recentWorks { margin: 0; border: 1px solid var(--border); border-radius: 18px; overflow: hidden; }
+html[data-tasarim="v3"] #recentWorks .work-row { padding-left: 16px !important; padding-right: 16px !important; }
+html[data-tasarim="v3"] #recentWorks .work-row:last-child { border-bottom: 0; }
+html[data-tasarim="v3"][data-theme="light"] #recentWorks .work-row.zebra { background: var(--surface2) !important; }   /* topnav.js #F0F1F5 !important'ı geçer */
+/* (2026-10-08) <1024px'te ana sayfa hero'su kenardan kenara DÜZ BANT: yuvarlak köşeler onu kesilmiş bir kart gibi
+   gösteriyor, logo içeride kalmış görünüyordu; altta yuvarlak köşe de içeriden başlayan kartlarla orantısızdı (kullanıcı).
+   Köşe yok, üst/yan kenarlık yok; alttaki ince kenarlık ayırıcı olarak kalır. Masaüstünde kart (değişmedi). */
+@media (max-width: 1023px) {
+  /* !important: yukarıdaki [data-sayfa="index"] kuralları border-radius:28px'i daha yüksek özgüllükle veriyor */
+  html[data-tasarim="v3"] .hero-section { border-radius: 0 !important; border-top-width: 0 !important; border-left-width: 0 !important; border-right-width: 0 !important; }
+  /* Yatay iPhone: bant zemini çentik tarafında da ekran kenarına uzansın (html'in yan payını negatif margin ile geri al),
+     içerik yine güvenli alanın içinde (iç pay 24px + yan pay). Güvenli alan yoksa --yan-* = 0 → değişiklik yok. */
+  html[data-tasarim="v3"] .hero-section {
+    margin-left: calc(-1 * var(--yan-sol)); margin-right: calc(-1 * var(--yan-sag));
+    width: calc(100% + var(--yan-sol) + var(--yan-sag)); max-width: none;   /* index.html width:100% sağ payı geri almayı engelliyordu */
+    padding-left: calc(24px + var(--yan-sol)) !important; padding-right: calc(24px + var(--yan-sag)) !important;
+  }
+}
+/* (2026-10-08) Ana sayfa kart genişlikleri eşit: hero'nun altındaki 4'lü özellik şeridi .section içinde olmadığı için
+   telefonda/tablette kenardan kenaraydı; diğer bölümler (.section) 14px (≤767) / 16px (768–1023) yan paylı. Aynı pay.
+   Hero bilerek kenardan kenara (üstü düz yüzey). */
+@media (max-width: 767px) {
+  html[data-tasarim="v3"] .hero-feature-strip { padding-left: 14px; padding-right: 14px; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  html[data-tasarim="v3"] .hero-feature-strip { padding-left: 16px; padding-right: 16px; }
+}

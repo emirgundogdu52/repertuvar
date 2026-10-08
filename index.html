@@ -208,8 +208,8 @@
     .hero-visual-stats .hero-stat span { font-size:22px; font-weight:800; color:var(--accent); display:block; }
     .hero-visual-stats .hero-stat label { font-size:10px; color:var(--text3); display:block; margin-top:1px; }
     .hero-visual-stats .hero-stat { text-align:center; }
-    .hero-visual-tagline { font-size:12px; color:var(--text3); text-align:center; margin-top:10px; font-style:italic; }
-    .hero-offline-note { display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; color:var(--text3); margin-top:16px; }
+    /* (2026-10-08) Sayaçlara yaklaştırıldı: kapsayıcı gap 16px + 10px = 26px idi → -10px ile 6px */
+    .hero-visual-tagline { font-size:12px; color:var(--text3); text-align:center; margin-top:-10px; font-style:italic; }
     .hero-feature-strip {
       display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
       margin-top:24px; padding-top:0;
@@ -360,11 +360,9 @@
           <div class="hero-stat"><span id="heroStatReps">—</span><label data-i18n="ana.repertuvar">Repertuvar</label></div>
           <div class="hero-stat"><span id="heroStatGroups">—</span><label data-i18n="ana.grup">Grup</label></div>
         </div>
-        <div class="hero-visual-tagline" data-i18n="ana.slogan">Müziğe odaklan. Gerisini Repertuvar.app halletsin.</div>
+        <div class="hero-visual-tagline" data-i18n="ana.slogan">Sen performansına odaklan... Gerisini repertuvar.app halletsin!..</div>
       </div>
     </div>
-
-    <div class="hero-offline-note"><i class="ti ti-wifi-off"></i> <span data-i18n="ana.offlinenot">İnternet bağlantınız kopsa bile çalışmaya devam eder.</span></div>
 
     <!-- ÖZELLİK ŞERİDİ -->
     <div class="hero-feature-strip">
