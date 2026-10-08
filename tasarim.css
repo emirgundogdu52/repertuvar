@@ -344,19 +344,21 @@ html[data-tasarim="v3"][data-theme="light"] .chord-line { color: var(--accent) !
 html[data-tasarim="v3"][data-theme="light"] .tab-btn.active { background: var(--yt-btn) !important; color: #1A1305 !important; }
 
 /* Kaydırınca çıkan eylem zeminleri (beyaz yazı) */
-/* (2026-10-08) Kaydırma panelleri açık modda sıcak paletle (kullanıcı seçimi "B+"): doygun mavi/kırmızı sırıtıyordu.
-   Değiştir: açık sarı + amber yazı (9.0:1) · Sil: #FBE1DC'nin uygulama kırmızısına %30 karışımı #ECADAB + koyu kırmızı yazı
-   (4.8:1) · Gizle (sahne listesi): nötr gri ton · kaydırma çerçevesi sarı → tuğla. Koyu mod değişmedi. */
+/* (2026-10-08) Kaydırma panelleri açık modda (kullanıcı seçimi; eserler, repertuvarlar, sahne listesi — koyu mod değişmedi):
+   Değiştir: "Tümü" etkin zemini (mavi %16 beyaz üstünde = #E4F1FF) · Sil: altın sarısı (marka #FFC83D) · ikon ve yazı ikisinde de
+   ateş kırmızısı #B3121B (altın üstünde 4.5:1, mavi üstünde 6.1:1 — 12px yazı için alt sınır; daha parlak kırmızı okunmaz) ·
+   Gizle (sahne listesinde başkasının repertuvarı): nötr gri · kaydırma çerçevesi açık mavi → altın. */
 html[data-tasarim="v3"][data-theme="light"] .we-edit-bg,
 html[data-tasarim="v3"][data-theme="light"] .ri-edit-bg,
-html[data-tasarim="v3"][data-theme="light"] .rs-edit-bg { background: #FFEFC2 !important; color: #7A4E00 !important; }
+html[data-tasarim="v3"][data-theme="light"] .rs-edit-bg { background: #E4F1FF !important; color: #B3121B !important; }
 html[data-tasarim="v3"][data-theme="light"] .we-delete-bg,
 html[data-tasarim="v3"][data-theme="light"] .ri-delete-bg,
-html[data-tasarim="v3"][data-theme="light"] .rs-delete-bg { background: #ECADAB !important; color: #8C1D14 !important; }
+html[data-tasarim="v3"][data-theme="light"] .rs-delete-bg { background: #FFC83D !important; color: #B3121B !important; }
+html[data-tasarim="v3"][data-theme="light"] :is(.we-edit-bg, .ri-edit-bg, .rs-edit-bg, .we-delete-bg, .ri-delete-bg, .rs-delete-bg) i { color: inherit !important; }
 html[data-tasarim="v3"][data-theme="light"] .rs-delete-bg.rs-hide-bg { background: #E3E7EE !important; color: #344054 !important; }
 html[data-tasarim="v3"][data-theme="light"] .we-wrap::before,
 html[data-tasarim="v3"][data-theme="light"] .ri-wrap::before,
-html[data-tasarim="v3"][data-theme="light"] .rs-wrap::before { background: linear-gradient(90deg, #F2C14E, #D46A5F); }
+html[data-tasarim="v3"][data-theme="light"] .rs-wrap::before { background: linear-gradient(90deg, rgba(88, 166, 255, .45), #F2B600); }
 
 /* Eser detayı çipleri (beyaz yazı) */
 html[data-tasarim="v3"][data-theme="light"] .chip.meas { background: #2563C9; }
