@@ -543,3 +543,10 @@ html[data-tasarim="v3"][data-theme="light"] #recentWorks .work-row.zebra { backg
   html[data-tasarim="v3"] .lp > div:has(> #repSearchInput) { padding-left: 16px !important; padding-right: 16px !important; }   /* satır içi 12px */
   html[data-tasarim="v3"] .lp .ls { padding-left: 16px; padding-right: 16px; }
 }
+/* (2026-10-08) iPad UYGULAMASI (≥1024px masaüstü düzeni): üst çubuk yok; sol menü kendi üst güvenli alanını alıyor ama ana içerik
+   kabı almıyordu → arama kutusu / sağ panel başlığı saat-pil çubuğunun altına giriyordu. Web'de env() = 0 → değişiklik yok.
+   Sahne sayfası kendi düzenini yönetir. */
+@media (min-width: 1024px) {
+  html[data-tasarim="v3"]:not([data-sayfa="stage"]) .main-wrap,
+  html[data-tasarim="v3"]:not([data-sayfa="stage"]) .v2-main-wrap { padding-top: env(safe-area-inset-top, 0px); }
+}

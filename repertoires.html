@@ -106,7 +106,7 @@ tr:nth-child(even) td{background:var(--surface);}tr.zebra-tr td{background:var(-
 .si{width:44px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:4px 6px;color:var(--accent);font-size:13px;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);font-weight:500;text-align:center;outline:none;cursor:pointer;transition:border-color .15s;-moz-appearance:textfield;}
 .si::-webkit-outer-spin-button,.si::-webkit-inner-spin-button{-webkit-appearance:none;}
 .si:focus{border-color:var(--accent);}
-.wn{color:var(--text);font-weight:500;}
+.wn{color:var(--text);font-weight:500;overflow-wrap:anywhere;}   /* (2026-10-08) bazı eser adlarında bölünmez boşluk (U+00A0) var; JS düz boşluğa çeviriyor, bu da tek uzun kelimeye karşı güvence — yoksa tablo telefonda taşıyordu */
 .ws{font-size:11px;color:var(--text3);margin-top:2px;}
 .cn{display:inline-block;background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--text2);}
 /* (2026-08-09) SATIR DÜĞMELERİ ARTIK HEP GÖRÜNÜR.
@@ -269,8 +269,10 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
     .da { flex-wrap:nowrap; overflow-x:auto; gap:4px; }
     .bi { font-size:11px; padding:5px 10px; }
     table { font-size:12px; }
-    .ra { gap:3px; }
+    .ra { gap:3px; justify-content:flex-end; }   /* ▶ olmayan satırda düğmeler sola kaymasın, sütun hizalı kalsın */
     .br { padding:3px 7px; font-size:11px; }
+    /* (2026-10-08) Telefonda 7 satır düğmesi sığmıyor, sağdan kesiliyordu (440px). ↑/↓ gizli: sıralama ⠿ tutamağıyla
+       sürükle-bırak ve 'Sırala' penceresiyle yapılıyor. Kalan: dinle, kişisel not, potpuri bağı, düzenle, sil. */
     .wm > div { padding:16px; }
     .wpl { max-height:160px; }
   }
@@ -372,6 +374,14 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 .rep-salt-btn { flex-shrink:0; font-size:12px; padding:9px 12px; display:inline-flex;
                 align-items:center; gap:5px; white-space:nowrap; }
 @media (max-width:560px){ .rep-salt { flex-wrap:wrap; } .rep-salt-btn { width:100%; justify-content:center; } }
+@media (max-width: 600px) { .ra button[onclick^="mvActive"] { display:none; } }   /* ↑/↓ telefonda gizli (yukarıdaki not) */
+/* (2026-10-08) iPad dikeyde (1032px) yan menü 252 + liste 300 → detay paneli ~480px kalıyor; 7 düğme + kapanış/not
+   sütunları 546px tutup tablo sağdan taşıyordu. Panelin dar kaldığı bu aralıkta telefondaki sade düzen. */
+@media (min-width: 769px) and (max-width: 1191px) {
+  .col-kapanis, .col-not { display:none; }
+  .ra button[onclick^="mvActive"] { display:none; }
+  .ra { gap:4px; justify-content:flex-end; }
+}
 </style>
 <script src="i18n.js"></script>
 <script src="auth.js"></script>

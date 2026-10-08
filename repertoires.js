@@ -972,7 +972,7 @@ function renderDetail(){
         </div>
       </td>
       <td style="padding-left:16px;cursor:pointer;" onclick="openLyricsSheet('${it.workId}','${rep.id}','${it.id}')" title="${_r('rep.sozleriGoster','Sözleri göster — düzenlemek için pencerede Düzenle')}">
-        <div class="wn">${linked?'<span class="medley-chip" title="'+_r('rep.potpuriDevami','Potpuri devamı')+'">🔗</span> ':''}${w.name||'#'+it.workId}</div>
+        <div class="wn">${linked?'<span class="medley-chip" title="'+_r('rep.potpuriDevami','Potpuri devamı')+'">🔗</span> ':''}${(w.name||'#'+it.workId).replace(/\u00a0/g,' ')}</div>
         <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
         ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
       </td>
