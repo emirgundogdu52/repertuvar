@@ -626,7 +626,7 @@ function kotaCiz() {
   const dolu = (KOTA.adet >= KOTA.adet_limit) || (mb >= mbLim);
   document.querySelectorAll('#ekleBtn').forEach(b => {
     b.disabled = dolu;
-    if (dolu) b.title = _caCev('ca.sinirUlasildi','Sınıra ulaştınız — bir kaydı silin veya planınızı yükseltin');
+    if (dolu) b.title = _caCev('ca.sinirUlasildi','Sınıra ulaştınız — yeni kayıt eklemek için bir kaydı silin');   // (2026-10-08) satın alınabilir plan yok; App Store 3.1.1
   });
 }
 
