@@ -485,12 +485,18 @@ function _m(anahtar, tr) {
     document.querySelectorAll('.r-theme-toggle .toggle-knob').forEach(knob => { knob.textContent = icon; });
   }
 
+  // (2026-10-08) Yeni tasarımda açık modda da koyu logo — siyah plaka içinde (tasarim.css).
+  // logo_light.png açık zeminde silik kalıyordu (sarı .app krem/beyaz üstünde). Eski tasarım aynen.
+  function logoDosyasi(isLight) {
+    return (isLight && document.documentElement.getAttribute('data-tasarim') !== 'v3') ? 'logo_light.png' : 'logo_dark.png';
+  }
+
   // HTML inject
   function render() {
     const container = document.getElementById('r-topnav-container');
     if (!container) return;
     const _theme = localStorage.getItem('r_theme') || 'dark';
-    const _logo = _theme === 'light' ? 'logo_light.png' : 'logo_dark.png';
+    const _logo = logoDosyasi(_theme === 'light');
     container.innerHTML = `
       <header class="r-topnav">
         <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
@@ -756,7 +762,7 @@ function _m(anahtar, tr) {
 
     const page = window.location.pathname.split('/').pop() || 'index.html';
     const theme = localStorage.getItem('r_theme') || 'dark';
-    const logo = theme === 'light' ? 'logo_light.png' : 'logo_dark.png';
+    const logo = logoDosyasi(theme === 'light');
 
     // localStorage'dan role kontrolü — network beklemeden
     const ADMIN_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
@@ -919,7 +925,7 @@ function _m(anahtar, tr) {
     document.querySelectorAll('img').forEach(img => {
       const src = (img.getAttribute('src') || '') + (img.src || '');
       if (src.includes('logo_dark') || src.includes('logo_light') || src.includes('logo_slogan') || src.includes('Repertuvar_logo')) {
-        img.src = (isLight ? 'logo_light.png' : 'logo_dark.png');
+        img.src = logoDosyasi(isLight);
       }
     });
 

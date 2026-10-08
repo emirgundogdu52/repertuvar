@@ -942,7 +942,8 @@ async function loginGoogle() {
     if (!img) return;
     var acik = document.documentElement.getAttribute('data-theme') === 'light'
             || localStorage.getItem('theme') === 'light';
-    if (acik) img.src = 'logo_light.png';
+    // Yeni tasarımda açık modda da koyu logo, siyah plakada (tasarim.css) — topnav.js logoDosyasi ile aynı
+    if (acik && document.documentElement.getAttribute('data-tasarim') !== 'v3') img.src = 'logo_light.png';
   } catch (e) {}
 })();
 </script>

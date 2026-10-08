@@ -419,3 +419,21 @@ html[data-tasarim="v3"][data-theme="light"] {
 /* Sarı/amber %16 zeminli küçük rozetler: zemin koyulaşınca amber 4.35'e iniyordu */
 html[data-tasarim="v3"][data-theme="light"] .co-plan { color: var(--yt-amber-yazi) !important; }
 html[data-tasarim="v3"][data-theme="light"] .grp-chip.active .grp-role { color: var(--text2) !important; }
+/* (2026-10-08) Açık modda logo SİYAH PLAKADA: logo_dark.png (topnav.js logoDosyasi, login.html).
+   Açık zeminde sarı ".app" ve sarı çizgi silik kalıyordu; plaka koyu moddaki görünümü taşır.
+   login.html yeni tasarımda hep koyu — orada plaka gerekmez, yalnız koyu logo kalır.
+   [src*="logo_dark"]: plaka YALNIZ koyu logo yüklüyken. Yayın sonrası birkaç dakika eski topnav.js (logo_light,
+   siyah yazı) yeni CSS ile buluşursa siyah plakada siyah yazı oluyordu (yerelde görüldü). */
+html[data-tasarim="v3"][data-theme="light"] .sb-brand img[data-logo][src*="logo_dark"],
+html[data-tasarim="v3"][data-theme="light"] .r-topnav img.r-logo[src*="logo_dark"] {
+  /* Plaka box-shadow ile çiziliyor: padding/boyut DEĞİŞMEZ → logo koyu moddakiyle aynı ölçü ve yerde,
+     tema değişince kayma olmaz (kenar yarıçapı 3 + yayılma 9 = 12px köşe). */
+  background: #0B0F17; border-radius: 3px; box-shadow: 0 0 0 9px #0B0F17;
+}
+/* Tablet (431–1023px): üst çubuk logosu 55px, çubuk 66px → 9px yayılma çubuktan taşıyordu; 4px ile 63px plaka */
+@media (min-width: 431px) {
+  html[data-tasarim="v3"][data-theme="light"] .r-topnav img.r-logo[src*="logo_dark"] { border-radius: 4px; box-shadow: 0 0 0 4px #0B0F17; }
+}
+/* Eser satırı sol şeridi = "en az bir repertuvarda" (sağdaki sayı rozetiyle aynı anlam). Açık modda koyu yeşil
+   (--ready-color #1A7F3C) sırıtıyordu → rozetle aynı aile: marka sarısı. Seçili satır koyu amber kenarla ayrışır. */
+html[data-tasarim="v3"][data-theme="light"] .work-item.stripe-green::before { background: var(--yt-btn) !important; }
