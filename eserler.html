@@ -649,6 +649,9 @@
   .tur-chip.active { background:rgba(88,166,255,.16); border-color:rgba(88,166,255,.45); color:var(--accent); }
   .tur-chip-n { background:rgba(255,255,255,.07); border-radius:9px; padding:0 5px; font-size:10px; font-weight:700; color:var(--text3); }
   .tur-chip.active .tur-chip-n { background:rgba(88,166,255,.22); color:var(--accent); }
+  /* (2026-10-08) "Tümü" etkinken tür/dil çipleriyle aynı görünüm (kullanıcı: aktifliği belli olmuyordu — eskiden yalnız
+     --surface2 zemin). JS aynı .active sınıfını üç yerde değiştiriyor; satır içi stilleri burada !important ile geçiyoruz. */
+  #favToggleAll.active { background:rgba(88,166,255,.16) !important; border-color:rgba(88,166,255,.45) !important; color:var(--accent) !important; }
   .tur-chip-bos { border-style:dashed; }
   /* (2026-10-08) dil çipleri: tür çipleriyle aynı görünüm + küre ikonu; iki grup arasında ince ayraç */
   .dil-chip .ti { font-size:13px; }
@@ -686,6 +689,12 @@
   .we-edit-bg { left:0; background:var(--accent2); }
   .we-delete-bg { right:0; background:#FF5A5F; }
   .we-edit-bg i, .we-delete-bg i { font-size:18px; }
+  /* (2026-10-08) Panel kartın altına köşe yarıçapı kadar (16px) uzanır: kart kayınca yuvarlak köşesinin arkasında
+     sayfa zemini değil panel rengi görünür; panelin köşeli iç kenarı kartın altında kalır (köşeler köşeli görünüyordu).
+     Görünen genişlik yine 84px, içerik o alanda ortalı. */
+  .we-edit-bg, .we-delete-bg { box-sizing:border-box; width:100px; }
+  .we-edit-bg { padding-right:16px; }
+  .we-delete-bg { padding-left:16px; }
   /* (2026-10-08) Kaydırma panelleri yalnız kart kayarken görünür. Kart dururken köşe yumuşatma (antialias)
      piksellerinden arkadaki mavi/kırmızı sızıyor, köşeler kalın çizilmiş gibi görünüyordu. Kapanırken kart
      geri kayana kadar .3s görünür kalır. :has() olmayan eski WebView'de kural yok sayılır → eskisi gibi. */

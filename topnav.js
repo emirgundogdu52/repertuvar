@@ -350,22 +350,25 @@ function _m(anahtar, tr) {
     [data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(255,200,61,0.2) !important; }
 
     /* ── Theme Toggle Switch ── */
+    /* (2026-10-08) Büyütüldü (38×20 → 44×24, top 16 → 20) ve emoji yerine Tabler ikonu: 9px ☀️/🌙 sarı→mavi
+       degrade topta iki temada da seçilmiyordu. Top marka sarısı + koyu ikon (iki temada aynı, ~12:1); konum = tema. */
     .r-theme-toggle {
       position: relative; border: none; border-radius: 16px !important;
-      width: 38px !important; height: 20px !important; min-height: 0 !important;
+      width: 44px !important; height: 24px !important; min-height: 0 !important;
       cursor: pointer; flex-shrink: 0;
       padding: 2px; transition: background .2s;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.16); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
     }
-    [data-theme="light"] .r-theme-toggle { background: rgba(0,0,0,0.08); }
+    [data-theme="light"] .r-theme-toggle { background: rgba(17,23,34,0.12); box-shadow: inset 0 0 0 1px rgba(17,23,34,0.10); }
     .r-theme-toggle .toggle-knob {
       position: absolute; top: 2px; left: 2px;
-      width: 16px; height: 16px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent, #FFC83D), var(--accent2, #4DA3FF));
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #FFC83D; color: #1A1305; box-shadow: 0 1px 3px rgba(0,0,0,0.30);
       display: flex; align-items: center; justify-content: center;
-      font-size: 9px; transition: left .2s;
+      font-size: 14px; line-height: 1; transition: left .2s;
     }
-    [data-theme="light"] .r-theme-toggle .toggle-knob { left: 20px; }
+    .r-theme-toggle .toggle-knob .ti { font-size: 14px; line-height: 1; }
+    [data-theme="light"] .r-theme-toggle .toggle-knob { left: 22px; }
 
     /* Desktop topbar'daki switch'e küçük sağ boşluk */
     .v2-desktop-topbar .r-theme-toggle { margin-right: 4px; }
@@ -474,15 +477,17 @@ function _m(anahtar, tr) {
   // ── Theme Toggle: tek standart kaynak ──
   // Tüm sayfalarda (sidebar, mobil header, eski desktop topbar) aynı switch.
   function themeToggleMarkup(id, theme) {
-    return `<button id="${id}" class="r-theme-toggle" title="${_m('menu.temaDegistir','Tema değiştir')}"><span class="toggle-knob">${theme === 'light' ? '☀️' : '🌙'}</span></button>`;
+    return `<button id="${id}" class="r-theme-toggle" title="${_m('menu.temaDegistir','Tema değiştir')}"><span class="toggle-knob">${temaIkonu(theme)}</span></button>`;
   }
   function bindThemeToggle(id) {
     const btn = document.getElementById(id);
     if (btn) btn.addEventListener('click', function(e) { e.stopPropagation(); window.toggleTheme(e); });
   }
+  function temaIkonu(theme) {
+    return '<i class="ti ti-' + (theme === 'light' ? 'sun' : 'moon') + '" aria-hidden="true"></i>';
+  }
   function syncThemeToggles(theme) {
-    const icon = theme === 'light' ? '☀️' : '🌙';
-    document.querySelectorAll('.r-theme-toggle .toggle-knob').forEach(knob => { knob.textContent = icon; });
+    document.querySelectorAll('.r-theme-toggle .toggle-knob').forEach(knob => { knob.innerHTML = temaIkonu(theme); });
   }
 
   // (2026-10-08) Yeni tasarımda açık modda da koyu logo — siyah plaka içinde (tasarim.css).

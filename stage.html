@@ -369,6 +369,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 .rs-delete-bg{right:0;background:#FF5A5F;}
 .rs-delete-bg.rs-hide-bg{background:#4A90D9;}
 .rs-edit-bg i,.rs-delete-bg i{font-size:18px;}
+/* (2026-10-08) Panel kartın altına köşe yarıçapı kadar (10px) uzanır — kart kayınca yuvarlak köşenin arkasında panel
+   rengi görünür, köşeli iç kenar kartın altında kalır (eserler.html ile aynı). */
+.rs-edit-bg,.rs-delete-bg{box-sizing:border-box;width:94px;}
+.rs-edit-bg{padding-right:10px;}
+.rs-delete-bg{padding-left:10px;}
 /* (2026-10-08) Kaydırma panelleri yalnız kart kayarken görünür: dururken köşe yumuşatma piksellerinden
    arkadaki mavi/kırmızı sızıp köşeleri kalın gösteriyordu (eserler.html ile aynı). :has() yoksa eskisi gibi. */
 .rs-wrap:not(:has(> .rsi[style*="translateX("]:not([style*="translateX(0)"]):not([style*="translateX(0px)"]))) > .rs-edit-bg,
