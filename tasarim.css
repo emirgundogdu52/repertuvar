@@ -474,14 +474,15 @@ html[data-tasarim="v3"] {
    kenara uzanan hero bandını kırpıyordu. r-natural-scroll-page sınıfını topnav.js koyar. */
 html[data-tasarim="v3"].r-natural-scroll-page body { padding-left: var(--yan-sol); padding-right: var(--yan-sag); }
 html[data-tasarim="v3"] body { left: var(--yan-sol); right: var(--yan-sag); }
-/* Üst çubuk yan boşluğu = hero'nun içerik hizası (hero kenardan kenara düz bant, yan kenarlık yok, 24px iç pay → yazılar 24px'te).
-   Logo plakası kutudan 10px taşar → sol 34px ile plaka 24px'te başlar; sağda avatar 24px'te biter. (2026-10-08 kullanıcı:
+/* TELEFON/TABLET KENAR BOŞLUĞU STANDARDI = 16px (2026-10-08): logo plakası, hero yazıları, ana sayfa kartları ve Eserler
+   arama alanı aynı çizgide. Logo plakası kutudan 10px taşar → sol 26px ile plaka 16px'te; sağda avatar 16px'te biter.
+   (Önce hero yazısına göre 24px'ti; kullanıcı Eserler'deki aramayla hizasız buldu.) (2026-10-08 kullanıcı:
    "logo hero bloğundan daha sola kaymış" — plaka 2–6px'teydi.) Üst çubuk yalnız <1024px'te görünür. Yatay iPhone'da
    doğal sayfalarda (fixed çubuk) güvenli alan eklenir; kabuk sayfalarda body zaten içeride. */
 @media (max-width: 1023px) {
-  html[data-tasarim="v3"] .r-topnav { padding-left: 34px !important; padding-right: 24px !important; }
+  html[data-tasarim="v3"] .r-topnav { padding-left: 26px !important; padding-right: 16px !important; }
   html[data-tasarim="v3"].r-natural-scroll-page .r-topnav {
-    padding-left: calc(34px + var(--yan-sol)) !important; padding-right: calc(24px + var(--yan-sag)) !important;
+    padding-left: calc(26px + var(--yan-sol)) !important; padding-right: calc(16px + var(--yan-sag)) !important;
   }
 }
 html[data-tasarim="v3"] .bottom-nav { padding-left: var(--yan-sol); padding-right: var(--yan-sag); }
@@ -511,15 +512,24 @@ html[data-tasarim="v3"][data-theme="light"] #recentWorks .work-row.zebra { backg
   html[data-tasarim="v3"] .hero-section {
     margin-left: calc(-1 * var(--yan-sol)); margin-right: calc(-1 * var(--yan-sag));
     width: calc(100% + var(--yan-sol) + var(--yan-sag)); max-width: none;   /* index.html width:100% sağ payı geri almayı engelliyordu */
-    padding-left: calc(24px + var(--yan-sol)) !important; padding-right: calc(24px + var(--yan-sag)) !important;
+    padding-left: calc(16px + var(--yan-sol)) !important; padding-right: calc(16px + var(--yan-sag)) !important;
   }
 }
 /* (2026-10-08) Ana sayfa kart genişlikleri eşit: hero'nun altındaki 4'lü özellik şeridi .section içinde olmadığı için
    telefonda/tablette kenardan kenaraydı; diğer bölümler (.section) 14px (≤767) / 16px (768–1023) yan paylı. Aynı pay.
    Hero bilerek kenardan kenara (üstü düz yüzey). */
 @media (max-width: 767px) {
-  html[data-tasarim="v3"] .hero-feature-strip { padding-left: 14px; padding-right: 14px; }
+  html[data-tasarim="v3"] .hero-feature-strip { padding-left: 16px; padding-right: 16px; }
+  html[data-tasarim="v3"][data-sayfa="index"] .section { padding-left: 16px; padding-right: 16px; }   /* style.css 14px → 16 */
 }
 @media (min-width: 768px) and (max-width: 1023px) {
   html[data-tasarim="v3"] .hero-feature-strip { padding-left: 16px; padding-right: 16px; }
+}
+/* (2026-10-08) 16px kenar standardı — liste sayfaları (<1024px; masaüstü değişmez):
+   Eserler kartları 12 → 16 (arama alanıyla aynı çizgi); Repertuvarlar arama 12 → 16, kartlar (.ls 10px) → 16. */
+@media (max-width: 1023px) {
+  html[data-tasarim="v3"] .we-wrap,
+  html[data-tasarim="v3"] .work-item:not(.we-wrap > .work-item) { margin-left: 16px; margin-right: 16px; }
+  html[data-tasarim="v3"] .lp > div:has(> #repSearchInput) { padding-left: 16px !important; padding-right: 16px !important; }   /* satır içi 12px */
+  html[data-tasarim="v3"] .lp .ls { padding-left: 16px; padding-right: 16px; }
 }
