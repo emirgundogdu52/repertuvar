@@ -42,6 +42,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 .ri-delete-bg{position:absolute;top:0;right:0;bottom:0;width:84px;background:#FF5A5F;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:600;z-index:1;cursor:pointer;}
 .ri-hide-bg{background:#4A90D9;}
 .ri-delete-bg i,.ri-edit-bg i{font-size:18px;}
+/* (2026-10-08) Kaydırma panelleri yalnız kart kayarken görünür: dururken köşe yumuşatma piksellerinden
+   arkadaki mavi/kırmızı sızıp köşeleri kalın gösteriyordu (eserler.html ile aynı). :has() yoksa eskisi gibi. */
+.ri-wrap:not(:has(> .ri[style*="translateX("]:not([style*="translateX(0)"]):not([style*="translateX(0px)"]))) > .ri-edit-bg,
+.ri-wrap:not(:has(> .ri[style*="translateX("]:not([style*="translateX(0)"]):not([style*="translateX(0px)"]))) > .ri-delete-bg {
+  visibility:hidden; transition:visibility 0s linear .3s; }
 /* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
 .ri-wrap::before {
   content:''; position:absolute; inset:0; border-radius:10px; padding:2.5px;

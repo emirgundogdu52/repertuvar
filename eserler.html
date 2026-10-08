@@ -686,6 +686,12 @@
   .we-edit-bg { left:0; background:var(--accent2); }
   .we-delete-bg { right:0; background:#FF5A5F; }
   .we-edit-bg i, .we-delete-bg i { font-size:18px; }
+  /* (2026-10-08) Kaydırma panelleri yalnız kart kayarken görünür. Kart dururken köşe yumuşatma (antialias)
+     piksellerinden arkadaki mavi/kırmızı sızıyor, köşeler kalın çizilmiş gibi görünüyordu. Kapanırken kart
+     geri kayana kadar .3s görünür kalır. :has() olmayan eski WebView'de kural yok sayılır → eskisi gibi. */
+  .we-wrap:not(:has(> .work-item[style*="translateX("]:not([style*="translateX(0)"]):not([style*="translateX(0px)"]))) > .we-edit-bg,
+  .we-wrap:not(:has(> .work-item[style*="translateX("]:not([style*="translateX(0)"]):not([style*="translateX(0px)"]))) > .we-delete-bg {
+    visibility:hidden; transition:visibility 0s linear .3s; }
   [data-theme="light"] .work-item.zebra { background: #f5f4fb; }
   [data-theme="light"] .work-item { background: #ffffff; box-shadow:0 1px 3px rgba(0,0,0,.08); }
   .work-item:hover { background:var(--surface2); }

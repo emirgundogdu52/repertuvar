@@ -437,3 +437,9 @@ html[data-tasarim="v3"][data-theme="light"] .r-topnav img.r-logo[src*="logo_dark
 /* Eser satırı sol şeridi = "en az bir repertuvarda" (sağdaki sayı rozetiyle aynı anlam). Açık modda koyu yeşil
    (--ready-color #1A7F3C) sırıtıyordu → rozetle aynı aile: marka sarısı. Seçili satır koyu amber kenarla ayrışır. */
 html[data-tasarim="v3"][data-theme="light"] .work-item.stripe-green::before { background: var(--yt-btn) !important; }
+/* Eser satırları açık modda repertuvar satırlarıyla (.ri) aynı: 1px var(--border) çizgi, gölge yok.
+   Kenarlık şeffaftı, gölge de .we-wrap'in overflow:hidden'ında kırpılıyordu → yalnız köşeler görünüyordu.
+   Zebra satırı eski paletin lavantasıydı (#f5f4fb) → sıcak krem (--surface2). */
+html[data-tasarim="v3"][data-theme="light"] .work-item { border-color: var(--border); box-shadow: none; }
+html[data-tasarim="v3"][data-theme="light"] .work-item:active { border-color: var(--accent); }
+html[data-tasarim="v3"][data-theme="light"] .work-item.zebra { background: var(--surface2); }
