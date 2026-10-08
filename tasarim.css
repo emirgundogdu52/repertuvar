@@ -427,12 +427,24 @@ html[data-tasarim="v3"][data-theme="light"] .grp-chip.active .grp-role { color: 
 html[data-tasarim="v3"][data-theme="light"] .sb-brand img[data-logo][src*="logo_dark"],
 html[data-tasarim="v3"][data-theme="light"] .r-topnav img.r-logo[src*="logo_dark"] {
   /* Plaka box-shadow ile çiziliyor: padding/boyut DEĞİŞMEZ → logo koyu moddakiyle aynı ölçü ve yerde,
-     tema değişince kayma olmaz (kenar yarıçapı 3 + yayılma 9 = 12px köşe). */
-  background: #0B0F17; border-radius: 3px; box-shadow: 0 0 0 9px #0B0F17;
+     tema değişince kayma olmaz. İki gölge (±6px kaydırma, 4px yayılma): üst/alt 4px, yanlar 10px taşar,
+     dış köşe 6+4 = 10px. Logo görselinin kendi kenar boşluğu ~%8 (40px'te 3px). (2026-10-08 kullanıcı: üst/alt kırp) */
+  background: #0B0F17; border-radius: 6px; box-shadow: -6px 0 0 4px #0B0F17, 6px 0 0 4px #0B0F17;
 }
-/* Tablet (431–1023px): üst çubuk logosu 55px, çubuk 66px → 9px yayılma çubuktan taşıyordu; 4px ile 63px plaka */
-@media (min-width: 431px) {
-  html[data-tasarim="v3"][data-theme="light"] .r-topnav img.r-logo[src*="logo_dark"] { border-radius: 4px; box-shadow: 0 0 0 4px #0B0F17; }
+/* Üst çubuk logosunun KUTUSU görselin oranında (664×127). Önceden kutu 55px (≤430px: 40px) yükseklikte, genişlik
+   44vw ile sınırlanınca görsel object-fit:contain ile küçülüp üstte/altta boş şerit kalıyordu (440px'te kutu 194×55,
+   görsel 194×37) → plaka görseli değil kutuyu boyayıp gereğinden uzun oluyordu. Ekrandaki logo boyutu AYNI:
+   genişlik = eskiden görseli sınırlayan değer. İki temada aynı (kayma yok). */
+html[data-tasarim="v3"] .r-topnav img.r-logo { aspect-ratio: 664 / 127; height: auto; width: min(220px, 44vw); max-width: none; }
+@media (max-width: 430px) {
+  html[data-tasarim="v3"] .r-topnav img.r-logo { width: min(209px, 44vw); }   /* 40px yükseklikteki doğal genişlik 209px */
+}
+/* iPhone/iPad (güvenli alanlı): üst çubuğun içerik yüksekliği = logo yüksekliği oluyordu (min-height 66px'in
+   ~59px'i güvenli alan) → plakanın altı overflow:hidden ile kesiliyor, alt köşeler kayboluyordu. Güvenli alan
+   varken üstte/altta 6px pay; yoksa min(…)=0 → Android/masaüstü birebir aynı. İki temada aynı (tema geçişinde kayma yok). */
+html[data-tasarim="v3"] .r-topnav {
+  padding-top: calc(env(safe-area-inset-top, 0px) + min(6px, env(safe-area-inset-top, 0px)));
+  padding-bottom: min(6px, env(safe-area-inset-top, 0px));
 }
 /* Eser satırı sol şeridi = "en az bir repertuvarda" (sağdaki sayı rozetiyle aynı anlam). Açık modda koyu yeşil
    (--ready-color #1A7F3C) sırıtıyordu → rozetle aynı aile: marka sarısı. Seçili satır koyu amber kenarla ayrışır. */
