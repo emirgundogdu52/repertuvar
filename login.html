@@ -712,11 +712,19 @@ async function _oturumuKaydet(session, ad) {
   localStorage.setItem('sb_token', session.access_token);
   localStorage.setItem('sb_refresh', session.refresh_token);
   localStorage.setItem('sb_user', JSON.stringify(session.user));
-  // Apple adı yalnız ilk girişte verir: profilde ad yoksa yaz (landing profilAdi ile aynı alanlar)
+  // Apple adı yalnız ilk girişte verir: profilde ad yoksa yaz (landing profilAdi ile aynı alanlar).
+  // (2026-10-08) İlk girişte profil satırı HENÜZ YOK (auth.js ensureProfile ana sayfada oluşturuyor) → yalnız update
+  // 0 satırı etkiliyor, Apple'ın bir kez verdiği ad kayboluyordu; menü de adı user_metadata'dan okuduğu için
+  // gizli e-postanın baş kısmı görünüyordu. Artık: hesap metadatasına (ad yoksa) + profile (yoksa ekleyerek) yazılır.
   if (ad) {
     try {
+      if (!(session.user.user_metadata && session.user.user_metadata.full_name)) {
+        const { data: g } = await sb.auth.updateUser({ data: { full_name: ad } });
+        if (g && g.user) localStorage.setItem('sb_user', JSON.stringify(g.user));
+      }
       const { data: p } = await sb.from('profiles').select('full_name').eq('id', session.user.id).maybeSingle();
-      if (!p || !p.full_name) await sb.from('profiles').update({ full_name: ad, display_name: ad }).eq('id', session.user.id);
+      if (!p) await sb.from('profiles').insert({ id: session.user.id, full_name: ad, display_name: ad, email: session.user.email });
+      else if (!p.full_name) await sb.from('profiles').update({ full_name: ad, display_name: ad }).eq('id', session.user.id);
     } catch (e) {}
   }
   await handlePendingInvite(session.user.id);
@@ -733,17 +741,20 @@ async function _oturumuKaydet(session, ad) {
 //     Secret Key (Android/web OAuth için; .p8'den üretilen JWT, 6 ayda bir yenilenir)
 //  3) APPLE_GIRIS_AKTIF = true + yayın
 // Hesap silmede Apple belirteçleri iptal edilir: ayarlar.html _appleIptal → Edge Function apple-iptal.
-const APPLE_GIRIS_AKTIF = false;
+const APPLE_GIRIS_AKTIF = true;   // (2026-10-08) açıldı: üyelik + Supabase Apple + apple-iptal hazır (adım 1–2 tamam)
 // Android (2026-10-05): iPhone'da Apple ile kaydolup Android'e geçen kullanıcı (şifresiz,
 // çoğu zaman gizli e-postalı hesap) giriş yapabilsin diye Apple Android'de de var. Android'de
 // Apple'ın yerel girişi olmadığından Supabase OAuth + uygulama içi sekme; dönüş Google ile aynı
 // com.repertuvar.app://giris#access_token=… yolundan (_nativeDonusIsle) gelir. Supabase Apple
 // sağlayıcısında Services ID + gizli anahtar (6 ayda bir yenilenir) gerektirir.
+// (2026-10-08) iPhone uçtan uca test edildi (giriş + ad + silme + Apple iptali). Android akışı (Supabase OAuth + uygulama
+// içi sekme) henüz test edilmedi → emülatörde denenince true yapılacak.
+const APPLE_ANDROID_AKTIF = false;
 function _appleKullanilabilir() {
   if (!APPLE_GIRIS_AKTIF || !_nativeMi()) return false;
   const c = window.Capacitor;
   if (c.getPlatform() === 'ios') return !!_nativeEklenti('GirisOturumu');
-  return !!_nativeEklenti('Browser');
+  return APPLE_ANDROID_AKTIF && !!_nativeEklenti('Browser');
 }
 async function _appleTarayiciIle() {
   const tarayici = _nativeEklenti('Browser');
