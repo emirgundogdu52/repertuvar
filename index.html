@@ -505,6 +505,10 @@ function _c(k, tr) {
   // İstatistikler — önce Supabase, hata alınca IndexedDB
   // Eser sayısı
   let onlineFailed = false;
+  // (2026-10-10) Repertuvar sayacı yalnız KENDİ + GRUBUMUN repertuvarlarını sayar. RLS başkalarının "Genel"
+  // repertuvarlarını da okutuyor; hiç repertuvarı olmayan yeni hesap "4 Repertuvar" görüyordu.
+  const _sUid = getUserId(), _sGid = getGroupId();
+  const _repBenim = r => !!r && (r.owner_id === _sUid || r.user_id === _sUid || (!!_sGid && r.group_id === _sGid));
   try {
     const testR = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1', {headers:H, signal: AbortSignal.timeout(3000)});
     if (!testR.ok) throw new Error('offline');
@@ -521,7 +525,8 @@ function _c(k, tr) {
       const hs=document.getElementById('heroStatWorks'); if(hs) hs.textContent=cnt;
     }
     // Hero istatistik satırı — repertuvar ve grup sayısı
-    const repR = await fetch(SUPA_URL+'/rest/v1/repertoires?select=id&limit=1', {headers:H});
+    const _repSuz = _sUid ? '&or=(owner_id.eq.' + _sUid + ',user_id.eq.' + _sUid + (_sGid ? ',group_id.eq.' + _sGid : '') + ')' : '';
+    const repR = await fetch(SUPA_URL+'/rest/v1/repertoires?select=id&limit=1' + _repSuz, {headers:H});
     const repCnt = repR.headers.get('content-range')?.split('/')[1];
     const hr=document.getElementById('heroStatReps'); if(hr && repCnt) hr.textContent=repCnt;
     const grpR = await fetch(SUPA_URL+'/rest/v1/groups?select=id&limit=1', {headers:H});
@@ -540,7 +545,7 @@ function _c(k, tr) {
     // oysa `repertoires` store'u IndexedDB'de MEVCUT. Ayri try blogu: works
     // okumasi patlarsa repertuvar sayaci yine de dolsun.
     try {
-      const rs = await db.repertoires.getAll();
+      const rs = (await db.repertoires.getAll()).filter(_repBenim);
       const hr=document.getElementById('heroStatReps'); if(hr) hr.textContent=rs.length||'—';
     } catch(e3) {}
     // Grup sayisi BILEREK bos birakiliyor: `groups` tablosu IndexedDB
