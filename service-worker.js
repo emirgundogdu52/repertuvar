@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
-const CACHE_NAME = 'repertuvar-v554';
+const CACHE_NAME = 'repertuvar-v555';
 
 // (2026-09-27, Offline Düzeltme 2) DEPLOY SONRASI OFFLINE KAYBI KAPATILDI.
 // Eskiden burada yalnız '/' ve '/index.html' vardı ve activate eski önbelleği
@@ -36,6 +36,8 @@ const PRECACHE = [
   '/auth.js', '/db.js', '/i18n.js', '/topnav.js', '/repertoires.js', '/secici.js',
   '/metronom.js', '/ritimcalar.js', '/ses.js', '/dongu.js', '/zamanlayici.js',
   '/qrcode.min.js', '/soundtouch.js', '/style.css',
+  // (2026-10-09) içerik bildirme / kullanıcı engelleme (Apple Guideline 1.2)
+  '/bildir.js',
   // (2026-10-04) yeni tasarım anahtarı — her sayfanın <head>'inde yükleniyor
   '/tasarim.js', '/tasarim.css', '/onboarding.js',
   // görseller ve manifest

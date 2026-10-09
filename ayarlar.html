@@ -11,6 +11,7 @@
 <link rel="icon" href="Repertuvar_logo.png">
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
+<script src="bildir.js"></script>
 <script src="onboarding.js"></script>
 <script src="topnav.js" defer></script>
 <script>
@@ -641,6 +642,15 @@ html, body { overflow-x: hidden; }
         </div>
         <a href="gruplar.html" class="setting-btn" data-i18n="ay.grupgit">Gruba Git →</a>
       </div>
+    </div>
+
+    <!-- (2026-10-09) ENGELLENEN KULLANICILAR — Apple Guideline 1.2 (ortak kod bildir.js) -->
+    <div class="settings-section">
+      <div class="section-header">
+        <span class="section-icon">🚫</span>
+        <div><div class="section-title" data-i18n="rb.engellenenler">Engellenen kullanıcılar</div><div class="section-subtitle" data-i18n="rb.engellenenlerAlt">Engellediğin kişilerin eserleri ve paylaştığı repertuvarlar sana gösterilmez</div></div>
+      </div>
+      <div id="rbEngelListe"></div>
     </div>
 
     <div class="settings-section admin-only">
@@ -1286,5 +1296,35 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+<script>
+// (2026-10-09) Engellenen kullanıcılar listesi (bildir.js). Adı bilinmeyenler public_profiles'tan
+// (yalnız id + ad yayınlayan görünüm; bilerek anon, bkz. anonHeaders).
+function _rbEsc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+async function _rbEngelListesi() {
+  const kutu = document.getElementById('rbEngelListe');
+  if (!kutu || !window.RB) return;
+  const liste = RB.engelliler();
+  if (!liste.length) {
+    kutu.innerHTML = '<div class="setting-row"><div class="setting-desc">' + _rbEsc(RB.t('rb.engelYok')) + '</div></div>';
+    return;
+  }
+  const adlar = {};
+  const eksik = liste.filter(x => !x.ad && /^[0-9a-f-]{36}$/i.test(x.id)).map(x => x.id);
+  if (eksik.length) {
+    try {
+      const r = await fetch(SUPA_URL + '/rest/v1/public_profiles?select=id,full_name&id=in.(' + eksik.join(',') + ')', { headers: anonHeaders() });
+      if (r.ok) (await r.json()).forEach(p => { if (p.full_name) adlar[p.id] = p.full_name; });
+    } catch (e) {}
+  }
+  kutu.innerHTML = liste.map(x => '<div class="setting-row"><div><div class="setting-label">' +
+    _rbEsc(x.ad || adlar[x.id] || RB.t('rb.buKullanici')) + '</div></div>' +
+    '<button type="button" class="setting-btn" onclick="RB.engelKaldir(\'' + x.id.replace(/[^0-9a-f-]/gi, '') + '\')">' +
+    _rbEsc(RB.t('rb.engelKaldir')) + '</button></div>').join('');
+}
+window.addEventListener('rb-degisti', _rbEngelListesi);
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _rbEngelListesi); else _rbEngelListesi();
+</script>
 </body>
 </html>

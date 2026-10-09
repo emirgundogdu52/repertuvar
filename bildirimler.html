@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script src="tasarim.js"></script>
+<title>Repertuvar — İçerik Bildirimleri</title>
+<!-- bildirimler.html — 2026-10-09
+     Kullanıcıların bildirdiği eser ve kullanıcılar (content_reports). Apple Guideline 1.2: bildirilen
+     içeriğe ekip kısa sürede (24 saat) yanıt verir — içeriği kaldırır, gerekirse hesabı askıya alır.
+     Yeni bildirim adminlere zil bildirimi olarak da düşer (sql/bildirme_engelleme.sql).
+     Yalnız admin/editör; okuma ve kapatma RLS'te de yalnız onlara açık. -->
+<script src="topnav.js" defer></script>
+<script src="i18n.js"></script>
+<script src="auth.js"></script>
+<link rel="stylesheet" href="style.css">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+<style>
+.page-content{padding:24px 32px;max-width:900px;}
+@media(max-width:767px){.page-content{padding:16px;}}
+.page-title{font-size:20px;font-weight:700;color:var(--text);}
+.page-sub{font-size:13px;color:var(--text3);margin-top:4px;}
+.b-sekme{display:flex;gap:8px;margin:18px 0 14px;}
+.b-sekme button{border:1px solid var(--border);background:transparent;color:var(--text2);border-radius:20px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;}
+.b-sekme button.on{background:var(--accent);border-color:transparent;color:#1a1200;}
+.b-kart{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.b-ust{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text3);}
+.b-tur{font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;}
+.b-sebep{background:rgba(200,51,58,.15);color:var(--red,#ef4444);border-radius:20px;padding:2px 9px;font-weight:700;}
+.b-etiket{font-size:15px;font-weight:700;color:var(--text);margin:6px 0 4px;word-break:break-word;}
+.b-not{font-size:13px;color:var(--text2);white-space:pre-wrap;word-break:break-word;margin:4px 0;}
+.b-kisi{font-size:12px;color:var(--text3);margin-top:4px;}
+.b-tus{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.b-tus a,.b-tus button{border:1px solid var(--border);background:transparent;color:var(--text);border-radius:8px;padding:6px 11px;font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:none;}
+.b-tus .kirmizi{color:var(--red,#ef4444);border-color:rgba(200,51,58,.45);}
+.b-tus .ana{background:var(--accent);border-color:transparent;color:#1a1200;}
+.b-bos{text-align:center;color:var(--text3);font-size:14px;padding:40px 10px;}
+.b-durum{font-size:12px;color:var(--text3);margin-top:6px;}
+.b-toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:9999;}
+</style>
+<link rel="stylesheet" href="tasarim.css">
+</head>
+<body>
+<div id="r-topnav-container"></div>
+
+<div class="main-wrap">
+<div class="page-content">
+  <div>
+    <div class="page-title">İçerik Bildirimleri</div>
+    <div class="page-sub">Kullanıcıların bildirdiği eser ve kullanıcılar. Hedef: her bildirime 24 saat içinde yanıt.</div>
+  </div>
+  <div class="b-sekme">
+    <button type="button" class="on" data-durum="open" onclick="sekme('open')">Açık</button>
+    <button type="button" data-durum="closed" onclick="sekme('closed')">Kapanmış</button>
+  </div>
+  <div id="bListe"><div class="b-bos">Yükleniyor…</div></div>
+</div>
+</div>
+
+<script>
+const SEBEP = { offensive: 'Uygunsuz / müstehcen', harassment: 'Taciz / hakaret / nefret', copyright: 'Telif ihlali', spam: 'Spam / yanıltıcı', other: 'Diğer' };
+let DURUM = 'open';
+let KAYITLAR = [];
+let ADLAR = {};
+
+function esc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function toast(m) {
+  const e = document.createElement('div'); e.className = 'b-toast'; e.textContent = m;
+  document.body.appendChild(e); setTimeout(() => e.remove(), 2600);
+}
+function kisi(id) {
+  if (!id) return '—';
+  const p = ADLAR[id];
+  return p ? (p.full_name || p.display_name || p.email || id) + (p.email && (p.full_name || p.display_name) ? ' (' + p.email + ')' : '') : id;
+}
+function tarih(t) {
+  try { return new Date(t).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }); } catch (e) { return t || ''; }
+}
+
+async function yukle() {
+  const kutu = document.getElementById('bListe');
+  const filtre = DURUM === 'open' ? 'status=eq.open' : 'status=in.(resolved,dismissed)';
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/content_reports?select=*&' + filtre + '&order=created_at.desc&limit=200', { headers: authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    KAYITLAR = await r.json();
+    const idler = [...new Set(KAYITLAR.flatMap(k => [k.reporter_id, k.target_user_id, k.resolved_by]).filter(Boolean))].filter(x => !ADLAR[x]);
+    if (idler.length) {
+      const p = await fetch(SUPA_URL + '/rest/v1/profiles?select=id,full_name,display_name,email,status&id=in.(' + idler.join(',') + ')', { headers: authHeaders() });
+      if (p.ok) (await p.json()).forEach(x => { ADLAR[x.id] = x; });
+    }
+    ciz();
+  } catch (e) {
+    kutu.innerHTML = '<div class="b-bos">Bildirimler yüklenemedi: ' + esc(e.message) + '</div>';
+  }
+}
+
+function ciz() {
+  const kutu = document.getElementById('bListe');
+  if (!KAYITLAR.length) {
+    kutu.innerHTML = '<div class="b-bos">' + (DURUM === 'open' ? 'Açık bildirim yok. 🎉' : 'Kapanmış bildirim yok.') + '</div>';
+    return;
+  }
+  kutu.innerHTML = KAYITLAR.map(k => {
+    const eser = k.target_type === 'work';
+    const hedefKisi = k.target_user_id;
+    const askida = hedefKisi && ADLAR[hedefKisi] && ADLAR[hedefKisi].status === 'suspended';
+    const tuslar = [];
+    if (eser) tuslar.push('<a href="eserler.html?id=' + encodeURIComponent(k.target_id) + '" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> Eseri aç</a>');
+    if (DURUM === 'open') {
+      if (eser) tuslar.push('<button type="button" class="kirmizi" onclick="eseriKaldir(\'' + k.id + '\')"><i class="ti ti-trash"></i> Eseri kaldır</button>');
+      if (hedefKisi && !askida) tuslar.push('<button type="button" class="kirmizi" onclick="askiyaAl(\'' + k.id + '\')"><i class="ti ti-user-off"></i> Hesabı askıya al</button>');
+      tuslar.push('<button type="button" class="ana" onclick="kapat(\'' + k.id + '\',\'resolved\')"><i class="ti ti-check"></i> Çözüldü</button>');
+      tuslar.push('<button type="button" onclick="kapat(\'' + k.id + '\',\'dismissed\')">Yoksay</button>');
+    }
+    return '<div class="b-kart">' +
+      '<div class="b-ust"><span class="b-tur">' + (eser ? 'Eser' : 'Kullanıcı') + '</span><span class="b-sebep">' + esc(SEBEP[k.reason] || k.reason) + '</span><span>' + esc(tarih(k.created_at)) + '</span></div>' +
+      '<div class="b-etiket">' + esc(k.target_label || (eser ? '#' + k.target_id : kisi(hedefKisi))) + '</div>' +
+      (k.note ? '<div class="b-not">“' + esc(k.note) + '”</div>' : '') +
+      '<div class="b-kisi">Bildiren: ' + esc(kisi(k.reporter_id)) + '</div>' +
+      (hedefKisi ? '<div class="b-kisi">' + (eser ? 'Eseri ekleyen: ' : 'Bildirilen: ') + esc(kisi(hedefKisi)) + (askida ? ' · <b>askıda</b>' : '') + '</div>' : '') +
+      (DURUM !== 'open' ? '<div class="b-durum">' + (k.status === 'resolved' ? 'Çözüldü' : 'Yoksayıldı') + ' · ' + esc(tarih(k.resolved_at)) + ' · ' + esc(kisi(k.resolved_by)) + (k.admin_note ? ' · ' + esc(k.admin_note) : '') + '</div>' : '') +
+      (tuslar.length ? '<div class="b-tus">' + tuslar.join('') + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function sekme(d) {
+  DURUM = d;
+  document.querySelectorAll('.b-sekme button').forEach(b => b.classList.toggle('on', b.dataset.durum === d));
+  document.getElementById('bListe').innerHTML = '<div class="b-bos">Yükleniyor…</div>';
+  yukle();
+}
+
+async function kapat(id, durum, not) {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/content_reports?id=eq.' + id, {
+      method: 'PATCH', headers: Object.assign(authHeaders(), { Prefer: 'return=minimal' }),
+      body: JSON.stringify({ status: durum, resolved_at: new Date().toISOString(), resolved_by: getUserId(), admin_note: not || null })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast(durum === 'resolved' ? 'Bildirim çözüldü olarak kapatıldı ✓' : 'Bildirim yoksayıldı');
+    yukle();
+  } catch (e) { toast('Hata: ' + e.message); }
+}
+
+async function eseriKaldir(id) {
+  const k = KAYITLAR.find(x => x.id === id);
+  if (!k || !confirm('“' + (k.target_label || k.target_id) + '” katalogdan kaldırılsın mı? (Silinen eserler arasından geri alınabilir.)')) return;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + encodeURIComponent(k.target_id), {
+      method: 'PATCH', headers: Object.assign(authHeaders(), { Prefer: 'return=minimal' }),
+      body: JSON.stringify({ deleted_at: new Date().toISOString() })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    await kapat(id, 'resolved', 'Eser kaldırıldı');
+  } catch (e) { toast('Hata: ' + e.message); }
+}
+
+async function askiyaAl(id) {
+  const k = KAYITLAR.find(x => x.id === id);
+  if (!k || !k.target_user_id) return;
+  if (!confirm(kisi(k.target_user_id) + ' hesabı askıya alınsın mı? Giriş yapamayacak. (Üyeler sayfasından geri alınabilir.)')) return;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + k.target_user_id, {
+      method: 'PATCH', headers: Object.assign(authHeaders(), { Prefer: 'return=minimal' }),
+      body: JSON.stringify({ status: 'suspended' })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    if (ADLAR[k.target_user_id]) ADLAR[k.target_user_id].status = 'suspended';
+    await kapat(id, 'resolved', 'Hesap askıya alındı');
+  } catch (e) { toast('Hata: ' + e.message); }
+}
+
+(async function () {
+  const ok = await requireAuth();
+  if (!ok) return;
+  let rolTazelendi = false;
+  try { if (typeof loadUserRole === 'function') { await loadUserRole(); rolTazelendi = true; } } catch (e) {}
+  if (!rolTazelendi || !(isAdmin() || isEditor())) {
+    document.querySelector('.page-content').innerHTML =
+      '<div style="text-align:center;padding:60px 20px;color:var(--text3);"><div style="font-size:34px;margin-bottom:12px;">🔒</div>' +
+      '<div style="font-size:15px;font-weight:600;color:var(--text);">Bu sayfa yönetim içindir</div></div>';
+    return;
+  }
+  // Hesap askıya alma yalnız adminde (Üyeler sayfasıyla aynı kural)
+  if (!isAdmin()) window.askiyaAl = function () { toast('Hesap askıya alma yalnız yöneticilerde.'); };
+  yukle();
+})();
+</script>
+</body>
+</html>

@@ -1327,6 +1327,7 @@
 </style>
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
+<script src="bildir.js"></script>
 <script src="topnav.js" defer></script>
 <script src="db.js"></script>
 <script src="secici.js" defer></script>
@@ -1715,6 +1716,7 @@ function turSayilari() {
     if (w.deleted_at) return;
     if (w.status === 'pending' && w.submitted_by !== uid) return;
     if (w.visibility === 'private' && w.submitted_by !== uid) return;
+    if (_rbGizli(w)) return;
     if (activeFilters.dil && (w.dil || 'tr') !== activeFilters.dil) return;   // (2026-10-08) dil seçiliyse yalnız o dilin türleri
     const t = (w.tur || '').trim();
     if (t) c[t] = (c[t] || 0) + 1; else bos++;
@@ -1744,6 +1746,7 @@ function dilSayilari() {   // görünürlük kuralları turSayilari ile aynı; t
     if (w.deleted_at) return;
     if (w.status === 'pending' && w.submitted_by !== uid) return;
     if (w.visibility === 'private' && w.submitted_by !== uid) return;
+    if (_rbGizli(w)) return;
     const d = w.dil || 'tr'; c[d] = (c[d] || 0) + 1;
   });
   return Object.entries(c).sort(function (a, b) { return b[1] - a[1]; });
@@ -1835,6 +1838,7 @@ function applyFilters() {
     if (w.visibility === 'private' && w.submitted_by !== getUserId()) return false;
     // Yerel önbellekte kalmış silinmiş kayıt listeye sızmasın
     if (w.deleted_at) return false;
+    if (_rbGizli(w)) return false;   // (2026-10-09) bildirdiğim eser / engellediğim kişinin eseri
     if (favOnly && !favs.has(w.id)) return false;
     // Taslaklarım: yalnızca KENDİ gizli eserlerim (başkasınınki zaten yukarıda elendi)
     if (draftOnly && !(w.visibility === 'private' && w.submitted_by === getUserId())) return false;
@@ -2847,6 +2851,8 @@ function selectWork(id, silent) {
         <button class="act-btn${isFavNow?' is-fav':''}" id="actFav_${w.id}" onclick="event.stopPropagation();toggleFavoriteInline(${w.id})" title="${_esCev('es.t_favori','Favori')}" data-i18n-title="es.t_favori"><i class="ti ti-star${isFavNow?'-filled':''}"></i> <span class="act-lbl">${isFavNow?_esCev('es.favoride','Favoride'):_esCev('es.t_favori','Favori')}</span></button>
         ${_canEditW ? `<button class="act-btn" onclick="event.stopPropagation();openEditEserModal(${w.id})" title="${_esCev('rep.duzenle','Düzenle')}"><i class="ti ti-edit"></i> ${_esCev('rep.duzenle','Düzenle')}</button>` : ''}
         ${_canEditW ? `<button class="act-btn danger" onclick="event.stopPropagation();showDeleteConfirm(${w.id})" title="${_esCev('ortak.sil','Sil')}"><i class="ti ti-trash"></i> ${_esCev('ortak.sil','Sil')}</button>` : ''}
+        ${(!_canEditW && getUserId()) ? `<button class="act-btn" onclick="event.stopPropagation();_rbEserBildir(${w.id})" title="${_esCev('rb.eseriBildir','Eseri bildir')}"><i class="ti ti-flag"></i> ${_esCev('rb.bildir','Bildir')}</button>` : ''}
+        ${(!_canEditW && getUserId() && w.submitted_by) ? `<button class="act-btn" onclick="event.stopPropagation();_rbEserEngelle(${w.id})" title="${_esCev('rb.ekleyeniEngelle','Ekleyeni engelle')}"><i class="ti ti-ban"></i> ${_esCev('rb.engelle','Engelle')}</button>` : ''}
       </div>`;
 
   // ── KİŞİSEL AKOR ÇÖZÜMLEME ── kullanıcının kişisel akoru varsa onun görünümü ondan türer
@@ -4613,6 +4619,35 @@ function backFromDetail() {
   if (lc) lc.style.display = '';
   selectedId = null;
 }
+
+// ── (2026-10-09) BİLDİR / ENGELLE — Apple Guideline 1.2 (ortak kod bildir.js) ──
+// Bildirdiğim eser ve engellediğim kişinin eserleri bana listede gösterilmez (kendi eserim asla gizlenmez).
+// Kayıt IndexedDB'de kalır; repertuvardaki kalemler eser adını kaybetmez.
+function _rbGizli(w) {
+  if (!window.RB || !w) return false;
+  if (w.submitted_by && w.submitted_by === getUserId()) return false;
+  if (RB.gizliEserMi(w.id)) return true;
+  return !!(w.submitted_by && RB.engelliMi(w.submitted_by));
+}
+function _rbEserBildir(id) {
+  const w = DATA.find(x => x.id === id);
+  if (!w || !window.RB) return;
+  RB.bildir({ tur: 'work', id: w.id, kullanici: w.submitted_by || null, etiket: w.name || '',
+              ad: w.submitted_by ? displayUserName(w.submitted_by, w.submitter_email) : '' });
+}
+function _rbEserEngelle(id) {
+  const w = DATA.find(x => x.id === id);
+  if (!w || !w.submitted_by || !window.RB) return;
+  RB.engelle(w.submitted_by, displayUserName(w.submitted_by, w.submitter_email));
+}
+window.addEventListener('rb-degisti', function () {
+  if (typeof applyFilters === 'function') applyFilters();
+  if (selectedId != null && _rbGizli(DATA.find(x => x.id === selectedId))) {
+    backFromDetail();
+    document.getElementById('detailEmpty').style.display = '';
+    document.getElementById('detailContent').style.display = 'none';
+  }
+});
 
 // searchInput listener — DOMContentLoaded'da ekleniyor (aşağıda)
 

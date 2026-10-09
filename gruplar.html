@@ -41,6 +41,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
+<script src="bildir.js"></script>
 <script src="db.js"></script>
 <script src="qrcode.min.js"></script>
 <script src="topnav.js" defer></script>
@@ -565,6 +566,18 @@ function renderGroup() {
   renderMembersList(currentMembers);
 }
 
+// (2026-10-09) Bildir / Engelle — Apple Guideline 1.2 (ortak kod bildir.js). Kendin hariç her üyede.
+function _rbAttr(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function _rbUye(btn) {
+  if (!window.RB) return;
+  RB.islemler({ kullanici: btn.dataset.uid, ad: btn.dataset.ad || '' });
+}
+window.addEventListener('rb-degisti', function () {
+  if (typeof currentMembers !== 'undefined' && currentMembers && document.getElementById('membersList')) renderMembersList(currentMembers);
+});
+
 function renderMembersList(members) {
   const uid = getUserId();
   const roleLabels = { owner: _grCev('gr.kurucu','Kurucu'), admin: _grCev('gr.admin','Admin'), member: _grCev('gr.uyeBuyuk','Üye') };
@@ -597,6 +610,7 @@ function renderMembersList(members) {
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
         <span class="role-badge ${roleClass[m.role]||'role-member'}">${roleLabels[m.role]||_grCev('gr.uyeBuyuk','Üye')}</span>
+        ${m.user_id !== uid ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="_rbUye(this)" data-uid="${m.user_id}" data-ad="${_rbAttr(m.display_name || '')}" title="${_grCev('rb.bildir','Bildir')} / ${_grCev('rb.engelle','Engelle')}"><i class="ti ti-flag" style="font-size:11px;"></i>${(window.RB && RB.engelliMi(m.user_id)) ? ' ' + _grCev('rb.engelliEtiket','Engellendi') : ''}</button>` : ''}
         ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="editInstrument('${m.user_id}')"><i class="ti ti-pencil" style="font-size:11px;"></i></button>` : ''}
         ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="addMemberAsSolist('${m.user_id}')" title="${_grCev('gr.solistlereEkle','Solistler listesine ekle')}"><i class="ti ti-microphone" style="font-size:11px;"></i></button>` : ''}
         ${(isAdmin() || userRole==='owner') && m.user_id !== uid ? `

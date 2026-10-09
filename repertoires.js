@@ -617,8 +617,18 @@ function applyRepsData(r, i, s) {
   // (2026-08-20) canManage artık `x.group_id===myGid` ham karşılaştırması yerine
   // `repAktifGruptaMi` üzerinden — paylaşım satırıyla açılmış ama group_id'si boş
   // repertuvarlar da kapsansın, BAŞKA grubun repertuvarı ise kapsam DIŞI kalsın.
-  reps = (r||[]).map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, canManage: (x.owner_id===uid || x.user_id===uid) || (isGroupManager() && repAktifGruptaMi(x)), items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map((t,ix)=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||'',linkedPrev: ix>0 && !!t.linked_prev}))}));
+  reps = (r||[]).filter(_rbRepGorunur).map(x=>({...x, isOwner: x.owner_id===uid || x.user_id===uid, canManage: (x.owner_id===uid || x.user_id===uid) || (isGroupManager() && repAktifGruptaMi(x)), items:(i||[]).filter(t=>t.repertoire_id===x.id).sort((a,b)=>a.seq-b.seq).map((t,ix)=>({...t,workId:String(t.work_id),closingNote:t.closing_note||'',performer:t.performer||'',linkedPrev: ix>0 && !!t.linked_prev}))}));
 }
+
+// (2026-10-09) Engellediğim kişinin paylaştığı repertuvar bana gösterilmez (bildir.js, Apple Guideline 1.2).
+// Kendi repertuvarım asla gizlenmez. Önbellek sunucudan tazelenince liste yeniden yüklenir.
+function _rbRepGorunur(x){
+  if(!window.RB||!x) return true;
+  const uid=getUserId()||'';
+  if(x.owner_id===uid||x.user_id===uid) return true;
+  return !(RB.engelliMi(x.owner_id)||RB.engelliMi(x.user_id));
+}
+window.addEventListener('rb-degisti',function(){ try{ if(typeof load==='function') load(); }catch(e){} });
 
 // (2026-08-06) 🐛 `?rep=` YALNIZCA İLK YÜKLEMEDE UYGULANIR.
 // Eskiden `load()` HER çağrıldığında adres çubuğundaki `?rep=` okunup seçili
