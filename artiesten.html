@@ -198,7 +198,11 @@ html{background:var(--bg);}
 </div>
 
 <script>
-if (typeof sb === 'undefined') { var sb = supabase.createClient(SUPA_URL, SUPA_KEY); }
+// (2026-10-10) Oturumu YÖNETMEYEN istemci. Varsayılan istemci kendi kayıtlı oturumunu (sb-…-auth-token) açılışta
+// yeniliyordu; Supabase her yenilemede refresh token'ı döndürdüğü için auth.js'in sb_refresh'i geçersiz kalıyor ve
+// kullanıcı bir sonraki yenilemede çıkışa düşüyordu (simülatörde görüldü). `accessToken` ile supabase-js auth katmanını
+// hiç çalıştırmaz; token'ı auth.js'in sb_token'ından alır (fetch yaması da bayatsa tazeler). Bu sayfa sb.auth kullanmaz.
+if (typeof sb === 'undefined') { var sb = supabase.createClient(SUPA_URL, SUPA_KEY, { accessToken: async () => localStorage.getItem('sb_token') || SUPA_KEY }); }
 let WORKS_LIST = [];
 let artists = [];
 let selectedId = null;
