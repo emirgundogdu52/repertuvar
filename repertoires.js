@@ -388,7 +388,7 @@ function _applyWorksRows(rows) {
     const id = String(w.id);
     // (2026-08-20) videoLink eklendi — 🎧 Repertuvarı Dinle bunu kullanıyor.
     WL[id] = { name: w.name||'', composer: w.composer||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'', videoLink: w.video_link||'', olcu: w.measurement||'' };
-    WLIST.push({ id, name: w.name||'', composer: w.composer||'', makam: w.makam||'' });
+    WLIST.push({ id, name: w.name||'', composer: w.composer||'', makam: w.makam||'', sb: w.submitted_by||'' });
   });
   // customWorks patch (yerel override'lar)
   try {
@@ -1293,10 +1293,19 @@ function closeWM(){
   pfReset();
   var box=document.getElementById('wInfoBox');if(box)box.style.display='none';
 }
+// (2026-10-10) "Eser ekle" araması bildirdiğim eseri ve engellediğim kişinin eserini göstermez — eserler.html
+// _rbGizli ile aynı kural (Apple Guideline 1.2). Önceki sürümde engelden sonra o kişinin eserleri burada
+// hâlâ bulunup repertuvara eklenebiliyordu (inceleme videosunda görüldü). Repertuvarda ZATEN olan kalem gizlenmez.
+function _rbEserGorunur(w){
+  if(!window.RB||!w) return true;
+  if(RB.gizliEserMi(w.id)) return false;
+  return !(w.sb && w.sb!==(getUserId()||'') && RB.engelliMi(w.sb));
+}
 function filterW(){
   const q=document.getElementById('ws').value.trim();
+  const kaynak=WLIST.filter(_rbEserGorunur);
   // Türkçe duyarsız: "Gülşen" kaydı "gulsen", "Çeşm-i" kaydı "cesmi" ile bulunur.
-  const list=q?WLIST.filter(w=>trMatch((w.name||'')+' '+(w.composer||'')+' '+(w.makam||''), q)):WLIST;
+  const list=q?kaynak.filter(w=>trMatch((w.name||'')+' '+(w.composer||'')+' '+(w.makam||''), q)):kaynak;
   document.getElementById('wpl').innerHTML=list.slice(0,80).map(w=>`<div class="wpi${selWId===w.id?' sel':''}" onclick="pickW('${w.id}')"><div class="wpn">${w.name}</div><div class="wps">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--text3);">'+_r('rep.bulunamadi','Bulunamadı')+'</div>';
 }
 function pickW(id){
