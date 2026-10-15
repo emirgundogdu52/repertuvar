@@ -1,0 +1,58 @@
+diff --git a/db.js b/db.js
+index fd42e11..80b37e4 100644
+--- a/db.js
++++ b/db.js
+@@ -787,15 +787,20 @@ window.offlineRozetMetni = function (status) {
+     mesafe = 0;
+   }, { passive: true });
+ 
++  // (2026-10-15) PASİF. Eskiden { passive:false } + preventDefault idi: belgenin
++  // TAMAMINA bağlı engelleyebilen bir touchmove, iOS WebKit'te HER kaydırmayı
++  // JS'in bitmesine bağlıyor — eşitleme ana iş parçacığını meşgul ederken
++  // Eserler listesi hiç kaymıyordu (dokunuşlar geç de olsa işliyordu). Zıplamayı
++  // önlemek için preventDefault'a gerek yok: html/body'de overscroll-behavior:none
++  // zaten var; liste kabındaki doğal esneme de göstergeyle birlikte doğal duruyor.
+   document.addEventListener('touchmove', function (e) {
+     if (baslangic === null || calisiyor) return;
+     var d = e.touches[0].clientY - baslangic;
+     if (d <= 0) { mesafe = 0; ciz(0, false); return; }
+     kur();
+     mesafe = d * 0.45;                     // direnç hissi
+-    if (e.cancelable) e.preventDefault();  // sayfa zıplamasın
+     ciz(mesafe, mesafe >= ESIK);
+-  }, { passive: false });
++  }, { passive: true });
+ 
+   document.addEventListener('touchend', function () {
+     if (baslangic === null || calisiyor) { baslangic = null; return; }
+@@ -803,10 +808,17 @@ window.offlineRozetMetni = function (status) {
+     if (mesafe < ESIK) { ciz(0, false); return; }
+     calisiyor = true;
+     ciz(46, true);
++    // (2026-10-15) Üst sınır: eşitleme asılı kalırsa (fetch'lerde zaman aşımı yok,
++    // yavaş ağda dakikalarca sürebiliyor) gösterge ekranın tepesinde sonsuza dek
++    // dönüp duruyordu. 20 sn sonra göstergeyi kaldır; eşitleme arkada sürer.
++    var bitti = false;
+     var bitir = function () {
++      if (bitti) return;
++      bitti = true;
+       calisiyor = false; mesafe = 0;
+       setTimeout(function () { ciz(0, false); }, 250);
+     };
++    setTimeout(bitir, 20000);
+     if (typeof window.syncOfflineData === 'function') {
+       Promise.resolve(window.syncOfflineData()).then(bitir, bitir);
+     } else { bitir(); }
+diff --git a/service-worker.js b/service-worker.js
+index b56f70e..98f232c 100644
+--- a/service-worker.js
++++ b/service-worker.js
+@@ -14,7 +14,7 @@
+ // ═══════════════════════════════════════════════════════════════
+ 
+ // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
+-const CACHE_NAME = 'repertuvar-v556';
++const CACHE_NAME = 'repertuvar-v557';
+ 
+ // (2026-09-27, Offline Düzeltme 2) DEPLOY SONRASI OFFLINE KAYBI KAPATILDI.
+ // Eskiden burada yalnız '/' ve '/index.html' vardı ve activate eski önbelleği
