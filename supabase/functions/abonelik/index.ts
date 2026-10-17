@@ -51,6 +51,8 @@ const t = (s: string | null | undefined) => (s ? Date.parse(s) : NaN);
 
 // RevenueCat v1 `subscriber.subscriptions[urun]` → abonelikler satırı
 export function satirOf(uid: string, urun: string, a: Record<string, any>, simdi = Date.now()) {
+  // Play: v1 anahtarı yalnız abonelik kimliği olabilir ("repertuvar_pro"), temel plan ayrı alanda gelir
+  if (!urun.includes(':') && a.product_plan_identifier) urun = urun + ':' + a.product_plan_identifier;
   const kaynak = kaynakOf(a.store);
   if (!kaynak) return null;
   const bitis = t(a.expires_date), ek = t(a.grace_period_expires_date), iade = t(a.refunded_at);

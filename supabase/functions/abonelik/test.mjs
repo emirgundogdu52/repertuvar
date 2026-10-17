@@ -28,6 +28,20 @@ await dene('kaynakOf / donemOf', () => {
   assert.equal(donemOf('repertuvar_pro:monthly'), 'P1M');
   assert.equal(donemOf('repertuvar_pro:six-months'), 'P6M');
   assert.equal(donemOf('repertuvar_pro:yearly'), 'P1Y');
+  assert.equal(donemOf('repertuvar_pro:aylik'), 'P1M');
+  assert.equal(donemOf('repertuvar_pro:alti-aylik'), 'P6M');
+  assert.equal(donemOf('repertuvar_pro:yillik'), 'P1Y');
+});
+
+await dene('satirOf: Play anahtarı temel plansız gelirse product_plan_identifier eklenir', () => {
+  const play = { store: 'play_store', purchase_date: gun(-1), period_type: 'trial', expires_date: gun(29) };
+  const yalin = satirOf(UID, 'repertuvar_pro', { ...play, product_plan_identifier: 'alti-aylik' }, SIMDI);
+  assert.equal(yalin.kaynak, 'android'); assert.equal(yalin.urun_id, 'repertuvar_pro:alti-aylik');
+  assert.equal(yalin.donem, 'P6M'); assert.equal(yalin.dis_kimlik, 'rc:' + UID + ':repertuvar_pro:alti-aylik');
+  const tam = satirOf(UID, 'repertuvar_pro:yillik', { ...play, product_plan_identifier: 'yillik' }, SIMDI);
+  assert.equal(tam.urun_id, 'repertuvar_pro:yillik'); assert.equal(tam.donem, 'P1Y');
+  const ios = satirOf(UID, 'com.repertuvar.app.pro.monthly', { ...play, store: 'app_store', product_plan_identifier: null }, SIMDI);
+  assert.equal(ios.urun_id, 'com.repertuvar.app.pro.monthly');
 });
 
 await dene('satirOf: deneme / aktif / iptal / ödeme sorunu / bitti / iade', () => {
