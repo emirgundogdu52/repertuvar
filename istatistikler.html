@@ -226,6 +226,8 @@ function filterByDays(days) {
 }
 
 function bar(label, count, max) {
+  // (2026-10-17) XSS: page_views alanları (sayfa, kaynak, şehir…) anon anahtarla herkes tarafından yazılabiliyor
+  label = htmlKac(label);
   const pct = max ? Math.max(4, Math.round((count / max) * 100)) : 0;
   return `<div class="stt-bar-row">
     <div class="stt-bar-label" title="${label}">${label}</div>

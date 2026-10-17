@@ -1723,8 +1723,9 @@ function buildFilters() {
     const el = document.getElementById(id);
     const items = getUnique(field);
     el.innerHTML = items.map(([val, cnt]) =>
-      `<button class="filter-btn" data-field="${field}" data-val="${val.replace(/"/g,'&quot;')}" onclick="toggleFilter('${field}','${val.replace(/'/g,"\'")}')">
-        ${val} <span class="badge">${cnt}</span>
+      // (2026-10-17) XSS: değer onclick'e gömülüyordu (replace(/'/g,"\'") hiçbir şey yapmıyordu) → data-val'dan okunur
+      `<button class="filter-btn" data-field="${field}" data-val="${_esHtml(val)}" onclick="toggleFilter('${field}',this.dataset.val)">
+        ${_esHtml(val)} <span class="badge">${cnt}</span>
       </button>`
     ).join('');
   }
@@ -1820,8 +1821,8 @@ function buildTurChips() {
   }
   let html = r.liste.map(function (e) {
     const val = String(e[0]);
-    return '<button class="tur-chip" data-tur="' + val.replace(/"/g, '&quot;') + '" onclick="setTurFilter(\'' + val.replace(/'/g, "\\'") + '\')">'
-      + val + ' <span class="tur-chip-n">' + e[1] + '</span></button>';
+    return '<button class="tur-chip" data-tur="' + _esHtml(val) + '" onclick="setTurFilter(this.dataset.tur)">'   // (2026-10-17) XSS
+      + _esHtml(val) + ' <span class="tur-chip-n">' + e[1] + '</span></button>';
   }).join('');
   if (r.bos) {
     html += '<button class="tur-chip tur-chip-bos" data-tur="__yok__" onclick="setTurFilter(\'__yok__\')" title="' + _esCev('es.t_turuYok','Türü henüz belirlenmemiş eserler') + '">' + _esCev('es.tursuzCip','Türü belirlenmemiş') + ' <span class="tur-chip-n">' + r.bos + '</span></button>';
@@ -2111,8 +2112,8 @@ function openRepAddSheet(workId) {
         return;
       }
       list.innerHTML = reps.map(r => `
-        <button class="more-sheet-item" onclick="pickRepertoireForAdd('${r.id}', '${(r.name||'').replace(/'/g,"\\'")}')">
-          <i class="ti ti-playlist"></i> ${r.name || _esCev('es.isimsiz','(isimsiz)')}
+        <button class="more-sheet-item" data-ad="${_esHtml(r.name||'')}" onclick="pickRepertoireForAdd('${r.id}', this.dataset.ad)">
+          <i class="ti ti-playlist"></i> ${_esHtml(r.name || _esCev('es.isimsiz','(isimsiz)'))}
         </button>`).join('');
     })
     .catch(() => {
@@ -2542,7 +2543,7 @@ function renderList() {
     const isFav = favs.has(w.id);
     // (2026-08-21) Tur rozeti — cip ile suzunce "bu neden cikti/cikmadi"
     // sorusunun kart uzerindeki cevabi.
-    const turBadge = w.tur ? '<span class="work-tur-badge">' + w.tur + '</span>' : '';
+    const turBadge = w.tur ? '<span class="work-tur-badge">' + _esHtml(w.tur) + '</span>' : '';
     const isChecked = bulkMode && bulkSelectedIds.has(w.id);
     // Sol renk şeridi — yeşil: bir repertuvarda kullanılıyor
     const stripeClass = repCount > 0 ? ' has-stripe stripe-green' : '';
@@ -2570,7 +2571,7 @@ function renderList() {
         <div class="work-rep-count"><span class="status-dot"></span> Offline</div>
       </div>
       <div class="work-actions">
-        ${_ytId(w.videoLink) ? `<button class="work-listen" onclick="dinleAc('${w.videoLink}', event)" title="${_esCev('es.t_dinle','YouTube\u2019da dinle')}" data-i18n-title="es.t_dinle" style="display:${bulkMode?'none':'flex'};">\u25B6</button>` : ''}
+        ${_ytId(w.videoLink) ? `<button class="work-listen" onclick="dinleAc('${_ytId(w.videoLink)}', event)" title="${_esCev('es.t_dinle','YouTube\u2019da dinle')}" data-i18n-title="es.t_dinle" style="display:${bulkMode?'none':'flex'};">\u25B6</button>` : ''}
         <button class="work-fav${isFav?' active':''}" onclick="toggleFavorite(${w.id}, event)" title="${_esCev('es.t_favori','Favori')}" data-i18n-title="es.t_favori" style="display:${bulkMode?'none':'flex'};">${isFav ? '★' : '☆'}</button>
         <span class="work-chevron" style="display:${bulkMode?'none':'inline'};">›</span>
       </div>
@@ -2868,8 +2869,8 @@ function bulkAddToRepertoire() {
         return;
       }
       list.innerHTML = reps.map(r => `
-        <button class="more-sheet-item" onclick="pickRepertoireForBulkAdd('${r.id}', '${(r.name||'').replace(/'/g,"\\'")}')">
-          <i class="ti ti-playlist"></i> ${r.name || _esCev('es.isimsiz','(isimsiz)')}
+        <button class="more-sheet-item" data-ad="${_esHtml(r.name||'')}" onclick="pickRepertoireForBulkAdd('${r.id}', this.dataset.ad)">
+          <i class="ti ti-playlist"></i> ${_esHtml(r.name || _esCev('es.isimsiz','(isimsiz)'))}
         </button>`).join('');
     })
     .catch(() => {
@@ -2928,23 +2929,23 @@ function selectWork(id, silent) {
   dc.style.display = 'block';
 
   const chips = [
-    w.makam ? `<span class="chip makam" title="${_esCev('alan.makam','Makam')}"><i class="ti ti-music"></i> ${w.makam}</span>` : '',
+    w.makam ? `<span class="chip makam" title="${_esCev('alan.makam','Makam')}"><i class="ti ti-music"></i> ${_esHtml(w.makam)}</span>` : '',
     // (2026-08-30) Çip başlıkları netleşti: bu alan ÖLÇÜ tutuyor (4/4, 15/8),
     // usul değil. Usul ayrı sütunda (`ritim`) ve kendi çipini alıyor —
     // ikisi aynı kutuda görünürse yine karışırdı.
-    w.measurement ? `<span class="chip meas" title="${_esCev('alan.olcu','Ölçü')}"><i class="ti ti-clock"></i> ${w.measurement}</span>` : '',
-    w.ritim ? `<span class="chip meas" title="${_esCev('alan.usul','Usul')}"><i class="ti ti-wave-sine"></i> ${w.ritim}</span>` : '',
-    w.form ? `<span class="chip form" title="${_esCev('es.form','Form')}"><i class="ti ti-category"></i> ${w.form}</span>` : '',
-    w.tuning ? `<span class="chip tuning" title="${_esCev('alan.akort','Akort')}"><i class="ti ti-adjustments"></i> ${w.tuning}</span>` : '',
+    w.measurement ? `<span class="chip meas" title="${_esCev('alan.olcu','Ölçü')}"><i class="ti ti-clock"></i> ${_esHtml(w.measurement)}</span>` : '',
+    w.ritim ? `<span class="chip meas" title="${_esCev('alan.usul','Usul')}"><i class="ti ti-wave-sine"></i> ${_esHtml(w.ritim)}</span>` : '',
+    w.form ? `<span class="chip form" title="${_esCev('es.form','Form')}"><i class="ti ti-category"></i> ${_esHtml(w.form)}</span>` : '',
+    w.tuning ? `<span class="chip tuning" title="${_esCev('alan.akort','Akort')}"><i class="ti ti-adjustments"></i> ${_esHtml(w.tuning)}</span>` : '',
   ].filter(Boolean).join('');
 
   function row(label, val) {
     if (!val) return '';
-    return `<div class="detail-row"><div class="detail-row-label">${label}</div><div class="detail-row-value">${val}</div></div>`;
+    return `<div class="detail-row"><div class="detail-row-label">${label}</div><div class="detail-row-value">${_esHtml(val)}</div></div>`;
   }
   function row2(label, val) {
     if (!val) return '';
-    return `<div class="detail-row" style="min-width:0;"><div class="detail-row-label">${label}</div><div class="detail-row-value" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${val}">${val}</div></div>`;
+    return `<div class="detail-row" style="min-width:0;"><div class="detail-row-label">${label}</div><div class="detail-row-value" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${_esHtml(val)}">${_esHtml(val)}</div></div>`;   // (2026-10-17) XSS
   }
 
   const _vUrl = _esUrl(w.videoLink);
@@ -2984,8 +2985,8 @@ function selectWork(id, silent) {
   dc.innerHTML = `
     <div class="back-btn" onclick="backFromDetail()">${_esCev('es.listeyeDon','← Listeye Dön')}</div>
     <div class="detail-header">
-      <div class="detail-title">${w.name||_esCev('es.isimsiz','(isimsiz)')}</div>
-      ${(w.region || w.sourcePerson || w.composer) ? `<div class="detail-subtitle">${[w.region ? `📍 ${w.region}` : '', (w.sourcePerson||w.composer) ? `👤 ${w.sourcePerson||w.composer}` : ''].filter(Boolean).join(' &nbsp;•&nbsp; ')}</div>` : ''}
+      <div class="detail-title">${_esHtml(w.name||_esCev('es.isimsiz','(isimsiz)'))}</div>
+      ${(w.region || w.sourcePerson || w.composer) ? `<div class="detail-subtitle">${[w.region ? `📍 ${_esHtml(w.region)}` : '', (w.sourcePerson||w.composer) ? `👤 ${_esHtml(w.sourcePerson||w.composer)}` : ''].filter(Boolean).join(' &nbsp;•&nbsp; ')}</div>` : ''}
       <div class="detail-chips">${chips}</div>
       <div class="detail-stage-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px;width:100%;">
         ${stageBtn}
@@ -3121,7 +3122,7 @@ function selectWork(id, silent) {
       ${w.story ? `<div style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;margin-bottom:16px;">${_cpEsc(w.story)}</div>` : ''}
       ${(w.submitter_email||w.submitted_by||w.submitted_at)
         ? `<div style="display:flex;flex-direction:column;gap:10px;">
-            ${(w.submitted_by||w.submitter_email) ? `<div class="detail-row"><div class="detail-row-label">${_esCev('es.ekleyen','Ekleyen')}</div><div class="detail-row-value">${displayUserName(w.submitted_by, w.submitter_email)}</div></div>` : ''}
+            ${(w.submitted_by||w.submitter_email) ? `<div class="detail-row"><div class="detail-row-label">${_esCev('es.ekleyen','Ekleyen')}</div><div class="detail-row-value">${_esHtml(displayUserName(w.submitted_by, w.submitter_email))}</div></div>` : ''}
             ${w.submitted_at ? `<div class="detail-row"><div class="detail-row-label">${_esCev('es.eklenmeTarihi','Eklenme Tarihi')}</div><div class="detail-row-value">${new Date(w.submitted_at).toLocaleDateString('tr-TR',{year:'numeric',month:'long',day:'numeric'})}</div></div>` : ''}
            </div>`
         : (w.story ? '' : `<div style="color:var(--text3);font-size:13px;padding:12px 0;">${_esCev('es.hikayeYok','Bu eser için hikâye bilgisi yok.')}</div>`)
@@ -4501,7 +4502,12 @@ function renderNotaPagesBlock(w) {
   const canEdit = (isAdmin() || isEditor());
   if (!pages.length) return `<div style="color:var(--text3);font-size:13px;padding:12px 0 4px;">${_esCev('es.notaYok','Bu eser için nota eklenmemiş.')}</div>`;
   let html = `<div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">${_esCev('es.nSayfa','{n} sayfa').replace('{n}', pages.length)}</div>`;
-  pages.forEach((u, i) => {
+  pages.forEach((hamU, i) => {
+    // (2026-10-17) XSS: nota adresi öznitelikte kaçışsızdı (`x.png" onerror=…`, `javascript:`). Yalnız http(s) / blob: /
+    // data:image (çevrimdışı) / göreli; türü ham adresten anla, çıktıya kaçışlısını yaz.
+    const _h = String(hamU == null ? '' : hamU);
+    const _guv = /^(https?:|blob:|data:image\/)/i.test(_h) || !/^[a-z][a-z0-9+.-]*:/i.test(_h) ? _h : '';
+    const u = _esHtml(_guv);
     html += `<div style="margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <span style="font-size:12px;color:var(--text3);">${_esCev('es.sayfaXY','Sayfa {i} / {n}').replace('{i}', i+1).replace('{n}', pages.length)}</span>
@@ -4511,9 +4517,9 @@ function renderNotaPagesBlock(w) {
           <button onclick="deleteNotaPage(${w.id},${i})" title="${_esCev('es.t_sayfaSil','Bu sayfayı sil')}" style="background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;">🗑</button>
         </span>` : ''}
       </div>
-      ${isNotaImage(u)
+      ${isNotaImage(_guv)
         ? `<img src="${u}" style="width:100%;border-radius:8px;border:1px solid var(--border);" alt="${_esCev('es.a_notaSayfa','Nota sayfa {n}').replace('{n}', i+1)}">`
-        : isNotaPdf(u)
+        : isNotaPdf(_guv)
         ? `<div class="es-pdf" data-pdf="${u}"><div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:13px;color:var(--text2);">${_esCev('es.pdfYukleniyor','📄 PDF yükleniyor…')}</div></div>
            <a href="${u}" target="_blank" style="display:inline-block;margin-top:6px;font-size:12px;color:var(--accent);text-decoration:none;">${_esCev('es.notayiAcIndir','↗ Notayı Aç / İndir')}</a>`
         : `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px;">
@@ -5657,7 +5663,7 @@ function closeNewEserModal() {
   // Böylece kullanıcı aynı bilgileri iki ayrı formda doldurmuyor:
   // tek eser formu var, nereden çağrılırsa çağrılsın o açılıyor.
   const geri = sessionStorage.getItem('eserEditReturn');
-  if (geri) {
+  if (geri && /^\/?[\w-]+\.html([?#][^\s]*)?$/.test(geri)) {
     sessionStorage.removeItem('eserEditReturn');
     location.href = geri;
   }
@@ -5688,7 +5694,9 @@ function openEditFromQuery() {
     const id = q.get('edit');
     if (!id) return;
     const back = q.get('back');
-    if (back) sessionStorage.setItem('eserEditReturn', back);
+    // (2026-10-17) XSS / açık yönlendirme: yalnız uygulama içi sayfa adı (repertoires.html?rep=…) kabul — javascript: ya da
+    // dış adres bir bağlantıyla buraya yazılıp modal kapanınca çalıştırılabiliyordu.
+    if (back && /^\/?[\w-]+\.html([?#][^\s]*)?$/.test(back)) sessionStorage.setItem('eserEditReturn', back);
     let t = null;
     const temizle = () => {
       if (t) { clearTimeout(t); t = null; }
@@ -6427,7 +6435,7 @@ async function showEditorManager() {
   } else {
     list.innerHTML = editors.map(e => `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;">
-        <span style="font-size:13px;color:var(--text);">${e.email || e.id}</span>
+        <span style="font-size:13px;color:var(--text);">${_esHtml(e.email || e.id)}</span>
         <button onclick="removeEditor('${e.id}')" style="padding:4px 10px;border-radius:6px;background:rgba(192,84,68,.1);border:1px solid rgba(192,84,68,.3);color:#e07060;font-size:12px;cursor:pointer;font-family:inherit;">${_esCev('es.kaldir','Kaldır')}</button>
       </div>`).join('');
   }
@@ -6513,12 +6521,12 @@ async function showPendingWorks() {
       <div class="pm-item" id="pm-item-${w.id}">
         <div class="pm-item-name">${_pmEsc(w.name) || _esCev('es.isimsiz','(isimsiz)')}</div>
         <div class="pm-item-meta">
-          ${w.submitter_email ? `<span>👤 ${w.submitter_email}</span>` : ''}
+          ${w.submitter_email ? `<span>👤 ${_esHtml(w.submitter_email)}</span>` : ''}
           ${w.submitted_at ? `<span>🕐 ${new Date(w.submitted_at).toLocaleString('tr-TR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
-          ${w.composer ? `<span>🎼 ${w.composer}</span>` : ''}
-          ${w.makam ? `<span>🎵 ${w.makam}</span>` : ''}
-          ${w.region ? `<span>📍 ${w.region}</span>` : ''}
-          ${w.measurement ? `<span>♩ ${w.measurement}</span>` : ''}
+          ${w.composer ? `<span>🎼 ${_esHtml(w.composer)}</span>` : ''}
+          ${w.makam ? `<span>🎵 ${_esHtml(w.makam)}</span>` : ''}
+          ${w.region ? `<span>📍 ${_esHtml(w.region)}</span>` : ''}
+          ${w.measurement ? `<span>♩ ${_esHtml(w.measurement)}</span>` : ''}
         </div>
         ${w.lyrics ? `<div class="pm-sec-lbl">${_esCev('es.pmSoz','SÖZ')}</div><div class="pm-item-lyrics">${_pmEsc(w.lyrics)}</div>` : ''}
         ${w.chords ? `<div class="pm-sec-lbl">${_esCev('es.pmAkor','AKOR')}</div><div class="pm-item-chords">${_pmEsc(w.chords)}</div>` : ''}

@@ -2,6 +2,23 @@
 var SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
 var SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 
+// ── 2026-10-17: ORTAK HTML KAÇIŞI + GÜVENLİ BAĞLANTI (XSS taraması, _appstore/denetim-2026-10-14/xss-taramasi.md) ──
+// Eser/repertuvar/solist/mesaj alanlarını herhangi bir kullanıcı yazabiliyor; bunlar başka kullanıcının ekranında
+// innerHTML ile çizilirken betik çalıştırabiliyordu. htmlKac: metin VE öznitelik içinde güvenli (& < > " ' beşi de).
+// guvenliUrl: yalnız http(s) / göreli adres; javascript:, data: vb. boş döner — href/src'ye konmadan önce.
+function htmlKac(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function guvenliUrl(u) {
+  var s = String(u == null ? '' : u).trim();
+  if (!s) return '';
+  if (/^https?:\/\//i.test(s)) return s;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(s) || s.indexOf('//') === 0) return '';   // başka şema ya da şemasız dış adres
+  return s;   // göreli yol (aynı köken)
+}
+
 // ── 2026-08-30: MÜZİK ALANLARI ────────────────────────────────────────────
 // (Önceki "gelenek" yaklaşımı kaldırıldı: kullanıcıyı "Türk müziği / Batı
 // müziği" diye sınıflandırıyordu. İki sorunu vardı — kimlik dayatması ve
@@ -1024,7 +1041,7 @@ function renderUserBadge(containerId) {
   const name = getUserName();
   el.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-      <span style="font-size:12px;color:var(--text2);">${name}</span>
+      <span style="font-size:12px;color:var(--text2);">${htmlKac(name)}</span>
       <button onclick="logout()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);
         background:none;color:var(--text3);font-size:11px;cursor:pointer;font-family:inherit;"
         onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"

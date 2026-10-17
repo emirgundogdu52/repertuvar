@@ -516,6 +516,8 @@ function _m(anahtar, tr) {
     `;
   }
 
+  // (2026-10-17) Yerel kaçış — topnav.js bazı sayfalarda auth.js'ten (htmlKac) ÖNCE yükleniyor (uyeler.html)
+  function _tnKac(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   // Desktop topbar'a user badge inject et
   function injectDesktopBadge(name, ini) {
     const topbar = document.querySelector('.v2-desktop-topbar');
@@ -524,8 +526,8 @@ function _m(anahtar, tr) {
     badge.className = 'dt-user-badge';
     badge.id = 'dtUserBadge';
     badge.innerHTML = `
-      <div class="dt-user-avatar" id="dtUserAvatar">${ini}</div>
-      <span class="dt-user-name" id="dtUserName">${name}</span>
+      <div class="dt-user-avatar" id="dtUserAvatar">${_tnKac(ini)}</div>
+      <span class="dt-user-name" id="dtUserName">${_tnKac(name)}</span>
       <div class="dt-user-dropdown" id="dtUserDropdown">
         <button class="dt-user-dd-item danger" onclick="logout()">
           <i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> ${_m('menu.cikis','Çıkış Yap')}

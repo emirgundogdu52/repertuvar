@@ -579,7 +579,7 @@ function _c(k, tr) {
     const container = document.getElementById('recentWorks');
     if (container && Array.isArray(data) && data.length) {
       container.innerHTML = data.map((w,i) => `
-        <a href="eserler.html?id=${w.id}" class="work-row${i%2===1?' zebra':''}"
+        <a href="eserler.html?id=${w.id}" class="work-row${i%2===1?' zebra':''}">
           <div class="work-num">${i+1}</div>
           <div class="work-info">
             <div class="work-name">${w.name ? String(w.name).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) : '—'}</div>

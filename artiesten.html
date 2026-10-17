@@ -343,8 +343,8 @@ function renderList() {
     <div class="artist-item${selectedId===a.id?' active':''}" onclick="selectArtist('${a.id}')">
       <div class="artist-avatar">${initials(a.name)}</div>
       <div class="artist-info">
-        <div class="artist-name">${a.name}</div>
-        <div class="artist-sub">${a.phone || a.email || (((a.works||[]).length === 1 ? _soCev('so.eserSayisiTek','{n} eser') : _soCev('so.eserSayisi','{n} eser')).replace('{n}', (a.works||[]).length))}</div>
+        <div class="artist-name">${htmlKac(a.name)}</div>
+        <div class="artist-sub">${htmlKac(a.phone || a.email || (((a.works||[]).length === 1 ? _soCev('so.eserSayisiTek','{n} eser') : _soCev('so.eserSayisi','{n} eser')).replace('{n}', (a.works||[]).length)))}</div>
       </div>
     </div>`).join('');
 }
@@ -360,7 +360,7 @@ function renderDetail() {
   if (!a) return;
   const works = a.works || [];
   const workChips = works.map((w, idx) => `
-    <div class="work-chip">${w.name}${w.makam?`<span>${w.makam}</span>`:''}
+    <div class="work-chip">${htmlKac(w.name)}${w.makam?`<span>${htmlKac(w.makam)}</span>`:''}
       <span class="work-chip-remove" onclick="removeWork('${a.id}',${idx})">✕</span>
     </div>`).join('');
   dc.innerHTML = `
@@ -368,7 +368,7 @@ function renderDetail() {
       <div class="detail-top">
         <div class="detail-avatar">${initials(a.name)}</div>
         <div style="flex:1;">
-          <div class="detail-name">${a.name}</div>
+          <div class="detail-name">${htmlKac(a.name)}</div>
           
         </div>
         <div class="detail-actions">
@@ -377,9 +377,9 @@ function renderDetail() {
         </div>
       </div>
       <div class="info-grid">
-        ${a.phone?`<div class="info-card"><div class="info-card-label">${_soCev('so.telefon','Telefon')}</div><div class="info-card-value"><a href="tel:${a.phone}">${a.phone}</a></div></div>`:''}
-        ${a.email?`<div class="info-card"><div class="info-card-label">${_soCev('so.eposta','E-posta')}</div><div class="info-card-value"><a href="mailto:${a.email}">${a.email}</a></div></div>`:''}
-        ${a.notes?`<div class="info-card full"><div class="info-card-label">${_soCev('so.notlar','Notlar')}</div><div class="notes-box">${a.notes}</div></div>`:''}
+        ${a.phone?`<div class="info-card"><div class="info-card-label">${_soCev('so.telefon','Telefon')}</div><div class="info-card-value"><a href="tel:${encodeURIComponent(String(a.phone).replace(/[^\d+]/g,''))}">${htmlKac(a.phone)}</a></div></div>`:''}
+        ${a.email?`<div class="info-card"><div class="info-card-label">${_soCev('so.eposta','E-posta')}</div><div class="info-card-value"><a href="mailto:${htmlKac(encodeURIComponent(a.email).replace(/%40/g,'@'))}">${htmlKac(a.email)}</a></div></div>`:''}
+        ${a.notes?`<div class="info-card full"><div class="info-card-label">${_soCev('so.notlar','Notlar')}</div><div class="notes-box">${htmlKac(a.notes)}</div></div>`:''}
       </div>
       <div class="works-chips">
         ${workChips}
@@ -469,8 +469,8 @@ function renderWorkPicker(q) {
   const el = document.getElementById('workPickerList');
   el.innerHTML = list.slice(0,80).map(w =>
     `<div class="work-pick-item${selectedWorkId===w.id?' selected':''}" onclick="selectedWorkId='${w.id}';renderWorkPicker(document.getElementById('workSearch').value)">
-      <div class="work-pick-name">${w.name}</div>
-      <div class="work-pick-sub">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div>
+      <div class="work-pick-name">${htmlKac(w.name)}</div>
+      <div class="work-pick-sub">${htmlKac([w.composer,w.makam].filter(Boolean).join(' · '))}</div>
     </div>`
   ).join('') || '<div style="padding:16px;text-align:center;color:var(--text3);">' + _soCev('so.bulunamadi','Bulunamadı — Önce Eserler sayfasını ziyaret edin') + '</div>';
 }

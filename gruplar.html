@@ -594,7 +594,7 @@ function renderMembersList(members) {
         </div>
         <div class="member-instrument" id="instr-display-${m.user_id}">
           ${_enstrListe(m).length
-            ? `<i class="ti ti-guitar-pick" style="font-size:11px;"></i> ${_enstrListe(m).join(', ')}`
+            ? `<i class="ti ti-guitar-pick" style="font-size:11px;"></i> ${_enstrListe(m).map(htmlKac).join(', ')}`
             : '<span style="color:var(--text3);font-style:italic;">' + _grCev('gr.enstrumanYok','Enstrüman belirtilmemiş') + '</span>'}
         </div>
         <div id="instr-edit-${m.user_id}" style="display:none;margin-top:6px;">

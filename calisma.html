@@ -1329,8 +1329,9 @@ function rbNot(metin, hataMi) {
 }
 function rbKacis(s) { return String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function rbOzet(r) {
-  return r.zaman_sayisi + '/' + (r.zaman_sayisi % 3 === 0 && r.zaman_sayisi > 3 ? 8 : 4) + ' · ' +
-    r.olcu_sayisi + ' ' + _caCev('ca.rbOlcu', 'ölçü') + ' · ' + (+r.tempo).toFixed(r.tempo % 1 ? 1 : 0) + ' BPM · ' +
+  const z = parseInt(r.zaman_sayisi) || 0, o = parseInt(r.olcu_sayisi) || 0;   // (2026-10-17) XSS: sayı olarak
+  return z + '/' + (z % 3 === 0 && z > 3 ? 8 : 4) + ' · ' +
+    o + ' ' + _caCev('ca.rbOlcu', 'ölçü') + ' · ' + (+r.tempo).toFixed(r.tempo % 1 ? 1 : 0) + ' BPM · ' +
     (+r.sure_sn).toFixed(1) + ' ' + _caCev('ca.sn', 'sn');
 }
 

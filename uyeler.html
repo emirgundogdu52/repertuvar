@@ -186,13 +186,15 @@ function renderMembers(list) {
   for (var i = 0; i < list.length; i++) {
     var m = list[i];
     var uid = m.id || '';
-    var email = m.email || '—';
-    var name = m.display_name || '';
+    // (2026-10-17) XSS: e-posta / ad / rol HTML'e ve özniteliklere kaçışsız giriyordu (yönetici ekranı) — kaçışlı kopyalar
+    var email = htmlKac(m.email || '—');
+    var name = htmlKac(m.display_name || '');
+    var rolH = htmlKac(m.role || '');
     var date = m.created_at ? new Date(m.created_at).toLocaleDateString(_uYerel()) : '';
-    var roleBtn = m.role !== 'admin' ? '<button class="btn-sm promote" data-uid="' + uid + '" data-role="' + m.role + '" data-email="' + email + '">' + (m.role === 'editor' ? _uCev('uye.uyeYap','↓ Üye Yap') : _uCev('uye.editorYap','↑ Editör Yap')) + '</button>' : '';
+    var roleBtn = m.role !== 'admin' ? '<button class="btn-sm promote" data-uid="' + uid + '" data-role="' + rolH + '" data-email="' + email + '">' + (m.role === 'editor' ? _uCev('uye.uyeYap','↓ Üye Yap') : _uCev('uye.editorYap','↑ Editör Yap')) + '</button>' : '';
     var delBtn = m.role !== 'admin' ? '<button class="btn-sm danger" data-uid="' + uid + '" data-email="' + email + '">' + _uCev('uye.kaldir','Kaldır') + '</button>' : '';
     html += '<div class="member-card">' +
-      '<div class="member-avatar">' + (name || email).charAt(0).toUpperCase() + '</div>' +
+      '<div class="member-avatar">' + htmlKac((m.display_name || m.email || '—').charAt(0).toUpperCase()) + '</div>' +
       '<div class="member-info"><div class="member-email" onclick="editName(this,\'' + uid + '\')" title="' + _uCev('uye.isimDuzenle','İsim düzenle') + '">' + (name || email) + '</div>' +
       '<div class="member-meta">' + (name ? email + ' · ' : '') + date + '</div></div>' +
       roleBadge(m.role) +
@@ -263,19 +265,19 @@ function renderDeletionRequests(members) {
     var kalan = 30 - gun;
     var isSuspended = m.status === 'suspended';
     var suspendBtn = isSuspended
-      ? '<button class="btn-sm" style="border-color:rgba(250,180,50,.4);color:#facc15;background:rgba(250,180,50,.08);" onclick="hesabiAktifYap(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)"><i class="ti ti-lock-open"></i> ' + _uCev('uye.askiyiKaldir','Askıyı Kaldır') + '</button>'
-      : '<button class="btn-sm" style="border-color:rgba(250,180,50,.4);color:#facc15;background:rgba(250,180,50,.08);" onclick="hesabiAskiyaAl(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)"><i class="ti ti-lock"></i> ' + _uCev('uye.askiyaAl','Askıya Al') + '</button>';
+      ? '<button class="btn-sm" style="border-color:rgba(250,180,50,.4);color:#facc15;background:rgba(250,180,50,.08);" data-id="' + htmlKac(m.id) + '" data-email="' + htmlKac(m.email||'') + '" onclick="hesabiAktifYap(this.dataset.id, this.dataset.email)"><i class="ti ti-lock-open"></i> ' + _uCev('uye.askiyiKaldir','Askıyı Kaldır') + '</button>'
+      : '<button class="btn-sm" style="border-color:rgba(250,180,50,.4);color:#facc15;background:rgba(250,180,50,.08);" data-id="' + htmlKac(m.id) + '" data-email="' + htmlKac(m.email||'') + '" onclick="hesabiAskiyaAl(this.dataset.id, this.dataset.email)"><i class="ti ti-lock"></i> ' + _uCev('uye.askiyaAl','Askıya Al') + '</button>';
     var suspendedBadge = isSuspended ? ' <span style="background:rgba(250,180,50,.15);border:1px solid rgba(250,180,50,.35);color:#facc15;border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700;">' + _uCev('uye.askida','Askıda') + '</span>' : '';
     return '<div class="member-card" style="border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.04);">' +
-      '<div class="member-avatar" style="background:rgba(248,113,113,.3);">' + (m.email||'?').charAt(0).toUpperCase() + '</div>' +
+      '<div class="member-avatar" style="background:rgba(248,113,113,.3);">' + htmlKac((m.email||'?').charAt(0).toUpperCase()) + '</div>' +
       '<div class="member-info">' +
-        '<div class="member-email">' + (m.email||'—') + suspendedBadge + '</div>' +
+        '<div class="member-email">' + htmlKac(m.email||'—') + suspendedBadge + '</div>' +
         '<div class="member-meta">' + _uCev('uye.talepTarih','Talep: ') + new Date(m.deletion_requested_at).toLocaleDateString(_uYerel()) + ' · ' + (kalan > 0 ? (kalan === 1 ? _uCev('uye.gunKaldi1','{n} gün kaldı') : _uCev('uye.gunKaldi','{n} gün kaldı')).replace('{n}', kalan) : _uCev('uye.sureDoldu','Süre doldu!')) + '</div>' +
       '</div>' +
       '<div class="member-actions">' +
         suspendBtn +
-        '<button class="btn-sm danger" onclick="hesabiSil(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)"><i class="ti ti-trash"></i> ' + _uCev('uye.hesabiSil','Hesabı Sil') + '</button>' +
-        '<button class="btn-sm" onclick="silmeyiIptal(&quot;' + m.id + '&quot;,&quot;' + (m.email||'') + '&quot;)">' + _uCev('uye.iptalEt','İptal Et') + '</button>' +
+        '<button class="btn-sm danger" data-id="' + htmlKac(m.id) + '" data-email="' + htmlKac(m.email||'') + '" onclick="hesabiSil(this.dataset.id, this.dataset.email)"><i class="ti ti-trash"></i> ' + _uCev('uye.hesabiSil','Hesabı Sil') + '</button>' +
+        '<button class="btn-sm" data-id="' + htmlKac(m.id) + '" data-email="' + htmlKac(m.email||'') + '" onclick="silmeyiIptal(this.dataset.id, this.dataset.email)">' + _uCev('uye.iptalEt','İptal Et') + '</button>' +
       '</div>' +
     '</div>';
   }).join('');

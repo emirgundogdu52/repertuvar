@@ -374,11 +374,11 @@ async function loadMessages() {
         Object.entries(groups).sort((a,b) => new Date(b[1].messages[0].created_at) - new Date(a[1].messages[0].created_at)).map(([key, g]) => {
           const last = g.messages[0];
           const ini = (g.email || '?')[0].toUpperCase();
-          return `<div class="conv-item ${g.unread ? 'unread' : ''}" onclick="openThread('${key}', '${g.email.replace(/'/g,"\\'")}')">
-            <div class="conv-avatar">${ini}</div>
+          return `<div class="conv-item ${g.unread ? 'unread' : ''}" data-key="${htmlKac(key)}" data-email="${htmlKac(g.email)}" onclick="openThread(this.dataset.key, this.dataset.email)">
+            <div class="conv-avatar">${htmlKac(ini)}</div>
             <div class="conv-info">
-              <div class="conv-email">${g.email}</div>
-              <div class="conv-preview">${last.content.substring(0,60)}${last.content.length>60?'...':''}</div>
+              <div class="conv-email">${htmlKac(g.email)}</div>
+              <div class="conv-preview">${htmlKac(last.content.substring(0,60))}${last.content.length>60?'...':''}</div>
             </div>
             <div class="conv-meta">
               <div class="conv-date">${timeAgo(last.created_at)}</div>
@@ -395,8 +395,8 @@ async function loadMessages() {
             <span class="thread-msg-from">${_msCev('ms.siz','Siz')}</span>
             <span class="thread-msg-date">${timeAgo(m.created_at)}</span>
           </div>
-          <div class="thread-msg-content">${m.content}</div>
-          ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">${_msCev('ms.adminYaniti','Admin Yanıtı')} · ${timeAgo(m.replied_at)}</div>${m.admin_reply}</div>` : ''}
+          <div class="thread-msg-content">${htmlKac(m.content)}</div>
+          ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">${_msCev('ms.adminYaniti','Admin Yanıtı')} · ${timeAgo(m.replied_at)}</div>${htmlKac(m.admin_reply)}</div>` : ''}
           <div class="thread-actions">
             <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:11px;"></i> ${_msCev('ortak.sil','Sil')}</button>
           </div>
@@ -416,23 +416,23 @@ function openThread(fromId, email) {
       if (unread.length) markRead(unread);
       panel.innerHTML = `<div class="thread-header">
           <button class="btn-back" onclick="loadMessages()"><i class="ti ti-arrow-left"></i> ${_msCev('ortak.geri','Geri')}</button>
-          <div class="thread-email">${email}</div>
+          <div class="thread-email">${htmlKac(email)}</div>
         </div>` +
         data.map(m => `
           <div class="thread-msg" id="msg-${m.id}">
             <div class="thread-msg-header">
-              <span class="thread-msg-from">${email.split('@')[0]}</span>
+              <span class="thread-msg-from">${htmlKac(email.split('@')[0])}</span>
               <span class="thread-msg-date">${timeAgo(m.created_at)}</span>
             </div>
-            <div class="thread-msg-content">${m.content}</div>
-            ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">${_msCev('ms.adminYaniti','Admin Yanıtı')} · ${timeAgo(m.replied_at)}</div>${m.admin_reply}</div>` : ''}
+            <div class="thread-msg-content">${htmlKac(m.content)}</div>
+            ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">${_msCev('ms.adminYaniti','Admin Yanıtı')} · ${timeAgo(m.replied_at)}</div>${htmlKac(m.admin_reply)}</div>` : ''}
             <div class="thread-actions">
               ${!m.admin_reply ? `<button class="btn-reply" onclick="toggleReplyThread('${m.id}')"><i class="ti ti-reply"></i> ${_msCev('ms.yanitla','Yanıtla')}</button>` : ''}
               <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:11px;"></i> ${_msCev('ortak.sil','Sil')}</button>
             </div>
             <div class="reply-form" id="reply-${m.id}" style="display:none;">
               <textarea placeholder="${_msCev('ms.phYanit','Yanıtınızı yazın...')}" id="replyText-${m.id}" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:12px;font-family:inherit;outline:none;resize:vertical;min-height:70px;margin-top:8px;"></textarea>
-              <button class="btn-send" style="margin-top:8px;padding:7px 16px;font-size:12px;" onclick="sendReply('${m.id}','${fromId}','${email.replace(/'/g,"\\'")}')" data-i18n="ms.gonder">${_msCev('ms.gonder','Gönder')}</button>
+              <button class="btn-send" style="margin-top:8px;padding:7px 16px;font-size:12px;" data-email="${htmlKac(email)}" onclick="sendReply('${m.id}','${fromId}',this.dataset.email)" data-i18n="ms.gonder">${_msCev('ms.gonder','Gönder')}</button>
             </div>
           </div>`).join('');
       setTimeout(() => { panel.scrollTop = panel.scrollHeight; }, 50);
@@ -494,10 +494,10 @@ function renderNmList(members) {
     const label = p.email || p.display_name || p.id;   // data-email için (gönderim akışı bunu kullanıyor)
     // Satırda isim üstte, e-posta altta: isimle arayan kişinin sonucu görebilmesi için.
     const shown = p.display_name
-      ? `<span class="nm-name">${p.display_name}</span><span class="nm-mail">${p.email || ''}</span>`
-      : `<span class="nm-name">${p.email || p.id}</span>`;
+      ? `<span class="nm-name">${htmlKac(p.display_name)}</span><span class="nm-mail">${htmlKac(p.email || '')}</span>`
+      : `<span class="nm-name">${htmlKac(p.email || p.id)}</span>`;
     return `<div class="nm-member-item" onclick="toggleNmCheck('${p.id}')">
-      <input type="checkbox" id="nmchk-${p.id}" value="${p.id}" data-email="${label}" onclick="event.stopPropagation();updateNmCount()">
+      <input type="checkbox" id="nmchk-${p.id}" value="${p.id}" data-email="${htmlKac(label)}" onclick="event.stopPropagation();updateNmCount()">
       <label for="nmchk-${p.id}">${shown}</label>
     </div>`;
   }).join('');
@@ -613,8 +613,8 @@ async function loadAnnouncements() {
     }
     panel.innerHTML = data.map(a => `
       <div class="ann-card">
-        <div class="ann-title">📢 ${a.title}</div>
-        <div class="ann-content">${a.content}</div>
+        <div class="ann-title">📢 ${htmlKac(a.title)}</div>
+        <div class="ann-content">${htmlKac(a.content)}</div>
         <div class="ann-date">${timeAgo(a.created_at)}</div>
       </div>`).join('');
   } catch(e) {

@@ -833,7 +833,7 @@ function renderList(){
     return String(a.name||'').localeCompare(String(b.name||''), 'tr');  // eşitse ada göre
   };
   const filtered = reps.filter(r=>repMatchesSearch(r, repSearchQuery)).sort(_sira);
-  if(repSearchQuery && !filtered.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">' + _r('rep.sonucYok','"{q}" için sonuç bulunamadı').replace('{q}', repSearchQuery) + '</div>';return;}
+  if(repSearchQuery && !filtered.length){el.innerHTML='<div style="padding:30px 16px;text-align:center;color:var(--text3);">' + _r('rep.sonucYok','"{q}" için sonuç bulunamadı').replace('{q}', _rEsc(repSearchQuery)) + '</div>';return;}
   const sl={concept:_r('rep.taslak','Taslak'),confirmed:_r('rep.onaylandi','Onaylandı'),archive:_r('rep.arsiv','Arşiv')};
   const sc={concept:'sc',confirmed:'sf',archive:'sa'};
   const hiddenIds = getHiddenRepIds();
@@ -878,7 +878,7 @@ function renderList(){
     const touchAttrs = `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)" ontouchcancel="riTouchEnd(event)"`;
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
       <div><div class="rn">${_rEsc(r.name)}${repVis(r)==='public'&&r.isOwner?' <i class="ti ti-world" style="font-size:12px;color:#4ade80;vertical-align:-1px;" title="'+_r('yo.herkeseAcik','Herkese açık')+'" aria-hidden="true"></i>':''}</div>
-      <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||_r('rep.taslak','Taslak')}</span>${medleyChip}${r.date?'<span>'+r.date+'</span>':''}</div></div>
+      <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||_r('rep.taslak','Taslak')}</span>${medleyChip}${r.date?'<span>'+_rEsc(r.date)+'</span>':''}</div></div>
       <div class="rc">${(r.items||[]).length} ${_rBirim((r.items||[]).length)}</div>
     </div>`;
     // Kendi repertuvarında: gerçekten SİL (kırmızı). Başkasınınkinde: sadece kendi
@@ -1017,7 +1017,7 @@ function renderDetail(){
         <button class="br${activeItemRepId===rep.id&&activeItemIdx===idx?' active':''}" onclick="mvActive('${rep.id}',${idx},1)" ${idx===items.length-1?'disabled':''}>↓</button>
         <button class="br bl${linked?' linked':''}" onclick="toggleLink('${rep.id}','${it.id}')" ${idx===0?'disabled':''} title="${linked?_r('rep.potpuriCoz','Potpuri bağını çöz'):_r('rep.potpuriYap','Bir öncekiyle potpuri yap (kesintisiz devam)')}">🔗</button>
         <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
-        <button class="br dl" onclick="rmItem('${rep.id}','${it.id}','${(w.name||_r('rep.buEser','Bu eser')).replace(/'/g,"\\'")}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
+        <button class="br dl" data-ad="${_rEsc(w.name||_r('rep.buEser','Bu eser'))}" onclick="rmItem('${rep.id}','${it.id}',this.dataset.ad)"><i class="ti ti-trash" aria-hidden="true"></i></button>
         `:''}
       </div></td>
     </tr>`;
@@ -1252,7 +1252,10 @@ function pfRender() {
   pfSelected.forEach(name => {
     const tag = document.createElement('span');
     tag.className = 'pf-tag';
-    tag.innerHTML = name + '<button type="button" onclick="pfRemove(\''+name+'\')">×</button>';
+    // (2026-10-17) XSS: ad innerHTML + onclick'e gömülüyordu → metin düğümü + kapanış ile
+    tag.textContent = name;
+    const xb = document.createElement('button'); xb.type = 'button'; xb.textContent = '×'; xb.onclick = () => pfRemove(name);
+    tag.appendChild(xb);
     container.insertBefore(tag, input);
   });
 }
@@ -1287,8 +1290,8 @@ function pfSuggest(q) {
   const matches = _pfAdaylar(q, pfSelected);
   if (!matches.length) { pfHideDropdown(); return; }
   dd.innerHTML = matches.slice(0,10).map(m =>
-    '<div class="pf-dd-item" onmousedown="event.preventDefault();pfAdd(\''
-    + m.deger.replace(/'/g, "\\'") + '\')">' + m.etiket + '</div>'
+    '<div class="pf-dd-item" data-deger="' + _rEsc(m.deger) + '" onmousedown="event.preventDefault();pfAdd(this.dataset.deger)">'
+    + _rEsc(m.etiket) + '</div>'   // (2026-10-17) XSS
   ).join('');
   dd.style.display = 'block';
 }
@@ -1328,7 +1331,7 @@ function filterW(){
   const kaynak=WLIST.filter(_rbEserGorunur);
   // Türkçe duyarsız: "Gülşen" kaydı "gulsen", "Çeşm-i" kaydı "cesmi" ile bulunur.
   const list=q?kaynak.filter(w=>trMatch((w.name||'')+' '+(w.composer||'')+' '+(w.makam||''), q)):kaynak;
-  document.getElementById('wpl').innerHTML=list.slice(0,80).map(w=>`<div class="wpi${selWId===w.id?' sel':''}" onclick="pickW('${w.id}')"><div class="wpn">${w.name}</div><div class="wps">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--text3);">'+_r('rep.bulunamadi','Bulunamadı')+'</div>';
+  document.getElementById('wpl').innerHTML=list.slice(0,80).map(w=>`<div class="wpi${selWId===w.id?' sel':''}" onclick="pickW('${w.id}')"><div class="wpn">${_rEsc(w.name)}</div><div class="wps">${_rEsc([w.composer,w.makam].filter(Boolean).join(' · '))}</div></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--text3);">'+_r('rep.bulunamadi','Bulunamadı')+'</div>';
 }
 function pickW(id){
   selWId=id;
@@ -1679,15 +1682,15 @@ function runSort(mode){
     if(mode==='olcu'){
       // Ölçü modunda makam geçiş notu yerine ölçü grubu başlığı (ölçü değişince)
       if(!linked && (i===0 || workProfile(after[i-1]).olcuTxt!==p.olcuTxt))
-        html+=`<div class="sort-tr ok">${p.olcuTxt||_r('rep.olcuYok','ölçü ?')}</div>`;
+        html+=`<div class="sort-tr ok">${_rEsc(p.olcuTxt||_r('rep.olcuYok','ölçü ?'))}</div>`;
     }else if(i>0 && !linked){
       const t=transitionCost(workProfile(after[i-1]),p);
-      html+=`<div class="sort-tr ${t.lvl}">${t.lvl==='bad'?'⚠':(t.lvl==='ok'?'✓':'·')} ${t.txt}</div>`;
+      html+=`<div class="sort-tr ${t.lvl}">${t.lvl==='bad'?'⚠':(t.lvl==='ok'?'✓':'·')} ${_rEsc(t.txt)}</div>`;
     }
     html+=`<div class="sort-row${linked?' chained':''}">
       <span class="sort-no">${linked?'↳':(i+1)}</span>
-      <span class="sort-name">${linked?'🔗 ':''}${p.name}</span>
-      <span class="sort-mk">${mode==='olcu' ? (p.olcuTxt||'<i>'+_r('rep.olcuYok','ölçü ?')+'</i>')+(p.makamAd?' · '+p.makamAd:'') : (p.makamAd||'<i>makam ?</i>')+(p.kararTxt?' · '+p.kararTxt:'')}</span>
+      <span class="sort-name">${linked?'🔗 ':''}${_rEsc(p.name)}</span>
+      <span class="sort-mk">${mode==='olcu' ? (p.olcuTxt?_rEsc(p.olcuTxt):'<i>'+_r('rep.olcuYok','ölçü ?')+'</i>')+(p.makamAd?' · '+_rEsc(p.makamAd):'') : (p.makamAd?_rEsc(p.makamAd):'<i>makam ?</i>')+(p.kararTxt?' · '+_rEsc(p.kararTxt):'')}</span>
     </div>`;
   });
   body.innerHTML=html;
@@ -2065,13 +2068,13 @@ function printR(repId){
   const rep=getRep(repId);if(!rep)return;
   const items=rep.items||[];
   const sl={concept:_r('rep.taslak','Taslak'),confirmed:_r('rep.onaylandi','Onaylandı'),archive:_r('rep.arsiv','Arşiv')};
-  const rows=items.map(it=>{const w=WL[String(it.workId)]||{};const cn=it.closingNote||w.closingNote||'';return`<tr><td style="width:40px;color:#888;text-align:center;">${it.seq}</td><td style="padding:9px 12px;"><div style="font-weight:500;color:#111;">${w.name||it.workId}</div><div style="font-size:11px;color:#666;">${[w.composer,w.makam].filter(Boolean).join(' · ')}</div></td><td style="width:80px;text-align:center;color:#444;">${cn}</td><td style="width:120px;font-size:12px;color:#666;">${it.note||''}</td></tr>`;}).join('');
+  const rows=items.map(it=>{const w=WL[String(it.workId)]||{};const cn=it.closingNote||w.closingNote||'';return`<tr><td style="width:40px;color:#888;text-align:center;">${it.seq}</td><td style="padding:9px 12px;"><div style="font-weight:500;color:#111;">${_rEsc(w.name||it.workId)}</div><div style="font-size:11px;color:#666;">${_rEsc([w.composer,w.makam].filter(Boolean).join(' · '))}</div></td><td style="width:80px;text-align:center;color:#444;">${_rEsc(cn)}</td><td style="width:120px;font-size:12px;color:#666;">${_rEsc(it.note||'')}</td></tr>`;}).join('');
 
   const printCSS = '*{margin:0;padding:0;box-sizing:border-box;}body{font-family:\'DM Sans\',sans-serif;font-size:14px;color:#111;padding:32px 40px;}h1{font-family:\'Playfair Display\',serif;font-size:28px;font-weight:400;margin-bottom:8px;}hr{border:none;border-top:2px solid #111;margin:16px 0;}table{width:100%;border-collapse:collapse;}th{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#888;text-align:left;padding:6px 12px;border-bottom:1px solid #ddd;}td{padding:9px 12px;border-bottom:1px solid #eee;vertical-align:middle;}';
-  const printHTML = '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>' + rep.name + '</title><style>' + printCSS + '</style><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"></head><body>'
+  const printHTML = '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>' + _rEsc(rep.name) + '</title><style>' + printCSS + '</style><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"></head><body>'
     + '<div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:24px;">' + _r('rep.adsizRep','Repertuvar') + ' — ' + new Date().toLocaleDateString('tr-TR') + '</div>'
-    + '<h1>' + rep.name + '</h1>'
-    + '<div style="display:flex;gap:16px;font-size:12px;color:#666;margin-bottom:16px;">' + (rep.date?'\uD83D\uDCC5 '+rep.date:'') + (rep.venue?' \uD83D\uDCCD '+rep.venue:'') + (rep.status?' \u25CF '+sl[rep.status]:'') + ' \uD83C\uDFBC ' + items.length + ' ' + _rBirim(items.length) + '</div>'
+    + '<h1>' + _rEsc(rep.name) + '</h1>'
+    + '<div style="display:flex;gap:16px;font-size:12px;color:#666;margin-bottom:16px;">' + (rep.date?'\uD83D\uDCC5 '+_rEsc(rep.date):'') + (rep.venue?' \uD83D\uDCCD '+_rEsc(rep.venue):'') + (rep.status?' \u25CF '+sl[rep.status]:'') + ' \uD83C\uDFBC ' + items.length + ' ' + _rBirim(items.length) + '</div>'
     + '<hr><table><thead><tr><th>#</th><th>' + _r('rep.thEserAdi','Eser Ad\u0131') + '</th><th>' + _r('rep.thKapanis','Kapan\u0131\u015f') + '</th><th>' + _r('rep.thNot','Not') + '</th></tr></thead><tbody>' + rows + '</tbody></table>'
     + '</body></html>';
   printViaIframe(printHTML, rep.name);
@@ -2198,7 +2201,7 @@ function iemPfRender(){
   c.querySelectorAll('.pf-tag').forEach(el=>el.remove());
   iemPfSelected.forEach(name=>{
     const t=document.createElement('span');t.className='pf-tag';
-    t.innerHTML=name+'<button type="button" onclick="iemPfRemove(\''+name+'\')">×</button>';
+    t.textContent=name; const xb=document.createElement('button'); xb.type='button'; xb.textContent='×'; xb.onclick=()=>iemPfRemove(name); t.appendChild(xb);   // (2026-10-17) XSS
     c.insertBefore(t,inp);
   });
 }
@@ -2219,7 +2222,7 @@ function iemPfSuggest(q){
   if(!q){dd.style.display='none';return;}
   const m=_pfAdaylar(q,iemPfSelected);
   if(!m.length){dd.style.display='none';return;}
-  dd.innerHTML=m.slice(0,10).map(x=>'<div class="pf-dd-item" onmousedown="event.preventDefault();iemPfAdd(\''+x.deger.replace(/'/g,"\\'")+'\')">'+x.etiket+'</div>').join('');
+  dd.innerHTML=m.slice(0,10).map(x=>'<div class="pf-dd-item" data-deger="'+_rEsc(x.deger)+'" onmousedown="event.preventDefault();iemPfAdd(this.dataset.deger)">'+_rEsc(x.etiket)+'</div>').join('');
   dd.style.display='block';
 }
 document.addEventListener('click',function(e){
@@ -2266,7 +2269,7 @@ function openShareModal(name){
   ov.innerHTML = `
     <div class="share-box">
       <div class="share-head"><span>${_r('rep.misafirBaglanti','🔗 Misafir Bağlantısı')}</span><button class="sort-x" onclick="closeShare()">✕</button></div>
-      <div class="share-name">${name}</div>
+      <div class="share-name">${_rEsc(name)}</div>
       <div class="share-note">${_r('rep.misafirNot','Bağlantıyı açan kişi repertuvarı <b>salt okunur</b> görür — giriş yapmasına gerek yok. Süre dolunca bağlantı ölür. Akorlar paylaşılmaz.')}</div>
       <div class="share-foot" style="justify-content:flex-start;gap:8px;">
         <button class="bi" onclick="createShareLink(12)">${_r('rep.nSaat','{n} saat').replace('{n}',12)}</button>
@@ -2321,7 +2324,7 @@ async function createShareLink(hours){
       try{ await navigator.share({title:(rp&&rp.name)||_r('rep.adsizRep','Repertuvar'), url:link}); }catch(e){}
     }
   }catch(e){
-    if(box) box.innerHTML = '<div class="share-note" style="color:var(--red);">'+_r('rep.baglantiOlusturulamadi','Bağlantı oluşturulamadı: ')+e.message+'</div>';
+    if(box) box.innerHTML = '<div class="share-note" style="color:var(--red);">'+_r('rep.baglantiOlusturulamadi','Bağlantı oluşturulamadı: ')+_rEsc(e.message)+'</div>';
   }
 }
 

@@ -1514,13 +1514,13 @@ function renderPicker(){
   const el=document.getElementById('rsl');
   if(!reps.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);line-height:1.8;">' + _sCev('sh.henuzRepYok','Henüz repertuvar yok.') + '<br>' + _sCev('sh.repOlusturun','{link} repertuvar oluşturun.').replace('{link}', '<a href="repertoires.html" style="color:var(--accent)">' + _sCev('sh.repSayfasi','Repertuvar sayfasında') + '</a>') + '</div>';return;}
   const filtered = reps.filter(r=>stageRepMatchesSearch(r, stageSearchQuery));
-  if(stageSearchQuery && !filtered.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);">' + _sCev('sh.sonucYok','"{q}" için sonuç bulunamadı').replace('{q}', stageSearchQuery) + '</div>';return;}
+  if(stageSearchQuery && !filtered.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);">' + _sCev('sh.sonucYok','"{q}" için sonuç bulunamadı').replace('{q}', htmlKac(stageSearchQuery)) + '</div>';return;}
   const sl={concept:_sCev('sh.dTaslak','Taslak'),confirmed:_sCev('sh.dOnaylandi','Onaylandı'),archive:_sCev('sh.dArsiv','Arşiv')};
   const uid = getUserId();
   el.innerHTML=filtered.map(r=>{
     const isOwner = r.owner_id === uid || r.user_id === uid;
     const cardHtml = `<div class="rsi${selId===r.id?' sel':''}" onclick="rsCardClick(event,'${r.id}')" ontouchstart="rsTouchStart(event)" ontouchmove="rsTouchMove(event)" ontouchend="rsTouchEnd(event)" ontouchcancel="rsTouchEnd(event)">
-      <div><div class="rsn">${r.name}</div><div class="rsm">${[r.date,r.venue,sl[r.status]].filter(Boolean).join(' · ')}</div></div>
+      <div><div class="rsn">${htmlKac(r.name)}</div><div class="rsm">${htmlKac([r.date,r.venue,sl[r.status]].filter(Boolean).join(' · '))}</div></div>
       <div class="rsc">${_sCev('sh.nEser','{n} eser').replace('{n}', (r.items||[]).length)}</div>
     </div>`;
     const editBg = `<div class="rs-edit-bg" onclick="event.stopPropagation();rsCloseOpenCard();window.location.href='repertoires.html?rep=${r.id}'"><i class="ti ti-edit"></i>${_sCev('sh.degistir','Değiştir')}</div>`;
@@ -1934,7 +1934,7 @@ function tonSliderInput(v) {
   updateTonSliderUI(n);
 }
 function _tonKutuIcerik(n) {
-  const ad = tonSesAdi(_tonKararSesi(), n);
+  const ad = htmlKac(tonSesAdi(_tonKararSesi(), n));   // karar sesi eserden gelir
   const fark = n > 0 ? '+' + n : (n < 0 ? String(n) : _sCev('sh.tonOzgun','özgün'));
   return (ad || (n ? fark : _sCev('sh.ton','Ton'))) + '<small>' + fark + '</small>';
 }
@@ -2253,23 +2253,23 @@ function renderStage(){
     const rows = [
       // (2026-08-23) KADRO en uste yakin: sahnede "bu eserde kim caliyor"
       // sorusu esere girerken sorulur, teknik ayrintilardan once gelir.
-      item.performer ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.kadro','Kadro')}</span><span class="sip-val">${item.performer}</span></div>` : '',
+      item.performer ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.kadro','Kadro')}</span><span class="sip-val">${htmlKac(item.performer)}</span></div>` : '',
       // (2026-09-27) Türk müziği terimleri İngilizcede ÇEVRİLMİYOR, yanına kısa
       // açıklama geliyor ("Makam (melodic mode)"). alan.* anahtarları dar
       // çiplerde de kullanıldığı için uzatılmadı; sahneye özel anahtar var.
-      w.makam ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.lblMakam','Makam')}</span><span class="sip-val">${w.makam}</span></div>` : '',
-      (item.closingNote||w.closingNote) ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.kapanis','Kapanış')}</span><span class="sip-val">${item.closingNote||w.closingNote}</span></div>` : '',
-      w.tuning ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.akort','Akort')}</span><span class="sip-val">${w.tuning}</span></div>` : '',
-      w.form ? `<div class="sip-row"><span class="sip-label">${_sCev('es.form','Form')}</span><span class="sip-val">${w.form}</span></div>` : '',
+      w.makam ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.lblMakam','Makam')}</span><span class="sip-val">${htmlKac(w.makam)}</span></div>` : '',
+      (item.closingNote||w.closingNote) ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.kapanis','Kapanış')}</span><span class="sip-val">${htmlKac(item.closingNote||w.closingNote)}</span></div>` : '',
+      w.tuning ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.akort','Akort')}</span><span class="sip-val">${htmlKac(w.tuning)}</span></div>` : '',
+      w.form ? `<div class="sip-row"><span class="sip-label">${_sCev('es.form','Form')}</span><span class="sip-val">${htmlKac(w.form)}</span></div>` : '',
       // (2026-08-30) `measurement` ÖLÇÜ tutuyor (4/4, 9/8), usul değil.
       // Usul ayrı sütunda (`ritim`) ve o da burada gösteriliyor.
-      w.measurement ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.olcu','Ölçü')}</span><span class="sip-val">${w.measurement}</span></div>` : '',
-      w.ritim ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.lblUsul','Usul')}</span><span class="sip-val">${w.ritim}</span></div>` : '',
-      w.region ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.bolge','Bölge')}</span><span class="sip-val">${w.region}</span></div>` : '',
-      w.composer ? `<div class="sip-row"><span class="sip-label">${_sCev('es.bestecialan','Besteci')}</span><span class="sip-val">${w.composer}</span></div>` : '',
-      w.lyricWriter ? `<div class="sip-row"><span class="sip-label">${_sCev('es.sozyazari','Söz Yazarı')}</span><span class="sip-val">${w.lyricWriter}</span></div>` : '',
-      w.instrument ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.enstruman','Enstrüman')}</span><span class="sip-val">${w.instrument}</span></div>` : '',
-      item.note ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.not','Not')}</span><span class="sip-val">${item.note}</span></div>` : '',
+      w.measurement ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.olcu','Ölçü')}</span><span class="sip-val">${htmlKac(w.measurement)}</span></div>` : '',
+      w.ritim ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.lblUsul','Usul')}</span><span class="sip-val">${htmlKac(w.ritim)}</span></div>` : '',
+      w.region ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.bolge','Bölge')}</span><span class="sip-val">${htmlKac(w.region)}</span></div>` : '',
+      w.composer ? `<div class="sip-row"><span class="sip-label">${_sCev('es.bestecialan','Besteci')}</span><span class="sip-val">${htmlKac(w.composer)}</span></div>` : '',
+      w.lyricWriter ? `<div class="sip-row"><span class="sip-label">${_sCev('es.sozyazari','Söz Yazarı')}</span><span class="sip-val">${htmlKac(w.lyricWriter)}</span></div>` : '',
+      w.instrument ? `<div class="sip-row"><span class="sip-label">${_sCev('alan.enstruman','Enstrüman')}</span><span class="sip-val">${htmlKac(w.instrument)}</span></div>` : '',
+      item.note ? `<div class="sip-row"><span class="sip-label">${_sCev('sh.not','Not')}</span><span class="sip-val">${htmlKac(item.note)}</span></div>` : '',
     ].filter(Boolean).join('');
     panel.innerHTML = rows || '<div style="color:var(--text3);font-size:12px;">' + _sCev('sh.bilgiYok','Bilgi yok') + '</div>';
     const infoBtn = document.querySelector('.stage-info-btn');
@@ -2298,18 +2298,18 @@ function renderStage(){
     const _akorGoster = (typeof akorGoster === 'function') ? akorGoster(_akorHarf) : _akorHarf;
     bodyHtml = `<div class="wlyrics">${renderStageChords(_akorGoster)}</div>`;
   } else {
-    bodyHtml = w.lyrics ? `<div class="wlyrics">${w.lyrics.replace(/\n/g,'<br>')}</div>` : '';
+    bodyHtml = w.lyrics ? `<div class="wlyrics">${htmlKac(w.lyrics).replace(/\n/g,'<br>')}</div>` : '';   // (2026-10-17) XSS: söz kaçışsızdı
   }
   const _cn = item.closingNote || w.closingNote || '';
   const _kt = getTranspose(item.workId);
   const _kl = kararLabel(_cn, _kt);
   const kararChip = _cn
-    ? `<div class="wkarar${_kt ? ' shifted' : ''}" title="${_kt && kararLabel(_cn,0) ? _sCev('sh.orijinalKarar','Orijinal karar: {n}').replace('{n}', kararLabel(_cn,0)) : ''}">${_sCev('sh.kararKisa','Karar')}: ${_kl || _cn}${(!_kl && _kt) ? _sCev('es.kaydirilmadi',' (kaydırılmadı)') : ''}</div>`
+    ? `<div class="wkarar${_kt ? ' shifted' : ''}" title="${htmlKac(_kt && kararLabel(_cn,0) ? _sCev('sh.orijinalKarar','Orijinal karar: {n}').replace('{n}', kararLabel(_cn,0)) : '')}">${_sCev('sh.kararKisa','Karar')}: ${htmlKac(_kl || _cn)}${(!_kl && _kt) ? _sCev('es.kaydirilmadi',' (kaydırılmadı)') : ''}</div>`
     : '';
   const _head = document.getElementById('smHead');
   if (_head) _head.innerHTML = `
     <div class="wnum"></div>
-    <div class="wtitle">${w.name || (WL_loaded ? item.workId : '…')}</div>
+    <div class="wtitle">${htmlKac(w.name || (WL_loaded ? item.workId : '…'))}</div>
     ${kararChip}
     ${knotSahneHtml(item.workId)}`;
   // 2026-07-28: ÖLÇEK ÖNCE, İÇERİK SONRA, HİZA AYNI KAREDE.
@@ -2470,14 +2470,19 @@ function currentNotaPages() {
 }
 
 function notaViewHtml(pages, i) {
-  const u = pages[i];
-  const _ps = _pdfParcala(u);
+  // (2026-10-17) XSS: nota adresi (nota_url / nota_pages REST ile serbest yazılabiliyor) öznitelikte kaçışsızdı —
+  // `x.png" onerror=…` tıklamadan çalışırdı, `javascript:` bağlantısı da açılırdı. Yalnız http(s) / blob: / data:image
+  // (çevrimdışı nota) / göreli adres; öznitelik için tam kaçış.
+  const _hamU = String(pages[i] == null ? '' : pages[i]);
+  const ham = /^(https?:|blob:|data:image\/)/i.test(_hamU) || !/^[a-z][a-z0-9+.-]*:/i.test(_hamU) ? _hamU : '';
+  const u = htmlKac(ham);   // YALNIZ çıktıda; ayrıştırma ham (güvenli) adresle — & çift kaçışa dönmesin
+  const _ps = _pdfParcala(ham);
   const _alt = _sCev('sh.notaSayfa','Nota sayfa {n}').replace('{n}', i+1);
-  const body = isStageNotaImage(u)
+  const body = isStageNotaImage(ham)
     ? `<img id="notaImg" src="${u}" alt="${_alt}">`
     : _ps
-    ? `<canvas class="nota-pdf-sayfa" data-pdf="${_ps.url}" data-sayfa="${_ps.sayfa}" role="img" aria-label="${_alt}"></canvas>`
-    : isStagePdf(u)
+    ? `<canvas class="nota-pdf-sayfa" data-pdf="${htmlKac(_ps.url)}" data-sayfa="${_ps.sayfa}" role="img" aria-label="${_alt}"></canvas>`
+    : isStagePdf(ham)
     ? `<div class="nota-pdf" data-pdf-bekle="${u}">${_sCev('sh.pdfYukleniyor','📄 PDF yükleniyor…')}</div>`
     : `<div class="nota-pdf">${_sCev('sh.pdfNota','📄 PDF nota — sayfa geçişi için sayfaları ayrı görsel olarak yükle.')}<br>
          <a href="${u}" target="_blank" style="color:var(--accent);">${_sCev('sh.notaAc','↗ Aç')}</a></div>`;
@@ -2639,10 +2644,10 @@ function buildStageToolsRow(mode) {
       <button onclick="event.stopPropagation();stepTranspose(-1)" title="${_sCev('sh.yarimTonPes','Yarım ton pes')}" class="align-btn"><i class="ti ti-minus"></i></button>
       <button onclick="event.stopPropagation();resetTranspose()" id="tonBadge" title="${_sCev('sh.tonuSifirla','Tonu sıfırla')}" class="align-btn" style="min-width:44px;font-size:12px;font-weight:800;${tVal?'color:var(--accent);border-color:var(--accent);':''}">${tVal>0?'+'+tVal:(tVal||'Ton')}</button>
       <button onclick="event.stopPropagation();stepTranspose(1)" title="${_sCev('sh.yarimTonTiz','Yarım ton tiz')}" class="align-btn"><i class="ti ti-plus"></i></button>
-      ${_cnTon ? `<span class="ton-karar" style="font-size:11px;white-space:nowrap;padding:0 6px;color:var(--text3, #6b7482);">${_cnTon}</span>` : ''}`;
+      ${_cnTon ? `<span class="ton-karar" style="font-size:11px;white-space:nowrap;padding:0 6px;color:var(--text3, #6b7482);">${htmlKac(_cnTon)}</span>` : ''}`;
     } else if (!_tonAcik) {
-      const _ad = tonSesAdi(_cnTon, tVal);
-      const _org = tonSesAdi(_cnTon, 0);
+      const _ad = htmlKac(tonSesAdi(_cnTon, tVal));   // karar sesi metni eserden gelir — kaçış
+      const _org = htmlKac(tonSesAdi(_cnTon, 0));
       tonBtns = `
       <button onclick="tonKaydiriciAc(event)" id="tonBtn" class="ton-btn${tVal?' shifted':''}"
         title="${tVal ? (_sCev('sh.ozgunKarar','Özgün karar: {n} — değiştirmek için dokun').replace('{n}', _org)) : _sCev('sh.tonuDegistir','Tonu değiştir')}">
@@ -2816,7 +2821,7 @@ function backToPicker(){
         <h1 class="ptitle">${_sCev('sh.paylasilanRep','Paylaşılan Repertuvar')}</h1>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;margin-top:16px;"
           onclick="startSharedRep()">
-          <div style="font-size:15px;font-weight:600;color:var(--text);">${curRep.name||_sCev('sh.adsizRep','Repertuvar')}</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);">${htmlKac(curRep.name||_sCev('sh.adsizRep','Repertuvar'))}</div>
           <div style="font-size:12px;color:var(--text2);margin-top:4px;">${_sCev('sh.nEser','{n} eser').replace('{n}', (curRep.items||[]).length)}</div>
         </div>`;
     }
