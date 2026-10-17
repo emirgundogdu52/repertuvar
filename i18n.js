@@ -1011,7 +1011,7 @@
       'ana.adim3': 'Sürükle bırak ile sırala',
       'ana.adim4': 'Sayfa çevirme pedalıyla uyumlu',
       'ana.repbak': 'Repertuvarlara Bak →',
-      'ana.demo': 'Sahne Modunu Aç',   // (2026-10-17) eskiden "Demo İzle" — demo açmıyor, Sahne Modu'nu açıyordu (mağaza denetimi §5)
+      'ana.demo': 'Çalışma Odası\'nı Aç',   // (2026-10-17) eskiden "Demo İzle" → Sahne Modu'na gidiyordu; demo bilerek Çalışma Odası (sitedeki "Canlı demo" da #calisma) — kullanıcı
       'ana.slogan': 'Sen performansına odaklan... Gerisini repertuvar.app halletsin!..',
       'ana.pedalnot': 'Sayfa çevirme pedalıyla uyumlu · pedal ayrıca satın alınır',
       'ana.offlinenot': 'İnternet bağlantınız kopsa bile çalışmaya devam eder.',
@@ -2660,7 +2660,7 @@
       'ana.adim3': 'Reorder by dragging',
       'ana.adim4': 'Works with a page-turner pedal',
       'ana.repbak': 'Open Setlists →',
-      'ana.demo': 'Open Stage Mode',
+      'ana.demo': 'Open Practice Room',
       'ana.slogan': 'You focus on your performance... Let repertuvar.app handle the rest!',
       'ana.pedalnot': 'Works with a Bluetooth page-turner pedal · sold separately',
       'ana.offlinenot': 'Keeps working even if your connection drops.',
