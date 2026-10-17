@@ -12,7 +12,7 @@
 <script src="tasarim.js"></script>
 <title data-i18n="giris.sayfaBaslik">Repertuvar — Giriş</title>
 <link rel="icon" href="Repertuvar_logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Inter:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* iOS Safari otomatik yazı büyütmesini kapat — sayfa 'zoom yapılmış' görünmesin */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:hidden;}
@@ -42,11 +42,12 @@ body { overflow: hidden; }
 /* "app"in altındaki beyaz çizgi ayrı parça (y 98'den kesilir: harf uçları 94'te biter, çizgi 101'de başlar) —
    sola kayıp düşen noktayı karşılar, sonra yerine döner (kullanıcı fikri 2026-10-17) */
 #sp-line { clip-path:polygon(73.49% 77.17%,100% 77.17%,100% 100%,73.49% 100%);transform-origin:74% 100%;z-index:2; }
+/* (2026-10-17) Kullanıcı seçimi "E": başlık yazı tipi Sora, 16px (geniş ekranda 20px'e kadar), açık gri, geniş aralık. */
 #sp-slogan {
-  font-family:'Inter',sans-serif;font-weight:500;
-  font-size:clamp(13px,2.4vw,17px);color:#8FA0BF;
+  font-family:'Sora',sans-serif;font-weight:400;
+  font-size:clamp(16px,2.4vw,20px);color:#B8BFD2;
   margin-top:1rem;min-height:2.8em;
-  letter-spacing:0.01em;text-align:center;
+  letter-spacing:0.04em;text-align:center;
   line-height:1.6;white-space:pre-line;
 }
 </style>
