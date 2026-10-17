@@ -1038,6 +1038,26 @@ function renderUserBadge(containerId) {
 // Tek tek sayfalara <script> eklemek yerine buradan: auth.js'i yükleyen her sayfa alır.
 (function () {
   if (window.Pro || document.querySelector('script[data-abonelik]')) return;
+  // Kilit gerektirmeyen sayfalar (abonelik.js de buradan okur — tek liste).
+  window.PRO_MUAF = ['pro.html', 'ayarlar.html', 'login.html', 'reset-password.html', 'google-donus.html',
+                     'splash.html', '404.html', 'paylas.html'];
+  // (2026-10-17) PERDE: iOS/Android'de bu hesabın Pro olduğu bu cihazda henüz bilinmiyorsa (ilk giriş, süresi
+  // bitmiş önbellek) sayfa içeriği kilit kararına dek gizlenir — önce ana ekran görünüp sonra satın alma
+  // ekranına atlamasın. abonelik.js kararı verince kaldırır; en geç 4 sn sonra kendiliğinden kalkar
+  // (local-first: ağ yoksa / yavaşsa uygulama asla kilitli kalmaz).
+  try {
+    var C = window.Capacitor, u = getUserId();
+    var sf = location.pathname.split('/').pop() || 'index.html';
+    var c = JSON.parse(localStorage.getItem('r_abonelik') || 'null');
+    var proBilinen = !!c && c._u === u && (c.plan === 'pro' || c.plan === 'edu');
+    if (C && C.isNativePlatform && C.isNativePlatform() && u && window.PRO_MUAF.indexOf(sf) === -1 && !proBilinen) {
+      var st = document.createElement('style');
+      st.textContent = 'html[data-pro-perde] body > *{visibility:hidden !important}';
+      (document.head || document.documentElement).appendChild(st);
+      document.documentElement.setAttribute('data-pro-perde', '');
+      setTimeout(function () { document.documentElement.removeAttribute('data-pro-perde'); }, 4000);
+    }
+  } catch (e) {}
   var s = document.createElement('script');
   s.src = 'abonelik.js';
   s.setAttribute('data-abonelik', '1');

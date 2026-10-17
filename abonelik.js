@@ -17,8 +17,8 @@
 
   var RC_ANAHTAR = { ios: 'appl_nVHBzRapCVZKVwFiJmGmxgphPlA', android: '' };   // açık SDK anahtarları (gizli değil)
   var ONBELLEK = 'r_abonelik';
-  var MUAF = ['pro.html', 'ayarlar.html', 'login.html', 'reset-password.html', 'google-donus.html',
-              'splash.html', '404.html', 'paylas.html'];
+  var MUAF = window.PRO_MUAF || ['pro.html', 'ayarlar.html', 'login.html', 'reset-password.html', 'google-donus.html',
+              'splash.html', '404.html', 'paylas.html'];   // asıl liste auth.js'te (perde de onu kullanır)
   var YONETIM = {
     ios: 'https://apps.apple.com/account/subscriptions',
     android: 'https://play.google.com/store/account/subscriptions?package=app.repertuvar'
@@ -62,16 +62,19 @@
   function kilitle() {
     location.replace('pro.html?donus=' + encodeURIComponent(sayfa() + location.search));
   }
+  // auth.js'in perdesi (durum bilinmeden sayfa görünmesin): karar verilince kalkar; kilitte sayfa zaten değişir.
+  function perdeKaldir() { document.documentElement.removeAttribute('data-pro-perde'); }
   var _kontrolEdildi = false;
   async function kontrol() {
-    if (_kontrolEdildi || !uid() || MUAF.indexOf(sayfa()) !== -1) return;
+    if (_kontrolEdildi || !uid() || MUAF.indexOf(sayfa()) !== -1) { if (!_kontrolEdildi) perdeKaldir(); return; }
     _kontrolEdildi = true;
     var c = onbellek();
     if (c && zorunluMu(c) && !proMu(c)) { kilitle(); return; }
     try {
       var d = await durumTazele();
-      if (zorunluMu(d) && !proMu(d)) kilitle();
+      if (zorunluMu(d) && !proMu(d)) { kilitle(); return; }
     } catch (e) { /* ağ hatası: kilitleme yok (local-first) */ }
+    perdeKaldir();
     if (platform() !== 'web') rcHazirla().catch(function () {});
   }
 
