@@ -912,6 +912,7 @@
   #searchInput:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(255,200,61,.16); }
   #sidebar.filter-sheet { transition: transform .32s cubic-bezier(.32,.72,0,1) !important; }
   #listPanel, #listCol { -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+  @media (max-width: 768px) { #listCol.mobil-gizli { display:none !important; } }   /* geniş ekrana dönülürse liste kendiliğinden görünür */
 
   @media (max-width: 768px) {
     .sidebar { display:none; }
@@ -3123,10 +3124,12 @@ function selectWork(id, silent) {
   document.getElementById('detailPanel').classList.add('mobile-visible');
   setDetailTop();
   setTimeout(setDetailTop, 200);
-  // Mobile: liste kolonunu gizle
+  // Mobile: liste kolonunu gizle — SINIFLA. (2026-10-17) Eskiden style.display = 'none', geri dönüşte '' yapılıyordu:
+  // '' kolonun satır içi display:flex'ini de siliyordu → liste paneli (flex:1) sınırsız uzuyor, gövde sabit olduğu için
+  // "Listeye Dön"den sonra liste HİÇ kaymıyordu (kullanıcı iPhone'da buldu).
   if (window.innerWidth <= 768) {
     const lc = document.getElementById('listCol');
-    if (lc) lc.style.display = 'none';
+    if (lc) lc.classList.add('mobil-gizli');
   }
 }
 
@@ -4687,7 +4690,7 @@ function switchDetailTab(tabId) {
 function backFromDetail() {
   document.getElementById('detailPanel').classList.remove('mobile-visible');
   const lc = document.getElementById('listCol');
-  if (lc) lc.style.display = '';
+  if (lc) lc.classList.remove('mobil-gizli');
   selectedId = null;
 }
 
