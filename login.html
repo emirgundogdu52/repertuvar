@@ -12,7 +12,7 @@
 <script src="tasarim.js"></script>
 <title data-i18n="giris.sayfaBaslik">Repertuvar — Giriş</title>
 <link rel="icon" href="Repertuvar_logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Inter:wght@500;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Inter:wght@500&display=swap" rel="stylesheet">
 <style>
 /* iOS Safari otomatik yazı büyütmesini kapat — sayfa 'zoom yapılmış' görünmesin */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:hidden;}
@@ -26,31 +26,15 @@ body { overflow: hidden; }
 }
 #splash-overlay.fade-out { opacity:0; pointer-events:none; }
 .sp-logo-wrap { display:flex;flex-direction:column;align-items:center; }
-.sp-logo-row  { display:flex;align-items:baseline;line-height:1; }
-#sp-rep {
-  font-family:'Inter',sans-serif;font-weight:900;
-  font-size:clamp(34px,8vw,60px);color:#FFFFFF;
-  letter-spacing:-.03em;opacity:0;transform:translateX(-46px);
-}
-#sp-dot {
-  font-family:'Inter',sans-serif;font-weight:900;
-  font-size:clamp(34px,8vw,60px);color:#FFC83D;
-  letter-spacing:-.03em;opacity:0;transform:translateY(-60px);display:inline-block;
-}
-#sp-app {
-  font-family:'Inter',sans-serif;font-weight:900;
-  font-size:clamp(34px,8vw,60px);color:#FFC83D;
-  letter-spacing:-.03em;opacity:0;transform:translateX(46px);
-}
-.sp-lines { display:flex;margin-top:10px; }
-#sp-line-blue {
-  height:7px;background:#FFC83D;border-radius:4px;
-  opacity:0;transform:translateY(24px);
-}
-#sp-line-dark {
-  height:7px;background:#FFFFFF;border-radius:4px;
-  opacity:0;transform:translateY(24px);margin-left:12px;
-}
+/* (2026-10-17) LOGO TEK STANDART: açılışta da resmi logo_dark.png kullanılır, yazı + çizgi YENİDEN ÇİZİLMEZ
+   (eskiden ".app" çizgisi noktayı da kapsıyor, "app"in dışına taşıyordu). Animasyon için aynı görsel üç parçaya
+   kesilir: "repertuvar" + uzun çizgi / nokta / "app" + kısa çizgi. Kesim noktaları görselin piksellerinden
+   (664×127): x 456 / 471 / 488, y 48 — "r"nin kolu noktanın üstüne taştığı için basamaklı kesim. */
+.sp-logo { position:relative;width:min(330px,80vw);aspect-ratio:664/127; }
+.sp-parca { position:absolute;inset:0;background:url('logo_dark.png') 0 0/100% 100% no-repeat;opacity:0; }
+#sp-rep { clip-path:polygon(0 0,70.93% 0,70.93% 37.8%,68.67% 37.8%,68.67% 100%,0 100%);transform:translateX(-46px); }
+#sp-dot { clip-path:polygon(68.67% 37.8%,73.49% 37.8%,73.49% 100%,68.67% 100%);transform:translateY(-60px); }
+#sp-app { clip-path:polygon(73.49% 0,100% 0,100% 100%,73.49% 100%);transform:translateX(46px); }
 #sp-slogan {
   font-family:'Inter',sans-serif;font-weight:500;
   font-size:clamp(13px,2.4vw,17px);color:#8FA0BF;
@@ -118,12 +102,8 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 <!-- Splash Overlay -->
 <div id="splash-overlay">
   <div class="sp-logo-wrap">
-    <div class="sp-logo-row">
-      <span id="sp-rep">repertuvar</span><span id="sp-dot">.</span><span id="sp-app">app</span>
-    </div>
-    <div class="sp-lines">
-      <div id="sp-line-blue"></div>
-      <div id="sp-line-dark"></div>
+    <div class="sp-logo" role="img" aria-label="repertuvar.app">
+      <span class="sp-parca" id="sp-rep"></span><span class="sp-parca" id="sp-dot"></span><span class="sp-parca" id="sp-app"></span>
     </div>
     <div id="sp-slogan"></div>
   </div>
@@ -909,8 +889,6 @@ async function loginGoogle() {
   const rep      = document.getElementById('sp-rep');
   const dot      = document.getElementById('sp-dot');
   const app      = document.getElementById('sp-app');
-  const lineBlue = document.getElementById('sp-line-blue');
-  const lineDark = document.getElementById('sp-line-dark');
   const slogan   = document.getElementById('sp-slogan');
   const overlay  = document.getElementById('splash-overlay');
 
@@ -924,11 +902,8 @@ async function loginGoogle() {
     });
   }
 
-  try { await document.fonts.ready; } catch(e){}
-  await new Promise(r => setTimeout(r, 80));
-
-  lineBlue.style.width = rep.offsetWidth + 'px';
-  lineDark.style.width = (dot.offsetWidth + app.offsetWidth) + 'px';
+  // Logo görseli yüklenmeden parçalar boş görünmesin (yüklenemezse de animasyon sürer, ekran kilitlenmez)
+  await new Promise(r => { const i = new Image(); i.onload = i.onerror = r; i.src = 'logo_dark.png'; setTimeout(r, 1500); });
 
   // Toplam ~3.4 sn (2026-08-06'da 2.4'ten uzatıldı; eskiden ~7 sn'ydi)
   await anim(dot, { opacity:'1', transform:'translateY(0)' }, 380, 0, 'cubic-bezier(0.34,1.35,0.64,1)');
@@ -936,8 +911,6 @@ async function loginGoogle() {
   anim(rep, { opacity:'1', transform:'translateX(0)' }, 420, 0);
   await anim(app, { opacity:'1', transform:'translateX(0)' }, 420, 0);
 
-  anim(lineBlue, { opacity:'1', transform:'translateY(0)' }, 300, 0, 'cubic-bezier(0.34,1.3,0.64,1)');
-  await anim(lineDark, { opacity:'1', transform:'translateY(0)' }, 300, 80, 'cubic-bezier(0.34,1.3,0.64,1)');
 
   // Slogan: daktilo yerine yumuşak geçiş (hız için)
   // (2026-08-30) Splash sloganı JS'ten yazılıyor, bu yüzden data-i18n
