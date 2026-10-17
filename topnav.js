@@ -1279,11 +1279,15 @@ function _m(anahtar, tr) {
 })();
 
 // ═══ Basit ziyaretçi/sayfa görüntüleme takibi ═══
-// Kendi Supabase altyapımız — üçüncü taraf servis yok, IP dışarıya gitmiyor.
-// Her sayfa yüklendiğinde bir kayıt atar; hata olursa sessizce vazgeçer, kullanıcı deneyimini
-// asla etkilemez (bloklamaz, hata göstermez).
+// Kayıtlar kendi Supabase altyapımızda (page_views). KABA KONUM için IP adresi günde bir kez ipwho.is'e gider (aşağıda,
+// GEO_ENABLED) — gizlilik metni §3(d) ve §4 bunu söyler; IP'nin kendisi saklanmaz. (2026-10-17: eski yorum "üçüncü taraf yok,
+// IP dışarıya gitmiyor" diyordu — yanlıştı.) Amaç: kullanım ölçümü + TOPLU bölgesel tanıtım planlaması (şehir başına sayılar;
+// kişiye yönelik reklam yok). Saklama: 30 gün sonra kimlik/şehir silinir, 180 günde kayıt silinir, kimliksiz günlük şehir
+// özeti kalır (sql/istatistik_saklama.sql). Kullanıcı Ayarlar › Kullanım istatistikleri'nden kapatabilir ('r_istatistik').
+// Her sayfa yüklendiğinde bir kayıt atar; hata olursa sessizce vazgeçer, kullanıcı deneyimini asla etkilemez.
 (function () {
   try {
+    if (localStorage.getItem('r_istatistik') === 'kapali') return;   // kullanıcı kapattı: kayıt da konum sorgusu da yok
     const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
     const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 
