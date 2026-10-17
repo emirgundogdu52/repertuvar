@@ -69,6 +69,13 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 .logo-wrap p{font-size:13px;color:var(--text2);}
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:400px;}
+/* (2026-10-17) Giriş/kayıt ekranında dil seçici (kullanıcı): telefonu Felemenkçe olan Türkçe konuşan biri kayıt ekranını
+   İngilizce görüyor ve kayıt bitene kadar değiştiremiyordu. Seçim kalıcı (uiLang); açılış yazısı da sonraki açılışta o dilde. */
+.dil-sec{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;z-index:50;display:flex;gap:2px;padding:3px;
+  border:1px solid var(--border);border-radius:999px;background:var(--surface);}
+.dil-sec button{border:0;background:none;color:var(--text2);font:600 12px/1 inherit;font-family:inherit;padding:6px 11px;
+  border-radius:999px;cursor:pointer;letter-spacing:.04em;-webkit-tap-highlight-color:transparent;}
+.dil-sec button[aria-pressed="true"]{background:#FFC83D;color:#070B18;}
 
 .tabs{display:flex;gap:4px;background:var(--surface2);border-radius:8px;padding:4px;margin-bottom:24px;}
 .tab{flex:1;padding:8px;border-radius:6px;border:none;background:none;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;}
@@ -105,6 +112,10 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 <link rel="stylesheet" href="tasarim.css">
 </head>
 <body>
+<div class="dil-sec" role="group" aria-label="Dil / Language">
+  <button type="button" data-dil="tr" lang="tr" aria-label="Türkçe">TR</button>
+  <button type="button" data-dil="en" lang="en" aria-label="English">EN</button>
+</div>
 
 <!-- Splash Overlay -->
 <div id="splash-overlay">
@@ -869,6 +880,13 @@ async function loginGoogle() {
   s.onload = async function () {
     let n = await nonce();
     const kutu = document.getElementById('gsi'), eski = document.getElementById('btnGoogle');
+    // (2026-10-17) Düğme kartın İÇ genişliğinde (diğer alanlarla aynı): eskiden kartın tam genişliği (iç boşluk dahil,
+    // 398px) veriliyordu, düğme iki yandan taşıyordu. Google 200–400px arası kabul eder.
+    function _gsiGenislik() {
+      const ic = kutu.parentNode, cs = getComputedStyle(ic);
+      const w = Math.round(ic.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+      return Math.max(200, Math.min(400, w || 320));
+    }
     function kur() {
       google.accounts.id.initialize({
         client_id: CLIENT_ID, nonce: n.ozet, ux_mode: 'popup', itp_support: true, use_fedcm_for_button: true,
@@ -883,12 +901,26 @@ async function loginGoogle() {
         }
       });
       kutu.innerHTML = '';
-      google.accounts.id.renderButton(kutu, { theme: 'outline', size: 'large', shape: 'rectangular', text: 'continue_with', width: Math.min(400, kutu.parentNode.clientWidth || 360), locale: (document.documentElement.lang || 'tr').slice(0, 2) });
+      google.accounts.id.renderButton(kutu, { theme: 'outline', size: 'large', shape: 'rectangular', text: 'continue_with', width: _gsiGenislik(), locale: (document.documentElement.lang || 'tr').slice(0, 2) });
     }
     kur();
+    window.addEventListener('dil-degisti', function () { try { kur(); } catch (e) {} });   // düğme metni yeni dilde
     kutu.style.display = 'flex'; eski.style.display = 'none';
   };
   document.head.appendChild(s);   // yüklenemezse eski buton (OAuth) görünür kalır
+})();
+</script>
+<script>
+(function dilSecici() {
+  const kutu = document.querySelector('.dil-sec');
+  if (!kutu || !window.i18n) { if (kutu) kutu.style.display = 'none'; return; }
+  const isaretle = () => kutu.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dil === i18n.dil())));
+  kutu.addEventListener('click', e => {
+    const b = e.target.closest('button[data-dil]');
+    if (b && b.dataset.dil !== i18n.dil()) i18n.ayarla(b.dataset.dil);   // sayfa metinleri + 'dil-degisti' olayı
+  });
+  window.addEventListener('dil-degisti', isaretle);
+  isaretle();
 })();
 </script>
 <script src="acilis-logo.js"></script>

@@ -647,11 +647,16 @@
   #turChipRow::-webkit-scrollbar { display:none; }
   /* (2026-10-17) Kaydırma ipucu: yalnız o yönde gizli çip varken kenarda zemine solan şerit + ok; oka dokununca kayar. */
   .tur-kap { position:relative; }
-  .tur-ok { position:absolute; top:8px; bottom:2px; width:46px; display:none; align-items:center; border:0; padding:0 2px;
-    margin:0; cursor:pointer; color:var(--text2); z-index:2; font-family:inherit; -webkit-tap-highlight-color:transparent; }
-  .tur-ok i { font-size:17px; }
-  .tur-ok-sag { right:0; justify-content:flex-end; background:linear-gradient(to right, transparent, var(--bg) 60%); }
-  .tur-ok-sol { left:0; justify-content:flex-start; background:linear-gradient(to left, transparent, var(--bg) 60%); }
+  /* top:0 — satırın margin-top'u kaba taşınıyor (kap boşluksuz), yani kabın tepesi = çiplerin tepesi. Yüz: çip yüksekliğinde
+     (Folk ile aynı, 36px) yuvarlak, çip görünümlü; ok kurumsal sarı (kullanıcı 2026-10-17). */
+  .tur-ok { position:absolute; top:0; bottom:2px; width:58px; display:none; align-items:stretch; border:0; padding:0;
+    margin:0; cursor:pointer; z-index:2; font-family:inherit; -webkit-tap-highlight-color:transparent; }
+  .tur-ok-yuz { height:100%; aspect-ratio:1; box-sizing:border-box; border-radius:50%; border:1px solid var(--border);
+    background:var(--surface2); display:flex; align-items:center; justify-content:center; color:#FFC83D; }
+  .tur-ok-yuz i { font-size:17px; }
+  html[data-theme="light"] .tur-ok-yuz { color:#C98A00; }
+  .tur-ok-sag { right:0; justify-content:flex-end; background:linear-gradient(to right, transparent, var(--bg) 40%); }
+  .tur-ok-sol { left:0; justify-content:flex-start; background:linear-gradient(to left, transparent, var(--bg) 40%); }
   .tur-kap.sag-var .tur-ok-sag, .tur-kap.sol-var .tur-ok-sol { display:flex; }
   .tur-chip { flex:0 0 auto; display:inline-flex; align-items:center; gap:5px; padding:6px 11px; border-radius:16px; border:1px solid var(--border); background:var(--surface2); color:var(--text2); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; white-space:nowrap; transition:all .15s; }
   .tur-chip:hover { color:var(--text); }
@@ -1447,8 +1452,8 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
       <!-- (2026-10-17) Satır yana kayıyor ama belli değildi (kullanıcı): sağda/solda daha fazla çip varsa solma + ok. -->
       <div id="turChipKap" class="tur-kap">
         <div id="turChipRow" style="display:none;"></div>
-        <button type="button" class="tur-ok tur-ok-sol" tabindex="-1" aria-label="‹" onclick="turKaydir(-1)"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
-        <button type="button" class="tur-ok tur-ok-sag" tabindex="-1" aria-label="›" onclick="turKaydir(1)"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+        <button type="button" class="tur-ok tur-ok-sol" tabindex="-1" aria-label="‹" onclick="turKaydir(-1)"><span class="tur-ok-yuz"><i class="ti ti-chevron-left" aria-hidden="true"></i></span></button>
+        <button type="button" class="tur-ok tur-ok-sag" tabindex="-1" aria-label="›" onclick="turKaydir(1)"><span class="tur-ok-yuz"><i class="ti ti-chevron-right" aria-hidden="true"></i></span></button>
       </div>
     </div>
     <div class="toolbar">
