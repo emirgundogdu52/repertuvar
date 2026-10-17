@@ -929,6 +929,11 @@
     .detail.mobile-visible .detail-chips { display:flex; flex-wrap:wrap; gap:4px; overflow:visible; width:100%; }
     .detail.mobile-visible .chip { white-space:nowrap; font-size:10px; padding:2px 7px; }
     .detail.mobile-visible .detail-stage-row { flex-wrap:wrap !important; gap:6px; overflow:visible; margin-top:10px !important; }
+    /* (2026-10-17) Kullanıcı: düğme satırları Kişisel Notum kutusuyla AYNI genişlikte bitsin. Her satırdaki düğmeler
+       kalan boşluğu paylaşır; Sahne Modunda Aç daha büyük pay alır (birincil düğme). */
+    .detail.mobile-visible .detail-stage-row > *,
+    .detail.mobile-visible .detail-stage-row .act-btn { flex:1 1 auto; }
+    .detail.mobile-visible .detail-stage-row .stage-open-btn { flex-grow:3; }
     .detail.mobile-visible .stage-open-btn,
     .detail.mobile-visible .edit-btn,
     .detail.mobile-visible .delete-btn { font-size:11px; padding:5px 8px; }
