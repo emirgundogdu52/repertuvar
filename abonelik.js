@@ -99,27 +99,38 @@
     return _rcSoz;
   }
 
-  // Satın alma ekranı için paketler: yıllık, 6 aylık, aylık (+ aylıkta deneme uygunluğu)
+  // Satın alma ekranı için paketler: yıllık, 6 aylık, aylık + HER PLANIN deneme uygunluğu.
+  // (2026-10-17 karar B, kullanıcı: "bir ay kullansın, memnun kalırsa ödesin") — 1 ay ücretsiz deneme ÜÇ PLANDA da var;
+  // eskiden (karar A) yalnız aylıkta. Apple denemeyi grup başına bir kez verir; uygunluk ürün ürün sorulur.
   async function teklifler() {
     await rcHazirla();
     var o = await P().getOfferings();
     var cur = o && o.current;
     if (!cur) throw new Error('teklif-yok');
     var paketler = { yillik: cur.annual, alti: cur.sixMonth, aylik: cur.monthly };
-    var aylik = paketler.aylik;
-    var deneme = false;
-    if (aylik && aylik.product && aylik.product.introPrice) {
+    // Deneme tanımlı mı: iOS'ta tanıtım teklifi (introPrice), Play'de varsayılan seçeneğin ücretsiz evresi
+    var denemeli = function (pk) {
+      var pr = pk && pk.product;
+      return !!(pr && (pr.introPrice || (pr.defaultOption && pr.defaultOption.freePhase)));
+    };
+    var denemeler = { yillik: false, alti: false, aylik: false };
+    var adaylar = Object.keys(paketler).filter(function (k) { return denemeli(paketler[k]); });
+    if (adaylar.length) {
       if (platform() === 'ios') {
         try {
-          var m = await P().checkTrialOrIntroductoryPriceEligibility({ productIdentifiers: [aylik.product.identifier] });
-          var s = m && m[aylik.product.identifier];
-          deneme = !!s && s.status === 2;            // 2 = INTRO_ELIGIBILITY_STATUS_ELIGIBLE; bilinmiyorsa deneme gösterilmez
-        } catch (e) { deneme = false; }
+          var kimlikler = adaylar.map(function (k) { return paketler[k].product.identifier; });
+          var m = await P().checkTrialOrIntroductoryPriceEligibility({ productIdentifiers: kimlikler });
+          adaylar.forEach(function (k) {
+            var s = m && m[paketler[k].product.identifier];
+            denemeler[k] = !!s && s.status === 2;   // 2 = INTRO_ELIGIBILITY_STATUS_ELIGIBLE; bilinmiyorsa deneme gösterilmez
+          });
+        } catch (e) { /* hepsi false kalır */ }
       } else {
-        deneme = true;   // Play yalnız uygun olduğu teklifi döndürür
+        adaylar.forEach(function (k) { denemeler[k] = true; });   // Play yalnız uygun olduğu teklifi döndürür
       }
     }
-    return { paketler: paketler, deneme: deneme };
+    var deneme = denemeler.yillik || denemeler.alti || denemeler.aylik;
+    return { paketler: paketler, deneme: deneme, denemeler: denemeler };
   }
 
   async function esitle() {
