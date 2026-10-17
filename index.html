@@ -308,7 +308,7 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
       </ul>
       <div class="hero-actions">
         <a href="repertoires.html" class="hero-btn-primary"><i class="ti ti-music"></i> <span data-i18n="ana.repbak">Repertuvarlara Bak →</span></a>
-        <a href="stage.html" class="hero-btn-secondary" data-i18n="ana.demo">Demo İzle</a>
+        <a href="stage.html" class="hero-btn-secondary" data-i18n="ana.demo">Sahne Modunu Aç</a>
       </div>
       </div>
 
@@ -327,17 +327,17 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
             </div>
             <div class="hero-ipad-screen">
               <div class="hero-list-name swap-fade" id="heroListName">Anadolu’dan Türküler</div>
-              <div class="hero-song-row dragging hero-rotatable swap-fade" id="heroRow1"><span class="grip">☰</span><b>Allı Turnam</b><span>Hüseyni · La</span></div>
-              <div class="hero-song-row hero-rotatable swap-fade" id="heroRow2"><span class="num">2</span><b>Dostum Dostum</b><span>Hüseyni · La</span></div>
-              <div class="hero-song-row hero-rotatable swap-fade" id="heroRow3"><span class="num">3</span><b>Barış Güvercini</b><span>Hüseyni · La</span></div>
-              <div class="hero-song-row swap-fade"><span class="num">4</span><b>Vardar Ovası</b><span>Hicaz · La</span></div>
-              <div class="hero-song-row swap-fade"><span class="num">5</span><b>Aldırma Gönül</b><span>Hicaz · La</span></div>
-              <div class="hero-song-row swap-fade"><span class="num">6</span><b>Bedir Geliyor</b><span>Hicaz · La</span></div>
+              <div class="hero-song-row dragging hero-rotatable swap-fade" id="heroRow1"><span class="grip">☰</span><b>Drama Köprüsü</b><span>Hüseyni · La</span></div>
+              <div class="hero-song-row hero-rotatable swap-fade" id="heroRow2"><span class="num">2</span><b>Mendilimin Yeşili</b><span>Saba · La</span></div>
+              <div class="hero-song-row hero-rotatable swap-fade" id="heroRow3"><span class="num">3</span><b>Ankara’nın Bağları</b><span>Eviç · Fa♯</span></div>
+              <div class="hero-song-row swap-fade"><span class="num">4</span><b>Çarşamba’yı Sel Aldı</b><span>Hicaz · La</span></div>
+              <div class="hero-song-row swap-fade"><span class="num">5</span><b>Havada Turna Sesi Var</b><span>Eviç · Fa♯</span></div>
+              <div class="hero-song-row swap-fade"><span class="num">6</span><b>Atım Araptır Benim</b><span>Mahur · Sol</span></div>
               <div class="hero-ipad-tabbar">
                 <!-- (2026-08-30) Bu etiketlerde data-i18n YOK ve olmamali.
                      Maketteki sekmeler arayuz dilini degil, o an gosterilen
                      LISTENIN dilini izliyor: Anadolu'dan Turkuler gosterilirken
-                     Turkce, Wedding Set gosterilirken Ingilizce. Maket boylece
+                     Turkce, Folk Night gosterilirken Ingilizce. Maket boylece
                      iki ayri muzisyenin ekrani gibi okunuyor. data-i18n
                      eklenirse i18n.uygula() bunlari ezer ve etki bozulur.
                      Baslangic degerleri ilk listeyle (Turkce) ayni. -->
@@ -690,14 +690,16 @@ function _c(k, tr) {
     // degisince degismez. Her listenin adi kendi icerigiyle ayni dilde
     // sabit kalir; maket boylece iki AYRI repertuvar gibi okunur.
     const LISTELER = [
+      // (2026-10-17) Mağaza denetimi (Y11/§5): maket YALNIZ katalogdaki telifsiz eserlerden — eskiden telifli şarkı adları
+      // vardı (Moon River, Perfect…; Türkçede bestecisi belli eserler). Makam/karar ve ton/tempo katalogdaki değerler.
       { ad: 'Anadolu\u2019dan Türküler', dil: 'tr', eserler: [
-        ['Allı Turnam', 'Hüseyni · La'], ['Dostum Dostum', 'Hüseyni · La'],
-        ['Barış Güvercini', 'Hüseyni · La'], ['Vardar Ovası', 'Hicaz · La'],
-        ['Aldırma Gönül', 'Hicaz · La'], ['Bedir Geliyor', 'Hicaz · La'] ] },
-      { ad: 'Wedding Set', dil: 'en', eserler: [
-        ['Moon River', 'C · 90'], ['Perfect', 'A\u266d · 63'],
-        ['L-O-V-E', 'G · 130'], ['Valerie', 'E\u266d · 105'],
-        ['Superstition', 'E\u266dm · 100'], ['September', 'A · 126'] ] }
+        ['Drama Köprüsü', 'Hüseyni · La'], ['Mendilimin Yeşili', 'Saba · La'],
+        ['Ankara\u2019nın Bağları', 'Eviç · Fa\u266f'], ['Çarşamba\u2019yı Sel Aldı', 'Hicaz · La'],
+        ['Havada Turna Sesi Var', 'Eviç · Fa\u266f'], ['Atım Araptır Benim', 'Mahur · Sol'] ] },
+      { ad: 'Folk Night', dil: 'en', eserler: [
+        ['Danny Boy', 'C · 60'], ['Scarborough Fair', 'E · 96'],
+        ['The Water Is Wide', 'D · 72'], ['Loch Lomond', 'G · 84'],
+        ['Amazing Grace', 'G · 76'], ['Shenandoah', 'D · 60'] ] }
     ];
     const adEl = document.getElementById('heroListName');
     // Sekme cubugu satirlarin ALTINDA duruyor ve ekranin cocugu. Satirlari

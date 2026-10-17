@@ -724,13 +724,8 @@ html, body { overflow-x: hidden; }
         </div>
         <a href="eserler.html" class="setting-btn" onclick="localStorage.setItem('openPending','1')" data-i18n="ay.incele">İncele →</a>
       </div>
-      <div class="setting-row">
-        <div>
-          <div class="setting-label" data-i18n="ay.temizle">Veri Temizleme</div>
-          <div class="setting-desc" data-i18n="ay.temizle_alt">Boş ve hatalı kayıtları temizle</div>
-        </div>
-        <a href="temizle.html" class="setting-btn danger" data-i18n="ay.temizlebtn">Temizle →</a>
-      </div>
+      <!-- (2026-10-17) "Veri Temizleme → temizle.html" kaldırıldı: araç a195a8f'de arac/ altına alınmıştı, bağlantı ölüydü
+           (web'de 404, uygulamada www/'de kalmış eski kopyayı — toplu silme düğmesiyle — açıyordu). -->
     </div>
 
     <!-- 4. HAKKINDA -->
@@ -811,7 +806,7 @@ html, body { overflow-x: hidden; }
           <div class="setting-label" data-i18n="ay.uygulama">Uygulama</div>
           <div class="setting-desc" data-i18n="ay.uygulama_alt">Türk müziği repertuvar yönetimi</div>
         </div>
-        <span class="version-badge">v2.0</span>
+        <span class="version-badge" id="surumRozet">v1.0</span>
       </div>
       <!-- (2026-10-17) E13: iOS/Android uygulamasında GİZLİ — Apple 3.1.1(a)/3.1.3: uygulama, mağaza dışı satın almaya
            götüren bağlantı içeremez (ABD hariç). Sitede bugün satış yok ama web satışı açılınca bu satır ret sebebi olurdu.
@@ -942,6 +937,23 @@ function dilKutusunuDoldur() {
 // (2026-09-08) Hukuki sayfaların dil karşılığı. Yalnızca 'en' için ayrı sayfa
 // var; başka bir dil eklenirse Türkçe sürüm gösterilir — var olmayan bir /xx/
 // yoluna göndermek 404 üretir, yanlış dilde metin ise hiç değilse okunabilir.
+// (2026-10-17) Sürüm rozeti: eskiden sabit "v2.0" yazıyordu — mağazadaki 1.0 ile çelişiyordu (mağaza denetimi §5).
+// Uygulamada mağaza sürümü + derleme numarası cihazdan (Capacitor App.getInfo), web'de önbellek sürümü (service-worker).
+(function surumRozetiKur() {
+  var el = document.getElementById('surumRozet');
+  if (!el) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', surumRozetiKur); return; }
+  var c = window.Capacitor;
+  var app = c && c.isNativePlatform && c.isNativePlatform() && c.Plugins && c.Plugins.App;
+  if (app && app.getInfo) {
+    app.getInfo().then(function (i) { if (i && i.version) el.textContent = 'v' + i.version + (i.build ? ' (' + i.build + ')' : ''); })
+      .catch(function () {});
+  } else if (window.caches && caches.keys) {
+    caches.keys().then(function (k) {
+      var m = k.map(function (x) { return /repertuvar-v(\d+)/.exec(x); }).filter(Boolean).pop();
+      if (m) el.textContent = 'web v' + m[1];
+    }).catch(function () {});
+  }
+})();
 function hukukBaglantilariniKur() {
   var en = (window.i18n && i18n.dil() === 'en');
   var g = document.getElementById('hukukGizlilik');

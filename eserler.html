@@ -645,6 +645,14 @@
   /* (2026-08-21) Tur cipleri — arama kutusunun altinda, yatay kaydirmali serit. */
   #turChipRow { display:flex; gap:6px; margin-top:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px; }
   #turChipRow::-webkit-scrollbar { display:none; }
+  /* (2026-10-17) Kaydırma ipucu: yalnız o yönde gizli çip varken kenarda zemine solan şerit + ok; oka dokununca kayar. */
+  .tur-kap { position:relative; }
+  .tur-ok { position:absolute; top:8px; bottom:2px; width:46px; display:none; align-items:center; border:0; padding:0 2px;
+    margin:0; cursor:pointer; color:var(--text2); z-index:2; font-family:inherit; -webkit-tap-highlight-color:transparent; }
+  .tur-ok i { font-size:17px; }
+  .tur-ok-sag { right:0; justify-content:flex-end; background:linear-gradient(to right, transparent, var(--bg) 60%); }
+  .tur-ok-sol { left:0; justify-content:flex-start; background:linear-gradient(to left, transparent, var(--bg) 60%); }
+  .tur-kap.sag-var .tur-ok-sag, .tur-kap.sol-var .tur-ok-sol { display:flex; }
   .tur-chip { flex:0 0 auto; display:inline-flex; align-items:center; gap:5px; padding:6px 11px; border-radius:16px; border:1px solid var(--border); background:var(--surface2); color:var(--text2); font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; white-space:nowrap; transition:all .15s; }
   .tur-chip:hover { color:var(--text); }
   .tur-chip.active { background:rgba(88,166,255,.16); border-color:rgba(88,166,255,.45); color:var(--accent); }
@@ -889,6 +897,13 @@
      Önceden 27 / 24.5 / 27.8 px'ti; yazı boyutu satır içi stilde olduğu için !important. */
   .toolbar > #filterSheetBtn, .toolbar > #btnPendingReviewDesktop, .toolbar > #btnOnerilerim {
     box-sizing:border-box; height:29px; font-size:12px !important; }
+  /* (2026-10-17) Telefonda satır 16px çizgisinden başlar ve dolar (kullanıcı): .clear-btn'in margin-left:auto'su Filtreler'i
+     sağa itip solda ~30px boşluk bırakıyordu. Filtreler + Eserlerim (+ üyede Öner) kalan alanı paylaşır, Onay Bekleyen doğal. */
+  @media (max-width: 768px) {
+    .toolbar { padding:4px 16px; }
+    .toolbar > #filterSheetBtn, .toolbar > #btnOnerilerim, .toolbar > #btnMobileUserSuggest {
+      flex:1 1 auto; justify-content:center; margin-left:0 !important; }
+  }
   .sort-dropdown-wrap { position:relative; }
   .sort-main-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif); cursor:pointer; transition:all .15s; }
   .sort-main-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(88,166,255,.08); }
@@ -1429,7 +1444,12 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
           style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:none;align-items:center;justify-content:center;gap:5px;"><span data-i18n="es.taslaklarim">🔒 Taslaklarım</span> <span id="draftCount" style="background:rgba(88,166,255,.2);color:#58A6FF;border-radius:10px;padding:0 6px;font-size:10px;">0</span></button>
       </div>
       <!-- (2026-08-21) Tur cipleri — JS ile kuruluyor (buildTurChips). Bos kalirsa gizlenir. -->
-      <div id="turChipRow" style="display:none;"></div>
+      <!-- (2026-10-17) Satır yana kayıyor ama belli değildi (kullanıcı): sağda/solda daha fazla çip varsa solma + ok. -->
+      <div id="turChipKap" class="tur-kap">
+        <div id="turChipRow" style="display:none;"></div>
+        <button type="button" class="tur-ok tur-ok-sol" tabindex="-1" aria-label="‹" onclick="turKaydir(-1)"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+        <button type="button" class="tur-ok tur-ok-sag" tabindex="-1" aria-label="›" onclick="turKaydir(1)"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+      </div>
     </div>
     <div class="toolbar">
       <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;"><i class="ti ti-adjustments-horizontal"></i> <span data-i18n="es.filtreler">Filtreler</span><span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
@@ -1789,7 +1809,7 @@ function buildTurChips() {
   if (!el) return;
   const r = turSayilari();
   const diller = dilSayilari();
-  if (!r.liste.length && !r.bos && diller.length < 2) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  if (!r.liste.length && !r.bos && diller.length < 2) { el.innerHTML = ''; el.style.display = 'none'; turOklariGuncelle(); return; }
   let dilHtml = '';
   if (diller.length > 1) {
     dilHtml = diller.map(function (e) {
@@ -1809,6 +1829,24 @@ function buildTurChips() {
   el.innerHTML = dilHtml + html;
   el.style.display = 'flex';
   updateTurChips();
+  if (!el._okDinle) {
+    el._okDinle = 1;
+    el.addEventListener('scroll', turOklariGuncelle, { passive: true });
+    window.addEventListener('resize', turOklariGuncelle);
+  }
+  turOklariGuncelle();
+}
+// (2026-10-17) Çip satırının kenar okları: yalnız o yönde gizli çip varken görünür.
+function turOklariGuncelle() {
+  const el = document.getElementById('turChipRow'), kap = document.getElementById('turChipKap');
+  if (!el || !kap) return;
+  const acik = el.style.display !== 'none' && el.clientWidth > 0;
+  kap.classList.toggle('sol-var', acik && el.scrollLeft > 4);
+  kap.classList.toggle('sag-var', acik && el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+}
+function turKaydir(yon) {
+  const el = document.getElementById('turChipRow');
+  if (el) el.scrollBy({ left: yon * Math.round(el.clientWidth * 0.7), behavior: 'smooth' });
 }
 
 // Tek secim: ayni cipe tekrar dokunmak suzgeci KALDIRIR (ac/kapa).
