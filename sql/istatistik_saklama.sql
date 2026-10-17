@@ -7,9 +7,12 @@
 -- süresiz saklanabilir); ham kayıtlar sözdeki sürelerde anonimleşir / silinir.
 --
 -- Geri alma (en altta): cron görevini kaldırır; özet tablosu ve fonksiyon kalır (zararsız).
+--
+-- Not: Yönetim › İstatistikler sayfası şehir dağılımını ham kayıtlardan çizer; bakımdan sonra ham kayıtlarda şehir yalnız son
+-- 30 gün için bulunur. Daha eski şehir verisi page_views_sehir_ozet'tedir (sayfayı özete bağlamak ayrı iş).
 
 -- 1) Zamanlayıcı eklentisi (Supabase'de Database › Extensions › pg_cron ile de açılabilir)
-create extension if not exists pg_cron;
+create extension if not exists pg_cron with schema pg_catalog;   -- Supabase belgesindeki şema; zaten açıksa atlanır
 
 -- 2) Kimliksiz günlük şehir özeti — yalnız yöneticiler okur
 create table if not exists public.page_views_sehir_ozet (
