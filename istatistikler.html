@@ -140,6 +140,14 @@
         </div>
       </div>
 
+      <!-- (2026-10-17) Bölgesel tanıtım: kimliksiz günlük şehir özetinden (page_views_sehir_ozet, sql/istatistik_saklama.sql).
+           Ham kayıtlarda şehir yalnız son 30 gün tutulur; uzun dönem dağılım buradan gelir. -->
+      <div class="stt-panel" style="margin-top:16px;">
+        <div class="stt-panel-title"><i class="ti ti-map-pin"></i> <span data-i18n="ist.sehirUzun">Şehirler — uzun dönem (toplu)</span>
+          <span id="sttSehirOzetAlt" style="font-weight:400;color:var(--text3);font-size:10px;"></span></div>
+        <div id="sttSehirOzet"><div class="stt-empty" data-i18n="ist.yukleniyor">Yükleniyor...</div></div>
+      </div>
+
       <div class="stt-grid" style="margin-top:16px;">
         <div class="stt-panel">
           <div class="stt-panel-title"><i class="ti ti-clock"></i> <span data-i18n="ist.saatDagilimi">Saat Dağılımı</span> <span data-i18n="ist.yerelSaat" style="font-weight:400;color:var(--text3);font-size:10px;">(yerel saat)</span></div>
@@ -435,7 +443,37 @@ async function loadUsers() {
   }
   loadStats();
   loadUsers();
+  loadSehirOzet();
 })();
+
+// Şehir başına toplam görüntüleme; başlıkta kullanıcı-gün (günlük farklı kullanıcıların toplamı — tekil kişi değil).
+async function loadSehirOzet() {
+  const el = document.getElementById('sttSehirOzet'), alt = document.getElementById('sttSehirOzetAlt');
+  if (!el) return;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/page_views_sehir_ozet?select=gun,ulke,sehir,kullanici,goruntuleme&limit=50000', { headers: sttHeaders() });
+    if (r.status === 404 || r.status === 400) { el.innerHTML = '<div class="stt-empty">' + _iCev('ist.ozetYok', 'Özet tablosu henüz kurulmadı (C1 SQL).') + '</div>'; return; }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const satirlar = await r.json();
+    const t = {};
+    let ilk = null, son = null;
+    satirlar.forEach(x => {
+      if (!x.sehir) return;
+      const k = x.sehir + (x.ulke ? ' · ' + x.ulke : '');
+      const o = t[k] || (t[k] = { g: 0, k: 0 });
+      o.g += x.goruntuleme || 0; o.k += x.kullanici || 0;
+      if (!ilk || x.gun < ilk) ilk = x.gun; if (!son || x.gun > son) son = x.gun;
+    });
+    const sira = Object.entries(t).sort((a, b) => b[1].g - a[1].g).slice(0, 15);
+    if (alt && ilk) alt.textContent = '(' + ilk + ' – ' + son + ')';
+    const max = sira.length ? sira[0][1].g : 0;
+    el.innerHTML = sira.length
+      ? sira.map(([ad, o]) => bar(ad + ' — ' + _iCev('ist.kullaniciGun', '{n} kullanıcı-gün').replace('{n}', o.k), o.g, max)).join('')
+      : '<div class="stt-empty">' + _iCev('ist.veriYok', 'Henüz veri yok') + '</div>';
+  } catch (e) {
+    el.innerHTML = '<div class="stt-empty">' + htmlKac(e.message) + '</div>';
+  }
+}
 </script>
 
 </body>
