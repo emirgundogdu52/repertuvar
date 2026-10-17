@@ -103,8 +103,8 @@ Repertuvar ve Sahne Yönetimi</div>
       window.location.href = 'login.html';
     }
 
-    // Animasyon takılsa bile en geç 6 sn'de geç (sahne ~4,5 sn)
-    setTimeout(()=>{ if(!window._splashDone){ window.location.href='login.html'; } }, 6000);
+    // Animasyon takılsa bile en geç 7 sn'de geç (sahne ~5,2 sn; 2026-10-17 üçüncü vuruşla uzadı)
+    setTimeout(()=>{ if(!window._splashDone){ window.location.href='login.html'; } }, 7000);
     runIntro().then(()=>{ window._splashDone = true; });
   </script>
 </body>

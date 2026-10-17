@@ -7,7 +7,9 @@
 //   2) beyaz çizgi sola kayıp sarı çizginin ucuna çarpar; TAM O ANDA düz düşen nokta beyaz çizgiye değer (1. vuruş)
 //   3) nokta "r"nin ucu hizasına kadar zıplar (39 px: nokta merkezi 67 → r kolu 21–34; %31); çizgi sağa döner, sonra yine sola gelip sarıya çarpar ve
 //      yeniden düşen noktayı karşılar (2. vuruş)
-//   4) nokta yukarı, çizgi sağa — yerlerine; ardından Dock dalgası
+//   4) (2026-10-17 eki, kullanıcı: "son seferde bir kez daha düşsün, yukarı gidince yerinde kalsın") nokta daha alçak sekip
+//      (−%4) üçüncü kez düşer, çizgi üçüncü kez yakalar
+//   5) nokta yukarı çıkıp TAŞMADAN yerinde durur, çizgi sağa yerine; ardından Dock dalgası
 // Yüzdeler parçanın kendi kutusuna (= tüm logo) göre: çizgi 38 px sola (494 → 456, sarı 455'te biter: %5,72),
 // nokta 26 px aşağı (nokta altı 75 → çizgi üstü 101: %20,5). Hareketi azalt açıksa sahne atlanır.
 //
@@ -27,7 +29,10 @@
     return el.animate(kare, { duration: s ? 1 : sure, delay: s ? 0 : gecikme, easing: egri || suz, fill: 'forwards' })
       .finished.catch(() => {});
   };
-  const T = 2700, V1 = .25, ZIRVE = .43, V2 = .61;          // V1 / V2: iki vuruş anı (aynı oran her parçada)
+  // Vuruş anları sahnenin oranı olarak (aynı oran her parçada). T 3000 ms: ilk iki vuruşun milisaniyeleri 2700'lü eski
+  // sahneyle AYNI (675 / 1647 ms); üçüncü sekiş daha alçak, dolayısıyla daha kısa.
+  const T = 3000, V1 = .225, ZIRVE = .387, V2 = .549, ZIRVE2 = .657, V3 = .766, YER = .9;
+  const EZ = .027, IT = .036, DON = .144;                   // ezilme (81 ms), sarının itilmesi (108 ms), geri dönüşü (432 ms)
   const CARPMA = 'translateX(-5.72%)', DUS = 'translateY(20.5%)';
 
   // Parça kesimleri (logo kutusuna göre %) — login.html / splash.html CSS'indeki #sp-* / #word-* ile AYNI değerler.
@@ -46,37 +51,39 @@
     const dotBasi = o.dotBas
       ? [{ opacity: 1, transform: o.dotBas, easing: dusme }]
       : [{ opacity: 0, transform: 'translateY(-330%)', easing: dusme },
-         { opacity: 1, transform: 'translateY(-250%)', offset: .07, easing: dusme }];
+         { opacity: 1, transform: 'translateY(-250%)', offset: .063, easing: dusme }];
+    const ezil = (v, egri) => ({ transform: `${CARPMA} translateY(6%) scaleX(.96)`, offset: v + EZ, easing: egri || cikma });
+    const it = (v, x) => [
+      { transform: 'none', offset: v, easing: carp },
+      { transform: `translateX(${x}%)`, offset: v + IT, easing: yay },                // çarpmayla itildi
+      { transform: 'none', offset: v + DON }
+    ];
     await Promise.all([
       oyna(p.line, [
         { transform: 'none', easing: sola },
         { transform: CARPMA, offset: V1, easing: carp },                                   // 1. vuruş
-        { transform: `${CARPMA} translateY(6%) scaleX(.96)`, offset: V1 + .03, easing: cikma },
+        ezil(V1),
         { transform: 'translateX(.4%)', offset: ZIRVE, easing: sola },                    // sağa döndü
         { transform: CARPMA, offset: V2, easing: carp },                                   // 2. vuruş
-        { transform: `${CARPMA} translateY(6%) scaleX(.96)`, offset: V2 + .03, easing: 'cubic-bezier(0.3,0,0.3,1)' },
-        { transform: 'translateX(.9%)', offset: .86, easing: 'ease-in-out' },              // yerine (biraz taşar)
-        { transform: 'translateX(-.25%)', offset: .94 },
+        ezil(V2),
+        { transform: 'translateX(.2%)', offset: ZIRVE2, easing: sola },                   // kısa sekişte az döner
+        { transform: CARPMA, offset: V3, easing: carp },                                   // 3. vuruş
+        ezil(V3, 'cubic-bezier(0.3,0,0.3,1)'),
+        { transform: 'translateX(.9%)', offset: .9, easing: 'ease-in-out' },               // yerine (biraz taşar)
+        { transform: 'translateX(-.25%)', offset: .96 },
         { transform: 'none' }
       ], T, 0, 'linear'),
-      oyna(p.gold, [
-        { transform: 'none' },
-        { transform: 'none', offset: V1, easing: carp },
-        { transform: 'translateX(-1.1%)', offset: V1 + .04, easing: yay },                // çarpmayla itildi
-        { transform: 'none', offset: V1 + .16 },
-        { transform: 'none', offset: V2, easing: carp },
-        { transform: 'translateX(-1.1%)', offset: V2 + .04, easing: yay },
-        { transform: 'none', offset: V2 + .16 },
-        { transform: 'none' }
-      ], T, 0, 'linear'),
+      oyna(p.gold, [{ transform: 'none' }].concat(it(V1, -1.1), it(V2, -1.1), it(V3, -.8), [{ transform: 'none' }]), T, 0, 'linear'),
       oyna(p.dot, dotBasi.concat([
         { opacity: 1, transform: DUS, offset: V1, easing: carp },                          // 1. vuruş
-        { opacity: 1, transform: `${DUS} scale(1.28,.72)`, offset: V1 + .03, easing: cikma },
+        { opacity: 1, transform: `${DUS} scale(1.28,.72)`, offset: V1 + EZ, easing: cikma },
         { opacity: 1, transform: 'translateY(-31%) scale(.96,1.05)', offset: ZIRVE, easing: dusme },   // "r"nin ucuna kadar zıpladı
         { opacity: 1, transform: DUS, offset: V2, easing: carp },                          // 2. vuruş
-        { opacity: 1, transform: `${DUS} scale(1.24,.76)`, offset: V2 + .03, easing: cikma },
-        { opacity: 1, transform: 'translateY(-14%) scale(.96,1.05)', offset: .82, easing: 'ease-in-out' }, // yerine (biraz taşar)
-        { opacity: 1, transform: 'translateY(3%)', offset: .92 },
+        { opacity: 1, transform: `${DUS} scale(1.24,.76)`, offset: V2 + EZ, easing: cikma },
+        { opacity: 1, transform: 'translateY(-4%) scale(.97,1.03)', offset: ZIRVE2, easing: dusme },   // daha alçak sekiş
+        { opacity: 1, transform: DUS, offset: V3, easing: carp },                          // 3. vuruş
+        { opacity: 1, transform: `${DUS} scale(1.16,.84)`, offset: V3 + EZ, easing: 'cubic-bezier(0.2,0.7,0.3,1)' },
+        { opacity: 1, transform: 'none', offset: YER },                                     // yukarı çıktı ve YERİNDE kaldı
         { opacity: 1, transform: 'none' }
       ]), T, 0, 'linear')
     ]);

@@ -1380,7 +1380,7 @@ function _m(anahtar, tr) {
 
   var css = document.createElement('style');
   css.textContent =
-    '#sync-bar{position:fixed;top:0;left:0;height:3px;width:100%;' +
+    '#sync-bar{position:fixed;top:env(safe-area-inset-top,0px);left:0;height:3px;width:100%;' +
     'transform:scaleX(0);transform-origin:0 50%;opacity:0;' +
     'background:linear-gradient(90deg,#FFC83D,#FFD972);' +
     'box-shadow:0 0 10px rgba(255,200,61,.65),0 0 4px rgba(255,200,61,.9);' +
@@ -1407,9 +1407,18 @@ function _m(anahtar, tr) {
     prog = Math.max(0, Math.min(1, p));
     el().style.transform = 'scaleX(' + prog + ')';
   }
+  // (2026-10-17) Telefon/tablette çubuk üst menünün ALT KENARINDA (Safari'nin yükleme çizgisi gibi). top:0 iPhone'da durum
+  // çubuğu / Dynamic Island şeridinde, ekranın kavisli kenarında kalıyordu — kullanıcı: "çizgi kayboldu, yalnız bir ışık
+  // efekti kaldı". Üst menü yoksa (geniş ekran, sahne) güvenli alanın hemen altı; masaüstünde env() = 0 → eskisi gibi en üst.
+  function yerlestir(b) {
+    var tn = document.querySelector('.r-topnav');
+    var r = tn ? tn.getBoundingClientRect() : null;   // offsetParent DEĞİL: sabit (fixed) menüde hep null döner
+    b.style.top = (r && r.width > 0 && r.height > 0 && r.bottom > 0) ? Math.round(r.bottom - 2) + 'px' : '';
+  }
   function start() {
     startedAt = Date.now();
     var b = el();
+    yerlestir(b);
     b.style.transition = 'none';   // görünmezken 0'a çek (animasyonsuz)
     set(0);
     void b.offsetWidth;            // reflow
