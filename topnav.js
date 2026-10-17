@@ -1387,18 +1387,23 @@ function _m(anahtar, tr) {
     'z-index:2147483647;pointer-events:none;will-change:transform,opacity;' +
     'transition:transform .2s ease,opacity .35s ease;}' +
     '#sync-bar.on{opacity:1;}' +
-    // (2026-10-17) Telefon/tablette çubuk YOK, sağda küçük dönen halka (kullanıcı: logonun sarı çizgisinin yanına ikinci
-    // bir sarı çizgi orayı bozuyordu — "daha küçük ve çizgi olmayan"). Halka sağ grubun SOLUNDA mutlak konumda: görünüp
-    // kaybolurken zil/tema/avatar kaymaz.
+    // (2026-10-17) Telefon/tablette çubuk YOK, sağda ÜÇ KÜÇÜK NOKTA sırayla zıplar (kullanıcı: logonun sarı çizgisinin
+    // yanına ikinci bir sarı çizgi orayı bozuyordu — "daha küçük ve çizgi olmayan"; dönen halkadan sonra "Claude'daki gibi
+    // üç nokta"). Sağ grubun SOLUNDA mutlak konumda: görünüp kaybolurken zil/tema/avatar kaymaz; gizliyken display:none.
     '.r-topnav .r-tn-right{position:relative;}' +
-    '#sync-halka{position:absolute;right:calc(100% + 10px);top:calc(50% - 8px);width:16px;height:16px;' +
-    'box-sizing:border-box;border-radius:50%;border:2px solid rgba(255,255,255,.14);border-top-color:#FFC83D;' +
-    'opacity:0;transition:opacity .25s ease;animation:syncHalka .8s linear infinite;pointer-events:none;display:none;}' +
-    '#sync-halka.var{display:block;}' +   // gizliyken display:none → boşuna dönmez
+    '#sync-halka{position:absolute;right:calc(100% + 10px);top:calc(50% - 8px);height:16px;gap:3px;align-items:center;' +
+    'opacity:0;transition:opacity .25s ease;pointer-events:none;display:none;}' +
+    '#sync-halka.var{display:flex;}' +
     '#sync-halka.serbest{position:fixed;right:16px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:2147483647;}' +
     '#sync-halka.on{opacity:1;}' +
-    '[data-theme="light"] #sync-halka{border-color:rgba(17,23,34,.12);border-top-color:#C98A00;}' +
-    '@keyframes syncHalka{to{transform:rotate(360deg);}}';
+    '#sync-halka i{width:5px;height:5px;border-radius:50%;background:#FFC83D;opacity:.45;' +
+    'animation:syncZipla 1s ease-in-out infinite;}' +
+    '#sync-halka i:nth-child(2){animation-delay:.15s;}' +
+    '#sync-halka i:nth-child(3){animation-delay:.3s;}' +
+    '[data-theme="light"] #sync-halka i{background:#C98A00;}' +
+    '@keyframes syncZipla{0%,60%,100%{transform:translateY(0);opacity:.45;}30%{transform:translateY(-4px);opacity:1;}}' +
+    '@media (prefers-reduced-motion: reduce){#sync-halka i{animation-name:syncSolgun;}}' +
+    '@keyframes syncSolgun{0%,60%,100%{opacity:.45;}30%{opacity:1;}}';
   (document.head || document.documentElement).appendChild(css);
 
   var bar = null, prog = 0, trickle = null, count = 0, startedAt = 0;
@@ -1419,7 +1424,7 @@ function _m(anahtar, tr) {
     prog = Math.max(0, Math.min(1, p));
     el().style.transform = 'scaleX(' + prog + ')';
   }
-  // (2026-10-17) Hangi gösterge: üst menü görünüyorsa (telefon/tablet) ya da dar ekransa halka, geniş ekranda çubuk.
+  // (2026-10-17) Hangi gösterge: üst menü görünüyorsa (telefon/tablet) ya da dar ekransa üç nokta (#sync-halka), geniş ekranda çubuk.
   // Çubuk iPhone'da top:0 durum çubuğu şeridinde kayboluyordu; menünün alt kenarına taşınınca da logonun sarı çizgisiyle
   // yan yana iki sarı çizgi oluyordu — ikisi de kullanıcıyı rahatsız etti.
   var halka = null, halkaModu = false;
@@ -1428,7 +1433,10 @@ function _m(anahtar, tr) {
     var r = tn ? tn.getBoundingClientRect() : null;   // offsetParent DEĞİL: sabit (fixed) menüde hep null döner
     var menuVar = !!(r && r.width > 0 && r.height > 0);
     if (!menuVar && window.innerWidth >= 1024) return false;
-    if (!halka) { halka = document.createElement('div'); halka.id = 'sync-halka'; halka.setAttribute('aria-hidden', 'true'); }
+    if (!halka) {
+      halka = document.createElement('div'); halka.id = 'sync-halka'; halka.setAttribute('aria-hidden', 'true');
+      halka.innerHTML = '<i></i><i></i><i></i>';
+    }
     var sag = menuVar ? tn.querySelector('.r-tn-right') : null;
     if (sag) { if (halka.parentNode !== sag) sag.insertBefore(halka, sag.firstChild); halka.classList.remove('serbest'); }
     else { if (halka.parentNode !== document.body) (document.body || document.documentElement).appendChild(halka); halka.classList.add('serbest'); }
