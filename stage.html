@@ -400,18 +400,20 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 
 .stb{display:flex;flex-direction:column;align-items:stretch;padding:8px 16px 7px;padding-top:calc(8px + env(safe-area-inset-top));border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:7px;position:relative;z-index:401;}
 .stb-r1{display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 16px 6px;}
-.stb-r2{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;}
+.stb-r2{display:flex;align-items:center;justify-content:center;gap:10px;min-width:0;}
 #v2StageBotNav .v2-bn-exit { color: #c05444 !important; }
 #v2StageBotNav .v2-bn-exit:hover { color: #e06655 !important; }
-.strn{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 auto;}
+/* (2026-10-17) Üst satırdaki ad GİZLİ (kullanıcı isteği): tek eserde başlığın aynısıydı, repertuvarda da sahnede gereksiz
+   kalabalık. Satırda yalnız ortalanmış ilerleme (noktalar + büyük sayaç) kalır. #strn JS'te doldurulmaya devam eder. */
+.strn{display:none;font-size:12px;color:var(--text2);font-weight:500;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 auto;}
 .stp{display:flex;align-items:center;gap:10px;}
-.pds{display:flex;gap:5px;align-items:center;}
-.pd{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;flex-shrink:0;}
+.pds{display:flex;gap:6px;align-items:center;}
+.pd{width:7px;height:7px;border-radius:50%;background:var(--border);transition:background .2s,transform .2s;flex-shrink:0;}
 .pd.done{background:var(--text3);}
 .pd.cur{background:var(--accent);transform:scale(1.4);}
 .pbar{width:96px;height:4px;border-radius:999px;background:var(--border);overflow:hidden;}
 .pbar span{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s;}
-.stc{display:inline;font-size:11px;font-weight:600;color:var(--text2);margin-left:6px;}
+.stc{display:inline;font-size:15px;font-weight:700;color:var(--text);margin-left:6px;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
 .bex{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text3);font-size:11px;font-family:var(--font-ui, 'DM Sans',sans-serif);cursor:pointer;transition:all .15s;}
 .bex:hover{color:var(--red);border-color:var(--red);}
 
@@ -814,7 +816,6 @@ body.stage-active #r-bottom-nav{display:none !important;}
     .stb { padding:8px 10px; padding-top:calc(8px + env(safe-area-inset-top)); height:auto; min-height:48px; }
     /* (2026-08-06) 88px tavanı KALDIRILDI: repertuvar adı artık kendi satırında
        (.stb-r2), tek satırda sıkışmıyor — telefonda da tam genişlik kullanabilir. */
-    .strn { font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .bex, .stage-nav a { font-size:10px; padding:4px 8px; }
     .stage-nav { gap:4px; }
     .sm { padding:20px 14px calc(60px + env(safe-area-inset-bottom)); }
