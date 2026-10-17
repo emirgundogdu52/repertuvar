@@ -1435,7 +1435,7 @@ function _abTarih(s) {
 function _abPlan(d) {
   const u = String((d && d.urun_id) || '').toLowerCase();
   if (/yearly|annual|yillik/.test(u)) return _t('ab.planYillik', 'Yıllık');
-  if (/6months|six-months|altiaylik/.test(u)) return _t('ab.planAlti', '6 Aylık');
+  if (/6months|six-months|altiaylik|alti-aylik/.test(u)) return _t('ab.planAlti', '6 Aylık');   // Play: repertuvar_pro:alti-aylik ("aylik"a düşmesin)
   if (/monthly|aylik/.test(u)) return _t('ab.planAylik', 'Aylık');
   return '';
 }
