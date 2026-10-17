@@ -915,9 +915,6 @@ async function loginGoogle() {
   // Logo görseli yüklenmeden parçalar boş görünmesin (yüklenemezse de animasyon sürer, ekran kilitlenmez)
   await new Promise(r => { const i = new Image(); i.onload = i.onerror = r; i.src = 'logo_dark.png'; setTimeout(r, 1500); });
 
-  // (2026-10-17) Logo sahnesi ortak dosyada (acilis-logo.js — splash.html ile aynı): süzülme, iki vuruş, Dock dalgası
-  if (window.acilisLogo) await window.acilisLogo({ rep, gold, dot, app, line });
-
   // Slogan: daktilo yerine yumuşak geçiş (hız için)
   // (2026-08-30) Splash sloganı JS'ten yazılıyor, bu yüzden data-i18n
   // işaretlemesi yetmiyor — çeviri burada da alınıyor. i18n yüklenmemişse
@@ -926,7 +923,11 @@ async function loginGoogle() {
                        (window.t ? t('giris.slogan2') : 'Repertuvar ve Sahne Yönetimi');
   slogan.style.opacity = '0';
   slogan.style.transform = 'translateY(8px)';
-  await anim(slogan, { opacity:'1', transform:'translateY(0)' }, 600, 0, 'cubic-bezier(0.16,1,0.3,1)');
+
+  // (2026-10-17) Logo sahnesi ortak dosyada (acilis-logo.js — splash.html ile aynı): süzülme, iki vuruş, Dock dalgası.
+  // Slogan sahnenin SONUNDA değil, kelimeler yerine oturunca (~1 sn) gelir — okumaya zaman kalsın (kullanıcı).
+  const sahne = window.acilisLogo ? window.acilisLogo({ rep, gold, dot, app, line }) : Promise.resolve();
+  await Promise.all([sahne, anim(slogan, { opacity:'1', transform:'translateY(0)' }, 700, 1000, 'cubic-bezier(0.16,1,0.3,1)')]);
 
   // (2026-08-06) Emir: "splash çok hızlı geçiyor, 1 sn uzatalım."
   // Uzatma, animasyonların İÇİNE değil SONUNA konuyor: logo ve slogan tam

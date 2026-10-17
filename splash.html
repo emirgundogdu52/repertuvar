@@ -94,10 +94,10 @@ Repertuvar ve Sahne Yönetimi</div>
       // Logo görseli yüklenmeden parçalar boş görünmesin (yüklenemezse de geçiş sürer)
       await new Promise(r => { const i = new Image(); i.onload = i.onerror = r; i.src = 'logo_dark.png'; setTimeout(r, 1200); });
 
-      // Logo sahnesi ortak dosyada (acilis-logo.js — login.html açılışıyla aynı)
-      if (window.acilisLogo) await window.acilisLogo({ rep, gold, dot, app, line });
-      const suz = 'cubic-bezier(0.16,1,0.3,1)';
-      await anim(slogan, {opacity:'1', transform:'translateY(0)'}, 600, 0, suz);
+      // Logo sahnesi ortak dosyada (acilis-logo.js — login.html açılışıyla aynı). Slogan kelimeler yerine oturunca
+      // (~1 sn) gelir, sahnenin sonunu beklemez — okumaya zaman kalsın (kullanıcı 2026-10-17).
+      const sahne = window.acilisLogo ? window.acilisLogo({ rep, gold, dot, app, line }) : Promise.resolve();
+      await Promise.all([sahne, anim(slogan, {opacity:'1', transform:'translateY(0)'}, 700, 1000, 'cubic-bezier(0.16,1,0.3,1)')]);
 
       await wait(420);
       window.location.href = 'login.html';
