@@ -928,7 +928,7 @@
     .detail.mobile-visible .detail-header { padding:8px 12px 6px; width:100%; overflow:visible; }
     .detail.mobile-visible .detail-chips { display:flex; flex-wrap:wrap; gap:4px; overflow:visible; width:100%; }
     .detail.mobile-visible .chip { white-space:nowrap; font-size:10px; padding:2px 7px; }
-    .detail.mobile-visible .detail-stage-row { flex-wrap:wrap !important; gap:6px; overflow:visible; }
+    .detail.mobile-visible .detail-stage-row { flex-wrap:wrap !important; gap:6px; overflow:visible; margin-top:10px !important; }
     .detail.mobile-visible .stage-open-btn,
     .detail.mobile-visible .edit-btn,
     .detail.mobile-visible .delete-btn { font-size:11px; padding:5px 8px; }
@@ -1065,6 +1065,10 @@
   /* ── 2026-07-19: ••• kebab yerine yan yana işlem butonları ──
      .detail-stage-row zaten flex-wrap; yer kalmayınca butonlar alt satıra sarar. */
   .act-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  /* (2026-10-17) Kullanıcı: iPhone'da "Sahne Modunda Aç" tek başına bir satırda, yanı boş; düğmeler hep alt satıra
+     iniyordu (kutu bütün hâlde sarıyordu). Kutu çözülür: her düğme satırın kendi öğesi olur, Sahne düğmesinin yanındaki
+     boşluğu doldurur, sığmayan alt satıra geçer. */
+  .detail-stage-row .act-bar { display:contents; }
   .act-btn {
     display:inline-flex; align-items:center; justify-content:center; gap:6px;
     padding:7px 12px; height:34px; background:var(--surface2);
