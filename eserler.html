@@ -2123,8 +2123,6 @@ function toggleMoreSheet(show, id) {
       <button class="more-sheet-item" onclick="toggleMoreSheet(false);openRepAddSheet(${id})"><i class="ti ti-playlist-add"></i> ${_esCev('es.repertuvaraEkle','Repertuvara Ekle')}</button>
       <button class="more-sheet-item" onclick="shareWork(${id})"><i class="ti ti-share"></i> ${_esCev('es.paylasBtn','Paylaş')}</button>
       <button class="more-sheet-item" onclick="toggleFavoriteFromMore(${id})"><i class="ti ti-star${isFavNow?'-filled fav-star':''}"></i> ${isFavNow?_esCev('es.favCikar','Favoriden Çıkar'):_esCev('es.favEkle','Favoriye Ekle')}</button>
-      <button class="more-sheet-item" onclick="stubAction(_esCev('es.stubPdf','PDF / Nota görüntüleme'))"><i class="ti ti-file-music"></i> ${_esCev('es.pdfNota','PDF / Nota')}</button>
-      <button class="more-sheet-item" onclick="stubAction(_esCev('es.stubKopya','Kopyasını oluşturma'))"><i class="ti ti-copy"></i> ${_esCev('es.kopyasiniOlustur','Kopyasını Oluştur')}</button>
       <button class="more-sheet-item" onclick="toggleMoreSheet(false);openEditEserModal(${id})" style="display:${(isAdmin() || isEditor() || w.submitted_by === getUserId()) ? 'flex' : 'none'}"><i class="ti ti-edit"></i> ${_esCev('ortak.duzenle','Düzenle')}</button>
       <button class="more-sheet-item danger" onclick="toggleMoreSheet(false);showDeleteConfirm(${id})" style="display:${(isAdmin() || isEditor() || w.submitted_by === getUserId()) ? 'flex' : 'none'}"><i class="ti ti-trash"></i> ${_esCev('ortak.sil','Sil')}</button>
     `;
@@ -2133,10 +2131,8 @@ function toggleMoreSheet(show, id) {
   sheet.classList.toggle('open', show);
 }
 
-function stubAction(label) {
-  toggleMoreSheet(false);
-  alert(_esCev('es.stubYakinda','{ad} özelliği yakında eklenecek.').replace('{ad}', label));
-}
+// (2026-10-17) "PDF / Nota" ve "Kopyasını Oluştur" yer tutucu düğmeleri (yalnız "yakında eklenecek" uyarısı veriyordu)
+// kaldırıldı: Apple çalışmayan düğmeyi tamamlanmamış uygulama sayar (2.1). Nota eser ayrıntısında zaten gösteriliyor.
 
 // 2026-07-20 (3): Paylaşım bağlantısının tabanı. Uygulama Capacitor içinde
 // çalışırken location.origin "capacitor://localhost" (veya file://) olur; bu

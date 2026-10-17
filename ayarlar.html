@@ -813,13 +813,17 @@ html, body { overflow-x: hidden; }
         </div>
         <span class="version-badge">v2.0</span>
       </div>
-      <div class="setting-row">
+      <!-- (2026-10-17) E13: iOS/Android uygulamasında GİZLİ — Apple 3.1.1(a)/3.1.3: uygulama, mağaza dışı satın almaya
+           götüren bağlantı içeremez (ABD hariç). Sitede bugün satış yok ama web satışı açılınca bu satır ret sebebi olurdu.
+           Web sürümünde görünür. Destek/Gizlilik/Koşullar bağlantıları (zorunlu, satış içermez) kalır. -->
+      <div class="setting-row" id="webSitesiSatir">
         <div>
           <div class="setting-label" data-i18n="ay.websitesi">Web Sitesi</div>
           <div class="setting-desc">repertuvar.app</div>
         </div>
         <a href="https://repertuvar.app" target="_blank" class="setting-btn" data-i18n="ay.ziyaret">Ziyaret Et →</a>
       </div>
+      <script>try { var C = window.Capacitor; if (C && C.isNativePlatform && C.isNativePlatform()) document.getElementById('webSitesiSatir').style.display = 'none'; } catch (e) {}</script>
       <div class="setting-row">
         <div>
           <div class="setting-label" data-i18n="ay.gizlilik">Gizlilik Politikası</div>
