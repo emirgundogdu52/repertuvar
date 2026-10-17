@@ -36,6 +36,7 @@
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script src="tasarim.js"></script>
+<script src="arama-temizle.js" defer></script>
 <title data-i18n="gr.sayfaBaslik">Grup / Koro Yönetimi — Repertuvar</title>
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -267,7 +268,7 @@ html { -webkit-text-size-adjust: 100%; }
       </div>
       <div style="position:relative;margin-bottom:12px;">
         <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text3);"></i>
-        <input class="fi" id="memberSearch" style="padding-left:32px;font-size:12px;" placeholder="Mevcut üyelerde ara..." data-i18n-ph="gr.phUyeAra" oninput="filterMembers(this.value)">
+        <input class="fi" id="memberSearch" data-temizle style="padding-left:32px;font-size:12px;" placeholder="Mevcut üyelerde ara..." data-i18n-ph="gr.phUyeAra" oninput="filterMembers(this.value)">
       </div>
       <div id="membersList"></div>
     </div>

@@ -326,6 +326,7 @@
   <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <script src="tasarim.js"></script>
+<script src="arama-temizle.js" defer></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title data-i18n="sh.sayfaBaslik">Sahne Modu</title>
@@ -998,7 +999,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     <div class="pi-fixed-top">
       <h1 class="ptitle" data-i18n="sh.hosgeldin">Sahne Moduna Hoş Geldiniz</h1>
       <p class="psub" data-i18n="sh.repSec">Sahne performansınız için bir repertuvar seçiniz</p>
-      <input type="text" id="stageSearchInput" placeholder="Repertuvar veya eser adı ara..." data-i18n-ph="sh.araPh" oninput="onStageSearchInput(this.value)"
+      <input type="text" id="stageSearchInput" data-temizle placeholder="Repertuvar veya eser adı ara..." data-i18n-ph="sh.araPh" oninput="onStageSearchInput(this.value)"
         style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--text);font-family:inherit;outline:none;margin-bottom:16px;transition:border-color .15s;box-sizing:border-box;"
         onfocus="this.style.borderColor='#FFC83D'" onblur="this.style.borderColor='var(--border)'">
     </div>

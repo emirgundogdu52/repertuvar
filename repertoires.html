@@ -13,6 +13,7 @@
   <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script src="tasarim.js"></script>
+<script src="arama-temizle.js" defer></script>
 <title data-i18n="rep.sayfaBaslik">Repertuvar</title>
 <style>
 :root{--bg:#07071a;--surface:#0f0f2e;--surface2:#13132e;--border:rgba(140,120,255,0.38);--border2:rgba(140,120,255,0.58);--accent:#7c6fff;--accent2:#a78bfa;--accent3:#c4b5fd;--text:#e2e0ff;--text2:#9d9bc4;--text3:#5e5c8a;--red:#f87171;--green:#4ade80;}
@@ -404,7 +405,7 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
   <aside class="lp">
     <div class="lph"><h2 data-i18n="rep.mevcut">Mevcut Repertuvarlar</h2><button class="bn" onclick="openNew()" title="+ Yeni Repertuvar Oluştur" data-i18n-title="rep.yeniRepT" data-i18n="rep.yeni">+ Yeni</button></div>
     <div style="padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
-      <input type="text" id="repSearchInput" placeholder="Repertuvar veya eser adı ara..." data-i18n-ph="rep.ph_ara" oninput="onRepSearchInput(this.value)"
+      <input type="text" id="repSearchInput" data-temizle placeholder="Repertuvar veya eser adı ara..." data-i18n-ph="rep.ph_ara" oninput="onRepSearchInput(this.value)"
         style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;transition:border-color .15s;"
         onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
     </div>
@@ -459,7 +460,7 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 <div class="mo" id="wm" style="display:none;">
   <div class="md">
     <h2 data-i18n="rep.eserekle">Eser Ekle</h2>
-    <div class="fr"><input class="fi" id="ws" placeholder="Eser adı veya besteci ara..." data-i18n-ph="rep.ph_eserara" oninput="filterW()" autocomplete="off"></div>
+    <div class="fr"><input class="fi" id="ws" data-temizle placeholder="Eser adı veya besteci ara..." data-i18n-ph="rep.ph_eserara" oninput="filterW()" autocomplete="off"></div>
     <div id="wDupWarn" style="display:none;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);color:#ef4444;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:13px;font-weight:600;" data-i18n="rep.zatenvar">Bu eser zaten bu repertuvarda mevcut</div>
     <div class="wpl" id="wpl"></div>
     <!-- Eser bilgileri (seçince otomatik dolar) -->

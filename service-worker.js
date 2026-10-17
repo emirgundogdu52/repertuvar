@@ -31,7 +31,7 @@ const PRECACHE = [
   '/stage.html', '/repertoires.html', '/eserler.html', '/calisma.html',
   '/ritim-kes.html', '/gruplar.html', '/mesajlar.html', '/ayarlar.html',
   '/artiesten.html', '/onerilerim.html', '/login.html', '/reset-password.html',
-  '/splash.html', '/acilis-logo.js',
+  '/splash.html', '/acilis-logo.js', '/arama-temizle.js',
   // betikler ve stil (soundtouch.js calisma.html'de dinamik import ile yükleniyor)
   '/auth.js', '/db.js', '/i18n.js', '/topnav.js', '/repertoires.js', '/secici.js',
   '/metronom.js', '/ritimcalar.js', '/ses.js', '/dongu.js', '/zamanlayici.js',

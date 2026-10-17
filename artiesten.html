@@ -16,6 +16,7 @@
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script src="tasarim.js"></script>
+<script src="arama-temizle.js" defer></script>
 <title data-i18n="so.sayfaBaslik">Solistler — Repertuvar</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -188,7 +189,7 @@ html{background:var(--bg);}
 <div class="modal-overlay" id="workModal" style="display:none;">
   <div class="modal">
     <h2 data-i18n="so.eserEkle">Eser Ekle</h2>
-    <input class="form-input" id="workSearch" placeholder="Eser adı veya besteci ara..." data-i18n-ph="so.phAra" oninput="filterWorks()" autocomplete="off">
+    <input class="form-input" id="workSearch" data-temizle placeholder="Eser adı veya besteci ara..." data-i18n-ph="so.phAra" oninput="filterWorks()" autocomplete="off">
     <div class="work-picker-list" id="workPickerList"></div>
     <div class="form-actions">
       <button class="btn-cancel" onclick="closeWorkModal()" data-i18n="ortak.iptal">İptal</button>

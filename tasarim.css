@@ -495,6 +495,34 @@ html[data-tasarim="v3"] body { left: var(--yan-sol); right: var(--yan-sag); }
     padding-left: calc(26px + var(--yan-sol)) !important; padding-right: calc(16px + var(--yan-sag)) !important;
   }
 }
+/* (2026-10-17) KOYU TEMADA da aynı çizgi. Yukarıdaki hizalama açık temanın plakasına göre: koyuda plaka yok, görünen kenar
+   logonun yazısı — kutu 26px'te + görselin kendi saydam payı (genişliğin 10/664'ü) → yazı ~29px'te, içerik 16px'te kalıyordu
+   (kullanıcı: "logo alttaki butonlarla sola hizalı değil"). Plaka payı (10px) + saydam pay geri alınır → yazı 16px'te.
+   Açık tema DEĞİŞMEZ (plaka 16px'te). Yan menü (≥1024px): düğme kutuları 10px'te; koyuda yazı, açıkta plaka o çizgide.
+   .sb-brand sol boşluğu 16px, 42px yükseklikte saydam pay 42×10/127 = 3,3px. Tema değişince logo bu yüzden ~13px kayar. */
+@media (max-width: 1023px) {
+  html[data-tasarim="v3"]:not([data-theme="light"]) .r-topnav img.r-logo { margin-left: calc(-10px - min(220px, 44vw) * 10 / 664); }
+}
+@media (max-width: 430px) {
+  html[data-tasarim="v3"]:not([data-theme="light"]) .r-topnav img.r-logo { margin-left: calc(-10px - min(209px, 44vw) * 10 / 664); }
+}
+html[data-tasarim="v3"]:not([data-theme="light"]) .sb-brand img[data-logo] { margin-left: calc(-6px - 42px * 10 / 127); }
+html[data-tasarim="v3"][data-theme="light"] .sb-brand img[data-logo][src*="logo_dark"] { margin-left: 4px; }
+/* (2026-10-17) Aynı denetimde: bu sayfaların kapları 16px standardının dışındaydı (Çalışma/Ritim Kes/Ayarlar/İstatistikler
+   20, Mesajlar/Önerilerim 24, Gruplar 12, Sahne 8, Solist detayı 32px) → logo hiçbirinde içerikle hizalı değildi. Logo tek
+   yerde sabit; içerik ona gelir. Ortalanan (max-width) düzenlerde yalnız iç pay değişir. Eserler detayı eserler.html'de. */
+@media (max-width: 1023px) {
+  html[data-tasarim="v3"][data-sayfa="calisma"] .page-content,
+  html[data-tasarim="v3"][data-sayfa="ritim-kes"] .page-content,
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .page-content,
+  html[data-tasarim="v3"][data-sayfa="ayarlar"] .page,
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .page,
+  html[data-tasarim="v3"][data-sayfa="istatistikler"] .page,
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .page,
+  html[data-tasarim="v3"][data-sayfa="stage"] .pi-fixed-top,
+  html[data-tasarim="v3"][data-sayfa="stage"] .pi-scroll,
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .detail-inner { padding-left: 16px !important; padding-right: 16px !important; }
+}
 html[data-tasarim="v3"] .bottom-nav { padding-left: var(--yan-sol); padding-right: var(--yan-sag); }
 /* Eserler "+" düğmesi: ≤768px'te eserler.html zaten alt menünün üstüne alıyor (right 16px — dokunma). 769–1023px'te alt menü
    görünür ama düğme bottom:24px'te kalıp menünün üstüne biniyordu (yatay iPhone, dikey iPad Air). */

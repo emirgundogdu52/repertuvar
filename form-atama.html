@@ -37,6 +37,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script src="/tasarim.js"></script>
+<script src="/arama-temizle.js" defer></script>
 <title data-i18n="fa.sayfaBasligi">Form Atama — Repertuvar</title>
 <link rel="stylesheet" href="/style.css">
 <script src="/i18n.js"></script>
@@ -105,7 +106,7 @@
 </div>
 
 <div class="satir-ust">
-  <input type="search" id="ara" placeholder="Eser adı, yöre veya makam ara…" data-i18n-ph="fa.araPh"
+  <input type="search" id="ara" data-temizle placeholder="Eser adı, yöre veya makam ara…" data-i18n-ph="fa.araPh"
          autocomplete="off" oninput="sayfa=0;ciz()">
   <select class="suz" id="suzgec" onchange="sayfa=0;ciz()">
     <option value="bos" data-i18n="fa.suzBos">Formu olmayanlar</option>

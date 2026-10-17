@@ -12,6 +12,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <script src="tasarim.js"></script>
+<script src="arama-temizle.js" defer></script>
 <title data-i18n="ms.sayfaBaslik">Repertuvar — Mesajlar</title>
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <link rel="stylesheet" href="style.css">
@@ -251,7 +252,7 @@ body { -webkit-text-size-adjust: 100%; }
     <div class="nm-field">
       <label><span data-i18n="ms.uyeSec">Üye Seç</span> <span id="nmSelectedCount" style="color:var(--accent);font-weight:700;"></span></label>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input type="text" id="nmSearch" class="nm-textarea" style="min-height:unset;padding:8px 12px;font-size:12px;" placeholder="İsim veya e-posta ile ara..." data-i18n-ph="ms.phAra">
+        <input type="text" id="nmSearch" data-temizle class="nm-textarea" style="min-height:unset;padding:8px 12px;font-size:12px;" placeholder="İsim veya e-posta ile ara..." data-i18n-ph="ms.phAra">
         <button onclick="toggleSelectAll()" id="nmSelectAllBtn" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;" data-i18n="ms.tumu">Tümü</button>
       </div>
       <div id="nmMemberList" style="max-height:200px;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:4px;">

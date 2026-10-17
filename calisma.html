@@ -30,6 +30,7 @@
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script src="tasarim.js"></script>
+<script src="arama-temizle.js" defer></script>
 <title data-i18n="ca.sayfaBaslik">Çalışma Odası — Repertuvar</title>
 <link rel="stylesheet" href="style.css">
 <script src="i18n.js"></script>
@@ -292,7 +293,7 @@
     </div>
   </div>
 
-  <input class="co-ara" id="araKutu" type="search" placeholder="Eser adı ara…" data-i18n-ph="ca.araPh"
+  <input class="co-ara" id="araKutu" data-temizle type="search" placeholder="Eser adı ara…" data-i18n-ph="ca.araPh"
          autocomplete="off" oninput="filtrele()">
 
   <div class="co-liste" id="liste"></div>
@@ -316,7 +317,7 @@
   <div id="bolumRitim" style="display:none;">
 
     <div class="rb-bas" data-i18n="ca.rbEser">Hangi eserle çalışacaksın?</div>
-    <input class="co-ara" id="rbEserAra" placeholder="Eser adı ara…" data-i18n-ph="ca.eserAra" oninput="rbEserFiltre()">
+    <input class="co-ara" id="rbEserAra" data-temizle placeholder="Eser adı ara…" data-i18n-ph="ca.eserAra" oninput="rbEserFiltre()">
     <div class="co-liste" id="rbEserListe"></div>
 
     <div class="co-kota rb-panel" id="rbEserPanel" hidden>
@@ -385,7 +386,7 @@
 
     <div class="yk-adim">
       <div class="yk-etiket" data-i18n="ca.adim1">1 · Hangi eser?</div>
-      <input class="co-ara" id="ykEserAra" type="search" placeholder="Eser adı ara…" data-i18n-ph="ca.araPh"
+      <input class="co-ara" id="ykEserAra" data-temizle type="search" placeholder="Eser adı ara…" data-i18n-ph="ca.araPh"
              autocomplete="off" oninput="ykEserFiltre()">
       <div id="ykSecili" class="yk-secili" style="display:none;"></div>
       <div class="yk-sonuc" id="ykEserSonuc"></div>
