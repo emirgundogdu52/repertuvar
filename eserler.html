@@ -2362,21 +2362,76 @@ async function loadRepertoireCounts() {
   } catch(e) { console.warn('[eserler] Repertuvar/grup sayımı alınamadı:', e.message); }
 }
 
-// ── Şarkı sözü yazı boyutu (slider ile) ──
-const LYRICS_STEP_MIN = -2, LYRICS_STEP_MAX = 6; // 13px (-2) .. 19px (+6) arası
-let lyricsFontStep = 0;
-function setLyricsFontStep(step) {
-  const box = document.getElementById('lyricsBoxDisplay');
-  lyricsFontStep = Math.max(LYRICS_STEP_MIN, Math.min(LYRICS_STEP_MAX, Math.round(Number(step))));
-  if (box) box.style.fontSize = (13 + lyricsFontStep) + 'px';
-  updateLyricsFontSliderUI();
+// ── Şarkı sözü yazı boyutu ──
+// (2026-10-17) Kullanıcı: "sözlerin genişliği kadar maksimum font büyüklüğü, kişi isterse küçültsün".
+// Eser açılınca yazı, EN UZUN SATIR kutuya tam sığan en büyük boyuttadır (LYRICS_MAX_PX tavanı). Sürgünün sağ ucu bu
+// boyut; sola çektikçe küçülür (büyütme yok — büyütmek satır kırar). Kutu genişliği değişince (dönme, panel, sekmenin
+// ilk açılışı) yeniden hesaplanır; kullanıcı küçülttüyse onun boyutu korunur, yeni sığdırma daha küçükse ona iner.
+// Her eser yeniden en büyükten başlar. Satırları çok uzun eserde sığdırma tabanın altına düşerse taban boyutta kalır ve
+// satır kırılır (önceki davranış) — okunmayacak kadar küçük yazı yerine.
+const LYRICS_MIN_PX = 11, LYRICS_TABAN_PX = 13, LYRICS_MAX_PX = 28;
+let lyricsFitPx = LYRICS_TABAN_PX;   // bu eserin bu genişlikteki en büyük boyutu
+let lyricsUserPx = null;             // null = en büyük (sığdırma)
+let _lyricsRO = null;
+function lyricsSigdirmaHesapla(box) {
+  if (!box.clientWidth) return null;   // sekme gizli — görününce ResizeObserver yeniden çağırır
+  const eskiWs = box.style.whiteSpace;
+  box.style.whiteSpace = 'pre';         // ölçerken satırlar kırılmasın
+  // En uzun satırın genişliği = metnin kapsadığı alan (Range). scrollWidth KULLANILMAZ: masaüstünde kutu overflow:visible,
+  // sağ iç boşluğa taşan metni scrollWidth saymıyor (25px "sığar" deyip satır kırılıyordu).
+  const cs = getComputedStyle(box);
+  const icGenislik = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const rg = document.createRange();
+  rg.selectNodeContents(box);
+  const sigar = px => { box.style.fontSize = px + 'px'; return rg.getBoundingClientRect().width <= icGenislik + 0.5; };
+  let fit;
+  if (sigar(LYRICS_MAX_PX)) fit = LYRICS_MAX_PX;
+  else if (!sigar(LYRICS_TABAN_PX)) fit = LYRICS_TABAN_PX;
+  else {
+    let lo = LYRICS_TABAN_PX, hi = LYRICS_MAX_PX;
+    for (let i = 0; i < 7; i++) { const mid = (lo + hi) / 2; if (sigar(mid)) lo = mid; else hi = mid; }
+    fit = Math.floor(lo * 2) / 2;
+  }
+  box.style.whiteSpace = eskiWs;
+  return fit;
 }
-function updateLyricsFontSliderUI() {
+function lyricsBoyutUygula() {
+  const box = document.getElementById('lyricsBoxDisplay');
+  if (!box) return;
+  const fit = lyricsSigdirmaHesapla(box);
+  if (fit == null) return;
+  lyricsFitPx = fit;
+  const px = lyricsUserPx == null ? fit : Math.min(lyricsUserPx, fit);
+  box.style.fontSize = px + 'px';
+  updateLyricsFontSliderUI(px);
+}
+function setLyricsFontPx(v) {   // sürgü
+  const box = document.getElementById('lyricsBoxDisplay');
+  const px = Math.max(Math.min(LYRICS_MIN_PX, lyricsFitPx), Math.min(lyricsFitPx, Number(v)));
+  lyricsUserPx = px >= lyricsFitPx ? null : px;
+  if (box) box.style.fontSize = px + 'px';
+  updateLyricsFontSliderUI(px);
+}
+function updateLyricsFontSliderUI(px) {
   const slider = document.getElementById('lyricsFontSlider');
   if (!slider) return;
-  slider.value = lyricsFontStep;
-  const pct = ((lyricsFontStep - LYRICS_STEP_MIN) / (LYRICS_STEP_MAX - LYRICS_STEP_MIN)) * 100;
+  const min = Math.min(LYRICS_MIN_PX, lyricsFitPx);
+  slider.min = min; slider.max = lyricsFitPx; slider.value = px;
+  const pct = lyricsFitPx > min ? ((px - min) / (lyricsFitPx - min)) * 100 : 100;
   slider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--border) ${pct}%, var(--border) 100%)`;
+}
+function lyricsBoyutIzle() {   // her eser çiziminde: en büyükten başla, kutu genişliğini izle
+  lyricsUserPx = null;
+  if (_lyricsRO) { _lyricsRO.disconnect(); _lyricsRO = null; }
+  const box = document.getElementById('lyricsBoxDisplay');
+  if (!box) return;
+  let sonW = 0;   // yalnız GENİŞLİK değişimi: yazı büyüyünce kutu uzar, o yeniden hesap gerektirmez
+  if (typeof ResizeObserver === 'function') {
+    _lyricsRO = new ResizeObserver(() => { const w = box.clientWidth; if (w && w !== sonW) { sonW = w; lyricsBoyutUygula(); } });
+    _lyricsRO.observe(box);
+  }
+  lyricsBoyutUygula();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(lyricsBoyutUygula);   // yazı tipi geç yüklenirse
 }
 
 function toggleFilterSheet(show) {
@@ -2933,8 +2988,8 @@ function selectWork(id, silent) {
         <span style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.06em;">${_esCev('es.sozlerBaslik','SÖZLER')}</span>
         <div class="font-slider-wrap" title="${_esCev('sh.yaziBoyutu','Yazı Boyutu')}">
           <span class="fs-a-sm">A</span>
-          <input type="range" id="lyricsFontSlider" class="font-slider" min="${LYRICS_STEP_MIN}" max="${LYRICS_STEP_MAX}" step="1" value="0"
-            oninput="setLyricsFontStep(this.value)">
+          <input type="range" id="lyricsFontSlider" class="font-slider" min="${LYRICS_MIN_PX}" max="${LYRICS_TABAN_PX}" step="0.5" value="${LYRICS_TABAN_PX}"
+            oninput="setLyricsFontPx(this.value)">
           <span class="fs-a-lg">A</span>
         </div>
       </div>` : ''}
@@ -3038,9 +3093,8 @@ function selectWork(id, silent) {
   // isAdmin()/isEditor() ile senkron olarak doğru görünürlükte render ediliyor —
   // ayrı bir "authReady bekle" adımına gerek yok (o gecikme hissi buradan geliyordu).
 
-  // Yazı boyutu slider'ını her eser açılışında sıfırdan başlat ve UI'ı senkronla
-  lyricsFontStep = 0;
-  updateLyricsFontSliderUI();
+  // Yazı boyutu: her eser açılışında en büyükten (sözlerin genişliğine sığan) başla
+  lyricsBoyutIzle();
 
   // Akor editörü: kapsam seçicisini (Ortak/Kişisel) başlat, doğru içeriği yükle
   if (getUserId() && document.getElementById('inline_chords_'+w.id)) setChordScope(w.id, _defaultScope);
@@ -4167,7 +4221,7 @@ function _afterChordsSaved(id, hasCh, chords, isShared){
   // Bu kullanıcının GEÇERLİ akoru (kişisel varsa o) → güfte tab'ını tazele
   const eff = PERSONAL_CHORDS[String(id)] || (DATA.find(x=>x.id===id||x.id===parseInt(id))||{}).chords || '';
   const gbox = document.getElementById('lyricsBoxDisplay');
-  if (gbox && hasRealChords(eff)) gbox.innerHTML = renderLyricsHtml(chordsToLyrics(eff));
+  if (gbox && hasRealChords(eff)) { gbox.innerHTML = renderLyricsHtml(chordsToLyrics(eff)); lyricsBoyutUygula(); }
   const del=document.getElementById('delpc_'+id);
   if(del) del.style.display = (!isShared && PERSONAL_CHORDS[String(id)]) ? 'inline-flex' : 'none';
   // (2026-08-15) Kaydettikten sonra NE OLDUĞU açıkça söyleniyor. Emir kendi
