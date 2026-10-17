@@ -19,6 +19,12 @@
 <link rel="icon" href="Repertuvar_logo.png">
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
+<script>
+// (2026-10-17) Oturum yoksa ana sayfa HİÇ ÇİZİLMEDEN giriş ekranına. Karar requireAuth ile aynı (token yok → login),
+// yalnız sayfa sonunda değil başta: iOS açılışında ana sayfanın üst kısmı bir an görünüp kayboluyordu (kullanıcı).
+// Çevrimdışı etkilenmez — orada token cihazda durur (bkz. local-first kuralı).
+try { if (!getToken()) location.replace('login.html'); } catch (e) {}
+</script>
 <script src="onboarding.js" defer></script>   <!-- 2026-10-07: yeni hesaba bir kez "hangi tür müzik" (onboarding.js) -->
 <script src="topnav.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
