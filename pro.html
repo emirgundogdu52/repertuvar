@@ -85,10 +85,10 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
     <p class="alt" id="altBaslik"></p>
   </div>
 
-  <!-- SATIŞ (iOS/Android) -->
+  <!-- SATIŞ (iOS/Android). (2026-10-17) Sıra: planlar → düğme → koşullar + bağlantılar → özellikler.
+       Apple 3.1.2: fiyat, deneme sonrası ücret, otomatik yenileme ve Koşullar/Gizlilik KAYDIRMADAN görünmeli
+       (iPad'de özellik listesi üstteyken bunlar ekranın altında kalıyordu). Özellik listesi #satisOz'da, en altta. -->
   <div id="satis" hidden>
-    <div class="ozellik" id="ozellikler"></div>
-    <div style="height:20px"></div>
     <div class="planlar" id="planlar" role="radiogroup"></div>
     <div style="height:20px"></div>
     <div class="cta">
@@ -114,6 +114,8 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
     <a id="kosullar" target="_blank" rel="noopener"></a>
     <a id="gizlilik" target="_blank" rel="noopener"></a>
   </div>
+
+  <div id="satisOz" hidden><div class="ozellik" id="ozellikler"></div></div>
 </div>
 
 <script>
@@ -182,7 +184,7 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
   };
   function $(id) { return document.getElementById(id); }
   function yaz(id, s) { $(id).textContent = s; }
-  function ac(id, goster) { $(id).hidden = !goster; }
+  function ac(id, goster) { $(id).hidden = !goster; if (id === 'satis') $('satisOz').hidden = !goster; }
 
   var donus = new URLSearchParams(location.search).get('donus') || 'index.html';
   if (!/^[a-z0-9_-]+\.html(\?.*)?$/i.test(donus) || /^pro\.html/i.test(donus)) donus = 'index.html';
