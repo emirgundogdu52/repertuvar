@@ -43,6 +43,29 @@ if (!HAS_IDB) {
 
 let _db = null;
 
+// (2026-10-17) SAYFA DEĞİŞİMİNDE KİLİT. iOS (WKWebView) çıkılan sayfayı silmek yerine "geri" önbelleğinde DONDURUR.
+// O anda yarım kalmış bir yazma işlemi (açılış eşitlemesi: works/repertoires replaceAll) donmuş sayfada açık kalıyor ve
+// aynı store'ları yeni sayfada KİLİTLİYORDU: Repertuvarlar'da getAll 3 sn zaman aşımı + replaceAll hiç bitmiyor → liste
+// hiç çizilmiyordu (cihaz konsolunda yakalandı; sunucu 107 ms'de 200 dönmüştü). Kullanıcı: "bir geliyor bazen gelmiyor".
+// Çözüm: sayfadan çıkarken (pagehide) açık işlemler iptal edilir — iptal yarım yazmayı GERİ ALIR, önbellek tutarlı kalır,
+// bir sonraki eşitleme tamamlar — ve bağlantı kapatılır; sayfa geri önbellekten dönerse bağlantı ilk istekte yeniden açılır.
+const _acikIslemler = new Set();
+function _izle(tx) {
+  _acikIslemler.add(tx);
+  const bitti = () => _acikIslemler.delete(tx);
+  tx.addEventListener('complete', bitti);
+  tx.addEventListener('error', bitti);
+  tx.addEventListener('abort', bitti);
+  return tx;
+}
+if (HAS_IDB) {
+  window.addEventListener('pagehide', function () {
+    _acikIslemler.forEach((tx) => { try { tx.abort(); } catch (e) {} });
+    _acikIslemler.clear();
+    if (_db) { try { _db.close(); } catch (e) {} _db = null; }
+  });
+}
+
 function openDB() {
   if (!HAS_IDB) return Promise.reject(new Error('IndexedDB yok'));
   if (_db) return Promise.resolve(_db);
@@ -75,14 +98,19 @@ function openDB() {
         db.createObjectStore('group_members', { keyPath: 'id' });
       }
     };
-    req.onsuccess = (e) => { _db = e.target.result; resolve(_db); };
+    req.onsuccess = (e) => {
+      _db = e.target.result;
+      // Başka bir sekme/sayfa sürüm yükseltirse bu bağlantı onu engellemesin
+      _db.onversionchange = () => { try { _db.close(); } catch (err) {} _db = null; };
+      resolve(_db);
+    };
     req.onerror = () => reject(req.error);
   });
 }
 
 function storeOp(storeName, mode, fn) {
   return openDB().then((db) => new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, mode);
+    const tx = _izle(db.transaction(storeName, mode));
     const store = tx.objectStore(storeName);
     const req = fn(store);
     req.onsuccess = () => resolve(req.result);
@@ -96,9 +124,10 @@ function storeOp(storeName, mode, fn) {
 // "sonsuz pending"e dönüşüyordu. Kalkan sayesinde UI en fazla `ms` bekler.
 // onTimeout: yalnızca süre dolunca çağrılan fonksiyon (fallback değeri döndürür).
 function withTimeout(promise, ms, onTimeout) {
+  let bitti = false;   // (2026-10-17) okuma zamanında bittiyse onTimeout çağrılmaz — boşuna "timeout" uyarısı basıyordu
   return Promise.race([
-    promise,
-    new Promise((resolve) => setTimeout(() => resolve(onTimeout()), ms))
+    promise.then((v) => { bitti = true; return v; }, (e) => { bitti = true; throw e; }),
+    new Promise((resolve) => setTimeout(() => { if (!bitti) resolve(onTimeout()); }, ms))
   ]);
 }
 
@@ -119,11 +148,12 @@ function makeStore(storeName) {
       : Promise.resolve(),
     saveAll: (items) => HAS_IDB
       ? openDB().then((db) => new Promise((resolve, reject) => {
-          const tx = db.transaction(storeName, 'readwrite');
+          const tx = _izle(db.transaction(storeName, 'readwrite'));
           const store = tx.objectStore(storeName);
           (items || []).forEach((item) => store.put(item));
           tx.oncomplete = () => resolve();
           tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error || new Error('işlem iptal edildi'));
         })).catch((e) => { console.warn('[db] saveAll hatası:', e); })
       : Promise.resolve(),
     // Sunucudan gelen TAM (o sorgu kapsamındaki) listeyle local'i eşitler:
@@ -135,12 +165,13 @@ function makeStore(storeName) {
           const newIds = new Set((items || []).map((it) => it.id));
           const toDelete = (existingKeys || []).filter((k) => !newIds.has(k));
           return openDB().then((db) => new Promise((resolve, reject) => {
-            const tx = db.transaction(storeName, 'readwrite');
+            const tx = _izle(db.transaction(storeName, 'readwrite'));
             const store = tx.objectStore(storeName);
             toDelete.forEach((k) => store.delete(k));
             (items || []).forEach((item) => store.put(item));
             tx.oncomplete = () => resolve();
             tx.onerror = () => reject(tx.error);
+            tx.onabort = () => reject(tx.error || new Error('işlem iptal edildi'));
           }));
         }).catch((e) => { console.warn('[db] replaceAll hatası:', e); })
       : Promise.resolve(),
@@ -225,9 +256,12 @@ window.syncOfflineData = async function() {
     // ezerek kapsam dışı repertuvarları geri sızdırabilir.
     const gid = (typeof getGroupId === 'function') ? getGroupId() : localStorage.getItem('user_group_id');
     const uid = (typeof getUserId === 'function') ? getUserId() : (localStorage.getItem('sb_user') ? JSON.parse(localStorage.getItem('sb_user')).id : null);
-    const repFilter = gid
-      ? '/rest/v1/repertoires?select=*&order=created_at.desc&or=(owner_id.eq.' + uid + ',group_id.eq.' + gid + ',is_public.eq.true)'
-      : (uid ? '/rest/v1/repertoires?select=*&order=created_at.desc&or=(owner_id.eq.' + uid + ',is_public.eq.true)' : '/rest/v1/repertoires?select=*&order=created_at.desc&is_public=eq.true');
+    // (2026-10-17) İstemci süzgeci KALDIRILDI — repertoires.js ve stage.html 2026-08-20'de kaldırmıştı, burada kalmıştı.
+    // Eski `or=(owner_id,group_id,is_public)` süzgeci gruba PAYLAŞIM SATIRIYLA (repertoire_group_shares) ya da kişisel
+    // (repertoire_shares) açılmış repertuvarları eliyordu: çevrimdışı önbellekte 13 / sunucuda 17 (cihaz konsolunda görüldü)
+    // → paylaşılan repertuvarlar internetsiz (sahnede) görünmüyordu, iki kaynak da birbirinin önbelleğini eziyordu.
+    // Görünürlüğün üst sınırı sunucudaki repertoires_read politikası; fazladan satır gelmez.
+    const repFilter = '/rest/v1/repertoires?select=*&order=created_at.desc';
     const solFilter = gid ? '/rest/v1/solistler?select=*&order=name.asc&group_id=eq.' + gid : '/rest/v1/solistler?select=*&order=name.asc';
 
     // (2026-08-23) Grup verisi de senkronlaniyor. RLS zaten kapsami daraltiyor:

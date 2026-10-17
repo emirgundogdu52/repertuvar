@@ -688,18 +688,50 @@ window.addEventListener('storage', (e) => { if (!e.key || e.key === 'user_group_
 async function load(){
   dbg('load() başladı');
   let localHadData = false;
+  let sunucuCizildi = false;   // sunucu verisi ekrana geldiyse geç kalan yerel okuma onu EZMEZ
   _CIZIM_GID = getGroupId() || '';
   loadMyGroupRole(); // fire-and-forget: rol gelince bir sonraki çizimde düğmeler doğrulanır
 
-  // ── 1) ÖNCELİKLE LOCAL'DEN ANINDA GÖSTER (sinyal zayıf/yokken bile beklemeden) ──
-  if (window.db) {
+  // (2026-10-17) Sunucu isteği YEREL OKUMAYI BEKLEMEDEN başlar, gelen ilk veri hemen çizilir; önbelleğe yazma arkada.
+  // Eskiden sıra yerel oku (≤3 sn) → sunucu → önbelleğe YAZ → çiz idi: yerel veritabanı kilitliyken (iOS'ta önceki
+  // sayfanın yarım yazması, bkz. db.js pagehide) 3 sn boş ekran, ardından replaceAll hiç bitmediği için liste HİÇ
+  // çizilmiyordu — cihaz konsolunda yakalandı (sunucu 107 ms'de 17 repertuvarı dönmüştü).
+  // (2026-08-20) YENİ MODEL: istemci tarafındaki `or=(owner_id,group_id,is_public)`
+  // süzgeci KALDIRILDI. Görünürlüğü artık sunucudaki `repertoires_read` politikası
+  // belirliyor (public / sahip / visibility='group' ∩ repertoire_group_shares ∩
+  // my_group_ids() / repertoire_shares ile kişisel paylaşım — log-23 564/565).
+  // Eski süzgeç yalnız `group_id` ve `is_public` sütunlarına bakıyordu; bu yüzden
+  // (a) yeni modelde gruba PAYLAŞIM SATIRIYLA açılmış ama `group_id`'si boş bir
+  // repertuvar ve (b) `repertoire_shares` ile KİŞİSEL paylaşılmış bir repertuvar
+  // RLS'ten geçtiği hâlde istemcide eleniyordu. Süzgeci kaldırmak yalnızca eksileni
+  // geri getirir; fazladan hiçbir satır gelmez, çünkü RLS zaten üst sınırdır.
+  const gid = getGroupId();
+  const repQuery = 'order=created_at&limit=100';
+  const solQuery = gid ? 'order=name&group_id=eq.'+gid : 'order=name';
+  const timeoutMs = 4500;
+  // (2026-08-20) Dördüncü istek: hangi repertuvar hangi gruba açılmış.
+  // `.catch(()=>null)` ŞART — bu istek başarısız olursa (RLS/ağ) tüm
+  // Promise.all düşer ve repertuvar listesi HİÇ gelmezdi; null dönerse
+  // yalnızca harita tazelenmez, eski haritayla devam edilir.
+  const sunucuP = Promise.all([
+    dbGet('repertoires', repQuery, AbortSignal.timeout(timeoutMs)),
+    dbGet('repertoire_items','order=seq', AbortSignal.timeout(timeoutMs)),
+    dbGet('solistler', solQuery, AbortSignal.timeout(timeoutMs)),
+    dbGet('repertoire_group_shares','select=repertoire_id,group_id&limit=2000', AbortSignal.timeout(timeoutMs)).catch(()=>null)
+  ]);
+  sunucuP.catch(() => {});   // hata aşağıda ele alınıyor; erken düşerse "unhandled" uyarısı olmasın
+
+  // ── 1) LOCAL'DEN ANINDA GÖSTER (sinyal zayıf/yokken bile beklemeden) ──
+  const yerelP = (async () => {
+    if (!window.db) return;
     try {
       const [rLocal, iLocal, sLocal] = await Promise.all([
         db.repertoires.getAll(),
         db.repertoire_items.getAll(),
         db.solistler.getAll()
       ]);
-      if ((rLocal||[]).length) {
+      dbg('local okundu: r=' + (rLocal||[]).length + ' i=' + (iLocal||[]).length + ' s=' + (sLocal||[]).length);
+      if ((rLocal||[]).length && !sunucuCizildi) {
         applyRepsData(rLocal, iLocal, sLocal);
         localHadData = true;
         sync('ok',_r('rep.yerelVeri','Yerel veri'));
@@ -709,51 +741,31 @@ async function load(){
         dbg('local\'den anında gösterildi: '+rLocal.length+' repertuvar');
       }
     } catch(e) { dbg('local okuma hatası: '+e.message); }
-  }
-  if (!localHadData) sync('spin',_r('rep.yukleniyor','Yükleniyor...'));
+  })();
+  await Promise.race([yerelP, sunucuP.catch(() => {})]);
+  if (!localHadData && !sunucuCizildi) sync('spin',_r('rep.yukleniyor','Yükleniyor...'));
 
-  // ── 2) ARKA PLANDA SUNUCUYLA SENKRONİZE ET (timeout'lu — asılı kalmasın) ──
+  // ── 2) SUNUCU VERİSİ: gelince hemen çiz, önbelleğe arkada yaz ──
   try{
-    const uid2 = getUserId();
-    const gid = getGroupId();
-    // (2026-08-20) YENİ MODEL: istemci tarafındaki `or=(owner_id,group_id,is_public)`
-    // süzgeci KALDIRILDI. Görünürlüğü artık sunucudaki `repertoires_read` politikası
-    // belirliyor (public / sahip / visibility='group' ∩ repertoire_group_shares ∩
-    // my_group_ids() / repertoire_shares ile kişisel paylaşım — log-23 564/565).
-    // Eski süzgeç yalnız `group_id` ve `is_public` sütunlarına bakıyordu; bu yüzden
-    // (a) yeni modelde gruba PAYLAŞIM SATIRIYLA açılmış ama `group_id`'si boş bir
-    // repertuvar ve (b) `repertoire_shares` ile KİŞİSEL paylaşılmış bir repertuvar
-    // RLS'ten geçtiği hâlde istemcide eleniyordu. Süzgeci kaldırmak yalnızca eksileni
-    // geri getirir; fazladan hiçbir satır gelmez, çünkü RLS zaten üst sınırdır.
-    const repQuery = 'order=created_at&limit=100';
-    const solQuery = gid ? 'order=name&group_id=eq.'+gid : 'order=name';
-    // Yerel veri zaten ekrandaysa uzun beklemeye gerek yok — 3.5 sn'de gelmezse
-    // sessizce local ile devam. Yerel veri yoksa ağa biraz daha şans ver (4.5 sn).
-    const timeoutMs = localHadData ? 3500 : 4500;
-    // (2026-08-20) Dördüncü istek: hangi repertuvar hangi gruba açılmış.
-    // `.catch(()=>null)` ŞART — bu istek başarısız olursa (RLS/ağ) tüm
-    // Promise.all düşer ve repertuvar listesi HİÇ gelmezdi; null dönerse
-    // yalnızca harita tazelenmez, eski haritayla devam edilir.
-    const [r,i,s,gs] = await Promise.all([
-      dbGet('repertoires', repQuery, AbortSignal.timeout(timeoutMs)),
-      dbGet('repertoire_items','order=seq', AbortSignal.timeout(timeoutMs)),
-      dbGet('solistler', solQuery, AbortSignal.timeout(timeoutMs)),
-      dbGet('repertoire_group_shares','select=repertoire_id,group_id&limit=2000', AbortSignal.timeout(timeoutMs)).catch(()=>null)
-    ]);
+    const [r,i,s,gs] = await sunucuP;
+    sunucuCizildi = true;
     repGrupHaritasiKur(gs);
     dbg('sunucudan geldi — rep sayısı: '+(r||[]).length+' | items: '+(i||[]).length);
-    if (window.db) {
-      await db.repertoires.replaceAll(r||[]);
-      await db.solistler.replaceAll(s||[]);
-      await db.repertoire_items.replaceAll(i||[]);
-    }
     applyRepsData(r, i, s);
     sync('ok',_r('rep.senkronize','Senkronize'));
     selectUrlRepIfPresent();
     if (!_riSwipe && !_riOpenCard) { renderList(); renderDetail(); }
     setTimeout(fixMobileHeight, 100);
+    if (window.db) {
+      (async () => {
+        await db.repertoires.replaceAll(r||[]);
+        await db.solistler.replaceAll(s||[]);
+        await db.repertoire_items.replaceAll(i||[]);
+      })().catch(() => {});
+    }
   }catch(fetchErr){
-    dbg('sunucu senkronizasyonu başarısız (offline/zayıf sinyal): '+fetchErr.message);
+    dbg('sunucu senkronizasyonu başarısız: ' + (fetchErr && fetchErr.name) + ' / ' + (fetchErr && fetchErr.message) + ' | onLine=' + navigator.onLine);
+    await yerelP;   // yerel okuma henüz bitmediyse ona şans ver (ağ hatası erken düşmüş olabilir)
     if (!localHadData) {
       // Local'de de veri yoktu, ağ da başarısız oldu — boş liste göster
       renderList(); renderDetail();
