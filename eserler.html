@@ -1442,6 +1442,10 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 </div>
 
 <script>
+// (2026-10-17) Kullanıcının yazdığı alanlar (ad, besteci, video bağlantısı) HTML olarak basılmaz; video bağlantısı
+// yalnız http(s) — 'javascript:' bağlantısı eseri açıp tıklayanın oturumunda kod çalıştırabiliyordu (XSS).
+function _esHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _esUrl(u){ const t=String(u||'').trim(); return /^https?:\/\//i.test(t) ? t : ''; }
 let DATA = []; // Supabase'den yüklenecek
 let PERSONAL_CHORDS = {}; // {String(work_id): ChordPro metni} — kullanıcının SADECE kendine ait akorları
 // Kullanıcı kimliği → Ad Soyad. E-posta adreslerini herkese göstermemek için
@@ -2454,8 +2458,8 @@ function renderList() {
       <div class="work-icon">🎵</div>
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
-        <div class="work-name">${w.name||_esCev('es.isimsiz','(isimsiz)')}${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="' + _esCev('es.yalnizcaSiz','Yalnızca siz görürsünüz') + '" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.taslakRozet','🔒 Taslak') + '</span>' : ''}${(w.visibility === 'group') ? ' <span title="' + _esCev('es.t_yalnizGrup','Yalnızca grup üyeleriniz görür') + '" style="font-size:10px;font-weight:700;color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.grupRozet','👥 Grup') + '</span>' : ''}</div>
-        ${(turBadge || w.composer) ? `<div class="work-composer">${turBadge}${w.composer||''}</div>` : ''}
+        <div class="work-name">${w.name?_esHtml(w.name):_esCev('es.isimsiz','(isimsiz)')}${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="' + _esCev('es.yalnizcaSiz','Yalnızca siz görürsünüz') + '" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.taslakRozet','🔒 Taslak') + '</span>' : ''}${(w.visibility === 'group') ? ' <span title="' + _esCev('es.t_yalnizGrup','Yalnızca grup üyeleriniz görür') + '" style="font-size:10px;font-weight:700;color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.grupRozet','👥 Grup') + '</span>' : ''}</div>
+        ${(turBadge || w.composer) ? `<div class="work-composer">${turBadge}${_esHtml(w.composer||'')}</div>` : ''}
         <div class="work-title-divider"></div>
         <div class="work-rep-count"><span class="status-dot"></span> Offline</div>
       </div>
@@ -2837,7 +2841,8 @@ function selectWork(id, silent) {
     return `<div class="detail-row" style="min-width:0;"><div class="detail-row-label">${label}</div><div class="detail-row-value" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${val}">${val}</div></div>`;
   }
 
-  const videoBtn = w.videoLink ? `<a href="${w.videoLink}" target="_blank" class="video-btn">▶ Video</a>` : '';
+  const _vUrl = _esUrl(w.videoLink);
+  const videoBtn = _vUrl ? `<a href="${_esHtml(_vUrl)}" target="_blank" rel="noopener" class="video-btn">▶ Video</a>` : '';
   const stageId = String(parseInt(w.id));
   const lastTab = 'gufte';  // Her eser açılışında güfteden başla
   const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="openStageFromDetail('${stageId}');return false;">${_esCev('es.sahneModundaAc','🎭 Sahne Modunda Aç')}</a>`;

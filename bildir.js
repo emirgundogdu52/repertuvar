@@ -5,7 +5,9 @@
 // Sunucu tarafı: sql/bildirme_engelleme.sql (content_reports, user_blocks + adminlere zil bildirimi).
 //
 // KULLANIM (auth.js'ten SONRA yüklenir; SUPA_URL / authHeaders / getUserId oradan gelir):
-//   RB.bildir({ tur:'work'|'user', id, kullanici, etiket })  → sebep seçtiren pencere
+//   RB.bildir({ tur:'work'|'user'|'repertoire'|'audio'|'rhythm', id, kullanici, etiket })  → sebep seçtiren pencere
+//   RB.icerikMenu({ tur, id, kullanici, etiket, ad })        → "Bildir / Ekleyeni engelle" (satır ••• düğmeleri)
+//   RB.gizliMi(tur, id)                                      → bildirdiğim içerik (bana gizlenir)
 //   RB.engelle(kullaniciId, ad)                              → onay penceresi
 //   RB.engelKaldir(kullaniciId)
 //   RB.islemler({ kullanici, ad })                           → "Bildir / Engelle" seçim penceresi
@@ -24,6 +26,10 @@
     'rb.engelle': 'Engelle',
     'rb.engelKaldir': 'Engeli kaldır',
     'rb.eseriBildir': 'Eseri bildir',
+    'rb.repBildir': 'Repertuvarı bildir',
+    'rb.kayitBildir': 'Kaydı bildir',
+    'rb.ritimBildir': 'Ritmi bildir',
+    'rb.bilgiIcerik': 'Bildirimin ekibimize iletilir ve 24 saat içinde incelenir. Bu içerik artık sana gösterilmez.',
     'rb.kullaniciyiBildir': 'Kullanıcıyı bildir',
     'rb.kullaniciyiEngelle': 'Kullanıcıyı engelle',
     'rb.ekleyeniEngelle': 'Ekleyeni engelle',
@@ -60,6 +66,10 @@
     'rb.engelle': 'Block',
     'rb.engelKaldir': 'Unblock',
     'rb.eseriBildir': 'Report piece',
+    'rb.repBildir': 'Report setlist',
+    'rb.kayitBildir': 'Report recording',
+    'rb.ritimBildir': 'Report rhythm',
+    'rb.bilgiIcerik': 'Your report goes to our team and is reviewed within 24 hours. This content will no longer be shown to you.',
     'rb.kullaniciyiBildir': 'Report user',
     'rb.kullaniciyiEngelle': 'Block user',
     'rb.ekleyeniEngelle': 'Block the person who added it',
@@ -126,6 +136,10 @@
     try { localStorage.setItem(_anahtar('engel'), JSON.stringify(ENGEL)); } catch (e) {}
     try { localStorage.setItem(_anahtar('gizli'), JSON.stringify(GIZLI)); } catch (e) {}
   }
+  // Bildirdiğim içerik anahtarı: eserlerde eski biçim (yalnız id), diğerlerinde 'tur:id'
+  function _gAnahtar(tur, id) { return (!tur || tur === 'work') ? String(id) : tur + ':' + id; }
+  var ICERIK = ['work', 'repertoire', 'audio', 'rhythm'];
+  var BASLIK = { work: 'rb.eseriBildir', repertoire: 'rb.repBildir', audio: 'rb.kayitBildir', rhythm: 'rb.ritimBildir' };
   function _duyur() { try { window.dispatchEvent(new CustomEvent('rb-degisti')); } catch (e) {} }
   _oku();
 
@@ -134,12 +148,12 @@
     if (!_uid() || typeof SUPA_URL === 'undefined') return;
     try {
       var r1 = await fetch(SUPA_URL + '/rest/v1/user_blocks?select=blocked_id&blocker_id=eq.' + _uid(), { headers: _hdr() });
-      var r2 = await fetch(SUPA_URL + '/rest/v1/content_reports?select=target_id&target_type=eq.work&reporter_id=eq.' + _uid(), { headers: _hdr() });
+      var r2 = await fetch(SUPA_URL + '/rest/v1/content_reports?select=target_type,target_id&target_type=in.(work,repertoire,audio,rhythm)&reporter_id=eq.' + _uid(), { headers: _hdr() });
       if (!r1.ok || !r2.ok) return;
       var engel = await r1.json(), rap = await r2.json();
       var yeniE = {}, yeniG = {};
       (engel || []).forEach(function (x) { yeniE[x.blocked_id] = ENGEL[x.blocked_id] || ''; });
-      (rap || []).forEach(function (x) { yeniG[String(x.target_id)] = 1; });
+      (rap || []).forEach(function (x) { yeniG[_gAnahtar(x.target_type, x.target_id)] = 1; });
       var degisti = JSON.stringify(yeniE) !== JSON.stringify(ENGEL) || JSON.stringify(yeniG) !== JSON.stringify(GIZLI);
       ENGEL = yeniE; GIZLI = yeniG; _yaz();
       if (degisti) _duyur();
@@ -199,12 +213,13 @@
     var ben = _uid();
     if (!ben) return;
     if (o.kullanici && o.kullanici === ben) { _toast(_t('rb.kendin')); return; }
-    var eser = o.tur === 'work';
+    var tur = ICERIK.indexOf(o.tur) !== -1 ? o.tur : 'user';
+    var icerik = tur !== 'user';
     var sebepler = ['offensive', 'harassment', 'copyright', 'spam', 'other'];
     var engelSecenek = (o.kullanici && o.kullanici !== ben && !ENGEL.hasOwnProperty(o.kullanici))
       ? '<label class="rb-kucuk"><input type="checkbox" id="rbEngelDe"> ' + _esc(_t('rb.ayrcaEngelle')) + '</label>' : '';
     var ort = _pencere(
-      '<div class="rb-bas">' + _esc(eser ? _t('rb.eseriBildir') : _t('rb.kullaniciyiBildir')) + '</div>' +
+      '<div class="rb-bas">' + _esc(icerik ? _t(BASLIK[tur]) : _t('rb.kullaniciyiBildir')) + '</div>' +
       '<div class="rb-alt">' + _esc(o.etiket || '') + '</div>' +
       '<div style="font-size:13px;font-weight:600;margin:0 0 8px;">' + _esc(_t('rb.sebepSec')) + '</div>' +
       sebepler.map(function (s) {
@@ -212,7 +227,7 @@
       }).join('') +
       '<textarea class="rb-not" id="rbNot" maxlength="1000" placeholder="' + _esc(_t('rb.notPh')) + '"></textarea>' +
       engelSecenek +
-      '<div class="rb-bilgi">' + _esc(eser ? _t('rb.bilgiEser') : _t('rb.bilgiKullanici')) + '</div>' +
+      '<div class="rb-bilgi">' + _esc(tur === 'work' ? _t('rb.bilgiEser') : icerik ? _t('rb.bilgiIcerik') : _t('rb.bilgiKullanici')) + '</div>' +
       '<div class="rb-hata" id="rbHata"></div>' +
       '<div class="rb-tus"><button class="rb-btn" id="rbVazgec">' + _esc(_t('rb.vazgec')) + '</button>' +
       '<button class="rb-btn ana" id="rbGonder">' + _esc(_t('rb.gonder')) + '</button></div>'
@@ -225,7 +240,7 @@
       var btn = this; btn.disabled = true;
       var not = (ort.querySelector('#rbNot').value || '').trim().slice(0, 1000);
       var govde = {
-        target_type: eser ? 'work' : 'user',
+        target_type: tur,
         target_id: String(o.id != null ? o.id : (o.kullanici || '')).slice(0, 64),
         target_user_id: o.kullanici || null,
         target_label: (o.etiket || '').slice(0, 200) || null,
@@ -239,7 +254,7 @@
         });
         var zaten = (r.status === 409);
         if (!r.ok && !zaten) throw new Error('HTTP ' + r.status);
-        if (eser) { GIZLI[String(o.id)] = 1; _yaz(); }
+        if (icerik) { GIZLI[_gAnahtar(tur, o.id)] = 1; _yaz(); }
         ort.remove();
         if (engelDe) await _engelYaz(o.kullanici, o.ad || '');
         _toast(zaten ? _t('rb.zatenBildirildi') : _t('rb.alindi'));
@@ -321,14 +336,35 @@
     else ort.querySelector('#rbE').onclick = function () { ort.remove(); engelle(o.kullanici, o.ad || ''); };
   }
 
+  // ── İçerik satırı menüsü: "… bildir" + "Ekleyeni engelle" (repertuvar, kayıt, ritim satırları) ──
+  function icerikMenu(o) {
+    o = o || {};
+    var ben = _uid();
+    if (!ben || ICERIK.indexOf(o.tur) === -1 || !o.id) return;
+    var baskasi = o.kullanici && o.kullanici !== ben;
+    var engelli = baskasi && ENGEL.hasOwnProperty(o.kullanici);
+    var ort = _pencere(
+      '<div class="rb-bas">' + _esc(o.etiket || '') + '</div><div style="height:8px"></div>' +
+      '<button class="rb-liste-btn" id="rbB"><i class="ti ti-flag"></i> ' + _esc(_t(BASLIK[o.tur])) + '</button>' +
+      (baskasi && !engelli ? '<button class="rb-liste-btn kirmizi" id="rbE"><i class="ti ti-ban"></i> ' + _esc(_t('rb.ekleyeniEngelle')) + '</button>' : '') +
+      '<div class="rb-tus" style="margin-top:12px;"><button class="rb-btn" id="rbVazgec">' + _esc(_t('rb.vazgec')) + '</button></div>'
+    );
+    ort.querySelector('#rbVazgec').onclick = function () { ort.remove(); };
+    ort.querySelector('#rbB').onclick = function () { ort.remove(); bildir(o); };
+    var e = ort.querySelector('#rbE');
+    if (e) e.onclick = function () { ort.remove(); engelle(o.kullanici, o.ad || ''); };
+  }
+
   window.RB = {
     bildir: bildir,
     engelle: engelle,
     engelKaldir: engelKaldir,
     islemler: islemler,
+    icerikMenu: icerikMenu,
     tazele: tazele,
     engelliMi: function (kid) { return !!kid && ENGEL.hasOwnProperty(kid); },
     gizliEserMi: function (id) { return id != null && GIZLI.hasOwnProperty(String(id)); },
+    gizliMi: function (tur, id) { return id != null && GIZLI.hasOwnProperty(_gAnahtar(tur, id)); },
     engelliler: function () { return Object.keys(ENGEL).map(function (k) { return { id: k, ad: ENGEL[k] || '' }; }); },
     t: _t
   };

@@ -107,22 +107,24 @@ function ciz() {
   }
   kutu.innerHTML = KAYITLAR.map(k => {
     const eser = k.target_type === 'work';
+    const icerik = PAYLASIM.indexOf(k.target_type) !== -1;   // (2026-10-17) repertuvar / ses kaydı / ritim
     const hedefKisi = k.target_user_id;
     const askida = hedefKisi && ADLAR[hedefKisi] && ADLAR[hedefKisi].status === 'suspended';
     const tuslar = [];
     if (eser) tuslar.push('<a href="eserler.html?id=' + encodeURIComponent(k.target_id) + '" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> Eseri aç</a>');
     if (DURUM === 'open') {
       if (eser) tuslar.push('<button type="button" class="kirmizi" onclick="eseriKaldir(\'' + k.id + '\')"><i class="ti ti-trash"></i> Eseri kaldır</button>');
+      if (icerik) tuslar.push('<button type="button" class="kirmizi" onclick="paylasimdanKaldir(\'' + k.id + '\')"><i class="ti ti-eye-off"></i> Paylaşımdan kaldır</button>');
       if (hedefKisi && !askida) tuslar.push('<button type="button" class="kirmizi" onclick="askiyaAl(\'' + k.id + '\')"><i class="ti ti-user-off"></i> Hesabı askıya al</button>');
       tuslar.push('<button type="button" class="ana" onclick="kapat(\'' + k.id + '\',\'resolved\')"><i class="ti ti-check"></i> Çözüldü</button>');
       tuslar.push('<button type="button" onclick="kapat(\'' + k.id + '\',\'dismissed\')">Yoksay</button>');
     }
     return '<div class="b-kart">' +
-      '<div class="b-ust"><span class="b-tur">' + (eser ? 'Eser' : 'Kullanıcı') + '</span><span class="b-sebep">' + esc(SEBEP[k.reason] || k.reason) + '</span><span>' + esc(tarih(k.created_at)) + '</span></div>' +
-      '<div class="b-etiket">' + esc(k.target_label || (eser ? '#' + k.target_id : kisi(hedefKisi))) + '</div>' +
+      '<div class="b-ust"><span class="b-tur">' + esc(TUR_AD[k.target_type] || 'Kullanıcı') + '</span><span class="b-sebep">' + esc(SEBEP[k.reason] || k.reason) + '</span><span>' + esc(tarih(k.created_at)) + '</span></div>' +
+      '<div class="b-etiket">' + esc(k.target_label || ((eser || icerik) ? '#' + k.target_id : kisi(hedefKisi))) + '</div>' +
       (k.note ? '<div class="b-not">“' + esc(k.note) + '”</div>' : '') +
       '<div class="b-kisi">Bildiren: ' + esc(kisi(k.reporter_id)) + '</div>' +
-      (hedefKisi ? '<div class="b-kisi">' + (eser ? 'Eseri ekleyen: ' : 'Bildirilen: ') + esc(kisi(hedefKisi)) + (askida ? ' · <b>askıda</b>' : '') + '</div>' : '') +
+      (hedefKisi ? '<div class="b-kisi">' + (eser ? 'Eseri ekleyen: ' : icerik ? 'Sahibi: ' : 'Bildirilen: ') + esc(kisi(hedefKisi)) + (askida ? ' · <b>askıda</b>' : '') + '</div>' : '') +
       (DURUM !== 'open' ? '<div class="b-durum">' + (k.status === 'resolved' ? 'Çözüldü' : 'Yoksayıldı') + ' · ' + esc(tarih(k.resolved_at)) + ' · ' + esc(kisi(k.resolved_by)) + (k.admin_note ? ' · ' + esc(k.admin_note) : '') + '</div>' : '') +
       (tuslar.length ? '<div class="b-tus">' + tuslar.join('') + '</div>' : '') +
     '</div>';
@@ -145,6 +147,23 @@ async function kapat(id, durum, not) {
     if (!r.ok) throw new Error(await r.text());
     toast(durum === 'resolved' ? 'Bildirim çözüldü olarak kapatıldı ✓' : 'Bildirim yoksayıldı');
     yukle();
+  } catch (e) { toast('Hata: ' + e.message); }
+}
+
+// (2026-10-17) Repertuvar / kayıt / ritim: silinmez, PAYLAŞIMDAN kaldırılır (sahibi görmeye devam eder).
+// Sunucu: rpc/admin_icerik_gizle (sql/bildirme_genisletme.sql) — yalnız admin/editör.
+const PAYLASIM = ['repertoire', 'audio', 'rhythm'];
+const TUR_AD = { work: 'Eser', user: 'Kullanıcı', repertoire: 'Repertuvar', audio: 'Ses kaydı', rhythm: 'Ritim' };
+async function paylasimdanKaldir(id) {
+  const k = KAYITLAR.find(x => x.id === id);
+  if (!k || !confirm('“' + (k.target_label || k.target_id) + '” paylaşımdan kaldırılsın mı? Sahibi görmeye devam eder, başkaları göremez.')) return;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/admin_icerik_gizle', {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ p_tur: k.target_type, p_id: k.target_id })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    await kapat(id, 'resolved', 'Paylaşımdan kaldırıldı');
   } catch (e) { toast('Hata: ' + e.message); }
 }
 

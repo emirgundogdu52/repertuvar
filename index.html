@@ -27,6 +27,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
   <link rel="manifest" href="manifest.json">
   <script src="db.js"></script>
+  <script src="bildir.js"></script>
   <style>
     :root { --pedal-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.5' y='6' width='7' height='12' rx='2'/%3E%3Crect x='14.5' y='6' width='7' height='12' rx='2'/%3E%3Cpath d='M9.5 9h5M9.5 15h5'/%3E%3Ccircle cx='12' cy='12' r='1.4'/%3E%3C/svg%3E"); }
 
@@ -563,14 +564,25 @@ function _c(k, tr) {
     // yoktu, dolayısıyla silinen kayıtlar listenin en üstünde duruyordu.
     // eserler.html zaten `deleted_at=is.null` kullanıyor; aynı desen buraya da.
     if (!onlineFailed) {
-      const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,makam,tuning,deleted_at'
-        + '&deleted_at=is.null&order=id.desc&limit=6', {headers:H});
+      const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,makam,tuning,deleted_at,submitted_by'
+        + '&deleted_at=is.null&order=id.desc&limit=12', {headers:H});
       data = await r.json();
     } else {
       // Çevrimdışı yol da aynı süzgeçten geçmeli — önbellekte silinmiş
       // satırlar da duruyor.
       const all = (await db.works.getAll()).filter(w => !w.deleted_at);
-      data = all.slice(-6).reverse();
+      data = all.slice(-12).reverse();
+    }
+    // (2026-10-17) Apple Guideline 1.2: engellediğim kişinin eseri ve bildirdiğim eser burada da görünmez
+    // (eserler.html / repertoires.js ile aynı kural). Süzgeç için fazladan çekilir, 6'ya kısaltılır.
+    if (Array.isArray(data)) {
+      const _ben = (typeof getUserId === 'function' && getUserId()) || '';
+      data = data.filter(w => {
+        if (!window.RB) return true;
+        const sb = w.submitted_by || w.sb;
+        if (RB.gizliEserMi(w.id)) return false;
+        return !(sb && sb !== _ben && RB.engelliMi(sb));
+      }).slice(0, 6);
     }
     const container = document.getElementById('recentWorks');
     if (container && Array.isArray(data) && data.length) {
@@ -578,7 +590,7 @@ function _c(k, tr) {
         <a href="eserler.html?id=${w.id}" class="work-row${i%2===1?' zebra':''}"
           <div class="work-num">${i+1}</div>
           <div class="work-info">
-            <div class="work-name">${w.name||'—'}</div>
+            <div class="work-name">${w.name ? String(w.name).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) : '—'}</div>
           </div>
           <div class="wc-play">▶</div>
         </a>`).join('');

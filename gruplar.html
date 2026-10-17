@@ -584,12 +584,12 @@ function renderMembersList(members) {
   const roleClass = { owner: 'role-owner', admin: 'role-admin', member: 'role-member' };
   document.getElementById('membersList').innerHTML = members.map(m => `
     <div class="member-item" id="mi-${m.user_id}">
-      <div class="member-avatar">${(m.display_name || m.user_id || '?').charAt(0).toUpperCase()}</div>
+      <div class="member-avatar">${esc((m.display_name || m.user_id || '?').charAt(0).toUpperCase())}</div>
       <div class="member-info">
-        <div class="member-name">${m.display_name || m.email || m.user_id}</div>
+        <div class="member-name">${esc(m.display_name || m.email || m.user_id)}</div>
         <div class="member-meta">
-          ${m.email ? `<span><i class="ti ti-mail" style="font-size:11px;"></i> ${m.email}</span>` : ''}
-          ${m.phone ? `<span><i class="ti ti-phone" style="font-size:11px;"></i> ${m.phone}</span>` : ''}
+          ${m.email ? `<span><i class="ti ti-mail" style="font-size:11px;"></i> ${esc(m.email)}</span>` : ''}
+          ${m.phone ? `<span><i class="ti ti-phone" style="font-size:11px;"></i> ${esc(m.phone)}</span>` : ''}
         </div>
         <div class="member-instrument" id="instr-display-${m.user_id}">
           ${_enstrListe(m).length

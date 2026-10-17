@@ -626,8 +626,17 @@ function _rbRepGorunur(x){
   if(!window.RB||!x) return true;
   const uid=getUserId()||'';
   if(x.owner_id===uid||x.user_id===uid) return true;
+  if(RB.gizliMi && RB.gizliMi('repertoire', x.id)) return false;   // (2026-10-17) bildirdiğim repertuvar
   return !(RB.engelliMi(x.owner_id)||RB.engelliMi(x.user_id));
 }
+// (2026-10-17) Başkasının repertuvarını bildir / sahibini engelle (Apple Guideline 1.2, 2026-10-16 genişlemesi)
+function _rbRepBildir(id){
+  const rep=getRep(id);
+  if(!rep||!window.RB||!RB.icerikMenu) return;
+  RB.icerikMenu({ tur:'repertoire', id:rep.id, kullanici:rep.owner_id||rep.user_id||null, etiket:rep.name||'' });
+}
+// (2026-10-17) Kullanıcının yazdığı metin (ad, mekân, not, solist…) HTML olarak basılmaz
+function _rEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 window.addEventListener('rb-degisti',function(){ try{ if(typeof load==='function') load(); }catch(e){} });
 
 // (2026-08-06) 🐛 `?rep=` YALNIZCA İLK YÜKLEMEDE UYGULANIR.
@@ -856,7 +865,7 @@ function renderList(){
     const medleyChip = mc ? `<span class="rep-medley" title="${mc===1?_r('rep.birPotpuriVar','Bu repertuvarda bir potpuri var'):_r('rep.nPotpuriVar','Bu repertuvarda {n} potpuri var').replace('{n}',mc)}">🔗${mc>1?' '+mc:''}</span>` : '';
     const touchAttrs = `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)" ontouchcancel="riTouchEnd(event)"`;
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
-      <div><div class="rn">${r.name}${repVis(r)==='public'&&r.isOwner?' <i class="ti ti-world" style="font-size:12px;color:#4ade80;vertical-align:-1px;" title="'+_r('yo.herkeseAcik','Herkese açık')+'" aria-hidden="true"></i>':''}</div>
+      <div><div class="rn">${_rEsc(r.name)}${repVis(r)==='public'&&r.isOwner?' <i class="ti ti-world" style="font-size:12px;color:#4ade80;vertical-align:-1px;" title="'+_r('yo.herkeseAcik','Herkese açık')+'" aria-hidden="true"></i>':''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||_r('rep.taslak','Taslak')}</span>${medleyChip}${r.date?'<span>'+r.date+'</span>':''}</div></div>
       <div class="rc">${(r.items||[]).length} ${_rBirim((r.items||[]).length)}</div>
     </div>`;
@@ -982,12 +991,12 @@ function renderDetail(){
         </div>
       </td>
       <td style="padding-left:16px;cursor:pointer;" onclick="openLyricsSheet('${it.workId}','${rep.id}','${it.id}')" title="${_r('rep.sozleriGoster','Sözleri göster — düzenlemek için pencerede Düzenle')}">
-        <div class="wn">${linked?'<span class="medley-chip" title="'+_r('rep.potpuriDevami','Potpuri devamı')+'">🔗</span> ':''}${(w.name||'#'+it.workId).replace(/\u00a0/g,' ')}</div>
-        <div class="ws">${[w.makam,w.composer].filter(Boolean).join(' · ')}</div>
-        ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+pf+'</div>' : ''}
+        <div class="wn">${linked?'<span class="medley-chip" title="'+_r('rep.potpuriDevami','Potpuri devamı')+'">🔗</span> ':''}${_rEsc((w.name||'#'+it.workId).replace(/\u00a0/g,' '))}</div>
+        <div class="ws">${_rEsc([w.makam,w.composer].filter(Boolean).join(' · '))}</div>
+        ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+_rEsc(pf)+'</div>' : ''}
       </td>
-      <td class="col-kapanis">${cn?'<span class="cn">'+cn+'</span>':''}</td>
-      <td class="col-not" style="color:var(--text3);font-size:12px;">${it.note||''}</td>
+      <td class="col-kapanis">${cn?'<span class="cn">'+_rEsc(cn)+'</span>':''}</td>
+      <td class="col-not" style="color:var(--text3);font-size:12px;">${_rEsc(it.note||'')}</td>
       <td><div class="ra">
         ${_dinleDugme(it.workId)}
         ${_knotDugme(it.workId)}
@@ -1005,7 +1014,7 @@ function renderDetail(){
   dc.innerHTML=`
     <div class="dh" style="padding:10px 14px 8px;">
       <div class="mobile-back-btn" onclick="goBackToList()" style="display:none;margin:-10px -14px 8px;padding:8px 14px;" id="mobileBackBtn">${_r('rep.listeyeDon','← Repertuvar Listesi')}</div>
-      <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:8px;">${rep.name}</div>
+      <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:8px;">${_rEsc(rep.name)}</div>
       <div class="cta-row">
         <a href="stage.html" class="bstage-primary" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:15px;" aria-hidden="true"></i> ${_r('rep.sahneyeCik','Sahneye Çık')}</a>
         ${(rep.items||[]).length ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openDinleSheet('${rep.id}')" title="${_r('rep.dinleT','Repertuvarı YouTube bağlantılarından sırayla dinle')}">${_r('rep.dinleBtn','🎧 Dinle')}</button>` : ''}
@@ -1018,7 +1027,7 @@ function renderDetail(){
             <button onclick="shareRep('${rep.id}')"><i class="ti ti-share" aria-hidden="true"></i> ${_r('rep.paylas','Paylaş')}</button>
             <button onclick="printR('${rep.id}')"><i class="ti ti-printer" aria-hidden="true"></i> ${_r('rep.yazdir','Yazdır')}</button>
             <button onclick="copyRep('${rep.id}')"><i class="ti ti-copy" aria-hidden="true"></i> ${_r('rep.kopyalaRep','Kopyala')}</button>
-            ${rep.isOwner ? `<button class="ov-danger" onclick="delRep('${rep.id}')"><i class="ti ti-trash" aria-hidden="true"></i> ${_r('ortak.sil','Sil')}</button>` : ''}
+            ${rep.isOwner ? `<button class="ov-danger" onclick="delRep('${rep.id}')"><i class="ti ti-trash" aria-hidden="true"></i> ${_r('ortak.sil','Sil')}</button>` : `<button onclick="_rbRepBildir('${rep.id}')"><i class="ti ti-flag" aria-hidden="true"></i> ${_r('rep.bildir','Bildir')}</button>`}
           </div>
         </details>
         ` : ''}
@@ -1034,16 +1043,17 @@ function renderDetail(){
           <span>${_r('rep.saltOkunurMetin','Yalnızca görüntülüyorsun. Sıralamayı değiştirmek ya da eser eklemek için kendi kopyanı al; kopyandaki değişiklikler aslını etkilemez.')}</span>
         </div>
         <button class="baw rep-salt-btn" onclick="copyRep('${rep.id}')"><i class="ti ti-copy" aria-hidden="true"></i> ${_r('rep.kopyamiAl','Kopyamı oluştur')}</button>
+        <button class="baw rep-salt-btn" onclick="_rbRepBildir('${rep.id}')" title="${_r('rep.bildirT','Uygunsuz içeriği bildir')}"><i class="ti ti-flag" aria-hidden="true"></i> ${_r('rep.bildir','Bildir')}</button>
       </div>
       `}
       <div class="dmr" style="gap:8px;padding-bottom:4px;flex-wrap:nowrap;overflow-x:auto;">
         <div class="mc"><span class="sp ${sc[rep.status]||'sc'}">${sl[rep.status]||_r('rep.taslak','Taslak')}</span></div>
         ${_medleyN?`<div class="mc"><span class="rep-medley" title="${_r('rep.potpuriChipT','Potpuri: kesintisiz çalınan eser zinciri')}">🔗 ${(_medleyN===1?_r('rep.nPotpuriTekil','{n} Potpuri'):_r('rep.nPotpuri','{n} Potpuri')).replace('{n}',_medleyN)}</span></div>`:''}
         <div class="mc" id="offRep_${rep.id}" style="display:none;white-space:nowrap;font-size:12px;color:var(--text3);"></div>
-        ${rep.date?`<div class="mc" style="white-space:nowrap;">📅 <strong>${rep.date}</strong>${rep.venue?` &nbsp;📍 <strong>${rep.venue}</strong>`:''}</div>`:''}
-        ${!rep.date&&rep.venue?`<div class="mc" style="white-space:nowrap;">📍 <strong>${rep.venue}</strong></div>`:''}
+        ${rep.date?`<div class="mc" style="white-space:nowrap;">📅 <strong>${_rEsc(rep.date)}</strong>${rep.venue?` &nbsp;📍 <strong>${_rEsc(rep.venue)}</strong>`:''}</div>`:''}
+        ${!rep.date&&rep.venue?`<div class="mc" style="white-space:nowrap;">📍 <strong>${_rEsc(rep.venue)}</strong></div>`:''}
         ${rep.isOwner?`<div class="mc">${visChip(rep)}</div>`:''}
-        ${rep.notes?`<div class="mc" style="color:var(--text3);white-space:nowrap;display:flex;align-items:center;gap:4px;"><i class="ti ti-pencil-plus" style="font-size:13px;" aria-hidden="true"></i> ${rep.notes}</div>`:''}
+        ${rep.notes?`<div class="mc" style="color:var(--text3);white-space:nowrap;display:flex;align-items:center;gap:4px;"><i class="ti ti-pencil-plus" style="font-size:13px;" aria-hidden="true"></i> ${_rEsc(rep.notes)}</div>`:''}
       </div>
     </div>
     <div class="is">

@@ -95,6 +95,7 @@ const METIN = {
     olustur: 'Kendi repertuvarını oluştur',
     acilamadi: 'Repertuvar açılamadı',
     kontrol: 'Bağlantını kontrol et ya da tekrar dene.',
+    bildir: 'Uygunsuz içerik mi gördün? Bize yaz: ',
     makam: '', karar: ''            // Türkçede etiketsiz (önceki görünüm)
   },
   en: {
@@ -109,6 +110,7 @@ const METIN = {
     olustur: 'Create your own setlist',
     acilamadi: 'Couldn\'t open the setlist',
     kontrol: 'Check your connection or try again.',
+    bildir: 'Seen inappropriate content? Write to us: ',
     makam: 'Makam (melodic mode): ', karar: 'Karar (tonic): '
   }
 };
@@ -120,7 +122,7 @@ document.title = T.repertuvar;
 function expired(){
   document.getElementById('root').innerHTML =
     '<div class="msg"><b>' + T.suresiDoldu + '</b>' + T.suresiDolduMetin + '</div>' +
-    '<a class="cta" href="https://www.repertuvar.app">' + T.kesfet + '</a>';
+    '<a class="cta" href="https://repertuvar.app">' + T.kesfet + '</a>';
 }
 
 function render(d){
@@ -147,7 +149,10 @@ function render(d){
     '<div class="expires">' + T.gecerlilik.replace('{t}', esc(bitis)) + T.internet + '</div>' +
     '<button class="btn" onclick="window.print()">' + T.yazdir + '</button>' +
     '<ol style="margin-top:16px;">' + rows + '</ol>' +
-    '<a class="cta" href="https://www.repertuvar.app">' + T.olustur + '</a>';
+    '<a class="cta" href="https://repertuvar.app">' + T.olustur + '</a>' +
+    // (2026-10-17) Apple Guideline 1.2: oturumsuz misafir için bildirme yolu (uygulamadaki Bildir'e erişemez)
+    '<div class="expires" style="margin-top:14px;">' + T.bildir +
+      '<a href="mailto:info@repertuvar.app?subject=' + encodeURIComponent('Repertuvar bildirim: ' + (d.name || '')) + '">info@repertuvar.app</a></div>';
 }
 
 (async function(){

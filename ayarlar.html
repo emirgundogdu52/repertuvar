@@ -832,6 +832,14 @@ html, body { overflow-x: hidden; }
         </div>
         <a id="hukukKosullar" href="https://repertuvar.app/terms" target="_blank" rel="noopener" class="setting-btn" data-i18n="ay.goruntule">Görüntüle →</a>
       </div>
+      <!-- (2026-10-17) Apple Guideline 1.2: uygulamada yayımlanmış iletişim bilgisi -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label" data-i18n="ay.destek">Destek ve iletişim</div>
+          <div class="setting-desc" data-i18n="ay.destek_alt">Soru, sorun ya da uygunsuz içerik bildirimi: info@repertuvar.app</div>
+        </div>
+        <a id="hukukDestek" href="https://repertuvar.app/support/" target="_blank" rel="noopener" class="setting-btn" data-i18n="ay.goruntule">Görüntüle →</a>
+      </div>
     </div>
 
   </div><!-- /page -->
@@ -934,6 +942,8 @@ function hukukBaglantilariniKur() {
   var k = document.getElementById('hukukKosullar');
   if (g) g.href = 'https://repertuvar.app/privacy' + (en ? '/en/' : '');
   if (k) k.href = 'https://repertuvar.app/terms'   + (en ? '/en/' : '');
+  var d = document.getElementById('hukukDestek');
+  if (d) d.href = 'https://repertuvar.app/support/' + (en ? 'en/' : '');
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', hukukBaglantilariniKur);

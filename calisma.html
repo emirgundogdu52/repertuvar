@@ -40,6 +40,7 @@
 <script src="metronom.js"></script>
 <script src="auth.js"></script>
 <script src="db.js"></script>
+<script src="bildir.js"></script>
 <script src="topnav.js" defer></script>
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
@@ -630,12 +631,27 @@ function kotaCiz() {
 }
 
 // ── Kayıtlar ──────────────────────────────────────────────────────────────
+// (2026-10-17) Apple Guideline 1.2: grupla paylaşılan kayıt ve ritimler başkasının içeriği. Engellediğim
+// kişinin ya da bildirdiğim içerik bana gösterilmez; başkasının satırında Bildir menüsü (bildir.js).
+function rbGoster(tur, id, sahip) {
+  if (!window.RB || !sahip || sahip === uid()) return true;
+  return !(RB.engelliMi(sahip) || (RB.gizliMi && RB.gizliMi(tur, id)));
+}
+function rbBildirMenu(ev, tur, id) {
+  if (ev) ev.stopPropagation();
+  if (!window.RB || !RB.icerikMenu) return;
+  const k = tur === 'audio' ? KAYITLAR.find(x => x.id === id) : RB_BANKA.find(x => x.id === id);
+  if (!k) return;
+  RB.icerikMenu({ tur, id, kullanici: k.owner_id || null, etiket: tur === 'audio' ? (k.eserAdi || '') : (k.ad || '') });
+}
+window.addEventListener('rb-degisti', () => { try { ciz(); rbBankaCiz(); if (typeof rbBagliCiz === 'function') rbBagliCiz(); } catch (e) {} });
+
 async function kayitlariYukle() {
   try {
     const r = await fetch(SUPA_URL +
       // (2026-08-24 DÜZELTME) `path` DE SEÇİLİYOR. Yoksa oynatıcı imzalı URL'yi
       // 'work-audio/undefined' için istiyor ve 404 NoSuchKey dönüyordu.
-      '/rest/v1/work_audio?select=id,work_id,path,title,source_key,duration_sec,size_bytes,created_at' +
+      '/rest/v1/work_audio?select=id,work_id,path,title,source_key,duration_sec,size_bytes,created_at,owner_id,group_id' +
       '&order=created_at.desc', { headers: authHeaders() });
     if (!r.ok) throw new Error(await r.text());
     const satirlar = await r.json();
@@ -668,9 +684,10 @@ function ciz() {
   const q = trNorm(document.getElementById('araKutu').value.trim());
   const liste = document.getElementById('liste');
   const bos = document.getElementById('bosDurum');
+  const gorunur = KAYITLAR.filter(k => rbGoster('audio', k.id, k.owner_id));
   const gosterilecek = q
-    ? KAYITLAR.filter(k => trNorm(k.eserAdi).includes(q))
-    : KAYITLAR;
+    ? gorunur.filter(k => trNorm(k.eserAdi).includes(q))
+    : gorunur;
 
   if (!KAYITLAR.length) {
     liste.innerHTML = '';
@@ -696,9 +713,10 @@ function ciz() {
     return `<div class="co-item" onclick="ac('${k.id}')">
       <div class="co-ikon"><i class="ti ti-wave-sine" aria-hidden="true"></i></div>
       <div>
-        <div class="co-ad">${k.eserAdi}</div>
-        ${meta ? `<div class="co-meta">${meta}</div>` : ''}
+        <div class="co-ad">${rbKacis(k.eserAdi)}</div>
+        ${meta ? `<div class="co-meta">${rbKacis(meta)}</div>` : ''}
       </div>
+      ${k.owner_id && k.owner_id !== uid() ? `<button class="rb-ikon" onclick="rbBildirMenu(event,'audio','${k.id}')" aria-label="${_caCev('ca.bildir', 'Bildir')}" title="${_caCev('ca.bildir', 'Bildir')}"><i class="ti ti-flag"></i></button>` : ''}
       <div class="co-sag"><i class="ti ti-chevron-right" aria-hidden="true"></i></div>
     </div>`;
   }).join('')
@@ -1347,12 +1365,13 @@ function rbBankaCiz() {
   document.getElementById('rbBankaBos').hidden = RB_BANKA.length > 0;
   const bagliIdler = new Set(rbBagli.map(b => b.ritim.id));
   const ben = uid();
-  el.innerHTML = RB_BANKA.map(r => {
+  el.innerHTML = RB_BANKA.filter(r => rbGoster('rhythm', r.id, r.owner_id)).map(r => {
     const dinliyor = rbOnizleme && rbOnizleme.id === r.id;
     const ekle = rbEser && !bagliIdler.has(r.id)
       ? `<button class="rb-ikon rb-ekle" onclick="rbBagla('${r.id}')">${_caCev('ca.rbEsereEkle', 'Esere ekle')}</button>` : '';
     const sil = r.owner_id === ben
-      ? `<button class="rb-ikon" onclick="rbRitimSil('${r.id}')" aria-label="${_caCev('ortak.sil', 'Sil')}"><i class="ti ti-trash"></i></button>` : '';
+      ? `<button class="rb-ikon" onclick="rbRitimSil('${r.id}')" aria-label="${_caCev('ortak.sil', 'Sil')}"><i class="ti ti-trash"></i></button>`
+      : `<button class="rb-ikon" onclick="rbBildirMenu(event,'rhythm','${r.id}')" aria-label="${_caCev('ca.bildir', 'Bildir')}" title="${_caCev('ca.bildir', 'Bildir')}"><i class="ti ti-flag"></i></button>`;
     const grup = r.group_id ? ' · <i class="ti ti-users" title="' + _caCev('ca.grupPaylasiliyor', 'Grupla paylaşılıyor') + '"></i>' : '';
     return `<div class="rb-satir">
       <button class="rb-ikon rb-oynat" onclick="rbOnizle('${r.id}')" aria-label="${_caCev('ca.dinle', 'Dinle')}"><i class="ti ${dinliyor ? 'ti-player-stop' : 'ti-player-play'}"></i></button>
@@ -1479,6 +1498,7 @@ async function rbBagliYukle() {
         if (gorulen.has(s.ritim_id)) continue;
         const ritim = RB_BANKA.find(x => x.id === s.ritim_id);
         if (!ritim) continue;               // görülemeyen ritim (RLS) — atla
+        if (!rbGoster('rhythm', ritim.id, ritim.owner_id)) continue;   // (2026-10-17) engel / bildirim
         gorulen.add(s.ritim_id);
         rbBagli.push({ satir: s, ritim });
       }

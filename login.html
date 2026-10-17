@@ -106,6 +106,8 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 .forgot:hover{text-decoration:underline;}
 
 .msg{font-size:13px;text-align:center;padding:10px;border-radius:8px;margin-top:12px;display:none;}
+.kabul{font-size:12px;line-height:1.5;color:var(--text3,#8b949e);text-align:center;margin:14px 0 0;}
+.kabul a{color:var(--accent);text-decoration:underline;}
 .msg.err{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red);}
 .msg.ok{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--green);}
 </style>
@@ -193,6 +195,9 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
   </div>
 
   <div class="msg" id="msg"></div>
+  <!-- (2026-10-17) Apple Guideline 1.2: kullanıcı, uygunsuz içeriğe sıfır tolerans içeren koşulları kabul eder.
+       Apple/Google düğmeleri de ilk girişte hesap açtığı için iki sekmede de görünür. -->
+  <p class="kabul" id="kabulMetni"></p>
 </div>
 
 <script>
@@ -202,6 +207,19 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // Arayuz metni cevirisi. i18n.js yuklenmemisse Turkceye duser.
 function _gCev(k, tr) { try { return (window.i18n && window.i18n.t) ? window.i18n.t(k, tr) : tr; } catch (e) { return tr; } }
+
+// Koşul kabul cümlesi (bağlantılar dile göre: yalnız 'en' için ayrı sayfa var)
+function kabulMetniCiz() {
+  const el = document.getElementById('kabulMetni');
+  if (!el) return;
+  const en = !!(window.i18n && i18n.dil && i18n.dil() === 'en');
+  const a = (yol, ad) => '<a href="https://repertuvar.app/' + yol + (en ? '/en/' : '') + '" target="_blank" rel="noopener">' + ad + '</a>';
+  el.innerHTML = _gCev('giris.kabul', 'Devam ederek ya da kayıt olarak {kosullar} ve {gizlilik} metinlerini kabul etmiş olursun.')
+    .replace('{kosullar}', a('terms', _gCev('giris.kosullar', 'Kullanım Koşulları')))
+    .replace('{gizlilik}', a('privacy', _gCev('giris.gizlilik', 'Gizlilik Politikası')));
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', kabulMetniCiz); else kabulMetniCiz();
+window.addEventListener('dil-degisti', kabulMetniCiz);
 
 // Email onay / şifre sıfırlama token'ını yakala.
 // (2026-10-03) Landing'den (repertuvar.app/giris.html, kayit.html) devir ve web Google
