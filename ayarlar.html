@@ -466,6 +466,8 @@ html, body { overflow-x: hidden; }
         <div style="flex:1;min-width:0;">
           <div class="setting-label" data-i18n="ab.yilligaGec">Yıllığa geç</div>
           <div class="setting-desc" id="abYillikMetin" style="line-height:1.5;"></div>
+          <!-- Apple 3.1.2: satın alma düğmesinin yanında yenileme koşulu + Koşullar/Gizlilik (kaydırmadan) -->
+          <div class="setting-desc" id="abYillikYasal" style="line-height:1.5;margin-top:6px;"></div>
         </div>
         <button class="setting-btn" id="abYillikBtn" onclick="abonelikYilligaGec()" data-i18n="ab.yilligaGec">Yıllığa geç</button>
       </div>
@@ -1449,9 +1451,28 @@ function abonelikCiz(d) {
       document.getElementById('abYillikMetin').textContent =
         _t('ab.yilligaGecMetin', '{fiyat} / yıl (%{n} avantajlı). Yıllık plan, şu anki dönemin (denemedeysen denemenin) sonunda başlar; o tarihe kadar ek ücret alınmaz.')
           .replace('{fiyat}', y.fiyat).replace('{n}', y.tasarruf);
+      _abYillikYasalCiz(plat);
       satir.style.display = '';
     }).catch(function () {});
   }
+}
+// Yıllığa geç satırının altındaki yenileme koşulu + Koşullar · Gizlilik bağlantıları (iOS'ta başka mağaza adı yok, 2.3.10)
+function _abYillikYasalCiz(plat) {
+  const el = document.getElementById('abYillikYasal');
+  const en = (window.i18n && i18n.dil() === 'en');
+  el.textContent = plat === 'android'
+    ? _t('ab.yillikYasalAnd', 'Yıllık abonelik iptal edilmedikçe her yıl otomatik yenilenir. Google Play › Abonelikler’den istediğin zaman iptal edebilirsin.')
+    : _t('ab.yillikYasalIos', 'Yıllık abonelik, dönem bitmeden en az 24 saat önce iptal edilmezse her yıl otomatik yenilenir. Ayarlar › Abonelikler’den istediğin zaman iptal edebilirsin.');
+  const baglanti = function (metin, url) {
+    const a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = metin;
+    a.style.cssText = 'color:var(--text2);text-decoration:underline;';
+    return a;
+  };
+  el.appendChild(document.createElement('br'));
+  el.appendChild(baglanti(_t('giris.kosullar', 'Kullanım Koşulları'), 'https://repertuvar.app/terms/' + (en ? 'en/' : '')));
+  el.appendChild(document.createTextNode(' · '));
+  el.appendChild(baglanti(_t('giris.gizlilik', 'Gizlilik Politikası'), 'https://repertuvar.app/privacy/' + (en ? 'en/' : '')));
 }
 async function abonelikYilligaGec() {
   if (!window.Pro) return;
