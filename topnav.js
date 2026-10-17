@@ -1380,13 +1380,25 @@ function _m(anahtar, tr) {
 
   var css = document.createElement('style');
   css.textContent =
-    '#sync-bar{position:fixed;top:env(safe-area-inset-top,0px);left:0;height:3px;width:100%;' +
+    '#sync-bar{position:fixed;top:env(safe-area-inset-top,0px);left:0;height:3px;width:100%;' +   // yalnız geniş ekran
     'transform:scaleX(0);transform-origin:0 50%;opacity:0;' +
     'background:linear-gradient(90deg,#FFC83D,#FFD972);' +
     'box-shadow:0 0 10px rgba(255,200,61,.65),0 0 4px rgba(255,200,61,.9);' +
     'z-index:2147483647;pointer-events:none;will-change:transform,opacity;' +
     'transition:transform .2s ease,opacity .35s ease;}' +
-    '#sync-bar.on{opacity:1;}';
+    '#sync-bar.on{opacity:1;}' +
+    // (2026-10-17) Telefon/tablette çubuk YOK, sağda küçük dönen halka (kullanıcı: logonun sarı çizgisinin yanına ikinci
+    // bir sarı çizgi orayı bozuyordu — "daha küçük ve çizgi olmayan"). Halka sağ grubun SOLUNDA mutlak konumda: görünüp
+    // kaybolurken zil/tema/avatar kaymaz.
+    '.r-topnav .r-tn-right{position:relative;}' +
+    '#sync-halka{position:absolute;right:calc(100% + 10px);top:calc(50% - 8px);width:16px;height:16px;' +
+    'box-sizing:border-box;border-radius:50%;border:2px solid rgba(255,255,255,.14);border-top-color:#FFC83D;' +
+    'opacity:0;transition:opacity .25s ease;animation:syncHalka .8s linear infinite;pointer-events:none;display:none;}' +
+    '#sync-halka.var{display:block;}' +   // gizliyken display:none → boşuna dönmez
+    '#sync-halka.serbest{position:fixed;right:16px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:2147483647;}' +
+    '#sync-halka.on{opacity:1;}' +
+    '[data-theme="light"] #sync-halka{border-color:rgba(17,23,34,.12);border-top-color:#C98A00;}' +
+    '@keyframes syncHalka{to{transform:rotate(360deg);}}';
   (document.head || document.documentElement).appendChild(css);
 
   var bar = null, prog = 0, trickle = null, count = 0, startedAt = 0;
@@ -1407,18 +1419,29 @@ function _m(anahtar, tr) {
     prog = Math.max(0, Math.min(1, p));
     el().style.transform = 'scaleX(' + prog + ')';
   }
-  // (2026-10-17) Telefon/tablette çubuk üst menünün ALT KENARINDA (Safari'nin yükleme çizgisi gibi). top:0 iPhone'da durum
-  // çubuğu / Dynamic Island şeridinde, ekranın kavisli kenarında kalıyordu — kullanıcı: "çizgi kayboldu, yalnız bir ışık
-  // efekti kaldı". Üst menü yoksa (geniş ekran, sahne) güvenli alanın hemen altı; masaüstünde env() = 0 → eskisi gibi en üst.
-  function yerlestir(b) {
+  // (2026-10-17) Hangi gösterge: üst menü görünüyorsa (telefon/tablet) ya da dar ekransa halka, geniş ekranda çubuk.
+  // Çubuk iPhone'da top:0 durum çubuğu şeridinde kayboluyordu; menünün alt kenarına taşınınca da logonun sarı çizgisiyle
+  // yan yana iki sarı çizgi oluyordu — ikisi de kullanıcıyı rahatsız etti.
+  var halka = null, halkaModu = false;
+  function halkaGoster() {
     var tn = document.querySelector('.r-topnav');
     var r = tn ? tn.getBoundingClientRect() : null;   // offsetParent DEĞİL: sabit (fixed) menüde hep null döner
-    b.style.top = (r && r.width > 0 && r.height > 0 && r.bottom > 0) ? Math.round(r.bottom - 2) + 'px' : '';
+    var menuVar = !!(r && r.width > 0 && r.height > 0);
+    if (!menuVar && window.innerWidth >= 1024) return false;
+    if (!halka) { halka = document.createElement('div'); halka.id = 'sync-halka'; halka.setAttribute('aria-hidden', 'true'); }
+    var sag = menuVar ? tn.querySelector('.r-tn-right') : null;
+    if (sag) { if (halka.parentNode !== sag) sag.insertBefore(halka, sag.firstChild); halka.classList.remove('serbest'); }
+    else { if (halka.parentNode !== document.body) (document.body || document.documentElement).appendChild(halka); halka.classList.add('serbest'); }
+    halka.classList.add('var');
+    void halka.offsetWidth;
+    halka.classList.add('on');
+    return true;
   }
   function start() {
     startedAt = Date.now();
+    halkaModu = halkaGoster();
+    if (halkaModu) return;
     var b = el();
-    yerlestir(b);
     b.style.transition = 'none';   // görünmezken 0'a çek (animasyonsuz)
     set(0);
     void b.offsetWidth;            // reflow
@@ -1432,6 +1455,13 @@ function _m(anahtar, tr) {
   }
   function finish() {
     if (count !== 0) return;       // arada yeni istek başladıysa gizleme
+    if (halkaModu) {
+      if (halka) {
+        halka.classList.remove('on');
+        setTimeout(function () { if (count === 0 && !halka.classList.contains('on')) halka.classList.remove('var'); }, 300);
+      }
+      return;
+    }
     clearInterval(trickle); trickle = null;
     set(1);
     setTimeout(function () { if (count === 0) el().classList.remove('on'); }, 240);
