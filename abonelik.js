@@ -207,6 +207,19 @@
     return YONETIM[platform()] || null;
   }
 
+  // "Aboneliği yönet": iOS'ta Apple'ın uygulama içi penceresi (yerel Magaza eklentisi — web adresi
+  // sandbox aboneliklerini göstermiyor, inceleme sandbox'ta yapılır); yoksa mağazanın adresi.
+  // Varlık kontrolü şart: kayıtsız eklentiye yapılan çağrının promise'i iOS'ta dönmüyor.
+  async function yonet() {
+    var C = window.Capacitor;
+    if (platform() === 'ios' && C && C.isPluginAvailable && C.isPluginAvailable('Magaza')) {
+      try { await C.Plugins.Magaza.abonelikleriYonet(); return 'pencere'; } catch (e) { /* adrese düş */ }
+    }
+    var url = await yonetimAdresi();
+    if (url) { window.open(url, '_blank'); return 'adres'; }
+    return null;
+  }
+
   // Hesap silinmeden önce RevenueCat müşteri kaydı (Gizlilik §6–7). Hata silmeyi engellemez.
   async function rcSil() {
     try {
@@ -220,7 +233,7 @@
   window.Pro = {
     platform: platform, onbellek: onbellek, durumTazele: durumTazele, proMu: proMu, zorunluMu: zorunluMu,
     kontrol: kontrol, rcHazirla: rcHazirla, teklifler: teklifler, satinAl: satinAl, geriYukle: geriYukle,
-    esitle: esitle, yonetimAdresi: yonetimAdresi, rcSil: rcSil,
+    esitle: esitle, yonetimAdresi: yonetimAdresi, yonet: yonet, rcSil: rcSil,
     yillikTeklif: yillikTeklif, yilligaGec: yilligaGec, yilligaGecisBekliyor: yilligaGecisBekliyor
   };
 

@@ -1456,8 +1456,12 @@ async function abonelikYilligaGec() {
 }
 async function abonelikYonet() {
   if (!window.Pro) return;
-  const url = await Pro.yonetimAdresi();
-  if (url) window.open(url, '_blank');
+  const nasil = await Pro.yonet();
+  // Uygulama içi pencere kapandı: iptal/plan değişikliği hemen görünsün (webhook da ayrıca yazar)
+  if (nasil === 'pencere') {
+    try { await Pro.esitle(); } catch (e) {}
+    try { abonelikCiz(await Pro.durumTazele()); } catch (e) {}
+  }
 }
 async function abonelikGeriYukle() {
   if (!window.Pro) return;
