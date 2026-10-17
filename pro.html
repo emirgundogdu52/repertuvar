@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<!-- (2026-10-17) Repertuvar Pro — satın alma ekranı + kilit ekranı.
+     Tasarım: claude.ai/artifact/AMgEVYouzFBrHCL4fXrS1A (v24) + karar A (deneme YALNIZ aylıkta).
+     Durumlar:
+       satis : iOS/Android — mağaza fiyatları (RevenueCat), plan kartları, satın al / dene
+       kilit : × ile kapatılınca — Pro yokken açık kalanlar (ayarlar, çıkış) — D2
+       web   : web'de satın alma yok (karar 1a) — "Pro'yu iPhone/iPad ya da Android uygulamasından başlat"
+     Fiyat/para birimi ASLA elle yazılmaz: mağazanın priceString'i; "ayda X" kuruş aşağı yuvarlanır.
+     iOS'ta Google Play adı yazılmaz (Apple 2.3.10); web'de mağaza adları serbest. -->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Repertuvar Pro</title>
+<link rel="icon" href="Repertuvar_logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="i18n.js"></script>
+<script src="auth.js"></script>
+<style>
+:root { --bg:#070B18; --kart:#10172C; --kart2:#19233F; --cizgi:rgba(48,58,85,.75); --yazi:#FFFFFF; --soluk:#B8BFD2;
+        --sari:#FFC83D; --mavi:#8CC5FF; --hata:#fca5a5; }
+html { -webkit-text-size-adjust:100%; text-size-adjust:100%; background:var(--bg); }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--yazi); font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif; }
+.sayfa { max-width:430px; margin:0 auto; padding:calc(env(safe-area-inset-top) + 14px) 20px calc(env(safe-area-inset-bottom) + 26px);
+         display:flex; flex-direction:column; gap:20px; min-height:100vh; }
+.ust { display:flex; justify-content:flex-end; min-height:44px; }
+.kapat { width:44px; height:44px; border-radius:22px; border:1px solid var(--cizgi); background:var(--kart); color:var(--soluk);
+         display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.bas { display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; margin-top:-6px; }
+.logo { position:relative; display:inline-flex; padding-right:34px; }
+.logo img { width:189px; height:auto; }
+.logo span { position:absolute; top:-4px; right:0; font-size:13px; font-weight:800; padding:3px 7px; border-radius:7px; background:var(--sari); color:var(--bg); line-height:1; }
+h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
+.alt { margin:0; font-size:15px; line-height:1.45; color:var(--soluk); }
+.ozellik { background:var(--kart); border:1px solid var(--cizgi); border-radius:16px; padding:6px 16px; }
+.oz { display:flex; gap:14px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--cizgi); }
+.oz:last-child { border-bottom:0; }
+.oz i { width:36px; height:36px; flex:none; border-radius:10px; background:var(--kart2); color:var(--sari); display:flex; align-items:center; justify-content:center; font-style:normal; }
+.oz i svg { width:20px; height:20px; }
+.oz .ob { display:block; font-size:15px; font-weight:700; margin-bottom:2px; }
+.oz li b { font-weight:700; }
+.oz p { margin:0; font-size:13px; line-height:1.45; color:var(--soluk); }
+.oz ul { margin:8px 0 0; padding:0; list-style:none; font-size:13px; line-height:1.4; }
+.oz li { display:block; margin-top:6px; padding-left:14px; position:relative; } .oz li:before { content:'·'; color:var(--sari); font-weight:800; position:absolute; left:2px; }
+.oz li span { color:var(--soluk); }
+.planlar { display:flex; flex-direction:column; gap:10px; }
+.plan { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:72px; padding:14px 16px; border-radius:16px;
+        cursor:pointer; text-align:left; background:var(--kart); border:1px solid var(--cizgi); margin:1px; color:inherit; font-family:inherit; }
+.plan.secili { background:var(--kart2); border:2px solid var(--sari); margin:0; }
+.nokta { width:22px; height:22px; flex:none; border-radius:11px; border:2px solid #78829A; display:flex; align-items:center; justify-content:center; }
+.plan.secili .nokta { background:var(--sari); border:0; } .plan.secili .nokta:after { content:''; width:10px; height:10px; border-radius:5px; background:var(--bg); }
+.psol { display:flex; align-items:center; gap:12px; } .pad { display:flex; flex-direction:column; gap:3px; }
+.pad b { font-size:16px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.rozet { font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; white-space:nowrap; background:rgba(77,163,255,.16); color:var(--mavi); }
+.rozet.sari { background:var(--sari); color:var(--bg); }
+.pad small { font-size:13px; color:var(--soluk); }
+.psag { display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
+.psag b { font-size:18px; font-weight:800; white-space:nowrap; } .psag small { font-size:12px; color:var(--soluk); white-space:nowrap; }
+.cta { display:flex; flex-direction:column; gap:10px; }
+.deneme-satir { margin:0; text-align:center; font-size:15px; font-weight:700; }
+.dugme { height:56px; border:0; border-radius:16px; background:var(--sari); color:var(--bg); font-size:17px; font-weight:800; cursor:pointer; font-family:inherit; width:100%; }
+.dugme:disabled { opacity:.6; cursor:default; }
+.dugme.ikincil { background:var(--kart); color:var(--yazi); border:1px solid var(--cizgi); font-weight:700; font-size:15px; height:50px; }
+.aciklama { margin:0; text-align:center; font-size:12.5px; line-height:1.5; color:var(--soluk); }
+.mesaj { margin:0; text-align:center; font-size:14px; line-height:1.5; color:var(--soluk); min-height:0; }
+.mesaj.hata { color:var(--hata); }
+.baglantilar { display:flex; justify-content:center; flex-wrap:wrap; gap:6px 18px; font-size:13px; }
+.baglantilar a, .baglantilar button { color:var(--soluk); background:none; border:0; padding:0; font:inherit; text-decoration:underline; cursor:pointer; }
+.kutu { background:var(--kart); border:1px solid var(--cizgi); border-radius:16px; padding:18px 16px; display:flex; flex-direction:column; gap:12px; text-align:center; }
+.yukleniyor { text-align:center; color:var(--soluk); font-size:14px; padding:30px 0; }
+[hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<div class="sayfa">
+  <div class="ust"><button class="kapat" id="kapatBtn" type="button" aria-label="Kapat">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button></div>
+
+  <div class="bas">
+    <div class="logo"><img src="logo_dark.png" alt="repertuvar.app"><span>Pro</span></div>
+    <h1 id="baslik"></h1>
+    <p class="alt" id="altBaslik"></p>
+  </div>
+
+  <!-- SATIŞ (iOS/Android) -->
+  <div id="satis" hidden>
+    <div class="ozellik" id="ozellikler"></div>
+    <div style="height:20px"></div>
+    <div class="planlar" id="planlar" role="radiogroup"></div>
+    <div style="height:20px"></div>
+    <div class="cta">
+      <p class="deneme-satir" id="denemeSatir" hidden></p>
+      <button class="dugme" id="alBtn" type="button"></button>
+      <p class="aciklama" id="aciklama"></p>
+      <p class="mesaj" id="mesaj" hidden></p>
+    </div>
+  </div>
+
+  <!-- KİLİT (× sonrası) ve WEB -->
+  <div id="kilit" class="kutu" hidden>
+    <p class="alt" id="kilitMetin"></p>
+    <button class="dugme" id="proyaDonBtn" type="button"></button>
+    <button class="dugme ikincil" id="ayarlarBtn" type="button"></button>
+    <button class="dugme ikincil" id="cikisBtn" type="button"></button>
+  </div>
+
+  <div id="yukleniyor" class="yukleniyor"></div>
+
+  <div class="baglantilar" id="baglantilar">
+    <button type="button" id="geriYukleBtn"></button>
+    <a id="kosullar" target="_blank" rel="noopener"></a>
+    <a id="gizlilik" target="_blank" rel="noopener"></a>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var EN = (window.i18n && i18n.dil && i18n.dil() === 'en');
+  document.documentElement.lang = EN ? 'en' : 'tr';
+  var M = EN ? {
+    kapat: 'Close', yukleniyor: 'Loading…',
+    bYeni: 'Repertuvar Pro', aYeni: 'Every feature of Repertuvar in one subscription. Try the monthly plan free for 1 month.',
+    aYeniDenemesiz: 'Every feature of Repertuvar in one subscription.',
+    bDenemeBitti: 'Your free trial has ended', aDenemeBitti: 'Your pieces, setlists and recordings are waiting. Get Pro and pick up right where you left off.',
+    bProBitti: 'Your Pro subscription has ended', aProBitti: 'Your pieces, setlists and recordings are waiting. Subscribe again and pick up right where you left off.',
+    oz: [
+      ['☰', 'Setlists and stage mode', 'Build and order your setlists; on stage, lyrics, chords and key on one screen — works offline too.'],
+      ['♫', 'Piece library', 'Your own pieces plus the shared catalogue: lyrics, chords, tonic; change the key with a single tap.'],
+      ['👥', 'Together with your group', 'Share your setlists and pieces with your group so everyone sees the same list.'],
+      ['🎧', 'Practice Room', 'Upload your recordings, match their speed and key to your own tuning, and start practising. Change the key without affecting the tempo, and vice versa.']
+    ],
+    kayit: ['Recordings:', '15 files, up to 8 MB each'], ritim: ['Rhythm bank:', 'cut loops from rhythm recordings, link them to your pieces, play along in time — 50 rhythms, up to 3 MB each'],
+    plan: { yillik: ['Yearly', '/ year', 'yearly'], alti: ['6 Months', '/ 6 months', 'every 6 months'], aylik: ['Monthly', '/ month', 'monthly'] },
+    enAvantajli: 'Best value · Save {n}%', avantaj: 'Save {n}%', ucretsizAy: '1 month free', iptal: 'Cancel anytime', ayda: '{x} / month',
+    denemeSatir: '1 month free, then {x} / month', ctaDene: 'Try 1 month free', ctaAl: 'Subscribe',
+    acIos: '{x} billed {sonra}. Your subscription renews automatically unless cancelled at least 24 hours before the end of the current period. You can cancel anytime in Settings › Subscriptions.',
+    acIosDeneme: 'After the free month, {x} billed monthly. Your subscription renews automatically unless cancelled at least 24 hours before the end of the trial or current period. You can cancel anytime in Settings › Subscriptions.',
+    acAnd: '{x} billed {sonra}. Your subscription renews automatically at the end of each period unless cancelled. You can cancel anytime in Google Play › Subscriptions.',
+    acAndDeneme: 'After the free month, {x} billed monthly. Cancel before the trial ends and you won\'t be charged; you can cancel anytime in Google Play › Subscriptions.',
+    isleniyor: 'Processing your purchase…', tamam: 'Pro is active. Enjoy!', bekliyor: 'Your purchase is awaiting approval. Pro will turn on automatically once it\'s approved.',
+    hata: 'The purchase couldn\'t be completed. Please try again.', yuklenemedi: 'Subscription options couldn\'t be loaded. Check your internet connection and try again.',
+    tekrar: 'Try again', geriYukle: 'Restore purchases', geriYuklendi: 'Your purchases have been restored — Pro is active.',
+    geriYokYok: 'No Repertuvar Pro subscription was found to restore for this store account.', kosullar: 'Terms of Use', gizlilik: 'Privacy',
+    kilitBaslik: 'Repertuvar Pro isn\'t active', kilitMetin: 'Your pieces, setlists and recordings haven\'t been deleted. Get Pro and they\'ll all open just as you left them.',
+    hosgeldin: 'Welcome to Repertuvar', hosgeldinMetin: 'All features open with Repertuvar Pro. Try the monthly plan free for 1 month.',
+    proyaGec: 'Get Pro', ayarlar: 'Settings', cikis: 'Sign out',
+    webMetin: 'You can start Repertuvar Pro from the iPhone, iPad or Android app; it then works here with the same account.',
+    guncelle: 'Please update the app to the latest version to subscribe.'
+  } : {
+    kapat: 'Kapat', yukleniyor: 'Yükleniyor…',
+    bYeni: 'Repertuvar Pro', aYeni: 'Repertuvar\'ın tüm özellikleri tek abonelikte. Aylık planı 1 ay ücretsiz dene.',
+    aYeniDenemesiz: 'Repertuvar\'ın tüm özellikleri tek abonelikte.',
+    bDenemeBitti: 'Deneme süren bitti', aDenemeBitti: 'Eserlerin, repertuvarların ve kayıtların seni bekliyor. Pro\'ya geçince hepsi kaldığı yerden açılır.',
+    bProBitti: 'Pro aboneliğin sona erdi', aProBitti: 'Eserlerin, repertuvarların ve kayıtların seni bekliyor. Yeniden abone olunca hepsi kaldığı yerden açılır.',
+    oz: [
+      ['☰', 'Repertuvarlar ve sahne modu', 'Repertuvarını oluştur ve sırala; sahnede sözler, akorlar ve ton tek ekranda — internet olmadan da çalışır.'],
+      ['♫', 'Eser arşivi', 'Kendi eserlerin ve ortak katalog: söz, akor, karar sesi; tek dokunuşla transpoze et.'],
+      ['👥', 'Grubunla birlikte', 'Repertuvarlarını ve eserlerini grubunla paylaş, herkes aynı listeyi görsün.'],
+      ['🎧', 'Çalışma Odası', 'Kayıtlarını yükle, hızını ve tonunu kendi akorduna göre ayarla, çalışmaya başla. Tonu değiştirince hız, hızı değiştirince ton bozulmaz.']
+    ],
+    kayit: ['Kayıtlar:', '15 kayıt, her biri 8 MB’a kadar'], ritim: ['Ritim bankası:', 'ritim kaydından döngü kes, eserlerine bağla, tempoyla birlikte çal — 50 ritim, her biri 3 MB’a kadar'],
+    plan: { yillik: ['Yıllık', '/ yıl', 'yıllık'], alti: ['6 Aylık', '/ 6 ay', '6 ayda bir'], aylik: ['Aylık', '/ ay', 'aylık'] },
+    enAvantajli: 'En avantajlı · %{n}', avantaj: '%{n} avantajlı', ucretsizAy: '1 ay ücretsiz', iptal: 'istediğin zaman iptal edilebilir', ayda: 'ayda {x}',
+    denemeSatir: '1 ay ücretsiz, sonra {x} / ay', ctaDene: '1 ay ücretsiz dene', ctaAl: 'Satın al',
+    acIos: '{x} {sonra} ücretlendirilir. Dönem bitmeden en az 24 saat önce iptal edilmezse abonelik otomatik yenilenir. Ayarlar › Abonelikler’den istediğin zaman iptal edebilirsin.',
+    acIosDeneme: 'Ücretsiz ay bitince {x} aylık ücretlendirilir. Deneme ya da dönem bitmeden en az 24 saat önce iptal edilmezse abonelik otomatik yenilenir. Ayarlar › Abonelikler’den istediğin zaman iptal edebilirsin.',
+    acAnd: '{x} {sonra} ücretlendirilir. Abonelik iptal edilmedikçe her dönemin sonunda otomatik yenilenir. Google Play › Abonelikler’den istediğin zaman iptal edebilirsin.',
+    acAndDeneme: 'Ücretsiz ay bitince {x} aylık ücretlendirilir. Deneme bitmeden iptal edersen ücret alınmaz; Google Play › Abonelikler’den istediğin zaman iptal edebilirsin.',
+    isleniyor: 'Satın alma işleniyor…', tamam: 'Pro etkin. İyi çalışmalar!', bekliyor: 'Satın alma onay bekliyor. Onaylanınca Pro kendiliğinden açılır.',
+    hata: 'Satın alma tamamlanamadı. Tekrar dene.', yuklenemedi: 'Abonelik seçenekleri yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.',
+    tekrar: 'Tekrar dene', geriYukle: 'Satın alımları geri yükle', geriYuklendi: 'Satın alımların geri yüklendi — Pro etkin.',
+    geriYokYok: 'Bu mağaza hesabında geri yüklenecek bir Repertuvar Pro aboneliği bulunamadı.', kosullar: 'Kullanım Şartları', gizlilik: 'Gizlilik',
+    kilitBaslik: 'Repertuvar Pro etkin değil', kilitMetin: 'Eserlerin, repertuvarların ve kayıtların silinmedi. Pro’ya geçince hepsi aynen açılır.',
+    hosgeldin: 'Repertuvar’a hoş geldin', hosgeldinMetin: 'Tüm özellikler Repertuvar Pro ile açılır. Aylık planı 1 ay ücretsiz dene.',
+    proyaGec: 'Pro’ya geç', ayarlar: 'Ayarlar', cikis: 'Çıkış yap',
+    webMetin: 'Repertuvar Pro’yu iPhone, iPad ya da Android uygulamasından başlatabilirsin; aynı hesapla burada da açılır.',
+    guncelle: 'Abone olmak için uygulamayı son sürüme güncelle.'
+  };
+  function $(id) { return document.getElementById(id); }
+  function yaz(id, s) { $(id).textContent = s; }
+  function ac(id, goster) { $(id).hidden = !goster; }
+
+  var donus = new URLSearchParams(location.search).get('donus') || 'index.html';
+  if (!/^[a-z0-9_-]+\.html(\?.*)?$/i.test(donus) || /^pro\.html/i.test(donus)) donus = 'index.html';
+  var platform = 'web', durum = null, teklif = null, secim = 'yillik', denemeVar = false;
+
+  // Sabit metinler
+  $('kapatBtn').setAttribute('aria-label', M.kapat);
+  yaz('yukleniyor', M.yukleniyor);
+  yaz('geriYukleBtn', M.geriYukle); yaz('kosullar', M.kosullar); yaz('gizlilik', M.gizlilik);
+  $('kosullar').href = 'https://repertuvar.app/terms/' + (EN ? 'en/' : '');
+  $('gizlilik').href = 'https://repertuvar.app/privacy/' + (EN ? 'en/' : '');
+  yaz('proyaDonBtn', M.proyaGec); yaz('ayarlarBtn', M.ayarlar); yaz('cikisBtn', M.cikis);
+  var SV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
+  var SIMGE = [
+    SV + '<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>',
+    SV + '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+    SV + '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 20a6.5 6.5 0 0 0-3-5.5"/></svg>',
+    SV + '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg>'
+  ];
+  $('ozellikler').innerHTML = M.oz.map(function (o, i) {
+    var ek = (i === 3) ? '<ul><li><b>' + M.kayit[0] + '</b>&nbsp;<span>' + M.kayit[1] + '</span></li><li><b>' + M.ritim[0] + '</b>&nbsp;<span>' + M.ritim[1] + '</span></li></ul>' : '';
+    return '<div class="oz"><i aria-hidden="true">' + SIMGE[i] + '</i><div><span class="ob">' + o[1] + '</span><p>' + o[2] + '</p>' + ek + '</div></div>';
+  }).join('');
+
+  function mesaj(s, hata) { var m = $('mesaj'); m.textContent = s || ''; m.hidden = !s; m.classList.toggle('hata', !!hata); }
+  function basliklar() {
+    var d = durum || {};
+    if (d.daha_once_pro && !d.deneme_kullanildi) { yaz('baslik', M.bProBitti); yaz('altBaslik', M.aProBitti); }
+    else if (d.deneme_kullanildi) { yaz('baslik', M.bDenemeBitti); yaz('altBaslik', M.aDenemeBitti); }
+    else { yaz('baslik', M.bYeni); yaz('altBaslik', denemeVar || platform === 'web' ? M.aYeni : M.aYeniDenemesiz); }
+  }
+
+  // ── Fiyatlar (mağazadan) ─────────────────────────────────────────────
+  function bicim(tutar, kod) {
+    try { return new Intl.NumberFormat(navigator.language || (EN ? 'en-US' : 'tr-TR'), { style: 'currency', currency: kod }).format(tutar); }
+    catch (e) { return tutar.toFixed(2) + ' ' + kod; }
+  }
+  // Mağazanın fiyat yazısıyla AYNI biçim: "49,99 €" → "4,16 €", "₺1.999,99" → "₺166,66", "$49.99" → "$4.16".
+  // Tarayıcı dili mağaza vitrininden farklı olabildiği için Intl'e değil priceString'e bakılır.
+  function ayniBicim(ornek, tutar, kod) {
+    var m = String(ornek || '').match(/\d[\d.,\s\u00a0\u202f]*\d|\d/);
+    if (!m) return bicim(tutar, kod);
+    var sayi = m[0], ondalik = null;
+    var son = Math.max(sayi.lastIndexOf(','), sayi.lastIndexOf('.'));
+    if (son > -1 && sayi.length - son - 1 === 2) ondalik = sayi[son];
+    var tam = Math.floor(tutar), kurus = Math.round((tutar - tam) * 100);
+    var grup = ondalik === ',' ? '.' : ',';
+    var g = (sayi.replace(/\d/g, '').replace(ondalik || '', '')[0]) || '';
+    var tamYazi = String(tam).replace(/\B(?=(\d{3})+(?!\d))/g, g || '');
+    var yeni = ondalik ? tamYazi + ondalik + String(kurus).padStart(2, '0') : String(tam);
+    return ornek.replace(sayi, yeni);
+  }
+  function aydaAsagi(p, ay) { return ayniBicim(p.priceString, Math.floor((p.price / ay) * 100) / 100, p.currencyCode); }   // kuruş aşağı (karar)
+  function avantaj(p, ay, aylik) { return aylik ? Math.round((1 - p.price / (aylik.price * ay)) * 100) : 0; }
+
+  function planlariCiz() {
+    var P = teklif.paketler, aylik = P.aylik && P.aylik.product;
+    var sira = [['yillik', 12], ['alti', 6], ['aylik', 1]].filter(function (x) { return P[x[0]]; });
+    $('planlar').innerHTML = sira.map(function (x) {
+      var k = x[0], ay = x[1], p = P[k].product, t = M.plan[k];
+      var rozet = '', alt;
+      if (k === 'yillik') { var n = avantaj(p, 12, aylik); rozet = n > 0 ? '<span class="rozet sari">' + M.enAvantajli.replace('{n}', n) + '</span>' : ''; alt = M.ayda.replace('{x}', aydaAsagi(p, 12)); }
+      else if (k === 'alti') { var n2 = avantaj(p, 6, aylik); rozet = n2 > 0 ? '<span class="rozet">' + M.avantaj.replace('{n}', n2) + '</span>' : ''; alt = M.ayda.replace('{x}', aydaAsagi(p, 6)); }
+      else { rozet = denemeVar ? '<span class="rozet">' + M.ucretsizAy + '</span>' : ''; alt = M.iptal; }
+      return '<button class="plan' + (k === secim ? ' secili' : '') + '" role="radio" aria-checked="' + (k === secim) + '" data-k="' + k + '" type="button">'
+        + '<span class="psol"><span class="nokta"></span><span class="pad"><b>' + t[0] + ' ' + rozet + '</b><small>' + alt + '</small></span></span>'
+        + '<span class="psag"><b>' + p.priceString + '</b><small>' + t[1] + '</small></span></button>';
+    }).join('');
+    Array.prototype.forEach.call($('planlar').querySelectorAll('.plan'), function (b) {
+      b.onclick = function () { secim = b.getAttribute('data-k'); planlariCiz(); };
+    });
+    var p = P[secim].product, dene = (secim === 'aylik' && denemeVar), ios = platform === 'ios';
+    $('denemeSatir').hidden = !dene;
+    if (dene) yaz('denemeSatir', M.denemeSatir.replace('{x}', p.priceString));
+    yaz('alBtn', dene ? M.ctaDene : M.ctaAl);
+    var sablon = dene ? (ios ? M.acIosDeneme : M.acAndDeneme) : (ios ? M.acIos : M.acAnd);
+    yaz('aciklama', sablon.replace('{x}', p.priceString).replace('{sonra}', M.plan[secim][2]));
+  }
+
+  async function satisAc() {
+    ac('kilit', false); ac('yukleniyor', true); ac('satis', false); mesaj('');
+    try {
+      teklif = await Pro.teklifler();
+      denemeVar = !!teklif.deneme && !(durum && durum.deneme_kullanildi);
+      secim = denemeVar ? 'aylik' : 'yillik';
+      if (!teklif.paketler[secim]) secim = Object.keys(teklif.paketler).filter(function (k) { return teklif.paketler[k]; })[0];
+      basliklar(); planlariCiz();
+      ac('yukleniyor', false); ac('satis', true);
+    } catch (e) {
+      ac('yukleniyor', false); ac('satis', true);
+      $('ozellikler').hidden = false; $('planlar').innerHTML = ''; ac('denemeSatir', false); yaz('aciklama', '');
+      var eklentiYok = e && /eklenti-yok|anahtar-yok/.test(String(e.message || e));
+      mesaj(eklentiYok ? M.guncelle : M.yuklenemedi, true);
+      yaz('alBtn', M.tekrar); $('alBtn').onclick = satisAc;
+      return;
+    }
+    $('alBtn').onclick = satinAl;
+  }
+
+  async function bitti(sonuc, okMetni) {
+    if (sonuc && sonuc.tamam) { mesaj(okMetni); setTimeout(function () { location.replace(donus); }, 900); return true; }
+    return false;
+  }
+  async function satinAl() {
+    var b = $('alBtn'); b.disabled = true; var eski = b.textContent; yaz('alBtn', M.isleniyor); mesaj('');
+    try {
+      var s = await Pro.satinAl(teklif.paketler[secim]);
+      if (s.iptal) { /* vazgeçti: mesaj yok */ }
+      else if (s.bekliyor) mesaj(M.bekliyor);
+      else if (!(await bitti(s, M.tamam))) mesaj(M.hata, true);
+    } catch (e) { mesaj(M.hata, true); }
+    b.disabled = false; b.textContent = eski;
+  }
+  async function geriYukle() {
+    if (platform === 'web') return;
+    var b = $('geriYukleBtn'); b.disabled = true; mesaj('');
+    try {
+      var s = await Pro.geriYukle();
+      if (!(await bitti(s, M.geriYuklendi))) { ac('satis', true); mesaj(M.geriYokYok); }
+    } catch (e) { mesaj(M.hata, true); }
+    b.disabled = false;
+  }
+
+  function kilitAc() {
+    var yeni = !(durum && (durum.daha_once_pro || durum.deneme_kullanildi));
+    ac('satis', false); ac('yukleniyor', false); ac('kilit', true);
+    yaz('baslik', platform === 'web' ? M.bYeni : (yeni ? M.hosgeldin : M.kilitBaslik));
+    yaz('altBaslik', '');
+    yaz('kilitMetin', platform === 'web' ? M.webMetin : (yeni ? M.hosgeldinMetin : M.kilitMetin));
+    ac('proyaDonBtn', platform !== 'web');
+  }
+
+  $('kapatBtn').onclick = function () {
+    // Pro varsa ya da kilit zorunlu değilse (web, lansman öncesi) geldiği yere dön
+    if (window.Pro && (Pro.proMu(durum) || !Pro.zorunluMu(durum))) { location.replace(donus); return; }
+    kilitAc();
+  };
+  $('proyaDonBtn').onclick = satisAc;
+  $('ayarlarBtn').onclick = function () { location.href = 'ayarlar.html'; };
+  $('cikisBtn').onclick = function () { if (typeof logout === 'function') logout(); };
+  $('geriYukleBtn').onclick = geriYukle;
+
+  function proBekle() {
+    return new Promise(function (ok) {
+      if (window.Pro) return ok();
+      var n = 0, t = setInterval(function () { if (window.Pro || ++n > 50) { clearInterval(t); ok(); } }, 100);
+    });
+  }
+
+  (async function basla() {
+    var girisli = await requireAuth();
+    if (!girisli) return;
+    await proBekle();
+    if (!window.Pro) { mesaj(M.yuklenemedi, true); return; }
+    platform = Pro.platform();
+    durum = Pro.onbellek();
+    try { durum = await Pro.durumTazele(); } catch (e) {}
+    if (Pro.proMu(durum)) { location.replace(donus); return; }
+    if (platform === 'web') { ac('geriYukleBtn', false); basliklar(); kilitAc(); return; }
+    basliklar();
+    satisAc();
+  })();
+})();
+</script>
+</body>
+</html>

@@ -314,14 +314,7 @@ async function kotaYukle() {
     $('rkKota').innerHTML =
       '<b>' + KOTA.adet + ' / ' + KOTA.adet_limit + '</b> ' + _rkCev('rk.ritim', 'ritim') +
       ' · <b>' + mb + ' / ' + KOTA.mb_limit + ' MB</b>';
-    // Plan sınırı kalıcı gösteriliyor — durum satırı her değişiklikte
-    // temizlendiği için orada kaybolup gidiyordu.
-    if (KOTA.adet_limit === 0) {
-      const u = document.createElement('span');
-      u.className = 'uyari';
-      u.textContent = _rkCev('rk.planYok', 'Ritim bankası PRO planında. Döngü kesip dinleyebilirsin ama kaydetmek için PRO gerekiyor.');
-      $('rkKota').appendChild(u);
-    }
+    // (2026-10-17) "Ritim bankası PRO planında" uyarısı kaldırıldı: Pro olmayan bu sayfaya giremez (kilit).
     kaydetDurumu();
   } catch (e) {}
 }

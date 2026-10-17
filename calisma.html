@@ -283,7 +283,6 @@
   <div class="co-kota" id="kotaKart" style="display:none;">
     <div class="co-kota-ust">
       <span data-i18n="ca.depolama">DEPOLAMA</span>
-      <span class="co-plan" id="kotaPlan">FREE</span>
     </div>
     <div class="co-bar" id="kotaBar"><i style="width:0%"></i></div>
     <div class="co-kota-alt">
@@ -612,7 +611,7 @@ function kotaCiz() {
   const mbLim = KOTA.mb_limit || 1;
   const oran  = Math.min(100, Math.round((mb / mbLim) * 100));
 
-  document.getElementById('kotaPlan').textContent = String(KOTA.plan || 'free').toUpperCase();
+  // (2026-10-17) Plan rozeti (FREE/PRO) kaldırıldı: tek plan var (Repertuvar Pro).
   document.getElementById('kotaDosya').textContent = _caCev('ca.kayitSayaci','{n} / {t} kayıt').replace('{n}',KOTA.adet).replace('{t}',KOTA.adet_limit);
   document.getElementById('kotaMb').textContent = mb.toFixed(1) + ' / ' + mbLim + ' MB';
 

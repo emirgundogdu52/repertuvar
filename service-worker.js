@@ -38,6 +38,8 @@ const PRECACHE = [
   '/qrcode.min.js', '/soundtouch.js', '/style.css',
   // (2026-10-09) içerik bildirme / kullanıcı engelleme (Apple Guideline 1.2)
   '/bildir.js',
+  // (2026-10-17) Repertuvar Pro — abonelik durumu/kilit ve satın alma ekranı
+  '/abonelik.js', '/pro.html',
   // (2026-10-04) yeni tasarım anahtarı — her sayfanın <head>'inde yükleniyor
   '/tasarim.js', '/tasarim.css', '/onboarding.js',
   // görseller ve manifest

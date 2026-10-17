@@ -1033,3 +1033,13 @@ function renderUserBadge(containerId) {
       </button>
     </div>`;
 }
+
+// (2026-10-17) Repertuvar Pro — abonelik modülü her girişli sayfada yüklenir (durum + kilit).
+// Tek tek sayfalara <script> eklemek yerine buradan: auth.js'i yükleyen her sayfa alır.
+(function () {
+  if (window.Pro || document.querySelector('script[data-abonelik]')) return;
+  var s = document.createElement('script');
+  s.src = 'abonelik.js';
+  s.setAttribute('data-abonelik', '1');
+  (document.head || document.documentElement).appendChild(s);
+})();

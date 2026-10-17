@@ -58,6 +58,16 @@ async function hesapSilOnay() {
     }
   } catch(e) {}
 
+  // (2026-10-17) Etkin, kendiliğinden yenilenen mağaza aboneliği varsa uyar
+  try {
+    let d = window.Pro ? Pro.onbellek() : null;
+    try { if (window.Pro) d = await Pro.durumTazele(); } catch (e) {}
+    const etkin = d && ['ios', 'android', 'web'].indexOf(d.kaynak) !== -1
+      && ['deneme', 'aktif', 'odeme_sorunu'].indexOf(d.durum) !== -1 && d.otomatik_yenileme !== false;
+    const ab = document.getElementById('silAbonelikUyari');
+    if (ab) ab.style.display = etkin ? 'block' : 'none';
+  } catch (e) {}
+
   document.getElementById('hesapSilModal').classList.add('open');
 }
 
@@ -129,6 +139,9 @@ async function hesapSil() {
     }
     if (!a.yapildi) console.warn('[hesapSil] Apple belirteçleri iptal edilemedi; silme sürüyor');
   }
+
+  // (2026-10-17) RevenueCat'teki müşteri kaydı (Gizlilik §6–7). Hata silmeyi engellemez.
+  try { if (window.Pro) await Pro.rcSil(); } catch (e) {}
 
   try {
     // Sunucu tarafı kalıcı silme (tüm veri + auth kaydı)
@@ -429,6 +442,36 @@ html, body { overflow-x: hidden; }
 
   <div class="page">
 
+    <!-- (2026-10-17) ABONELİK — Repertuvar Pro durumu, yönetim, geri yükleme.
+         Durum sunucudan (rpc/abonelik_durumu, abonelik.js). iOS'ta başka mağazanın adı yazılmaz (Apple 2.3.10). -->
+    <div class="settings-section" id="abonelikBolumu" style="display:none;">
+      <div class="section-header">
+        <span class="section-icon">⭐</span>
+        <div><div class="section-title" data-i18n="ab.baslik">Abonelik</div></div>
+      </div>
+      <div class="setting-row">
+        <div style="flex:1;min-width:0;">
+          <div class="setting-label" id="abDurumBaslik">—</div>
+          <div class="setting-desc" id="abDurumMetin" style="line-height:1.5;"></div>
+          <div class="setting-desc" id="abKaynak" style="margin-top:4px;"></div>
+        </div>
+      </div>
+      <div class="setting-row" id="abDugmeler" style="gap:8px;flex-wrap:wrap;justify-content:flex-start;">
+        <button class="setting-btn" id="abProyaGec" style="display:none;" onclick="location.href='pro.html?donus=ayarlar.html'" data-i18n="ab.proyaGec">Pro'ya geç</button>
+        <button class="setting-btn" id="abYonet" style="display:none;" onclick="abonelikYonet()" data-i18n="ab.yonet">Aboneliği yönet</button>
+        <button class="setting-btn" id="abGeriYukle" style="display:none;" onclick="abonelikGeriYukle()" data-i18n="ab.geriYukle">Satın alımları geri yükle</button>
+      </div>
+      <!-- (2026-10-17) Aylık abonelere "Yıllığa geç" (kullanıcı isteği). Geçiş dönem/deneme sonunda başlar. -->
+      <div class="setting-row" id="abYillikSatir" style="display:none;">
+        <div style="flex:1;min-width:0;">
+          <div class="setting-label" data-i18n="ab.yilligaGec">Yıllığa geç</div>
+          <div class="setting-desc" id="abYillikMetin" style="line-height:1.5;"></div>
+        </div>
+        <button class="setting-btn" id="abYillikBtn" onclick="abonelikYilligaGec()" data-i18n="ab.yilligaGec">Yıllığa geç</button>
+      </div>
+      <div class="setting-desc" id="abMesaj" style="display:none;padding:0 16px 12px;"></div>
+    </div>
+
     <!-- 1. PROFİL -->
     <div class="settings-section">
       <div class="section-header">
@@ -490,7 +533,7 @@ html, body { overflow-x: hidden; }
       <div class="setting-row">
         <div>
           <div class="setting-label" style="color:var(--red);" data-i18n="ay.hesapsil">Hesabımı Sil</div>
-          <div class="setting-desc" data-i18n="ay.hesapsil_alt">Tüm verileriniz kalıcı olarak silinir (GDPR)</div>
+          <div class="setting-desc" data-i18n="ay.hesapsil_alt">Tüm verileriniz kalıcı olarak silinir (GDPR). Aboneliği iptal etmez.</div>
         </div>
         <button class="setting-btn danger" onclick="hesapSilOnay()" data-i18n="ay.sil">Sil</button>
       </div>
@@ -804,6 +847,11 @@ html, body { overflow-x: hidden; }
          degistigi icin parcalar birlesmez. -->
     <p style="font-size:16px;color:var(--text2);margin-bottom:8px;"><strong data-i18n="mod.sil_p1a">Bu işlem geri alınamaz.</strong> <span data-i18n="mod.sil_p1b">Tüm hesap bilgileriniz kalıcı olarak silinecek.</span></p>
     <p id="silRepUyari" style="font-size:16px;color:var(--red);font-weight:600;margin-bottom:8px;display:none;"></p>
+    <!-- (2026-10-17) Apple hesap silme rehberi: etkin abonelik varsa ödemenin mağazadan süreceği söylenir, önce iptal istenir -->
+    <div id="silAbonelikUyari" style="display:none;margin-bottom:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--red);">
+      <p style="font-size:15px;color:var(--text);margin:0 0 8px;" data-i18n="ab.silUyari">Etkin bir Repertuvar Pro aboneliğin var. Hesabını silmek aboneliği iptal etmez; ücretlendirilmemek için önce aboneliğini iptal et.</p>
+      <button class="modal-btn" type="button" onclick="abonelikYonet()" data-i18n="ab.yonet">Aboneliği yönet</button>
+    </div>
     <p style="font-size:16px;color:var(--text2);margin-bottom:8px;" data-i18n="mod.sil_p2">Onayladığınızda hesabınız ve tüm verileriniz hemen ve kalıcı olarak silinir. Sahibi olduğunuz gruplarda başka üye varsa yönetim onlara devredilir.</p>
     <p id="silOnayMetin" style="font-size:16px;color:var(--text2);margin-bottom:16px;" data-i18n="mod.sil_p3">Onaylamak için e-posta adresinizi yazın:</p>
     <input type="email" id="silOnayEmail" placeholder="e-posta adresiniz" data-i18n-ph="mod.sil_ph"
@@ -1325,6 +1373,99 @@ async function _rbEngelListesi() {
 }
 window.addEventListener('rb-degisti', _rbEngelListesi);
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _rbEngelListesi); else _rbEngelListesi();
+</script>
+<script>
+// (2026-10-17) Ayarlar › Abonelik — metinler: _appstore/denetim-2026-10-14/uygulama-ici-metinler.md (D)
+function _abTarih(s) {
+  if (!s) return '';
+  try { return new Date(s).toLocaleDateString((window.i18n && i18n.dil && i18n.dil() === 'en') ? 'en-GB' : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }); }
+  catch (e) { return s; }
+}
+function _abPlan(d) {
+  const u = String((d && d.urun_id) || '').toLowerCase();
+  if (/yearly|annual|yillik/.test(u)) return _t('ab.planYillik', 'Yıllık');
+  if (/6months|six-months|altiaylik/.test(u)) return _t('ab.planAlti', '6 Aylık');
+  if (/monthly|aylik/.test(u)) return _t('ab.planAylik', 'Aylık');
+  return '';
+}
+function _abMesaj(m) { const e = document.getElementById('abMesaj'); e.textContent = m || ''; e.style.display = m ? 'block' : 'none'; }
+function abonelikCiz(d) {
+  const sec = document.getElementById('abonelikBolumu');
+  if (!sec || !window.Pro) return;
+  sec.style.display = '';
+  const plat = Pro.platform(), pro = Pro.proMu(d), plan = _abPlan(d), bitis = _abTarih(d && d.bitis);
+  let baslik, metin = '';
+  if (pro && d.hediye) { baslik = _t('ab.hediye', 'Repertuvar Pro Hediye'); }
+  else if (pro && d.durum === 'deneme') {
+    baslik = _t('ab.deneme', 'Repertuvar Pro — ücretsiz deneme');
+    metin = d.otomatik_yenileme === false
+      ? _t('ab.denemeKapali', 'Deneme {tarih} tarihinde biter. Otomatik yenileme kapalı.').replace('{tarih}', bitis)
+      : _t('ab.denemeAcik', 'Deneme {tarih} tarihinde biter; sonra {plan} plan otomatik yenilenir.').replace('{tarih}', bitis).replace('{plan}', plan);
+  }
+  else if (pro && d.durum === 'odeme_sorunu') { baslik = 'Repertuvar Pro' + (plan ? ' — ' + plan : ''); metin = _t('ab.odemeSorunu', 'Ödemen alınamadı. Pro’yu kaybetmemek için mağaza hesabındaki ödeme yöntemini güncelle.'); }
+  else if (pro && d.durum === 'iptal_edildi') { baslik = 'Repertuvar Pro' + (plan ? ' — ' + plan : ''); metin = _t('ab.iptalEdildi', 'Otomatik yenileme kapalı. Pro {tarih} tarihine kadar etkin.').replace('{tarih}', bitis); }
+  else if (pro) { baslik = 'Repertuvar Pro' + (plan ? ' — ' + plan : ''); metin = bitis ? _t('ab.yenilenir', '{tarih} tarihinde yenilenir.').replace('{tarih}', bitis) : ''; }
+  else { baslik = _t('ab.yok', 'Repertuvar Pro etkin değil'); }
+  document.getElementById('abDurumBaslik').textContent = baslik;
+  document.getElementById('abDurumMetin').textContent = metin;
+  // Kaynak satırı: bu cihazın mağazası adıyla; başka platformun adı yazılmaz
+  let kaynak = '';
+  if (pro && !d.hediye && d.kaynak) {
+    if (d.kaynak === 'ios' && plat === 'ios') kaynak = _t('ab.kaynakIos', 'App Store üzerinden alındı');
+    else if (d.kaynak === 'android' && plat === 'android') kaynak = _t('ab.kaynakAnd', 'Google Play üzerinden alındı');
+    else kaynak = _t('ab.kaynakBaska', 'Bu abonelik başka bir platformda alındı ve orada yönetilir.');
+  }
+  document.getElementById('abKaynak').textContent = kaynak;
+  const yerel = pro && !d.hediye && d.kaynak === plat;          // yönetilebilir: bu cihazın mağazası
+  document.getElementById('abProyaGec').style.display = pro ? 'none' : '';
+  document.getElementById('abYonet').style.display = yerel ? '' : 'none';
+  document.getElementById('abGeriYukle').style.display = plat !== 'web' ? '' : 'none';
+  // Yıllığa geç: yalnız bu cihazın mağazasından alınmış AYLIK abonelik, bekleyen geçiş yoksa
+  const aylik = yerel && /monthly|aylik/.test(String(d.urun_id || '').toLowerCase()) && !Pro.yilligaGecisBekliyor();
+  const satir = document.getElementById('abYillikSatir');
+  satir.style.display = 'none';
+  if (aylik) {
+    Pro.yillikTeklif().then(function (y) {
+      document.getElementById('abYillikMetin').textContent =
+        _t('ab.yilligaGecMetin', '{fiyat} / yıl (%{n} avantajlı). Yıllık plan, şu anki dönemin (denemedeysen denemenin) sonunda başlar; o tarihe kadar ek ücret alınmaz.')
+          .replace('{fiyat}', y.fiyat).replace('{n}', y.tasarruf);
+      satir.style.display = '';
+    }).catch(function () {});
+  }
+}
+async function abonelikYilligaGec() {
+  if (!window.Pro) return;
+  const btn = document.getElementById('abYillikBtn'); btn.disabled = true; _abMesaj('');
+  try {
+    const d = Pro.onbellek();
+    const s = await Pro.yilligaGec(d && d.urun_id);
+    if (s.tamam) { _abMesaj(_t('ab.yilligaGecildi', 'Tamam — yıllık plan, şu anki dönemin sonunda başlayacak.')); document.getElementById('abYillikSatir').style.display = 'none'; }
+    else if (s.bekliyor) _abMesaj(_t('ab.bekliyor', 'İşlem onay bekliyor. Onaylanınca kendiliğinden geçerli olur.'));
+  } catch (e) { _abMesaj(_t('ab.hata', 'İşlem tamamlanamadı. Tekrar dene.')); }
+  btn.disabled = false;
+}
+async function abonelikYonet() {
+  if (!window.Pro) return;
+  const url = await Pro.yonetimAdresi();
+  if (url) window.open(url, '_blank');
+}
+async function abonelikGeriYukle() {
+  if (!window.Pro) return;
+  _abMesaj('');
+  try {
+    const s = await Pro.geriYukle();
+    _abMesaj(s.tamam ? _t('ab.geriYuklendi', 'Satın alımların geri yüklendi — Pro etkin.') : _t('ab.geriYok', 'Bu mağaza hesabında geri yüklenecek bir Repertuvar Pro aboneliği bulunamadı.'));
+    abonelikCiz(s.durum || Pro.onbellek());
+  } catch (e) { _abMesaj(_t('ab.hata', 'İşlem tamamlanamadı. Tekrar dene.')); }
+}
+(function () {
+  function basla() {
+    if (!window.Pro) { setTimeout(basla, 150); return; }
+    abonelikCiz(Pro.onbellek());
+    Pro.durumTazele().then(abonelikCiz).catch(function () {});
+  }
+  basla();
+})();
 </script>
 </body>
 </html>
