@@ -1640,6 +1640,12 @@ function openSortSheet(repId){
   _sortRepId=repId;
   const ov=document.getElementById('sortOverlay');
   ov.style.display='flex';
+  // (2026-10-17) Alt menü görünürse kutu onun ÜSTÜNDE bitsin (telefonda menünün üstüne taşıyordu).
+  try {
+    const bn = document.getElementById('r-bottom-nav');
+    const r = bn && bn.offsetHeight ? bn.getBoundingClientRect() : null;
+    ov.style.paddingBottom = (r && r.top < window.innerHeight) ? Math.round(window.innerHeight - r.top + 12) + 'px' : '';
+  } catch (e) {}
   ov.innerHTML=`
     <div class="sort-box">
       <div class="sort-head">

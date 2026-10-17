@@ -153,8 +153,10 @@ tr.medley-row{background:rgba(124,111,255,.05);}
 .share-foot{display:flex;justify-content:flex-end;gap:8px;padding:0 14px;}
 
 /* ── Sıralama önizleme ekranı (2026-07-19) ── */
-#sortOverlay{display:none;position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.62);align-items:center;justify-content:center;padding:16px;}
-.sort-box{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:520px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.55);}
+/* (2026-10-17) Kutu alt menünün üstüne taşıyordu (88vh + ortalama): artık üst/alt güvenli alan payı var ve kutu
+   kaplamanın iç alanına sığıyor; açılırken alt menünün yüksekliği ölçülüp alt boşluğa ekleniyor (openSortSheet). */
+#sortOverlay{display:none;position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.62);align-items:center;justify-content:center;padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(12px + env(safe-area-inset-bottom,0px));box-sizing:border-box;}
+.sort-box{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:520px;max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.55);}
 .sort-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;}
 .sort-x{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px 6px;}
 .sort-modes{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
