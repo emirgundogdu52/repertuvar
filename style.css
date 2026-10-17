@@ -14,6 +14,7 @@
   --text2:      #B8BFD2;
   --text3:      #78829A;
   --green:      #34C759;
+  --red:        #FF5A5F; /* (2026-10-17) tanımsızdı: koyu temada uyarı/silme yazıları ve çerçeveleri renksiz kalıyordu */
   /* Müzisyen odaklı özel renkler */
   --key-color:      #FFC83D; /* Ton bilgisi */
   --tempo-color:    #4DA3FF; /* Tempo/BPM */
@@ -44,6 +45,7 @@
   --accent:   #E5A900;
   --accent2:  #0B6FDE;
   --accent3:  #8CC5FF;
+  --red:      #C8333A;
 }
 
 html {
