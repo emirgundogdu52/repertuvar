@@ -938,8 +938,10 @@
     .detail.mobile-visible .edit-btn,
     .detail.mobile-visible .delete-btn { font-size:11px; padding:5px 8px; }
     .detail.mobile-visible .tab-dropdown-wrap { padding:6px 14px; box-sizing:border-box; width:100%; overflow:visible; display:flex; justify-content:flex-start; }
-    .detail.mobile-visible .detail-tabs { padding:6px 8px 4px; gap:5px; }
-    .detail.mobile-visible .dtab { font-size:11.5px; padding:6px 10px; }
+    /* (2026-10-17) Kullanıcı: sekme düğmeleri de satırı tam kaplasın — kenarlar Kişisel Notum kutusuyla aynı (12 px),
+       sekmeler kalan boşluğu eşit paylaşır. */
+    .detail.mobile-visible .detail-tabs { padding:6px 12px 4px; gap:5px; }
+    .detail.mobile-visible .dtab { font-size:11.5px; padding:6px 8px; flex:1 1 auto; text-align:center; justify-content:center; }
     .detail.mobile-visible .tab-main-btn { width:auto; box-sizing:border-box; }
     .detail.mobile-visible .tab-dropdown { left:14px; right:14px; }
     .detail.mobile-visible .detail-body { padding:12px 14px; overflow-x:hidden; width:100%; }
