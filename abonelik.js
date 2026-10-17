@@ -15,7 +15,7 @@
   'use strict';
   if (window.Pro) return;
 
-  var RC_ANAHTAR = { ios: 'appl_nVHBzRapCVZKVwFiJmGmxgphPlA', android: '' };   // açık SDK anahtarları (gizli değil)
+  var RC_ANAHTAR = { ios: 'appl_nVHBzRapCVZKVwFiJmGmxgphPlA', android: 'goog_CejAUjImYpbMQjeQBaOFSZVqKUw' };   // açık SDK anahtarları (gizli değil)
   var ONBELLEK = 'r_abonelik';
   var MUAF = window.PRO_MUAF || ['pro.html', 'ayarlar.html', 'login.html', 'reset-password.html', 'google-donus.html',
               'splash.html', '404.html', 'paylas.html'];   // asıl liste auth.js'te (perde de onu kullanır)
