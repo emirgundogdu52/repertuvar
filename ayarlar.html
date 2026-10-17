@@ -1388,7 +1388,17 @@ function _abPlan(d) {
   if (/monthly|aylik/.test(u)) return _t('ab.planAylik', 'Aylık');
   return '';
 }
-function _abMesaj(m) { const e = document.getElementById('abMesaj'); e.textContent = m || ''; e.style.display = m ? 'block' : 'none'; }
+// Sonuç mesajı: renkli kutu, ekranda görünür yere kaydırılır (2026-10-17 cihaz testi: düz yazı fark edilmiyordu)
+function _abMesaj(m, tur) {
+  const e = document.getElementById('abMesaj');
+  e.textContent = m || '';
+  if (!m) { e.style.display = 'none'; return; }
+  const renk = tur === 'ok' ? 'var(--green)' : tur === 'err' ? 'var(--red, #f87171)' : 'var(--accent)';
+  const zemin = tur === 'ok' ? 'rgba(52,199,89,.12)' : tur === 'err' ? 'rgba(248,113,113,.12)' : 'rgba(255,200,61,.12)';
+  e.style.cssText = 'display:block;margin:0 16px 14px;padding:12px 14px;border-radius:10px;border:1px solid ' + renk
+    + ';background:' + zemin + ';color:' + renk + ';font-size:16px;font-weight:600;line-height:1.45;';
+  try { e.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (x) {}
+}
 function abonelikCiz(d) {
   const sec = document.getElementById('abonelikBolumu');
   if (!sec || !window.Pro) return;
@@ -1439,9 +1449,9 @@ async function abonelikYilligaGec() {
   try {
     const d = Pro.onbellek();
     const s = await Pro.yilligaGec(d && d.urun_id);
-    if (s.tamam) { _abMesaj(_t('ab.yilligaGecildi', 'Tamam — yıllık plan, şu anki dönemin sonunda başlayacak.')); document.getElementById('abYillikSatir').style.display = 'none'; }
-    else if (s.bekliyor) _abMesaj(_t('ab.bekliyor', 'İşlem onay bekliyor. Onaylanınca kendiliğinden geçerli olur.'));
-  } catch (e) { _abMesaj(_t('ab.hata', 'İşlem tamamlanamadı. Tekrar dene.')); }
+    if (s.tamam) { _abMesaj(_t('ab.yilligaGecildi', 'Tamam — yıllık plan, şu anki dönemin sonunda başlayacak.'), 'ok'); document.getElementById('abYillikSatir').style.display = 'none'; }
+    else if (s.bekliyor) _abMesaj(_t('ab.bekliyor', 'İşlem onay bekliyor. Onaylanınca kendiliğinden geçerli olur.'), 'bilgi');
+  } catch (e) { _abMesaj(_t('ab.hata', 'İşlem tamamlanamadı. Tekrar dene.'), 'err'); }
   btn.disabled = false;
 }
 async function abonelikYonet() {
@@ -1451,12 +1461,15 @@ async function abonelikYonet() {
 }
 async function abonelikGeriYukle() {
   if (!window.Pro) return;
+  const btn = document.getElementById('abGeriYukle'), eski = btn.textContent;
+  btn.disabled = true; btn.textContent = _t('ab.isleniyor', 'İşleniyor…');
   _abMesaj('');
   try {
     const s = await Pro.geriYukle();
-    _abMesaj(s.tamam ? _t('ab.geriYuklendi', 'Satın alımların geri yüklendi — Pro etkin.') : _t('ab.geriYok', 'Bu mağaza hesabında geri yüklenecek bir Repertuvar Pro aboneliği bulunamadı.'));
+    _abMesaj(s.tamam ? _t('ab.geriYuklendi', 'Satın alımların geri yüklendi — Pro etkin.') : _t('ab.geriYok', 'Bu mağaza hesabında geri yüklenecek bir Repertuvar Pro aboneliği bulunamadı.'), s.tamam ? 'ok' : 'bilgi');
     abonelikCiz(s.durum || Pro.onbellek());
-  } catch (e) { _abMesaj(_t('ab.hata', 'İşlem tamamlanamadı. Tekrar dene.')); }
+  } catch (e) { _abMesaj(_t('ab.hata', 'İşlem tamamlanamadı. Tekrar dene.'), 'err'); }
+  btn.disabled = false; btn.textContent = eski;
 }
 (function () {
   function basla() {

@@ -7,7 +7,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const kopya = join(mkdtempSync(join(tmpdir(), 'abonelik-')), 'index.mts');
 copyFileSync(join(dirname(fileURLToPath(import.meta.url)), 'index.ts'), kopya);
-const { kaynakOf, donemOf, satirOf, etkilenenler, isle } = await import(pathToFileURL(kopya).href);
+const { kaynakOf, donemOf, satirOf, devredilenleriKapat, etkilenenler, isle } = await import(pathToFileURL(kopya).href);
 
 let gecti = 0;
 async function dene(ad, fn) { await fn(); gecti++; console.log('  ✓', ad); }
@@ -57,6 +57,24 @@ await dene('satirOf: deneme / aktif / iptal / ödeme sorunu / bitti / iade', () 
   assert.equal(iade.durum, 'iade'); assert.equal(iade.bitis, gun(-1));
 
   assert.equal(satirOf(UID, 'x', { store: 'promotional', expires_date: gun(5) }, SIMDI), null);
+});
+
+await dene('devredilenleriKapat: aylık → yıllık (yenileme dönem bitmeden geldi)', () => {
+  // 2026-10-17 sandbox: aylık 07:57:35 yenilendi, 08:03:21 biter; yıllık 08:02:38'de başladı
+  const an = Date.parse('2026-10-17T08:02:40Z');
+  const aylik = satirOf(UID, 'com.repertuvar.app.pro.monthly', { store: 'app_store', period_type: 'normal',
+    purchase_date: '2026-10-17T07:57:35Z', expires_date: '2026-10-17T08:03:21Z' }, an);
+  const yillik = satirOf(UID, 'com.repertuvar.app.pro.yearly', { store: 'app_store', period_type: 'normal',
+    purchase_date: '2026-10-17T08:02:38Z', expires_date: '2026-10-17T09:03:21Z' }, an);
+  assert.equal(aylik.durum, 'aktif');                       // tek başına bakınca hâlâ aktif
+  const [a, y] = devredilenleriKapat([aylik, yillik]);
+  assert.equal(a.durum, 'suresi_doldu'); assert.equal(a.otomatik_yenileme, false);
+  assert.equal(y.durum, 'aktif');
+  // başka kaynaktaki satır ve uzak geçmişte alınmış satır devir sayılmaz
+  const android = { ...yillik, kaynak: 'android' };
+  assert.equal(devredilenleriKapat([aylik, android])[0].durum, 'aktif');
+  const eski = { ...yillik, ham: { purchase_date: '2026-09-01T00:00:00Z' } };
+  assert.equal(devredilenleriKapat([aylik, eski])[0].durum, 'aktif');
 });
 
 await dene('etkilenenler: yalnız UUID, tekrarsız, transfer dahil', () => {

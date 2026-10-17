@@ -83,6 +83,22 @@ export function satirOf(uid: string, urun: string, a: Record<string, any>, simdi
   };
 }
 
+// Plan değişikliği (aylık → yıllık vb.): mağaza yeni planı eski dönem bitmeden yeniler (Apple sandbox'ta
+// ~40 sn, gerçekte 24 saate kadar önce). O anda eski satır hâlâ "aktif" görünür ve bir daha olay gelmezse
+// öyle kalır (2026-10-17 cihaz testi). Aynı kaynakta, eski satırın bitişine 25 saat kala ya da sonra
+// satın alınmış başka bir Pro satır varsa eski satır devredilmiş sayılır ve kapatılır.
+const DEVIR_PAYI = 25 * 3600 * 1000;
+export function devredilenleriKapat(satirlar: Record<string, any>[]): Record<string, any>[] {
+  const alim = (s: Record<string, any>) => t(s.ham && s.ham.purchase_date);
+  return satirlar.map((a) => {
+    if (!PRO_DURUMLARI.includes(a.durum)) return a;
+    const aBitis = t(a.bitis), aAlim = alim(a);
+    const halef = satirlar.some((b) => b !== a && b.kaynak === a.kaynak && b.urun_id !== a.urun_id
+      && PRO_DURUMLARI.includes(b.durum) && alim(b) > aAlim && alim(b) >= aBitis - DEVIR_PAYI);
+    return halef ? { ...a, durum: 'suresi_doldu', otomatik_yenileme: false } : a;
+  });
+}
+
 // Webhook olayından etkilenen (bizim, UUID biçimli) kullanıcı kimlikleri
 export function etkilenenler(olay: Record<string, any>): string[] {
   const hepsi = [olay.app_user_id, olay.original_app_user_id,
@@ -139,9 +155,9 @@ export async function yenidenHesapla(uid: string, ortam: Ortam, f: typeof fetch 
   if (!r.ok) throw new Error('revenuecat ' + r.status);
   const veri = await r.json();
   const abonelikler = (veri && veri.subscriber && veri.subscriber.subscriptions) || {};
-  const satirlar = Object.entries(abonelikler)
+  const satirlar = devredilenleriKapat(Object.entries(abonelikler)
     .map(([urun, a]) => satirOf(uid, urun, a as Record<string, any>))
-    .filter(Boolean) as Record<string, any>[];
+    .filter(Boolean) as Record<string, any>[]);
   const db = sb(ortam, f);
   await db.upsert(satirlar);
   await db.kapat(uid, satirlar.map((s) => s.dis_kimlik));
