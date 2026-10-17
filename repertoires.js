@@ -2864,7 +2864,9 @@ function openDinleSheet(repId) {
   if (!ov) {
     ov = document.createElement('div');
     ov.id = 'dnlOverlay';
-    ov.onclick = (e) => { if (e.target === ov) closeDinleSheet(); };
+    // (2026-10-17) Dışarı dokununca KAPANMIYOR — Emir: "başka bir yer tıklayınca
+    // dinleme listesi kayboluyor". Kapatmak oynatıcıyı yok edip sesi kesiyordu;
+    // dinlerken yanlışlıkla dokunmak yaygın. Panel yalnız × (ya da Esc) ile kapanır.
     document.body.appendChild(ov);
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && document.getElementById('dnlOverlay')?.classList.contains('open')) closeDinleSheet();
