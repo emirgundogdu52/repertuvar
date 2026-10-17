@@ -917,7 +917,11 @@ async function loginGoogle() {
   const isaretle = () => kutu.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dil === i18n.dil())));
   kutu.addEventListener('click', e => {
     const b = e.target.closest('button[data-dil]');
-    if (b && b.dataset.dil !== i18n.dil()) i18n.ayarla(b.dataset.dil);   // sayfa metinleri + 'dil-degisti' olayı
+    if (!b) return;
+    // (2026-10-17) Burada AÇIKÇA seçilen dil girişten sonra profildeki eski dili ezmeli (auth.js
+    // _profilDiliniUzlastir). Seçici hiç kullanılmazsa işaret yazılmaz ve profil dili geçerli kalır.
+    try { localStorage.setItem('uiLangGiris', b.dataset.dil); } catch (e) {}
+    if (b.dataset.dil !== i18n.dil()) i18n.ayarla(b.dataset.dil);   // sayfa metinleri + 'dil-degisti' olayı
   });
   window.addEventListener('dil-degisti', isaretle);
   isaretle();

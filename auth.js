@@ -835,6 +835,25 @@ async function ensureProfile(user) {
   } catch(e) {}
 }
 
+// (2026-10-17) Giriş ekranındaki TR|EN seçimi: çıkışta `uiLangSunucu` silindiği için girişten sonra
+// sunucudanBenimse profildeki dili "yeni" sayıp giriş ekranında az önce seçilen dili eziyordu
+// (var olan kullanıcı EN seçip giriyor, uygulama TR açılıyordu). Giriş ekranında AÇIKÇA seçilen dil
+// (`uiLangGiris`) en yeni tercihtir: uygulanır ve profile yazılır; yazılamazsa işaret durur, sonraki
+// açılışta yeniden denenir. Seçici kullanılmadıysa eski davranış: profil dili sunucudanBenimse ile.
+function _profilDiliniUzlastir(sunucuDili) {
+  if (!window.i18n) return;
+  var secim = null;
+  try { secim = localStorage.getItem('uiLangGiris'); } catch (e) {}
+  if (secim && i18n.diller && i18n.diller[secim]) {
+    if (i18n.dil() !== secim) i18n.ayarla(secim);
+    var bitir = function () { try { localStorage.removeItem('uiLangGiris'); } catch (e) {} };
+    if (secim === sunucuDili) { try { localStorage.setItem('uiLangSunucu', secim); } catch (e) {} bitir(); return; }
+    profilDiliniYaz(secim).then(function (ok) { if (ok) bitir(); });
+    return;
+  }
+  if (sunucuDili) i18n.sunucudanBenimse(sunucuDili);
+}
+
 async function loadUserRole() {
   const uid = getUserId();
   if (!uid) return;
@@ -849,7 +868,7 @@ async function loadUserRole() {
         const data = await r.json();
         if (data[0]?.group_id) localStorage.setItem('user_group_id', data[0].group_id);
         else localStorage.removeItem('user_group_id');
-        try { if (window.i18n && data[0]?.ui_lang) i18n.sunucudanBenimse(data[0].ui_lang); } catch(e) {}
+        try { _profilDiliniUzlastir(data[0]?.ui_lang); } catch(e) {}
       }
     } catch(e) {}
     try { window.dispatchEvent(new CustomEvent('user-role-loaded')); } catch(e) {}
@@ -872,7 +891,7 @@ async function loadUserRole() {
       // (2026-08-30) Arayüz dili profilden takip ediliyor. Ayrı istek yok —
       // zaten atılan bu isteğe biniyor. Kararı i18n veriyor: yerel seçimi
       // körü körüne ezmiyor, yalnızca profil DEĞİŞMİŞSE uyguluyor.
-      try { if (window.i18n && data[0]?.ui_lang) i18n.sunucudanBenimse(data[0].ui_lang); } catch(e) {}
+      try { _profilDiliniUzlastir(data[0]?.ui_lang); } catch(e) {}
     }
   } catch(e) { console.log('[auth] loadUserRole error:', e); }
   // Menü rolü localStorage'dan okuyor ve ilk çizimde bu anahtar henüz boş
