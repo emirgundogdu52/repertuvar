@@ -20,6 +20,11 @@
     Kendi eserinde Nota sekmesi yükleme alanı artık sahibine de açık (eskiden yalnız yönetici/düzenleyici; works_update
     RLS ve notalar_upload zaten izin veriyordu). Kendi eseri olmayan üyeye liste başında "Nota defterin var mı?" kartı
     (kapatılınca localStorage defterIpucuKapali).
+    (4) Aynı gün, kullanıcı: "Sözler kayıtlı fakat eserlerin notaları nota defterimde; bir foto çekerek içeri aktarabileyim".
+    Defter kartında ad yazarken DÜZENLEYEBİLDİĞİ eserler önerilir (defterOneri, trNorm); seçilirse (k.eser) yeni eser
+    açılmaz, sayfalar currentNotaPages + yeni adresler olarak o eserin nota_pages'ine eklenir. Seçilmeyip adı bire bir
+    aynı eser varsa Kaydet'te bir kez sorulur. Tek mevcut esere eklenince o eserin Nota sekmesi açılır. Düz üyede
+    öneriler yalnız kendi eserleri (katalog eserine üye notası = kişisel nota, karar bekliyor).
   - 2026-08-27: ➕ TÜR listesine 'Şiir' eklendi (TUR_LISTESI, 'Diğer'in hemen
     üstünde). Eserler arasında okunan bağımsız şiirler repertuvarda kendi
     başına bir sıra öğesi olabilsin diye. Form kutusu Şiir'de otomatik
@@ -1194,6 +1199,26 @@
   .df-ad { flex:1; min-width:0; height:40px; padding:0 12px; border-radius:8px; border:1px solid var(--border);
     background:var(--surface2); color:var(--text); font-size:15px; font-family:inherit; }
   .df-ad.hata { border-color:var(--red); }
+  .df-ad:read-only { color:var(--accent); font-weight:600; }
+  .df-ad-kap { position:relative; flex:1; min-width:0; display:flex; }
+  .df-oneri { position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:5; display:none; flex-direction:column;
+    background:var(--surface); border:1px solid var(--border2, var(--border)); border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,.35);
+    overflow:hidden; max-height:280px; overflow-y:auto; }
+  .df-oneri.acik { display:flex; }
+  .df-oneri button { display:flex; align-items:center; gap:10px; padding:10px 12px; border:none; border-bottom:1px solid var(--border);
+    background:none; color:var(--text); text-align:left; font-family:inherit; font-size:13.5px; cursor:pointer; }
+  .df-oneri button:last-child { border-bottom:none; }
+  .df-oneri button:hover, .df-oneri button:active { background:var(--surface2); }
+  .df-oneri span { flex:1; min-width:0; }
+  .df-oneri small { display:block; font-size:11.5px; color:var(--text3); margin-top:1px; }
+  .df-oneri em { flex:0 0 auto; font-style:normal; font-size:11px; color:var(--text3); white-space:nowrap; }
+  .df-oneri em.var { color:var(--accent); }
+  .df-bagli { display:flex; align-items:center; gap:8px; margin-top:8px; padding:7px 8px 7px 10px; border-radius:8px;
+    background:rgba(255,200,61,.08); border:1px solid rgba(255,200,61,.3); font-size:12.5px; color:var(--text2); }
+  .df-bagli i { color:var(--accent); font-size:15px; }
+  .df-bagli span { flex:1; min-width:0; }
+  .df-bagli button { flex:0 0 auto; padding:5px 9px; border-radius:7px; border:1px solid var(--border); background:none;
+    color:var(--text2); font-size:12px; font-family:inherit; cursor:pointer; }
   .df-ikon { flex:0 0 auto; width:38px; height:38px; border-radius:8px; border:1px solid var(--border); background:none;
     color:var(--text3); font-size:17px; cursor:pointer; }
   .df-sayfalar { display:flex; gap:8px; overflow-x:auto; margin-top:10px; padding-bottom:2px; }
@@ -4830,7 +4855,7 @@ function eklemeSecimAc(e) {
         <small data-i18n="es.yeniEserYazAlt">${_esCev('es.yeniEserYazAlt','Adı, sözü, akoru ve notayı kendin gir')}</small></span></button>
       <button type="button" onclick="eklemeSecimKapat();defterAc()"><i class="ti ti-notebook"></i>
         <span><b data-i18n="es.defterdenEkle">${_esCev('es.defterdenEkle','Defterden ekle')}</b>
-        <small data-i18n="es.defterdenEkleAlt">${_esCev('es.defterdenEkleAlt','Nota defterini tara, her şarkı ayrı eser olsun')}</small></span></button>`;
+        <small data-i18n="es.defterdenEkleAlt">${_esCev('es.defterdenEkleAlt','Defterini tara: mevcut esere nota ekle ya da yeni eser aç')}</small></span></button>`;
     m.addEventListener('click', ev => ev.stopPropagation());
     document.body.appendChild(m);
     document.addEventListener('click', () => eklemeSecimKapat());
@@ -4847,8 +4872,8 @@ function defterAc() {
     m.className = 'defter-modal';
     m.innerHTML = `<div class="df-kutu" role="dialog" aria-modal="true">
       <div class="df-bas"><div>
-          <div class="df-baslik" data-i18n="es.dfBaslik">${_esCev('es.dfBaslik','📒 Defterden Eser Ekle')}</div>
-          <div class="df-alt-baslik" data-i18n="es.dfAciklama">${_esCev('es.dfAciklama','Her sayfa bir eser olur. Birden çok sayfalık şarkıda “Öncekiyle birleştir”e dokun. Eserleri yalnız sen görürsün; sonra istersen grubunla paylaşırsın.')}</div></div>
+          <div class="df-baslik" data-i18n="es.dfBaslik">${_esCev('es.dfBaslik','📒 Defterden Ekle')}</div>
+          <div class="df-alt-baslik" data-i18n="es.dfAciklama">${_esCev('es.dfAciklama','Her sayfa bir kart olur. Ad yazarken listeden mevcut bir eseri seçersen sayfa o eserin notasına eklenir; seçmezsen yeni eser açılır (yalnız sen görürsün). Çok sayfalık şarkıda “Öncekiyle birleştir”e dokun.')}</div></div>
         <button type="button" class="df-kapat" onclick="defterKapat()" aria-label="×">×</button></div>
       <input type="file" id="df_dosya" accept="image/*,.pdf" multiple style="display:none;" onchange="defterDosyaSec(this)">
       <div id="df_liste" class="df-liste"></div>
@@ -4906,11 +4931,16 @@ function defterCiz() {
     ? `<div class="df-bos" data-i18n="es.dfBos">${_esCev('es.dfBos','Henüz sayfa yok. Aşağıdan defterinin sayfalarını tara ya da fotoğraflarını seç.')}</div>`
     : _defter.map((k, i) => `<div class="df-kart">
         <div class="df-kart-ust"><span class="df-no">${i + 1}</span>
-          <input class="df-ad" id="df_ad_${i}" value="${_esHtml(k.ad)}" placeholder="${_esCev('es.dfAdYer','Eser adı')}"${kilit}
-            autocomplete="off" autocapitalize="words" enterkeyhint="next"
-            oninput="_defter[${i}].ad=this.value;this.classList.remove('hata')"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();const n=document.getElementById('df_ad_${i + 1}');if(n)n.focus();else this.blur();}">
+          <div class="df-ad-kap">
+            <input class="df-ad" id="df_ad_${i}" value="${_esHtml(k.ad)}" placeholder="${_esCev('es.dfAdYer','Eser adı — mevcut eser için yazmaya başla')}"${kilit}${k.eser ? ' readonly' : ''}
+              autocomplete="off" autocapitalize="words" enterkeyhint="next"
+              oninput="_defter[${i}].ad=this.value;this.classList.remove('hata');defterOneri(${i},this.value)"
+              onfocus="defterOneri(${i},this.value)" onblur="setTimeout(()=>defterOneriKapat(${i}),150)"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();defterOneriKapat(${i});const n=document.getElementById('df_ad_${i + 1}');if(n)n.focus();else this.blur();}">
+            <div class="df-oneri" id="df_oneri_${i}"></div>
+          </div>
           <button type="button" class="df-ikon" onclick="defterEserSil(${i})" title="${_esCev('es.dfEserCikar','Bu eseri çıkar')}"${kilit}><i class="ti ti-trash"></i></button></div>
+        ${k.eser ? defterBagliHtml(k, i, kilit) : ''}
         <div class="df-sayfalar">${k.sayfalar.map((sy, j) => `<div class="df-sayfa">${defterPdfMi(sy.dosya)
             ? '<div class="df-pdf">PDF</div>' : `<img src="${sy.url}" alt="">`}<span class="df-sno">${j + 1}</span>${k.sayfalar.length > 1 && !kilit
             ? `<button type="button" class="df-sayfa-sil" onclick="defterSayfaSil(${i},${j})" aria-label="×">×</button>` : ''}</div>`).join('')}</div>
@@ -4918,7 +4948,11 @@ function defterCiz() {
       </div>`).join('');
   const kb = document.getElementById('df_kaydet'), eb = document.getElementById('df_ekle');
   if (kb) {
-    kb.textContent = _defter.length ? _esCev('es.dfKaydet','Kaydet ({n} eser)').replace('{n}', _defter.length) : _esCev('es.dfKaydet0','Kaydet');
+    const mevcut = _defter.filter(k => k.eser).length, yeni = _defter.length - mevcut;
+    kb.textContent = !_defter.length ? _esCev('es.dfKaydet0','Kaydet')
+      : (mevcut && yeni) ? _esCev('es.dfKaydetKarisik','Kaydet ({y} yeni · {m} mevcut)').replace('{y}', yeni).replace('{m}', mevcut)
+      : mevcut ? _esCev('es.dfKaydetMevcut','Notaları ekle ({n} eser)').replace('{n}', mevcut)
+      : _esCev('es.dfKaydet','Kaydet ({n} eser)').replace('{n}', yeni);
     kb.disabled = !_defter.length || _defterKaydediliyor;
   }
   if (eb) {
@@ -4933,7 +4967,7 @@ function defterBirlestir(i) {
   const a = _defter[i - 1], b = _defter[i];
   if (!a || !b) return;
   a.sayfalar.push(...b.sayfalar);
-  if (!a.ad.trim() && b.ad.trim()) a.ad = b.ad;
+  if (!a.ad.trim() && b.ad.trim()) { a.ad = b.ad; if (b.eser && !a.eser) a.eser = b.eser; }
   _defter.splice(i, 1);
   defterCiz();
 }
@@ -4954,6 +4988,51 @@ function defterEserSil(i) {
   const k = _defter.splice(i, 1)[0];
   if (k) k.sayfalar.forEach(sy => URL.revokeObjectURL(sy.url));
   defterCiz();
+}
+
+// (2026-10-18 b) MEVCUT ESERE NOTA — kullanıcı: "Sözler kayıtlı fakat eserlerin notaları nota defterimde; bir foto
+// çekerek içeri aktarabileyim". Ad yazarken düzenleyebildiği eserler önerilir; seçilirse yeni eser AÇILMAZ, sayfalar o
+// eserin nota_pages'inin SONUNA eklenir (sunucudaki güncel liste okunur). Düz üyede yalnız kendi eserleri önerilir —
+// katalog eserine üye notası (kişisel nota) kullanıcı kararı bekliyor.
+function defterDuzenleyebilir(w) { return isAdmin() || isEditor() || (!!w.submitted_by && w.submitted_by === getUserId()); }
+function defterOneri(i, metin) {
+  const kutu = document.getElementById('df_oneri_' + i), k = _defter[i];
+  if (!kutu || !k || k.eser || _defterKaydediliyor) return;
+  const q = trNorm(metin || '');
+  if (q.length < 2) { kutu.classList.remove('acik'); return; }
+  const adaylar = DATA.filter(w => !w.deleted_at && w.name && defterDuzenleyebilir(w) && trNorm(w.name).includes(q))
+    .sort((a, b) => (trNorm(b.name).startsWith(q) - trNorm(a.name).startsWith(q)) || a.name.length - b.name.length)
+    .slice(0, 6);
+  if (!adaylar.length) { kutu.classList.remove('acik'); return; }
+  kutu.innerHTML = adaylar.map(w => {
+    const n = notaPagesOf(w).length;
+    return `<button type="button" onpointerdown="event.preventDefault();defterBagla(${i},${w.id})">
+      <i class="ti ti-link"></i><span>${_esHtml(w.name)}${(w.composer || w.tur) ? `<small>${_esHtml(w.composer || w.tur)}</small>` : ''}</span>
+      <em class="${n ? 'var' : ''}">${n ? _esCev('es.dfSayfaVar','{n} sayfa nota').replace('{n}', n) : _esCev('es.dfNotaYok','notası yok')}</em></button>`;
+  }).join('');
+  kutu.classList.add('acik');
+}
+function defterOneriKapat(i) { const kutu = document.getElementById('df_oneri_' + i); if (kutu) kutu.classList.remove('acik'); }
+function defterBagla(i, id) {
+  const k = _defter[i], w = DATA.find(x => x.id === id);
+  if (!k || !w) return;
+  k.eser = id; k.ad = w.name;
+  defterCiz();
+}
+function defterBagKopar(i) {
+  const k = _defter[i];
+  if (!k) return;
+  delete k.eser;
+  defterCiz();
+  const el = document.getElementById('df_ad_' + i);
+  if (el) { el.focus(); el.select(); }
+}
+function defterBagliHtml(k, i, kilit) {
+  const w = DATA.find(x => x.id === k.eser), n = w ? notaPagesOf(w).length : 0;
+  return `<div class="df-bagli"><i class="ti ti-link"></i><span>${(n
+      ? _esCev('es.dfMevcutaEkSayfali','Mevcut esere eklenecek — {n} sayfa notasının sonuna.').replace('{n}', n)
+      : _esCev('es.dfMevcutaEk','Mevcut esere eklenecek — eserin ilk notası olacak.'))}</span>${kilit ? ''
+      : `<button type="button" onclick="defterBagKopar(${i})">${_esCev('es.dfYeniEserYap','Yeni eser yap')}</button>`}</div>`;
 }
 
 // Tek eser kaydı (private, onaysız). Yeni eser modalıyla aynı alanlar, boş değerlerle.
@@ -4977,26 +5056,40 @@ async function defterEserOlustur(ad) {
 
 async function defterKaydet() {
   if (_defterKaydediliyor || !_defter.length) return;
-  const bos = _defter.findIndex(k => !k.ad.trim());
+  const bos = _defter.findIndex(k => !k.eser && !k.ad.trim());
   if (bos > -1) {
     const el = document.getElementById('df_ad_' + bos);
     if (el) { el.classList.add('hata'); el.scrollIntoView({ block: 'center' }); el.focus(); }
     defterDurum(_esCev('es.dfAdGerekli','Her esere bir ad yaz.'), 'var(--red)');
     return;
   }
+  // Aynı adlı (düzenleyebildiği) eser varken yeni eser açmak çift kayıt üretir — bir kez sor.
+  const ayni = _defter.filter(k => !k.eser && !k.id).map(k => ({ k, w: DATA.find(w => !w.deleted_at && w.name
+    && defterDuzenleyebilir(w) && trNorm(w.name) === trNorm(k.ad)) })).filter(x => x.w);
+  if (ayni.length && confirm(_esCev('es.dfAyniAdSor','Şu adlarla eser zaten var: {adlar}. Sayfalar bu mevcut eserlere eklensin mi?\n\nTamam: mevcut esere ekle · İptal: yeni eser aç')
+      .replace('{adlar}', ayni.map(x => '“' + x.w.name + '”').join(', ')))) {
+    ayni.forEach(x => { x.k.eser = x.w.id; x.k.ad = x.w.name; });
+  }
   _defterKaydediliyor = true;
   defterCiz();
   const toplam = _defter.length, kalan = [], hatalar = [];
-  let sira = 0, eklenen = 0;
+  let sira = 0, eklenen = 0, notaEklenen = 0, sonMevcut = null;
   for (const k of _defter) {
     sira++;
     defterDurum(_esCev('es.dfKaydediliyor','⏳ Kaydediliyor {i}/{n} — {ad}').replace('{i}', sira).replace('{n}', toplam).replace('{ad}', k.ad.trim()));
     try {
-      if (!k.id) k.id = await defterEserOlustur(k.ad.trim());
-      for (const sy of k.sayfalar) if (!sy.adres) sy.adres = await _notaUploadToStorage(k.id, await notaGorselKucult(sy.dosya));
-      await saveNotaPages(k.id, k.sayfalar.map(sy => sy.adres));
+      if (k.eser) {
+        for (const sy of k.sayfalar) if (!sy.adres) sy.adres = await _notaUploadToStorage(k.eser, await notaGorselKucult(sy.dosya));
+        const once = await currentNotaPages(k.eser);
+        await saveNotaPages(k.eser, once.concat(k.sayfalar.map(sy => sy.adres).filter(a => !once.includes(a))));
+        notaEklenen++; sonMevcut = k.eser;
+      } else {
+        if (!k.id) k.id = await defterEserOlustur(k.ad.trim());
+        for (const sy of k.sayfalar) if (!sy.adres) sy.adres = await _notaUploadToStorage(k.id, await notaGorselKucult(sy.dosya));
+        await saveNotaPages(k.id, k.sayfalar.map(sy => sy.adres));
+        eklenen++;
+      }
       k.sayfalar.forEach(sy => URL.revokeObjectURL(sy.url));
-      eklenen++;
     } catch (e) {
       hatalar.push(k.ad.trim() + ': ' + e.message);
       kalan.push(k);
@@ -5004,13 +5097,17 @@ async function defterKaydet() {
   }
   _defter = kalan;
   _defterKaydediliyor = false;
-  if (eklenen) { buildFilters(); applyFilters(); }
+  if (eklenen || notaEklenen) { buildFilters(); applyFilters(); }
   if (!kalan.length) {
     const m = document.getElementById('defterModal');
     if (m) m.style.display = 'none';
     defterDurum('');
-    toastMsg(_esCev('es.dfEklendi','✓ {n} eser eklendi — 🔒 Taslaklarım').replace('{n}', eklenen));
-    setDraftOnly(true);
+    const parca = [];
+    if (eklenen) parca.push(_esCev('es.dfEklendi','✓ {n} eser eklendi — 🔒 Taslaklarım').replace('{n}', eklenen));
+    if (notaEklenen) parca.push(_esCev('es.dfNotaEklendi','✓ {n} esere nota eklendi').replace('{n}', notaEklenen));
+    toastMsg(parca.join(' · '));
+    if (eklenen && !notaEklenen) setDraftOnly(true);
+    else if (notaEklenen === 1 && !eklenen && sonMevcut != null) { selectWork(sonMevcut, true); setTimeout(() => switchDetailTab('nota'), 50); }
   } else {
     defterCiz();
     defterDurum('❌ ' + _esCev('es.dfBazilariOlmadi','{n} eser kaydedilemedi, yeniden Kaydet\'e dokun: ').replace('{n}', kalan.length) + hatalar[0], 'var(--red)');
