@@ -20,6 +20,12 @@
     Kendi eserinde Nota sekmesi yükleme alanı artık sahibine de açık (eskiden yalnız yönetici/düzenleyici; works_update
     RLS ve notalar_upload zaten izin veriyordu). Kendi eseri olmayan üyeye liste başında "Nota defterin var mı?" kartı
     (kapatılınca localStorage defterIpucuKapali).
+    (6) Defter ekranında tarayıcı varken ayrıca "Seç" (fotoğraflar/dosyalar): iOS belge kamerası galeriden almıyor.
+    Gerçek TRT nota sayfalarıyla (5 sayfa, kullanıcı masaüstü) ölçüldü: 6,0 MB → 1,2 MB (sayfa 120–300 KB, ~0,2 sn),
+    okunurluk aynı. Gölge düzeltme (32 px blok, en açık değer, 3×3 yumuşatma) eklendi; boş/siyah tuvalde aslı gider.
+    (5) Aynı gün, kullanıcı: "renkliye gerek yok ki, siyah beyaz olur" → notaGorselKucult artık HER görseli (JPEG/HEIC/
+    WEBP) gri tonlama + kâğıdı beyazlatma (notaSiyahBeyaz) ile 2000 px / JPEG %72 yapar (eski: renkli 2800 px %85, küçük
+    dosyaya dokunmazdı). PNG/PDF aynen. Eski yüklenmiş renkli sayfalara dokunulmadı.
     (4) Aynı gün, kullanıcı: "Sözler kayıtlı fakat eserlerin notaları nota defterimde; bir foto çekerek içeri aktarabileyim".
     Defter kartında ad yazarken DÜZENLEYEBİLDİĞİ eserler önerilir (defterOneri, trNorm); seçilirse (k.eser) yeni eser
     açılmaz, sayfalar currentNotaPages + yeni adresler olarak o eserin nota_pages'ine eklenir. Seçilmeyip adı bire bir
@@ -1239,6 +1245,7 @@
   .df-ayak button { flex:1; height:46px; border-radius:10px; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:8px; }
   .df-ekle { border:1.5px solid var(--accent); background:rgba(255,200,61,.08); color:var(--accent); }
+  .df-ayak .df-sec { flex:0 0 auto; padding:0 14px; }
   .df-kaydet { border:none; background:var(--accent); color:#111; }
   .df-kaydet:disabled { opacity:.45; cursor:default; }
   .df-ipucu { display:flex; align-items:center; gap:12px; margin:0 0 10px; padding:12px 12px 12px 14px; border-radius:12px;
@@ -4880,6 +4887,8 @@ function defterAc() {
       <div id="df_durum" class="df-durum"></div>
       <div class="df-ayak">
         <button type="button" class="df-ekle" id="df_ekle" onclick="defterSayfaEkle()"></button>
+        <button type="button" class="df-ekle df-sec" id="df_sec" onclick="if(!_defterKaydediliyor)document.getElementById('df_dosya').click()"
+          title="${_esCev('es.dfSecUzun','Fotoğraflardan ya da dosyalardan seç')}"><i class="ti ti-photo"></i>${_esCev('es.dfSecKisa','Seç')}</button>
         <button type="button" class="df-kaydet" id="df_kaydet" onclick="defterKaydet()"></button>
       </div></div>`;
     document.body.appendChild(m);
@@ -4961,6 +4970,9 @@ function defterCiz() {
       : `<i class="ti ti-photo-plus"></i>${_esCev('es.dfSec','Sayfa ekle')}`;
     eb.disabled = _defterKaydediliyor;
   }
+  // Tarayıcı varken ayrıca "Seç": iOS belge kamerası galeriden almıyor (indirilmiş/AirDrop'lanmış sayfalar için).
+  const sb = document.getElementById('df_sec');
+  if (sb) { sb.style.display = notaTarayiciVar() ? '' : 'none'; sb.disabled = _defterKaydediliyor; }
 }
 
 function defterBirlestir(i) {
@@ -5137,11 +5149,55 @@ function defterIpucuKapat(e) {
   if (el) el.remove();
 }
 
-// (2026-10-18) Kamera/galeri fotoğrafı yüklemeden önce küçültülür: uzun kenar en fazla NOTA_UZUN_KENAR px, JPEG %85.
-// 12 MP telefon fotoğrafı 3–6 MB → ~1 MB (depolama + sahnede indirme trafiği). Nota okunurluğu için 2800 px yeterli
-// (iPad Pro ekranı 2732 px). PNG (ekran görüntüsü) ve PDF'e dokunulmaz; çözülemeyen biçimde (ör. Android'de HEIC)
-// ya da küçültme kazanç getirmiyorsa ASLINI gönderir. EXIF yönü: <img> + drawImage yönü zaten uygular.
-const NOTA_UZUN_KENAR = 2800, NOTA_JPEG_KALITE = 0.85;
+// (2026-10-18) Kamera/galeri/tarayıcı fotoğrafı yüklemeden önce SİYAH-BEYAZ'a çevrilip küçültülür.
+// Kullanıcı: "renkliye gerek yok ki, siyah beyaz olur". Tam 1 bitlik eşikleme yerine GRİ TONLAMA + KAĞIDI BEYAZLATMA
+// (kâğıt tepe değeri beyaza, en koyu %1 siyaha gerilir): gölgeli köşe kararmaz, kurşun kalem/soluk nota kaybolmaz.
+// Uzun kenar 2000 px, JPEG %72 → sayfa ~0,2–0,4 MB (renkli 2800 px'in ~3–4'te biri). PNG (ekran görüntüsü) ve PDF'e
+// dokunulmaz; çözülemeyen biçimde (ör. Android'de HEIC) aslı gider. EXIF yönü: <img> + drawImage yönü zaten uygular.
+const NOTA_UZUN_KENAR = 2000, NOTA_JPEG_KALITE = 0.72;
+// Gri tonlama → GÖLGE DÜZELTME (32 px bloklarda kâğıt parlaklığı = blok en açığı, yumuşatılıp her noktaya
+// ara değerle bölünür; köşe gölgesi/ışık farkı beyaza çekilir) → düzey germe (kâğıt tepesi beyaz, en koyu %1 siyah).
+function notaSiyahBeyaz(cx, w, h) {
+  const im = cx.getImageData(0, 0, w, h), d = im.data, hist = new Uint32Array(256);
+  const n = w * h, gri = new Uint8Array(n);
+  for (let i = 0, j = 0; j < n; i += 4, j++) gri[j] = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
+  const B = 32, bw = Math.ceil(w / B), bh = Math.ceil(h / B), blok = new Float32Array(bw * bh);
+  for (let y = 0; y < h; y++) for (let x = 0, sat = y * w; x < w; x++) {
+    const k = ((y / B) | 0) * bw + ((x / B) | 0), v = gri[sat + x];
+    if (v > blok[k]) blok[k] = v;
+  }
+  const yum = new Float32Array(bw * bh);                    // 3×3 ortalama: tek bloktaki parlak leke iz bırakmasın
+  for (let by = 0; by < bh; by++) for (let bx = 0; bx < bw; bx++) {
+    let t = 0, c = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const yy = by + dy, xx = bx + dx;
+      if (yy >= 0 && yy < bh && xx >= 0 && xx < bw) { t += blok[yy * bw + xx]; c++; }
+    }
+    yum[by * bw + bx] = Math.max(24, t / c);
+  }
+  for (let y = 0; y < h; y++) {
+    const fy = Math.min(bh - 1, Math.max(0, y / B - 0.5)), y0 = fy | 0, y1 = Math.min(bh - 1, y0 + 1), ty = fy - y0;
+    for (let x = 0; x < w; x++) {
+      const fx = Math.min(bw - 1, Math.max(0, x / B - 0.5)), x0 = fx | 0, x1 = Math.min(bw - 1, x0 + 1), tx = fx - x0;
+      const ust = yum[y0 * bw + x0] * (1 - tx) + yum[y0 * bw + x1] * tx, alt = yum[y1 * bw + x0] * (1 - tx) + yum[y1 * bw + x1] * tx;
+      const j = y * w + x, v = Math.min(255, (gri[j] * 255) / (ust * (1 - ty) + alt * ty)) | 0;
+      d[j * 4] = v; hist[v]++;
+    }
+  }
+  const toplam = n;
+  // Tuval boş/siyah geldiyse (gizli sekmede GPU tuvali kaybı vb.) dönüştürme yapma → çağıran aslını gönderir.
+  let enAcik = 255; while (enAcik > 0 && !hist[enAcik]) enAcik--;
+  if (enAcik < 16) throw new Error('boş tuval');
+  let siyah = 0, say = 0;
+  while (siyah < 255 && (say += hist[siyah]) < toplam * 0.01) siyah++;
+  let kagit = 128;
+  for (let v = 129; v < 256; v++) if (hist[v] > hist[kagit]) kagit = v;
+  kagit = Math.max(siyah + 40, kagit - 6);                  // tepenin biraz altı: kâğıt dokusu da beyaza gitsin
+  const tablo = new Uint8ClampedArray(256), aralik = Math.max(1, kagit - siyah);
+  for (let v = 0; v < 256; v++) tablo[v] = v <= siyah ? 0 : v >= kagit ? 255 : Math.round(255 * Math.pow((v - siyah) / aralik, 1.15));
+  for (let i = 0; i < d.length; i += 4) { const y = tablo[d[i]]; d[i] = d[i + 1] = d[i + 2] = y; }
+  cx.putImageData(im, 0, 0);
+}
 async function notaGorselKucult(file) {
   const tip = (file.type || '').toLowerCase();
   if (!/^image\/(jpe?g|heic|heif|webp)$/.test(tip) && !/\.(jpe?g|heic|heif)$/i.test(file.name || '')) return file;
@@ -5160,17 +5216,18 @@ async function notaGorselKucult(file) {
     const w0 = img.naturalWidth, h0 = img.naturalHeight;
     if (!w0 || !h0) return file;
     const oran = Math.min(1, NOTA_UZUN_KENAR / Math.max(w0, h0));
-    if (oran === 1 && file.size <= 1.5 * 1048576 && tip !== 'image/heic' && tip !== 'image/heif') return file;
     const w = Math.round(w0 * oran), h = Math.round(h0 * oran);
     const cv = document.createElement('canvas');
     cv.width = w; cv.height = h;
-    const cx = cv.getContext('2d');
+    // willReadFrequently: işlemci tuvali — getImageData hızlı, gizli sekmede/WebView'de GPU tuvali boşalmaz (denendi).
+    const cx = cv.getContext('2d', { willReadFrequently: true });
     cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h);          // saydam WEBP siyaha dönmesin
     cx.imageSmoothingQuality = 'high';
     cx.drawImage(img, 0, 0, w, h);
+    notaSiyahBeyaz(cx, w, h);
     const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', NOTA_JPEG_KALITE));
     cv.width = cv.height = 0;                                 // iOS tuval belleğini hemen bırak
-    if (!blob || (blob.size >= file.size && tip !== 'image/heic' && tip !== 'image/heif')) return file;
+    if (!blob) return file;
     const ad = ((file.name || 'nota').replace(/\.[A-Za-z0-9]{2,5}$/, '') || 'nota') + '.jpg';
     return new File([blob], ad, { type: 'image/jpeg', lastModified: Date.now() });
   } catch (e) {
