@@ -8,6 +8,11 @@
     hata ya da kazanç yoksa aslı gider). 15 MB sınırı küçültmeden SONRA denetlenir. Android'de kameranın
     çalışması için yerel android/ düzeltmesi de gerekiyor (file_paths.xml external-files-path Pictures +
     manifest <queries> IMAGE_CAPTURE) — sonraki derleme (AAB 18).
+    (2) Aynı gün, kullanıcı "gerçek belge tarayıcı yapmalıyız": yerel uygulamada düğme "Notayı Tara" →
+    NotaTarayici eklentisi (iOS VisionKit / Android ML Kit, yalnız genel API; Capgo eklentisi iOS'ta özel VisionKit
+    sınıflarını swizzle ettiği için — Apple 2.5.1 — KULLANILMADI). Taranan sayfalar fetch → File → uploadNotaFiles
+    (küçültmeden geçer). DESTEK_YOK → bu oturumda "Fotoğraf Çek"e döner. Web'de yalnız Fotoğraf Çek.
+    ⚠️ Android ML Kit tanılama verisi gönderir → AAB 18 öncesi Play veri güvenliğine "Tanılama" (kullanıcı onayı).
   - 2026-08-27: ➕ TÜR listesine 'Şiir' eklendi (TUR_LISTESI, 'Diğer'in hemen
     üstünde). Eserler arasında okunan bağımsız şiirler repertuvarda kendi
     başına bir sıra öğesi olabilsin diye. Form kutusu Şiir'de otomatik
@@ -1147,7 +1152,7 @@
   .nota-kamera i { font-size:18px; }
   .nota-kamera:active { background:rgba(255,200,61,.18); }
   .nota-kamera-ipucu { margin-top:6px; font-size:11.5px; color:var(--text3); text-align:center; line-height:1.45; }
-  @media (hover:hover) and (pointer:fine) { .nota-kamera, .nota-kamera-ipucu { display:none; } }
+  @media (hover:hover) and (pointer:fine) { .nota-kamera:not(.nota-tara), .nota-kamera-ipucu:not(.nota-tara) { display:none; } }
 
   /* ── 2026-07-20: mobil "basılı tut → Yapıştır" kutusu ──
      iOS/Android yapıştır menüsü YALNIZCA düzenlenebilir bir alanda açılır,
@@ -3130,11 +3135,7 @@ function selectWork(id, silent) {
             <div class="nota-drop-main" data-i18n="es.notaSurukle">${_esCev('es.notaSurukle','Notayı buraya sürükle veya yapıştır')}</div>
             <div class="nota-drop-sub"><span data-i18n="es.notaAlt">${_esCev('es.notaAlt','Yeni dosyalar mevcut sayfaların SONUNA eklenir')}</span><br><span data-i18n="es.notaBoyut">${_esCev('es.notaBoyut','(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)')}</span></div>
           </div>
-          <input type="file" id="notaCam_${w.id}" accept="image/*" capture="environment"
-            style="display:none;" onchange="uploadNota(${w.id}, this)">
-          <button type="button" class="nota-kamera" onclick="document.getElementById('notaCam_${w.id}').click()">
-            <i class="ti ti-camera"></i><span data-i18n="es.fotoCek">${_esCev('es.fotoCek','Fotoğraf Çek')}</span></button>
-          <div class="nota-kamera-ipucu" data-i18n="es.fotoCekIpucu">${_esCev('es.fotoCekIpucu','Sayfayı düz bir yerde, iyi ışıkta, kadrajı dolduracak şekilde çek. Her fotoğraf yeni bir sayfa olarak eklenir.')}</div>
+          ${notaKameraHtml(w.id)}
           <div class="nota-paste" id="notaPaste_${w.id}" data-work="${w.id}"
                data-ipucu="${_esCev('es.notaYapistirKutu','📋  Buraya basılı tut → Yapıştır')}"
                contenteditable="true" inputmode="none" role="button"
@@ -4670,6 +4671,72 @@ if (!window._notaPasteWired) {
 
 let _notaSeq = 0;
 
+// (2026-10-18) BELGE TARAYICI: yerel uygulamada NotaTarayici eklentisi (iOS VisionKit / Android ML Kit;
+// ios/App/App/NotaTarayici.swift, android/…/NotaTarayiciPlugin.java) — kenar bulma, eğiklik düzeltme, art arda çok
+// sayfa. Yoksa (web, eklentisiz eski sürüm, Play hizmetsiz Android) "Fotoğraf Çek" (input capture). DESTEK_YOK
+// gelirse bu oturumda kameraya geçilir; düğme yeniden dokunuşta kamerayı açar (input.click kullanıcı dokunuşu ister).
+let _notaTarayiciYok = false;
+function notaTarayiciVar() {
+  const C = window.Capacitor;
+  return !_notaTarayiciYok && !!(C && C.isNativePlatform && C.isNativePlatform() && C.isPluginAvailable && C.isPluginAvailable('NotaTarayici'));
+}
+// id: eser id'si ya da 'ne' (eser düzenleme penceresi)
+function notaKameraHtml(id) {
+  const ne = id === 'ne', tara = notaTarayiciVar();
+  const girdi = ne ? 'ne_notaCam' : 'notaCam_' + id;
+  return `<input type="file" id="${girdi}" accept="image/*" capture="environment" style="display:none;"
+      onchange="${ne ? 'neNotaPick(this)' : 'uploadNota(' + id + ', this)'}">
+    <button type="button" class="nota-kamera${tara ? ' nota-tara' : ''}" onclick="${ne ? 'neNotaKamera()' : 'notaKamera(' + id + ')'}">${notaKameraIc(tara)}</button>
+    <div class="nota-kamera-ipucu${tara ? ' nota-tara' : ''}" data-i18n="${tara ? 'es.notaTaraIpucu' : 'es.fotoCekIpucu'}">${tara
+      ? _esCev('es.notaTaraIpucu','Kenarlar kendiliğinden bulunur, eğiklik düzeltilir. Birden çok sayfayı art arda tarayabilirsin; hepsi sırayla eklenir.')
+      : _esCev('es.fotoCekIpucu','Sayfayı düz bir yerde, iyi ışıkta, kadrajı dolduracak şekilde çek. Her fotoğraf yeni bir sayfa olarak eklenir.')}</div>`;
+}
+function notaKameraIc(tara) {
+  return tara
+    ? `<i class="ti ti-scan"></i><span data-i18n="es.notaTara">${_esCev('es.notaTara','Notayı Tara')}</span>`
+    : `<i class="ti ti-camera"></i><span data-i18n="es.fotoCek">${_esCev('es.fotoCek','Fotoğraf Çek')}</span>`;
+}
+function notaKamera(id) {
+  if (!notaTarayiciVar()) { const i = document.getElementById('notaCam_' + id); if (i) i.click(); return; }
+  notaTaraDosyalar(m => notaStatus(id, m.text, m.renk)).then(files => { if (files.length) uploadNotaFiles(id, files); });
+}
+// Tarayıcıyı açar, taranan sayfaları File dizisi olarak döner (iptal/hata → []). durum({text, renk}) ilerleme yazar.
+async function notaTaraDosyalar(durum) {
+  const T = window.Capacitor.Plugins.NotaTarayici;
+  let r;
+  try { r = await T.tara(); }
+  catch (e) {
+    const kod = e && e.code;
+    if (kod === 'IPTAL') return [];
+    if (kod === 'DESTEK_YOK') {
+      _notaTarayiciYok = true;
+      document.querySelectorAll('.nota-kamera.nota-tara').forEach(b => { b.classList.remove('nota-tara'); b.innerHTML = notaKameraIc(false); });
+      document.querySelectorAll('.nota-kamera-ipucu.nota-tara').forEach(d => {
+        d.classList.remove('nota-tara'); d.setAttribute('data-i18n', 'es.fotoCekIpucu');
+        d.textContent = _esCev('es.fotoCekIpucu','Sayfayı düz bir yerde, iyi ışıkta, kadrajı dolduracak şekilde çek. Her fotoğraf yeni bir sayfa olarak eklenir.');
+      });
+      durum({ text: _esCev('es.tarayiciYok','Bu cihazda belge tarayıcı açılamadı. Düğmeye yeniden dokununca kamera açılır.') });
+      return [];
+    }
+    durum({ text: '❌ ' + ((e && e.message) || _esCev('es.taramaHata','Tarama yapılamadı.')), renk: 'var(--red)' });
+    return [];
+  }
+  const adresler = (r && r.sayfalar) || [];
+  if (!adresler.length) return [];
+  durum({ text: _esCev('es.taramaHazir','⏳ {n} sayfa hazırlanıyor...').replace('{n}', adresler.length) });
+  const files = [];
+  for (let i = 0; i < adresler.length; i++) {
+    try {
+      const yan = await fetch(adresler[i]);
+      if (!yan.ok) throw new Error(yan.status);
+      files.push(new File([await yan.blob()], `tarama_${i + 1}.jpg`, { type: 'image/jpeg' }));
+    } catch (e) { /* okunamayan sayfa atlanır; aşağıda hiç yoksa söylenir */ }
+  }
+  T.temizle().catch(() => {});
+  if (!files.length) durum({ text: '❌ ' + _esCev('es.taramaHata','Tarama yapılamadı.'), renk: 'var(--red)' });
+  return files;
+}
+
 // (2026-10-18) Kamera/galeri fotoğrafı yüklemeden önce küçültülür: uzun kenar en fazla NOTA_UZUN_KENAR px, JPEG %85.
 // 12 MP telefon fotoğrafı 3–6 MB → ~1 MB (depolama + sahnede indirme trafiği). Nota okunurluğu için 2800 px yeterli
 // (iPad Pro ekranı 2732 px). PNG (ekran görüntüsü) ve PDF'e dokunulmaz; çözülemeyen biçimde (ör. Android'de HEIC)
@@ -5338,6 +5405,8 @@ function applyChordNotationPref() {
 // CSS ve aynı yükleme fonksiyonunu kullanır; id'ler ayrı ("_ne") çünkü aynı
 // eserin detayı arkada açıkken id çakışması olurdu.
 function setupNeNotaZone() {
+  const kam = document.getElementById('ne_notaKamera');
+  if (kam) kam.innerHTML = notaKameraHtml('ne');
   const zone = document.getElementById('notaDrop_ne');
   const box  = document.getElementById('notaPaste_ne');
   const al = files => {
@@ -5390,6 +5459,17 @@ function setupNeNotaZone() {
       al(e.dataTransfer && e.dataTransfer.files ? Array.from(e.dataTransfer.files) : []);
     });
   }
+}
+
+function neNotaKamera() {
+  if (editingWorkId === null) { renderNeNotaList(); return; }
+  if (!notaTarayiciVar()) { const i = document.getElementById('ne_notaCam'); if (i) i.click(); return; }
+  const id = editingWorkId;
+  notaTaraDosyalar(m => renderNeNotaList(m.text)).then(files => {
+    if (!files.length) return;
+    uploadNotaFiles(id, files);
+    renderNeNotaList(_esCev('es.notaYukleniyor','⏳ Yükleniyor — bittiğinde eser detayındaki Nota sekmesinde görünecek.'));
+  });
 }
 
 function neNotaPick(input) {
@@ -7007,11 +7087,7 @@ function openSuggestModal() { openNewEserModal(); }
             <div class="nota-drop-main" data-i18n="es.notaSurukle2">Notayı buraya sürükle, yapıştır ya da tıklayıp seç</div>
             <div class="nota-drop-sub"><span data-i18n="es.notaAlt">Yeni dosyalar mevcut sayfaların SONUNA eklenir</span><br><span data-i18n="es.notaBoyut">(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)</span></div>
           </div>
-          <input type="file" id="ne_notaCam" accept="image/*" capture="environment" style="display:none;" onchange="neNotaPick(this)">
-          <button type="button" class="nota-kamera"
-               onclick="if (editingWorkId === null) { renderNeNotaList(); } else { document.getElementById('ne_notaCam').click(); }">
-            <i class="ti ti-camera"></i><span data-i18n="es.fotoCek">Fotoğraf Çek</span></button>
-          <div class="nota-kamera-ipucu" data-i18n="es.fotoCekIpucu">Sayfayı düz bir yerde, iyi ışıkta, kadrajı dolduracak şekilde çek. Her fotoğraf yeni bir sayfa olarak eklenir.</div>
+          <div id="ne_notaKamera"></div>
           <div class="nota-paste" id="notaPaste_ne" contenteditable="true" inputmode="none" role="button"
                aria-label="Panodaki görseli yapıştır" data-i18n-aria="es.panoYapistir" onclick="event.stopPropagation()"></div>
           <div class="nota-paste-hint" data-i18n-html="es.notaYapistirIpucu">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
