@@ -308,7 +308,7 @@ if(window.location.search.includes('deletion_requested=1')) {
 // Oturum sunucu tarafından reddedildi (auth.js → endDeadSession). Kullanıcı
 // sessizce boş liste görmek yerine ne olduğunu öğrensin.
 if(window.location.search.includes('expired=1')) {
-  setTimeout(() => showMsg('err', _gCev('giris.oturumDoldu', 'Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.')), 100);
+  setTimeout(() => showMsg('err', _gCev('giris.oturumDoldu', 'Oturumunuz kapandı: hesabınızla başka bir cihazda giriş yapılmış ya da oturumun süresi dolmuş olabilir. Lütfen tekrar giriş yapın.')), 100);
 }
 // Davet token'ını sakla
 const _inviteToken = new URLSearchParams(window.location.search).get('invite');
