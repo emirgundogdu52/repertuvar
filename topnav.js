@@ -955,7 +955,9 @@ function _m(anahtar, tr) {
         const vp = document.querySelector('meta[name=viewport]');
         kenarKenara = !!(m && +m[1] >= 140 && vp && /viewport-fit=cover/.test(vp.content));
       }
-      const p = sb.setStyle({ style: (kenarKenara && isLight) ? 'LIGHT' : 'DARK' });
+      // (2026-10-18) Yeni tasarımda üst çubuk açık modda da koyu (tasarim.css "SİYAH ÇERÇEVE") → simgeler hep açık (DARK).
+      const v3 = document.documentElement.getAttribute('data-tasarim') === 'v3';
+      const p = sb.setStyle({ style: (kenarKenara && isLight && !v3) ? 'LIGHT' : 'DARK' });
       if (p && p.catch) p.catch(function () {});
     } catch (e) {}
   }

@@ -437,13 +437,9 @@ html[data-tasarim="v3"][data-theme="light"] .grp-chip.active .grp-role { color: 
    login.html yeni tasarımda hep koyu — orada plaka gerekmez, yalnız koyu logo kalır.
    [src*="logo_dark"]: plaka YALNIZ koyu logo yüklüyken. Yayın sonrası birkaç dakika eski topnav.js (logo_light,
    siyah yazı) yeni CSS ile buluşursa siyah plakada siyah yazı oluyordu (yerelde görüldü). */
-html[data-tasarim="v3"][data-theme="light"] .sb-brand img[data-logo][src*="logo_dark"],
-html[data-tasarim="v3"][data-theme="light"] .r-topnav img.r-logo[src*="logo_dark"] {
-  /* Plaka box-shadow ile çiziliyor: padding/boyut DEĞİŞMEZ → logo koyu moddakiyle aynı ölçü ve yerde,
-     tema değişince kayma olmaz. İki gölge (±6px kaydırma, 4px yayılma): üst/alt 4px, yanlar 10px taşar,
-     dış köşe 6+4 = 10px. Logo görselinin kendi kenar boşluğu ~%8 (40px'te 3px). (2026-10-08 kullanıcı: üst/alt kırp) */
-  background: #0B0F17; border-radius: 6px; box-shadow: -6px 0 0 4px #0B0F17, 6px 0 0 4px #0B0F17;
-}
+/* (2026-10-18) PLAKA KALKTI: üst çubuk, alt menü ve yan menü açık modda da koyu (dosya sonundaki "SİYAH ÇERÇEVE"
+   bloğu) → logo her temada kendi koyu zemininde, ayrı plaka gerekmiyor. Kullanıcı: "açık modda logo üstte siyah zemin
+   bir blok halinde kaldı, beğenmedim". */
 /* Üst çubuk logosunun KUTUSU görselin oranında (664×127). Önceden kutu 55px (≤430px: 40px) yükseklikte, genişlik
    44vw ile sınırlanınca görsel object-fit:contain ile küçülüp üstte/altta boş şerit kalıyordu (440px'te kutu 194×55,
    görsel 194×37) → plaka görseli değil kutuyu boyayıp gereğinden uzun oluyordu. Ekrandaki logo boyutu AYNI:
@@ -501,13 +497,13 @@ html[data-tasarim="v3"] body { left: var(--yan-sol); right: var(--yan-sag); }
    Açık tema DEĞİŞMEZ (plaka 16px'te). Yan menü (≥1024px): düğme kutuları 10px'te; koyuda yazı, açıkta plaka o çizgide.
    .sb-brand sol boşluğu 16px, 42px yükseklikte saydam pay 42×10/127 = 3,3px. Tema değişince logo bu yüzden ~13px kayar. */
 @media (max-width: 1023px) {
-  html[data-tasarim="v3"]:not([data-theme="light"]) .r-topnav img.r-logo { margin-left: calc(-10px - min(220px, 44vw) * 10 / 664); }
+  html[data-tasarim="v3"] .r-topnav img.r-logo { margin-left: calc(-10px - min(220px, 44vw) * 10 / 664); }
 }
 @media (max-width: 430px) {
-  html[data-tasarim="v3"]:not([data-theme="light"]) .r-topnav img.r-logo { margin-left: calc(-10px - min(209px, 44vw) * 10 / 664); }
+  html[data-tasarim="v3"] .r-topnav img.r-logo { margin-left: calc(-10px - min(209px, 44vw) * 10 / 664); }
 }
-html[data-tasarim="v3"]:not([data-theme="light"]) .sb-brand img[data-logo] { margin-left: calc(-6px - 42px * 10 / 127); }
-html[data-tasarim="v3"][data-theme="light"] .sb-brand img[data-logo][src*="logo_dark"] { margin-left: 4px; }
+/* (2026-10-18) Plaka kalktığı için açık temada da koyudaki hiza (yazı 16px çizgisinde). */
+html[data-tasarim="v3"] .sb-brand img[data-logo] { margin-left: calc(-6px - 42px * 10 / 127); }
 /* (2026-10-17) Aynı denetimde: bu sayfaların kapları 16px standardının dışındaydı (Çalışma/Ritim Kes/Ayarlar/İstatistikler
    20, Mesajlar/Önerilerim 24, Gruplar 12, Sahne 8, Solist detayı 32px) → logo hiçbirinde içerikle hizalı değildi. Logo tek
    yerde sabit; içerik ona gelir. Ortalanan (max-width) düzenlerde yalnız iç pay değişir. Eserler detayı eserler.html'de. */
@@ -578,3 +574,68 @@ html[data-tasarim="v3"][data-theme="light"] #recentWorks .work-row.zebra { backg
   html[data-tasarim="v3"]:not([data-sayfa="stage"]) .main-wrap,
   html[data-tasarim="v3"]:not([data-sayfa="stage"]) .v2-main-wrap { padding-top: env(safe-area-inset-top, 0px); }
 }
+
+/* ══ (2026-10-18) AÇIK MODDA DA SİYAH ÇERÇEVE ══════════════════════════════════════════════════════════════
+   Kullanıcı: "Açık modda logo üstte siyah zemin bir blok hâlinde kaldı, beğenmedim. Logonun bulunduğu üst bloğu ve
+   alttaki menü düğmelerinin alanını komple siyah yapalım; koyu modda olduğu gibi kalsın." Üst çubuk (.r-topnav), alt
+   menü (.bottom-nav / .v2-bottom-nav) ve yan menü (≥1024px) iki temada da koyu; yalnız içerik alanı temayı izler.
+   Koyu temanın değişkenleri bu kapların İÇİNDE yeniden tanımlanır (özel özellikler kalıtımla gelir, kapta tanımlanan
+   kazanır) → içteki öğeler koyu temadaki gibi boyanır. topnav.js ve bu dosyadaki açık moda özel sabit renkler
+   (!important) aşağıda koyu karşılıklarıyla ezilir. Açılır menüler (.r-tn-dropdown vb.) açık temada kalır.
+   Durum çubuğu: topnav.js sistemCubuklariniAyarla yeni tasarımda hep DARK (açık simge). */
+html[data-tasarim="v3"][data-theme="light"] .r-topnav,
+html[data-tasarim="v3"][data-theme="light"] .bottom-nav,
+html[data-tasarim="v3"][data-theme="light"] .v2-bottom-nav,
+html[data-tasarim="v3"][data-theme="light"] .sidebar,
+html[data-tasarim="v3"][data-theme="light"] aside.sidebar,
+html[data-tasarim="v3"][data-theme="light"] .v2-sidebar {
+  --bg: #070A0F; --bg2: #090D14; --surface: #111722; --surface2: #1A2130;
+  --border: rgba(255, 255, 255, .08); --border2: rgba(255, 255, 255, .14);
+  --accent: #FFC83D; --accent2: #4DA3FF; --accent3: #8CC5FF;
+  --text: #FFFFFF; --text2: #AEB6C5; --text3: #8A93A6;
+  --yt-amber-yazi: #FFC83D;
+  color: var(--text);
+}
+/* Opak: koyu temadaki .92/.96 saydamlık açık içerik üstünde griye kaçıyordu (krem içerik alttan kayınca). */
+html[data-tasarim="v3"][data-theme="light"] .r-topnav { background: #070A0F !important; border-bottom-color: rgba(255, 255, 255, .08) !important; }
+html[data-tasarim="v3"][data-theme="light"] .bottom-nav,
+html[data-tasarim="v3"][data-theme="light"] .v2-bottom-nav { background: #070A0F !important; border-top-color: rgba(255, 255, 255, .08) !important; }
+html[data-tasarim="v3"][data-theme="light"] .sidebar,
+html[data-tasarim="v3"][data-theme="light"] aside.sidebar,
+html[data-tasarim="v3"][data-theme="light"] .v2-sidebar { background: #090D14 !important; border-right-color: rgba(255, 255, 255, .08) !important; }
+/* Üst çubuk: kullanıcı düğmesi */
+html[data-tasarim="v3"][data-theme="light"] .r-tn-user { background: rgba(255, 200, 61, .12); }
+html[data-tasarim="v3"][data-theme="light"] .r-tn-uname { color: #FFFFFF; }
+/* Alt menü */
+html[data-tasarim="v3"][data-theme="light"] .bn-item,
+html[data-tasarim="v3"][data-theme="light"] .v2-bn-item,
+html[data-tasarim="v3"][data-theme="light"] .bn-item .bn-label,
+html[data-tasarim="v3"][data-theme="light"] .v2-bn-item .bn-label { color: #8A93A6 !important; }
+html[data-tasarim="v3"][data-theme="light"] .bn-item.active,
+html[data-tasarim="v3"][data-theme="light"] .v2-bn-item.active,
+html[data-tasarim="v3"][data-theme="light"] .bn-item.active .bn-label,
+html[data-tasarim="v3"][data-theme="light"] .v2-bn-item.active .bn-label { color: #FFC83D !important; }
+/* Yan menü (≥1024px) */
+html[data-tasarim="v3"][data-theme="light"] .sb-item,
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-item { color: #AEB6C5 !important; }
+html[data-tasarim="v3"][data-theme="light"] .sb-item:hover,
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-item:hover { background: #111722 !important; color: #FFFFFF !important; }
+html[data-tasarim="v3"][data-theme="light"] .sb-item.active,
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-item.active { background: rgba(255, 200, 61, .12) !important; color: #FFC83D !important; }
+html[data-tasarim="v3"][data-theme="light"] .sb-label,
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-label,
+html[data-tasarim="v3"][data-theme="light"] .sb-domain,
+html[data-tasarim="v3"][data-theme="light"] .sb-urole,
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-urole { color: #8A93A6 !important; }
+html[data-tasarim="v3"][data-theme="light"] .sb-appname,
+html[data-tasarim="v3"][data-theme="light"] .sb-uname,
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-uname { color: #FFFFFF !important; }
+html[data-tasarim="v3"][data-theme="light"] .sb-divider,
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-divider { background: rgba(255, 255, 255, .08) !important; }
+html[data-tasarim="v3"][data-theme="light"] .sb-user-x { background: #111722 !important; border-color: rgba(255, 255, 255, .12) !important; }
+/* Üst çubuktaki zil ve tema anahtarı: topnav.js açık tema için koyu renk yazıyordu (siyah zeminde görünmüyordu). */
+html[data-tasarim="v3"][data-theme="light"] .r-topnav .r-tn-bell i { color: #e6e2ff; }
+html[data-tasarim="v3"][data-theme="light"] .r-topnav .r-theme-toggle { background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .10); }
+/* Alt menüdeki "Sahne Modu" yazısı koyu temadaki gibi sarı (yukarıdaki .bn-label kuralı griye çekiyordu). */
+html[data-tasarim="v3"][data-theme="light"] .bn-stage,
+html[data-tasarim="v3"][data-theme="light"] .bn-stage .bn-label { color: #FFC83D !important; }
