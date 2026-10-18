@@ -1,5 +1,10 @@
 <!--
   STAGE.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur; her önemli özellik değişikliğinde güncellenir)
+  - 2026-10-18 (e): SAHNE EYLEMLERİ 3 → 2 (kullanıcı onayı): Ana Sayfa satırı kalktı (çoğu zaman Geri Dön ile aynı yer);
+    "Sahneden Çık" (seçme ekranına dönüyordu) → "Repertuvar Değiştir" (liste simgesi; tek eser / paylaşım girişinde yok);
+    Geri Dön → "Sahne Modunu Kapat" (kırmızı, kapı simgesi; closeStageMode → goBack, misafirde seçme ekranı). goBack artık
+    sahneye GELİNEN sayfaya döner (document.referrer → sessionStorage 'stageDonus', sorgu dizesiyle); alt menü "Sahne Modu"
+    sekmesi stageSource yazmadığı için eski girişin sayfasına dönme hatası giderildi. Escape tuşu eskisi gibi seçme ekranı.
   - 2026-10-18 (d): "Sahneden Çık" simgesi × → kapı-çıkış (ti-door-exit; panel + yedek alt şerit). × "paneli kapat / sil" gibi
     okunuyordu; iOS'ta çıkış eylemi kapı/ok simgesiyle gösterilir.
   - 2026-10-18 (c): SÖZLER EN BÜYÜK BOYUTTA, SATIR KIRILMADAN (eser detayındaki d8c11af sahneye taşındı): fitLyrics artık
@@ -2749,10 +2754,15 @@ function buildStageToolsRow(mode) {
   // "bilmeyen için muamma"). Eylemler artık YAZIYLA, doğrudan panelde.
   // openStageNav / #v2StageBotNav dosyada duruyor (Escape yolu ve :818'deki
   // gizli yedek düğme için) — sadece panelden çağrılmıyor.
+  // (2026-10-18) ÜÇ SATIR İKİYE İNDİ (kullanıcı onayı). Eskiden: Geri Dön (girilen sayfaya) + Ana Sayfa (çoğu zaman Geri Dön
+  // ile aynı yer) + "Sahneden Çık" (aslında sayfadan çıkmıyor, repertuvar seçme ekranına dönüyordu). Şimdi:
+  //   • Repertuvar Değiştir — seçme ekranı (exitStage). Tek eserle (Eserler'den) ya da paylaşım bağlantısıyla girildiyse yok.
+  //   • Sahne Modunu Kapat — girilen sayfaya döner (closeStageMode → goBack; misafirde seçme ekranı).
+  const _paylasim = !!new URLSearchParams(location.search).get('share');
+  const _tekEser = !!(curRep && curRep.id === 'single');
   const sahneBtns = `
-      <a href="#" onclick="event.stopPropagation();goBack(event)" class="st-act" title="${_sCev('sh.geldiginSayfa','Geldiğin sayfaya dön')}"><i class="ti ti-arrow-left"></i>${_sCev('sh.geriDon','Geri Dön')}</a>
-      <a href="index.html" onclick="event.stopPropagation()" class="st-act" title="${_sCev('sh.anaSayfa','Ana Sayfa')}"><i class="ti ti-home"></i>${_sCev('sh.anaSayfa','Ana Sayfa')}</a>
-      <button onclick="event.stopPropagation();exitStage(event)" class="st-act st-act-exit" title="${_sCev('sh.sahneModundanCik','Sahne modundan çık')}"><i class="ti ti-door-exit"></i>${_sCev('sh.sahnedenCik','Sahneden Çık')}</button>`;
+      ${(!_paylasim && !_tekEser) ? `<button onclick="event.stopPropagation();exitStage(event)" class="st-act" title="${_sCev('sh.repDegistirT','Sahneye başka bir repertuvar çıkar')}"><i class="ti ti-list"></i>${_sCev('sh.repDegistir','Repertuvar Değiştir')}</button>` : ''}
+      <button onclick="event.stopPropagation();closeStageMode(event)" class="st-act st-act-exit" title="${_sCev('sh.sahneModunuKapatT','Sahne modunu kapat, girdiğin sayfaya dön')}"><i class="ti ti-door-exit"></i>${_sCev('sh.sahneModunuKapat','Sahne Modunu Kapat')}</button>`;
   // Akor modunda ton kaydırma (± yarım ton) — eser başına saklanır
   const item = (curRep && (curRep.items||[])[curIdx]) || null;
   const tVal = item ? getTranspose(item.workId) : 0;
@@ -2891,8 +2901,29 @@ function setAkorYazimi(yon) {
   renderStage();
 }
 
+// (2026-10-18) Dönüş sayfası: sahneye GELİNEN sayfa (document.referrer, aynı köken) bu sekmede saklanır. Eskiden yalnız
+// localStorage 'stageSource' vardı ve alt menüdeki "Sahne Modu" sekmesi onu yazmadığı için ESKİ bir girişin sayfasına
+// dönülüyordu (ör. Repertuvarlar'dan girilmişken Eserler'e). stageSource yalnız referrer yoksa yedek.
+(function () {
+  try {
+    const r = document.referrer ? new URL(document.referrer) : null;
+    if (!r || r.origin !== location.origin) return;
+    const sayfa = r.pathname.split('/').pop() || 'index.html';
+    if (/^(stage|login|splash|pro|google-donus|reset-password)\.html$/i.test(sayfa)) return;   // ara sayfalar dönüş yeri değil
+    sessionStorage.setItem('stageDonus', sayfa + r.search);
+  } catch (e) {}
+})();
+function closeStageMode(e) {
+  // Paylaşım bağlantısıyla gelen misafirin dönecek sayfası yok → paylaşılan repertuvar ekranı (eski "Sahneden Çık").
+  if (new URLSearchParams(location.search).get('share')) { exitStage(e); return; }
+  window._stageActive = false;
+  goBack(e);
+}
 function goBack(e) {
-  if (e) e.preventDefault();
+  if (e && e.preventDefault) e.preventDefault();
+  let donus = null;
+  try { donus = sessionStorage.getItem('stageDonus'); } catch (er) {}
+  if (donus) { window.location.href = donus; return; }
   const src = localStorage.getItem('stageSource');
   if (src === 'eserler') window.location.href = 'eserler.html';
   else if (src === 'repertoires') window.location.href = 'repertoires.html';
