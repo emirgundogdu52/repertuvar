@@ -1,5 +1,18 @@
 <!--
   STAGE.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur; her önemli özellik değişikliğinde güncellenir)
+  - 2026-10-18: ÜST ŞERİT SADELEŞTİ (kullanıcı isteği, sonraki derleme AAB 18 / iOS 7).
+    (1) Söz / Akor / Nota / Bilgi düğmeleri İNCELDİ (34→28px) ve etiketleri telefonda da görünür;
+        şerit satırı doldurur, düğmeler eşit genişlikte (tablet/masaüstünde en fazla 560px, ortada).
+        4. düğmenin adı "Bilgi" kalır (kullanıcı kararı).
+    (2) KARAR SESİ başlığın altından bu şeride alındı (#vmKarar, şeridin solunda, düğme değil) —
+        bir satır yer kazanıldı. Kaydırılmışsa altın renk, ipucunda orijinal karar (eski .wkarar ile aynı).
+        Karar sesi girilmemiş eserde bu bölme gizlenir. ≤380px'te "Karar:" öneki düşer, yalnız ses kalır.
+    (3) NOKTA GÖSTERGESİ (1/15) çentiğe doğru yukarı: üst boşluk "8px + safe-area" → "safe-area × 0,82"
+        (en az 4px). Sabit çıkarma (−8px) DEĞİL oran: ana tuşlu iPhone'da (SE, inset 20) saat durum
+        çubuğunun ORTASINDA, sabit −8 sayacı saatin altına sokardı; oranla SE 16,4px (saatin altında),
+        iPad 24→19,7, çentikli iPhone 44–50 → 36–41 (çentik ~30–33'te biter), Dynamic Island 59–62 → 48–51
+        (ada ~48'de biter; noktalar satır ortasında, adanın ~5px altında), Android (Capacitor 8 SystemBars,
+        Pixel 8 inset ~47dp) → 38,5 (ortadaki kamera deliğinin altında). Tarayıcı (inset 0) 4px.
   - 2026-08-20: 🔓 SAHNE YENİ GÖRÜNÜRLÜK MODELİNE GEÇTİ (3. aşamanın stage ayağı).
     Bu dosyadaki ÜÇ yer hâlâ eski modeli (owner_id / group_id / is_public)
     kullanıyordu; oysa görünürlük 2. aşamada `repertoires.visibility` +
@@ -398,7 +411,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 .bback:hover{color:var(--text2);}
 .loading{text-align:center;color:var(--text2);padding:24px;font-size:13px;}
 
-.stb{display:flex;flex-direction:column;align-items:stretch;padding:8px 16px 7px;padding-top:calc(8px + env(safe-area-inset-top));border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:7px;position:relative;z-index:401;}
+.stb{display:flex;flex-direction:column;align-items:stretch;padding:8px 16px 7px;padding-top:max(4px, calc(env(safe-area-inset-top) * 0.82));border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);gap:7px;position:relative;z-index:401;}
 .stb-r1{display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 16px 6px;}
 .stb-r2{display:flex;align-items:center;justify-content:center;gap:10px;min-width:0;}
 #v2StageBotNav .v2-bn-exit { color: #c05444 !important; }
@@ -423,19 +436,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 .medley-badge{display:none;align-items:center;gap:5px;background:rgba(255,200,61,.14);border:1px solid var(--accent);color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.03em;padding:3px 8px;border-radius:999px;white-space:nowrap;flex-shrink:0;}
 .np.medley{border-color:var(--accent);background:rgba(255,200,61,.10);}
 .np.medley .nl{color:var(--accent);font-weight:800;}
-.vm-tabs{display:flex;align-items:center;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:3px;flex-shrink:0;}
-.vm-tab{display:flex;align-items:center;justify-content:center;gap:6px;background:none;border:none;color:var(--text2);font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.01em;padding:0 11px;height:34px;min-width:40px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:background .14s,color .14s;}
-.vm-tab .ti{font-size:17px;line-height:1;}
+/* (2026-10-18) Şerit satırı doldurur (en fazla 560px), düğmeler eşit genişlik, 28px yükseklik. */
+.vm-tabs{display:flex;align-items:center;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:2px;flex:1 1 auto;width:100%;max-width:560px;min-width:0;}
+.vm-tab{display:flex;align-items:center;justify-content:center;gap:5px;background:none;border:none;color:var(--text2);font-family:inherit;font-size:12px;font-weight:700;letter-spacing:.01em;padding:0 6px;height:28px;min-width:0;flex:1 1 0;border-radius:7px;cursor:pointer;white-space:nowrap;transition:background .14s,color .14s;}
+.vm-tab .ti{font-size:15px;line-height:1;}
+/* Karar sesi bölmesi: düğme değil, bilgi — şeridin solunda. Boşsa gizli. */
+.vm-karar{flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0 8px;height:28px;font-size:12px;font-weight:800;letter-spacing:.03em;color:var(--text2,#9aa4b2);white-space:nowrap;}
+.vm-karar:empty{display:none;}
+.vm-karar.shifted{color:var(--accent,#FFC83D);}
+.vm-karar:empty + .vm-sep{display:none;}
 .vm-tab:hover:not(:disabled):not(.active){color:var(--text);background:rgba(255,255,255,.05);}
 .vm-tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.28);}
 .vm-tab.active .ti{color:#fff;}
 .vm-tab:disabled{opacity:.32;cursor:not-allowed;}
-/* Dar ekran: etiket gizlenir, ikon kalır — dokunma alanı korunur */
-@media (max-width:430px){
-  .vm-tab .vm-lbl{display:none;}
-  .vm-tab{padding:0 9px;min-width:42px;}
-  .stage-info-btn .vm-lbl{display:none;}
-  .stage-info-btn{padding:0 9px;}
+/* (2026-10-18) Etiketler telefonda da görünür (eskiden ≤430px'te gizliydi). Çok dar ekranda
+   yer açmak için yalnız "Karar:" öneki ve boşluklar küçülür. */
+@media (max-width:380px){
+  .vm-karar .vm-karar-on{display:none;}
+  .vm-karar{padding:0 6px;}
+  .vm-tab{gap:4px;padding:0 4px;}
+  .stage-info-btn{gap:4px;padding:0 4px;}
 }
 
 /* Sabit başlık şeridi — güfte alanının DIŞINDA, üstte durur. Güfte büyüyüp
@@ -813,7 +833,7 @@ body.stage-active #r-bottom-nav{display:none !important;}
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
-    .stb { padding:8px 10px; padding-top:calc(8px + env(safe-area-inset-top)); height:auto; min-height:48px; }
+    .stb { padding:8px 10px; padding-top:max(4px, calc(env(safe-area-inset-top) * 0.82)); height:auto; min-height:0; }
     /* (2026-08-06) 88px tavanı KALDIRILDI: repertuvar adı artık kendi satırında
        (.stb-r2), tek satırda sıkışmıyor — telefonda da tam genişlik kullanabilir. */
     .bex, .stage-nav a { font-size:10px; padding:4px 8px; }
@@ -842,7 +862,7 @@ body.stage-active #r-bottom-nav{display:none !important;}
     .snb-label { display:none; }
     .sb { padding:0 8px 6px; gap:8px; flex-wrap:nowrap; }
     .th { font-size:10px; }
-    .stb { padding:6px 8px; padding-top:calc(6px + env(safe-area-inset-top)); }
+    .stb { padding:6px 8px; padding-top:max(4px, calc(env(safe-area-inset-top) * 0.82)); }
     .stage-nav a, .bex { font-size:10px !important; padding:3px 6px !important; }
     .sm { padding:16px 10px calc(60px + env(safe-area-inset-bottom)); }
     /* Picker screen on mobile */
@@ -955,13 +975,13 @@ body.stage-active #r-bottom-nav{display:none !important;}
 /* (2026-08-06) Bilgi düğmesi sekme kutusunun içinde: sekmelerle AYNI yükseklik
    ve köşe yarıçapı, ama accent zemin yok (mod seçmiyor, panel açıyor).
    Belirginlik için ikon rengi --text ve hafif bir zemin verildi. */
-.vm-sep{width:1px;height:20px;background:var(--border);margin:0 3px;flex-shrink:0;}
+.vm-sep{width:1px;height:16px;background:var(--border);margin:0 2px;flex-shrink:0;}
 /* (2026-08-24) "Bilgi" etiketi eklendi: sekmeler basligin altina inince yer
    acildi, ikon tek basina ne oldugu belli olmuyordu. Sabit 38px genislik
    metni kirpardi — otomatik genislige gecildi. Dar ekranda (<=430px) etiket
    Soz/Akor/Nota ile birlikte gizlenir, ikon kalir. */
-.stage-info-btn{background:rgba(255,255,255,.05);border:none;min-width:38px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text);cursor:pointer;transition:background .14s,color .14s;flex-shrink:0;padding:0 11px;font-size:13px;font-weight:600;font-family:inherit;}
-.stage-info-btn .ti{font-size:19px;line-height:1;}
+.stage-info-btn{background:rgba(255,255,255,.05);border:none;min-width:0;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;color:var(--text);cursor:pointer;transition:background .14s,color .14s;flex:1 1 0;padding:0 6px;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;}
+.stage-info-btn .ti{font-size:16px;line-height:1;}
 .stage-info-btn:hover{background:rgba(255,255,255,.12);color:var(--accent);}
 body.stage-light .stage-info-btn{background:rgba(0,0,0,.05);}
 .info-sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:598;display:none;}
@@ -1048,6 +1068,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
        "hangi eser, hangi karar" bilgisi okunur; sekmeler ondan sonra gelir. -->
   <div class="stb-r1">
     <div class="vm-tabs" id="viewModeTabs" role="tablist" aria-label="Görünüm" data-i18n-aria="sh.gorunum">
+      <div class="vm-karar" id="vmKarar"></div><span class="vm-sep" aria-hidden="true"></span>
       <button class="vm-tab" data-mode="lyrics" role="tab" title="Söz" data-i18n-title="sh.soz" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i><span class="vm-lbl" data-i18n="sh.soz">Söz</span></button>
       <button class="vm-tab" data-mode="chords" role="tab" title="Akor" data-i18n-title="sh.akor" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i><span class="vm-lbl" data-i18n="sh.akor">Akor</span></button>
       <button class="vm-tab" data-mode="nota" role="tab" title="Nota" data-i18n-title="sh.nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i><span class="vm-lbl" data-i18n="sh.nota">Nota</span></button>
@@ -2304,14 +2325,19 @@ function renderStage(){
   const _cn = item.closingNote || w.closingNote || '';
   const _kt = getTranspose(item.workId);
   const _kl = kararLabel(_cn, _kt);
-  const kararChip = _cn
-    ? `<div class="wkarar${_kt ? ' shifted' : ''}" title="${htmlKac(_kt && kararLabel(_cn,0) ? _sCev('sh.orijinalKarar','Orijinal karar: {n}').replace('{n}', kararLabel(_cn,0)) : '')}">${_sCev('sh.kararKisa','Karar')}: ${htmlKac(_kl || _cn)}${(!_kl && _kt) ? _sCev('es.kaydirilmadi',' (kaydırılmadı)') : ''}</div>`
-    : '';
+  // (2026-10-18) Karar sesi başlığın altında değil, Söz/Akor/Nota şeridinin solunda (#vmKarar) — bir satır yer kazanılır.
+  const _vk = document.getElementById('vmKarar');
+  if (_vk) {
+    _vk.className = 'vm-karar' + (_cn && _kt ? ' shifted' : '');
+    _vk.title = (_cn && _kt && kararLabel(_cn,0)) ? _sCev('sh.orijinalKarar','Orijinal karar: {n}').replace('{n}', kararLabel(_cn,0)) : '';
+    _vk.innerHTML = _cn
+      ? `<span class="vm-karar-on">${_sCev('sh.kararKisa','Karar')}:&nbsp;</span>${htmlKac(_kl || _cn)}${(!_kl && _kt) ? _sCev('es.kaydirilmadi',' (kaydırılmadı)') : ''}`
+      : '';
+  }
   const _head = document.getElementById('smHead');
   if (_head) _head.innerHTML = `
     <div class="wnum"></div>
     <div class="wtitle">${htmlKac(w.name || (WL_loaded ? item.workId : '…'))}</div>
-    ${kararChip}
     ${knotSahneHtml(item.workId)}`;
   // 2026-07-28: ÖLÇEK ÖNCE, İÇERİK SONRA, HİZA AYNI KAREDE.
   // Eskiden içerik basılıyor, hizalama requestAnimationFrame ile BİR SONRAKİ
