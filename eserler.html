@@ -20,6 +20,9 @@
     Kendi eserinde Nota sekmesi yükleme alanı artık sahibine de açık (eskiden yalnız yönetici/düzenleyici; works_update
     RLS ve notalar_upload zaten izin veriyordu). Kendi eseri olmayan üyeye liste başında "Nota defterin var mı?" kartı
     (kapatılınca localStorage defterIpucuKapali).
+    (8) KENAR KIRPMA (kullanıcı: "sayfanın etrafındaki beyaz alanları kırpabiliriz, nota sayfasını büyütebiliriz"):
+    notaKenarBul/notaKenarKirp — yeni yüklemede otomatik (notaGorselKucult), kayıtlı sayfada ✂ düğmesi (cropNotaPage).
+    Nota sekmesi sayfa düğmeleri büyüdü (.nsb 40 px, çerçeveli simge; kullanıcı "butonları büyütür müsün").
     (7) SAYFA DÖNDÜRME (kullanıcı: "2. sayfayı yatık kaydetti, sayfayı çevir fonksiyonu"): Nota sekmesinde her görsel
     sayfada ↻ (rotateNotaPage: indir → notaDondur 90° → yeni dosya → aynı sıra; eski dosya depoda kalır); defter
     küçük resminde ↻ (sy.donus, kaydederken notaGorselKucult aynı geçişte döndürür). Nota sekmesi sıra/döndür/sil
@@ -1238,6 +1241,12 @@
   .df-pdf { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text3); }
   .df-sno { position:absolute; left:4px; bottom:4px; min-width:18px; height:18px; padding:0 4px; border-radius:9px;
     background:rgba(0,0,0,.6); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  /* (2026-10-18) Nota sekmesi sayfa düğmeleri — kullanıcı: "butonları büyütür müsün" (parmak hedefi 40 px) */
+  .nsb-satir { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+  .nsb { width:40px; height:40px; border-radius:10px; border:1px solid var(--border); background:var(--surface2);
+    color:var(--text); font-size:19px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+  .nsb:active { background:var(--surface); }
+  .nsb-sil { color:var(--red); border-color:rgba(255,90,95,.35); }
   .df-sayfa img.d180 { transform:rotate(180deg); }
   .df-sayfa img.d90, .df-sayfa img.d270 { position:absolute; left:50%; top:50%; width:112px; height:84px; }
   .df-sayfa img.d90 { transform:translate(-50%,-50%) rotate(90deg); }
@@ -4656,11 +4665,12 @@ function renderNotaPagesBlock(w) {
     html += `<div style="margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <span style="font-size:12px;color:var(--text3);">${_esCev('es.sayfaXY','Sayfa {i} / {n}').replace('{i}', i+1).replace('{n}', pages.length)}</span>
-        ${canEdit ? `<span style="display:flex;gap:10px;">
-          ${i > 0 ? `<button onclick="moveNotaPage(${w.id},${i},-1)" title="${_esCev('es.yukari','Yukarı')}" style="background:none;border:none;color:var(--text2);font-size:14px;cursor:pointer;">↑</button>` : ''}
-          ${i < pages.length-1 ? `<button onclick="moveNotaPage(${w.id},${i},1)" title="${_esCev('es.asagi','Aşağı')}" style="background:none;border:none;color:var(--text2);font-size:14px;cursor:pointer;">↓</button>` : ''}
-          ${isNotaImage(_guv) ? `<button onclick="rotateNotaPage(${w.id},${i})" title="${_esCev('es.t_dondur','Sağa döndür')}" aria-label="${_esCev('es.t_dondur','Sağa döndür')}" style="background:none;border:none;color:var(--text2);font-size:16px;line-height:1;cursor:pointer;"><i class="ti ti-rotate-clockwise"></i></button>` : ''}
-          <button onclick="deleteNotaPage(${w.id},${i})" title="${_esCev('es.t_sayfaSil','Bu sayfayı sil')}" style="background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;">🗑</button>
+        ${canEdit ? `<span class="nsb-satir">
+          ${i > 0 ? `<button class="nsb" onclick="moveNotaPage(${w.id},${i},-1)" title="${_esCev('es.yukari','Yukarı')}" aria-label="${_esCev('es.yukari','Yukarı')}"><i class="ti ti-arrow-up"></i></button>` : ''}
+          ${i < pages.length-1 ? `<button class="nsb" onclick="moveNotaPage(${w.id},${i},1)" title="${_esCev('es.asagi','Aşağı')}" aria-label="${_esCev('es.asagi','Aşağı')}"><i class="ti ti-arrow-down"></i></button>` : ''}
+          ${isNotaImage(_guv) ? `<button class="nsb" onclick="rotateNotaPage(${w.id},${i})" title="${_esCev('es.t_dondur','Sağa döndür')}" aria-label="${_esCev('es.t_dondur','Sağa döndür')}"><i class="ti ti-rotate-clockwise"></i></button>
+          <button class="nsb" onclick="cropNotaPage(${w.id},${i})" title="${_esCev('es.t_kirp','Beyaz kenarları kırp')}" aria-label="${_esCev('es.t_kirp','Beyaz kenarları kırp')}"><i class="ti ti-crop"></i></button>` : ''}
+          <button class="nsb nsb-sil" onclick="deleteNotaPage(${w.id},${i})" title="${_esCev('es.t_sayfaSil','Bu sayfayı sil')}" aria-label="${_esCev('es.t_sayfaSil','Bu sayfayı sil')}"><i class="ti ti-trash"></i></button>
         </span>` : ''}
       </div>
       ${isNotaImage(_guv)
@@ -5218,9 +5228,45 @@ function notaSiyahBeyaz(cx, w, h) {
   for (let i = 0; i < d.length; i += 4) { const y = tablo[d[i]]; d[i] = d[i + 1] = d[i + 2] = y; }
   cx.putImageData(im, 0, 0);
 }
+// (2026-10-18) KENAR KIRPMA — kullanıcı: "sayfanın etrafındaki beyaz alanları kırpabiliriz, nota sayfasını büyütebiliriz".
+// İçerik kutusu: satır/sütun başına koyu nokta sayısı (kâğıttan 60 birim koyu) eşiği geçen ilk/son satır-sütun; eşik
+// genişliğin %0,2'si (en az 4) → tek tük toz/leke kutuyu büyütmez. %1 (en az 12 px) pay bırakılır (TRT sayfalarında
+// kenar boşluğu ~60 px; %3 pay hiç kazanç bırakmıyordu — denendi). Kazanç alanın %3'ünden azsa ya da içerik yoksa null.
+function notaKenarBul(cx, w, h) {
+  const d = cx.getImageData(0, 0, w, h).data, hist = new Uint32Array(256), gri = new Uint8Array(w * h);
+  for (let i = 0, j = 0; j < gri.length; i += 4, j++) { const y = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8; gri[j] = y; hist[y]++; }
+  let kagit = 128;
+  for (let v = 129; v < 256; v++) if (hist[v] > hist[kagit]) kagit = v;
+  const esik = kagit - 60, satir = new Uint32Array(h), sutun = new Uint32Array(w);
+  for (let y = 0; y < h; y++) for (let x = 0, k = y * w; x < w; x++) if (gri[k + x] < esik) { satir[y]++; sutun[x]++; }
+  const enAzS = Math.max(4, w * 0.002), enAzK = Math.max(4, h * 0.002);
+  let y0 = 0, y1 = h - 1, x0 = 0, x1 = w - 1;
+  while (y0 < h && satir[y0] < enAzS) y0++;
+  while (y1 > y0 && satir[y1] < enAzS) y1--;
+  while (x0 < w && sutun[x0] < enAzK) x0++;
+  while (x1 > x0 && sutun[x1] < enAzK) x1--;
+  if (y0 >= y1 || x0 >= x1) return null;
+  const pay = Math.max(12, Math.round(Math.max(w, h) * 0.01));
+  x0 = Math.max(0, x0 - pay); y0 = Math.max(0, y0 - pay); x1 = Math.min(w - 1, x1 + pay); y1 = Math.min(h - 1, y1 + pay);
+  const kw = x1 - x0 + 1, kh = y1 - y0 + 1;
+  if (kw * kh > w * h * 0.97) return null;
+  return { x: x0, y: y0, w: kw, h: kh };
+}
+// Tuvali içerik kutusuna kırpılmış YENİ tuval olarak döner (kırpma yoksa aynısı).
+function notaKenarKirp(cv) {
+  const cx = cv.getContext('2d', { willReadFrequently: true });
+  const k = notaKenarBul(cx, cv.width, cv.height);
+  if (!k) return cv;
+  const yeni = document.createElement('canvas');
+  yeni.width = k.w; yeni.height = k.h;
+  yeni.getContext('2d').drawImage(cv, k.x, k.y, k.w, k.h, 0, 0, k.w, k.h);
+  cv.width = cv.height = 0;
+  return yeni;
+}
+
 // (2026-10-18) SAYFA DÖNDÜRME — kullanıcı: "2. sayfayı yatık kaydetti, burada bir sayfayı çevir fonksiyonu ekleyebiliriz".
 // notaDondur: görseli saat yönünde döndürür, renge/boyuta dokunmaz (PNG → PNG, diğerleri → JPEG %90).
-async function notaDondur(file, derece) {
+async function notaDondur(file, derece, kirp) {
   const url = URL.createObjectURL(file);
   try {
     const img = new Image();
@@ -5236,33 +5282,40 @@ async function notaDondur(file, derece) {
     const cx = cv.getContext('2d', { willReadFrequently: true });
     cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
     cx.translate(cv.width / 2, cv.height / 2); cx.rotate(derece * Math.PI / 180); cx.drawImage(img, -w / 2, -h / 2);
+    cx.setTransform(1, 0, 0, 1, 0, 0);
+    let son = cv;
+    if (kirp) { son = notaKenarKirp(cv); if (son === cv) throw new Error(_esCev('es.kirpGerekYok','kırpılacak boş kenar yok')); }
     const png = (file.type || '').toLowerCase() === 'image/png';
-    const blob = await new Promise(r => cv.toBlob(r, png ? 'image/png' : 'image/jpeg', 0.9));
-    cv.width = cv.height = 0;
+    const blob = await new Promise(r => son.toBlob(r, png ? 'image/png' : 'image/jpeg', 0.9));
+    son.width = son.height = 0; cv.width = cv.height = 0;
     if (!blob) throw new Error(_esCev('es.dondurKodlanamadi','görsel kaydedilemedi'));
     return new File([blob], ((file.name || 'nota').replace(/\.[A-Za-z0-9]{2,5}$/, '') || 'nota') + (png ? '.png' : '.jpg'),
                     { type: png ? 'image/png' : 'image/jpeg', lastModified: Date.now() });
   } finally { URL.revokeObjectURL(url); }
 }
-// Kayıtlı sayfayı 90° sağa döndür: indir → döndür → YENİ dosya olarak yükle → aynı sıraya koy.
+// Kayıtlı sayfayı işle (döndür / kırp): indir → işle → YENİ dosya olarak yükle → aynı sıraya koy.
 // Eski dosya depoda kalır (notalar'da silme politikası yok — lansman sonrası temizlik maddesi).
-async function rotateNotaPage(id, i) {
+async function notaSayfaIsle(id, i, derece, kirp) {
+  const durum = kirp ? _esCev('es.kirpiliyor','⏳ Kırpılıyor...') : _esCev('es.donduruluyor','⏳ Döndürülüyor...');
+  const hataOn = kirp ? _esCev('es.kirpHata','Kırpılamadı: ') : _esCev('es.dondurHata','Döndürülemedi: ');
   try {
     const pages = (await currentNotaPages(id)).slice();
     const u = pages[i];
     if (!u || !isNotaImage(u)) return;
-    notaStatus(id, _esCev('es.donduruluyor','⏳ Döndürülüyor...'));
+    notaStatus(id, durum);
     const yan = await fetch(u, { cache: 'no-store' });
     if (!yan.ok) throw new Error('HTTP ' + yan.status);
     const b = await yan.blob();
-    const dosya = await notaDondur(new File([b], 'sayfa', { type: b.type || 'image/jpeg' }), 90);
+    const dosya = await notaDondur(new File([b], 'sayfa', { type: b.type || 'image/jpeg' }), derece, kirp);
     pages[i] = await _notaUploadToStorage(id, dosya);
     await saveNotaPages(id, pages);
     selectWork(id, true); switchDetailTab('nota');
   } catch (e) {
-    notaStatus(id, '❌ ' + _esCev('es.dondurHata','Döndürülemedi: ') + e.message, 'var(--red)');
+    notaStatus(id, '❌ ' + hataOn + e.message, 'var(--red)');
   }
 }
+function rotateNotaPage(id, i) { return notaSayfaIsle(id, i, 90, false); }
+function cropNotaPage(id, i) { return notaSayfaIsle(id, i, 0, true); }
 // donus: 0/90/180/270 (saat yönü) — defter ekranında sayfa döndürüldüyse aynı geçişte uygulanır.
 async function notaGorselKucult(file, donus) {
   donus = (((donus || 0) % 360) + 360) % 360;
@@ -5296,8 +5349,9 @@ async function notaGorselKucult(file, donus) {
     if (donus) { cx.translate(W / 2, H / 2); cx.rotate(donus * Math.PI / 180); cx.drawImage(img, -w / 2, -h / 2, w, h); cx.setTransform(1, 0, 0, 1, 0, 0); }
     else cx.drawImage(img, 0, 0, w, h);
     notaSiyahBeyaz(cx, W, H);
-    const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', NOTA_JPEG_KALITE));
-    cv.width = cv.height = 0;                                 // iOS tuval belleğini hemen bırak
+    const son = notaKenarKirp(cv);                           // beyaz kenarlar kesilir → sahnede nota büyür
+    const blob = await new Promise(r => son.toBlob(r, 'image/jpeg', NOTA_JPEG_KALITE));
+    son.width = son.height = 0; cv.width = cv.height = 0;    // iOS tuval belleğini hemen bırak
     if (!blob) return file;
     const ad = ((file.name || 'nota').replace(/\.[A-Za-z0-9]{2,5}$/, '') || 'nota') + '.jpg';
     return new File([blob], ad, { type: 'image/jpeg', lastModified: Date.now() });
