@@ -7,6 +7,7 @@
     (2) KARAR SESİ başlığın altından bu şeride alındı (#vmKarar, şeridin solunda, düğme değil) —
         bir satır yer kazanıldı. Kaydırılmışsa altın renk, ipucunda orijinal karar (eski .wkarar ile aynı).
         Karar sesi girilmemiş eserde bu bölme gizlenir. ≤380px'te "Karar:" öneki düşer, yalnız ses kalır.
+        Söz | Akor | Nota arasına da ayraç (kullanıcı); seçili sekmeye bitişik ayraç görünmez.
     (3) NOKTA GÖSTERGESİ (1/15) çentiğe doğru yukarı: üst boşluk "8px + safe-area" → "safe-area × 0,82"
         (en az 4px). Sabit çıkarma (−8px) DEĞİL oran: ana tuşlu iPhone'da (SE, inset 20) saat durum
         çubuğunun ORTASINDA, sabit −8 sayacı saatin altına sokardı; oranla SE 16,4px (saatin altında),
@@ -445,6 +446,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 .vm-karar:empty{display:none;}
 .vm-karar.shifted{color:var(--accent,#FFC83D);}
 .vm-karar:empty + .vm-sep{display:none;}
+/* Söz | Akor | Nota arası ayraç; seçili sekmenin yanındaki ayraç gizlenir (iOS bölmeli denetim gibi), yer kaymasın diye visibility. */
+.vm-tab.active + .vm-sep-ic, .vm-sep-ic:has(+ .vm-tab.active){visibility:hidden;}
 .vm-tab:hover:not(:disabled):not(.active){color:var(--text);background:rgba(255,255,255,.05);}
 .vm-tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.28);}
 .vm-tab.active .ti{color:#fff;}
@@ -975,7 +978,7 @@ body.stage-active #r-bottom-nav{display:none !important;}
 /* (2026-08-06) Bilgi düğmesi sekme kutusunun içinde: sekmelerle AYNI yükseklik
    ve köşe yarıçapı, ama accent zemin yok (mod seçmiyor, panel açıyor).
    Belirginlik için ikon rengi --text ve hafif bir zemin verildi. */
-.vm-sep{width:1px;height:16px;background:var(--border);margin:0 2px;flex-shrink:0;}
+.vm-sep{width:1px;height:16px;background:var(--border2, var(--border));margin:0 2px;flex-shrink:0;}   /* (2026-10-18) border2: v3 koyu temada border .08 çok soluktu */
 /* (2026-08-24) "Bilgi" etiketi eklendi: sekmeler basligin altina inince yer
    acildi, ikon tek basina ne oldugu belli olmuyordu. Sabit 38px genislik
    metni kirpardi — otomatik genislige gecildi. Dar ekranda (<=430px) etiket
@@ -1070,7 +1073,9 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     <div class="vm-tabs" id="viewModeTabs" role="tablist" aria-label="Görünüm" data-i18n-aria="sh.gorunum">
       <div class="vm-karar" id="vmKarar"></div><span class="vm-sep" aria-hidden="true"></span>
       <button class="vm-tab" data-mode="lyrics" role="tab" title="Söz" data-i18n-title="sh.soz" onclick="event.stopPropagation();setViewMode('lyrics')"><i class="ti ti-music" aria-hidden="true"></i><span class="vm-lbl" data-i18n="sh.soz">Söz</span></button>
+      <span class="vm-sep vm-sep-ic" aria-hidden="true"></span>
       <button class="vm-tab" data-mode="chords" role="tab" title="Akor" data-i18n-title="sh.akor" onclick="event.stopPropagation();setViewMode('chords')"><i class="ti ti-guitar-pick" aria-hidden="true"></i><span class="vm-lbl" data-i18n="sh.akor">Akor</span></button>
+      <span class="vm-sep vm-sep-ic" aria-hidden="true"></span>
       <button class="vm-tab" data-mode="nota" role="tab" title="Nota" data-i18n-title="sh.nota" onclick="event.stopPropagation();setViewMode('nota')"><i class="ti ti-file-music" aria-hidden="true"></i><span class="vm-lbl" data-i18n="sh.nota">Nota</span></button>
       <span class="vm-sep" aria-hidden="true"></span>
       <button class="stage-info-btn" onclick="event.stopPropagation();openInfoSheet()" title="Eser Bilgileri" data-i18n-title="sh.eserBilgileri" aria-label="Eser Bilgileri" data-i18n-aria="sh.eserBilgileri">
