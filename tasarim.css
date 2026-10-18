@@ -635,7 +635,9 @@ html[data-tasarim="v3"][data-theme="light"] .v2-sb-divider { background: rgba(25
 html[data-tasarim="v3"][data-theme="light"] .sb-user-x { background: #111722 !important; border-color: rgba(255, 255, 255, .12) !important; }
 /* Üst çubuktaki zil ve tema anahtarı: topnav.js açık tema için koyu renk yazıyordu (siyah zeminde görünmüyordu). */
 html[data-tasarim="v3"][data-theme="light"] .r-topnav .r-tn-bell i { color: #e6e2ff; }
-html[data-tasarim="v3"][data-theme="light"] .r-topnav .r-theme-toggle { background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .10); }
+html[data-tasarim="v3"][data-theme="light"] .r-topnav .r-theme-toggle,
+html[data-tasarim="v3"][data-theme="light"] .sidebar .r-theme-toggle,
+html[data-tasarim="v3"][data-theme="light"] .v2-sidebar .r-theme-toggle { background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .10); }
 /* Alt menüdeki "Sahne Modu" yazısı koyu temadaki gibi sarı (yukarıdaki .bn-label kuralı griye çekiyordu). */
 html[data-tasarim="v3"][data-theme="light"] .bn-stage,
 html[data-tasarim="v3"][data-theme="light"] .bn-stage .bn-label { color: #FFC83D !important; }
