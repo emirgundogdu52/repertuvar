@@ -13,6 +13,13 @@
     sınıflarını swizzle ettiği için — Apple 2.5.1 — KULLANILMADI). Taranan sayfalar fetch → File → uploadNotaFiles
     (küçültmeden geçer). DESTEK_YOK → bu oturumda "Fotoğraf Çek"e döner. Web'de yalnız Fotoğraf Çek.
     ⚠️ Android ML Kit tanılama verisi gönderir → AAB 18 öncesi Play veri güvenliğine "Tanılama" (kullanıcı onayı).
+    (3) 📒 DEFTERDEN ESER EKLE (kullanıcı: yeni üye nota defterini tarayarak eser eklesin; kararlar "uygun"):
+    "+" artık seçim açar (Yeni eser yaz / Defterden ekle). defterAc: tara ya da seç → her sayfa bir kart = bir eser,
+    ad + "Öncekiyle birleştir" / "Son sayfayı ayır" → Kaydet: private + approved works POST, sayfalar notaGorselKucult
+    → notalar/works/<id>/ → nota_pages. Yarıda kalan kart tekrar denenince eser ikinci kez açılmaz. Bitince 🔒 Taslaklarım.
+    Kendi eserinde Nota sekmesi yükleme alanı artık sahibine de açık (eskiden yalnız yönetici/düzenleyici; works_update
+    RLS ve notalar_upload zaten izin veriyordu). Kendi eseri olmayan üyeye liste başında "Nota defterin var mı?" kartı
+    (kapatılınca localStorage defterIpucuKapali).
   - 2026-08-27: ➕ TÜR listesine 'Şiir' eklendi (TUR_LISTESI, 'Diğer'in hemen
     üstünde). Eserler arasında okunan bağımsız şiirler repertuvarda kendi
     başına bir sıra öğesi olabilsin diye. Form kutusu Şiir'de otomatik
@@ -1154,6 +1161,70 @@
   .nota-kamera-ipucu { margin-top:6px; font-size:11.5px; color:var(--text3); text-align:center; line-height:1.45; }
   @media (hover:hover) and (pointer:fine) { .nota-kamera:not(.nota-tara), .nota-kamera-ipucu:not(.nota-tara) { display:none; } }
 
+  /* (2026-10-18) "+" seçimi + DEFTERDEN ESER EKLE */
+  .ekleme-secim { position:fixed; right:20px; bottom:84px; z-index:600; display:none; flex-direction:column; gap:4px;
+    width:min(300px, calc(100vw - 32px)); padding:6px; border-radius:14px; background:var(--surface);
+    border:1px solid var(--border2, var(--border)); box-shadow:0 14px 40px rgba(0,0,0,.35); }
+  .ekleme-secim.acik { display:flex; }
+  .ekleme-secim button { display:flex; align-items:center; gap:12px; padding:11px 12px; border:none; border-radius:10px;
+    background:none; color:var(--text); text-align:left; font-family:inherit; cursor:pointer; }
+  .ekleme-secim button:hover, .ekleme-secim button:active { background:var(--surface2); }
+  .ekleme-secim i { font-size:22px; color:var(--accent); }
+  .ekleme-secim b { display:block; font-size:14px; }
+  .ekleme-secim small { display:block; font-size:12px; color:var(--text3); margin-top:2px; line-height:1.35; }
+
+  .defter-modal { position:fixed; inset:0; z-index:1200; display:none; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.55); }
+  .df-kutu { width:min(760px, 100vw); height:min(900px, 100dvh); display:flex; flex-direction:column; background:var(--bg, var(--surface));
+    border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  @media (max-width:760px) { .df-kutu { width:100vw; height:100dvh; border-radius:0; border:none; } }
+  .df-bas { display:flex; align-items:flex-start; gap:12px; padding:calc(14px + env(safe-area-inset-top)) 16px 12px;
+    border-bottom:1px solid var(--border); }
+  .df-bas > div { flex:1; min-width:0; }
+  .df-baslik { font-size:17px; font-weight:700; color:var(--text); }
+  .df-alt-baslik { font-size:12.5px; color:var(--text3); margin-top:4px; line-height:1.45; }
+  .df-kapat { flex:0 0 auto; width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface2);
+    color:var(--text2); font-size:20px; line-height:1; cursor:pointer; }
+  .df-liste { flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px; -webkit-overflow-scrolling:touch; }
+  .df-bos { margin:auto; text-align:center; color:var(--text3); font-size:13px; line-height:1.6; padding:24px; }
+  .df-kart { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px; }
+  .df-kart-ust { display:flex; align-items:center; gap:10px; }
+  .df-no { flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--surface2); color:var(--text2);
+    font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .df-ad { flex:1; min-width:0; height:40px; padding:0 12px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface2); color:var(--text); font-size:15px; font-family:inherit; }
+  .df-ad.hata { border-color:var(--red); }
+  .df-ikon { flex:0 0 auto; width:38px; height:38px; border-radius:8px; border:1px solid var(--border); background:none;
+    color:var(--text3); font-size:17px; cursor:pointer; }
+  .df-sayfalar { display:flex; gap:8px; overflow-x:auto; margin-top:10px; padding-bottom:2px; }
+  .df-sayfa { position:relative; flex:0 0 auto; width:84px; height:112px; border-radius:6px; overflow:hidden;
+    background:var(--surface2); border:1px solid var(--border); }
+  .df-sayfa img { width:100%; height:100%; object-fit:cover; display:block; }
+  .df-pdf { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text3); }
+  .df-sno { position:absolute; left:4px; bottom:4px; min-width:18px; height:18px; padding:0 4px; border-radius:9px;
+    background:rgba(0,0,0,.6); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .df-sayfa-sil { position:absolute; right:3px; top:3px; width:24px; height:24px; border-radius:50%; border:none;
+    background:rgba(0,0,0,.6); color:#fff; font-size:15px; line-height:1; cursor:pointer; }
+  .df-kart-alt { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .df-kart-alt:empty { display:none; }
+  .df-kart-alt button { display:flex; align-items:center; gap:6px; padding:7px 11px; border-radius:8px; border:1px solid var(--border);
+    background:none; color:var(--text2); font-size:12.5px; font-family:inherit; cursor:pointer; }
+  .df-durum { padding:0 16px; font-size:12.5px; color:var(--text3); min-height:18px; line-height:1.45; }
+  .df-ayak { display:flex; gap:10px; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--border); }
+  .df-ayak button { flex:1; height:46px; border-radius:10px; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px; }
+  .df-ekle { border:1.5px solid var(--accent); background:rgba(255,200,61,.08); color:var(--accent); }
+  .df-kaydet { border:none; background:var(--accent); color:#111; }
+  .df-kaydet:disabled { opacity:.45; cursor:default; }
+  .df-ipucu { display:flex; align-items:center; gap:12px; margin:0 0 10px; padding:12px 12px 12px 14px; border-radius:12px;
+    border:1px solid rgba(255,200,61,.35); background:rgba(255,200,61,.07); }
+  .df-ipucu > i { font-size:26px; color:var(--accent); flex:0 0 auto; }
+  .df-ipucu > div { flex:1; min-width:0; font-size:12.5px; color:var(--text2); line-height:1.4; }
+  .df-ipucu b { display:block; font-size:14px; color:var(--text); margin-bottom:2px; }
+  .df-ipucu-ac { flex:0 0 auto; padding:8px 12px; border-radius:8px; border:none; background:var(--accent); color:#111;
+    font-size:12.5px; font-weight:700; font-family:inherit; cursor:pointer; }
+  .df-ipucu-kapat { flex:0 0 auto; width:28px; height:28px; border:none; background:none; color:var(--text3); font-size:18px; cursor:pointer; }
+
   /* ── 2026-07-20: mobil "basılı tut → Yapıştır" kutusu ──
      iOS/Android yapıştır menüsü YALNIZCA düzenlenebilir bir alanda açılır,
      bu yüzden bu kutu contenteditable. inputmode=none → klavye açılmaz. */
@@ -1482,7 +1553,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     </div>
     <div class="toolbar">
       <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;"><i class="ti ti-adjustments-horizontal"></i> <span data-i18n="es.filtreler">Filtreler</span><span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
-      <button id="btnAdminNewEser" class="admin-only fab-new-eser" onclick="openNewEserModal()" title="Yeni Eser Ekle" data-i18n-title="es.yenieserKisa" style="position:fixed;right:20px;bottom:24px;width:48px;height:48px;border-radius:50%;background:var(--yt-btn,var(--accent));border:none;box-shadow:0 8px 24px rgba(255,200,61,0.4);display:none;align-items:center;justify-content:center;font-size:22px;line-height:1;color:#111;font-weight:600;cursor:pointer;z-index:500;">+</button>
+      <button id="btnAdminNewEser" class="admin-only fab-new-eser" onclick="eklemeSecimAc(event)" title="Yeni Eser Ekle" data-i18n-title="es.yenieserKisa" style="position:fixed;right:20px;bottom:24px;width:48px;height:48px;border-radius:50%;background:var(--yt-btn,var(--accent));border:none;box-shadow:0 8px 24px rgba(255,200,61,0.4);display:none;align-items:center;justify-content:center;font-size:22px;line-height:1;color:#111;font-weight:600;cursor:pointer;z-index:500;">+</button>
       <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:none;align-items:center;gap:5px;background:rgba(249,160,74,.12);border:1px solid rgba(249,160,74,.3);border-radius:20px;padding:4px 10px 4px 8px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);"><span data-i18n="es.onayBekleyenBtn">⏳ Onay Bekleyen</span> <span id="pendingCountDesktop" style="background:#F9A04A;color:#1a1000;border-radius:10px;padding:1px 7px;font-size:10px;">0</span></button>
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;margin-left:auto;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);" data-i18n="es.oner">🎵 Öner</button>
       <button id="btnUserSuggest" onclick="openSuggestModal()" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);" data-i18n="es.eseroner">🎵 Eser Öner</button>
@@ -2612,6 +2683,7 @@ function renderList() {
       ${cardHtml}
     </div>`;
   }).join('');
+  if (defterIpucuGoster()) panel.insertAdjacentHTML('afterbegin', defterIpucuHtml());
 }
 
 // ── İki yönlü kaydırma: sağa → Değiştir, sola → Sil ──
@@ -3124,7 +3196,7 @@ function selectWork(id, silent) {
 
     <div id="tab-nota" class="detail-tab-content detail-body${lastTab==='nota'?' active':''}">
       ${renderNotaPagesBlock(w)}
-      ${(isAdmin() || isEditor()) ? `
+      ${(isAdmin() || isEditor() || (w.submitted_by && w.submitted_by === getUserId())) ? `
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;">
           <div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">${_esCev('es.sayfaEkle','Sayfa Ekle')}</div>
           <input type="file" id="notaFile_${w.id}" accept="image/*,.pdf" multiple
@@ -4735,6 +4807,237 @@ async function notaTaraDosyalar(durum) {
   T.temizle().catch(() => {});
   if (!files.length) durum({ text: '❌ ' + _esCev('es.taramaHata','Tarama yapılamadı.'), renk: 'var(--red)' });
   return files;
+}
+
+// ── (2026-10-18) DEFTERDEN ESER EKLE ──────────────────────────────────────────────────────────────
+// Kullanıcı: yeni üye mevcut nota defterini tarayarak eserlerini eklesin. Kararlar ("uygun", 2026-10-18):
+// eserler SADECE BEN (private, onaysız → 🔒 Taslaklarım), her üye KENDİ eserine nota ekleyebilir, şimdilik sınır yok.
+// Akış: tara (NotaTarayici) ya da dosya seç → her sayfa bir kart = bir eser → ad yaz, "Öncekiyle birleştir" /
+// "Son sayfayı ayır" → Kaydet: kart başına works POST (private) → sayfalar notalar/works/<id>/ (notaGorselKucult)
+// → nota_pages PATCH. Yarıda kalan kart yeniden denenince eser İKİNCİ KEZ açılmaz (k.id), yüklenen sayfa atlanır (s.adres).
+let _defter = [];               // [{ ad, id?, sayfalar: [{ dosya, url, adres? }] }]
+let _defterKaydediliyor = false;
+
+function eklemeSecimAc(e) {
+  if (e) e.stopPropagation();
+  let m = document.getElementById('eklemeSecim');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'eklemeSecim';
+    m.className = 'ekleme-secim';
+    m.innerHTML = `<button type="button" onclick="eklemeSecimKapat();openNewEserModal()"><i class="ti ti-pencil"></i>
+        <span><b data-i18n="es.yeniEserYaz">${_esCev('es.yeniEserYaz','Yeni eser yaz')}</b>
+        <small data-i18n="es.yeniEserYazAlt">${_esCev('es.yeniEserYazAlt','Adı, sözü, akoru ve notayı kendin gir')}</small></span></button>
+      <button type="button" onclick="eklemeSecimKapat();defterAc()"><i class="ti ti-notebook"></i>
+        <span><b data-i18n="es.defterdenEkle">${_esCev('es.defterdenEkle','Defterden ekle')}</b>
+        <small data-i18n="es.defterdenEkleAlt">${_esCev('es.defterdenEkleAlt','Nota defterini tara, her şarkı ayrı eser olsun')}</small></span></button>`;
+    m.addEventListener('click', ev => ev.stopPropagation());
+    document.body.appendChild(m);
+    document.addEventListener('click', () => eklemeSecimKapat());
+  }
+  m.classList.toggle('acik');
+}
+function eklemeSecimKapat() { const m = document.getElementById('eklemeSecim'); if (m) m.classList.remove('acik'); }
+
+function defterAc() {
+  let m = document.getElementById('defterModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'defterModal';
+    m.className = 'defter-modal';
+    m.innerHTML = `<div class="df-kutu" role="dialog" aria-modal="true">
+      <div class="df-bas"><div>
+          <div class="df-baslik" data-i18n="es.dfBaslik">${_esCev('es.dfBaslik','📒 Defterden Eser Ekle')}</div>
+          <div class="df-alt-baslik" data-i18n="es.dfAciklama">${_esCev('es.dfAciklama','Her sayfa bir eser olur. Birden çok sayfalık şarkıda “Öncekiyle birleştir”e dokun. Eserleri yalnız sen görürsün; sonra istersen grubunla paylaşırsın.')}</div></div>
+        <button type="button" class="df-kapat" onclick="defterKapat()" aria-label="×">×</button></div>
+      <input type="file" id="df_dosya" accept="image/*,.pdf" multiple style="display:none;" onchange="defterDosyaSec(this)">
+      <div id="df_liste" class="df-liste"></div>
+      <div id="df_durum" class="df-durum"></div>
+      <div class="df-ayak">
+        <button type="button" class="df-ekle" id="df_ekle" onclick="defterSayfaEkle()"></button>
+        <button type="button" class="df-kaydet" id="df_kaydet" onclick="defterKaydet()"></button>
+      </div></div>`;
+    document.body.appendChild(m);
+  }
+  m.style.display = 'flex';
+  defterCiz();
+  if (!_defter.length) defterSayfaEkle();     // ilk açılışta tarayıcı/seçici hemen açılır (aynı dokunuş içinde)
+}
+
+function defterKapat() {
+  if (_defterKaydediliyor) return;
+  if (_defter.length && !confirm(_esCev('es.dfKapatOnay','Kaydedilmemiş {n} eser var. Kapatılsın mı?').replace('{n}', _defter.length))) return;
+  _defter.forEach(k => k.sayfalar.forEach(sy => URL.revokeObjectURL(sy.url)));
+  _defter = [];
+  const m = document.getElementById('defterModal');
+  if (m) m.style.display = 'none';
+  defterDurum('');
+}
+
+function defterDurum(t, renk) {
+  const d = document.getElementById('df_durum');
+  if (d) { d.textContent = t || ''; d.style.color = renk || 'var(--text3)'; }
+}
+
+function defterSayfaEkle() {
+  if (_defterKaydediliyor) return;
+  if (notaTarayiciVar()) notaTaraDosyalar(m => defterDurum(m.text, m.renk)).then(defterEkle);
+  else document.getElementById('df_dosya').click();
+}
+function defterDosyaSec(inp) { const f = Array.from(inp.files || []); inp.value = ''; defterEkle(f); }
+
+function defterPdfMi(f) { return f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''); }
+function defterEkle(files) {
+  files = (files || []).filter(f => f && ((f.type || '').indexOf('image/') === 0 || defterPdfMi(f)));
+  if (!files.length) { defterCiz(); return; }
+  const ilkYeni = _defter.length;
+  files.forEach(f => _defter.push({ ad: '', sayfalar: [{ dosya: f, url: URL.createObjectURL(f) }] }));
+  defterDurum('');
+  defterCiz();
+  const el = document.getElementById('df_ad_' + ilkYeni);
+  if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+function defterCiz() {
+  const L = document.getElementById('df_liste');
+  if (!L) return;
+  const kilit = _defterKaydediliyor ? ' disabled' : '';
+  L.innerHTML = !_defter.length
+    ? `<div class="df-bos" data-i18n="es.dfBos">${_esCev('es.dfBos','Henüz sayfa yok. Aşağıdan defterinin sayfalarını tara ya da fotoğraflarını seç.')}</div>`
+    : _defter.map((k, i) => `<div class="df-kart">
+        <div class="df-kart-ust"><span class="df-no">${i + 1}</span>
+          <input class="df-ad" id="df_ad_${i}" value="${_esHtml(k.ad)}" placeholder="${_esCev('es.dfAdYer','Eser adı')}"${kilit}
+            autocomplete="off" autocapitalize="words" enterkeyhint="next"
+            oninput="_defter[${i}].ad=this.value;this.classList.remove('hata')"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();const n=document.getElementById('df_ad_${i + 1}');if(n)n.focus();else this.blur();}">
+          <button type="button" class="df-ikon" onclick="defterEserSil(${i})" title="${_esCev('es.dfEserCikar','Bu eseri çıkar')}"${kilit}><i class="ti ti-trash"></i></button></div>
+        <div class="df-sayfalar">${k.sayfalar.map((sy, j) => `<div class="df-sayfa">${defterPdfMi(sy.dosya)
+            ? '<div class="df-pdf">PDF</div>' : `<img src="${sy.url}" alt="">`}<span class="df-sno">${j + 1}</span>${k.sayfalar.length > 1 && !kilit
+            ? `<button type="button" class="df-sayfa-sil" onclick="defterSayfaSil(${i},${j})" aria-label="×">×</button>` : ''}</div>`).join('')}</div>
+        <div class="df-kart-alt">${!kilit && i > 0 ? `<button type="button" onclick="defterBirlestir(${i})"><i class="ti ti-arrow-bar-to-up"></i>${_esCev('es.dfBirlestir','Öncekiyle birleştir')}</button>` : ''}${!kilit && k.sayfalar.length > 1 ? `<button type="button" onclick="defterAyir(${i})"><i class="ti ti-cut"></i>${_esCev('es.dfAyir','Son sayfayı ayır')}</button>` : ''}</div>
+      </div>`).join('');
+  const kb = document.getElementById('df_kaydet'), eb = document.getElementById('df_ekle');
+  if (kb) {
+    kb.textContent = _defter.length ? _esCev('es.dfKaydet','Kaydet ({n} eser)').replace('{n}', _defter.length) : _esCev('es.dfKaydet0','Kaydet');
+    kb.disabled = !_defter.length || _defterKaydediliyor;
+  }
+  if (eb) {
+    eb.innerHTML = notaTarayiciVar()
+      ? `<i class="ti ti-scan"></i>${_esCev('es.dfTara','Sayfa tara')}`
+      : `<i class="ti ti-photo-plus"></i>${_esCev('es.dfSec','Sayfa ekle')}`;
+    eb.disabled = _defterKaydediliyor;
+  }
+}
+
+function defterBirlestir(i) {
+  const a = _defter[i - 1], b = _defter[i];
+  if (!a || !b) return;
+  a.sayfalar.push(...b.sayfalar);
+  if (!a.ad.trim() && b.ad.trim()) a.ad = b.ad;
+  _defter.splice(i, 1);
+  defterCiz();
+}
+function defterAyir(i) {
+  const k = _defter[i];
+  if (!k || k.sayfalar.length < 2) return;
+  _defter.splice(i + 1, 0, { ad: '', sayfalar: [k.sayfalar.pop()] });
+  defterCiz();
+}
+function defterSayfaSil(i, j) {
+  const k = _defter[i];
+  if (!k) return;
+  const sy = k.sayfalar.splice(j, 1)[0];
+  if (sy) URL.revokeObjectURL(sy.url);
+  defterCiz();
+}
+function defterEserSil(i) {
+  const k = _defter.splice(i, 1)[0];
+  if (k) k.sayfalar.forEach(sy => URL.revokeObjectURL(sy.url));
+  defterCiz();
+}
+
+// Tek eser kaydı (private, onaysız). Yeni eser modalıyla aynı alanlar, boş değerlerle.
+async function defterEserOlustur(ad) {
+  const alanlar = {
+    name: ad, composer: '', lyric_writer: '', makam: '', measurement: '', tur: null, form: '', tuning: '',
+    instrument: '', region: '', source_person: '', collector: '', story: '', ritim: '', metronom: null,
+    video_link: '', lyrics: '', chords: '', closing_note: '',
+    visibility: 'private', status: 'approved', group_id: null,
+    submitted_by: getUserId(), submitter_email: getUser()?.email || '', submitted_at: new Date().toISOString()
+  };
+  const r = await fetch(SUPA_URL + '/rest/v1/works', {
+    method: 'POST', headers: { ...authHeaders(), 'Prefer': 'return=representation' }, body: JSON.stringify(alanlar)
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' — ' + (await r.text()).slice(0, 200));
+  const satir = (await r.json() || [])[0];
+  if (!satir || !satir.id) throw new Error(_esCev('es.kimlikYok','Sunucu yeni eserin kimliğini döndürmedi — kayıt doğrulanamadı, lütfen tekrar deneyin.'));
+  DATA.push(mapWorkRow(satir));
+  return satir.id;
+}
+
+async function defterKaydet() {
+  if (_defterKaydediliyor || !_defter.length) return;
+  const bos = _defter.findIndex(k => !k.ad.trim());
+  if (bos > -1) {
+    const el = document.getElementById('df_ad_' + bos);
+    if (el) { el.classList.add('hata'); el.scrollIntoView({ block: 'center' }); el.focus(); }
+    defterDurum(_esCev('es.dfAdGerekli','Her esere bir ad yaz.'), 'var(--red)');
+    return;
+  }
+  _defterKaydediliyor = true;
+  defterCiz();
+  const toplam = _defter.length, kalan = [], hatalar = [];
+  let sira = 0, eklenen = 0;
+  for (const k of _defter) {
+    sira++;
+    defterDurum(_esCev('es.dfKaydediliyor','⏳ Kaydediliyor {i}/{n} — {ad}').replace('{i}', sira).replace('{n}', toplam).replace('{ad}', k.ad.trim()));
+    try {
+      if (!k.id) k.id = await defterEserOlustur(k.ad.trim());
+      for (const sy of k.sayfalar) if (!sy.adres) sy.adres = await _notaUploadToStorage(k.id, await notaGorselKucult(sy.dosya));
+      await saveNotaPages(k.id, k.sayfalar.map(sy => sy.adres));
+      k.sayfalar.forEach(sy => URL.revokeObjectURL(sy.url));
+      eklenen++;
+    } catch (e) {
+      hatalar.push(k.ad.trim() + ': ' + e.message);
+      kalan.push(k);
+    }
+  }
+  _defter = kalan;
+  _defterKaydediliyor = false;
+  if (eklenen) { buildFilters(); applyFilters(); }
+  if (!kalan.length) {
+    const m = document.getElementById('defterModal');
+    if (m) m.style.display = 'none';
+    defterDurum('');
+    toastMsg(_esCev('es.dfEklendi','✓ {n} eser eklendi — 🔒 Taslaklarım').replace('{n}', eklenen));
+    setDraftOnly(true);
+  } else {
+    defterCiz();
+    defterDurum('❌ ' + _esCev('es.dfBazilariOlmadi','{n} eser kaydedilemedi, yeniden Kaydet\'e dokun: ').replace('{n}', kalan.length) + hatalar[0], 'var(--red)');
+  }
+}
+
+// Liste başında yeni üyeye öneri: kendi eseri yoksa, kapatılmadıysa, süzgeç/arama açık değilse.
+function defterIpucuGoster() {
+  const uid = getUserId();
+  if (!uid || draftOnly || favOnly || !DATA.length) return false;
+  const q = document.getElementById('searchInput');
+  if (q && q.value.trim()) return false;
+  try { if (localStorage.getItem('defterIpucuKapali') === '1') return false; } catch (e) {}
+  return !DATA.some(w => w.submitted_by === uid);
+}
+function defterIpucuHtml() {
+  return `<div class="df-ipucu"><i class="ti ti-notebook"></i>
+    <div><b data-i18n="es.dfIpucuBaslik">${_esCev('es.dfIpucuBaslik','Nota defterin var mı?')}</b>
+      <span data-i18n="es.dfIpucuMetin">${_esCev('es.dfIpucuMetin','Sayfalarını tara, her şarkı ayrı eser olarak eklensin. Yalnız sen görürsün.')}</span></div>
+    <button type="button" class="df-ipucu-ac" onclick="defterAc()" data-i18n="es.defterdenEkle">${_esCev('es.defterdenEkle','Defterden ekle')}</button>
+    <button type="button" class="df-ipucu-kapat" onclick="defterIpucuKapat(event)" aria-label="×">×</button></div>`;
+}
+function defterIpucuKapat(e) {
+  if (e) e.stopPropagation();
+  try { localStorage.setItem('defterIpucuKapali', '1'); } catch (er) {}
+  const el = document.querySelector('.df-ipucu');
+  if (el) el.remove();
 }
 
 // (2026-10-18) Kamera/galeri fotoğrafı yüklemeden önce küçültülür: uzun kenar en fazla NOTA_UZUN_KENAR px, JPEG %85.
