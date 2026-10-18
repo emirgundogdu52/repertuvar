@@ -2,6 +2,12 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-10-18: 📷 NOTA FOTOĞRAFI — Nota sekmesinde ve eser düzenleme penceresinde "Fotoğraf Çek" düğmesi
+    (input capture=environment → kamera doğrudan açılır; fare ile kullanılan cihazda gizli). Yüklenen her
+    JPEG/HEIC/WEBP önce notaGorselKucult ile küçültülür (uzun kenar 2800 px, JPEG %85; PNG/PDF'e dokunulmaz,
+    hata ya da kazanç yoksa aslı gider). 15 MB sınırı küçültmeden SONRA denetlenir. Android'de kameranın
+    çalışması için yerel android/ düzeltmesi de gerekiyor (file_paths.xml external-files-path Pictures +
+    manifest <queries> IMAGE_CAPTURE) — sonraki derleme (AAB 18).
   - 2026-08-27: ➕ TÜR listesine 'Şiir' eklendi (TUR_LISTESI, 'Diğer'in hemen
     üstünde). Eserler arasında okunan bağımsız şiirler repertuvarda kendi
     başına bir sıra öğesi olabilsin diye. Form kutusu Şiir'de otomatik
@@ -1129,6 +1135,19 @@
   .nota-drop-main { font-size:13px; font-weight:600; }
   .nota-drop-sub { font-size:11.5px; color:var(--text3); line-height:1.5; }
   .nota-drop-icon { font-size:22px; line-height:1; }
+
+  /* (2026-10-18) Fotoğraf Çek: telefonda/tablette kamerayı doğrudan açar (capture=environment). Fare ile kullanılan
+     cihazda gizli — orada capture yok sayılır, düğme dosya seçiciyle aynı işi yapardı. */
+  .nota-kamera {
+    margin-top:10px; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:12px 14px; border:1.5px solid var(--accent); border-radius:10px;
+    background:rgba(255,200,61,.08); color:var(--accent);
+    font-size:13.5px; font-weight:600; font-family:inherit; cursor:pointer;
+  }
+  .nota-kamera i { font-size:18px; }
+  .nota-kamera:active { background:rgba(255,200,61,.18); }
+  .nota-kamera-ipucu { margin-top:6px; font-size:11.5px; color:var(--text3); text-align:center; line-height:1.45; }
+  @media (hover:hover) and (pointer:fine) { .nota-kamera, .nota-kamera-ipucu { display:none; } }
 
   /* ── 2026-07-20: mobil "basılı tut → Yapıştır" kutusu ──
      iOS/Android yapıştır menüsü YALNIZCA düzenlenebilir bir alanda açılır,
@@ -3111,6 +3130,11 @@ function selectWork(id, silent) {
             <div class="nota-drop-main" data-i18n="es.notaSurukle">${_esCev('es.notaSurukle','Notayı buraya sürükle veya yapıştır')}</div>
             <div class="nota-drop-sub"><span data-i18n="es.notaAlt">${_esCev('es.notaAlt','Yeni dosyalar mevcut sayfaların SONUNA eklenir')}</span><br><span data-i18n="es.notaBoyut">${_esCev('es.notaBoyut','(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)')}</span></div>
           </div>
+          <input type="file" id="notaCam_${w.id}" accept="image/*" capture="environment"
+            style="display:none;" onchange="uploadNota(${w.id}, this)">
+          <button type="button" class="nota-kamera" onclick="document.getElementById('notaCam_${w.id}').click()">
+            <i class="ti ti-camera"></i><span data-i18n="es.fotoCek">${_esCev('es.fotoCek','Fotoğraf Çek')}</span></button>
+          <div class="nota-kamera-ipucu" data-i18n="es.fotoCekIpucu">${_esCev('es.fotoCekIpucu','Sayfayı düz bir yerde, iyi ışıkta, kadrajı dolduracak şekilde çek. Her fotoğraf yeni bir sayfa olarak eklenir.')}</div>
           <div class="nota-paste" id="notaPaste_${w.id}" data-work="${w.id}"
                data-ipucu="${_esCev('es.notaYapistirKutu','📋  Buraya basılı tut → Yapıştır')}"
                contenteditable="true" inputmode="none" role="button"
@@ -4646,6 +4670,49 @@ if (!window._notaPasteWired) {
 
 let _notaSeq = 0;
 
+// (2026-10-18) Kamera/galeri fotoğrafı yüklemeden önce küçültülür: uzun kenar en fazla NOTA_UZUN_KENAR px, JPEG %85.
+// 12 MP telefon fotoğrafı 3–6 MB → ~1 MB (depolama + sahnede indirme trafiği). Nota okunurluğu için 2800 px yeterli
+// (iPad Pro ekranı 2732 px). PNG (ekran görüntüsü) ve PDF'e dokunulmaz; çözülemeyen biçimde (ör. Android'de HEIC)
+// ya da küçültme kazanç getirmiyorsa ASLINI gönderir. EXIF yönü: <img> + drawImage yönü zaten uygular.
+const NOTA_UZUN_KENAR = 2800, NOTA_JPEG_KALITE = 0.85;
+async function notaGorselKucult(file) {
+  const tip = (file.type || '').toLowerCase();
+  if (!/^image\/(jpe?g|heic|heif|webp)$/.test(tip) && !/\.(jpe?g|heic|heif)$/i.test(file.name || '')) return file;
+  let url = '';
+  try {
+    url = URL.createObjectURL(file);
+    const img = new Image();
+    // img.decode() KULLANMA: sekme/WebView gizliyken (kamera ekranı önde) Chrome'da hiç sonuçlanmıyor.
+    // onload her durumda gelir; 20 sn'de gelmezse aslını gönder.
+    await new Promise((tamam, hata) => {
+      const sure = setTimeout(() => hata(new Error('zaman aşımı')), 20000);
+      img.onload = () => { clearTimeout(sure); tamam(); };
+      img.onerror = () => { clearTimeout(sure); hata(new Error('çözülemedi')); };
+      img.src = url;
+    });
+    const w0 = img.naturalWidth, h0 = img.naturalHeight;
+    if (!w0 || !h0) return file;
+    const oran = Math.min(1, NOTA_UZUN_KENAR / Math.max(w0, h0));
+    if (oran === 1 && file.size <= 1.5 * 1048576 && tip !== 'image/heic' && tip !== 'image/heif') return file;
+    const w = Math.round(w0 * oran), h = Math.round(h0 * oran);
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    const cx = cv.getContext('2d');
+    cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h);          // saydam WEBP siyaha dönmesin
+    cx.imageSmoothingQuality = 'high';
+    cx.drawImage(img, 0, 0, w, h);
+    const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', NOTA_JPEG_KALITE));
+    cv.width = cv.height = 0;                                 // iOS tuval belleğini hemen bırak
+    if (!blob || (blob.size >= file.size && tip !== 'image/heic' && tip !== 'image/heif')) return file;
+    const ad = ((file.name || 'nota').replace(/\.[A-Za-z0-9]{2,5}$/, '') || 'nota') + '.jpg';
+    return new File([blob], ad, { type: 'image/jpeg', lastModified: Date.now() });
+  } catch (e) {
+    return file;
+  } finally {
+    if (url) URL.revokeObjectURL(url);
+  }
+}
+
 // Tek dosyayı Storage'a yükler, PUBLIC URL döner (works kaydına DOKUNMAZ).
 async function _notaUploadToStorage(id, file) {
   const okType = (file.type || '').startsWith('image/') || file.type === 'application/pdf'
@@ -4676,7 +4743,7 @@ async function uploadNotaFiles(id, fileList) {
   const errors = [];
   for (let i = 0; i < files.length; i++) {
     if (files.length > 1) notaStatus(id, _esCev('es.sayfaSirasi','⏳ Yükleniyor... ({i}/{n})').replace('{i}',i+1).replace('{n}',files.length));
-    try { pages.push(await _notaUploadToStorage(id, files[i])); }
+    try { pages.push(await _notaUploadToStorage(id, await notaGorselKucult(files[i]))); }
     catch(e) { errors.push((files[i].name || _esCev('es.dosyaNo','dosya {n}').replace('{n}', i+1)) + ': ' + e.message); }
   }
   const added = pages.length - before;
@@ -6940,6 +7007,11 @@ function openSuggestModal() { openNewEserModal(); }
             <div class="nota-drop-main" data-i18n="es.notaSurukle2">Notayı buraya sürükle, yapıştır ya da tıklayıp seç</div>
             <div class="nota-drop-sub"><span data-i18n="es.notaAlt">Yeni dosyalar mevcut sayfaların SONUNA eklenir</span><br><span data-i18n="es.notaBoyut">(JPG, PNG, WEBP, PDF · her biri en fazla 15 MB)</span></div>
           </div>
+          <input type="file" id="ne_notaCam" accept="image/*" capture="environment" style="display:none;" onchange="neNotaPick(this)">
+          <button type="button" class="nota-kamera"
+               onclick="if (editingWorkId === null) { renderNeNotaList(); } else { document.getElementById('ne_notaCam').click(); }">
+            <i class="ti ti-camera"></i><span data-i18n="es.fotoCek">Fotoğraf Çek</span></button>
+          <div class="nota-kamera-ipucu" data-i18n="es.fotoCekIpucu">Sayfayı düz bir yerde, iyi ışıkta, kadrajı dolduracak şekilde çek. Her fotoğraf yeni bir sayfa olarak eklenir.</div>
           <div class="nota-paste" id="notaPaste_ne" contenteditable="true" inputmode="none" role="button"
                aria-label="Panodaki görseli yapıştır" data-i18n-aria="es.panoYapistir" onclick="event.stopPropagation()"></div>
           <div class="nota-paste-hint" data-i18n-html="es.notaYapistirIpucu">Ekran görüntüsünü kopyaladıysan kutuya <b>basılı tut</b> → <b>Yapıştır</b>. Bilgisayarda <b>⌘/Ctrl + V</b> yeterli. Sahne modunda sayfa geçişi için <b>her sayfayı ayrı görsel</b> olarak yükle.</div>
