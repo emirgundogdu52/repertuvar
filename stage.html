@@ -1,5 +1,7 @@
 <!--
   STAGE.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur; her önemli özellik değişikliğinde güncellenir)
+  - 2026-10-18 (d): "Sahneden Çık" simgesi × → kapı-çıkış (ti-door-exit; panel + yedek alt şerit). × "paneli kapat / sil" gibi
+    okunuyordu; iOS'ta çıkış eylemi kapı/ok simgesiyle gösterilir.
   - 2026-10-18 (c): SÖZLER EN BÜYÜK BOYUTTA, SATIR KIRILMADAN (eser detayındaki d8c11af sahneye taşındı): fitLyrics artık
     en uzun satırın sığdığı en büyük boyutu bulur (14–44px, Range ölçümü), sürgü yalnız küçültür (0,6–1; eski kayıt >1 → 1).
   - 2026-10-18 (b): GÖRÜNÜM AYARLARI PANELİ iOS DİLİNE GEÇTİ (kullanıcı: "Windows bilgisayar etkisi var, daha Apple uyumlu").
@@ -2750,7 +2752,7 @@ function buildStageToolsRow(mode) {
   const sahneBtns = `
       <a href="#" onclick="event.stopPropagation();goBack(event)" class="st-act" title="${_sCev('sh.geldiginSayfa','Geldiğin sayfaya dön')}"><i class="ti ti-arrow-left"></i>${_sCev('sh.geriDon','Geri Dön')}</a>
       <a href="index.html" onclick="event.stopPropagation()" class="st-act" title="${_sCev('sh.anaSayfa','Ana Sayfa')}"><i class="ti ti-home"></i>${_sCev('sh.anaSayfa','Ana Sayfa')}</a>
-      <button onclick="event.stopPropagation();exitStage(event)" class="st-act st-act-exit" title="${_sCev('sh.sahneModundanCik','Sahne modundan çık')}"><i class="ti ti-x"></i>${_sCev('sh.sahnedenCik','Sahneden Çık')}</button>`;
+      <button onclick="event.stopPropagation();exitStage(event)" class="st-act st-act-exit" title="${_sCev('sh.sahneModundanCik','Sahne modundan çık')}"><i class="ti ti-door-exit"></i>${_sCev('sh.sahnedenCik','Sahneden Çık')}</button>`;
   // Akor modunda ton kaydırma (± yarım ton) — eser başına saklanır
   const item = (curRep && (curRep.items||[])[curIdx]) || null;
   const tVal = item ? getTranspose(item.workId) : 0;
@@ -3759,7 +3761,7 @@ function loadSideWork(id) {
   <div class="v2-bn-items" id="stageNavStage" style="display:none;">
     <a href="#" class="v2-bn-item" id="btnGoBack" onclick="goBack(event)"><i class="ti ti-arrow-left" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" id="btnGoBackLbl" data-i18n="sh.geriDon">Geri Dön</span></a>
     <a href="index.html" class="v2-bn-item" id="btnStageHome"><i class="ti ti-home" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" data-i18n="sh.anaSayfa">Ana Sayfa</span></a>
-    <button class="v2-bn-item v2-bn-exit" onclick="event.stopPropagation();exitStage(event)" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-x" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" data-i18n="sh.cik">Çık</span></button>
+    <button class="v2-bn-item v2-bn-exit" onclick="event.stopPropagation();exitStage(event)" style="background:none;border:none;cursor:pointer;flex:1;flex-direction:column;gap:3px;"><i class="ti ti-door-exit" style="font-size:20px;line-height:1;" aria-hidden="true"></i><span class="v2-bn-label" data-i18n="sh.cik">Çık</span></button>
   </div>
 </nav>
 <script>
