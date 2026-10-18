@@ -1,5 +1,12 @@
 <!--
   STAGE.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur; her önemli özellik değişikliğinde güncellenir)
+  - 2026-10-18 (f): NOTA SAYFALARI "ALT ALTA" (kullanıcı ekran görüntüsü: nota sayfasının altında büyük boşluk → "Yap").
+    Görünüm Ayarları › Nota Sayfaları: Tek tek / Alt alta (localStorage stageNotaDuzen; varsayılan dikey telefonda alt
+    alta, diğerlerinde tek tek). Alt alta: tüm sayfalar #sm içinde art arda, %70 yükseklik sınırı yok (genişliğe sığar);
+    pedal/ok/kaydırma bir sonraki sayfanın BAŞINA kaydırır (sayfa ekrandan uzunsa önce %85 ekran ilerler), son sayfa
+    göründükten sonra sonraki esere geçer; "1 / 2" yukarıda sabit, kaydırdıkça güncellenir; pager yok. Ayrıca sayfa
+    noktaları 38 px'lik ok düğmesi stilini alıp dev yuvarlağa dönüşüyordu (.nota-pager button) → 24 px dokunma alanında
+    9 px nokta.
   - 2026-10-18 (e): SAHNE EYLEMLERİ 3 → 2 (kullanıcı onayı): Ana Sayfa satırı kalktı (çoğu zaman Geri Dön ile aynı yer);
     "Sahneden Çık" (seçme ekranına dönüyordu) → "Repertuvar Değiştir" (liste simgesi; tek eser / paylaşım girişinde yok);
     Geri Dön → "Sahne Modunu Kapat" (kırmızı, kapı simgesi; closeStageMode → goBack, misafirde seçme ekranı). goBack artık
@@ -716,6 +723,15 @@ body.stage-light .nota-count{background:rgba(255,255,255,.75);color:#1a1a1a;bord
 .nota-dots{display:flex;gap:8px;align-items:center;}
 .nota-dot{width:9px;height:9px;border-radius:50%;background:var(--border);border:none;padding:0;cursor:pointer;transition:all .18s;}
 .nota-dot.cur{background:var(--accent);transform:scale(1.35);}
+/* (2026-10-18) Noktalar .nota-pager button'ın 38 px kenarlıklı stilini alıyordu → dev yuvarlak. 24 px dokunma alanı, 9 px nokta. */
+.nota-pager .nota-dot{width:24px;height:24px;border:none;border-radius:50%;padding:0;transform:none;
+  background:radial-gradient(circle, var(--border) 0 4.5px, transparent 5px);}
+.nota-pager .nota-dot.cur{background:radial-gradient(circle, var(--accent) 0 6px, transparent 6.5px);transform:none;}
+/* (2026-10-18) Alt alta düzen */
+.wnota.wnota-alt{gap:12px;padding-bottom:24px;}
+.wnota-alt .nota-sayfa{width:100%;display:flex;justify-content:center;}
+.wnota-alt img{width:100%;max-width:100%;max-height:none;}
+.nota-count.nota-count-alt{position:sticky;top:6px;align-self:flex-end;margin-bottom:-30px;}
 .nota-pdf{background:var(--surface2, #16161c);border:1px solid var(--border);border-radius:8px;padding:18px;text-align:center;color:var(--text2);font-size:14px;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 /* ChordPro: akor hecenin üstünde */
@@ -2461,7 +2477,7 @@ function renderStage(){
   setLyricsAlign(savedAlign);
   updateFontSliderUI(savedScale);
   fitLyrics();   // (2026-09-05) eser başına sığdırma — hiza/ölçek ile aynı karede
-  if (viewMode === 'nota') { pdfCizimleri(); notaPreloadNext(stageNotaPages(w), _notaPage); }
+  if (viewMode === 'nota') { pdfCizimleri(); if (notaDuzen() === 'alt') notaAltKur(_notaPage); else notaPreloadNext(stageNotaPages(w), _notaPage); }
   updateViewToggleUI(w);
   // ── POTPURİ: zincir rozeti + "Sıradaki" kartının potpuri hali ──
   const ch = stageChainInfo(items, curIdx);
@@ -2579,13 +2595,14 @@ function pdfCizimleri(){
       if (!cv.isConnected) return;
       // Görsel notadaki kuralla aynı: genişliğe sığ, yükseklik en fazla %70.
       const kapW = Math.max(200, (cv.parentElement ? cv.parentElement.clientWidth : window.innerWidth) - 16);
-      const kapH = window.innerHeight * 0.7;
+      const kapH = notaDuzen() === 'alt' ? Infinity : window.innerHeight * 0.7;   // alt alta: yalnız genişlik
       const v1 = sayfa.getViewport({ scale: 1 });
       const olcek = Math.min(kapW / v1.width, kapH / v1.height);
       const dpr = Math.min(window.devicePixelRatio || 1, 3);
       const v = sayfa.getViewport({ scale: olcek * dpr });
       cv.width = Math.floor(v.width); cv.height = Math.floor(v.height);
       cv.style.width = Math.floor(v.width / dpr) + 'px'; cv.style.height = Math.floor(v.height / dpr) + 'px';
+      notaAltGit();   // yükseklik belli oldu → hedef sayfaya yeniden otur (alt alta düzen)
       return sayfa.render({ canvasContext: cv.getContext('2d'), viewport: v }).promise;
     }).catch(() => {
       const d = document.createElement('div'); d.className = 'nota-pdf';
@@ -2604,23 +2621,33 @@ function currentNotaPages() {
   return stageNotaPages(w);
 }
 
-function notaViewHtml(pages, i) {
+// Tek sayfanın gövdesi (görsel / PDF sayfası / PDF yer tutucu). tekMi: tek-tek düzende #notaImg kimliği verilir.
+function notaSayfaGovde(sayfa, i, tekMi) {
   // (2026-10-17) XSS: nota adresi (nota_url / nota_pages REST ile serbest yazılabiliyor) öznitelikte kaçışsızdı —
   // `x.png" onerror=…` tıklamadan çalışırdı, `javascript:` bağlantısı da açılırdı. Yalnız http(s) / blob: / data:image
   // (çevrimdışı nota) / göreli adres; öznitelik için tam kaçış.
-  const _hamU = String(pages[i] == null ? '' : pages[i]);
+  const _hamU = String(sayfa == null ? '' : sayfa);
   const ham = /^(https?:|blob:|data:image\/)/i.test(_hamU) || !/^[a-z][a-z0-9+.-]*:/i.test(_hamU) ? _hamU : '';
   const u = htmlKac(ham);   // YALNIZ çıktıda; ayrıştırma ham (güvenli) adresle — & çift kaçışa dönmesin
   const _ps = _pdfParcala(ham);
   const _alt = _sCev('sh.notaSayfa','Nota sayfa {n}').replace('{n}', i+1);
-  const body = isStageNotaImage(ham)
-    ? `<img id="notaImg" src="${u}" alt="${_alt}">`
+  return isStageNotaImage(ham)
+    ? `<img${tekMi ? ' id="notaImg"' : ''} src="${u}" alt="${_alt}">`
     : _ps
     ? `<canvas class="nota-pdf-sayfa" data-pdf="${htmlKac(_ps.url)}" data-sayfa="${_ps.sayfa}" role="img" aria-label="${_alt}"></canvas>`
     : isStagePdf(ham)
     ? `<div class="nota-pdf" data-pdf-bekle="${u}">${_sCev('sh.pdfYukleniyor','📄 PDF yükleniyor…')}</div>`
     : `<div class="nota-pdf">${_sCev('sh.pdfNota','📄 PDF nota — sayfa geçişi için sayfaları ayrı görsel olarak yükle.')}<br>
          <a href="${u}" target="_blank" style="color:var(--accent);">${_sCev('sh.notaAc','↗ Aç')}</a></div>`;
+}
+
+function notaViewHtml(pages, i) {
+  if (notaDuzen() === 'alt') {
+    const sayfalar = pages.map((p, k) => `<div class="nota-sayfa" data-k="${k}">${notaSayfaGovde(p, k, false)}</div>`).join('');
+    const sayac = pages.length > 1 ? `<div class="nota-count nota-count-alt" id="notaCount">${i+1} / ${pages.length}</div>` : '';
+    return sayac + `<div class="wnota wnota-alt">${sayfalar}</div>`;
+  }
+  const body = notaSayfaGovde(pages[i], i, true);
   const counter = pages.length > 1 ? `<div class="nota-count" id="notaCount">${i+1} / ${pages.length}</div>` : '';
   const pager = pages.length > 1 ? `
     <div class="nota-pager" id="notaPager">
@@ -2637,6 +2664,76 @@ function notaPreloadNext(pages, i) {
   if (nxt && isStageNotaImage(nxt)) { const im = new Image(); im.src = nxt; }
 }
 
+// ── (2026-10-18) NOTA SAYFA DÜZENİ: 'tek' (tek sayfa + pager) / 'alt' (alt alta, #sm kaydırılır) ──────────
+function notaDuzen() {
+  const k = localStorage.getItem('stageNotaDuzen');
+  if (k === 'tek' || k === 'alt') return k;
+  return (window.matchMedia && matchMedia('(max-width: 600px) and (orientation: portrait)').matches) ? 'alt' : 'tek';
+}
+function setNotaDuzen(d) {
+  localStorage.setItem('stageNotaDuzen', d === 'alt' ? 'alt' : 'tek');
+  renderStage();
+}
+// Hedef sayfa: görseller yüklendikçe yükseklik değişir → kullanıcı kendisi kaydırana kadar hedefe yeniden oturtulur.
+let _notaAltHedef = null, _notaAltElle = false;
+function notaAltSayfalar() { const sm = document.getElementById('sm'); return sm ? [...sm.querySelectorAll('.wnota-alt .nota-sayfa')] : []; }
+function notaAltUst(el, sm) { return el.getBoundingClientRect().top - sm.getBoundingClientRect().top + sm.scrollTop; }
+function notaAltGit() {
+  const sm = document.getElementById('sm');
+  if (!sm || _notaAltHedef == null || _notaAltElle) return;
+  const s = notaAltSayfalar()[_notaAltHedef];
+  if (s) sm.scrollTop = _notaAltHedef === 0 ? 0 : Math.max(0, notaAltUst(s, sm) - 8);
+}
+function notaAltKur(i) {
+  const sm = document.getElementById('sm');
+  if (!sm) return;
+  _notaAltHedef = i; _notaAltElle = false;
+  notaAltGit();
+  sm.querySelectorAll('.wnota-alt img').forEach(im => { if (!im.complete) im.addEventListener('load', notaAltGit, { once: true }); });
+  if (!sm.dataset.notaAlt) {
+    sm.dataset.notaAlt = '1';
+    sm.addEventListener('scroll', notaAltKaydirildi, { passive: true });
+    ['touchstart', 'wheel'].forEach(ev => sm.addEventListener(ev, () => { _notaAltElle = true; }, { passive: true }));
+  }
+}
+function notaAltKaydirildi() {
+  const sm = document.getElementById('sm'), ss = notaAltSayfalar();
+  if (!sm || !ss.length) return;
+  const cizgi = sm.scrollTop + sm.clientHeight * 0.35;
+  let k = 0;
+  ss.forEach((el, n) => { if (notaAltUst(el, sm) <= cizgi) k = n; });
+  if (sm.scrollTop + sm.clientHeight >= sm.scrollHeight - 4) k = ss.length - 1;
+  _notaPage = k;
+  const c = document.getElementById('notaCount');
+  if (c) c.textContent = (k + 1) + ' / ' + ss.length;
+}
+// Pedal/ok/kaydırma: bir sonraki (önceki) sayfanın başına; sayfa ekrandan uzunsa önce %85 ekran. false → eser değişsin.
+function notaAltAdim(dir) {
+  const sm = document.getElementById('sm'), ss = notaAltSayfalar();
+  if (!sm || !ss.length) return false;
+  _notaAltHedef = null; _notaAltElle = true;
+  const ust = sm.scrollTop, boy = sm.clientHeight, adim = boy * 0.85, enAlt = Math.max(0, sm.scrollHeight - boy);
+  const tepeler = ss.map((el, n) => n === 0 ? 0 : Math.max(0, notaAltUst(el, sm) - 8));   // 1. sayfa = en üst
+  const son = ss[ss.length - 1], sonAlt = notaAltUst(son, sm) + son.offsetHeight;
+  let hedef;
+  if (dir > 0) {
+    const sonraki = tepeler.find(t => t > ust + 8);
+    if (sonraki == null) {
+      if (sonAlt <= ust + boy + 8) return false;            // son sayfanın sonu göründü → sonraki eser
+      hedef = Math.min(enAlt, ust + adim);
+    } else hedef = Math.min(enAlt, (sonraki - ust <= adim) ? sonraki : ust + adim);
+    // Kısa sayfalarda sonraki sayfanın başına inilemez (içerik biter): hareket yoksa hepsi görünüyordur → sonraki eser.
+    if (hedef <= ust + 2) return false;
+  } else {
+    if (ust <= 4) return false;                             // en başta → önceki eser
+    const onceki = tepeler.filter(t => t < ust - 8).pop();
+    hedef = (onceki != null && ust - onceki <= adim) ? onceki : Math.max(0, ust - adim);
+    if (hedef >= ust - 2) return false;
+  }
+  sm.scrollTo({ top: hedef, behavior: 'smooth' });
+  return true;
+}
+
 // Sayfaya git (pager/dot). Aralık dışına taşarsa eser değiştirir.
 function notaGoPage(i) {
   const pages = currentNotaPages();
@@ -2648,12 +2745,13 @@ function notaGoPage(i) {
   if (!sm) return;
   sm.innerHTML = notaViewHtml(pages, i);
   pdfCizimleri();
-  notaPreloadNext(pages, i);
+  if (notaDuzen() === 'alt') notaAltKur(i); else notaPreloadNext(pages, i);
 }
 
 // true dönerse "sayfa çevrildi, eser değiştirme"
 function notaStepPage(dir) {
   const pages = currentNotaPages();
+  if (pages.length && notaDuzen() === 'alt') return notaAltAdim(dir);
   if (pages.length < 2) return false;
   const t = _notaPage + dir;
   if (t < 0 || t > pages.length - 1) return false;   // sınırda → eser değişsin
@@ -2832,7 +2930,13 @@ function buildStageToolsRow(mode) {
       </div>`;
 
   if (mode === 'nota') {
-    row.innerHTML = grup(_sCev('sh.gorunum','Görünüm'), themeBtn) + grup(_sCev('sh.grupSahne','Sahne'), sahneBtns, true);
+    const _dz = notaDuzen();
+    const duzenBtns = `
+      <button onclick="event.stopPropagation();setNotaDuzen('tek')" title="${_sCev('sh.notaTekTekT','Her seferinde tek sayfa; pedal sayfa çevirir')}" class="align-btn${_dz==='tek'?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;"><i class="ti ti-file"></i>&nbsp;${_sCev('sh.notaTekTek','Tek tek')}</button>
+      <button onclick="event.stopPropagation();setNotaDuzen('alt')" title="${_sCev('sh.notaAltAltaT','Sayfalar alt alta; pedal bir sonraki sayfaya kaydırır')}" class="align-btn${_dz==='alt'?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;"><i class="ti ti-layout-rows"></i>&nbsp;${_sCev('sh.notaAltAlta','Alt alta')}</button>`;
+    row.innerHTML = grup(_sCev('sh.gorunum','Görünüm'), themeBtn)
+                  + grup(_sCev('sh.notaSayfalari','Nota Sayfaları'), duzenBtns)
+                  + grup(_sCev('sh.grupSahne','Sahne'), sahneBtns, true);
   } else {
     // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama ikisinde de geçerli
     const alignBtns = `
