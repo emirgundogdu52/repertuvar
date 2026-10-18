@@ -1,5 +1,11 @@
 <!--
   STAGE.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur; her önemli özellik değişikliğinde güncellenir)
+  - 2026-10-18 (b): GÖRÜNÜM AYARLARI PANELİ iOS DİLİNE GEÇTİ (kullanıcı: "Windows bilgisayar etkisi var, daha Apple uyumlu").
+    Yalnız CSS (#stageScreen #stageToolsPanel bloğu): buzlu kart, solda başlık/sağda denetim satırları, bölmeli seçici,
+    iOS kaydırıcısı, ayrı grupta yazılı Sahne eylemleri (Çık kırmızı). Kaydırıcı rayı --st-track değişkeninden
+    (updateFontSliderUI / updateTonSliderUI). buildStageToolsRow HTML'i ve işlevler DEĞİŞMEDİ.
+    Ek: sahne GÜNDÜZ temasında --accent mor #7c6fff idi (kurumsal değil) → #B26A00 koyu kehribar (--accent2 #0A5BC2);
+    seçili sekme koyu temada altın zemin + koyu yazı (#1c1c1e), gündüzde kehribar zemin + beyaz yazı.
   - 2026-10-18: ÜST ŞERİT SADELEŞTİ (kullanıcı isteği, sonraki derleme AAB 18 / iOS 7).
     (1) Söz / Akor / Nota / Bilgi düğmeleri İNCELDİ (34→28px) ve etiketleri telefonda da görünür;
         şerit satırı doldurur, düğmeler eşit genişlikte (tablet/masaüstünde en fazla 560px, ortada).
@@ -449,8 +455,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 /* Söz | Akor | Nota arası ayraç; seçili sekmenin yanındaki ayraç gizlenir (iOS bölmeli denetim gibi), yer kaymasın diye visibility. */
 .vm-tab.active + .vm-sep-ic, .vm-sep-ic:has(+ .vm-tab.active){visibility:hidden;}
 .vm-tab:hover:not(:disabled):not(.active){color:var(--text);background:rgba(255,255,255,.05);}
-.vm-tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.28);}
-.vm-tab.active .ti{color:#fff;}
+.vm-tab.active{background:var(--accent);color:#1c1c1e;box-shadow:0 2px 8px rgba(0,0,0,.28);}
+.vm-tab.active .ti{color:#1c1c1e;}
+/* (2026-10-18) Koyu temada altın zemin + KOYU yazı (beyaz yazı 1.6:1 okunmuyordu); gündüzde koyu kehribar zemin + beyaz yazı. */
+body.day-theme .vm-tab.active, body.day-theme .vm-tab.active .ti{color:#fff;}
 .vm-tab:disabled{opacity:.32;cursor:not-allowed;}
 /* (2026-10-18) Etiketler telefonda da görünür (eskiden ≤430px'te gizliydi). Çok dar ekranda
    yer açmak için yalnız "Karar:" öneki ve boşluklar küçülür. */
@@ -581,6 +589,84 @@ body.day-theme #stageToolsPanel .st-grp + .st-grp{ border-top-color:rgba(0,0,0,.
 @media (min-width:768px){
   #stageToolsPanel{ left:auto !important; width:fit-content !important; max-width:calc(100vw - 24px) !important; }
 }
+/* ═══ (2026-10-18) GÖRÜNÜM AYARLARI PANELİ — iOS DİLİ ═══
+   Kullanıcı: "altta açılan menü Windows bilgisayar gibi, daha Apple uyumlu olsun". Eski hâl: sağa yaslı BÜYÜK HARF küçük
+   başlıklar, çerçeveli kare düğmeler, ince gri çizgiler. Yeni hâl iOS Ayarlar / Denetim Merkezi dili:
+   - Kart: 16px köşe, buzlu "material" zemin (blur 24 + doygunluk 180), çerçeve yerine 0,5px saç çizgisi, yumuşak gölge.
+   - Satırlar: SOLDA başlık (15px, normal harf), SAĞDA denetim; satırlar arası soldan girintili saç çizgisi.
+   - Hizalama ve ABC / Do Re Mi: iOS bölmeli seçici (gri kapsül içinde, seçili bölme kabarık).
+   - Tek düğmeler (tema, kişisel not, ton): gri kapsül. Kaydırıcılar: ince gri ray + 26px beyaz tutamak.
+   - Sahne eylemleri: ayrı grup, tam genişlik yazılı satırlar; "Sahneden Çık" iOS kırmızısı (#FF453A / gündüz #FF3B30).
+   Genişlik telefonda ekran − 20px (en fazla 360px), sağ altta ⚙ düğmesinin üstünde (konumu JS veriyor, değişmedi).
+   İçerik/işlev değişmedi — yalnız görünüm (buildStageToolsRow aynı HTML'i üretiyor). */
+#stageScreen #stageToolsPanel{
+  --st-track: rgba(120,120,128,.36);
+  --st-fill: rgba(118,118,128,.24);
+  --st-sep: rgba(84,84,88,.55);
+  --st-lbl: rgba(235,235,245,.92);
+  --st-sel: rgba(99,99,102,.95);
+  width:min(360px, calc(100vw - 20px)) !important; max-width:none !important; right:10px !important; left:auto !important;
+  padding:4px 0 !important; border-radius:16px !important;
+  background:rgba(30,30,32,.74); border:.5px solid rgba(255,255,255,.12);
+  box-shadow:0 14px 44px rgba(0,0,0,.55);
+  -webkit-backdrop-filter:blur(24px) saturate(180%); backdrop-filter:blur(24px) saturate(180%);
+  font-family:-apple-system, BlinkMacSystemFont, var(--font-ui, 'DM Sans'), sans-serif;
+}
+body.day-theme #stageScreen #stageToolsPanel{
+  --st-track: rgba(120,120,128,.20);
+  --st-fill: rgba(118,118,128,.12);
+  --st-sep: rgba(60,60,67,.22);
+  --st-lbl: #1c1c1e;
+  --st-sel: #ffffff;
+  background:rgba(242,242,247,.80); border-color:rgba(0,0,0,.08); box-shadow:0 14px 44px rgba(0,0,0,.20);
+}
+@supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
+  #stageScreen #stageToolsPanel{ background:rgba(30,30,32,.97); }
+  body.day-theme #stageScreen #stageToolsPanel{ background:rgba(242,242,247,.98); }
+}
+/* Satır: solda başlık, sağda denetim */
+#stageScreen #stageToolsPanel .st-grp{flex-direction:row;align-items:center;justify-content:space-between;gap:12px;
+  padding:9px 14px 9px 16px;min-height:48px;box-sizing:border-box;position:relative;border-top:none;}
+#stageScreen #stageToolsPanel .st-grp + .st-grp::before{content:'';position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--st-sep);}
+#stageScreen #stageToolsPanel .st-grp-lbl{font-size:15px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--st-lbl);text-align:left;flex:0 1 auto;white-space:nowrap;}
+#stageScreen #stageToolsPanel .st-grp-row{justify-content:flex-end;flex-wrap:nowrap;gap:0;flex:0 0 auto;max-width:72%;}
+/* Bölmeli seçici: iki ve daha fazla yan yana düğme (hizalama, ABC / Do Re Mi) */
+#stageScreen #stageToolsPanel .st-grp-row:has(> .align-btn + .align-btn){background:var(--st-fill);border-radius:9px;padding:2px;gap:0;}
+#stageScreen #stageToolsPanel .st-grp-row .align-btn{border:none;background:transparent;color:var(--st-lbl);height:30px;min-width:40px;width:auto;
+  padding:0 10px;border-radius:7px;font-size:15px;box-shadow:none;}
+#stageScreen #stageToolsPanel .st-grp-row .align-btn.active{background:var(--st-sel);color:var(--st-lbl);box-shadow:0 3px 8px rgba(0,0,0,.12), 0 3px 1px rgba(0,0,0,.04);}
+/* Tek düğme (tema, kişisel not, eski ± ton): gri kapsül */
+#stageScreen #stageToolsPanel .st-grp-row > .align-btn:only-child{background:var(--st-fill);border-radius:999px;padding:0 14px;height:32px;}
+#stageScreen #stageToolsPanel .st-grp-row > .align-btn:only-child.active{background:var(--accent);color:#1c1c1e;}
+body.day-theme #stageScreen #stageToolsPanel .st-grp-row > .align-btn:only-child.active{color:#fff;}
+/* Ton düğmesi (kapalı hâl) ve açık kaydırıcı */
+#stageScreen #stageToolsPanel .ton-btn{border:none;background:var(--st-fill);color:var(--st-lbl);height:32px;min-width:0;padding:0 14px;border-radius:999px;font-size:15px;font-weight:600;}
+#stageScreen #stageToolsPanel .ton-btn.shifted{background:rgba(255,200,61,.18);color:var(--accent);}
+#stageScreen #stageToolsPanel .ton-slider-wrap{background:transparent;border:none;padding:0;width:210px;gap:6px;}
+#stageScreen #stageToolsPanel .ton-step{border:none;background:var(--st-fill);color:var(--st-lbl);width:30px;height:30px;border-radius:999px;}
+/* Yazı boyutu kaydırıcısı */
+#stageScreen #stageToolsPanel .font-slider-wrap{background:transparent;border:none;padding:0;width:170px;gap:10px;}
+#stageScreen #stageToolsPanel .font-slider-wrap .fs-a-sm,
+#stageScreen #stageToolsPanel .font-slider-wrap .fs-a-lg{color:var(--st-lbl);opacity:.75;font-weight:600;}
+#stageScreen #stageToolsPanel .font-slider,#stageScreen #stageToolsPanel .ton-slider{height:4px;}
+#stageScreen #stageToolsPanel .font-slider::-webkit-slider-thumb,#stageScreen #stageToolsPanel .ton-slider::-webkit-slider-thumb{width:26px;height:26px;background:#fff;
+  box-shadow:0 .5px 4px rgba(0,0,0,.12), 0 6px 13px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.04);}
+/* Sahne grubu: başlıksız, tam genişlik yazılı satırlar; üstünde gruplar arası boşluk */
+#stageScreen #stageToolsPanel .st-grp:has(> .st-grp-col){flex-direction:column;align-items:stretch;padding:0;margin-top:8px;}
+#stageScreen #stageToolsPanel .st-grp:has(> .st-grp-col)::before{top:-8px;left:0;height:8px;background:rgba(0,0,0,.22);}
+body.day-theme #stageScreen #stageToolsPanel .st-grp:has(> .st-grp-col)::before{background:rgba(0,0,0,.05);}
+#stageScreen #stageToolsPanel .st-grp:has(> .st-grp-col) > .st-grp-lbl{display:none;}
+#stageScreen #stageToolsPanel .st-grp-col{width:100%;max-width:none;gap:0;}
+#stageScreen #stageToolsPanel .st-act{height:46px;border:none;border-radius:0;padding:0 16px;gap:12px;background:transparent;
+  color:var(--st-lbl);font-size:16px;font-weight:500;position:relative;}
+#stageScreen #stageToolsPanel .st-act + .st-act::before{content:'';position:absolute;top:0;left:46px;right:0;height:.5px;background:var(--st-sep);}
+#stageScreen #stageToolsPanel .st-act .ti{font-size:19px;opacity:1;width:20px;text-align:center;}
+#stageScreen #stageToolsPanel .st-act:active{background:rgba(255,255,255,.08);transform:none;}
+body.day-theme #stageScreen #stageToolsPanel .st-act:active{background:rgba(0,0,0,.05);}
+#stageScreen #stageToolsPanel .st-act-exit{color:#FF453A;}
+body.day-theme #stageScreen #stageToolsPanel .st-act-exit{color:#FF3B30;}
+#stageScreen #stageToolsPanel .st-act:hover{color:inherit;border-color:transparent;}
+#stageScreen #stageToolsPanel .st-act-exit:hover{color:#FF453A;}
 .wtitle{font-family:var(--font-ui, 'DM Sans',sans-serif);font-size:clamp(22px,3.4vw,36px);font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:100%;margin-bottom:10px;opacity:0;animation:si .4s ease .07s forwards;}
 /* Karar sesi rozeti — başlığın altında, ton değiştikçe güncellenir */
 .wkarar{font-size:clamp(15px,2.1vw,22px);font-weight:800;letter-spacing:.05em;color:var(--text2,#9aa4b2);text-align:center;margin:0;opacity:0;animation:si .4s ease .12s forwards;}
@@ -1004,7 +1090,7 @@ body.stage-light .stage-info-btn{background:rgba(0,0,0,.05);}
 <script src="auth.js"></script>
 <style id="v2-stage-nav">
 /* Gündüz teması (sahne performans ekranındaki okuma teması — ayrı bir sistem) */
-body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;--accent:#7c6fff;--accent2:#a78bfa;--text:#1a1825;--text2:#5a5670;--text3:#9d9aae;}
+body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;--accent:#B26A00;--accent2:#0A5BC2;--text:#1a1825;--text2:#5a5670;--text3:#9d9aae;}   /* (2026-10-18) mor #7c6fff → kurumsal koyu kehribar (akor rengiyle aynı, beyazda 4.3:1) */
 </style>
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
@@ -1781,7 +1867,7 @@ function updateFontSliderUI(scale) {
   if (!slider) return;
   slider.value = scale;
   const pct = ((scale - LYRICS_SCALE_MIN) / (LYRICS_SCALE_MAX - LYRICS_SCALE_MIN)) * 100;
-  slider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--border) ${pct}%, var(--border) 100%)`;
+  slider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--st-track, var(--border)) ${pct}%, var(--st-track, var(--border)) 100%)`;
 }
 // A− / A+ butonları: kaydırıcıyla aynı ölçeği adım adım değiştirir (0.1'lik adım).
 function stepLyricsFont(delta) {
@@ -1937,7 +2023,7 @@ function updateTonSliderUI(v) {
   // uzaklaştığını gösterir (yazı boyutunda soldan dolduruyoruz, burada anlamı bu).
   const pct = ((v - TON_MIN) / (TON_MAX - TON_MIN)) * 100;
   const a = Math.min(50, pct), b = Math.max(50, pct);
-  s.style.background = `linear-gradient(to right, var(--border) 0%, var(--border) ${a}%, var(--accent) ${a}%, var(--accent) ${b}%, var(--border) ${b}%, var(--border) 100%)`;
+  s.style.background = `linear-gradient(to right, var(--st-track, var(--border)) 0%, var(--st-track, var(--border)) ${a}%, var(--accent) ${a}%, var(--accent) ${b}%, var(--st-track, var(--border)) ${b}%, var(--st-track, var(--border)) 100%)`;
 }
 function tonKaydiriciAc(e) {
   if (e && e.stopPropagation) e.stopPropagation();
