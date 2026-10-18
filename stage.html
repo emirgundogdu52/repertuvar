@@ -1,5 +1,7 @@
 <!--
   STAGE.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur; her önemli özellik değişikliğinde güncellenir)
+  - 2026-10-18 (c): SÖZLER EN BÜYÜK BOYUTTA, SATIR KIRILMADAN (eser detayındaki d8c11af sahneye taşındı): fitLyrics artık
+    en uzun satırın sığdığı en büyük boyutu bulur (14–44px, Range ölçümü), sürgü yalnız küçültür (0,6–1; eski kayıt >1 → 1).
   - 2026-10-18 (b): GÖRÜNÜM AYARLARI PANELİ iOS DİLİNE GEÇTİ (kullanıcı: "Windows bilgisayar etkisi var, daha Apple uyumlu").
     Yalnız CSS (#stageScreen #stageToolsPanel bloğu): buzlu kart, solda başlık/sağda denetim satırları, bölmeli seçici,
     iOS kaydırıcısı, ayrı grupta yazılı Sahne eylemleri (Çık kırmızı). Kaydırıcı rayı --st-track değişkeninden
@@ -752,6 +754,7 @@ body.day-theme{--marker-color:#3F3BC0;}  /* açık: koyu indigo */
 [data-theme="light"]{--marker-color:#3F3BC0;}
 [data-theme="light"]{--chord-color:#B26A00;}
 .wlyrics .cp-lyric{display:block;white-space:pre-wrap;}
+.wlyrics.fit-olcum, .wlyrics.fit-olcum *{white-space:pre !important;}   /* (2026-10-18) fitLyrics ölçümü sırasında satır kırılmasın */
 
 /* (2026-08-06) Kart 10px aşağı indi: dip boşluğu 16→6px. */
 .sb{padding:0 16px 6px;position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;gap:10px;z-index:10;pointer-events:none;}
@@ -1813,18 +1816,16 @@ function setLyricsAlign(align) {
   });
 }
 
-/* ── SAHNE SIĞDIRMA (2026-09-05) ────────────────────────────────────────
-   Sorun: .wlyrics'te overflow-x:auto vardı. Sahnede yatay kaydırma işe
-   yaramaz — müzisyen çalarken yana kaydıramaz, taşan akor görünmez kalır.
-   Amaç TAŞMAYI ÖNLEMEK, boşluğu doldurmak değil: ölçek yalnızca küçültür,
-   asla büyütmez.
-   Kullanıcının sürgüsü ÜSTTE kalır: --fit-scale onun seçtiği --lyrics-scale'i
-   çarpar, ezmez. Sürgüyü kısınca sığdırma da gevşer.
-   Ölçek ESER BAŞINA hesaplanır (her renderStage'de sıfırlanır), satır başına
-   değil — satır başına olsaydı aynı sayfada farklı puntolar olurdu.
-   TABAN 14px: bunun altına inmek yerine yatay kaydırma geri açılır; okunmaz
-   bir sayfa, kaydırılabilir bir sayfadan kötüdür. */
-const FIT_MIN_PX = 14;
+/* ── SAHNE SIĞDIRMA (2026-09-05; 2026-10-18 EN BÜYÜK BOYUT) ─────────────
+   2026-10-18 (kullanıcı: "sözler satır kırılmadan maksimum büyüklükte gelsin" — eser detayında d8c11af ile vardı,
+   sahnede yoktu; "Çayır Çimen Geze Geze" kırılıyordu): eser açılınca EN UZUN SATIRIN tek satıra sığdığı EN BÜYÜK
+   boyut hesaplanır (FIT_MIN_PX…FIT_MAX_PX) — artık hem küçültür hem BÜYÜTÜR. Kullanıcının sürgüsü (--lyrics-scale)
+   YALNIZ KÜÇÜLTÜR: 1 = en büyük sığan boyut, 0,6'ya kadar orantılı küçük. Eski kayıtlı ölçek >1 ise 1'e indirilir.
+   Ölçüm eser detayındaki gibi Range ile (white-space:pre geçici sınıfla; scrollWidth sağ iç boşluğu saymıyordu).
+   Satırları çok uzun eserde taban FIT_MIN_PX'te kalır ve satır kırılır (okunmaz küçük yazı yerine). Akor görünümünde
+   akor satırları da aynı ölçümle sığdırılır; tabanda da taşan akor varsa yatay kaydırma açılır (eski kural).
+   Ölçek ESER BAŞINA (her renderStage'de), satır başına değil — aynı sayfada farklı punto olmasın. */
+const FIT_MIN_PX = 14, FIT_MAX_PX = 44;
 let _fitRaf = null;
 function fitLyrics() {
   const el = document.querySelector('#stageScreen .wlyrics') || document.querySelector('.wlyrics');
@@ -1832,29 +1833,38 @@ function fitLyrics() {
   const root = document.documentElement;
   root.style.setProperty('--fit-scale', 1);
   el.style.overflowX = 'hidden';
-  // Taşma yoksa iş bitti — yaygın durum, tek ölçüm.
-  if (el.scrollWidth <= el.clientWidth + 1) return;
-  const basePx = parseFloat(getComputedStyle(el).fontSize) || 18;
-  const minFit = Math.min(1, FIT_MIN_PX / basePx);
-  let lo = minFit, hi = 1, best = minFit;
-  for (let i = 0; i < 6; i++) {
-    const mid = (lo + hi) / 2;
-    root.style.setProperty('--fit-scale', mid);
-    if (el.scrollWidth <= el.clientWidth + 1) { best = mid; lo = mid; }
-    else { hi = mid; }
+  if (!el.clientWidth) return;   // görünmüyor — resize / sonraki çizim yeniden çağırır
+  const cs = getComputedStyle(el);
+  const basePx = parseFloat(cs.fontSize) || 18;   // taban × kullanıcı ölçeği (sığdırma 1'ken)
+  const ic = el.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+  const kul = Math.min(1, parseFloat(root.style.getPropertyValue('--lyrics-scale')) || 1);
+  el.classList.add('fit-olcum');   // ölçerken satırlar kırılmasın
+  const rg = document.createRange();
+  rg.selectNodeContents(el);
+  const sigar = px => { root.style.setProperty('--fit-scale', px / basePx); return rg.getBoundingClientRect().width <= ic + 0.5; };
+  let fitPx;
+  if (sigar(FIT_MAX_PX)) fitPx = FIT_MAX_PX;
+  else if (!sigar(FIT_MIN_PX)) fitPx = FIT_MIN_PX;
+  else {
+    let lo = FIT_MIN_PX, hi = FIT_MAX_PX;
+    for (let i = 0; i < 7; i++) { const mid = (lo + hi) / 2; if (sigar(mid)) lo = mid; else hi = mid; }
+    fitPx = Math.floor(lo * 2) / 2;
   }
-  root.style.setProperty('--fit-scale', best);
-  // Tabana rağmen sığmıyorsa kaydırmayı geri aç (uzun tek kelime, geniş akor).
+  el.classList.remove('fit-olcum');
+  const px = Math.max(FIT_MIN_PX, fitPx * kul);
+  root.style.setProperty('--fit-scale', px / basePx);
+  // Tabana rağmen sığmıyorsa (uzun tek kelime, geniş akor) kaydırmayı aç.
   if (el.scrollWidth > el.clientWidth + 1) el.style.overflowX = 'auto';
 }
 function fitLyricsSoon() {
   if (_fitRaf) cancelAnimationFrame(_fitRaf);
   _fitRaf = requestAnimationFrame(() => { _fitRaf = null; fitLyrics(); });
 }
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitLyricsSoon);   // yazı tipi geç yüklenirse
 window.addEventListener('resize', fitLyricsSoon);
 window.addEventListener('orientationchange', fitLyricsSoon);
 
-const LYRICS_SCALE_MIN = 0.75, LYRICS_SCALE_MAX = 1.6;
+const LYRICS_SCALE_MIN = 0.6, LYRICS_SCALE_MAX = 1;   // (2026-10-18) sürgü yalnız küçültür: 1 = en büyük sığan boyut
 function setLyricsFontScale(scale) {
   scale = Math.min(LYRICS_SCALE_MAX, Math.max(LYRICS_SCALE_MIN, +parseFloat(scale).toFixed(2)));
   localStorage.setItem('stageLyricsScale', scale);
@@ -2437,7 +2447,7 @@ function renderStage(){
   // animasyonu katmanı compositor'a taşıdığı için iOS Safari bu yeniden akışı
   // kısmen boyayıp üstteki satırları eski halinde bırakıyordu → güfte üst üste
   // binmiş görünüyordu (yenileyince geçiyordu). Artık üçü de tek karede.
-  const savedScale = parseFloat(localStorage.getItem('stageLyricsScale')) || 1;
+  const savedScale = Math.min(1, parseFloat(localStorage.getItem('stageLyricsScale')) || 1);   // eski kayıt >1 olabilir
   document.documentElement.style.setProperty('--lyrics-scale', savedScale);
   document.getElementById('sm').innerHTML = bodyHtml;
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'left';
@@ -2800,11 +2810,11 @@ function buildStageToolsRow(mode) {
 
   // Yazı boyutu: tek kaydırıcı. Panel her açılışta yeniden kurulduğu için
   // değer kayıtlı ölçekten okunuyor (setLyricsFontScale zaten saklıyor).
-  const _olcek = parseFloat(localStorage.getItem('stageLyricsScale') || '1') || 1;
+  const _olcek = Math.min(1, parseFloat(localStorage.getItem('stageLyricsScale') || '1') || 1);
   const fontBlok = `
       <div class="font-slider-wrap" title="${_sCev('sh.yaziBoyutu','Yazı Boyutu')}">
         <span class="fs-a-sm">A</span>
-        <input type="range" id="lyricsFontSlider" class="font-slider" min="0.75" max="1.6" step="0.05" value="${_olcek}"
+        <input type="range" id="lyricsFontSlider" class="font-slider" min="0.6" max="1" step="0.05" value="${_olcek}"
           onclick="event.stopPropagation()" oninput="setLyricsFontScale(this.value)">
         <span class="fs-a-lg">A</span>
       </div>`;
