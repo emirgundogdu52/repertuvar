@@ -738,6 +738,17 @@ body.stage-light .nota-count{background:rgba(255,255,255,.75);color:#1a1a1a;bord
 .nota-tek-kap{position:relative;flex:1 1 0;min-height:160px;width:100%;display:flex;align-items:center;justify-content:center;}
 .nota-tek-kap > img, .nota-tek-kap > canvas{position:absolute;inset:0;margin:auto;max-width:100%;max-height:100%;}
 .wnota-tek .nota-pager{padding:2px 0 0;}
+/* (2026-10-19 gece) Geniş ekranda (≥601 px: tablet, yatay telefon) sayfa düğmeleri alt şeride iner — "Sıradaki" kartı ile ⚙
+   arasına, ortaya; sayfa bu şerit kadar daha uzar (Emir: "altta ~13 mm kullanılabilecek alan var"). Kart, düğmelerin yarı
+   genişliği kadar daralır (--nota-pager-yari, notaPagerOlc). Kaydırma animasyonu yalnız saydamlık: transform'lu .wnota
+   mutlak konumlu düğmelerin kabı olup onları şeritten yukarı taşırdı. */
+@keyframes siOpak{from{opacity:0}to{opacity:1}}
+@media (min-width:601px){
+  .wnota.wnota-tek{animation-name:siOpak;position:static;}   /* kap #sm olsun (şeride göre konum) */
+  .wnota-tek .nota-pager{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(6px + env(safe-area-inset-bottom));
+    height:max(38px, var(--nota-serit-h, 46px));padding:0;z-index:12;}
+  #stageScreen:has(.wnota-tek .nota-pager) .np{max-width:calc(50% - 16px - var(--nota-pager-yari, 110px));}
+}
 .nota-pdf{background:var(--surface2, #16161c);border:1px solid var(--border);border-radius:8px;padding:18px;text-align:center;color:var(--text2);font-size:14px;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 /* ChordPro: akor hecenin üstünde */
@@ -2513,6 +2524,7 @@ function renderStage(){
     np.style.display='flex';   // (2026-08-06) 'block' CSS'teki yatay dizilimi eziyordu
   }
   else np.style.display='none';
+  if (viewMode === 'nota' && notaDuzen() !== 'alt') notaPagerOlc();   // kart görünürlüğü belli oldu → şerit ölçüsü
 }
 
 // ── POTPURİ yardımcısı ──
@@ -2665,6 +2677,17 @@ function notaViewHtml(pages, i) {
   return counter + `<div class="wnota wnota-tek"><div class="nota-tek-kap">${body}</div>${pager}</div>`;
 }
 
+// (2026-10-19) Geniş ekranda sayfa düğmeleri alt şeritte (CSS ≥601 px): "Sıradaki" kartı onların yarı genişliği + pay kadar
+// daralır, düğmeler şeridin yüksekliğine oturur (kart ya da ⚙ hangisi yüksekse).
+function notaPagerOlc() {
+  const p = document.getElementById('notaPager'), st = document.getElementById('stageScreen');
+  if (!p || !st) return;
+  st.style.setProperty('--nota-pager-yari', Math.ceil(p.offsetWidth / 2 + 12) + 'px');
+  const np = document.getElementById('np'), dg = document.getElementById('stageToolsToggle');
+  const h = Math.max(np && np.offsetParent ? np.offsetHeight : 0, dg ? dg.offsetHeight : 0);
+  if (h) st.style.setProperty('--nota-serit-h', h + 'px');
+}
+
 // Sonraki sayfayı önden yükle — sahnede sayfa çevirince bekleme olmasın
 function notaPreloadNext(pages, i) {
   const nxt = pages[i+1];
@@ -2752,7 +2775,7 @@ function notaGoPage(i) {
   if (!sm) return;
   sm.innerHTML = notaViewHtml(pages, i);
   pdfCizimleri();
-  if (notaDuzen() === 'alt') notaAltKur(i); else notaPreloadNext(pages, i);
+  if (notaDuzen() === 'alt') notaAltKur(i); else { notaPreloadNext(pages, i); notaPagerOlc(); }
 }
 
 // true dönerse "sayfa çevrildi, eser değiştirme"
