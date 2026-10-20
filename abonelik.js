@@ -19,6 +19,17 @@
   var ONBELLEK = 'r_abonelik';
   var MUAF = window.PRO_MUAF || ['pro.html', 'ayarlar.html', 'login.html', 'reset-password.html', 'google-donus.html',
               'splash.html', '404.html', 'paylas.html'];   // asıl liste auth.js'te (perde de onu kullanır)
+  // ── WEB SATIŞI (Paddle, RevenueCat web SDK) — 2026-10-20 ─────────────
+  // İKİ KİLİT: (1) yalnız web platformu — iOS/Android paketinde HİÇ çalışmaz (Apple 3.1.1, Play ödeme kuralı);
+  // (2) yalnız WEB_ANAHTAR olan ortamda: şimdilik SADECE localhost'ta RevenueCat › "Repertuvar (Paddle sandbox)"
+  // açık anahtarı (gizli değil, tarayıcı için). app.repertuvar.app'te anahtar YOK → ödeme ekranı açılmaz.
+  // Canlı Paddle anahtarı iki mağaza onayından ve kullanıcı onayından SONRA eklenir (app/_not.md "PADDLE").
+  var WEB_ANAHTAR = (function () {
+    var h = location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1') return 'pdl_ZbVkOixcDyiXNjOljxUKOGzBSAeV';
+    return null;
+  })();
+  var RCJS = 'https://cdn.jsdelivr.net/npm/@revenuecat/purchases-js@1.71.0/dist/Purchases.umd.js';
   var YONETIM = {
     ios: 'https://apps.apple.com/account/subscriptions',
     android: 'https://play.google.com/store/account/subscriptions?package=app.repertuvar'
@@ -28,6 +39,7 @@
     var C = window.Capacitor;
     return (C && C.isNativePlatform && C.isNativePlatform()) ? C.getPlatform() : 'web';
   }
+  function webSatis() { return platform() === 'web' && !!WEB_ANAHTAR; }
   function sayfa() { return (location.pathname.split('/').pop() || 'index.html'); }
   function uid() { try { return (typeof getUserId === 'function' && getUserId()) || null; } catch (e) { return null; } }
   function P() { var C = window.Capacitor; return C && C.Plugins && C.Plugins.Purchases; }
@@ -78,6 +90,45 @@
     if (platform() !== 'web') rcHazirla().catch(function () {});
   }
 
+  // ── RevenueCat web SDK (yalnız webSatis()) ─────────────────────────────
+  var _webSoz = null, _webKullanici = null;
+  function betik(src) {
+    return new Promise(function (ok, no) {
+      if (window.Purchases && window.Purchases.Purchases) return ok();
+      var e = document.createElement('script'); e.src = src; e.async = true; e.crossOrigin = 'anonymous';
+      e.onload = function () { ok(); }; e.onerror = function () { no(new Error('rcjs-yuklenemedi')); };
+      document.head.appendChild(e);
+    });
+  }
+  function webHazirla() {
+    if (!webSatis()) return Promise.reject(new Error('web-satis-kapali'));
+    var kim = uid();
+    if (!kim) return Promise.reject(new Error('oturum-yok'));
+    if (_webSoz && _webKullanici === kim) return _webSoz;
+    _webKullanici = kim;
+    _webSoz = betik(RCJS).then(function () {
+      var S = window.Purchases && window.Purchases.Purchases;
+      if (!S) throw new Error('rcjs-yok');
+      if (S.isConfigured()) {
+        var w = S.getSharedInstance();
+        return (w.getAppUserId() === kim ? Promise.resolve() : w.changeUser(kim)).then(function () { return w; });
+      }
+      return S.configure({ apiKey: WEB_ANAHTAR, appUserId: kim });   // daima Supabase kimliği (anonim kullanıcı yok)
+    }).catch(function (e) { _webSoz = null; _webKullanici = null; throw e; });
+    return _webSoz;
+  }
+  // Web paketini satın alma ekranının beklediği (Capacitor SDK'sıyla aynı) biçime çevirir.
+  function webPaket(pk) {
+    if (!pk || !pk.product || !pk.product.currentPrice) return null;
+    var pr = pk.product, c = pr.currentPrice;
+    return {
+      _web: pk, identifier: pk.identifier,
+      product: { identifier: pr.identifier, price: c.amountMicros / 1e6, priceString: c.formattedPrice, currencyCode: c.currency,
+                 introPrice: pr.freeTrialPhase ? { price: 0 } : null }
+    };
+  }
+  function webDil() { try { return (window.i18n && i18n.dil && i18n.dil() === 'en') ? 'en' : 'tr'; } catch (e) { return 'tr'; } }
+
   // ── RevenueCat (yalnız iOS/Android) ─────────────────────────────────────
   var _rcSoz = null, _rcKullanici = null;
   function rcHazirla() {
@@ -103,6 +154,17 @@
   // (2026-10-17 karar B, kullanıcı: "bir ay kullansın, memnun kalırsa ödesin") — 1 ay ücretsiz deneme ÜÇ PLANDA da var;
   // eskiden (karar A) yalnız aylıkta. Apple denemeyi grup başına bir kez verir; uygunluk ürün ürün sorulur.
   async function teklifler() {
+    if (platform() === 'web') {
+      var w = await webHazirla();
+      var wo = await w.getOfferings();
+      var wc = wo && wo.current;
+      if (!wc) throw new Error('teklif-yok');
+      var wp = { yillik: webPaket(wc.annual), alti: webPaket(wc.sixMonth), aylik: webPaket(wc.monthly) };
+      // Deneme: Paddle fiyatında tanımlı; HESAP BAŞINA TEK kuralını satın alma ekranı sunucunun deneme_kullanildi'siyle uygular.
+      // AÇIK: denemesi kullanılmış hesap için denemesiz Paddle fiyatları (ayrı teklif) gerekecek — app/_not.md "PADDLE".
+      var wd = { yillik: !!(wp.yillik && wp.yillik.product.introPrice), alti: !!(wp.alti && wp.alti.product.introPrice), aylik: !!(wp.aylik && wp.aylik.product.introPrice) };
+      return { paketler: wp, deneme: wd.yillik || wd.alti || wd.aylik, denemeler: wd };
+    }
     await rcHazirla();
     var o = await P().getOfferings();
     var cur = o && o.current;
@@ -160,6 +222,18 @@
   }
 
   async function satinAl(paket) {
+    if (platform() === 'web') {
+      var w = await webHazirla();
+      var u = null; try { u = (typeof getUser === 'function') ? getUser() : null; } catch (e) {}
+      var r;
+      try { r = await w.purchase({ rcPackage: paket._web, customerEmail: (u && u.email) || undefined, selectedLocale: webDil(), defaultLocale: 'en' }); }
+      catch (e) {
+        if (e && Number(e.errorCode) === 1) return { iptal: true };   // ErrorCode.UserCancelledError
+        throw e;
+      }
+      var wd = await sonucuIsle(r && r.customerInfo);
+      return { tamam: proMu(wd), durum: wd };
+    }
     await rcHazirla();
     var sonuc;
     try { sonuc = await P().purchasePackage({ aPackage: paket }); }
@@ -213,6 +287,9 @@
   }
 
   async function yonetimAdresi() {
+    if (platform() === 'web') {
+      try { var wi = await (await webHazirla()).getCustomerInfo(); return (wi && wi.managementURL) || null; } catch (e) { return null; }
+    }
     try {
       await rcHazirla();
       var r = await P().getCustomerInfo();
@@ -245,7 +322,7 @@
   }
 
   window.Pro = {
-    platform: platform, onbellek: onbellek, durumTazele: durumTazele, proMu: proMu, zorunluMu: zorunluMu,
+    platform: platform, webSatis: webSatis, onbellek: onbellek, durumTazele: durumTazele, proMu: proMu, zorunluMu: zorunluMu,
     kontrol: kontrol, rcHazirla: rcHazirla, teklifler: teklifler, satinAl: satinAl, geriYukle: geriYukle,
     esitle: esitle, yonetimAdresi: yonetimAdresi, yonet: yonet, rcSil: rcSil,
     yillikTeklif: yillikTeklif, yilligaGec: yilligaGec, yilligaGecisBekliyor: yilligaGecisBekliyor

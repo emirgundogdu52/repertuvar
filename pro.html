@@ -5,6 +5,7 @@
        satis : iOS/Android — mağaza fiyatları (RevenueCat), plan kartları, satın al / dene
        kilit : × ile kapatılınca — Pro yokken açık kalanlar (ayarlar, çıkış) — D2
        web   : web'de satın alma yok (karar 1a) — "Pro'yu iPhone/iPad ya da Android uygulamasından başlat"
+               (2026-10-20) Pro.webSatis() açıksa (şimdilik YALNIZ localhost + Paddle sandbox) Paddle ile satın alma
      Fiyat/para birimi ASLA elle yazılmaz: mağazanın priceString'i; "ayda X" kuruş aşağı yuvarlanır.
      iOS'ta Google Play adı yazılmaz (Apple 2.3.10); web'de mağaza adları serbest. -->
 <html lang="tr">
@@ -143,6 +144,9 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
     acIosDeneme: 'After the free month, {x} billed {sonra}. Your subscription renews automatically unless cancelled at least 24 hours before the end of the trial or current period. You can cancel anytime in Settings › Subscriptions.',
     acAnd: '{x} billed {sonra}. Your subscription renews automatically at the end of each period unless cancelled. You can cancel anytime in Google Play › Subscriptions.',
     acAndDeneme: 'After the free month, {x} billed {sonra}. Cancel before the trial ends and you won\'t be charged; you can cancel anytime in Google Play › Subscriptions.',
+    acWeb: '{x} billed {sonra}. Your subscription renews automatically at the end of each period unless cancelled; you can cancel anytime in Settings › Subscription. Payment is handled by our reseller Paddle.com.',
+    acWebDeneme: 'After the free month, {x} billed {sonra}. Cancel before the trial ends and you won\'t be charged; you can cancel anytime in Settings › Subscription. Payment is handled by our reseller Paddle.com.',
+    iade: 'Refund Policy',
     isleniyor: 'Processing your purchase…', tamam: 'Pro is active. Enjoy!', bekliyor: 'Your purchase is awaiting approval. Pro will turn on automatically once it\'s approved.',
     hata: 'The purchase couldn\'t be completed. Please try again.', yuklenemedi: 'Subscription options couldn\'t be loaded. Check your internet connection and try again.',
     tekrar: 'Try again', geriYukle: 'Restore purchases', geriYuklendi: 'Your purchases have been restored — Pro is active.',
@@ -172,6 +176,9 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
     acIosDeneme: 'Ücretsiz ay bitince {x} {sonra} ücretlendirilir. Deneme ya da dönem bitmeden en az 24 saat önce iptal edilmezse abonelik otomatik yenilenir. Ayarlar › Abonelikler’den istediğin zaman iptal edebilirsin.',
     acAnd: '{x} {sonra} ücretlendirilir. Abonelik iptal edilmedikçe her dönemin sonunda otomatik yenilenir. Google Play › Abonelikler’den istediğin zaman iptal edebilirsin.',
     acAndDeneme: 'Ücretsiz ay bitince {x} {sonra} ücretlendirilir. Deneme bitmeden iptal edersen ücret alınmaz; Google Play › Abonelikler’den istediğin zaman iptal edebilirsin.',
+    acWeb: '{x} {sonra} ücretlendirilir. Abonelik iptal edilmedikçe her dönemin sonunda otomatik yenilenir; Ayarlar › Abonelik’ten istediğin zaman iptal edebilirsin. Ödemeyi satıcımız Paddle.com alır.',
+    acWebDeneme: 'Ücretsiz ay bitince {x} {sonra} ücretlendirilir. Deneme bitmeden iptal edersen ücret alınmaz; Ayarlar › Abonelik’ten istediğin zaman iptal edebilirsin. Ödemeyi satıcımız Paddle.com alır.',
+    iade: 'İade Politikası',
     isleniyor: 'Satın alma işleniyor…', tamam: 'Pro etkin. İyi çalışmalar!', bekliyor: 'Satın alma onay bekliyor. Onaylanınca Pro kendiliğinden açılır.',
     hata: 'Satın alma tamamlanamadı. Tekrar dene.', yuklenemedi: 'Abonelik seçenekleri yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.',
     tekrar: 'Tekrar dene', geriYukle: 'Satın alımları geri yükle', geriYuklendi: 'Satın alımların geri yüklendi — Pro etkin.',
@@ -260,7 +267,8 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
     $('denemeSatir').hidden = !dene;
     if (dene) yaz('denemeSatir', M.denemeSatir.replace('{x}', p.priceString).replace('{per}', M.plan[secim][1]));
     yaz('alBtn', dene ? M.ctaDene : M.ctaAl);
-    var sablon = dene ? (ios ? M.acIosDeneme : M.acAndDeneme) : (ios ? M.acIos : M.acAnd);
+    var web = platform === 'web';
+    var sablon = web ? (dene ? M.acWebDeneme : M.acWeb) : dene ? (ios ? M.acIosDeneme : M.acAndDeneme) : (ios ? M.acIos : M.acAnd);
     yaz('aciklama', sablon.replace('{x}', p.priceString).replace('{sonra}', M.plan[secim][2]));
   }
 
@@ -313,12 +321,13 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
   }
 
   function kilitAc() {
+    var webKapali = platform === 'web' && !(window.Pro && Pro.webSatis && Pro.webSatis());   // (2026-10-20) web satışı yalnız açıkken satın alma
     var yeni = !(durum && (durum.daha_once_pro || durum.deneme_kullanildi));
     ac('satis', false); ac('yukleniyor', false); ac('kilit', true);
-    yaz('baslik', platform === 'web' ? M.bYeni : (yeni ? M.hosgeldin : M.kilitBaslik));
+    yaz('baslik', webKapali ? M.bYeni : (yeni ? M.hosgeldin : M.kilitBaslik));
     yaz('altBaslik', '');
-    yaz('kilitMetin', platform === 'web' ? M.webMetin : (yeni ? M.hosgeldinMetin : M.kilitMetin));
-    ac('proyaDonBtn', platform !== 'web');
+    yaz('kilitMetin', webKapali ? M.webMetin : (yeni ? M.hosgeldinMetin : M.kilitMetin));
+    ac('proyaDonBtn', !webKapali);
   }
 
   $('kapatBtn').onclick = function () {
@@ -347,7 +356,12 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
     durum = Pro.onbellek();
     try { durum = await Pro.durumTazele(); } catch (e) {}
     if (Pro.proMu(durum)) { location.replace(donus); return; }
-    if (platform === 'web') { ac('geriYukleBtn', false); basliklar(); kilitAc(); return; }
+    if (platform === 'web') ac('geriYukleBtn', false);   // web'de geri yükleme yok: satın alma hesaba bağlı
+    if (platform === 'web' && !Pro.webSatis()) { basliklar(); kilitAc(); return; }
+    if (platform === 'web') {   // iade politikası bağlantısı yalnız web satışında
+      var ia = document.createElement('a'); ia.target = '_blank'; ia.rel = 'noopener'; ia.textContent = M.iade;
+      ia.href = 'https://repertuvar.app/refund/' + (EN ? 'en/' : ''); $('baglantilar').appendChild(ia);
+    }
     basliklar();
     satisAc();
   })();

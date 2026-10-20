@@ -1474,6 +1474,7 @@ function abonelikCiz(d) {
   if (pro && !d.hediye && d.kaynak) {
     if (d.kaynak === 'ios' && plat === 'ios') kaynak = _t('ab.kaynakIos', 'App Store üzerinden alındı');
     else if (d.kaynak === 'android' && plat === 'android') kaynak = _t('ab.kaynakAnd', 'Google Play üzerinden alındı');
+    else if (d.kaynak === 'web' && plat === 'web') kaynak = _t('ab.kaynakWeb', 'repertuvar.app üzerinden alındı (satıcı: Paddle)');   // (2026-10-20) web satışı
     else kaynak = _t('ab.kaynakBaska', 'Bu abonelik başka bir platformda alındı ve orada yönetilir.');
   }
   document.getElementById('abKaynak').textContent = kaynak;
