@@ -7,7 +7,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const kopya = join(mkdtempSync(join(tmpdir(), 'abonelik-')), 'index.mts');
 copyFileSync(join(dirname(fileURLToPath(import.meta.url)), 'index.ts'), kopya);
-const { kaynakOf, donemOf, satirOf, devredilenleriKapat, etkilenenler, isle } = await import(pathToFileURL(kopya).href);
+const { kaynakOf, donemOf, satirOf, devredilenleriKapat, etkilenenler, isle, webSandboxEle } = await import(pathToFileURL(kopya).href);
 
 let gecti = 0;
 async function dene(ad, fn) { await fn(); gecti++; console.log('  ✓', ad); }
@@ -31,6 +31,17 @@ await dene('kaynakOf / donemOf', () => {
   assert.equal(donemOf('repertuvar_pro:aylik'), 'P1M');
   assert.equal(donemOf('repertuvar_pro:alti-aylik'), 'P6M');
   assert.equal(donemOf('repertuvar_pro:yillik'), 'P1Y');
+});
+
+await dene('webSandboxEle: Paddle sandbox yalnız izinli hesapta; mağaza sandbox\'ı ve web üretimi dokunulmaz', () => {
+  const paddle = { store: 'paddle', expires_date: gun(30), purchase_date: gun(0), period_type: 'trial', is_sandbox: true };
+  const web = satirOf(UID, 'pri_01m5d6geb3354gp25c08088fkw', paddle, SIMDI);
+  const webUretim = satirOf(UID, 'pri_x', { ...paddle, is_sandbox: false }, SIMDI);
+  const iosSandbox = satirOf(UID, 'com.repertuvar.app.pro.yearly', { ...paddle, store: 'app_store' }, SIMDI);
+  assert.equal(web.kaynak, 'web'); assert.equal(web.ortam, 'sandbox');
+  assert.deepEqual(webSandboxEle([web, webUretim, iosSandbox], ''), [webUretim, iosSandbox]);
+  assert.deepEqual(webSandboxEle([web], ' ' + UID2 + ' , ' + UID.toUpperCase()), [web]);
+  assert.deepEqual(webSandboxEle([web], UID2), []);
 });
 
 await dene('satirOf: Play anahtarı temel plansız gelirse product_plan_identifier eklenir', () => {

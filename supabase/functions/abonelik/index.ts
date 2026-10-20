@@ -101,6 +101,14 @@ export function devredilenleriKapat(satirlar: Record<string, any>[]): Record<str
   });
 }
 
+// (2026-10-20) WEB SANDBOX KORUMASI: Paddle sandbox'ında test kartı herkese açık. Mağaza sandbox'ı (Apple inceleme,
+// K7) Pro verir; web sandbox'ı YALNIZ izinli test hesaplarında (ortam değişkeni WEB_SANDBOX_IZINLI: virgüllü uid listesi).
+// Elenen satır yazılmaz; daha önce yazılmışsa kapat() onu sona erdirir.
+export function webSandboxEle(satirlar: Record<string, any>[], izinli: string): Record<string, any>[] {
+  const liste = new Set((izinli || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean));
+  return satirlar.filter((s) => !(s.kaynak === 'web' && s.ortam === 'sandbox' && !liste.has(String(s.user_id).toLowerCase())));
+}
+
 // Webhook olayından etkilenen (bizim, UUID biçimli) kullanıcı kimlikleri
 export function etkilenenler(olay: Record<string, any>): string[] {
   const hepsi = [olay.app_user_id, olay.original_app_user_id,
@@ -157,9 +165,9 @@ export async function yenidenHesapla(uid: string, ortam: Ortam, f: typeof fetch 
   if (!r.ok) throw new Error('revenuecat ' + r.status);
   const veri = await r.json();
   const abonelikler = (veri && veri.subscriber && veri.subscriber.subscriptions) || {};
-  const satirlar = devredilenleriKapat(Object.entries(abonelikler)
+  const satirlar = webSandboxEle(devredilenleriKapat(Object.entries(abonelikler)
     .map(([urun, a]) => satirOf(uid, urun, a as Record<string, any>))
-    .filter(Boolean) as Record<string, any>[]);
+    .filter(Boolean) as Record<string, any>[]), ortam('WEB_SANDBOX_IZINLI') || '');
   const db = sb(ortam, f);
   await db.upsert(satirlar);
   await db.kapat(uid, satirlar.map((s) => s.dis_kimlik));
