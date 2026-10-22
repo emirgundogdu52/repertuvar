@@ -11,13 +11,13 @@ const kod=arasi('// ── (2026-10-22) DEFTERDEN OKU (DENEME)','// ── (2026
 const esHtml=html.match(/function _esHtml\(s\)\{[^\n]*\}/)[0];
 
 const SONUC={ baslik:'Hastane Önünde İncir Ağacı', soz:'Hastane önünde incir ağacı\nDoktor bana bir çare', akorlu:'[Am]Hastane önünde [G]incir ağacı',
-  bilgiler:{ yore:'İzmir', kaynak_kisi:'Hüseyin Dalgıç', derleyen:'', notaya_alan:'Muzaffer Sarısözen', repertuvar_no:'2318', makam:'', usul:'9/8', sure:'', ton:'', soz_yazari:'', besteci:'' },
+  bilgiler:{ yore:'İzmir', kaynak_kisi:'Hüseyin Dalgıç', derleyen:'', notaya_alan:'Muzaffer Sarısözen', repertuvar_no:'2318', makam:'', usul:'9/8', sure:'♩ = 50', ton:'', soz_yazari:'', besteci:'' },
   donus:90, notlar:'2. dize son sözcüğü belirsiz', kullanim:{girdi:1800,cikti:420} };
 
 async function ortam({ rol='editor', duzenlenen=null, cevap={durum:200,govde:SONUC}, form={} }={}){
   const dom=new JSDOM(`<!doctype html><body>${isaret}
     <input id="ne_name"><input id="ne_region"><input id="ne_sourcePerson"><input id="ne_collector"><input id="ne_makam">
-    <input id="ne_measurement"><input id="ne_composer"><input id="ne_lyricWriter"><textarea id="ne_chords"></textarea></body>`,{runScripts:'outside-only'});
+    <input id="ne_measurement"><input id="ne_composer"><input id="ne_lyricWriter"><input id="ne_metronom"><textarea id="ne_chords"></textarea></body>`,{runScripts:'outside-only'});
   const w=dom.window, olan={istekler:[], sekme:null, toast:null, alan:0, yuklenen:[], soz:form.soz||''};
   Object.entries(form).forEach(([id,v])=>{ const el=w.document.getElementById(id); if(el) el.value=v; });
   Object.assign(w,{
@@ -60,6 +60,7 @@ const sec=async(o)=>{ await o.w.defterOkuSec({ files:[{name:'sayfa.jpg'}], value
     yaz('söz forma yazıldı', o.olan.soz===SONUC.soz);
     yaz('önizlemedeki düzeltme akora yazıldı', deg('ne_chords').endsWith('düzeltildi'));
     yaz('alanlar dolduruldu', deg('ne_name')===SONUC.baslik && deg('ne_region')==='İzmir' && deg('ne_sourcePerson')==='Hüseyin Dalgıç' && deg('ne_measurement')==='9/8');
+    yaz('TRT "SÜRE: ♩ = 50" metronoma sayı olarak', deg('ne_metronom')==='50');
     yaz('boş bilgi alanlara yazılmadı', deg('ne_collector')==='' && deg('ne_makam')==='');
     yaz('nota sayfası döndürülerek eklendi', o.olan.yuklenen.length===1 && o.olan.yuklenen[0].id===42 && o.olan.yuklenen[0].fs[0].d===90);
     yaz('önizleme kapandı, alanlar yeniden çizildi, söz sekmesi', !o.d.getElementById('defterOkuOnizleme') && o.olan.alan===1 && o.olan.sekme==='lyrics');

@@ -4898,8 +4898,10 @@ async function notaTaraDosyalar(durum) {
 const DEFTER_OKU_ALANLAR = [
   ['baslik', 'ne_name', 'Eser adı'], ['yore', 'ne_region', 'Yöre'], ['kaynak_kisi', 'ne_sourcePerson', 'Kaynak kişi'],
   ['derleyen', 'ne_collector', 'Derleyen'], ['makam', 'ne_makam', 'Makam'], ['usul', 'ne_measurement', 'Usul / ölçü'],
-  ['besteci', 'ne_composer', 'Besteci'], ['soz_yazari', 'ne_lyricWriter', 'Söz yazarı'],
+  ['besteci', 'ne_composer', 'Besteci'], ['soz_yazari', 'ne_lyricWriter', 'Söz yazarı'], ['metronom', 'ne_metronom', 'Metronom'],
 ];
+// TRT sayfaları tempoyu "SÜRE: ♩ = 50" diye yazıyor → metronom alanına yalnız sayı
+const _defterOkuTempo = sure => { const m = String(sure || '').match(/=\s*(\d{2,3})\b/); return m ? m[1] : ''; };
 const DEFTER_OKU_YALNIZ_BILGI = [['notaya_alan', 'Notaya alan'], ['repertuvar_no', 'Repertuvar no'], ['sure', 'Süre'], ['ton', 'Ton']];
 const DEFTER_OKU_HATALAR = {
   'yetki-yok': 'Bu deneme şimdilik yalnız yönetici ve editörlere açık.',
@@ -4981,7 +4983,7 @@ function _defterOkuOnizle() {
     <label style="${lbl}"><input type="checkbox" id="${id}Yaz" ${dolu ? '' : 'checked'}> <b>${e(ad)}</b>${dolu ? ' — ' + e(_esCev('es.doMevcutYerine', 'şu anki metnin yerine geçer')) : ''}</label>
     <textarea id="${id}" style="${ta}">${e(metin)}</textarea>` : '';
   const alanlar = DEFTER_OKU_ALANLAR.map(([k, id, ad]) => {
-    const v = k === 'baslik' ? s.baslik : b[k];
+    const v = k === 'baslik' ? s.baslik : k === 'metronom' ? _defterOkuTempo(b.sure) : b[k];
     const el = document.getElementById(id);
     const mevcut = el ? el.value.trim() : '';
     if (!v || mevcut === v) return '';
