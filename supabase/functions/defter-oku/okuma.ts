@@ -69,7 +69,13 @@ export const DEFTER_SEMA = {
   },
 };
 
-const OKUMA_KURALI = `Sayfada ne yazıyorsa onu çıkar. Okuyamadığın yeri tahminle ya da şarkıyı bildiğin için ezberden tamamlama; o yere "…" koy ve notlar alanında belirt. Üstü çizilmiş satırları alma, notlarda belirt. Söz hem notanın altında hece hece hem de sayfada düz metin (kıtalar) olarak yazılıysa sözü düz metinden al.`;
+const OKUMA_KURALI = `Sayfada ne yazıyorsa onu çıkar. Okuyamadığın yeri tahminle ya da şarkıyı bildiğin için ezberden tamamlama; o yere "…" koy ve notlar alanında belirt. Üstü çizilmiş satırları alma, notlarda belirt. Söz hem notanın altında hece hece hem de sayfada düz metin (kıtalar) olarak yazılıysa sözü düz metinden al.
+
+Söz çoğu zaman yalnız notanın altında hece hece yazılıdır; o zaman sözü hecelerden kur:
+- Heceleri birleştirip sözcükleri doğru yaz (HAS TA NE Ö NÜN DE → Hastane önünde); tire ve boşlukla bölünmüş heceleri ayırma.
+- Notanın altında üst üste birden çok söz satırı varsa her satır ayrı bir kıtadır: 1. satırları sırayla birleştirerek 1. kıtayı, 2. satırları birleştirerek 2. kıtayı kur; satırları birbirine karıştırma. Satırın altında " ya da ″ gibi aynen işareti varsa üstteki sözü tekrarla.
+- Dizeleri müzik cümlelerine göre böl (genelde bir dize bir ya da iki porte satırıdır); dönüş ve ev (1., 2.) işaretleri yüzünden sözü iki kez yazma.
+- "Saz" ya da sözsüz bölümleri söze katma. Kıta numaralarını ayrı satır olarak yazma.`;
 
 const ALAN_KURALLARI = `- baslik: sayfada yazılı eser adı; yoksa "".
 - soz: yalnız söz, sayfadaki satır düzeninde. Kıtalar arasında boş satır. "2X", "Nakarat", "Bağlantı" gibi işaretler sayfada varsa koru. Söz yoksa "".
