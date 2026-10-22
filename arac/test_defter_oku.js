@@ -12,7 +12,7 @@ const esHtml=html.match(/function _esHtml\(s\)\{[^\n]*\}/)[0];
 
 const SONUC={ baslik:'Hastane Önünde İncir Ağacı', soz:'Hastane önünde incir ağacı\nDoktor bana bir çare', akorlu:'[Am]Hastane önünde [G]incir ağacı',
   bilgiler:{ yore:'İzmir', kaynak_kisi:'Hüseyin Dalgıç', derleyen:'', notaya_alan:'Muzaffer Sarısözen', repertuvar_no:'2318', makam:'', usul:'9/8', sure:'♩ = 50', ton:'', soz_yazari:'', besteci:'' },
-  donus:90, notlar:'2. dize son sözcüğü belirsiz', kullanim:{girdi:1800,cikti:420} };
+  donus:90, notlar:'2. dize son sözcüğü belirsiz', model:'claude-haiku-5-5', kullanim:{girdi:1800,cikti:420} };
 
 async function ortam({ rol='editor', duzenlenen=null, cevap={durum:200,govde:SONUC}, form={} }={}){
   const dom=new JSDOM(`<!doctype html><body>${isaret}
@@ -26,7 +26,7 @@ async function ortam({ rol='editor', duzenlenen=null, cevap={durum:200,govde:SON
     getLyricsValue:()=>olan.soz, setLyricsValue:t=>{olan.soz=t;}, alanlariUygula:()=>{olan.alan++;},
     switchNeTab:s=>{olan.sekme=s;}, toastMsg:t=>{olan.toast=t;}, renderNeNotaList:()=>{},
     notaGorselKucult:async(f,d)=>({f,d}), uploadNotaFiles:(id,fs)=>{olan.yuklenen.push({id,fs});},
-    fetch:async(url,opt)=>{ olan.istekler.push({url,opt}); return { ok:cevap.durum<300, status:cevap.durum, json:async()=>cevap.govde }; },
+    fetch:async(url,opt)=>{ olan.istekler.push({url,opt}); const c=Array.isArray(cevap)?cevap[Math.min(olan.istekler.length,cevap.length)-1]:cevap; return { ok:c.durum<300, status:c.durum, json:async()=>c.govde }; },
   });
   w.eval(esHtml+'\n'+kod+'\n;_defterOkuGorsel=async()=>"QUJD";');
   return {w, d:w.document, olan};
@@ -93,6 +93,30 @@ const sec=async(o)=>{ await o.w.defterOkuSec({ files:[{name:'sayfa.jpg'}], value
     await sec(o);
     const kap=o.d.getElementById('defterOkuOnizleme');
     yaz('okunan metin kaçışlı', !kap.querySelector('img') && !kap.querySelector('b + b') && kap.textContent.includes('<img src=x'));
+  }
+  { // "Daha dikkatli oku": aynı görsel dikkatli:true ile, önizleme Opus sonucuyla yenilenir
+    const OPUS={...SONUC, akorlu:'[Am]Hastane [G]önünde [F]incir', model:'claude-opus-5-5', notlar:''};
+    const o=await ortam({ cevap:[{durum:200,govde:SONUC},{durum:200,govde:OPUS}] });
+    await sec(o);
+    let kap=o.d.getElementById('defterOkuOnizleme');
+    yaz('ilk okuma dikkatli değil', !JSON.parse(o.olan.istekler[0].opt.body).dikkatli);
+    yaz('Haiku sonucunda "Daha dikkatli oku" var', !!kap.querySelector('#do_dikkatliBtn'));
+    await o.w.defterOkuDikkatli();
+    const g2=JSON.parse(o.olan.istekler[1].opt.body);
+    yaz('ikinci istek dikkatli:true ve aynı görsel', g2.dikkatli===true && g2.gorsel==='QUJD');
+    kap=o.d.getElementById('defterOkuOnizleme');
+    yaz('önizleme Opus sonucuyla yenilendi', kap.querySelector('#do_akor').value===OPUS.akorlu);
+    yaz('Opus sonucunda düğme yok, "dikkatli okuma ile okundu" yazıyor', !kap.querySelector('#do_dikkatliBtn') && kap.textContent.includes('Dikkatli okuma ile okundu'));
+    o.w.defterOkuUygula();
+    yaz('uygulanan akor Opus sonucu', o.d.getElementById('ne_chords').value===OPUS.akorlu);
+  }
+  { // dikkatli okuma hatası önizlemede gösterilir, ilk sonuç kalır
+    const o=await ortam({ cevap:[{durum:200,govde:SONUC},{durum:429,govde:{hata:'cok-istek'}}] });
+    await sec(o);
+    await o.w.defterOkuDikkatli();
+    const kap=o.d.getElementById('defterOkuOnizleme');
+    yaz('hata önizlemede, düğme yeniden etkin', o.d.getElementById('do_durum').textContent.includes('Çok sık deneme') && !kap.querySelector('#do_dikkatliBtn').disabled);
+    yaz('ilk okuma korunuyor', kap.querySelector('#do_akor').value===SONUC.akorlu);
   }
   console.log(hata?`\n${hata} test KALDI`:'\nHepsi geçti'); process.exit(hata?1:0);
 })();

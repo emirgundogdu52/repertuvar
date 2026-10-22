@@ -9,7 +9,7 @@ const burasi = dirname(fileURLToPath(import.meta.url));
 const gecici = mkdtempSync(join(tmpdir(), 'defter-oku-'));
 copyFileSync(join(burasi, 'okuma.ts'), join(gecici, 'okuma.ts'));
 copyFileSync(join(burasi, 'index.ts'), join(gecici, 'index.mts'));
-const { govdeDenetle, istekOf, sonucDuzenle, akorluTemizle, SEMA, MODEL, MODELLER } = await import(pathToFileURL(join(gecici, 'okuma.ts')).href);
+const { govdeDenetle, istekOf, sonucDuzenle, akorluTemizle, SEMA, MODEL, DIKKATLI_MODEL, MODELLER } = await import(pathToFileURL(join(gecici, 'okuma.ts')).href);
 const { isle, OkumaHatasi } = await import(pathToFileURL(join(gecici, 'index.mts')).href);
 
 let gecti = 0;
@@ -52,24 +52,25 @@ await dene('govdeDenetle', () => {
 });
 
 await dene('istekOf: model, yedek model, yapılandırılmış çıktı, görsel', () => {
-  const p = istekOf(GORSEL, 'image/jpeg');
-  assert.equal(p.model, MODEL);
-  assert.equal(MODEL, 'claude-opus-5-5');
+  assert.equal(MODEL, 'claude-haiku-5-5');           // kullanıcı kararı "3": varsayılan Haiku
+  assert.equal(DIKKATLI_MODEL, 'claude-opus-5-5');   // "Daha dikkatli oku"
+  const h = istekOf(GORSEL, 'image/jpeg');
+  assert.equal(h.model, MODEL);
+  assert.equal(h.fallbacks, undefined);   // Haiku 5.5'te sunucu tarafı yedek model yok
+  assert.equal(h.betas, undefined);
+  assert.equal(h.output_config.effort, 'medium');
+  assert.equal(h.output_config.format.type, 'json_schema');
+  assert.equal(h.output_config.format.schema, SEMA);
+  assert.equal(h.messages[0].content[0].source.data, GORSEL);
+  assert.equal(h.thinking, undefined);    // thinking gönderilmez (ikisinde de adaptive varsayılan)
+  const p = istekOf(GORSEL, 'image/jpeg', DIKKATLI_MODEL);
+  assert.equal(p.model, 'claude-opus-5-5');
   assert.equal(p.fallbacks, 'default');
   assert.deepEqual(p.betas, ['server-side-fallback-2026-07-01']);
-  assert.equal(p.output_config.effort, 'medium');
-  assert.equal(p.output_config.format.type, 'json_schema');
   assert.equal(p.output_config.format.schema, SEMA);
-  assert.equal(p.messages[0].content[0].source.data, GORSEL);
-  assert.equal(p.thinking, undefined);   // Opus 5.5'te thinking kapatılamaz; parametre gönderilmez
   // şemadaki her nesne additionalProperties:false + tüm alanlar required
   const denetle = (s) => { if (s.type === 'object') { assert.equal(s.additionalProperties, false); assert.deepEqual([...s.required].sort(), Object.keys(s.properties).sort()); Object.values(s.properties).forEach(denetle); } };
   denetle(SEMA);
-  const h = istekOf(GORSEL, 'image/jpeg', 'claude-haiku-5-5');
-  assert.equal(h.model, 'claude-haiku-5-5');
-  assert.equal(h.fallbacks, undefined);   // Haiku 5.5'te sunucu tarafı yedek model yok
-  assert.equal(h.betas, undefined);
-  assert.equal(h.output_config.format.schema, SEMA);
   assert.deepEqual(MODELLER, ['claude-opus-5-5', 'claude-haiku-5-5']);
 });
 
@@ -122,16 +123,20 @@ await dene('isle: okuma sonuçları', async () => {
   assert.equal((await isle(istek({ gorsel: 'x', tur: 'text/html' }), ortam(), okuyucu(), sahteFetch())).status, 400);
 });
 
-await dene('isle: model seçimi yalnız servis anahtarıyla', async () => {
-  const s1 = okuyucu();
-  const j1 = await (await isle(istek({ gorsel: GORSEL, model: 'claude-haiku-5-5' }), ortam(), s1, sahteFetch())).json();
-  assert.equal(s1.son.model, 'claude-haiku-5-5'); assert.equal(j1.model, 'claude-haiku-5-5');
-  const s2 = okuyucu();
-  await isle(istek({ gorsel: GORSEL, model: 'claude-haiku-5-5' }, 'Bearer kullanici'), ortam(), s2, sahteFetch('editor'));
-  assert.equal(s2.son.model, MODEL);                 // kullanıcı modeli seçemez
-  const s3 = okuyucu();
-  await isle(istek({ gorsel: GORSEL, model: 'claude-fable-5-1' }), ortam(), s3, sahteFetch());
-  assert.equal(s3.son.model, MODEL);                 // listede olmayan model yok sayılır
+await dene('isle: model seçimi (varsayılan Haiku, dikkatli → Opus, açık ad yalnız servis)', async () => {
+  const k = (govde, yetki) => { const o = okuyucu(); return isle(istek(govde, yetki), ortam(), o, sahteFetch('editor')).then(async (r) => ({ o, j: await r.json() })); };
+  let { o, j } = await k({ gorsel: GORSEL }, 'Bearer kullanici');
+  assert.equal(o.son.model, 'claude-haiku-5-5'); assert.equal(j.model, 'claude-haiku-5-5');
+  ({ o, j } = await k({ gorsel: GORSEL, dikkatli: true }, 'Bearer kullanici'));
+  assert.equal(o.son.model, 'claude-opus-5-5'); assert.equal(o.son.fallbacks, 'default'); assert.equal(j.model, 'claude-opus-5-5');
+  ({ o } = await k({ gorsel: GORSEL, dikkatli: 'evet' }, 'Bearer kullanici'));
+  assert.equal(o.son.model, MODEL);                   // yalnız gerçek true
+  ({ o } = await k({ gorsel: GORSEL, model: 'claude-opus-5-5' }, 'Bearer kullanici'));
+  assert.equal(o.son.model, MODEL);                   // kullanıcı model adı veremez
+  ({ o } = await k({ gorsel: GORSEL, model: 'claude-opus-5-5' }));
+  assert.equal(o.son.model, 'claude-opus-5-5');       // servis anahtarı verebilir
+  ({ o } = await k({ gorsel: GORSEL, model: 'claude-fable-5-1' }));
+  assert.equal(o.son.model, MODEL);                   // listede olmayan model yok sayılır
 });
 
 console.log(`\n${gecti} test geçti`);

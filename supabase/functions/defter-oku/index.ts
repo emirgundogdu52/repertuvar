@@ -1,7 +1,8 @@
 // (2026-10-22) Repertuvar — defter sayfası okuma (DENEME)
 //
 // Uygulama, eser formundaki "📷 Defterden oku" düğmesiyle sayfanın fotoğrafını (base64 JPEG) gönderir;
-// bu fonksiyon Claude'a okutur ve { baslik, soz, akorlu (ChordPro), bilgiler, donus, notlar } döner.
+// bu fonksiyon Claude'a okutur ve { baslik, soz, akorlu (ChordPro), bilgiler, donus, notlar, model } döner.
+// Varsayılan Haiku 5.5; gövdede dikkatli:true ("Daha dikkatli oku") gelirse Opus 5.5.
 // Hiçbir şey kaydedilmez: kullanıcı önizlemede bakıp formu kendisi doldurur ve kaydeder.
 //
 // Kimlik ("Verify JWT" KAPALI, burada denetlenir): kullanıcının Supabase oturumu. Deneme süresince yalnız
@@ -12,7 +13,7 @@
 // SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY ortamda kendiliğinden gelir.
 // Saf kısım okuma.ts'de; SDK yalnız Deno'da yüklenir, test.mjs Node'da sahte okuyucuyla sınar.
 
-import { govdeDenetle, istekOf, sonucDuzenle, MODEL, MODELLER } from './okuma.ts';
+import { govdeDenetle, istekOf, sonucDuzenle, MODEL, DIKKATLI_MODEL, MODELLER } from './okuma.ts';
 
 declare const Deno: any;
 
@@ -89,9 +90,11 @@ export async function isle(istek: Request, ortam: Ortam, oku: Okuyucu, f: typeof
   const g = govdeDenetle(govde);
   if ('hata' in g) return yanit(400, { hata: g.hata }, koken);
 
-  // Model seçimi yalnız sunucudan karşılaştırma denemesi için (servis anahtarı); kullanıcı isteği hep MODEL
-  const istenen = (govde as Record<string, unknown>).model;
-  const model = uid === 'servis' && typeof istenen === 'string' && MODELLER.includes(istenen) ? istenen : MODEL;
+  // Kullanıcı: varsayılan MODEL ya da "Daha dikkatli oku" (dikkatli:true) → DIKKATLI_MODEL.
+  // Açık model adı yalnız sunucudan karşılaştırma denemesi için (servis anahtarı).
+  const o = govde as Record<string, unknown>;
+  const model = uid === 'servis' && typeof o.model === 'string' && MODELLER.includes(o.model) ? o.model
+    : o.dikkatli === true ? DIKKATLI_MODEL : MODEL;
   try {
     const r = await oku(istekOf(g.gorsel, g.tur, model));
     if (r.durma === 'refusal') return yanit(422, { hata: 'okuma-reddedildi' }, koken);
