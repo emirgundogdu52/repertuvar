@@ -1,5 +1,10 @@
 <!--
   STAGE.HTML — DEĞİŞİKLİK GÜNLÜĞÜ (en üstte tutulur; her önemli özellik değişikliğinde güncellenir)
+  - 2026-10-22: NOTA TAM EKRAN (Emir: "sahnede uzakta kalan tabletin ekranında ne kadar büyük olabilirse o kadar iyi").
+    Nota görünümünde üst şerit + başlık + Söz/Akor/Nota sekmeleri gizlenebilir (#stageScreen.nota-odak, localStorage
+    stageNotaOdak); alt şerit (Sıradaki, sayfa düğmeleri, ⚙) yerinde. Aç: sekmelerin sağındaki ⤢ (≥720 px) ya da
+    ⚙ › Tam ekran; kapat: sol üstteki ⤡ ya da aynı ⚙ satırı. iPad 7 ölçüsünde tek sayfa: yatay 434×618 → 527×750
+    (+%21), dikey 630×898 → 716×1020 (+%14). Sınıf içerik basılmadan önce konur (PDF tuvali son kap boyunu ölçsün).
   - 2026-10-18 (f): NOTA SAYFALARI "ALT ALTA" (kullanıcı ekran görüntüsü: nota sayfasının altında büyük boşluk → "Yap").
     Görünüm Ayarları › Nota Sayfaları: Tek tek / Alt alta (localStorage stageNotaDuzen; varsayılan dikey telefonda alt
     alta, diğerlerinde tek tek). Alt alta: tüm sayfalar #sm içinde art arda, %70 yükseklik sınırı yok (genişliğe sığar);
@@ -749,6 +754,25 @@ body.stage-light .nota-count{background:rgba(255,255,255,.75);color:#1a1a1a;bord
     height:max(38px, var(--nota-serit-h, 46px));padding:0;z-index:12;}
   #stageScreen:has(.wnota-tek .nota-pager) .np{max-width:calc(50% - 16px - var(--nota-pager-yari, 110px));}
 }
+/* (2026-10-22) NOTA TAM EKRAN (Emir: "sahnede uzakta kalan tabletin ekranında ne kadar büyük olabilirse o kadar iyi").
+   Nota görünümünde üst şerit + başlık + Söz/Akor/Nota sekmeleri gizlenir (~130 px), sayfa ekranın üstüne kadar uzar;
+   alt şerit (Sıradaki, sayfa düğmeleri, ⚙) yerinde kalır. Aç: sekmelerin sağındaki ⤢ ya da ⚙ › Nota Sayfaları;
+   kapat: sol üstteki ⤡. Tercih localStorage stageNotaOdak, eserden esere kalır. */
+.nota-odak-ac{display:none;position:absolute;right:16px;top:0;height:34px;width:40px;align-items:center;justify-content:center;
+  background:var(--surface2);border:1px solid var(--border);border-radius:9px;color:var(--text2);font-size:18px;cursor:pointer;}
+.nota-odak-ac:hover{color:var(--text);}
+@media (min-width:720px){ #stageScreen.nota-gorunum .nota-odak-ac{display:flex;} }
+.stb-r1{position:relative;}
+.nota-odak-kapat{display:none;position:absolute;top:calc(env(safe-area-inset-top) + 8px);left:12px;z-index:45;width:38px;height:38px;
+  align-items:center;justify-content:center;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;
+  border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);font-size:18px;cursor:pointer;}
+body.stage-light .nota-odak-kapat{background:rgba(255,255,255,.75);color:#1a1a1a;border-color:rgba(0,0,0,.15);}
+#stageScreen.nota-odak .nota-odak-kapat{display:flex;}
+#stageScreen.nota-odak .stb, #stageScreen.nota-odak #smHead, #stageScreen.nota-odak .stb-r1{display:none;}
+#stageScreen.nota-odak .sm{padding-top:max(2px, env(safe-area-inset-top));}
+#stageScreen.nota-odak .wnota.wnota-tek{margin-top:0;}
+#stageScreen.nota-odak .nota-count{top:calc(env(safe-area-inset-top) + 10px);}
+#stageScreen.nota-odak .nota-count.nota-count-alt{top:6px;}
 .nota-pdf{background:var(--surface2, #16161c);border:1px solid var(--border);border-radius:8px;padding:18px;text-align:center;color:var(--text2);font-size:14px;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 /* ChordPro: akor hecenin üstünde */
@@ -1211,7 +1235,9 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
         <i class="ti ti-info-circle" aria-hidden="true"></i><span class="vm-lbl" data-i18n="sh.bilgi">Bilgi</span>
       </button>
     </div>
+    <button class="nota-odak-ac" onclick="event.stopPropagation();setNotaOdak(true)" title="Sayfayı büyüt (üst çubukları gizle)" data-i18n-title="sh.notaOdakAc" aria-label="Sayfayı büyüt" data-i18n-aria="sh.notaOdakAc"><i class="ti ti-arrows-maximize" aria-hidden="true"></i></button>
   </div>
+  <button class="nota-odak-kapat" onclick="event.stopPropagation();setNotaOdak(false)" title="Üst çubukları göster" data-i18n-title="sh.notaOdakKapat" aria-label="Üst çubukları göster" data-i18n-aria="sh.notaOdakKapat"><i class="ti ti-arrows-minimize" aria-hidden="true"></i></button>
   <div class="sm" id="sm"></div>
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();nextWork()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
@@ -2439,6 +2465,10 @@ function renderStage(){
     if (infoBtn) infoBtn.style.display = rows ? 'flex' : 'none';
   }
   const viewMode = getStageViewMode(w);
+  // (2026-10-22) Nota tam ekran sınıfı içerik basılmadan ÖNCE: PDF tuvali ve sayfa düğmeleri son kap boyunu ölçsün
+  const _st = document.getElementById('stageScreen');
+  _st.classList.toggle('nota-gorunum', viewMode === 'nota');
+  _st.classList.toggle('nota-odak', viewMode === 'nota' && notaOdak());
   let bodyHtml = '';
   if (viewMode === 'nota' && stageNotaPages(w).length) {
     // Sayfa indeksi eser değişince sıfırlanır (aynı esere dönünce de baştan başlar)
@@ -2704,6 +2734,14 @@ function setNotaDuzen(d) {
   localStorage.setItem('stageNotaDuzen', d === 'alt' ? 'alt' : 'tek');
   renderStage();
 }
+// (2026-10-22) Nota tam ekran: üst çubuklar gizli, sayfa ekranın üstüne kadar (CSS #stageScreen.nota-odak)
+function notaOdak() {
+  try { return localStorage.getItem('stageNotaOdak') === '1'; } catch (e) { return false; }
+}
+function setNotaOdak(acik) {
+  try { localStorage.setItem('stageNotaOdak', acik ? '1' : '0'); } catch (e) {}
+  renderStage();
+}
 // Hedef sayfa: görseller yüklendikçe yükseklik değişir → kullanıcı kendisi kaydırana kadar hedefe yeniden oturtulur.
 let _notaAltHedef = null, _notaAltElle = false;
 function notaAltSayfalar() { const sm = document.getElementById('sm'); return sm ? [...sm.querySelectorAll('.wnota-alt .nota-sayfa')] : []; }
@@ -2964,8 +3002,11 @@ function buildStageToolsRow(mode) {
     const duzenBtns = `
       <button onclick="event.stopPropagation();setNotaDuzen('tek')" title="${_sCev('sh.notaTekTekT','Her seferinde tek sayfa; pedal sayfa çevirir')}" class="align-btn${_dz==='tek'?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;"><i class="ti ti-file"></i>&nbsp;${_sCev('sh.notaTekTek','Tek tek')}</button>
       <button onclick="event.stopPropagation();setNotaDuzen('alt')" title="${_sCev('sh.notaAltAltaT','Sayfalar alt alta; pedal bir sonraki sayfaya kaydırır')}" class="align-btn${_dz==='alt'?' active':''}" style="width:auto;padding:0 10px;font-size:12px;font-weight:700;"><i class="ti ti-layout-rows"></i>&nbsp;${_sCev('sh.notaAltAlta','Alt alta')}</button>`;
+    const odakBtn = `
+      <button onclick="event.stopPropagation();setNotaOdak(!notaOdak())" title="${_sCev('sh.notaTamEkranT','Üst çubukları gizle; sayfa ekranı doldurur')}" aria-pressed="${notaOdak()}" class="align-btn${notaOdak()?' active':''}"><i class="ti ti-arrows-maximize"></i></button>`;
     row.innerHTML = grup(_sCev('sh.gorunum','Görünüm'), themeBtn)
                   + grup(_sCev('sh.notaSayfalari','Nota Sayfaları'), duzenBtns)
+                  + grup(_sCev('sh.notaTamEkran','Tam ekran'), odakBtn)
                   + grup(_sCev('sh.grupSahne','Sahne'), sahneBtns, true);
   } else {
     // lyrics ve chords aynı .wlyrics kutusunu kullandığı için hizalama ikisinde de geçerli
