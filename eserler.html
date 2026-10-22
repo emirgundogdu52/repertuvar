@@ -1210,6 +1210,12 @@
     color:var(--text2); font-size:20px; line-height:1; cursor:pointer; }
   .df-liste { flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:12px; -webkit-overflow-scrolling:touch; }
   .df-bos { margin:auto; text-align:center; color:var(--text3); font-size:13px; line-height:1.6; padding:24px; }
+  /* (2026-10-22) tarama ipuçları — kullanıcı: "siyah zemin, iki sayfayı yan yana koyma uyarılarını üyelere de yazmak gerek" */
+  .df-ipucu { margin:14px auto 0; max-width:420px; text-align:left; font-size:12.5px; line-height:1.55; color:var(--text2);
+    padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface2); }
+  .df-ipucu-ac { margin:0 0 10px; font-size:12.5px; color:var(--text2); }
+  .df-ipucu-ac summary { cursor:pointer; color:var(--text3); }
+  .df-ipucu-ac div { margin-top:6px; line-height:1.55; }
   .df-kart { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px; }
   .df-kart-ust { display:flex; align-items:center; gap:10px; }
   .df-no { flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--surface2); color:var(--text2);
@@ -4846,6 +4852,20 @@ function notaTarayiciVar() {
   const C = window.Capacitor;
   return !_notaTarayiciYok && !!(C && C.isNativePlatform && C.isNativePlatform() && C.isPluginAvailable && C.isPluginAvailable('NotaTarayici'));
 }
+// (2026-10-22) Kullanıcı: "siyah zemin, iki sayfayı yan yana koyma uyarılarını bu özelliği kullanan üyelere de yazmak gerek" —
+// alttaki ikinci kâğıt taşınca iOS tarayıcısı iki kâğıdı tek sayfa sanıp yamuk kesiyordu. Platforma göre ipucu (kisa: tek satır).
+function taramaIpucu(kisa) {
+  const C = window.Capacitor, p = (C && C.getPlatform) ? C.getPlatform() : 'web', tara = notaTarayiciVar();
+  if (kisa) return !tara ? _esCev('es.ipKisaFoto', 'Sayfayı tek başına, koyu bir zemine koy; tepeden ve düz çek.')
+    : p === 'ios' ? _esCev('es.ipKisaIos', 'Sayfayı tek başına, koyu bir zemine koy; tarayıcı yamuk seçerse sağ üstte “Manuel”e geç, köşeleri sürükle.')
+    : _esCev('es.ipKisaTara', 'Sayfayı tek başına, koyu bir zemine koy; yamuk seçerse çektikten sonra köşeleri sürükle.');
+  const zemin = _esCev('es.ipZemin', 'Sayfayı tek başına, koyu ve düz bir zemine koy; altından ya da yanından başka kâğıt görünmesin.');
+  if (!tara) return zemin + ' ' + _esCev('es.ipFoto', 'Telefonu sayfaya paralel tut, sayfa kadrajı doldursun, ışık iyi olsun.');
+  return zemin + ' ' + _esCev('es.ipNeden', 'Yanında başka kâğıt varsa tarayıcı ikisini tek sayfa sanıp yamuk keser.') + ' ' + (p === 'ios'
+    ? _esCev('es.ipIos', 'Yine de yamuk seçerse sağ üstteki “Otomatik”i “Manuel”e çevir, çektikten sonra dört köşeyi sayfanın köşelerine sürükle. Çekilmiş sayfayı sol alttaki küçük resme dokunup kırparak da düzeltebilirsin.')
+    : _esCev('es.ipAndroid', 'Yine de yamuk seçerse çektikten sonra köşeleri sayfanın köşelerine sürükleyerek düzelt.'));
+}
+function _defterIpucuGoruldu() { try { return localStorage.getItem('defterTaramaIpucu') === '1'; } catch (e) { return true; } }
 // id: eser id'si ya da 'ne' (eser düzenleme penceresi)
 function notaKameraHtml(id) {
   const ne = id === 'ne', tara = notaTarayiciVar();
@@ -4855,7 +4875,8 @@ function notaKameraHtml(id) {
     <button type="button" class="nota-kamera${tara ? ' nota-tara' : ''}" onclick="${ne ? 'neNotaKamera()' : 'notaKamera(' + id + ')'}">${notaKameraIc(tara)}</button>
     <div class="nota-kamera-ipucu${tara ? ' nota-tara' : ''}" data-i18n="${tara ? 'es.notaTaraIpucu' : 'es.fotoCekIpucu'}">${tara
       ? _esCev('es.notaTaraIpucu','Kenarlar kendiliğinden bulunur, eğiklik düzeltilir. Birden çok sayfayı art arda tarayabilirsin; hepsi sırayla eklenir.')
-      : _esCev('es.fotoCekIpucu','Sayfayı düz bir yerde, iyi ışıkta, kadrajı dolduracak şekilde çek. Her fotoğraf yeni bir sayfa olarak eklenir.')}</div>`;
+      : _esCev('es.fotoCekIpucu','Sayfayı düz bir yerde, iyi ışıkta, kadrajı dolduracak şekilde çek. Her fotoğraf yeni bir sayfa olarak eklenir.')}</div>${tara
+      ? `<div class="nota-kamera-ipucu">📸 ${_esHtml(taramaIpucu(true))}</div>` : ''}`;
 }
 function notaKameraIc(tara) {
   return tara
@@ -4937,6 +4958,8 @@ let _defterOku = null;   // { sonuc, dosyalar, gorseller (base64[]), deger: { al
 function _defterOkuGoster() {
   const s = document.getElementById('ne_defterOkuSatir');
   if (s) s.style.display = (isAdmin() || isEditor()) ? 'flex' : 'none';
+  const ip = document.getElementById('ne_defterOkuIpucu');
+  if (ip) ip.textContent = '📸 ' + taramaIpucu(true);
   const sec = document.getElementById('ne_defterOkuSecBtn');
   if (sec) sec.style.display = notaTarayiciVar() ? '' : 'none';   // tarayıcı yoksa ana düğme zaten seçtirir
   const d = document.getElementById('ne_defterOkuDurum');
@@ -5331,7 +5354,8 @@ function defterAc() {
   }
   m.style.display = 'flex';
   defterCiz();
-  if (!_defter.length) defterSayfaEkle();     // ilk açılışta tarayıcı/seçici hemen açılır (aynı dokunuş içinde)
+  // ilk açılışta tarayıcı/seçici hemen açılır (aynı dokunuş içinde) — ama ilk kez kullanan önce tarama ipuçlarını görür
+  if (!_defter.length && _defterIpucuGoruldu()) defterSayfaEkle();
 }
 
 function defterKapat() {
@@ -5351,6 +5375,7 @@ function defterDurum(t, renk) {
 
 function defterSayfaEkle() {
   if (_defterKaydediliyor || _defterOkunuyor) return;
+  try { localStorage.setItem('defterTaramaIpucu', '1'); } catch (e) {}
   if (notaTarayiciVar()) notaTaraDosyalar(m => defterDurum(m.text, m.renk)).then(defterEkle);
   else document.getElementById('df_dosya').click();
 }
@@ -5374,8 +5399,10 @@ function defterCiz() {
   if (!L) return;
   const kilit = (_defterKaydediliyor || _defterOkunuyor) ? ' disabled' : '';
   L.innerHTML = !_defter.length
-    ? `<div class="df-bos" data-i18n="es.dfBos">${_esCev('es.dfBos','Henüz sayfa yok. Aşağıdan defterinin sayfalarını tara ya da fotoğraflarını seç.')}</div>`
-    : _defter.map((k, i) => `<div class="df-kart">
+    ? `<div class="df-bos"><span data-i18n="es.dfBos">${_esCev('es.dfBos','Henüz sayfa yok. Aşağıdan defterinin sayfalarını tara ya da fotoğraflarını seç.')}</span>
+        <div class="df-ipucu">📸 ${_esHtml(taramaIpucu())}</div></div>`
+    : `<details class="df-ipucu-ac"><summary>📸 ${_esHtml(_esCev('es.dfIpucuBaslik', 'Tarama ipuçları'))}</summary><div>${_esHtml(taramaIpucu())}</div></details>`
+      + _defter.map((k, i) => `<div class="df-kart">
         <div class="df-kart-ust"><span class="df-no">${i + 1}</span>
           <div class="df-ad-kap">
             <input class="df-ad" id="df_ad_${i}" value="${_esHtml(k.ad)}" placeholder="${_esCev('es.dfAdYer','Eser adı — mevcut eser için yazmaya başla')}"${kilit}${k.eser ? ' readonly' : ''}
@@ -7999,6 +8026,7 @@ function openSuggestModal() { openNewEserModal(); }
       <button type="button" id="ne_defterOkuBtn" onclick="defterOkuBaslat()" style="padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📷 <span data-i18n="es.defterOku">Defterden oku</span></button>
       <button type="button" id="ne_defterOkuSecBtn" onclick="document.getElementById('ne_defterOkuFile').click()" style="display:none;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;" data-i18n="es.defterOkuSec">Fotoğraflardan seç</button>
       <span style="font-size:11px;color:var(--text3);" data-i18n="es.defterOkuNot">Sayfadaki söz, akor ve nota bilgilerini forma aktarır; çok sayfalı eserde en çok 6 sayfa (deneme)</span>
+      <div id="ne_defterOkuIpucu" style="flex-basis:100%;font-size:11px;color:var(--text3);"></div>
       <div id="ne_defterOkuDurum" style="flex-basis:100%;font-size:12px;"></div>
     </div>
 

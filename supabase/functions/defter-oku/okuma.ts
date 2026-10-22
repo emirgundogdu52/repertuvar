@@ -2,9 +2,11 @@
 // Görseldeki söz, akor ve TRT başlık bilgileri tek istekte çıkarılır; sayfa yatıksa düzeltme açısı da gelir.
 // Akorlu metin uygulamanın biçiminde: satır içi ChordPro ([Am]söz, {c: Nakarat}).
 
-// (2026-10-22, kullanıcı kararı "3") Varsayılan Haiku 5.5 (~0,2 ¢/sayfa); önizlemedeki "Daha dikkatli oku" aynı sayfayı
-// Opus 5.5 ile yeniden okur (~5 ¢). 10 sayfalık karşılaştırmada Haiku zor sayfalarda akor kaçırdı, Opus hatasızdı.
-export const MODEL = 'claude-haiku-5-5';
+// (2026-10-22) Kullanıcı kararı "3" önce Haiku 5.5 varsayılan + "Daha dikkatli oku" = Opus idi. Aynı gün TRT tarzı (söz yalnız
+// notanın altında hece hece) sayfada Haiku sözcük birleştirmede hata yaptı, Opus yapmadı → kullanıcı: "Test süresince Opus'a geç;
+// 100 kullanıcı 500 sayfayı geçerse Haiku'yu ya da ücretlendirmeyi yeniden değerlendiririz" (izleme: defter_okuma_kayit).
+// Opus ~5 ¢/sayfa, Haiku ~0,2 ¢. Varsayılan Opus iken "Daha dikkatli oku" düğmesi görünmez.
+export const MODEL = 'claude-opus-5-5';
 export const DIKKATLI_MODEL = 'claude-opus-5-5';
 // Sunucudan (servis anahtarıyla) karşılaştırma için açıkça seçilebilen modeller.
 // Haiku 5.5'te sunucu tarafı yedek model (fallbacks) yok → o istekte gönderilmez.

@@ -3,7 +3,9 @@
 // Uygulama, eser formundaki "📷 Defterden oku" düğmesiyle sayfanın fotoğrafını (base64 JPEG) gönderir;
 // bu fonksiyon Claude'a okutur ve { baslik, soz, akorlu (ChordPro), bilgiler, donuslar, notlar, model, sayfa } döner.
 // Çok sayfalı eserde gorseller[] (en çok EN_COK_SAYFA) tek istekte gider; model tek eser olarak birleştirir.
-// Varsayılan Haiku 5.5; gövdede dikkatli:true ("Daha dikkatli oku") gelirse Opus 5.5.
+// Varsayılan MODEL (test süresince Opus 5.5); gövdede dikkatli:true ("Daha dikkatli oku") → DIKKATLI_MODEL.
+// Her okuma public.defter_okuma_kayit'a yazılır (kim, model, kip, sayfa, token — görsel/metin saklanmaz): eşik izleme ve
+// ileride "sınırlı ücretsiz + fazlası ücretli" kotası (kullanıcı kararı 2026-10-22, sql/defter_okuma_kayit.sql).
 // mod:'defter' ("📒 Defterden ekle"): sayfalar eserlere ayrılır → { eserler:[{sayfalar, baslik, soz, akorlu, bilgiler, notlar}], donuslar }.
 // Hiçbir şey kaydedilmez: kullanıcı önizlemede bakıp formu kendisi doldurur ve kaydeder.
 //
@@ -75,6 +77,18 @@ async function yetkili(yetki: string, ortam: Ortam, f: typeof fetch): Promise<st
   return satir && (satir.role === 'admin' || satir.role === 'editor') ? uid : null;
 }
 
+// Okuma kaydı; düşmezse okuma yine döner
+async function kaydet(ortam: Ortam, f: typeof fetch, satir: Record<string, unknown>): Promise<void> {
+  const servis = ortam('SUPABASE_SERVICE_ROLE_KEY') || '';
+  try {
+    await f(ortam('SUPABASE_URL') + '/rest/v1/defter_okuma_kayit', {
+      method: 'POST',
+      headers: { apikey: servis, Authorization: 'Bearer ' + servis, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify(satir),
+    });
+  } catch { /* yok say */ }
+}
+
 export async function isle(istek: Request, ortam: Ortam, oku: Okuyucu, f: typeof fetch = fetch): Promise<Response> {
   const koken = istek.headers.get('Origin');
   if (istek.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(koken) });
@@ -100,6 +114,7 @@ export async function isle(istek: Request, ortam: Ortam, oku: Okuyucu, f: typeof
   try {
     const mod = o.mod === 'defter' ? 'defter' : '';
     const r = await oku(istekOf(g.gorseller, g.tur, model, mod));
+    await kaydet(ortam, f, { user_id: uid === 'servis' ? null : uid, model, mod, sayfa: g.gorseller.length, girdi: r.girdi, cikti: r.cikti });
     if (r.durma === 'refusal') return yanit(422, { hata: 'okuma-reddedildi' }, koken);
     if (r.durma === 'max_tokens') return yanit(502, { hata: 'yanit-kesildi' }, koken);
     const sonuc = mod ? defterSonucDuzenle(r.metin, g.gorseller.length) : sonucDuzenle(r.metin, g.gorseller.length);

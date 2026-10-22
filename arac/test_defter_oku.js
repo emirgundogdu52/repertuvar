@@ -26,7 +26,7 @@ async function ortam({ rol='editor', duzenlenen=null, cevap={durum:200,govde:SON
     getLyricsValue:()=>olan.soz, setLyricsValue:t=>{olan.soz=t;}, alanlariUygula:()=>{olan.alan++;},
     switchNeTab:s=>{olan.sekme=s;}, toastMsg:t=>{olan.toast=t;}, renderNeNotaList:()=>{},
     notaGorselKucult:async(f,d)=>({f,d}), uploadNotaFiles:(id,fs)=>{olan.yuklenen.push({id,fs});},
-    notaTarayiciVar:()=>!!tarayici, notaTaraDosyalar:async(durum)=>{ olan.tarandi=true; return tarayici||[]; },
+    notaTarayiciVar:()=>!!tarayici, taramaIpucu:k=>k?'kısa ipucu':'uzun ipucu', notaTaraDosyalar:async(durum)=>{ olan.tarandi=true; return tarayici||[]; },
     fetch:async(url,opt)=>{ olan.istekler.push({url,opt}); const c=Array.isArray(cevap)?cevap[Math.min(olan.istekler.length,cevap.length)-1]:cevap; return { ok:c.durum<300, status:c.durum, json:async()=>c.govde }; },
   });
   olan.kenarlar=[];
@@ -126,6 +126,7 @@ const sec=async(o)=>{ await o.w.defterOkuSec({ files:[{name:'sayfa.jpg'}], value
     const o=await ortam({ duzenlenen:7, tarayici:[{name:'s1'},{name:'s2'},{name:'s3'}], cevap:{durum:200,govde:UC} });
     o.w._defterOkuGoster();
     yaz('tarayıcı varken "Fotoğraflardan seç" görünür', o.d.getElementById('ne_defterOkuSecBtn').style.display==='');
+    yaz('düğmenin altında tarama ipucu', o.d.getElementById('ne_defterOkuIpucu').textContent==='📸 kısa ipucu');
     await o.w.defterOkuBaslat();
     const g=JSON.parse(o.olan.istekler[0].opt.body);
     yaz('tarayıcı açıldı, 3 sayfa tek istekte', o.olan.tarandi && g.gorseller.length===3);

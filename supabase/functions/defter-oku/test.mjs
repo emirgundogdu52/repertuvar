@@ -26,8 +26,10 @@ const IYI = JSON.stringify({
   donuslar: [90], notlar: '',
 });
 // Sahte Supabase: /auth/v1/user ve profiles
+const kayitlar = [];
 function sahteFetch(rol = 'editor', oturumGecerli = true) {
-  return async (url) => {
+  return async (url, opt = {}) => {
+    if (url.endsWith('/rest/v1/defter_okuma_kayit')) { if (opt.body === undefined) throw new Error('gövde yok'); kayitlar.push(JSON.parse(opt.body)); return new Response(null, { status: 201 }); }
     if (url.endsWith('/auth/v1/user')) return oturumGecerli ? new Response(JSON.stringify({ id: UID })) : new Response('{}', { status: 401 });
     if (url.includes('/rest/v1/profiles')) return new Response(JSON.stringify(rol ? [{ role: rol }] : []));
     throw new Error('beklenmeyen istek ' + url);
@@ -56,10 +58,10 @@ await dene('govdeDenetle', () => {
 });
 
 await dene('istekOf: model, yedek model, yapılandırılmış çıktı, görsel', () => {
-  assert.equal(MODEL, 'claude-haiku-5-5');           // kullanıcı kararı "3": varsayılan Haiku
+  assert.equal(MODEL, 'claude-opus-5-5');            // test süresince Opus (kullanıcı kararı 2026-10-22)
   assert.equal(DIKKATLI_MODEL, 'claude-opus-5-5');   // "Daha dikkatli oku"
-  const h = istekOf([GORSEL], 'image/jpeg');
-  assert.equal(h.model, MODEL);
+  const h = istekOf([GORSEL], 'image/jpeg', 'claude-haiku-5-5');
+  assert.equal(h.model, 'claude-haiku-5-5');
   assert.equal(h.fallbacks, undefined);   // Haiku 5.5'te sunucu tarafı yedek model yok
   assert.equal(h.betas, undefined);
   assert.equal(h.output_config.effort, 'medium');
@@ -67,7 +69,7 @@ await dene('istekOf: model, yedek model, yapılandırılmış çıktı, görsel'
   assert.equal(h.output_config.format.schema, SEMA);
   assert.equal(h.messages[0].content[0].source.data, GORSEL);
   assert.equal(h.thinking, undefined);    // thinking gönderilmez (ikisinde de adaptive varsayılan)
-  const p = istekOf([GORSEL], 'image/jpeg', DIKKATLI_MODEL);
+  const p = istekOf([GORSEL], 'image/jpeg');   // varsayılan (Opus): yedek model açık
   assert.equal(p.model, 'claude-opus-5-5');
   assert.equal(p.fallbacks, 'default');
   assert.deepEqual(p.betas, ['server-side-fallback-2026-07-01']);
@@ -139,18 +141,18 @@ await dene('isle: okuma sonuçları', async () => {
   assert.equal((await isle(istek({ gorsel: 'x', tur: 'text/html' }), ortam(), okuyucu(), sahteFetch())).status, 400);
 });
 
-await dene('isle: model seçimi (varsayılan Haiku, dikkatli → Opus, açık ad yalnız servis)', async () => {
+await dene('isle: model seçimi (varsayılan MODEL, dikkatli → Opus, açık ad yalnız servis)', async () => {
   const k = (govde, yetki) => { const o = okuyucu(); return isle(istek(govde, yetki), ortam(), o, sahteFetch('editor')).then(async (r) => ({ o, j: await r.json() })); };
   let { o, j } = await k({ gorsel: GORSEL }, 'Bearer kullanici');
-  assert.equal(o.son.model, 'claude-haiku-5-5'); assert.equal(j.model, 'claude-haiku-5-5');
+  assert.equal(o.son.model, MODEL); assert.equal(j.model, MODEL);
   ({ o, j } = await k({ gorsel: GORSEL, dikkatli: true }, 'Bearer kullanici'));
   assert.equal(o.son.model, 'claude-opus-5-5'); assert.equal(o.son.fallbacks, 'default'); assert.equal(j.model, 'claude-opus-5-5');
   ({ o } = await k({ gorsel: GORSEL, dikkatli: 'evet' }, 'Bearer kullanici'));
   assert.equal(o.son.model, MODEL);                   // yalnız gerçek true
-  ({ o } = await k({ gorsel: GORSEL, model: 'claude-opus-5-5' }, 'Bearer kullanici'));
+  ({ o } = await k({ gorsel: GORSEL, model: 'claude-haiku-5-5' }, 'Bearer kullanici'));
   assert.equal(o.son.model, MODEL);                   // kullanıcı model adı veremez
-  ({ o } = await k({ gorsel: GORSEL, model: 'claude-opus-5-5' }));
-  assert.equal(o.son.model, 'claude-opus-5-5');       // servis anahtarı verebilir
+  ({ o } = await k({ gorsel: GORSEL, model: 'claude-haiku-5-5' }));
+  assert.equal(o.son.model, 'claude-haiku-5-5');      // servis anahtarı verebilir (karşılaştırma)
   ({ o } = await k({ gorsel: GORSEL, model: 'claude-fable-5-1' }));
   assert.equal(o.son.model, MODEL);                   // listede olmayan model yok sayılır
 });
@@ -203,6 +205,23 @@ await dene('isle: defter kipi', async () => {
   const ok2 = okuyucu();
   await isle(istek({ gorseller: [GORSEL], mod: 'baska' }), ortam(), ok2, sahteFetch());
   assert.equal(ok2.son.output_config.format.schema, SEMA);              // bilinmeyen kip → tek eser
+});
+
+await dene('okuma kaydı (izleme / kota)', async () => {
+  kayitlar.length = 0;
+  await isle(istek({ gorseller: [GORSEL, GORSEL], mod: 'defter' }, 'Bearer kullanici'), ortam(),
+    okuyucu(JSON.stringify({ eserler: [], donuslar: [] })), sahteFetch('editor'));
+  assert.deepEqual(kayitlar, [{ user_id: UID, model: MODEL, mod: 'defter', sayfa: 2, girdi: 1500, cikti: 400 }]);
+  await isle(istek({ gorsel: GORSEL }), ortam(), okuyucu(), sahteFetch());
+  assert.equal(kayitlar[1].user_id, null); assert.equal(kayitlar[1].mod, '');   // servis denemesi: kişi yok
+  await isle(istek({ gorsel: GORSEL }), ortam(), okuyucu('bozuk'), sahteFetch());
+  assert.equal(kayitlar.length, 3);                                              // yanıt bozuk olsa da ücret yazılır
+  const r = await isle(istek({ gorsel: GORSEL }), ortam(), okuyucu(), async (url, opt) => {
+    if (url.endsWith('/rest/v1/defter_okuma_kayit')) throw new Error('ağ'); return sahteFetch()(url, opt); });
+  assert.equal(r.status, 200);                                                   // kayıt düşmezse okuma yine döner
+  kayitlar.length = 0;
+  await isle(istek({ gorsel: GORSEL }, 'Bearer kullanici'), ortam(), okuyucu(), sahteFetch('user'));
+  assert.equal(kayitlar.length, 0);                                              // yetkisiz: okuma da kayıt da yok
 });
 
 console.log(`\n${gecti} test geçti`);
