@@ -4854,15 +4854,25 @@ function notaTarayiciVar() {
 }
 // (2026-10-22) Kullanıcı: "siyah zemin, iki sayfayı yan yana koyma uyarılarını bu özelliği kullanan üyelere de yazmak gerek" —
 // alttaki ikinci kâğıt taşınca iOS tarayıcısı iki kâğıdı tek sayfa sanıp yamuk kesiyordu. Platforma göre ipucu (kisa: tek satır).
+// Masaüstü (yerel uygulama değil, fareyle kullanılan ekran): kamera yok, taranmış dosya yüklenir — ipucu dosyaya göre.
+// Kullanıcı (2026-10-22): "desktoptaki uyarı metni böyle olmaz herhalde" (telefon/kamera ipucu çıkıyordu).
+function _masaustu() {
+  const C = window.Capacitor;
+  if (C && C.isNativePlatform && C.isNativePlatform()) return false;
+  try { return window.matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) { return false; }
+}
 function taramaIpucu(kisa) {
   const C = window.Capacitor, p = (C && C.getPlatform) ? C.getPlatform() : 'web', tara = notaTarayiciVar();
+  if (_masaustu()) return kisa
+    ? _esCev('es.ipKisaMasaustu', 'Taranmış sayfayı (JPG/PNG) seç; her görüntüde tek sayfa olsun, düz ve okunaklı.')
+    : _esCev('es.ipMasaustu', 'Defterini tarayıcıyla (scanner) ya da telefonundaki bir tarama uygulamasıyla taradıysan dosyaları bu pencereye sürükle ya da “Sayfa ekle” ile seç: JPG/PNG sayfalar ya da bütün defterin tek PDF’i (en çok 200 sayfa). Her görüntüde tek sayfa olsun — iki sayfa yan yana taranmasın; sayfa düz ve okunaklı olsun.');
   if (kisa) return !tara ? _esCev('es.ipKisaFoto', 'Sayfayı tek başına, koyu bir zemine koy; tepeden ve düz çek.')
-    : p === 'ios' ? _esCev('es.ipKisaIos', 'Sayfayı tek başına, koyu bir zemine koy; tarayıcı yamuk seçerse sağ üstte “Manuel”e geç, köşeleri sürükle.')
+    : p === 'ios' ? _esCev('es.ipKisaIos', 'Sayfayı tek başına, koyu bir zemine koy; tarayıcı yamuk seçerse sağ üstten elle çekime geç, köşeleri sürükle.')
     : _esCev('es.ipKisaTara', 'Sayfayı tek başına, koyu bir zemine koy; yamuk seçerse çektikten sonra köşeleri sürükle.');
   const zemin = _esCev('es.ipZemin', 'Sayfayı tek başına, koyu ve düz bir zemine koy; altından ya da yanından başka kâğıt görünmesin.');
   if (!tara) return zemin + ' ' + _esCev('es.ipFoto', 'Telefonu sayfaya paralel tut, sayfa kadrajı doldursun, ışık iyi olsun.');
   return zemin + ' ' + _esCev('es.ipNeden', 'Yanında başka kâğıt varsa tarayıcı ikisini tek sayfa sanıp yamuk keser.') + ' ' + (p === 'ios'
-    ? _esCev('es.ipIos', 'Yine de yamuk seçerse sağ üstteki “Otomatik”i “Manuel”e çevir, çektikten sonra dört köşeyi sayfanın köşelerine sürükle. Çekilmiş sayfayı sol alttaki küçük resme dokunup kırparak da düzeltebilirsin.')
+    ? _esCev('es.ipIos', 'Yine de yamuk seçerse sağ üstten otomatik çekimi kapatıp elle çek; çektikten sonra dört köşeyi sayfanın köşelerine sürükle. Çekilmiş sayfayı sol alttaki küçük resme dokunup kırparak da düzeltebilirsin.')
     : _esCev('es.ipAndroid', 'Yine de yamuk seçerse çektikten sonra köşeleri sayfanın köşelerine sürükleyerek düzelt.'));
 }
 function _defterIpucuGoruldu() { try { return localStorage.getItem('defterTaramaIpucu') === '1'; } catch (e) { return true; } }
@@ -5395,6 +5405,15 @@ function defterAc() {
     });
   }
   m.style.display = 'flex';
+  // Açıklama: okuma (yapay zekâ) açık olan hesapta sayfalar kendiliğinden eserlere ayrılır — eski "her sayfa bir kart" metni yanıltır
+  const alt = m.querySelector('.df-alt-baslik');
+  if (alt) {
+    const okuma = isAdmin() || isEditor();
+    alt.setAttribute('data-i18n', okuma ? 'es.dfAciklamaOkuma' : 'es.dfAciklama');
+    alt.textContent = okuma
+      ? _esCev('es.dfAciklamaOkuma', 'Sayfalar okunur, eserlere ayrılır; adları, sözleri ve akorları yazılır (yalnız sen görürsün). Kartları kontrol edip Kaydet’e bas. Listeden mevcut bir eser seçersen sayfalar o eserin notasına eklenir.')
+      : _esCev('es.dfAciklama', 'Her sayfa bir kart olur. Ad yazarken listeden mevcut bir eseri seçersen sayfa o eserin notasına eklenir; seçmezsen yeni eser açılır (yalnız sen görürsün). Çok sayfalık şarkıda sayfalara aynı adı yaz ya da “Öncekiyle birleştir”e dokun.');
+  }
   defterCiz();
   // ilk açılışta tarayıcı/seçici hemen açılır (aynı dokunuş içinde) — ama ilk kez kullanan önce tarama ipuçlarını görür
   if (!_defter.length && _defterIpucuGoruldu()) defterSayfaEkle();
@@ -5482,10 +5501,11 @@ function defterCiz() {
   if (!L) return;
   const kilit = (_defterKaydediliyor || _defterOkunuyor) ? ' disabled' : '';
   L.innerHTML = !_defter.length
-    ? `<div class="df-bos"><span data-i18n="es.dfBos">${_esCev('es.dfBos','Henüz sayfa yok. Aşağıdan defterinin sayfalarını tara ya da fotoğraflarını seç.')}</span>
-        <div class="df-ipucu">📸 ${_esHtml(taramaIpucu())}${notaTarayiciVar() ? '' : '<br>💻 ' + _esHtml(_esCev('es.dfMasaustu',
-          'Bilgisayarda: taranmış sayfaları (JPG/PNG ya da bütün defterin tek PDF\'i) bu pencereye sürükle ya da aşağıdan seç.'))}</div></div>`
-    : `<details class="df-ipucu-ac"><summary>📸 ${_esHtml(_esCev('es.dfIpucuBaslik', 'Tarama ipuçları'))}</summary><div>${_esHtml(taramaIpucu())}</div></details>`
+    ? `<div class="df-bos">${_masaustu()
+          ? `<span data-i18n="es.dfBosMasaustu">${_esCev('es.dfBosMasaustu', 'Henüz sayfa yok.')}</span>`
+          : `<span data-i18n="es.dfBos">${_esCev('es.dfBos','Henüz sayfa yok. Aşağıdan defterinin sayfalarını tara ya da fotoğraflarını seç.')}</span>`}
+        <div class="df-ipucu">${_masaustu() ? '💻' : '📸'} ${_esHtml(taramaIpucu())}</div></div>`
+    : `<details class="df-ipucu-ac"><summary>${_masaustu() ? '💻' : '📸'} ${_esHtml(_esCev('es.dfIpucuBaslik', 'Tarama ipuçları'))}</summary><div>${_esHtml(taramaIpucu())}</div></details>`
       + _defter.map((k, i) => `<div class="df-kart">
         <div class="df-kart-ust"><span class="df-no">${i + 1}</span>
           <div class="df-ad-kap">
