@@ -12,7 +12,7 @@
 // SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY ortamda kendiliğinden gelir.
 // Saf kısım okuma.ts'de; SDK yalnız Deno'da yüklenir, test.mjs Node'da sahte okuyucuyla sınar.
 
-import { govdeDenetle, istekOf, sonucDuzenle } from './okuma.ts';
+import { govdeDenetle, istekOf, sonucDuzenle, MODEL, MODELLER } from './okuma.ts';
 
 declare const Deno: any;
 
@@ -89,13 +89,16 @@ export async function isle(istek: Request, ortam: Ortam, oku: Okuyucu, f: typeof
   const g = govdeDenetle(govde);
   if ('hata' in g) return yanit(400, { hata: g.hata }, koken);
 
+  // Model seçimi yalnız sunucudan karşılaştırma denemesi için (servis anahtarı); kullanıcı isteği hep MODEL
+  const istenen = (govde as Record<string, unknown>).model;
+  const model = uid === 'servis' && typeof istenen === 'string' && MODELLER.includes(istenen) ? istenen : MODEL;
   try {
-    const r = await oku(istekOf(g.gorsel, g.tur));
+    const r = await oku(istekOf(g.gorsel, g.tur, model));
     if (r.durma === 'refusal') return yanit(422, { hata: 'okuma-reddedildi' }, koken);
     if (r.durma === 'max_tokens') return yanit(502, { hata: 'yanit-kesildi' }, koken);
     const sonuc = sonucDuzenle(r.metin);
     if (!sonuc) return yanit(502, { hata: 'yanit-bozuk' }, koken);
-    return yanit(200, { ...sonuc, kullanim: { girdi: r.girdi, cikti: r.cikti } }, koken);
+    return yanit(200, { ...sonuc, model, kullanim: { girdi: r.girdi, cikti: r.cikti } }, koken);
   } catch (e) {
     if (e instanceof OkumaHatasi) return yanit(e.durum, { hata: e.kod }, koken);
     return yanit(502, { hata: 'okuma-hatasi' }, koken);

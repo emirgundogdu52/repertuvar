@@ -3,6 +3,9 @@
 // Akorlu metin uygulamanın biçiminde: satır içi ChordPro ([Am]söz, {c: Nakarat}).
 
 export const MODEL = 'claude-opus-5-5';
+// Karşılaştırma için sunucudan (servis anahtarıyla) seçilebilen modeller; uygulama her zaman MODEL'i kullanır.
+// Haiku 5.5'te sunucu tarafı yedek model (fallbacks) yok → o istekte gönderilmez.
+export const MODELLER = ['claude-opus-5-5', 'claude-haiku-5-5'];
 export const EN_BUYUK_BAYT = 6 * 1024 * 1024;          // base64 çözülmüş görsel üst sınırı
 export const TURLER = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -56,12 +59,12 @@ export function govdeDenetle(g: unknown): { gorsel: string; tur: string } | { ha
 }
 
 // Messages API istek gövdesi (index.ts SDK'ya verir)
-export function istekOf(gorsel: string, tur: string) {
+export function istekOf(gorsel: string, tur: string, model: string = MODEL) {
+  const yedek = model === 'claude-opus-5-5' ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' } : {};
   return {
-    model: MODEL,
+    model,
     max_tokens: 16000,
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
+    ...yedek,
     output_config: { effort: 'medium', format: { type: 'json_schema', schema: SEMA } },
     system: SISTEM,
     messages: [{

@@ -9,7 +9,7 @@ const burasi = dirname(fileURLToPath(import.meta.url));
 const gecici = mkdtempSync(join(tmpdir(), 'defter-oku-'));
 copyFileSync(join(burasi, 'okuma.ts'), join(gecici, 'okuma.ts'));
 copyFileSync(join(burasi, 'index.ts'), join(gecici, 'index.mts'));
-const { govdeDenetle, istekOf, sonucDuzenle, akorluTemizle, SEMA, MODEL } = await import(pathToFileURL(join(gecici, 'okuma.ts')).href);
+const { govdeDenetle, istekOf, sonucDuzenle, akorluTemizle, SEMA, MODEL, MODELLER } = await import(pathToFileURL(join(gecici, 'okuma.ts')).href);
 const { isle, OkumaHatasi } = await import(pathToFileURL(join(gecici, 'index.mts')).href);
 
 let gecti = 0;
@@ -65,6 +65,12 @@ await dene('istekOf: model, yedek model, yapılandırılmış çıktı, görsel'
   // şemadaki her nesne additionalProperties:false + tüm alanlar required
   const denetle = (s) => { if (s.type === 'object') { assert.equal(s.additionalProperties, false); assert.deepEqual([...s.required].sort(), Object.keys(s.properties).sort()); Object.values(s.properties).forEach(denetle); } };
   denetle(SEMA);
+  const h = istekOf(GORSEL, 'image/jpeg', 'claude-haiku-5-5');
+  assert.equal(h.model, 'claude-haiku-5-5');
+  assert.equal(h.fallbacks, undefined);   // Haiku 5.5'te sunucu tarafı yedek model yok
+  assert.equal(h.betas, undefined);
+  assert.equal(h.output_config.format.schema, SEMA);
+  assert.deepEqual(MODELLER, ['claude-opus-5-5', 'claude-haiku-5-5']);
 });
 
 await dene('sonucDuzenle + akorluTemizle', () => {
@@ -114,6 +120,18 @@ await dene('isle: okuma sonuçları', async () => {
   const beklenmedik = async () => { throw new Error('ağ'); };
   assert.equal((await isle(istek({ gorsel: GORSEL }), ortam(), beklenmedik, sahteFetch())).status, 502);
   assert.equal((await isle(istek({ gorsel: 'x', tur: 'text/html' }), ortam(), okuyucu(), sahteFetch())).status, 400);
+});
+
+await dene('isle: model seçimi yalnız servis anahtarıyla', async () => {
+  const s1 = okuyucu();
+  const j1 = await (await isle(istek({ gorsel: GORSEL, model: 'claude-haiku-5-5' }), ortam(), s1, sahteFetch())).json();
+  assert.equal(s1.son.model, 'claude-haiku-5-5'); assert.equal(j1.model, 'claude-haiku-5-5');
+  const s2 = okuyucu();
+  await isle(istek({ gorsel: GORSEL, model: 'claude-haiku-5-5' }, 'Bearer kullanici'), ortam(), s2, sahteFetch('editor'));
+  assert.equal(s2.son.model, MODEL);                 // kullanıcı modeli seçemez
+  const s3 = okuyucu();
+  await isle(istek({ gorsel: GORSEL, model: 'claude-fable-5-1' }), ortam(), s3, sahteFetch());
+  assert.equal(s3.son.model, MODEL);                 // listede olmayan model yok sayılır
 });
 
 console.log(`\n${gecti} test geçti`);
