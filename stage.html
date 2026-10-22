@@ -3,8 +3,14 @@
   - 2026-10-22: NOTA TAM EKRAN (Emir: "sahnede uzakta kalan tabletin ekranında ne kadar büyük olabilirse o kadar iyi").
     Nota görünümünde üst şerit + başlık + Söz/Akor/Nota sekmeleri gizlenebilir (#stageScreen.nota-odak, localStorage
     stageNotaOdak); alt şerit (Sıradaki, sayfa düğmeleri, ⚙) yerinde. Aç: sekmelerin sağındaki ⤢ (≥720 px) ya da
-    ⚙ › Tam ekran; kapat: sol üstteki ⤡ ya da aynı ⚙ satırı. iPad 7 ölçüsünde tek sayfa: yatay 434×618 → 527×750
-    (+%21), dikey 630×898 → 716×1020 (+%14). Sınıf içerik basılmadan önce konur (PDF tuvali son kap boyunu ölçsün).
+    ⚙ › Tam ekran; kapat: alt şeritte ⚙'in solundaki ⤡ ya da aynı ⚙ satırı. iPad 7 ölçüsünde tek sayfa: yatay 434×618 →
+    527×750 (+%21), dikey 630×898 → 716×1020 (+%14). Sınıf içerik basılmadan önce konur (PDF tuvali son kap boyunu ölçsün).
+    (b) Emir iPad'de: "nota sayfasını maksimum yap" → tam ekranda BEYAZ KENAR KIRPMA (notaKirpUygula; yalnız görüntüde,
+    kayıtlı dosyaya dokunulmaz): kâğıt kenarı, kenara yapışık tarayıcı gölgesi/siyah şerit ve boş alt kısım atılır; kutu
+    400 px'lik tuvalde, CORS'lu ayrı istekle bulunur, adres başına saklanır (stageNotaKutu); okunamazsa kırpılmadan
+    gösterilir. Yan boşluk 24 → 4 px, köşedeki "1 / 2" gizli (noktalar var), ⤡ üstten alt şeride (notayı örtmesin). 34
+    örnek sayfada (TRT taraması, kullanıcı taraması, İngilizce baskı) içerik kesilmedi; 2013 1. sayfada görünen nota
+    804×1076 (kap boyu), alt yarısı boş sayfalarda çok daha büyük. PDF ve "Alt alta" düzende kırpma yok.
   - 2026-10-18 (f): NOTA SAYFALARI "ALT ALTA" (kullanıcı ekran görüntüsü: nota sayfasının altında büyük boşluk → "Yap").
     Görünüm Ayarları › Nota Sayfaları: Tek tek / Alt alta (localStorage stageNotaDuzen; varsayılan dikey telefonda alt
     alta, diğerlerinde tek tek). Alt alta: tüm sayfalar #sm içinde art arda, %70 yükseklik sınırı yok (genişliğe sığar);
@@ -763,16 +769,20 @@ body.stage-light .nota-count{background:rgba(255,255,255,.75);color:#1a1a1a;bord
 .nota-odak-ac:hover{color:var(--text);}
 @media (min-width:720px){ #stageScreen.nota-gorunum .nota-odak-ac{display:flex;} }
 .stb-r1{position:relative;}
-.nota-odak-kapat{display:none;position:absolute;top:calc(env(safe-area-inset-top) + 8px);left:12px;z-index:45;width:38px;height:38px;
-  align-items:center;justify-content:center;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;
-  border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);font-size:18px;cursor:pointer;}
-body.stage-light .nota-odak-kapat{background:rgba(255,255,255,.75);color:#1a1a1a;border-color:rgba(0,0,0,.15);}
+.nota-odak-kapat{display:none;order:1;margin-left:auto;align-self:stretch;width:46px;min-height:38px;align-items:center;justify-content:center;
+  background:var(--surface);border:1px solid #FFC83D;border-radius:10px;color:var(--text2);font-size:20px;cursor:pointer;padding:0;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);}
 #stageScreen.nota-odak .nota-odak-kapat{display:flex;}
+#stageScreen.nota-odak .sb-menu{margin-left:0;}
 #stageScreen.nota-odak .stb, #stageScreen.nota-odak #smHead, #stageScreen.nota-odak .stb-r1{display:none;}
-#stageScreen.nota-odak .sm{padding-top:max(2px, env(safe-area-inset-top));}
+#stageScreen.nota-odak .sm{padding:max(2px, env(safe-area-inset-top)) 4px calc(58px + env(safe-area-inset-bottom));}
+#stageScreen.nota-odak .wnota{padding-left:0;padding-right:0;}
 #stageScreen.nota-odak .wnota.wnota-tek{margin-top:0;}
-#stageScreen.nota-odak .nota-count{top:calc(env(safe-area-inset-top) + 10px);}
+#stageScreen.nota-odak .nota-count:not(.nota-count-alt){display:none;}   /* sayfa noktaları gösteriyor; köşedeki notayı örtmesin */
 #stageScreen.nota-odak .nota-count.nota-count-alt{top:6px;}
+/* Beyaz kenar kırpma (notaKirpUygula): kutu bulunana dek görsel görünmez (zıplamasın), kırpık görsel kabı taşmasın */
+.nota-tek-kap.nota-kirp-bekle > img{opacity:0;}
+.nota-tek-kap.nota-kirpik{overflow:hidden;}
 .nota-pdf{background:var(--surface2, #16161c);border:1px solid var(--border);border-radius:8px;padding:18px;text-align:center;color:var(--text2);font-size:14px;}
 .wlyrics::-webkit-scrollbar{width:3px;}.wlyrics::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 /* ChordPro: akor hecenin üstünde */
@@ -1237,10 +1247,10 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
     </div>
     <button class="nota-odak-ac" onclick="event.stopPropagation();setNotaOdak(true)" title="Sayfayı büyüt (üst çubukları gizle)" data-i18n-title="sh.notaOdakAc" aria-label="Sayfayı büyüt" data-i18n-aria="sh.notaOdakAc"><i class="ti ti-arrows-maximize" aria-hidden="true"></i></button>
   </div>
-  <button class="nota-odak-kapat" onclick="event.stopPropagation();setNotaOdak(false)" title="Üst çubukları göster" data-i18n-title="sh.notaOdakKapat" aria-label="Üst çubukları göster" data-i18n-aria="sh.notaOdakKapat"><i class="ti ti-arrows-minimize" aria-hidden="true"></i></button>
   <div class="sm" id="sm"></div>
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();nextWork()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
+    <button class="nota-odak-kapat" onclick="event.stopPropagation();setNotaOdak(false)" title="Üst çubukları göster" data-i18n-title="sh.notaOdakKapat" aria-label="Üst çubukları göster" data-i18n-aria="sh.notaOdakKapat"><i class="ti ti-arrows-minimize" aria-hidden="true"></i></button>
     <div class="sb-menu">
       <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" data-i18n-title="sh.gorunumAyarlari" class="sb-menu-btn"><i class="ti ti-adjustments-horizontal"></i></button>
       <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;overflow-x:hidden;border-radius:12px;padding:8px 12px;z-index:9999;">
@@ -2524,7 +2534,7 @@ function renderStage(){
   setLyricsAlign(savedAlign);
   updateFontSliderUI(savedScale);
   fitLyrics();   // (2026-09-05) eser başına sığdırma — hiza/ölçek ile aynı karede
-  if (viewMode === 'nota') { pdfCizimleri(); if (notaDuzen() === 'alt') notaAltKur(_notaPage); else notaPreloadNext(stageNotaPages(w), _notaPage); }
+  if (viewMode === 'nota') { pdfCizimleri(); if (notaDuzen() === 'alt') notaAltKur(_notaPage); else { notaPreloadNext(stageNotaPages(w), _notaPage); notaKirpUygula(); } }
   updateViewToggleUI(w);
   // ── POTPURİ: zincir rozeti + "Sıradaki" kartının potpuri hali ──
   const ch = stageChainInfo(items, curIdx);
@@ -2721,7 +2731,7 @@ function notaPagerOlc() {
 // Sonraki sayfayı önden yükle — sahnede sayfa çevirince bekleme olmasın
 function notaPreloadNext(pages, i) {
   const nxt = pages[i+1];
-  if (nxt && isStageNotaImage(nxt)) { const im = new Image(); im.src = nxt; }
+  if (nxt && isStageNotaImage(nxt)) { const im = new Image(); im.src = nxt; if (notaOdak()) notaKutu(nxt); }   // kırpma kutusu da hazır olsun
 }
 
 // ── (2026-10-18) NOTA SAYFA DÜZENİ: 'tek' (tek sayfa + pager) / 'alt' (alt alta, #sm kaydırılır) ──────────
@@ -2741,6 +2751,121 @@ function notaOdak() {
 function setNotaOdak(acik) {
   try { localStorage.setItem('stageNotaOdak', acik ? '1' : '0'); } catch (e) {}
   renderStage();
+}
+
+// (2026-10-22) TAM EKRANDA BEYAZ KENAR KIRPMA (Emir: "nota sayfasını maksimum yap"). Yalnız görüntüde — kayıtlı dosyaya
+// dokunulmaz: taranmış sayfanın boş kâğıt kenarı ve kenara yapışık tarayıcı gölgesi atılır, nota o kadar büyür (TRT
+// taramalarında ~%10, alt yarısı boş sayfada çok daha fazla). Kutu ayrı bir CORS isteğiyle 400 px'lik tuvalde bulunur;
+// okunamazsa (CORS, çevrimdışı önbellek) sayfa kırpılmadan gösterilir. Bulunan kutu adres başına saklanır (stageNotaKutu).
+const _notaKutuBellek = {};
+let _notaKirpRO = null;
+function notaKutuBul(im) {
+  const nw = im.naturalWidth, nh = im.naturalHeight;
+  if (!nw || !nh) return null;
+  const o = Math.min(1, 400 / Math.max(nw, nh)), w = Math.max(1, Math.round(nw * o)), h = Math.max(1, Math.round(nh * o));
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const cx = cv.getContext('2d', { willReadFrequently: true });
+  cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); cx.drawImage(im, 0, 0, w, h);
+  const d = cx.getImageData(0, 0, w, h).data;   // CORS'suz görselde hata fırlatır → kırpma yok
+  cv.width = cv.height = 0;
+  const hist = new Uint32Array(256), gri = new Uint8Array(w * h);
+  for (let i = 0, j = 0; j < gri.length; i += 4, j++) { const y = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8; gri[j] = y; hist[y]++; }
+  let kagit = 128;
+  for (let v = 129; v < 256; v++) if (hist[v] > hist[kagit]) kagit = v;
+  const esik = kagit - 60, satir = new Uint32Array(h), sutun = new Uint32Array(w);
+  const say = (y0, y1, x0, x1) => {
+    satir.fill(0); sutun.fill(0);
+    for (let y = y0; y < y1; y++) for (let x = x0, k = y * w; x < x1; x++) if (gri[k + x] < esik) { satir[y]++; sutun[x]++; }
+  };
+  // 1) Kenara yapışık koyu şerit (tarayıcı gölgesi, kâğıt kenarı; en çok %6): satırın/sütunun %25'inden fazlası koyu.
+  //    Kenara yapışık porte çizgisi buraya düşse bile aşağıdaki pay onu geri katar.
+  say(0, h, 0, w);
+  const bant = (dizi, n, boy, ters) => { let i = 0; while (i < n * 0.06 && dizi[ters ? n - 1 - i : i] / boy > 0.25) i++; return i; };
+  const ust = bant(satir, h, w), alt = bant(satir, h, w, true), sol = bant(sutun, w, h), sag = bant(sutun, w, h, true);
+  // 2) Şeritler dışarıda yeniden say (alttaki siyah şerit her sütuna koyu piksel ekleyip yan kenarları "dolu" gösteriyordu),
+  //    sonra kenardan içeri boş satır/sütunları atla (en çok %30). İçerik = en az 3 ardışık dolu satır/sütun; daha kısası
+  //    leke ya da gölge kırıntısı sayılıp geçilir (2013/1. sayfada kenardaki 1 px'lik kırıntı yan kırpmayı durduruyordu).
+  say(ust, h - alt, sol, w - sag);
+  const iceri = (dizi, n, boy, bas, ters) => {
+    const dolu = j => j < n && dizi[ters ? n - 1 - j : j] / boy >= 0.004;
+    let i = bas;
+    while (i < n * 0.3 && !(dolu(i) && dolu(i + 1) && dolu(i + 2))) i++;
+    return i;
+  };
+  const ic = (w - sol - sag) || 1, icH = (h - ust - alt) || 1;
+  let y0 = iceri(satir, h, ic, ust, false), y1 = h - 1 - iceri(satir, h, ic, alt, true);
+  let x0 = iceri(sutun, w, icH, sol, false), x1 = w - 1 - iceri(sutun, w, icH, sag, true);
+  if (y1 - y0 < h * 0.4 || x1 - x0 < w * 0.4) return null;   // neredeyse boş / tuhaf sayfa: dokunma
+  const pay = Math.max(3, Math.round(Math.max(w, h) * 0.012));
+  x0 = Math.max(0, x0 - pay); y0 = Math.max(0, y0 - pay); x1 = Math.min(w - 1, x1 + pay); y1 = Math.min(h - 1, y1 + pay);
+  const k = { l: x0 / w, t: y0 / h, r: (x1 + 1) / w, b: (y1 + 1) / h };
+  return (k.r - k.l) * (k.b - k.t) > 0.95 ? null : k;   // kazanç küçük: olduğu gibi göster
+}
+// → kutu | null (kırpma gerekmez) | undefined (okunamadı; saklanmaz, sonra yeniden denenir)
+function notaKutu(src) {
+  if (!src || !isStageNotaImage(src)) return Promise.resolve(undefined);
+  if (src in _notaKutuBellek) return Promise.resolve(_notaKutuBellek[src]);
+  const kalici = /^https?:/i.test(src);   // data:/blob: adresi anahtar olmaz (uzun / geçici)
+  if (kalici) {
+    try { const t = JSON.parse(localStorage.getItem('stageNotaKutu') || '{}'); if (src in t) return Promise.resolve(_notaKutuBellek[src] = t[src]); } catch (e) {}
+  }
+  return new Promise(tamam => {
+    const im = new Image();
+    if (kalici) im.crossOrigin = 'anonymous';
+    im.onload = () => {
+      let k;
+      try { k = notaKutuBul(im); } catch (e) { tamam(undefined); return; }
+      _notaKutuBellek[src] = k;
+      if (kalici) try {
+        let t = JSON.parse(localStorage.getItem('stageNotaKutu') || '{}');
+        if (Object.keys(t).length > 400) t = {};
+        t[src] = k; localStorage.setItem('stageNotaKutu', JSON.stringify(t));
+      } catch (e) {}
+      tamam(k);
+    };
+    im.onerror = () => tamam(undefined);
+    im.src = src;
+  });
+}
+// Görseli kırpılmış kutu kaba sığacak kadar büyütüp yerleştirir; kutu dışı clip-path ile gizlenir.
+function notaKirpYerlestir(img, k) {
+  const kap = img.parentElement;
+  if (!kap || !img.isConnected) return;
+  const kw = kap.clientWidth, kh = kap.clientHeight, nw = img.naturalWidth, nh = img.naturalHeight;
+  if (!kw || !kh || !nw || !nh) return;
+  const cw = (k.r - k.l) * nw, ch = (k.b - k.t) * nh, s = Math.min(kw / cw, kh / ch), w = nw * s, h = nh * s;
+  const kirp = `inset(${(k.t * 100).toFixed(2)}% ${((1 - k.r) * 100).toFixed(2)}% ${((1 - k.b) * 100).toFixed(2)}% ${(k.l * 100).toFixed(2)}% round 8px)`;
+  Object.assign(img.style, {
+    inset: 'auto', margin: '0', maxWidth: 'none', maxHeight: 'none', borderRadius: '0',
+    width: w + 'px', height: h + 'px', left: ((kw - cw * s) / 2 - k.l * w) + 'px', top: ((kh - ch * s) / 2 - k.t * h) + 'px',
+    clipPath: kirp, webkitClipPath: kirp,
+  });
+  kap.classList.add('nota-kirpik');
+}
+// Tek tek düzende, tam ekran açıkken görünen sayfaya uygulanır (renderStage / notaGoPage sonrası).
+function notaKirpUygula() {
+  const img = document.getElementById('notaImg');
+  if (!img || !notaOdak() || notaDuzen() === 'alt') return;
+  const kap = img.parentElement, src = img.getAttribute('src');
+  kap.classList.add('nota-kirp-bekle');
+  const goster = () => kap.classList.remove('nota-kirp-bekle');
+  const yedek = setTimeout(goster, 2000);   // kutu gecikirse sayfa kırpılmadan görünsün
+  notaKutu(src).then(k => {
+    if (!img.isConnected) return;
+    if (!k) { clearTimeout(yedek); goster(); return; }
+    const yerlestir = () => {
+      clearTimeout(yedek);
+      img._notaKutu = k; notaKirpYerlestir(img, k); goster();
+      if (window.ResizeObserver) {
+        if (!_notaKirpRO) _notaKirpRO = new ResizeObserver(gs => gs.forEach(g => {
+          const im = g.target.querySelector('#notaImg');
+          if (im && im._notaKutu) notaKirpYerlestir(im, im._notaKutu);
+        }));
+        _notaKirpRO.disconnect(); _notaKirpRO.observe(kap);
+      }
+    };
+    if (img.complete && img.naturalWidth) yerlestir(); else img.addEventListener('load', yerlestir, { once: true });
+  });
 }
 // Hedef sayfa: görseller yüklendikçe yükseklik değişir → kullanıcı kendisi kaydırana kadar hedefe yeniden oturtulur.
 let _notaAltHedef = null, _notaAltElle = false;
@@ -2813,7 +2938,7 @@ function notaGoPage(i) {
   if (!sm) return;
   sm.innerHTML = notaViewHtml(pages, i);
   pdfCizimleri();
-  if (notaDuzen() === 'alt') notaAltKur(i); else { notaPreloadNext(pages, i); notaPagerOlc(); }
+  if (notaDuzen() === 'alt') notaAltKur(i); else { notaPreloadNext(pages, i); notaPagerOlc(); notaKirpUygula(); }
 }
 
 // true dönerse "sayfa çevrildi, eser değiştirme"
