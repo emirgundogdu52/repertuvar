@@ -11,6 +11,8 @@
     gösterilir. Yan boşluk 24 → 4 px, köşedeki "1 / 2" gizli (noktalar var), ⤡ üstten alt şeride (notayı örtmesin). 34
     örnek sayfada (TRT taraması, kullanıcı taraması, İngilizce baskı) içerik kesilmedi; 2013 1. sayfada görünen nota
     804×1076 (kap boyu), alt yarısı boş sayfalarda çok daha büyük. PDF ve "Alt alta" düzende kırpma yok.
+    (c) Kullanıcı: "tam sayfa yapmam gerekiyormuş" → seçim yoksa dokunmatik tablette (pointer:coarse, kısa kenar ≥600)
+    tam ekran VARSAYILAN AÇIK; telefon ve bilgisayarda kapalı. ⤡ ile kapatan cihazda '0' saklanır, bir daha açılmaz.
   - 2026-10-18 (f): NOTA SAYFALARI "ALT ALTA" (kullanıcı ekran görüntüsü: nota sayfasının altında büyük boşluk → "Yap").
     Görünüm Ayarları › Nota Sayfaları: Tek tek / Alt alta (localStorage stageNotaDuzen; varsayılan dikey telefonda alt
     alta, diğerlerinde tek tek). Alt alta: tüm sayfalar #sm içinde art arda, %70 yükseklik sınırı yok (genişliğe sığar);
@@ -2746,7 +2748,12 @@ function setNotaDuzen(d) {
 }
 // (2026-10-22) Nota tam ekran: üst çubuklar gizli, sayfa ekranın üstüne kadar (CSS #stageScreen.nota-odak)
 function notaOdak() {
-  try { return localStorage.getItem('stageNotaOdak') === '1'; } catch (e) { return false; }
+  let k = null;
+  try { k = localStorage.getItem('stageNotaOdak'); } catch (e) {}
+  if (k === '1' || k === '0') return k === '1';
+  // Seçim yoksa dokunmatik tablette AÇIK (Emir: "tam sayfa yapmam gerekiyormuş" — sahnedeki tablette en büyük boy
+  // kendiliğinden gelsin); telefonda ve bilgisayarda kapalı. ⤡ ile kapatılınca '0' saklanır.
+  return !!(window.matchMedia && matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) >= 600);
 }
 function setNotaOdak(acik) {
   try { localStorage.setItem('stageNotaOdak', acik ? '1' : '0'); } catch (e) {}
