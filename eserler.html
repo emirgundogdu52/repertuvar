@@ -2,6 +2,11 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-10-22: NOTA DEPO TEMİZLİĞİ — saveNotaPages listeden çıkan sayfaların dosyalarını depodan siler
+    (_notaDepodanSil: yalnız notalar/works/<id>/, liste sunucuya yazıldıktan sonra, sonuç beklenmez). Döndür/kırp
+    eski dosyayı, sayfa/nota silme dosyayı artık depoda bırakmıyor. Sunucu tarafı sql/notalar_temizlik.sql
+    (notalar_delete: sahibi/editör + dosya hiçbir eserde kullanılmıyorsa). Aynı gün sql/notalar_depo_korumasi.sql
+    canlıda: yükleme yalnız works/<id>/ altına eser sahibi/editörce, listeleme kapandı, 15 MB + görsel/PDF türleri.
   - 2026-10-18: 📷 NOTA FOTOĞRAFI — Nota sekmesinde ve eser düzenleme penceresinde "Fotoğraf Çek" düğmesi
     (input capture=environment → kamera doğrudan açılır; fare ile kullanılan cihazda gizli). Yüklenen her
     JPEG/HEIC/WEBP önce notaGorselKucult ile küçültülür (uzun kenar 2800 px, JPEG %85; PNG/PDF'e dokunulmaz,
@@ -4632,10 +4637,12 @@ async function currentNotaPages(id) {
   }
 }
 
-// Tek PATCH: nota_pages + nota_url(1. sayfa). Başarıda YEREL kaydı da günceller.
+// Tek PATCH: nota_pages + nota_url(1. sayfa). Başarıda YEREL kaydı da günceller
+// ve listeden çıkan sayfaların dosyalarını depodan siler (_notaDepodanSil).
 async function saveNotaPages(id, pages) {
   const clean = (pages || []).filter(Boolean);
   const first = clean[0] || null;
+  const eski = notaPagesById(id).slice();
   const _res = await yazVeDogrula(`${SUPA_URL}/rest/v1/works?id=eq.${id}`, 'PATCH',
     {nota_pages: clean, nota_url: first});
   const r = { ok: _res.ok, status: _res.ok ? 200 : 403, text: async () => _res.hata || '' };
@@ -4646,7 +4653,26 @@ async function saveNotaPages(id, pages) {
   }
   const idx = DATA.findIndex(x => String(x.id) === String(id));
   if (idx > -1) { DATA[idx].notaPages = clean.slice(); DATA[idx].notaUrl = first || ''; }
+  _notaDepodanSil(id, eski.filter(u => clean.indexOf(u) < 0));
   return clean;
+}
+
+// (2026-10-22) Listeden çıkan sayfanın dosyası depoda kalıyordu (döndür/kırp yeni dosya yükler, sil yalnız
+// listeden çıkarır) → depo büyüyordu. Yalnız BU eserin klasöründeki (notalar/works/<id>/) dosyalar; liste
+// sunucuya yazıldıktan SONRA çağrılır. Sunucu kuralı (notalar_delete, sql/notalar_temizlik.sql) dosya hâlâ bir
+// eserde kullanılıyorsa ya da kişi eserin sahibi/editör değilse reddeder. Sonucu beklenmez, hata sessiz.
+function _notaDepodanSil(id, adresler) {
+  const on = `${SUPA_URL}/storage/v1/object/public/notalar/works/${id}/`;
+  const token = getToken();
+  (adresler || []).forEach(u => {
+    if (typeof u !== 'string' || u.indexOf(on) !== 0) return;
+    const ad = u.slice(on.length);
+    if (!/^[A-Za-z0-9_.-]+$/.test(ad)) return;
+    fetch(`${SUPA_URL}/storage/v1/object/notalar/works/${id}/${ad}`, {
+      method: 'DELETE',
+      headers: Object.assign({'apikey': SUPA_KEY}, token ? {'Authorization': 'Bearer ' + token} : {})
+    }).catch(() => {});
+  });
 }
 
 // Nota sekmesinin görüntüleme bölümü (sayfa sayısı + sıra/silme + tam ekran)
@@ -5294,7 +5320,7 @@ async function notaDondur(file, derece, kirp) {
   } finally { URL.revokeObjectURL(url); }
 }
 // Kayıtlı sayfayı işle (döndür / kırp): indir → işle → YENİ dosya olarak yükle → aynı sıraya koy.
-// Eski dosya depoda kalır (notalar'da silme politikası yok — lansman sonrası temizlik maddesi).
+// Eski dosyayı saveNotaPages depodan siler (_notaDepodanSil).
 async function notaSayfaIsle(id, i, derece, kirp) {
   const durum = kirp ? _esCev('es.kirpiliyor','⏳ Kırpılıyor...') : _esCev('es.donduruluyor','⏳ Döndürülüyor...');
   const hataOn = kirp ? _esCev('es.kirpHata','Kırpılamadı: ') : _esCev('es.dondurHata','Döndürülemedi: ');
