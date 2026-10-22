@@ -4889,6 +4889,160 @@ async function notaTaraDosyalar(durum) {
   return files;
 }
 
+// ── (2026-10-22) DEFTERDEN OKU (DENEME) ───────────────────────────────────────────────────────────
+// Kullanıcı: defter sayfasındaki söz ve akorları metne çevirmek (19:40 devir notu 4c–4e). Cihaz içi okuma (Apple
+// Vision) el yazısında ve akorda başarısızdı (Paylasim/Giden/metin-tanima-karsilastirma: akor 6/15 ve 0/48) → okuma
+// sunucuda Claude ile (supabase/functions/defter-oku). Deneme süresince yalnız yönetici/editör (sunucu da denetler).
+// Sonuç önizlemede düzenlenir; "Forma uygula" yalnız formu doldurur, kaydetmek yine Kaydet ile. Sayfa yatık
+// çekilmişse sunucu dönüş açısını da verir: kayıtlı eserde fotoğraf düzeltilmiş olarak nota sayfası yapılabilir.
+const DEFTER_OKU_ALANLAR = [
+  ['baslik', 'ne_name', 'Eser adı'], ['yore', 'ne_region', 'Yöre'], ['kaynak_kisi', 'ne_sourcePerson', 'Kaynak kişi'],
+  ['derleyen', 'ne_collector', 'Derleyen'], ['makam', 'ne_makam', 'Makam'], ['usul', 'ne_measurement', 'Usul / ölçü'],
+  ['besteci', 'ne_composer', 'Besteci'], ['soz_yazari', 'ne_lyricWriter', 'Söz yazarı'],
+];
+const DEFTER_OKU_YALNIZ_BILGI = [['notaya_alan', 'Notaya alan'], ['repertuvar_no', 'Repertuvar no'], ['sure', 'Süre'], ['ton', 'Ton']];
+const DEFTER_OKU_HATALAR = {
+  'yetki-yok': 'Bu deneme şimdilik yalnız yönetici ve editörlere açık.',
+  'yapilandirma-eksik': 'Okuma servisi henüz kurulmadı (anahtar eksik).',
+  'cok-istek': 'Çok sık deneme yapıldı, biraz sonra yeniden deneyin.',
+  'okuma-reddedildi': 'Bu sayfa okunamadı.',
+  'gorsel-buyuk': 'Görsel çok büyük.',
+};
+let _defterOku = null;   // { sonuc, dosya, deger: { alanId: değer } }
+
+function _defterOkuGoster() {
+  const s = document.getElementById('ne_defterOkuSatir');
+  if (s) s.style.display = (isAdmin() || isEditor()) ? 'flex' : 'none';
+  const d = document.getElementById('ne_defterOkuDurum');
+  if (d) d.textContent = '';
+}
+
+// Uzun kenar 2000 px, JPEG %85 → base64. Renk korunur (akorlar çoğu defterde başka renkte yazılıyor).
+async function _defterOkuGorsel(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    await new Promise((tamam, hata) => {
+      img.onload = tamam;
+      img.onerror = () => hata(new Error(_esCev('es.gorselAcilamadi', 'Görsel açılamadı.')));
+      img.src = url;
+    });
+    const oran = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(img.naturalWidth * oran); cv.height = Math.round(img.naturalHeight * oran);
+    const cx = cv.getContext('2d');
+    cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+    cx.drawImage(img, 0, 0, cv.width, cv.height);
+    const veri = cv.toDataURL('image/jpeg', 0.85);
+    cv.width = cv.height = 0;   // iOS tuval belleğini hemen bırak
+    return veri.slice(veri.indexOf(',') + 1);
+  } finally { URL.revokeObjectURL(url); }
+}
+
+async function defterOkuSec(input) {
+  const file = input && input.files && input.files[0];
+  if (input) input.value = '';
+  if (!file) return;
+  const durum = document.getElementById('ne_defterOkuDurum');
+  const yaz = (t, renk) => { if (durum) { durum.textContent = t; durum.style.color = renk || 'var(--text2)'; } };
+  const btn = document.getElementById('ne_defterOkuBtn');
+  if (btn) btn.disabled = true;
+  yaz(_esCev('es.defterOkunuyor', '⏳ Sayfa okunuyor… (20–60 sn sürebilir)'));
+  try {
+    const gorsel = await _defterOkuGorsel(file);
+    const token = getToken();
+    const r = await fetch(`${SUPA_URL}/functions/v1/defter-oku`, {
+      method: 'POST',
+      headers: Object.assign({ 'apikey': SUPA_KEY, 'Content-Type': 'application/json' }, token ? { 'Authorization': 'Bearer ' + token } : {}),
+      body: JSON.stringify({ gorsel, tur: 'image/jpeg' }),
+      signal: AbortSignal.timeout(150000),
+    });
+    let j = {};
+    try { j = await r.json(); } catch (e) {}
+    if (!r.ok) {
+      const kod = j.hata || String(r.status);
+      throw new Error(_esCev('es.defterOkuHata_' + kod, DEFTER_OKU_HATALAR[kod] || ('Okunamadı (' + kod + ').')));
+    }
+    yaz('');
+    _defterOku = { sonuc: j, dosya: file, deger: {} };
+    _defterOkuOnizle();
+  } catch (e) {
+    yaz('❌ ' + (e.name === 'TimeoutError' ? _esCev('es.defterOkuZaman', 'Okuma zaman aşımına uğradı.') : e.message), 'var(--red)');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function _defterOkuOnizle() {
+  const s = _defterOku.sonuc, b = s.bilgiler || {}, e = _esHtml;
+  const lbl = 'display:block;font-size:12px;color:var(--text2);margin:12px 0 4px;';
+  const ta = 'width:100%;box-sizing:border-box;min-height:150px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font:13px/1.6 ui-monospace,Menlo,monospace;';
+  const kutu = (id, ad, metin, dolu) => metin ? `
+    <label style="${lbl}"><input type="checkbox" id="${id}Yaz" ${dolu ? '' : 'checked'}> <b>${e(ad)}</b>${dolu ? ' — ' + e(_esCev('es.doMevcutYerine', 'şu anki metnin yerine geçer')) : ''}</label>
+    <textarea id="${id}" style="${ta}">${e(metin)}</textarea>` : '';
+  const alanlar = DEFTER_OKU_ALANLAR.map(([k, id, ad]) => {
+    const v = k === 'baslik' ? s.baslik : b[k];
+    const el = document.getElementById(id);
+    const mevcut = el ? el.value.trim() : '';
+    if (!v || mevcut === v) return '';
+    _defterOku.deger[id] = v;
+    return `<label style="display:block;font-size:13px;margin:4px 0;"><input type="checkbox" data-alan="${id}" ${mevcut ? '' : 'checked'}> ${e(_esCev('es.do_' + k, ad))}: <b>${e(v)}</b>${mevcut ? ` <span style="color:var(--text3);">(${e(_esCev('es.doSuAn', 'şu an'))}: ${e(mevcut)})</span>` : ''}</label>`;
+  }).join('');
+  const yalniz = DEFTER_OKU_YALNIZ_BILGI.filter(([k]) => b[k]).map(([k, ad]) => e(_esCev('es.do_' + k, ad)) + ': ' + e(b[k])).join(' · ');
+  const donus = [90, 180, 270].includes(s.donus) ? s.donus : 0;
+  const notaSecenek = editingWorkId !== null ? `<label style="display:block;font-size:13px;margin:12px 0 0;"><input type="checkbox" id="do_nota"> ${e(_esCev('es.doNotaEkle', 'Fotoğrafı nota sayfası olarak da ekle'))}${donus ? ' ' + e(_esCev('es.doDondurulerek', '({d}° döndürülerek)').replace('{d}', donus)) : ''}</label>` : '';
+  const k = s.kullanim || {};
+  let kap = document.getElementById('defterOkuOnizleme');
+  if (!kap) { kap = document.createElement('div'); kap.id = 'defterOkuOnizleme'; document.body.appendChild(kap); }
+  kap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;display:flex;align-items:flex-start;justify-content:center;padding:5vh 12px;overflow-y:auto;';
+  kap.innerHTML = `<div style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:12px;width:100%;max-width:640px;padding:18px;box-sizing:border-box;">
+    <div style="font-size:16px;font-weight:700;margin-bottom:4px;">${e(_esCev('es.doBaslik', '📷 Sayfadan okunanlar'))}</div>
+    <div style="font-size:12px;color:var(--text3);">${e(_esCev('es.doAciklama', 'Kontrol edip düzeltin; "Forma uygula" yalnız formu doldurur, kaydetmek için ardından Kaydet\'e basın.'))}</div>
+    ${s.notlar ? `<div style="margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(210,153,34,.15);font-size:12px;">⚠️ ${e(s.notlar)}</div>` : ''}
+    ${kutu('do_soz', _esCev('es.soz', 'Söz'), s.soz, getLyricsValue().trim() !== '')}
+    ${kutu('do_akor', _esCev('es.akorEtiket', 'Akorlar'), s.akorlu, (document.getElementById('ne_chords').value || '').trim() !== '')}
+    ${alanlar ? `<div style="${lbl}"><b>${e(_esCev('es.doBilgiler', 'Bilgiler'))}</b></div>${alanlar}` : ''}
+    ${yalniz ? `<div style="font-size:12px;color:var(--text3);margin-top:6px;">${yalniz}</div>` : ''}
+    ${notaSecenek}
+    ${!s.soz && !s.akorlu && !alanlar ? `<div style="margin-top:12px;font-size:13px;">${e(_esCev('es.doBos', 'Bu sayfada okunacak söz ya da akor bulunamadı.'))}</div>` : ''}
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap;">
+      <span style="font-size:11px;color:var(--text3);">${k.girdi ? e(k.girdi + ' + ' + k.cikti + ' token') : ''}</span>
+      <span style="display:flex;gap:8px;">
+        <button type="button" onclick="defterOkuKapat()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-weight:600;cursor:pointer;font-family:inherit;">${e(_esCev('es.vazgec', 'Vazgeç'))}</button>
+        <button type="button" onclick="defterOkuUygula()" style="padding:8px 14px;border-radius:8px;border:none;background:var(--accent);color:#1a1200;font-weight:700;cursor:pointer;font-family:inherit;">${e(_esCev('es.doUygula', 'Forma uygula'))}</button>
+      </span>
+    </div></div>`;
+}
+
+function defterOkuKapat() {
+  const kap = document.getElementById('defterOkuOnizleme');
+  if (kap) kap.remove();
+  _defterOku = null;
+}
+
+function defterOkuUygula() {
+  const kap = document.getElementById('defterOkuOnizleme');
+  if (!kap || !_defterOku) return;
+  const isaretli = id => { const c = kap.querySelector('#' + id); return !!(c && c.checked); };
+  let sekme = 'basic';
+  if (isaretli('do_akorYaz')) { document.getElementById('ne_chords').value = kap.querySelector('#do_akor').value; sekme = 'details'; }
+  if (isaretli('do_sozYaz')) { setLyricsValue(kap.querySelector('#do_soz').value); sekme = 'lyrics'; }
+  kap.querySelectorAll('input[data-alan]').forEach(c => {
+    const el = document.getElementById(c.dataset.alan);
+    if (c.checked && el) el.value = _defterOku.deger[c.dataset.alan];
+  });
+  if (isaretli('do_nota') && editingWorkId !== null) {
+    const id = editingWorkId, dosya = _defterOku.dosya;
+    const donus = [90, 180, 270].includes(_defterOku.sonuc.donus) ? _defterOku.sonuc.donus : 0;
+    notaGorselKucult(dosya, donus).then(f => uploadNotaFiles(id, [f]));
+    renderNeNotaList(_esCev('es.notaYukleniyor', '⏳ Yükleniyor — bittiğinde eser detayındaki Nota sekmesinde görünecek.'));
+  }
+  defterOkuKapat();
+  alanlariUygula();   // değeri olan alan gizli kalmasın
+  switchNeTab(sekme);
+  toastMsg(_esCev('es.doUygulandi', 'Forma aktarıldı — kontrol edip Kaydet\'e basın'));
+}
+
 // ── (2026-10-18) DEFTERDEN ESER EKLE ──────────────────────────────────────────────────────────────
 // Kullanıcı: yeni üye mevcut nota defterini tarayarak eserlerini eklesin. Kararlar ("uygun", 2026-10-18):
 // eserler SADECE BEN (private, onaysız → 🔒 Taslaklarım), her üye KENDİ eserine nota ekleyebilir, şimdilik sınır yok.
@@ -6134,6 +6288,7 @@ function openNewEserModal() {
   _aktifAlanlar = varsayilanAlanlar().slice();
   alanlariUygula();
   switchNeTab('lyrics');
+  _defterOkuGoster();
   document.getElementById('newEserModal').style.display = 'flex';
 }
 
@@ -6214,6 +6369,7 @@ async function openEditEserModal(id) {
   if (_vr) _vr.checked = true;
   updateVisibilityHint();
   switchNeTab('lyrics');
+  _defterOkuGoster();
   document.getElementById('newEserModal').style.display = 'flex';
 }
 // (2026-08-16) Escape de formu kapatmıyor — bkz. zemine tıklama notu.
@@ -7563,6 +7719,15 @@ function openSuggestModal() { openNewEserModal(); }
         </div>
         <datalist id="formListesi"></datalist>
       </div>
+    </div>
+
+    <!-- (2026-10-22) DEFTERDEN OKU (DENEME, yalnız yönetici/editör) — sayfa fotoğrafındaki söz/akor/bilgiler
+         sunucuda okunur (supabase/functions/defter-oku), önizlemede onaylanınca forma yazılır; kaydetmez. -->
+    <div id="ne_defterOkuSatir" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 10px;">
+      <input type="file" id="ne_defterOkuFile" accept="image/*" style="display:none;" onchange="defterOkuSec(this)">
+      <button type="button" id="ne_defterOkuBtn" onclick="document.getElementById('ne_defterOkuFile').click()" style="padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📷 <span data-i18n="es.defterOku">Defterden oku</span></button>
+      <span style="font-size:11px;color:var(--text3);" data-i18n="es.defterOkuNot">Fotoğraftaki söz, akor ve nota bilgilerini forma aktarır (deneme)</span>
+      <div id="ne_defterOkuDurum" style="flex-basis:100%;font-size:12px;"></div>
     </div>
 
     <!-- SEKMELER -->
