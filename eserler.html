@@ -5209,6 +5209,23 @@ async function defterYapayOku(bas) {
     sira += parcalar[i].length;
     if (parcalar.length > 1) defterCiz();
   }
+  // 6'şarlı parçaların sınırına düşen eser iki parçada okunmuş olabilir: aynı adlı ardışık kartlar birleşir, iki okumadan
+  // birleşen kartın sayfaları birlikte (tek eser kipinde) bir kez daha okunur — söz tekrarsız ve bütün olsun.
+  if (parcalar.length > 1 && !hata) {
+    defterAyniAdBirlestir();
+    // 6 sayfadan uzun eser tek istekte okunamaz → birleşik metin kalır (kesip okumak sonraki sayfaların sözünü kaybettirir)
+    for (const k of _defter.filter(x => x.okunan && x.okunan.birlesik && !x.id && !x.eser && _defterTekIstekte(x))) {
+      const sy = k.sayfalar.filter(x => !defterPdfMi(x.dosya));
+      defterDurum(_esCev('es.dfSinirOkunuyor', '⏳ İki parçaya bölünen “{ad}” sayfaları birlikte okunuyor…').replace('{ad}', k.ad || '…'));
+      try {
+        const kenar = sy.length > 3 ? 1600 : 2000, gorseller = [];
+        for (const x of sy) gorseller.push(await _defterOkuGorsel(x.dosya, kenar));
+        const j = await _defterOkuIste(gorseller, false);
+        k.okunan = { soz: j.soz || '', akorlu: j.akorlu || '', bilgiler: j.bilgiler || {}, notlar: j.notlar || '', model: j.model };
+        if (!k.ad.trim() && j.baslik) k.ad = j.baslik;
+      } catch (e) { /* birleşik metin kalır; kartta "Sayfaları birlikte yeniden oku" görünür */ }
+    }
+  }
   _defterOkunuyor--;
   defterCiz();
   defterDurum(hata
@@ -5250,6 +5267,11 @@ function defterTekrarGeriEkle(i) {
 }
 
 // İki kart birleşirken okunan metin ve çıkarılan tekrar taramalar da birleşir (sayfalar çağıranda eklenir)
+function _defterTekIstekte(k) {
+  const n = k.sayfalar.filter(sy => !defterPdfMi(sy.dosya)).length;
+  return n > 0 && n <= DEFTER_OKU_EN_COK;
+}
+
 function _defterOkunanBirlestir(a, b) {
   if (b.cikarilan && b.cikarilan.length) a.cikarilan = (a.cikarilan || []).concat(b.cikarilan);
   if (!b.okunan) return;
@@ -5257,8 +5279,9 @@ function _defterOkunanBirlestir(a, b) {
   const ek = (x, y) => [x, y].filter(t => t && t.trim()).join('\n\n');
   const bilgi = Object.assign({}, b.okunan.bilgiler);
   Object.entries(a.okunan.bilgiler || {}).forEach(([k, v]) => { if (v) bilgi[k] = v; });
+  // birlesik: iki ayrı okumanın metni üst üste — sözler tekrarlı/yarım olabilir, sayfalar birlikte yeniden okunmalı
   a.okunan = { soz: ek(a.okunan.soz, b.okunan.soz), akorlu: ek(a.okunan.akorlu, b.okunan.akorlu), bilgiler: bilgi,
-               notlar: ek(a.okunan.notlar, b.okunan.notlar), model: a.okunan.model };
+               notlar: ek(a.okunan.notlar, b.okunan.notlar), model: a.okunan.model, birlesik: true };
 }
 
 function defterOkunanHtml(k, i, kilit) {
@@ -5280,17 +5303,18 @@ function defterOkunanHtml(k, i, kilit) {
       ${o.akorlu ? `<label>${e(_esCev('es.akorEtiket', 'Akorlar'))}</label>
       <textarea${kilit} oninput="_defter[${i}].okunan.akorlu=this.value">${e(o.akorlu)}</textarea>` : ''}
       ${bilgi ? `<div class="df-ok-bilgi">${bilgi}</div>` : ''}
-      ${o.model !== 'claude-opus-5-5' && !kilit && k.sayfalar.some(sy => !defterPdfMi(sy.dosya))
-        ? `<button type="button" onclick="defterDikkatliOku(${i})">${e(_esCev('es.doDikkatli', '🔍 Daha dikkatli oku'))}</button>` : ''}
+      ${(o.model !== 'claude-opus-5-5' || o.birlesik) && !kilit && _defterTekIstekte(k)
+        ? `<button type="button" onclick="defterDikkatliOku(${i})">${e(o.birlesik
+            ? _esCev('es.dfBirlikteOku', '🔄 Sayfaları birlikte yeniden oku')
+            : _esCev('es.doDikkatli', '🔍 Daha dikkatli oku'))}</button>` : ''}
     </div></details>`;
 }
 
 // Kartın sayfalarını güçlü modelle (Opus 5.5) tek eser olarak yeniden okur; düzeltmeler bu kartta yenilenir
 async function defterDikkatliOku(i) {
   const k = _defter[i];
-  if (!k || _defterOkunuyor || _defterKaydediliyor) return;
-  const sayfalar = k.sayfalar.filter(sy => !defterPdfMi(sy.dosya)).slice(0, DEFTER_OKU_EN_COK);
-  if (!sayfalar.length) return;
+  if (!k || _defterOkunuyor || _defterKaydediliyor || !_defterTekIstekte(k)) return;
+  const sayfalar = k.sayfalar.filter(sy => !defterPdfMi(sy.dosya));
   _defterOkunuyor++;
   k._acik = true;
   defterCiz();

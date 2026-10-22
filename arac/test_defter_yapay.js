@@ -15,7 +15,7 @@ const kod=[
   au.match(/const _TR_FOLD = \{[\s\S]*?\};/)[0], fonk(au,'trNorm'),
   es.match(/const _defterOkuTempo = [^\n]*/)[0], es.match(/function _esHtml\(s\)\{[^\n]*\}/)[0],
   ...['_defterGrupla','_defterOkunanBirlestir','defterYapayOku','defterEserOlustur','defterKaydet','defterBirlestir',
-      '_defterAyniEser','defterAyniAdBirlestir','defterOkunanHtml','defterPdfMi','defterTekrarGeriEkle','defterEkle'].map(a=>fonk(es,a)),
+      '_defterAyniEser','defterAyniAdBirlestir','defterOkunanHtml','defterPdfMi','defterTekrarGeriEkle','defterEkle','_defterTekIstekte'].map(a=>fonk(es,a)),
 ].join('\n');
 
 function ortam({ rol='editor', kartlar=[], cevaplar=[] }={}){
@@ -83,7 +83,8 @@ const eser=(sayfalar,baslik,soz='',akorlu='',b={},tekrarlar=[])=>({ sayfalar, te
       'B64-7':{ model:'m', donuslar:[], eserler:[eser([1],'','b2'), eser([2],'C','c1')] } } });
     await o.yapayOku(0);
     const k=o.kartlar();
-    yaz('iki istek: 6 + 2 sayfa', o.olan.istekler.map(x=>x.gorseller.length).sort().join()==='2,6');
+    yaz('iki istek: 6 + 2 sayfa', o.olan.istekler.slice(0,2).map(x=>x.gorseller.length).sort().join()==='2,6');
+    yaz('sınırda birleşen B (5 sayfa) birlikte yeniden okunmak istendi', o.olan.istekler.length===3 && o.olan.istekler[2].gorseller.length===5 && !o.olan.istekler[2].mod);
     yaz('iki istek aynı anda yolda (paralel)', o.olan.enCokYolda===2);
     yaz('başlıksız devam öncekine eklendi', k.map(x=>x.ad+':'+x.sayfalar.length).join()==='A:2,B:5,C:1' && k[1].okunan.soz==='b1\n\nb2');
   }
@@ -108,7 +109,9 @@ const eser=(sayfalar,baslik,soz='',akorlu='',b={},tekrarlar=[])=>({ sayfalar, te
     yaz('birleştirince söz/akor/bilgi birleşti', o.kartlar().length===1 && k.okunan.soz==='s1\n\ns2' && k.okunan.akorlu==='[Am]x' && k.okunan.bilgiler.yore==='Tokat' && k.okunan.bilgiler.usul==='5/8');
     const h=o.html({ ...k, okunan:{ ...k.okunan, soz:'</textarea><img src=x onerror=alert(1)>', notlar:'<b>n</b>' } }, 0, '');
     yaz('kart HTML\'i kaçışlı', !h.includes('<img src=x') && !h.includes('<b>n</b>') && h.includes('&lt;img'));
-    yaz('Haiku sonucunda "Daha dikkatli oku" var, Opus\'ta yok', h.includes('Daha dikkatli oku') && !o.html({ ...k, okunan:{ ...k.okunan, model:'claude-opus-5-5' } }, 0, '').includes('Daha dikkatli oku'));
+    const tek={ ...k, okunan:{ ...k.okunan, birlesik:false } };
+    yaz('Haiku sonucunda "Daha dikkatli oku" var, Opus\'ta yok', o.html(tek,0,'').includes('Daha dikkatli oku') && !o.html({ ...tek, okunan:{ ...tek.okunan, model:'claude-opus-5-5' } }, 0, '').includes('Daha dikkatli oku'));
+    yaz('elle birleşen kartta "birlikte yeniden oku"', k.okunan.birlesik===true && h.includes('Sayfaları birlikte yeniden oku'));
   }
   { // kullanıcının gerçek taraması: önce 2. sayfa, sonra 1. sayfa üç kez (yamuk) → tek eser, sıra [1. sayfa, 2. sayfa], 2 tekrar çıkarıldı
     const o=ortam({ kartlar:['s2','p1a','p1b','p1c'].map(tekSayfa), cevaplar:[{ model:'m', donuslar:[], eserler:[
@@ -133,6 +136,37 @@ const eser=(sayfalar,baslik,soz='',akorlu='',b={},tekrarlar=[])=>({ sayfalar, te
     const u=ortam({ rol:'user' });
     await u.ekle([{ name:'defter.pdf', type:'application/pdf' }]);
     yaz('düz üyede PDF tek kart, okuma yok', !u.olan.pdf && u.kartlar().length===1 && u.olan.istekler.length===0);
+  }
+  { // parça sınırına düşen eser: 1. parçanın sonu ve 2. parçanın başı aynı ad → birleşir, sayfaları birlikte yeniden okunur
+    const sayfa=['1','2','3','4','5','6','7'];
+    const o=ortam({ kartlar:sayfa.map(tekSayfa), cevaplar:{
+      'B64-1':{ model:'m', donuslar:[], eserler:[eser([1,2,3,4,5],'Hastane','h'), eser([6],'Benden Selâm Olsun','yarım söz')] },
+      'B64-7':{ model:'m', donuslar:[], eserler:[eser([1],'Benden Selam Olsun','temiz söz')] },
+      'B64-6':{ model:'claude-opus-5-5', baslik:'Benden Selâm Olsun', soz:'bütün söz', akorlu:'', bilgiler:{yore:'Kastamonu'}, notlar:'', donuslar:[0,0] } } });
+    await o.yapayOku(0);
+    const k=o.kartlar(), son=o.olan.istekler[o.olan.istekler.length-1];
+    yaz('sınırda bölünen eser tek kart', k.map(x=>x.ad+':'+x.sayfalar.length).join()==='Hastane:5,Benden Selâm Olsun:2');
+    yaz('iki sayfası birlikte, tek eser kipinde yeniden okundu', son.gorseller.join()==='B64-6,B64-7' && !son.mod);
+    yaz('söz yeniden okumadan (tekrarsız)', k[1].okunan.soz==='bütün söz' && !k[1].okunan.birlesik && k[1].okunan.bilgiler.yore==='Kastamonu');
+  }
+  { // yeniden okuma düşerse birleşik metin kalır ve kartta "Sayfaları birlikte yeniden oku" görünür
+    const o=ortam({ kartlar:['1','2','3','4','5','6','7'].map(tekSayfa), cevaplar:{
+      'B64-1':{ model:'claude-opus-5-5', donuslar:[], eserler:[eser([1,2,3,4],'Y','y'), eser([5,6],'X','a')] },
+      'B64-7':{ model:'claude-opus-5-5', donuslar:[], eserler:[eser([1],'','b')] },
+      'B64-5':new Error('ağ') } });
+    await o.yapayOku(0);
+    const k=o.kartlar()[1];
+    yaz('yeniden okuma yanıtı yoksa birleşik kalır', k.okunan.birlesik===true && k.okunan.soz==='a\n\nb');
+    yaz('Opus\'ta bile "birlikte yeniden oku" düğmesi', o.html(k,0,'').includes('Sayfaları birlikte yeniden oku'));
+  }
+  { // 6 sayfadan uzun birleşik eser kesilerek yeniden okunmaz (sözü kaybolmasın), düğme de çıkmaz
+    const o=ortam({ kartlar:['1','2','3','4','5','6','7'].map(tekSayfa), cevaplar:{
+      'B64-1':{ model:'m', donuslar:[], eserler:[eser([1,2,3,4,5,6],'Uzun','a')] },
+      'B64-7':{ model:'m', donuslar:[], eserler:[eser([1],'','b')] } } });
+    await o.yapayOku(0);
+    const k=o.kartlar()[0];
+    yaz('7 sayfalık birleşik eser yeniden okunmadı, metni korundu', o.olan.istekler.length===2 && k.sayfalar.length===7 && k.okunan.soz==='a\n\nb');
+    yaz('7 sayfada "yeniden oku" düğmesi yok', !o.html(k,0,'').includes('yeniden oku') && !o.html(k,0,'').includes('Daha dikkatli'));
   }
   console.log(hata?`\n${hata} test KALDI`:'\nHepsi geçti'); process.exit(hata?1:0);
 })();
