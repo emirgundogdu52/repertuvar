@@ -9,7 +9,7 @@ const burasi = dirname(fileURLToPath(import.meta.url));
 const gecici = mkdtempSync(join(tmpdir(), 'defter-oku-'));
 copyFileSync(join(burasi, 'okuma.ts'), join(gecici, 'okuma.ts'));
 copyFileSync(join(burasi, 'index.ts'), join(gecici, 'index.mts'));
-const { govdeDenetle, istekOf, sonucDuzenle, akorluTemizle, SEMA, MODEL, DIKKATLI_MODEL, MODELLER } = await import(pathToFileURL(join(gecici, 'okuma.ts')).href);
+const { govdeDenetle, istekOf, sonucDuzenle, defterSonucDuzenle, akorluTemizle, SEMA, DEFTER_SEMA, SISTEM, DEFTER_SISTEM, MODEL, DIKKATLI_MODEL, MODELLER } = await import(pathToFileURL(join(gecici, 'okuma.ts')).href);
 const { isle, OkumaHatasi } = await import(pathToFileURL(join(gecici, 'index.mts')).href);
 
 let gecti = 0;
@@ -153,6 +153,49 @@ await dene('isle: model seçimi (varsayılan Haiku, dikkatli → Opus, açık ad
   assert.equal(o.son.model, 'claude-opus-5-5');       // servis anahtarı verebilir
   ({ o } = await k({ gorsel: GORSEL, model: 'claude-fable-5-1' }));
   assert.equal(o.son.model, MODEL);                   // listede olmayan model yok sayılır
+});
+
+await dene('defter kipi: istek, şema, gruplama', () => {
+  const d = istekOf(['QQ=='], 'image/jpeg', MODEL, 'defter');
+  assert.equal(d.output_config.format.schema, DEFTER_SEMA);
+  assert.equal(d.system, DEFTER_SISTEM);
+  assert.equal(d.messages[0].content[0].text, 'Sayfa 1 / 1');         // defterde tek sayfa da etiketli
+  assert.match(d.messages[0].content.at(-1).text, /eserlere ayır/);
+  assert.match(DEFTER_SISTEM, /ezberden tamamlama/); assert.match(SISTEM, /ezberden tamamlama/);   // ortak kurallar ikisinde
+  const denetle = (s) => {
+    if (s.type === 'object') { assert.equal(s.additionalProperties, false); assert.deepEqual([...s.required].sort(), Object.keys(s.properties).sort()); Object.values(s.properties).forEach(denetle); }
+    if (s.type === 'array') denetle(s.items);
+  };
+  denetle(DEFTER_SEMA);
+  const bos = { yore: '' };
+  const g = defterSonucDuzenle(JSON.stringify({
+    eserler: [
+      { sayfalar: [3, 4], baslik: 'B', soz: 'b', akorlu: '[Am x', bilgiler: bos, notlar: '' },
+      { sayfalar: [1, 1, 9, 0, 'x'], baslik: 'A', soz: 'a', akorlu: '', bilgiler: { yore: 'Tokat' }, notlar: '' },
+      { sayfalar: [], baslik: 'boş', soz: '', akorlu: '', bilgiler: bos, notlar: '' },
+    ],
+    donuslar: [0, 90],
+  }), 5);
+  assert.deepEqual(g.eserler.map((e) => e.baslik), ['A', 'B']);          // sayfa sırasına göre, sayfasız eser atılır
+  assert.deepEqual(g.eserler.map((e) => e.sayfalar), [[1, 2], [3, 4, 5]]); // 2 ve 5 kimsesiz → öncekine; 9/0/'x' atılır
+  assert.equal(g.eserler[0].bilgiler.yore, 'Tokat'); assert.equal(g.eserler[0].bilgiler.makam, '');
+  assert.equal(g.eserler[1].akorlu, 'Am x');                            // akorlu temizlenir
+  assert.deepEqual(g.donuslar, [0, 90, 0, 0, 0]);
+  const ilkSahipsiz = defterSonucDuzenle(JSON.stringify({ eserler: [{ sayfalar: [2], baslik: 'X', soz: '', akorlu: '', bilgiler: bos, notlar: '' }], donuslar: [] }), 2);
+  assert.deepEqual(ilkSahipsiz.eserler.map((e) => [e.baslik, e.sayfalar]), [['', [1]], ['X', [2]]]);   // başa başlıksız eser
+  assert.equal(defterSonucDuzenle('{"eserler":5}', 2), null);
+  assert.equal(defterSonucDuzenle('bozuk', 2), null);
+});
+
+await dene('isle: defter kipi', async () => {
+  const ham = JSON.stringify({ eserler: [{ sayfalar: [1, 2], baslik: 'A', soz: 'a', akorlu: '', bilgiler: {}, notlar: '' }], donuslar: [0, 0] });
+  const ok = okuyucu(ham);
+  const j = await (await isle(istek({ gorseller: [GORSEL, GORSEL], mod: 'defter' }), ortam(), ok, sahteFetch())).json();
+  assert.equal(ok.son.output_config.format.schema, DEFTER_SEMA);
+  assert.equal(j.eserler.length, 1); assert.deepEqual(j.eserler[0].sayfalar, [1, 2]); assert.equal(j.sayfa, 2); assert.equal(j.model, MODEL);
+  const ok2 = okuyucu();
+  await isle(istek({ gorseller: [GORSEL], mod: 'baska' }), ortam(), ok2, sahteFetch());
+  assert.equal(ok2.son.output_config.format.schema, SEMA);              // bilinmeyen kip → tek eser
 });
 
 console.log(`\n${gecti} test geçti`);

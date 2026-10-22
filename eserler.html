@@ -1260,6 +1260,17 @@
     background:rgba(0,0,0,.6); color:#fff; font-size:15px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   .df-sayfa-sil { position:absolute; right:3px; top:3px; width:24px; height:24px; border-radius:50%; border:none;
     background:rgba(0,0,0,.6); color:#fff; font-size:15px; line-height:1; cursor:pointer; }
+  /* (2026-10-22) Defterden ekle: yapay zekânın okuduğu söz/akor/bilgiler kartta */
+  .df-okunan { margin-top:10px; border:1px solid var(--border); border-radius:8px; background:var(--surface2); }
+  .df-okunan summary { padding:8px 10px; font-size:12.5px; color:var(--text2); cursor:pointer; }
+  .df-okunan .df-ok-ic { padding:0 10px 10px; display:grid; gap:6px; }
+  .df-okunan label { font-size:11.5px; color:var(--text3); }
+  .df-okunan textarea { width:100%; box-sizing:border-box; min-height:110px; padding:8px; border:1px solid var(--border); border-radius:6px;
+    background:var(--surface); color:var(--text); font:12.5px/1.55 ui-monospace,Menlo,monospace; }
+  .df-okunan .df-ok-bilgi { font-size:12px; color:var(--text2); }
+  .df-okunan .df-ok-not { font-size:12px; padding:6px 8px; border-radius:6px; background:rgba(210,153,34,.15); }
+  .df-okunan button { justify-self:start; padding:6px 11px; border-radius:7px; border:1px solid var(--accent); background:none;
+    color:var(--accent); font-size:12px; font-weight:700; font-family:inherit; cursor:pointer; }
   .df-kart-alt { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
   .df-kart-alt:empty { display:none; }
   .df-kart-alt button { display:flex; align-items:center; gap:6px; padding:7px 11px; border-radius:8px; border:1px solid var(--border);
@@ -4989,12 +5000,12 @@ async function _defterOkuDosyalar(files) {
 }
 
 // dikkatli: true → sunucu Opus 5.5 ile okur ("Daha dikkatli oku")
-async function _defterOkuIste(gorseller, dikkatli) {
+async function _defterOkuIste(gorseller, dikkatli, mod) {
   const token = getToken();
   const r = await fetch(`${SUPA_URL}/functions/v1/defter-oku`, {
     method: 'POST',
     headers: Object.assign({ 'apikey': SUPA_KEY, 'Content-Type': 'application/json' }, token ? { 'Authorization': 'Bearer ' + token } : {}),
-    body: JSON.stringify(dikkatli ? { gorseller, tur: 'image/jpeg', dikkatli: true } : { gorseller, tur: 'image/jpeg' }),
+    body: JSON.stringify(Object.assign({ gorseller, tur: 'image/jpeg' }, dikkatli ? { dikkatli: true } : {}, mod ? { mod } : {})),
     signal: AbortSignal.timeout(150000),
   });
   let j = {};
@@ -5003,7 +5014,28 @@ async function _defterOkuIste(gorseller, dikkatli) {
     const kod = j.hata || String(r.status);
     throw new Error(_esCev('es.defterOkuHata_' + kod, DEFTER_OKU_HATALAR[kod] || ('Okunamadı (' + kod + ').')));
   }
+  [j].concat(j.eserler || []).forEach(e => {
+    // Türkçeye özgü harf varsa Türkçe kural (I→ı), yoksa İngilizce (I→i) — "I CAN SEE" "ı can see" olmasın
+    const dil = /[ÇĞİÖŞÜçğıöşü]/.test((e.baslik || '') + (e.soz || '') + (e.akorlu || '')) ? 'tr' : 'en';
+    e.baslik = _defterBuyukHarf(e.baslik || '', true, dil);
+    e.soz = _defterBuyukHarf(e.soz || '', false, dil);
+    e.akorlu = _defterBuyukHarf(e.akorlu || '', false, dil);
+  });
   return j;
+}
+// TRT notaları sözü ve adı BÜYÜK HARFLE yazıyor → satır tamamen büyük harfse küçült, ilk harf büyük (başlıkta her sözcük).
+// Köşeli parantez içindeki akorlara dokunulmaz.
+function _defterBuyukHarf(metin, baslik, dil) {
+  dil = dil || 'tr';
+  return String(metin).split('\n').map(satir => {
+    const harfler = satir.replace(/\[[^\]]*\]/g, '').replace(/[^A-Za-zÇĞİÖŞÜÂÎÛçğıöşüâîû]/g, '');
+    if (harfler.length < 4 || harfler !== harfler.toLocaleUpperCase(dil)) return satir;
+    const kucuk = satir.replace(/(\[[^\]]*\])|[^\[]+/g, (m, akor) => akor || m.toLocaleLowerCase(dil))
+      .replace(/\b(\d{1,2})x\b/g, '$1X');   // tekrar işareti "2X" kalsın
+    return baslik
+      ? kucuk.replace(/(^|[\s(“"'-])(\p{L})/gu, (m, on, h) => on + h.toLocaleUpperCase(dil))
+      : kucuk.replace(/^((?:\s*\[[^\]]*\])*[^\p{L}\[]*)(\p{L})/u, (m, on, h) => on + h.toLocaleUpperCase(dil));   // baştaki [akor]ları atla
+  }).join('\n');
 }
 function _defterOkuHataMetni(e) {
   return e && e.name === 'TimeoutError' ? _esCev('es.defterOkuZaman', 'Okuma zaman aşımına uğradı.') : (e && e.message) || String(e);
@@ -5115,6 +5147,121 @@ function defterOkuUygula() {
   toastMsg(_esCev('es.doUygulandi', 'Forma aktarıldı — kontrol edip Kaydet\'e basın'));
 }
 
+// ── (2026-10-22) DEFTERDEN EKLE + YAPAY ZEKÂ OKUMASI ─────────────────────────────────────────────────
+// Kullanıcı: "sözleri yerine yazmamış, onu da ayırıp yazdığını sanıyordum". Yeni eklenen (taranan/seçilen) sayfalar
+// 6'şarlı defter-oku'ya gider (mod 'defter'); model sayfaları eserlere ayırır (başlıksız sayfa öncekinin devamı) ve
+// ad, söz, akor, bilgiler döner. Kartlar buna göre yeniden kurulur (kartta görülüp düzeltilir), Kaydet bunları yeni
+// esere yazar (mevcut esere bağlı kartta yalnız nota eklenir). Okuma sürerken kartlar ve Kaydet kilitli.
+// Deneme süresince yalnız yönetici/editör (sunucu da denetler); PDF sayfalar okunmaz, kendi kartında kalır.
+let _defterOkunuyor = 0;
+
+async function defterYapayOku(bas) {
+  if (!(isAdmin() || isEditor())) return;
+  const okunacak = _defter.slice(bas).filter(k => !k.okunan && !k.eser && !k.id && k.sayfalar.length === 1 && !defterPdfMi(k.sayfalar[0].dosya));
+  if (!okunacak.length) return;
+  const parcalar = [];
+  for (let i = 0; i < okunacak.length; i += DEFTER_OKU_EN_COK) parcalar.push(okunacak.slice(i, i + DEFTER_OKU_EN_COK));
+  _defterOkunuyor++;
+  defterCiz();
+  let hata = null, sira = 0;
+  for (const parca of parcalar) {
+    defterDurum(_esCev('es.dfOkunuyor', '⏳ Sayfalar okunuyor ({i}/{n}) — eserlere ayrılıyor, sözler yazılıyor…')
+      .replace('{i}', Math.min(okunacak.length, sira + parca.length)).replace('{n}', okunacak.length));
+    try {
+      const kenar = parca.length > 3 ? 1600 : 2000;
+      const gorseller = [];
+      for (const k of parca) gorseller.push(await _defterOkuGorsel(k.sayfalar[0].dosya, kenar));
+      _defterGrupla(parca, await _defterOkuIste(gorseller, false, 'defter'));
+    } catch (e) { hata = e; }
+    sira += parca.length;
+  }
+  _defterOkunuyor--;
+  defterCiz();
+  defterDurum(hata
+    ? '❌ ' + _defterOkuHataMetni(hata) + ' ' + _esCev('es.dfOkumaHataEk', 'Sayfalar yine de nota olarak kaydedilebilir.')
+    : _esCev('es.dfOkundu', '✓ Okundu: {n} eser. Adları ve sözleri kontrol edip Kaydet\'e dokun.').replace('{n}', _defter.length), hata ? 'var(--red)' : '');
+}
+
+// Sunucunun gruplamasını kartlara uygular: parca = tek sayfalık kartlar (gönderilme sırası), j = { eserler, donuslar, model }
+function _defterGrupla(parca, j) {
+  const ilk = _defter.indexOf(parca[0]);
+  if (ilk < 0 || parca.some(k => _defter.indexOf(k) < 0)) return;   // bu arada kapatıldıysa/değiştiyse dokunma
+  const sayfalar = parca.map(k => k.sayfalar[0]);
+  (j.donuslar || []).forEach((d, i) => { if (sayfalar[i] && !sayfalar[i].donus && [90, 180, 270].includes(d)) sayfalar[i].donus = d; });
+  const yeni = (j.eserler || []).map(e => ({
+    ad: e.baslik || '',
+    sayfalar: (e.sayfalar || []).map(n => sayfalar[n - 1]).filter(Boolean),
+    okunan: { soz: e.soz || '', akorlu: e.akorlu || '', bilgiler: e.bilgiler || {}, notlar: e.notlar || '', model: j.model },
+  })).filter(k => k.sayfalar.length);
+  const kapsanan = new Set(yeni.flatMap(k => k.sayfalar));
+  if (!yeni.length || sayfalar.some(sy => !kapsanan.has(sy))) return;   // eksik gruplama → kartlar olduğu gibi kalsın
+  // Başlıksız ilk eser: önceki kartın devamı (önceki parça ya da daha önce okunmuş kart)
+  const once = _defter[ilk - 1];
+  if (!yeni[0].ad && once && once.okunan && !once.id && !once.eser) {
+    const devam = yeni.shift();
+    once.sayfalar.push(...devam.sayfalar);
+    _defterOkunanBirlestir(once, devam);
+  }
+  _defter.splice(ilk, parca.length, ...yeni);
+}
+
+function _defterOkunanBirlestir(a, b) {
+  if (!b.okunan) return;
+  if (!a.okunan) { a.okunan = b.okunan; return; }
+  const ek = (x, y) => [x, y].filter(t => t && t.trim()).join('\n\n');
+  const bilgi = Object.assign({}, b.okunan.bilgiler);
+  Object.entries(a.okunan.bilgiler || {}).forEach(([k, v]) => { if (v) bilgi[k] = v; });
+  a.okunan = { soz: ek(a.okunan.soz, b.okunan.soz), akorlu: ek(a.okunan.akorlu, b.okunan.akorlu), bilgiler: bilgi,
+               notlar: ek(a.okunan.notlar, b.okunan.notlar), model: a.okunan.model };
+}
+
+function defterOkunanHtml(k, i, kilit) {
+  const o = k.okunan, e = _esHtml;
+  const satir = (o.soz || '').split('\n').filter(t => t.trim()).length;
+  const akor = ((o.akorlu || '').match(/\[[^\]]+\]/g) || []).length;
+  const ad = { yore: 'Yöre', kaynak_kisi: 'Kaynak kişi', derleyen: 'Derleyen', notaya_alan: 'Notaya alan', repertuvar_no: 'Repertuvar no',
+               makam: 'Makam', usul: 'Usul', sure: 'Süre', ton: 'Ton', soz_yazari: 'Söz yazarı', besteci: 'Besteci' };
+  const bilgi = Object.entries(o.bilgiler || {}).filter(([, v]) => v).map(([a, v]) => e(_esCev('es.do_' + a, ad[a] || a)) + ': ' + e(v)).join(' · ');
+  const ozet = (satir || akor)
+    ? _esCev('es.dfOkunanOzet', '✓ Okundu: {s} satır söz{a} — gör / düzelt').replace('{s}', satir)
+        .replace('{a}', akor ? _esCev('es.dfOkunanAkor', ', {n} akor').replace('{n}', akor) : '')
+    : _esCev('es.dfOkunanBos', 'Bu sayfalarda söz ya da akor bulunamadı');
+  return `<details class="df-okunan"${k._acik ? ' open' : ''} ontoggle="_defter[${i}]._acik=this.open"><summary>${e(ozet)}</summary>
+    <div class="df-ok-ic">
+      ${o.notlar ? `<div class="df-ok-not">⚠️ ${e(o.notlar)}</div>` : ''}
+      <label>${e(_esCev('es.soz', 'Söz'))}</label>
+      <textarea${kilit} oninput="_defter[${i}].okunan.soz=this.value">${e(o.soz)}</textarea>
+      ${o.akorlu ? `<label>${e(_esCev('es.akorEtiket', 'Akorlar'))}</label>
+      <textarea${kilit} oninput="_defter[${i}].okunan.akorlu=this.value">${e(o.akorlu)}</textarea>` : ''}
+      ${bilgi ? `<div class="df-ok-bilgi">${bilgi}</div>` : ''}
+      ${o.model !== 'claude-opus-5-5' && !kilit && k.sayfalar.some(sy => !defterPdfMi(sy.dosya))
+        ? `<button type="button" onclick="defterDikkatliOku(${i})">${e(_esCev('es.doDikkatli', '🔍 Daha dikkatli oku'))}</button>` : ''}
+    </div></details>`;
+}
+
+// Kartın sayfalarını güçlü modelle (Opus 5.5) tek eser olarak yeniden okur; düzeltmeler bu kartta yenilenir
+async function defterDikkatliOku(i) {
+  const k = _defter[i];
+  if (!k || _defterOkunuyor || _defterKaydediliyor) return;
+  const sayfalar = k.sayfalar.filter(sy => !defterPdfMi(sy.dosya)).slice(0, DEFTER_OKU_EN_COK);
+  if (!sayfalar.length) return;
+  _defterOkunuyor++;
+  k._acik = true;
+  defterCiz();
+  defterDurum(_esCev('es.doDikkatliOkunuyor', '⏳ Daha dikkatli okunuyor… (20–40 sn)'));
+  let hata = null;
+  try {
+    const kenar = sayfalar.length > 3 ? 1600 : 2000, gorseller = [];
+    for (const sy of sayfalar) gorseller.push(await _defterOkuGorsel(sy.dosya, kenar));
+    const j = await _defterOkuIste(gorseller, true);
+    k.okunan = { soz: j.soz || '', akorlu: j.akorlu || '', bilgiler: j.bilgiler || {}, notlar: j.notlar || '', model: j.model };
+    if (!k.ad.trim() && j.baslik) k.ad = j.baslik;
+  } catch (e) { hata = e; }
+  _defterOkunuyor--;
+  defterCiz();
+  defterDurum(hata ? '❌ ' + _defterOkuHataMetni(hata) : '', hata ? 'var(--red)' : '');
+}
+
 // ── (2026-10-18) DEFTERDEN ESER EKLE ──────────────────────────────────────────────────────────────
 // Kullanıcı: yeni üye mevcut nota defterini tarayarak eserlerini eklesin. Kararlar ("uygun", 2026-10-18):
 // eserler SADECE BEN (private, onaysız → 🔒 Taslaklarım), her üye KENDİ eserine nota ekleyebilir, şimdilik sınır yok.
@@ -5161,7 +5308,7 @@ function defterAc() {
       <div id="df_durum" class="df-durum"></div>
       <div class="df-ayak">
         <button type="button" class="df-ekle" id="df_ekle" onclick="defterSayfaEkle()"></button>
-        <button type="button" class="df-ekle df-sec" id="df_sec" onclick="if(!_defterKaydediliyor)document.getElementById('df_dosya').click()"
+        <button type="button" class="df-ekle df-sec" id="df_sec" onclick="if(!_defterKaydediliyor&&!_defterOkunuyor)document.getElementById('df_dosya').click()"
           title="${_esCev('es.dfSecUzun','Fotoğraflardan ya da dosyalardan seç')}"><i class="ti ti-photo"></i>${_esCev('es.dfSecKisa','Seç')}</button>
         <button type="button" class="df-kaydet" id="df_kaydet" onclick="defterKaydet()"></button>
       </div></div>`;
@@ -5188,7 +5335,7 @@ function defterDurum(t, renk) {
 }
 
 function defterSayfaEkle() {
-  if (_defterKaydediliyor) return;
+  if (_defterKaydediliyor || _defterOkunuyor) return;
   if (notaTarayiciVar()) notaTaraDosyalar(m => defterDurum(m.text, m.renk)).then(defterEkle);
   else document.getElementById('df_dosya').click();
 }
@@ -5202,6 +5349,7 @@ function defterEkle(files) {
   files.forEach(f => _defter.push({ ad: '', sayfalar: [{ dosya: f, url: URL.createObjectURL(f) }] }));
   defterDurum('');
   defterCiz();
+  defterYapayOku(ilkYeni);
   const el = document.getElementById('df_ad_' + ilkYeni);
   if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
@@ -5209,7 +5357,7 @@ function defterEkle(files) {
 function defterCiz() {
   const L = document.getElementById('df_liste');
   if (!L) return;
-  const kilit = _defterKaydediliyor ? ' disabled' : '';
+  const kilit = (_defterKaydediliyor || _defterOkunuyor) ? ' disabled' : '';
   L.innerHTML = !_defter.length
     ? `<div class="df-bos" data-i18n="es.dfBos">${_esCev('es.dfBos','Henüz sayfa yok. Aşağıdan defterinin sayfalarını tara ya da fotoğraflarını seç.')}</div>`
     : _defter.map((k, i) => `<div class="df-kart">
@@ -5228,6 +5376,7 @@ function defterCiz() {
             ? '<div class="df-pdf">PDF</div>' : `<img src="${sy.url}" alt=""${sy.donus ? ` class="d${sy.donus}"` : ''}>`}<span class="df-sno">${j + 1}</span>${k.sayfalar.length > 1 && !kilit
             ? `<button type="button" class="df-sayfa-sil" onclick="defterSayfaSil(${i},${j})" aria-label="×">×</button>` : ''}${!kilit && !defterPdfMi(sy.dosya)
             ? `<button type="button" class="df-sayfa-dondur" onclick="defterDondur(${i},${j})" title="${_esCev('es.t_dondur','Sağa döndür')}" aria-label="${_esCev('es.t_dondur','Sağa döndür')}"><i class="ti ti-rotate-clockwise"></i></button>` : ''}</div>`).join('')}</div>
+        ${k.okunan ? defterOkunanHtml(k, i, kilit) : ''}
         <div class="df-kart-alt">${!kilit && i > 0 ? `<button type="button" onclick="defterBirlestir(${i})"><i class="ti ti-arrow-bar-to-up"></i>${_esCev('es.dfBirlestir','Öncekiyle birleştir')}</button>` : ''}${!kilit && k.sayfalar.length > 1 ? `<button type="button" onclick="defterAyir(${i})"><i class="ti ti-cut"></i>${_esCev('es.dfAyir','Son sayfayı ayır')}</button>` : ''}</div>
       </div>`).join('');
   const kb = document.getElementById('df_kaydet'), eb = document.getElementById('df_ekle');
@@ -5237,17 +5386,18 @@ function defterCiz() {
       : (mevcut && yeni) ? _esCev('es.dfKaydetKarisik','Kaydet ({y} yeni · {m} mevcut)').replace('{y}', yeni).replace('{m}', mevcut)
       : mevcut ? _esCev('es.dfKaydetMevcut','Notaları ekle ({n} eser)').replace('{n}', mevcut)
       : _esCev('es.dfKaydet','Kaydet ({n} eser)').replace('{n}', yeni);
-    kb.disabled = !_defter.length || _defterKaydediliyor;
+    if (_defterOkunuyor) kb.textContent = _esCev('es.dfOkunuyorDugme', 'Okunuyor…');
+    kb.disabled = !_defter.length || _defterKaydediliyor || !!_defterOkunuyor;
   }
   if (eb) {
     eb.innerHTML = notaTarayiciVar()
       ? `<i class="ti ti-scan"></i>${_esCev('es.dfTara','Sayfa tara')}`
       : `<i class="ti ti-photo-plus"></i>${_esCev('es.dfSec','Sayfa ekle')}`;
-    eb.disabled = _defterKaydediliyor;
+    eb.disabled = _defterKaydediliyor || !!_defterOkunuyor;
   }
   // Tarayıcı varken ayrıca "Seç": iOS belge kamerası galeriden almıyor (indirilmiş/AirDrop'lanmış sayfalar için).
   const sb = document.getElementById('df_sec');
-  if (sb) { sb.style.display = notaTarayiciVar() ? '' : 'none'; sb.disabled = _defterKaydediliyor; }
+  if (sb) { sb.style.display = notaTarayiciVar() ? '' : 'none'; sb.disabled = _defterKaydediliyor || !!_defterOkunuyor; }
 }
 
 // (2026-10-22) Kullanıcı: "peşpeşe taradığım iki sayfalık eseri iki eser olarak kabul etti ve kaydetti" — iki karta aynı
@@ -5262,6 +5412,7 @@ function defterAyniAdBirlestir() {
     const a = _defter[i - 1], b = _defter[i];
     if (!_defterAyniEser(a, b)) continue;
     a.sayfalar.push(...b.sayfalar);
+    _defterOkunanBirlestir(a, b);
     if (!a.eser && b.eser) a.eser = b.eser;
     _defter.splice(i, 1);
     n++;
@@ -5280,6 +5431,7 @@ function defterBirlestir(i) {
   const a = _defter[i - 1], b = _defter[i];
   if (!a || !b) return;
   a.sayfalar.push(...b.sayfalar);
+  _defterOkunanBirlestir(a, b);
   if (!a.ad.trim() && b.ad.trim()) { a.ad = b.ad; if (b.eser && !a.eser) a.eser = b.eser; }
   _defter.splice(i, 1);
   defterCiz();
@@ -5355,12 +5507,15 @@ function defterBagliHtml(k, i, kilit) {
       : `<button type="button" onclick="defterBagKopar(${i})">${_esCev('es.dfYeniEserYap','Yeni eser yap')}</button>`}</div>`;
 }
 
-// Tek eser kaydı (private, onaysız). Yeni eser modalıyla aynı alanlar, boş değerlerle.
-async function defterEserOlustur(ad) {
+// Tek eser kaydı (private, onaysız). Yeni eser modalıyla aynı alanlar; okunan (yapay zekâ) varsa söz/akor/bilgiler dolu.
+async function defterEserOlustur(ad, okunan) {
+  const o = okunan || {}, b = o.bilgiler || {}, tempo = _defterOkuTempo(b.sure);
   const alanlar = {
-    name: ad, composer: '', lyric_writer: '', makam: '', measurement: '', tur: null, form: '', tuning: '',
-    instrument: '', region: '', source_person: '', collector: '', story: '', ritim: '', metronom: null,
-    video_link: '', lyrics: '', chords: '', closing_note: '',
+    name: ad, composer: b.besteci || '', lyric_writer: b.soz_yazari || '', makam: b.makam || '', measurement: b.usul || '',
+    tur: null, form: '', tuning: '',
+    instrument: '', region: b.yore || '', source_person: b.kaynak_kisi || '', collector: b.derleyen || '', story: '', ritim: '',
+    metronom: tempo ? Number(tempo) : null,
+    video_link: '', lyrics: o.soz || '', chords: o.akorlu || '', closing_note: '',
     visibility: 'private', status: 'approved', group_id: null,
     submitted_by: getUserId(), submitter_email: getUser()?.email || '', submitted_at: new Date().toISOString()
   };
@@ -5405,7 +5560,7 @@ async function defterKaydet() {
         await saveNotaPages(k.eser, once.concat(k.sayfalar.map(sy => sy.adres).filter(a => !once.includes(a))));
         notaEklenen++; sonMevcut = k.eser;
       } else {
-        if (!k.id) k.id = await defterEserOlustur(k.ad.trim());
+        if (!k.id) k.id = await defterEserOlustur(k.ad.trim(), k.okunan);
         for (const sy of k.sayfalar) if (!sy.adres) sy.adres = await _notaUploadToStorage(k.id, await notaGorselKucult(sy.dosya, sy.donus));
         await saveNotaPages(k.id, k.sayfalar.map(sy => sy.adres));
         eklenen++;

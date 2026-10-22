@@ -4,6 +4,7 @@
 // bu fonksiyon Claude'a okutur ve { baslik, soz, akorlu (ChordPro), bilgiler, donuslar, notlar, model, sayfa } döner.
 // Çok sayfalı eserde gorseller[] (en çok EN_COK_SAYFA) tek istekte gider; model tek eser olarak birleştirir.
 // Varsayılan Haiku 5.5; gövdede dikkatli:true ("Daha dikkatli oku") gelirse Opus 5.5.
+// mod:'defter' ("📒 Defterden ekle"): sayfalar eserlere ayrılır → { eserler:[{sayfalar, baslik, soz, akorlu, bilgiler, notlar}], donuslar }.
 // Hiçbir şey kaydedilmez: kullanıcı önizlemede bakıp formu kendisi doldurur ve kaydeder.
 //
 // Kimlik ("Verify JWT" KAPALI, burada denetlenir): kullanıcının Supabase oturumu. Deneme süresince yalnız
@@ -14,7 +15,7 @@
 // SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY ortamda kendiliğinden gelir.
 // Saf kısım okuma.ts'de; SDK yalnız Deno'da yüklenir, test.mjs Node'da sahte okuyucuyla sınar.
 
-import { govdeDenetle, istekOf, sonucDuzenle, MODEL, DIKKATLI_MODEL, MODELLER } from './okuma.ts';
+import { govdeDenetle, istekOf, sonucDuzenle, defterSonucDuzenle, MODEL, DIKKATLI_MODEL, MODELLER } from './okuma.ts';
 
 declare const Deno: any;
 
@@ -97,10 +98,11 @@ export async function isle(istek: Request, ortam: Ortam, oku: Okuyucu, f: typeof
   const model = uid === 'servis' && typeof o.model === 'string' && MODELLER.includes(o.model) ? o.model
     : o.dikkatli === true ? DIKKATLI_MODEL : MODEL;
   try {
-    const r = await oku(istekOf(g.gorseller, g.tur, model));
+    const mod = o.mod === 'defter' ? 'defter' : '';
+    const r = await oku(istekOf(g.gorseller, g.tur, model, mod));
     if (r.durma === 'refusal') return yanit(422, { hata: 'okuma-reddedildi' }, koken);
     if (r.durma === 'max_tokens') return yanit(502, { hata: 'yanit-kesildi' }, koken);
-    const sonuc = sonucDuzenle(r.metin, g.gorseller.length);
+    const sonuc = mod ? defterSonucDuzenle(r.metin, g.gorseller.length) : sonucDuzenle(r.metin, g.gorseller.length);
     if (!sonuc) return yanit(502, { hata: 'yanit-bozuk' }, koken);
     return yanit(200, { ...sonuc, model, sayfa: g.gorseller.length, kullanim: { girdi: r.girdi, cikti: r.cikti } }, koken);
   } catch (e) {
