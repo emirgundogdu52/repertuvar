@@ -12,7 +12,7 @@ function fonk(kaynak, ad){
 }
 const es=oku('eserler.html'), au=oku('auth.js');
 const trFold=au.match(/const _TR_FOLD = \{[\s\S]*?\};/)[0];
-const kod=[trFold, fonk(au,'trNorm'), ...['_defterAyniEser','defterAyniAdBirlestir','defterAdDegisti','defterKaydet'].map(a=>fonk(es,a))].join('\n');
+const kod=[trFold, fonk(au,'trNorm'), ...['_defterAyniEser','_defterOkunanBirlestir','defterAyniAdBirlestir','defterAdDegisti','defterKaydet'].map(a=>fonk(es,a))].join('\n');
 
 function ortam(kartlar){
   const olan={ olusan:[], yuklenen:[], kaydedilen:[], durum:'' };
