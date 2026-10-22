@@ -5154,7 +5154,7 @@ function defterAc() {
     m.innerHTML = `<div class="df-kutu" role="dialog" aria-modal="true">
       <div class="df-bas"><div>
           <div class="df-baslik" data-i18n="es.dfBaslik">${_esCev('es.dfBaslik','📒 Defterden Ekle')}</div>
-          <div class="df-alt-baslik" data-i18n="es.dfAciklama">${_esCev('es.dfAciklama','Her sayfa bir kart olur. Ad yazarken listeden mevcut bir eseri seçersen sayfa o eserin notasına eklenir; seçmezsen yeni eser açılır (yalnız sen görürsün). Çok sayfalık şarkıda “Öncekiyle birleştir”e dokun.')}</div></div>
+          <div class="df-alt-baslik" data-i18n="es.dfAciklama">${_esCev('es.dfAciklama','Her sayfa bir kart olur. Ad yazarken listeden mevcut bir eseri seçersen sayfa o eserin notasına eklenir; seçmezsen yeni eser açılır (yalnız sen görürsün). Çok sayfalık şarkıda sayfalara aynı adı yaz ya da “Öncekiyle birleştir”e dokun.')}</div></div>
         <button type="button" class="df-kapat" onclick="defterKapat()" aria-label="×">×</button></div>
       <input type="file" id="df_dosya" accept="image/*,.pdf" multiple style="display:none;" onchange="defterDosyaSec(this)">
       <div id="df_liste" class="df-liste"></div>
@@ -5217,7 +5217,7 @@ function defterCiz() {
           <div class="df-ad-kap">
             <input class="df-ad" id="df_ad_${i}" value="${_esHtml(k.ad)}" placeholder="${_esCev('es.dfAdYer','Eser adı — mevcut eser için yazmaya başla')}"${kilit}${k.eser ? ' readonly' : ''}
               autocomplete="off" autocapitalize="words" enterkeyhint="next"
-              oninput="_defter[${i}].ad=this.value;this.classList.remove('hata');defterOneri(${i},this.value)"
+              oninput="_defter[${i}].ad=this.value;this.classList.remove('hata');defterOneri(${i},this.value)" onchange="defterAdDegisti()"
               onfocus="defterOneri(${i},this.value)" onblur="setTimeout(()=>defterOneriKapat(${i}),150)"
               onkeydown="if(event.key==='Enter'){event.preventDefault();defterOneriKapat(${i});const n=document.getElementById('df_ad_${i + 1}');if(n)n.focus();else this.blur();}">
             <div class="df-oneri" id="df_oneri_${i}"></div>
@@ -5248,6 +5248,32 @@ function defterCiz() {
   // Tarayıcı varken ayrıca "Seç": iOS belge kamerası galeriden almıyor (indirilmiş/AirDrop'lanmış sayfalar için).
   const sb = document.getElementById('df_sec');
   if (sb) { sb.style.display = notaTarayiciVar() ? '' : 'none'; sb.disabled = _defterKaydediliyor; }
+}
+
+// (2026-10-22) Kullanıcı: "peşpeşe taradığım iki sayfalık eseri iki eser olarak kabul etti ve kaydetti" — iki karta aynı
+// adı yazmıştı. Ardışık kartlarda aynı ad (trNorm) = aynı eser: ad kutusundan çıkınca ve Kaydet'te tek karta birleşir.
+// Farklı iki mevcut esere bağlı kartlar ve kaydı yarıda kalmış (k.id almış) kartlar birleşmez.
+function _defterAyniEser(a, b) {
+  return !!(a && b && !a.id && !b.id && a.ad.trim() && trNorm(a.ad) === trNorm(b.ad) && !(a.eser && b.eser && a.eser !== b.eser));
+}
+function defterAyniAdBirlestir() {
+  let n = 0;
+  for (let i = _defter.length - 1; i > 0; i--) {
+    const a = _defter[i - 1], b = _defter[i];
+    if (!_defterAyniEser(a, b)) continue;
+    a.sayfalar.push(...b.sayfalar);
+    if (!a.eser && b.eser) a.eser = b.eser;
+    _defter.splice(i, 1);
+    n++;
+  }
+  return n;
+}
+function defterAdDegisti() {
+  if (_defterKaydediliyor) return;
+  const n = defterAyniAdBirlestir();
+  if (!n) return;
+  defterCiz();
+  defterDurum(_esCev('es.dfAyniAdBirlesti', 'Aynı adlı ardışık sayfalar tek eser yapıldı.'));
 }
 
 function defterBirlestir(i) {
@@ -5350,6 +5376,7 @@ async function defterEserOlustur(ad) {
 
 async function defterKaydet() {
   if (_defterKaydediliyor || !_defter.length) return;
+  if (defterAyniAdBirlestir()) defterCiz();   // aynı adlı ardışık kartlar tek eser
   const bos = _defter.findIndex(k => !k.eser && !k.ad.trim());
   if (bos > -1) {
     const el = document.getElementById('df_ad_' + bos);
