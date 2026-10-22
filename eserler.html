@@ -4859,19 +4859,32 @@ function notaTarayiciVar() {
 function _masaustu() {
   const C = window.Capacitor;
   if (C && C.isNativePlatform && C.isNativePlatform()) return false;
+  if (_tablet()) return false;   // klavye/trackpad takılı iPad de "pointer: fine" der — kamerası var, tablet sayılır
   try { return window.matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) { return false; }
+}
+// Tablet: iPad (iPadOS WKWebView "Macintosh" der, dokunmatik noktadan anlaşılır) ya da Android tablet (UA'da "Mobile" yok).
+// Kullanıcı (2026-10-22): "ipad için de bu uyarıları yazalım".
+function _tablet() {
+  const ua = navigator.userAgent || '';
+  return /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) || (/Android/.test(ua) && !/Mobile/.test(ua));
 }
 function taramaIpucu(kisa) {
   const C = window.Capacitor, p = (C && C.getPlatform) ? C.getPlatform() : 'web', tara = notaTarayiciVar();
+  const ipad = p === 'ios' && _tablet(), tablet = _tablet();
   if (_masaustu()) return kisa
     ? _esCev('es.ipKisaMasaustu', 'Taranmış sayfayı (JPG/PNG) seç; her görüntüde tek sayfa olsun, düz ve okunaklı.')
     : _esCev('es.ipMasaustu', 'Defterini tarayıcıyla (scanner) ya da telefonundaki bir tarama uygulamasıyla taradıysan dosyaları bu pencereye sürükle ya da “Sayfa ekle” ile seç: JPG/PNG sayfalar ya da bütün defterin tek PDF’i (en çok 200 sayfa). Her görüntüde tek sayfa olsun — iki sayfa yan yana taranmasın; sayfa düz ve okunaklı olsun.');
   if (kisa) return !tara ? _esCev('es.ipKisaFoto', 'Sayfayı tek başına, koyu bir zemine koy; tepeden ve düz çek.')
+    : ipad ? _esCev('es.ipKisaIpad', 'Sayfayı tek başına, koyu bir zemine koy; iPad’i sayfaya paralel ve sabit tut. Yamuk seçerse otomatik çekimi kapatıp elle çek, köşeleri sürükle.')
     : p === 'ios' ? _esCev('es.ipKisaIos', 'Sayfayı tek başına, koyu bir zemine koy; tarayıcı yamuk seçerse sağ üstten elle çekime geç, köşeleri sürükle.')
     : _esCev('es.ipKisaTara', 'Sayfayı tek başına, koyu bir zemine koy; yamuk seçerse çektikten sonra köşeleri sürükle.');
   const zemin = _esCev('es.ipZemin', 'Sayfayı tek başına, koyu ve düz bir zemine koy; altından ya da yanından başka kâğıt görünmesin.');
-  if (!tara) return zemin + ' ' + _esCev('es.ipFoto', 'Telefonu sayfaya paralel tut, sayfa kadrajı doldursun, ışık iyi olsun.');
-  return zemin + ' ' + _esCev('es.ipNeden', 'Yanında başka kâğıt varsa tarayıcı ikisini tek sayfa sanıp yamuk keser.') + ' ' + (p === 'ios'
+  if (!tara) return zemin + ' ' + (tablet
+    ? _esCev('es.ipFotoTablet', 'Tableti sayfaya paralel ve sabit tut, sayfa kadrajı doldursun, ışık iyi olsun.')
+    : _esCev('es.ipFoto', 'Telefonu sayfaya paralel tut, sayfa kadrajı doldursun, ışık iyi olsun.'));
+  return zemin + ' ' + _esCev('es.ipNeden', 'Yanında başka kâğıt varsa tarayıcı ikisini tek sayfa sanıp yamuk keser.') + ' ' + (ipad
+    ? _esCev('es.ipIpad', 'iPad’i iki elle, sayfaya paralel ve sabit tut. Yine de yamuk seçerse otomatik çekimi kapatıp elle çek; çektikten sonra dört köşeyi sayfanın köşelerine sürükle. Çekilmiş sayfayı küçük resmine dokunup kırparak da düzeltebilirsin.')
+    : p === 'ios'
     ? _esCev('es.ipIos', 'Yine de yamuk seçerse sağ üstten otomatik çekimi kapatıp elle çek; çektikten sonra dört köşeyi sayfanın köşelerine sürükle. Çekilmiş sayfayı sol alttaki küçük resme dokunup kırparak da düzeltebilirsin.')
     : _esCev('es.ipAndroid', 'Yine de yamuk seçerse çektikten sonra köşeleri sayfanın köşelerine sürükleyerek düzelt.'));
 }
