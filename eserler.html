@@ -1261,6 +1261,9 @@
   .df-sayfa-sil { position:absolute; right:3px; top:3px; width:24px; height:24px; border-radius:50%; border:none;
     background:rgba(0,0,0,.6); color:#fff; font-size:15px; line-height:1; cursor:pointer; }
   /* (2026-10-22) Defterden ekle: yapay zekânın okuduğu söz/akor/bilgiler kartta */
+  .df-tekrar { margin-top:8px; font-size:12px; color:var(--text3); }
+  .df-tekrar button { margin-left:6px; padding:3px 9px; border-radius:6px; border:1px solid var(--border); background:none;
+    color:var(--text2); font-size:12px; font-family:inherit; cursor:pointer; }
   .df-okunan { margin-top:10px; border:1px solid var(--border); border-radius:8px; background:var(--surface2); }
   .df-okunan summary { padding:8px 10px; font-size:12.5px; color:var(--text2); cursor:pointer; }
   .df-okunan .df-ok-ic { padding:0 10px 10px; display:grid; gap:6px; }
@@ -5191,9 +5194,11 @@ function _defterGrupla(parca, j) {
   const yeni = (j.eserler || []).map(e => ({
     ad: e.baslik || '',
     sayfalar: (e.sayfalar || []).map(n => sayfalar[n - 1]).filter(Boolean),
+    // aynı sayfanın fazladan taramaları (kullanıcı yamuk çıkan sayfayı yeniden taramıştı): en düzgünü kalır, gerisi kartta "geri ekle"
+    cikarilan: (e.tekrarlar || []).map(n => sayfalar[n - 1]).filter(Boolean),
     okunan: { soz: e.soz || '', akorlu: e.akorlu || '', bilgiler: e.bilgiler || {}, notlar: e.notlar || '', model: j.model },
   })).filter(k => k.sayfalar.length);
-  const kapsanan = new Set(yeni.flatMap(k => k.sayfalar));
+  const kapsanan = new Set(yeni.flatMap(k => k.sayfalar.concat(k.cikarilan)));
   if (!yeni.length || sayfalar.some(sy => !kapsanan.has(sy))) return;   // eksik gruplama → kartlar olduğu gibi kalsın
   // Başlıksız ilk eser: önceki kartın devamı (önceki parça ya da daha önce okunmuş kart)
   const once = _defter[ilk - 1];
@@ -5205,7 +5210,17 @@ function _defterGrupla(parca, j) {
   _defter.splice(ilk, parca.length, ...yeni);
 }
 
+function defterTekrarGeriEkle(i) {
+  const k = _defter[i];
+  if (!k || !k.cikarilan || !k.cikarilan.length || _defterOkunuyor || _defterKaydediliyor) return;
+  k.sayfalar.push(...k.cikarilan);
+  k.cikarilan = [];
+  defterCiz();
+}
+
+// İki kart birleşirken okunan metin ve çıkarılan tekrar taramalar da birleşir (sayfalar çağıranda eklenir)
 function _defterOkunanBirlestir(a, b) {
+  if (b.cikarilan && b.cikarilan.length) a.cikarilan = (a.cikarilan || []).concat(b.cikarilan);
   if (!b.okunan) return;
   if (!a.okunan) { a.okunan = b.okunan; return; }
   const ek = (x, y) => [x, y].filter(t => t && t.trim()).join('\n\n');
@@ -5376,6 +5391,8 @@ function defterCiz() {
             ? '<div class="df-pdf">PDF</div>' : `<img src="${sy.url}" alt=""${sy.donus ? ` class="d${sy.donus}"` : ''}>`}<span class="df-sno">${j + 1}</span>${k.sayfalar.length > 1 && !kilit
             ? `<button type="button" class="df-sayfa-sil" onclick="defterSayfaSil(${i},${j})" aria-label="×">×</button>` : ''}${!kilit && !defterPdfMi(sy.dosya)
             ? `<button type="button" class="df-sayfa-dondur" onclick="defterDondur(${i},${j})" title="${_esCev('es.t_dondur','Sağa döndür')}" aria-label="${_esCev('es.t_dondur','Sağa döndür')}"><i class="ti ti-rotate-clockwise"></i></button>` : ''}</div>`).join('')}</div>
+        ${k.cikarilan && k.cikarilan.length ? `<div class="df-tekrar">${_esHtml(_esCev('es.dfTekrarCikti', 'Aynı sayfanın {n} tekrar taraması çıkarıldı (en düzgünü kaldı).').replace('{n}', k.cikarilan.length))}${kilit ? ''
+          : ` <button type="button" onclick="defterTekrarGeriEkle(${i})">${_esCev('es.dfTekrarGeri', 'Geri ekle')}</button>`}</div>` : ''}
         ${k.okunan ? defterOkunanHtml(k, i, kilit) : ''}
         <div class="df-kart-alt">${!kilit && i > 0 ? `<button type="button" onclick="defterBirlestir(${i})"><i class="ti ti-arrow-bar-to-up"></i>${_esCev('es.dfBirlestir','Öncekiyle birleştir')}</button>` : ''}${!kilit && k.sayfalar.length > 1 ? `<button type="button" onclick="defterAyir(${i})"><i class="ti ti-cut"></i>${_esCev('es.dfAyir','Son sayfayı ayır')}</button>` : ''}</div>
       </div>`).join('');

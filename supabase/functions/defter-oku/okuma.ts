@@ -53,9 +53,10 @@ export const DEFTER_SEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['sayfalar', 'baslik', 'soz', 'akorlu', 'bilgiler', 'notlar'],
+        required: ['sayfalar', 'tekrarlar', 'baslik', 'soz', 'akorlu', 'bilgiler', 'notlar'],
         properties: {
           sayfalar: { type: 'array', items: { type: 'integer' } },
+          tekrarlar: { type: 'array', items: { type: 'integer' } },
           baslik: { type: 'string' },
           soz: { type: 'string' },
           akorlu: { type: 'string' },
@@ -68,7 +69,7 @@ export const DEFTER_SEMA = {
   },
 };
 
-const OKUMA_KURALI = `Sayfada ne yazıyorsa onu çıkar. Okuyamadığın yeri tahminle ya da şarkıyı bildiğin için ezberden tamamlama; o yere "…" koy ve notlar alanında belirt. Üstü çizilmiş satırları alma, notlarda belirt.`;
+const OKUMA_KURALI = `Sayfada ne yazıyorsa onu çıkar. Okuyamadığın yeri tahminle ya da şarkıyı bildiğin için ezberden tamamlama; o yere "…" koy ve notlar alanında belirt. Üstü çizilmiş satırları alma, notlarda belirt. Söz hem notanın altında hece hece hem de sayfada düz metin (kıtalar) olarak yazılıysa sözü düz metinden al.`;
 
 const ALAN_KURALLARI = `- baslik: sayfada yazılı eser adı; yoksa "".
 - soz: yalnız söz, sayfadaki satır düzeninde. Kıtalar arasında boş satır. "2X", "Nakarat", "Bağlantı" gibi işaretler sayfada varsa koru. Söz yoksa "".
@@ -92,12 +93,13 @@ Metni sayfadaki dilde bırak, çevirme.`;
 
 export const DEFTER_SISTEM = `Bir müzisyenin defterinden art arda taranmış sayfaları okuyup repertuvar uygulamasına eser eser aktarıyorsun.
 
-Sayfaları eserlere ayır. Bir eser bir sayfa olabilir ya da birkaç sayfaya yayılabilir; bir sayfada birden çok eser de olabilir. Yeni bir başlıkla başlayan sayfa yeni eserdir; başlıksız ve önceki sayfanın devamı görünen sayfa önceki esere aittir. İlk sayfa başlıksızsa ve bir şeyin devamı gibi görünüyorsa onu başlıksız ayrı bir eser olarak ver ve notlarda "önceki sayfanın devamı olabilir" yaz. Her sayfa en az bir esere ait olmalı.
+Sayfaları eserlere ayır. Bir eser bir sayfa olabilir ya da birkaç sayfaya yayılabilir; bir sayfada birden çok eser de olabilir. Yeni bir başlıkla başlayan sayfa yeni eserdir; başlıksız ve önceki sayfanın devamı görünen sayfa önceki esere aittir. Aynı başlığı ya da "(sayfa 2)", "devam" gibi bir işareti taşıyan sayfa o eserin parçasıdır; sayfalar karışık sırada taranmış olabilir. İlk sayfa başlıksızsa ve bir şeyin devamı gibi görünüyorsa onu başlıksız ayrı bir eser olarak ver ve notlarda "önceki sayfanın devamı olabilir" yaz. Aynı sayfa birden çok kez taranmışsa (tekrar tarama) en düzgün ve okunaklı olanını sayfalar'a, diğerlerini tekrarlar'a yaz. Her sayfa bir esere ait olmalı.
 
 ${OKUMA_KURALI}
 
 Her eser için:
-- sayfalar: eserin bulunduğu sayfaların numaraları (1'den başlar, gönderilme sırası).
+- sayfalar: eserin sayfalarının numaraları (gönderilme sırasıyla 1'den numaralanır), eserin kendi okuma sırasıyla (ör. 2. sayfası önce taranmışsa [4, 3]).
+- tekrarlar: aynı sayfanın fazladan taranmış kopyalarının numaraları; yoksa [].
 ${ALAN_KURALLARI}
 
 Ayrıca:
@@ -169,28 +171,36 @@ export function sonucDuzenle(ham: string, sayfa = 1): Record<string, unknown> | 
   };
 }
 
-// Defter kipi: eserler sayfa sırasına göre; sayfa numaraları 1..n, tekrarsız; hiçbir esere düşmeyen sayfa öncekine eklenir
+// Defter kipi: eser içi sayfa sırası modelinki (karışık taranmış olabilir), eserler en küçük sayfa numarasına göre; bir sayfa
+// tek esere; tekrar taramalar ayrı (tekrarlar); hiçbir esere düşmeyen sayfa öncekine eklenir
 export function defterSonucDuzenle(ham: string, sayfa: number): Record<string, unknown> | null {
   let o: Record<string, any>;
   try { o = JSON.parse(ham); } catch { return null; }
   if (!o || typeof o !== 'object' || !Array.isArray(o.eserler)) return null;
   const eserler = o.eserler.map((e: any) => {
     const tek = sonucDuzenle(JSON.stringify({ ...(e || {}), donuslar: [] }), 0) as Record<string, unknown>;
-    const sy = Array.isArray(e && e.sayfalar) ? e.sayfalar : [];
-    const sayfalar = [...new Set(sy.filter((n: unknown) => Number.isInteger(n) && (n as number) >= 1 && (n as number) <= sayfa))]
-      .sort((a, b) => (a as number) - (b as number));
-    return { sayfalar, baslik: tek.baslik, soz: tek.soz, akorlu: tek.akorlu, bilgiler: tek.bilgiler, notlar: tek.notlar };
-  }).filter((e: any) => e.sayfalar.length).sort((a: any, b: any) => a.sayfalar[0] - b.sayfalar[0]);
+    const gecerli = (v: unknown): number[] => (Array.isArray(v) ? v : [])
+      .filter((n: unknown) => Number.isInteger(n) && (n as number) >= 1 && (n as number) <= sayfa) as number[];
+    const sayfalar = gecerli(e && e.sayfalar).filter((n, i, a) => a.indexOf(n) === i);   // eserin okuma sırası korunur
+    return { sayfalar, tekrarlar: gecerli(e && e.tekrarlar), baslik: tek.baslik, soz: tek.soz, akorlu: tek.akorlu, bilgiler: tek.bilgiler, notlar: tek.notlar };
+  }).filter((e: any) => e.sayfalar.length);
+  // Bir sayfa yalnız bir esere: önce gelen eser alır; tekrar olarak işaretlenen ama bir eserin sayfası olan atılır
+  const alinan = new Set<number>();
+  for (const e of eserler) { e.sayfalar = e.sayfalar.filter((n: number) => !alinan.has(n)); e.sayfalar.forEach((n: number) => alinan.add(n)); }
+  for (const e of eserler) { e.tekrarlar = e.tekrarlar.filter((n: number) => !alinan.has(n)).filter((n: number, i: number, a: number[]) => a.indexOf(n) === i); e.tekrarlar.forEach((n: number) => alinan.add(n)); }
+  const enKucuk = (e: any) => Math.min(...e.sayfalar, ...e.tekrarlar);
+  const sirali = eserler.filter((e: any) => e.sayfalar.length).sort((a: any, b: any) => enKucuk(a) - enKucuk(b));
   for (let n = 1; n <= sayfa; n++) {
-    if (eserler.some((e: any) => e.sayfalar.includes(n))) continue;
-    const once = [...eserler].reverse().find((e: any) => e.sayfalar[0] < n);
+    if (alinan.has(n)) continue;
+    const once = [...sirali].reverse().find((e: any) => enKucuk(e) < n);
     if (once) once.sayfalar.push(n);
-    else eserler.unshift({ sayfalar: [n], baslik: '', soz: '', akorlu: '', bilgiler: Object.fromEntries(BILGI_ALANLARI.map((a) => [a, ''])), notlar: '' });
+    else sirali.unshift({ sayfalar: [n], tekrarlar: [], baslik: '', soz: '', akorlu: '', bilgiler: Object.fromEntries(BILGI_ALANLARI.map((a) => [a, ''])), notlar: '' });
+    alinan.add(n);
   }
-  eserler.forEach((e: any) => e.sayfalar.sort((a: number, b: number) => a - b));
+  const eserlerSon = sirali;
   const gelen = Array.isArray(o.donuslar) ? o.donuslar : [];
   const donuslar = Array.from({ length: sayfa }, (_, i) => ([0, 90, 180, 270].includes(gelen[i]) ? gelen[i] : 0));
-  return { eserler, donuslar };
+  return { eserler: eserlerSon, donuslar };
 }
 
 // Kapanmamış köşeli parantez ChordPro çiziciyi bozmasın: satırda eşleşmeyen '[' ve ']' kaldırılır

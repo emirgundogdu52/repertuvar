@@ -15,7 +15,7 @@ const kod=[
   au.match(/const _TR_FOLD = \{[\s\S]*?\};/)[0], fonk(au,'trNorm'),
   es.match(/const _defterOkuTempo = [^\n]*/)[0], es.match(/function _esHtml\(s\)\{[^\n]*\}/)[0],
   ...['_defterGrupla','_defterOkunanBirlestir','defterYapayOku','defterEserOlustur','defterKaydet','defterBirlestir',
-      '_defterAyniEser','defterAyniAdBirlestir','defterOkunanHtml','defterPdfMi'].map(a=>fonk(es,a)),
+      '_defterAyniEser','defterAyniAdBirlestir','defterOkunanHtml','defterPdfMi','defterTekrarGeriEkle'].map(a=>fonk(es,a)),
 ].join('\n');
 
 function ortam({ rol='editor', kartlar=[], cevaplar=[] }={}){
@@ -35,14 +35,14 @@ function ortam({ rol='editor', kartlar=[], cevaplar=[] }={}){
   let g_kilit;
   const f=new Function(...Object.keys(g), kod+`; olan.__kilit=()=>_defterOkunuyor;
     return { grupla:_defterGrupla, yapayOku:defterYapayOku, olustur:defterEserOlustur, kaydet:defterKaydet, birlestir:defterBirlestir,
-             html:defterOkunanHtml, kartlar:()=>_defter, kilit:()=>_defterOkunuyor };`);
+             html:defterOkunanHtml, geriEkle:defterTekrarGeriEkle, kartlar:()=>_defter, kilit:()=>_defterOkunuyor };`);
   const api=f(...Object.values(g));
   g_kilit=()=>olan.__kilit();
   return { ...api, olan };
 }
 const tekSayfa=ad=>({ ad:'', sayfalar:[{ dosya:{name:ad, type:'image/jpeg'}, url:'blob:'+ad }] });
 const bos={yore:'',kaynak_kisi:'',derleyen:'',notaya_alan:'',repertuvar_no:'',makam:'',usul:'',sure:'',ton:'',soz_yazari:'',besteci:''};
-const eser=(sayfalar,baslik,soz='',akorlu='',b={})=>({ sayfalar, baslik, soz, akorlu, bilgiler:{...bos,...b}, notlar:'' });
+const eser=(sayfalar,baslik,soz='',akorlu='',b={},tekrarlar=[])=>({ sayfalar, tekrarlar, baslik, soz, akorlu, bilgiler:{...bos,...b}, notlar:'' });
 
 (async()=>{
   { // 6 sayfa → 3 eser (canlı denemedeki gibi)
@@ -102,6 +102,19 @@ const eser=(sayfalar,baslik,soz='',akorlu='',b={})=>({ sayfalar, baslik, soz, ak
     const h=o.html({ ...k, okunan:{ ...k.okunan, soz:'</textarea><img src=x onerror=alert(1)>', notlar:'<b>n</b>' } }, 0, '');
     yaz('kart HTML\'i kaçışlı', !h.includes('<img src=x') && !h.includes('<b>n</b>') && h.includes('&lt;img'));
     yaz('Haiku sonucunda "Daha dikkatli oku" var, Opus\'ta yok', h.includes('Daha dikkatli oku') && !o.html({ ...k, okunan:{ ...k.okunan, model:'claude-opus-5-5' } }, 0, '').includes('Daha dikkatli oku'));
+  }
+  { // kullanıcının gerçek taraması: önce 2. sayfa, sonra 1. sayfa üç kez (yamuk) → tek eser, sıra [1. sayfa, 2. sayfa], 2 tekrar çıkarıldı
+    const o=ortam({ kartlar:['s2','p1a','p1b','p1c'].map(tekSayfa), cevaplar:[{ model:'m', donuslar:[], eserler:[
+      eser([3,1],'Benden Selâm Olsun','Benden selâm olsun bolu beyine','',{yore:'Kastamonu'},[2,4]) ] }] });
+    await o.yapayOku(0);
+    const k=o.kartlar();
+    yaz('tek eser, sayfalar okuma sırasıyla', k.length===1 && k[0].sayfalar.map(x=>x.dosya.name).join()==='p1b,s2');
+    yaz('tekrar taramalar çıkarıldı ama saklı', k[0].cikarilan.map(x=>x.dosya.name).join()==='p1a,p1c');
+    const h=o.html(k[0],0,'');
+    o.geriEkle(0);
+    yaz('"Geri ekle" çıkarılanları sayfalara ekler', k[0].sayfalar.length===4 && k[0].cikarilan.length===0);
+    await o.kaydet();
+    yaz('kaydedilen eserde söz ve yöre', o.olan.govdeler.length===1 && o.olan.govdeler[0].region==='Kastamonu' && o.olan.govdeler[0].lyrics.startsWith('Benden'));
   }
   console.log(hata?`\n${hata} test KALDI`:'\nHepsi geçti'); process.exit(hata?1:0);
 })();

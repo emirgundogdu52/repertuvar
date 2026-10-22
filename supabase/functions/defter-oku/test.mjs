@@ -183,6 +183,13 @@ await dene('defter kipi: istek, şema, gruplama', () => {
   assert.deepEqual(g.donuslar, [0, 90, 0, 0, 0]);
   const ilkSahipsiz = defterSonucDuzenle(JSON.stringify({ eserler: [{ sayfalar: [2], baslik: 'X', soz: '', akorlu: '', bilgiler: bos, notlar: '' }], donuslar: [] }), 2);
   assert.deepEqual(ilkSahipsiz.eserler.map((e) => [e.baslik, e.sayfalar]), [['', [1]], ['X', [2]]]);   // başa başlıksız eser
+  // eserin kendi okuma sırası korunur; tekrar taramalar ayrı; bir sayfa tek esere
+  const t = defterSonucDuzenle(JSON.stringify({ eserler: [
+    { sayfalar: [3, 2], tekrarlar: [4, 5, 5], baslik: 'Benden Selam Olsun', soz: 's', akorlu: '', bilgiler: bos, notlar: '' },
+    { sayfalar: [1, 3], tekrarlar: [2], baslik: 'Önceki', soz: '', akorlu: '', bilgiler: bos, notlar: '' },
+  ], donuslar: [] }), 5);
+  assert.deepEqual(t.eserler.map((e) => [e.baslik, e.sayfalar, e.tekrarlar]),
+    [['Önceki', [1], []], ['Benden Selam Olsun', [3, 2], [4, 5]]]);   // 3 iki esere yazılmış → listede önce gelen alır; sonra en küçük sayfaya göre sıralanır
   assert.equal(defterSonucDuzenle('{"eserler":5}', 2), null);
   assert.equal(defterSonucDuzenle('bozuk', 2), null);
 });
