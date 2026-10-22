@@ -12,9 +12,9 @@ const esHtml=html.match(/function _esHtml\(s\)\{[^\n]*\}/)[0];
 
 const SONUC={ baslik:'Hastane Önünde İncir Ağacı', soz:'Hastane önünde incir ağacı\nDoktor bana bir çare', akorlu:'[Am]Hastane önünde [G]incir ağacı',
   bilgiler:{ yore:'İzmir', kaynak_kisi:'Hüseyin Dalgıç', derleyen:'', notaya_alan:'Muzaffer Sarısözen', repertuvar_no:'2318', makam:'', usul:'9/8', sure:'♩ = 50', ton:'', soz_yazari:'', besteci:'' },
-  donus:90, notlar:'2. dize son sözcüğü belirsiz', model:'claude-haiku-5-5', kullanim:{girdi:1800,cikti:420} };
+  donuslar:[90], notlar:'2. dize son sözcüğü belirsiz', model:'claude-haiku-5-5', kullanim:{girdi:1800,cikti:420} };
 
-async function ortam({ rol='editor', duzenlenen=null, cevap={durum:200,govde:SONUC}, form={} }={}){
+async function ortam({ rol='editor', duzenlenen=null, cevap={durum:200,govde:SONUC}, form={}, tarayici=null }={}){
   const dom=new JSDOM(`<!doctype html><body>${isaret}
     <input id="ne_name"><input id="ne_region"><input id="ne_sourcePerson"><input id="ne_collector"><input id="ne_makam">
     <input id="ne_measurement"><input id="ne_composer"><input id="ne_lyricWriter"><input id="ne_metronom"><textarea id="ne_chords"></textarea></body>`,{runScripts:'outside-only'});
@@ -26,9 +26,12 @@ async function ortam({ rol='editor', duzenlenen=null, cevap={durum:200,govde:SON
     getLyricsValue:()=>olan.soz, setLyricsValue:t=>{olan.soz=t;}, alanlariUygula:()=>{olan.alan++;},
     switchNeTab:s=>{olan.sekme=s;}, toastMsg:t=>{olan.toast=t;}, renderNeNotaList:()=>{},
     notaGorselKucult:async(f,d)=>({f,d}), uploadNotaFiles:(id,fs)=>{olan.yuklenen.push({id,fs});},
+    notaTarayiciVar:()=>!!tarayici, notaTaraDosyalar:async(durum)=>{ olan.tarandi=true; return tarayici||[]; },
     fetch:async(url,opt)=>{ olan.istekler.push({url,opt}); const c=Array.isArray(cevap)?cevap[Math.min(olan.istekler.length,cevap.length)-1]:cevap; return { ok:c.durum<300, status:c.durum, json:async()=>c.govde }; },
   });
-  w.eval(esHtml+'\n'+kod+'\n;_defterOkuGorsel=async()=>"QUJD";');
+  olan.kenarlar=[];
+  w.eval(esHtml+'\n'+kod+'\n;_defterOkuGorsel=async(f,k)=>{ window.__kenar(k); return "QUJD"; };');
+  w.__kenar=k=>olan.kenarlar.push(k);
   return {w, d:w.document, olan};
 }
 const sec=async(o)=>{ await o.w.defterOkuSec({ files:[{name:'sayfa.jpg'}], value:'x' }); };
@@ -45,7 +48,7 @@ const sec=async(o)=>{ await o.w.defterOkuSec({ files:[{name:'sayfa.jpg'}], value
     await sec(o);
     const ist=o.olan.istekler[0];
     yaz('istek defter-oku işlevine, oturum anahtarıyla', ist && ist.url==='https://x.supabase.co/functions/v1/defter-oku' && ist.opt.headers.Authorization==='Bearer tok');
-    yaz('gövdede görsel', ist && JSON.parse(ist.opt.body).gorsel==='QUJD');
+    yaz('gövdede tek görsel dizisi', ist && JSON.stringify(JSON.parse(ist.opt.body).gorseller)==='["QUJD"]');
     const kap=o.d.getElementById('defterOkuOnizleme');
     yaz('önizleme açıldı', !!kap);
     yaz('söz ve akor kutuları işaretli (form boş)', kap.querySelector('#do_sozYaz').checked && kap.querySelector('#do_akorYaz').checked);
@@ -103,7 +106,7 @@ const sec=async(o)=>{ await o.w.defterOkuSec({ files:[{name:'sayfa.jpg'}], value
     yaz('Haiku sonucunda "Daha dikkatli oku" var', !!kap.querySelector('#do_dikkatliBtn'));
     await o.w.defterOkuDikkatli();
     const g2=JSON.parse(o.olan.istekler[1].opt.body);
-    yaz('ikinci istek dikkatli:true ve aynı görsel', g2.dikkatli===true && g2.gorsel==='QUJD');
+    yaz('ikinci istek dikkatli:true ve aynı görsel', g2.dikkatli===true && g2.gorseller[0]==='QUJD');
     kap=o.d.getElementById('defterOkuOnizleme');
     yaz('önizleme Opus sonucuyla yenilendi', kap.querySelector('#do_akor').value===OPUS.akorlu);
     yaz('Opus sonucunda düğme yok, "dikkatli okuma ile okundu" yazıyor', !kap.querySelector('#do_dikkatliBtn') && kap.textContent.includes('Dikkatli okuma ile okundu'));
@@ -117,6 +120,43 @@ const sec=async(o)=>{ await o.w.defterOkuSec({ files:[{name:'sayfa.jpg'}], value
     const kap=o.d.getElementById('defterOkuOnizleme');
     yaz('hata önizlemede, düğme yeniden etkin', o.d.getElementById('do_durum').textContent.includes('Çok sık deneme') && !kap.querySelector('#do_dikkatliBtn').disabled);
     yaz('ilk okuma korunuyor', kap.querySelector('#do_akor').value===SONUC.akorlu);
+  }
+  { // belge tarayıcı: çok sayfa tek istekte, sayfa başına dönüş, hepsi sırayla nota sayfası
+    const UC={...SONUC, donuslar:[0,270,0]};
+    const o=await ortam({ duzenlenen:7, tarayici:[{name:'s1'},{name:'s2'},{name:'s3'}], cevap:{durum:200,govde:UC} });
+    o.w._defterOkuGoster();
+    yaz('tarayıcı varken "Fotoğraflardan seç" görünür', o.d.getElementById('ne_defterOkuSecBtn').style.display==='');
+    await o.w.defterOkuBaslat();
+    const g=JSON.parse(o.olan.istekler[0].opt.body);
+    yaz('tarayıcı açıldı, 3 sayfa tek istekte', o.olan.tarandi && g.gorseller.length===3);
+    yaz('3 sayfada 2000 px', o.olan.kenarlar.join()==='2000,2000,2000');
+    const kap=o.d.getElementById('defterOkuOnizleme');
+    yaz('başlık "3 sayfadan okunanlar"', kap.textContent.includes('3 sayfadan okunanlar'));
+    yaz('nota seçeneği 3 sayfa, 1 yatık', kap.textContent.includes('3 sayfayı nota sayfası olarak da ekle') && kap.textContent.includes('yatık 1 sayfa'));
+    kap.querySelector('#do_nota').checked=true;
+    o.w.defterOkuUygula();
+    await new Promise(r=>setTimeout(r,0));
+    const y=o.olan.yuklenen[0];
+    yaz('üç sayfa tek seferde, sırayla, doğru açıyla', o.olan.yuklenen.length===1 && y.fs.map(x=>x.f.name+':'+x.d).join()==='s1:0,s2:270,s3:0');
+  }
+  { // tarayıcı yokken düğme dosya seçtirir; 8 dosyadan ilk 6'sı, 1600 px
+    const o=await ortam();
+    o.w._defterOkuGoster();
+    yaz('tarayıcı yokken "Fotoğraflardan seç" gizli', o.d.getElementById('ne_defterOkuSecBtn').style.display==='none');
+    let tik=0; o.d.getElementById('ne_defterOkuFile').click=()=>{tik++;};
+    o.w.defterOkuBaslat();
+    yaz('düğme dosya seçiciyi açtı', tik===1);
+    await o.w.defterOkuSec({ files:Array.from({length:8},(_,i)=>({name:'p'+i})), value:'x' });
+    const g=JSON.parse(o.olan.istekler[0].opt.body);
+    yaz('en çok 6 sayfa gönderildi, 1600 px', g.gorseller.length===6 && o.olan.kenarlar.every(k=>k===1600));
+    yaz('fazlası için uyarı', o.d.getElementById('ne_defterOkuDurum').textContent.includes('ilk 6 sayfa'));
+  }
+  { // tarayıcı iptal: istek yok
+    const o=await ortam({ tarayici:[] });
+    o.olan.tarandi=false;
+    o.w.notaTarayiciVar=()=>true;
+    await o.w.defterOkuBaslat();
+    yaz('tarama iptal edilince istek gitmez', o.olan.tarandi && o.olan.istekler.length===0);
   }
   console.log(hata?`\n${hata} test KALDI`:'\nHepsi geçti'); process.exit(hata?1:0);
 })();

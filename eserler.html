@@ -4897,6 +4897,10 @@ async function notaTaraDosyalar(durum) {
 // çekilmişse sunucu dönüş açısını da verir: kayıtlı eserde fotoğraf düzeltilmiş olarak nota sayfası yapılabilir.
 // Model (kullanıcı kararı "3"): önce Haiku 5.5 (~0,2 ¢); önizlemedeki "Daha dikkatli oku" aynı görseli Opus 5.5 ile
 // yeniden okutur (~5 ¢) — 10 sayfalık denemede Haiku zor sayfalarda akor kaçırdı, Opus kaçırmadı.
+// Kullanıcı (aynı gün): "tarama fonksiyonu burada çalışmaz mı" + "birden çok sayfadan oluşan eserler" → uygulamada
+// düğme belge tarayıcıyı açar (kenar/eğiklik düzeltilir, art arda çok sayfa; iOS tarayıcısı galeriden almadığı için
+// yanında "Fotoğraflardan seç"); web'de kamera/dosya (çoklu). Sayfalar tek istekte gider, sunucu tek eser olarak
+// birleştirir (en çok DEFTER_OKU_EN_COK); her sayfanın dönüş açısı ayrı gelir (donuslar).
 const DEFTER_OKU_ALANLAR = [
   ['baslik', 'ne_name', 'Eser adı'], ['yore', 'ne_region', 'Yöre'], ['kaynak_kisi', 'ne_sourcePerson', 'Kaynak kişi'],
   ['derleyen', 'ne_collector', 'Derleyen'], ['makam', 'ne_makam', 'Makam'], ['usul', 'ne_measurement', 'Usul / ölçü'],
@@ -4911,18 +4915,22 @@ const DEFTER_OKU_HATALAR = {
   'cok-istek': 'Çok sık deneme yapıldı, biraz sonra yeniden deneyin.',
   'okuma-reddedildi': 'Bu sayfa okunamadı.',
   'gorsel-buyuk': 'Görsel çok büyük.',
+  'cok-sayfa': 'Tek seferde en çok 6 sayfa okunabilir.',
 };
-let _defterOku = null;   // { sonuc, dosya, gorsel (base64), deger: { alanId: değer } }
+const DEFTER_OKU_EN_COK = 6;   // sunucudaki EN_COK_SAYFA ile aynı
+let _defterOku = null;   // { sonuc, dosyalar, gorseller (base64[]), deger: { alanId: değer } }
 
 function _defterOkuGoster() {
   const s = document.getElementById('ne_defterOkuSatir');
   if (s) s.style.display = (isAdmin() || isEditor()) ? 'flex' : 'none';
+  const sec = document.getElementById('ne_defterOkuSecBtn');
+  if (sec) sec.style.display = notaTarayiciVar() ? '' : 'none';   // tarayıcı yoksa ana düğme zaten seçtirir
   const d = document.getElementById('ne_defterOkuDurum');
   if (d) d.textContent = '';
 }
 
-// Uzun kenar 2000 px, JPEG %85 → base64. Renk korunur (akorlar çoğu defterde başka renkte yazılıyor).
-async function _defterOkuGorsel(file) {
+// Uzun kenar 2000 px (çok sayfada 1600), JPEG %85 → base64. Renk korunur (akorlar çoğu defterde başka renkte yazılıyor).
+async function _defterOkuGorsel(file, kenar) {
   const url = URL.createObjectURL(file);
   try {
     const img = new Image();
@@ -4931,7 +4939,7 @@ async function _defterOkuGorsel(file) {
       img.onerror = () => hata(new Error(_esCev('es.gorselAcilamadi', 'Görsel açılamadı.')));
       img.src = url;
     });
-    const oran = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
+    const oran = Math.min(1, (kenar || 2000) / Math.max(img.naturalWidth, img.naturalHeight));
     const cv = document.createElement('canvas');
     cv.width = Math.round(img.naturalWidth * oran); cv.height = Math.round(img.naturalHeight * oran);
     const cx = cv.getContext('2d');
@@ -4943,35 +4951,50 @@ async function _defterOkuGorsel(file) {
   } finally { URL.revokeObjectURL(url); }
 }
 
-async function defterOkuSec(input) {
-  const file = input && input.files && input.files[0];
+function _defterOkuDurum(t, renk) {
+  const d = document.getElementById('ne_defterOkuDurum');
+  if (d) { d.textContent = t; d.style.color = renk || 'var(--text2)'; }
+}
+// Uygulamada belge tarayıcı (çok sayfa), yoksa dosya/kamera seçimi
+function defterOkuBaslat() {
+  if (!notaTarayiciVar()) { document.getElementById('ne_defterOkuFile').click(); return; }
+  return notaTaraDosyalar(m => _defterOkuDurum(m.text, m.renk)).then(files => { if (files.length) return _defterOkuDosyalar(files); });
+}
+function defterOkuSec(input) {
+  const files = Array.from((input && input.files) || []);
   if (input) input.value = '';
-  if (!file) return;
-  const durum = document.getElementById('ne_defterOkuDurum');
-  const yaz = (t, renk) => { if (durum) { durum.textContent = t; durum.style.color = renk || 'var(--text2)'; } };
+  if (files.length) return _defterOkuDosyalar(files);
+}
+async function _defterOkuDosyalar(files) {
   const btn = document.getElementById('ne_defterOkuBtn');
+  const fazla = files.length > DEFTER_OKU_EN_COK;
+  files = files.slice(0, DEFTER_OKU_EN_COK);
   if (btn) btn.disabled = true;
-  yaz(_esCev('es.defterOkunuyor', '⏳ Sayfa okunuyor… (10–30 sn sürebilir)'));
+  _defterOkuDurum(files.length > 1
+    ? _esCev('es.defterOkunuyorN', '⏳ {n} sayfa okunuyor… (20–60 sn sürebilir)').replace('{n}', files.length)
+    : _esCev('es.defterOkunuyor', '⏳ Sayfa okunuyor… (10–30 sn sürebilir)'));
   try {
-    const gorsel = await _defterOkuGorsel(file);
-    const j = await _defterOkuIste(gorsel, false);
-    yaz('');
-    _defterOku = { sonuc: j, dosya: file, gorsel, deger: {} };
+    const kenar = files.length > 3 ? 1600 : 2000;
+    const gorseller = [];
+    for (const f of files) gorseller.push(await _defterOkuGorsel(f, kenar));
+    const j = await _defterOkuIste(gorseller, false);
+    _defterOkuDurum(fazla ? _esCev('es.defterOkuIlk6', 'Yalnız ilk {n} sayfa okundu.').replace('{n}', DEFTER_OKU_EN_COK) : '');
+    _defterOku = { sonuc: j, dosyalar: files, gorseller, deger: {} };
     _defterOkuOnizle();
   } catch (e) {
-    yaz('❌ ' + _defterOkuHataMetni(e), 'var(--red)');
+    _defterOkuDurum('❌ ' + _defterOkuHataMetni(e), 'var(--red)');
   } finally {
     if (btn) btn.disabled = false;
   }
 }
 
 // dikkatli: true → sunucu Opus 5.5 ile okur ("Daha dikkatli oku")
-async function _defterOkuIste(gorsel, dikkatli) {
+async function _defterOkuIste(gorseller, dikkatli) {
   const token = getToken();
   const r = await fetch(`${SUPA_URL}/functions/v1/defter-oku`, {
     method: 'POST',
     headers: Object.assign({ 'apikey': SUPA_KEY, 'Content-Type': 'application/json' }, token ? { 'Authorization': 'Bearer ' + token } : {}),
-    body: JSON.stringify(dikkatli ? { gorsel, tur: 'image/jpeg', dikkatli: true } : { gorsel, tur: 'image/jpeg' }),
+    body: JSON.stringify(dikkatli ? { gorseller, tur: 'image/jpeg', dikkatli: true } : { gorseller, tur: 'image/jpeg' }),
     signal: AbortSignal.timeout(150000),
   });
   let j = {};
@@ -4988,12 +5011,12 @@ function _defterOkuHataMetni(e) {
 
 // Önizlemedeki düzeltmeler yeniden okumada kaybolur — düğme bu yüzden önizlemenin en üstünde
 async function defterOkuDikkatli() {
-  if (!_defterOku || !_defterOku.gorsel) return;
+  if (!_defterOku || !_defterOku.gorseller) return;
   const btn = document.getElementById('do_dikkatliBtn'), durum = document.getElementById('do_durum');
   if (btn) btn.disabled = true;
   if (durum) { durum.textContent = _esCev('es.doDikkatliOkunuyor', '⏳ Daha dikkatli okunuyor… (20–40 sn)'); durum.style.color = 'var(--text2)'; }
   try {
-    const j = await _defterOkuIste(_defterOku.gorsel, true);
+    const j = await _defterOkuIste(_defterOku.gorseller, true);
     if (!_defterOku) return;   // bu arada kapatıldıysa
     _defterOku.sonuc = j; _defterOku.deger = {};
     _defterOkuOnizle();
@@ -5019,14 +5042,19 @@ function _defterOkuOnizle() {
     return `<label style="display:block;font-size:13px;margin:4px 0;"><input type="checkbox" data-alan="${id}" ${mevcut ? '' : 'checked'}> ${e(_esCev('es.do_' + k, ad))}: <b>${e(v)}</b>${mevcut ? ` <span style="color:var(--text3);">(${e(_esCev('es.doSuAn', 'şu an'))}: ${e(mevcut)})</span>` : ''}</label>`;
   }).join('');
   const yalniz = DEFTER_OKU_YALNIZ_BILGI.filter(([k]) => b[k]).map(([k, ad]) => e(_esCev('es.do_' + k, ad)) + ': ' + e(b[k])).join(' · ');
-  const donus = [90, 180, 270].includes(s.donus) ? s.donus : 0;
-  const notaSecenek = editingWorkId !== null ? `<label style="display:block;font-size:13px;margin:12px 0 0;"><input type="checkbox" id="do_nota"> ${e(_esCev('es.doNotaEkle', 'Fotoğrafı nota sayfası olarak da ekle'))}${donus ? ' ' + e(_esCev('es.doDondurulerek', '({d}° döndürülerek)').replace('{d}', donus)) : ''}</label>` : '';
+  const n = _defterOku.dosyalar.length, donuslar = _defterOkuDonuslar();
+  const donuk = donuslar.filter(d => d).length;
+  const notaSecenek = editingWorkId !== null ? `<label style="display:block;font-size:13px;margin:12px 0 0;"><input type="checkbox" id="do_nota"> ${e(n > 1
+      ? _esCev('es.doNotaEkleN', '{n} sayfayı nota sayfası olarak da ekle').replace('{n}', n)
+      : _esCev('es.doNotaEkle', 'Fotoğrafı nota sayfası olarak da ekle'))}${donuk
+      ? ' ' + e(n > 1 ? _esCev('es.doDondurulerekN', '(yatık {k} sayfa düzeltilerek)').replace('{k}', donuk)
+                      : _esCev('es.doDondurulerek', '({d}° döndürülerek)').replace('{d}', donuslar[0])) : ''}</label>` : '';
   const k = s.kullanim || {};
   let kap = document.getElementById('defterOkuOnizleme');
   if (!kap) { kap = document.createElement('div'); kap.id = 'defterOkuOnizleme'; document.body.appendChild(kap); }
   kap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;display:flex;align-items:flex-start;justify-content:center;padding:5vh 12px;overflow-y:auto;';
   kap.innerHTML = `<div style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:12px;width:100%;max-width:640px;padding:18px;box-sizing:border-box;">
-    <div style="font-size:16px;font-weight:700;margin-bottom:4px;">${e(_esCev('es.doBaslik', '📷 Sayfadan okunanlar'))}</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:4px;">${e(n > 1 ? _esCev('es.doBaslikN', '📷 {n} sayfadan okunanlar').replace('{n}', n) : _esCev('es.doBaslik', '📷 Sayfadan okunanlar'))}</div>
     <div style="font-size:12px;color:var(--text3);">${e(_esCev('es.doAciklama', 'Kontrol edip düzeltin; "Forma uygula" yalnız formu doldurur, kaydetmek için ardından Kaydet\'e basın.'))}</div>
     ${s.model === 'claude-opus-5-5'
       ? `<div style="margin-top:8px;font-size:12px;color:var(--text3);">${e(_esCev('es.doDikkatliOkundu', '🔍 Dikkatli okuma ile okundu.'))}</div>`
@@ -5051,6 +5079,13 @@ function _defterOkuOnizle() {
     </div></div>`;
 }
 
+// Sunucunun sayfa başına dönüş açıları (eski tek "donus" yanıtı da okunur); sayfa sayısı kadar
+function _defterOkuDonuslar() {
+  const s = _defterOku.sonuc, n = _defterOku.dosyalar.length;
+  const gelen = Array.isArray(s.donuslar) ? s.donuslar : [s.donus];
+  return Array.from({ length: n }, (_, i) => ([90, 180, 270].includes(gelen[i]) ? gelen[i] : 0));
+}
+
 function defterOkuKapat() {
   const kap = document.getElementById('defterOkuOnizleme');
   if (kap) kap.remove();
@@ -5069,9 +5104,9 @@ function defterOkuUygula() {
     if (c.checked && el) el.value = _defterOku.deger[c.dataset.alan];
   });
   if (isaretli('do_nota') && editingWorkId !== null) {
-    const id = editingWorkId, dosya = _defterOku.dosya;
-    const donus = [90, 180, 270].includes(_defterOku.sonuc.donus) ? _defterOku.sonuc.donus : 0;
-    notaGorselKucult(dosya, donus).then(f => uploadNotaFiles(id, [f]));
+    const id = editingWorkId, dosyalar = _defterOku.dosyalar, donuslar = _defterOkuDonuslar();
+    // sıra korunur: hepsi döndürülüp tek seferde eklenir
+    Promise.all(dosyalar.map((f, i) => notaGorselKucult(f, donuslar[i]))).then(fs => uploadNotaFiles(id, fs));
     renderNeNotaList(_esCev('es.notaYukleniyor', '⏳ Yükleniyor — bittiğinde eser detayındaki Nota sekmesinde görünecek.'));
   }
   defterOkuKapat();
@@ -7761,9 +7796,10 @@ function openSuggestModal() { openNewEserModal(); }
     <!-- (2026-10-22) DEFTERDEN OKU (DENEME, yalnız yönetici/editör) — sayfa fotoğrafındaki söz/akor/bilgiler
          sunucuda okunur (supabase/functions/defter-oku), önizlemede onaylanınca forma yazılır; kaydetmez. -->
     <div id="ne_defterOkuSatir" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 10px;">
-      <input type="file" id="ne_defterOkuFile" accept="image/*" style="display:none;" onchange="defterOkuSec(this)">
-      <button type="button" id="ne_defterOkuBtn" onclick="document.getElementById('ne_defterOkuFile').click()" style="padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📷 <span data-i18n="es.defterOku">Defterden oku</span></button>
-      <span style="font-size:11px;color:var(--text3);" data-i18n="es.defterOkuNot">Fotoğraftaki söz, akor ve nota bilgilerini forma aktarır (deneme)</span>
+      <input type="file" id="ne_defterOkuFile" accept="image/*" multiple style="display:none;" onchange="defterOkuSec(this)">
+      <button type="button" id="ne_defterOkuBtn" onclick="defterOkuBaslat()" style="padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📷 <span data-i18n="es.defterOku">Defterden oku</span></button>
+      <button type="button" id="ne_defterOkuSecBtn" onclick="document.getElementById('ne_defterOkuFile').click()" style="display:none;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;" data-i18n="es.defterOkuSec">Fotoğraflardan seç</button>
+      <span style="font-size:11px;color:var(--text3);" data-i18n="es.defterOkuNot">Sayfadaki söz, akor ve nota bilgilerini forma aktarır; çok sayfalı eserde en çok 6 sayfa (deneme)</span>
       <div id="ne_defterOkuDurum" style="flex-basis:100%;font-size:12px;"></div>
     </div>
 

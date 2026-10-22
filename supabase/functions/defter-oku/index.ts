@@ -1,7 +1,8 @@
 // (2026-10-22) Repertuvar — defter sayfası okuma (DENEME)
 //
 // Uygulama, eser formundaki "📷 Defterden oku" düğmesiyle sayfanın fotoğrafını (base64 JPEG) gönderir;
-// bu fonksiyon Claude'a okutur ve { baslik, soz, akorlu (ChordPro), bilgiler, donus, notlar, model } döner.
+// bu fonksiyon Claude'a okutur ve { baslik, soz, akorlu (ChordPro), bilgiler, donuslar, notlar, model, sayfa } döner.
+// Çok sayfalı eserde gorseller[] (en çok EN_COK_SAYFA) tek istekte gider; model tek eser olarak birleştirir.
 // Varsayılan Haiku 5.5; gövdede dikkatli:true ("Daha dikkatli oku") gelirse Opus 5.5.
 // Hiçbir şey kaydedilmez: kullanıcı önizlemede bakıp formu kendisi doldurur ve kaydeder.
 //
@@ -96,12 +97,12 @@ export async function isle(istek: Request, ortam: Ortam, oku: Okuyucu, f: typeof
   const model = uid === 'servis' && typeof o.model === 'string' && MODELLER.includes(o.model) ? o.model
     : o.dikkatli === true ? DIKKATLI_MODEL : MODEL;
   try {
-    const r = await oku(istekOf(g.gorsel, g.tur, model));
+    const r = await oku(istekOf(g.gorseller, g.tur, model));
     if (r.durma === 'refusal') return yanit(422, { hata: 'okuma-reddedildi' }, koken);
     if (r.durma === 'max_tokens') return yanit(502, { hata: 'yanit-kesildi' }, koken);
-    const sonuc = sonucDuzenle(r.metin);
+    const sonuc = sonucDuzenle(r.metin, g.gorseller.length);
     if (!sonuc) return yanit(502, { hata: 'yanit-bozuk' }, koken);
-    return yanit(200, { ...sonuc, model, kullanim: { girdi: r.girdi, cikti: r.cikti } }, koken);
+    return yanit(200, { ...sonuc, model, sayfa: g.gorseller.length, kullanim: { girdi: r.girdi, cikti: r.cikti } }, koken);
   } catch (e) {
     if (e instanceof OkumaHatasi) return yanit(e.durum, { hata: e.kod }, koken);
     return yanit(502, { hata: 'okuma-hatasi' }, koken);
@@ -110,7 +111,8 @@ export async function isle(istek: Request, ortam: Ortam, oku: Okuyucu, f: typeof
 
 if (typeof Deno !== 'undefined' && Deno.serve) {
   const { default: Anthropic } = await import('npm:@anthropic-ai/sdk@0.137.0');
-  const client = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY'), timeout: 120_000, maxRetries: 1 });
+  // İşlev 150 sn içinde yanıt vermeli (Supabase): yeniden deneme bu süreyi aşacağı için yok
+  const client = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY'), timeout: 140_000, maxRetries: 0 });
   const oku: Okuyucu = async (params) => {
     try {
       const m = await client.beta.messages.create(params as any);

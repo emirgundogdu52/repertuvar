@@ -23,7 +23,7 @@ const GORSEL = Buffer.from('jpeg-baytlari').toString('base64');
 const IYI = JSON.stringify({
   baslik: 'Sabahın Seherinde', soz: 'Sabahın seherinde\nötüyor kuşlar', akorlu: '[Am]Sabahın se[G]herinde',
   bilgiler: { yore: 'Kastamonu', kaynak_kisi: '', derleyen: '', notaya_alan: '', repertuvar_no: '', makam: '', usul: '', sure: '', ton: '', soz_yazari: '', besteci: '' },
-  donus: 90, notlar: '',
+  donuslar: [90], notlar: '',
 });
 // Sahte Supabase: /auth/v1/user ve profiles
 function sahteFetch(rol = 'editor', oturumGecerli = true) {
@@ -42,8 +42,12 @@ function istek(govde, yetki = 'Bearer ' + SERVIS, yontem = 'POST') {
 const okuyucu = (metin = IYI, durma = 'end_turn') => { const o = async (p) => { o.son = p; return { metin, durma, girdi: 1500, cikti: 400 }; }; return o; };
 
 await dene('govdeDenetle', () => {
-  assert.deepEqual(govdeDenetle({ gorsel: GORSEL }), { gorsel: GORSEL, tur: 'image/jpeg' });
-  assert.deepEqual(govdeDenetle({ gorsel: 'data:image/png;base64,' + GORSEL, tur: 'image/png' }), { gorsel: GORSEL, tur: 'image/png' });
+  assert.deepEqual(govdeDenetle({ gorsel: GORSEL }), { gorseller: [GORSEL], tur: 'image/jpeg' });
+  assert.deepEqual(govdeDenetle({ gorsel: 'data:image/png;base64,' + GORSEL, tur: 'image/png' }), { gorseller: [GORSEL], tur: 'image/png' });
+  assert.deepEqual(govdeDenetle({ gorseller: [GORSEL, GORSEL, GORSEL] }), { gorseller: [GORSEL, GORSEL, GORSEL], tur: 'image/jpeg' });
+  assert.equal(govdeDenetle({ gorseller: Array(7).fill(GORSEL) }).hata, 'cok-sayfa');
+  assert.equal(govdeDenetle({ gorseller: [GORSEL, 7] }).hata, 'gorsel-yok');
+  assert.equal(govdeDenetle({ gorseller: [] }).hata, 'gorsel-yok');
   assert.equal(govdeDenetle({ gorsel: GORSEL, tur: 'image/svg+xml' }).hata, 'desteklenmeyen-tur');
   assert.equal(govdeDenetle({}).hata, 'gorsel-yok');
   assert.equal(govdeDenetle({ gorsel: '<script>' }).hata, 'gorsel-yok');
@@ -54,7 +58,7 @@ await dene('govdeDenetle', () => {
 await dene('istekOf: model, yedek model, yapılandırılmış çıktı, görsel', () => {
   assert.equal(MODEL, 'claude-haiku-5-5');           // kullanıcı kararı "3": varsayılan Haiku
   assert.equal(DIKKATLI_MODEL, 'claude-opus-5-5');   // "Daha dikkatli oku"
-  const h = istekOf(GORSEL, 'image/jpeg');
+  const h = istekOf([GORSEL], 'image/jpeg');
   assert.equal(h.model, MODEL);
   assert.equal(h.fallbacks, undefined);   // Haiku 5.5'te sunucu tarafı yedek model yok
   assert.equal(h.betas, undefined);
@@ -63,7 +67,7 @@ await dene('istekOf: model, yedek model, yapılandırılmış çıktı, görsel'
   assert.equal(h.output_config.format.schema, SEMA);
   assert.equal(h.messages[0].content[0].source.data, GORSEL);
   assert.equal(h.thinking, undefined);    // thinking gönderilmez (ikisinde de adaptive varsayılan)
-  const p = istekOf(GORSEL, 'image/jpeg', DIKKATLI_MODEL);
+  const p = istekOf([GORSEL], 'image/jpeg', DIKKATLI_MODEL);
   assert.equal(p.model, 'claude-opus-5-5');
   assert.equal(p.fallbacks, 'default');
   assert.deepEqual(p.betas, ['server-side-fallback-2026-07-01']);
@@ -72,16 +76,22 @@ await dene('istekOf: model, yedek model, yapılandırılmış çıktı, görsel'
   const denetle = (s) => { if (s.type === 'object') { assert.equal(s.additionalProperties, false); assert.deepEqual([...s.required].sort(), Object.keys(s.properties).sort()); Object.values(s.properties).forEach(denetle); } };
   denetle(SEMA);
   assert.deepEqual(MODELLER, ['claude-opus-5-5', 'claude-haiku-5-5']);
+  // çok sayfa: her görselden önce "Sayfa i / n" etiketi, sonda birleştirme talimatı
+  const c = istekOf(['QQ==', 'Qg==', 'Qw=='], 'image/jpeg').messages[0].content;
+  assert.deepEqual(c.filter((b) => b.type === 'image').map((b) => b.source.data), ['QQ==', 'Qg==', 'Qw==']);
+  assert.equal(c[0].text, 'Sayfa 1 / 3'); assert.equal(c[2].text, 'Sayfa 2 / 3');
+  assert.match(c[c.length - 1].text, /tek eser/);
+  assert.equal(h.messages[0].content.length, 2);   // tek sayfada etiket yok
 });
 
 await dene('sonucDuzenle + akorluTemizle', () => {
   const s = sonucDuzenle(IYI);
   assert.equal(s.akorlu, '[Am]Sabahın se[G]herinde');
-  assert.equal(s.donus, 90);
+  assert.deepEqual(s.donuslar, [90]);
   assert.equal(s.bilgiler.yore, 'Kastamonu');
   assert.equal(sonucDuzenle('bozuk'), null);
-  const z = sonucDuzenle(JSON.stringify({ soz: ' a\r\nb ', donus: 45, bilgiler: null }));
-  assert.equal(z.soz, 'a\nb'); assert.equal(z.donus, 0); assert.equal(z.baslik, ''); assert.equal(z.bilgiler.makam, '');
+  const z = sonucDuzenle(JSON.stringify({ soz: ' a\r\nb ', donuslar: [45, 90], bilgiler: null }), 3);
+  assert.equal(z.soz, 'a\nb'); assert.deepEqual(z.donuslar, [0, 90, 0]);   // sayfa sayısı kadar, geçersiz → 0 assert.equal(z.baslik, ''); assert.equal(z.bilgiler.makam, '');
   assert.equal(akorluTemizle('[Am söz [G]devam'), 'Am söz [G]devam');
   assert.equal(akorluTemizle('söz] [C]x [D'), 'söz [C]x D');
   assert.equal(akorluTemizle('[Am]a\n[[G]]b'), '[Am]a\n[G]b');
@@ -112,6 +122,12 @@ await dene('isle: okuma sonuçları', async () => {
   const j = await r.json();
   assert.equal(r.status, 200); assert.equal(j.baslik, 'Sabahın Seherinde'); assert.deepEqual(j.kullanim, { girdi: 1500, cikti: 400 });
   assert.equal(ok.son.messages[0].content[0].source.data, GORSEL);
+  assert.equal(j.sayfa, 1); assert.deepEqual(j.donuslar, [90]);
+  const ok3 = okuyucu(JSON.stringify({ ...JSON.parse(IYI), donuslar: [0, 270] }));
+  const j3 = await (await isle(istek({ gorseller: [GORSEL, GORSEL, GORSEL] }), ortam(), ok3, sahteFetch())).json();
+  assert.equal(j3.sayfa, 3); assert.deepEqual(j3.donuslar, [0, 270, 0]);
+  assert.equal(ok3.son.messages[0].content.filter((b) => b.type === 'image').length, 3);
+  assert.equal((await (await isle(istek({ gorseller: Array(7).fill(GORSEL) }), ortam(), okuyucu(), sahteFetch())).json()).hata, 'cok-sayfa');
   assert.equal((await isle(istek({ gorsel: GORSEL }), ortam(), okuyucu(IYI, 'refusal'), sahteFetch())).status, 422);
   assert.equal((await isle(istek({ gorsel: GORSEL }), ortam(), okuyucu(IYI, 'max_tokens'), sahteFetch())).status, 502);
   assert.equal((await (await isle(istek({ gorsel: GORSEL }), ortam(), okuyucu('bozuk'), sahteFetch())).json()).hata, 'yanit-bozuk');
