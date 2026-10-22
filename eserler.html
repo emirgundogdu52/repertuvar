@@ -5189,17 +5189,25 @@ async function defterYapayOku(bas) {
   for (let i = 0; i < okunacak.length; i += DEFTER_OKU_EN_COK) parcalar.push(okunacak.slice(i, i + DEFTER_OKU_EN_COK));
   _defterOkunuyor++;
   defterCiz();
+  // Büyük defterde (masaüstünde tüm defter PDF'i) aynı anda 2 istek; sonuçlar SIRAYLA uygulanır — parçanın başlıksız ilk eseri
+  // bir önceki parçanın son eserine eklenebilsin.
+  const oku = async parca => {
+    const kenar = parca.length > 3 ? 1600 : 2000, gorseller = [];
+    for (const k of parca) gorseller.push(await _defterOkuGorsel(k.sayfalar[0].dosya, kenar));
+    return _defterOkuIste(gorseller, false, 'defter');
+  };
+  const sozler = [];
+  const baslat = i => { if (i < parcalar.length && !sozler[i]) sozler[i] = oku(parcalar[i]).then(j => ({ j }), e => ({ e })); };
+  baslat(0); baslat(1);
   let hata = null, sira = 0;
-  for (const parca of parcalar) {
+  for (let i = 0; i < parcalar.length; i++) {
     defterDurum(_esCev('es.dfOkunuyor', '⏳ Sayfalar okunuyor ({i}/{n}) — eserlere ayrılıyor, sözler yazılıyor…')
-      .replace('{i}', Math.min(okunacak.length, sira + parca.length)).replace('{n}', okunacak.length));
-    try {
-      const kenar = parca.length > 3 ? 1600 : 2000;
-      const gorseller = [];
-      for (const k of parca) gorseller.push(await _defterOkuGorsel(k.sayfalar[0].dosya, kenar));
-      _defterGrupla(parca, await _defterOkuIste(gorseller, false, 'defter'));
-    } catch (e) { hata = e; }
-    sira += parca.length;
+      .replace('{i}', Math.min(okunacak.length, sira + parcalar[i].length)).replace('{n}', okunacak.length));
+    const s = await sozler[i];
+    baslat(i + 2);
+    if (s.e) hata = s.e; else _defterGrupla(parcalar[i], s.j);
+    sira += parcalar[i].length;
+    if (parcalar.length > 1) defterCiz();
   }
   _defterOkunuyor--;
   defterCiz();
@@ -5351,6 +5359,16 @@ function defterAc() {
         <button type="button" class="df-kaydet" id="df_kaydet" onclick="defterKaydet()"></button>
       </div></div>`;
     document.body.appendChild(m);
+    // Masaüstü: taranmış sayfaları/PDF'i pencereye sürükle-bırak
+    m.addEventListener('dragover', e => { e.preventDefault(); });
+    m.addEventListener('drop', e => {
+      e.preventDefault();
+      if (_defterKaydediliyor || _defterOkunuyor) return;
+      const f = Array.from((e.dataTransfer && e.dataTransfer.files) || []);
+      if (!f.length) return;
+      try { localStorage.setItem('defterTaramaIpucu', '1'); } catch (x) {}
+      defterEkle(f);
+    });
   }
   m.style.display = 'flex';
   defterCiz();
@@ -5382,9 +5400,50 @@ function defterSayfaEkle() {
 function defterDosyaSec(inp) { const f = Array.from(inp.files || []); inp.value = ''; defterEkle(f); }
 
 function defterPdfMi(f) { return f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''); }
-function defterEkle(files) {
+const DEFTER_PDF_EN_COK = 200;   // tek PDF'ten en çok bu kadar sayfa (bellek; 200 sayfa ≈ 60 MB JPEG)
+// PDF'in her sayfasını uzun kenarı 2000 px JPEG'e çevirir (pdf.js, nota sekmesindeki yükleyiciyle aynı)
+async function _defterPdfSayfalari(file) {
+  const lib = await _esPdfKutuphane();
+  const doc = await lib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const n = Math.min(doc.numPages, DEFTER_PDF_EN_COK), ad = (file.name || 'defter').replace(/\.pdf$/i, ''), cikti = [];
+  try {
+    for (let i = 1; i <= n; i++) {
+      defterDurum(_esCev('es.dfPdfAciliyor', '⏳ PDF sayfaları açılıyor ({i}/{n})…').replace('{i}', i).replace('{n}', n));
+      const sayfa = await doc.getPage(i);
+      const v1 = sayfa.getViewport({ scale: 1 });
+      const v = sayfa.getViewport({ scale: Math.min(4, 2000 / Math.max(v1.width, v1.height)) });
+      const cv = document.createElement('canvas');
+      cv.width = Math.floor(v.width); cv.height = Math.floor(v.height);
+      const cx = cv.getContext('2d');
+      cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+      await sayfa.render({ canvasContext: cx, viewport: v }).promise;
+      const blob = await new Promise(coz => cv.toBlob(coz, 'image/jpeg', 0.85));
+      cv.width = cv.height = 0;
+      sayfa.cleanup();
+      if (blob) cikti.push(new File([blob], ad + '-s' + i + '.jpg', { type: 'image/jpeg', lastModified: Date.now() }));
+    }
+  } finally { doc.destroy(); }
+  if (doc.numPages > n) defterDurum(_esCev('es.dfPdfFazla', 'PDF\'in ilk {n} sayfası alındı; kalanı için PDF\'i bölüp ayrıca ekle.').replace('{n}', n));
+  return cikti;
+}
+async function defterEkle(files) {
   files = (files || []).filter(f => f && ((f.type || '').indexOf('image/') === 0 || defterPdfMi(f)));
   if (!files.length) { defterCiz(); return; }
+  // (2026-10-22) Kullanıcı: "desktopta nasıl kullanırız — tüm defterini scan etse, bir dosyadan okutsak?" Taranmış defter çoğu zaman
+  // tek PDF: okuma yetkisi olanda sayfaları ayrı görüntüye çevrilir (her sayfa okunur, eserlere ayrılır, sayfa sayfa nota olur).
+  // Yetkisi olmayanda PDF eskisi gibi tek kart / tek nota.
+  if (files.some(defterPdfMi) && (isAdmin() || isEditor())) {
+    _defterOkunuyor++;
+    defterCiz();
+    const acik = [];
+    for (const f of files) {
+      if (!defterPdfMi(f)) { acik.push(f); continue; }
+      try { acik.push(...await _defterPdfSayfalari(f)); }
+      catch (e) { acik.push(f); defterDurum('❌ ' + _esCev('es.dfPdfAcilamadi', 'PDF sayfalarına ayrılamadı, tek dosya olarak eklendi: ') + e.message, 'var(--red)'); }
+    }
+    _defterOkunuyor--;
+    files = acik;
+  }
   const ilkYeni = _defter.length;
   files.forEach(f => _defter.push({ ad: '', sayfalar: [{ dosya: f, url: URL.createObjectURL(f) }] }));
   defterDurum('');
@@ -5400,7 +5459,8 @@ function defterCiz() {
   const kilit = (_defterKaydediliyor || _defterOkunuyor) ? ' disabled' : '';
   L.innerHTML = !_defter.length
     ? `<div class="df-bos"><span data-i18n="es.dfBos">${_esCev('es.dfBos','Henüz sayfa yok. Aşağıdan defterinin sayfalarını tara ya da fotoğraflarını seç.')}</span>
-        <div class="df-ipucu">📸 ${_esHtml(taramaIpucu())}</div></div>`
+        <div class="df-ipucu">📸 ${_esHtml(taramaIpucu())}${notaTarayiciVar() ? '' : '<br>💻 ' + _esHtml(_esCev('es.dfMasaustu',
+          'Bilgisayarda: taranmış sayfaları (JPG/PNG ya da bütün defterin tek PDF\'i) bu pencereye sürükle ya da aşağıdan seç.'))}</div></div>`
     : `<details class="df-ipucu-ac"><summary>📸 ${_esHtml(_esCev('es.dfIpucuBaslik', 'Tarama ipuçları'))}</summary><div>${_esHtml(taramaIpucu())}</div></details>`
       + _defter.map((k, i) => `<div class="df-kart">
         <div class="df-kart-ust"><span class="df-no">${i + 1}</span>

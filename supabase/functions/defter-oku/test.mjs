@@ -103,6 +103,11 @@ await dene('isle: CORS / yöntem / yapılandırma', async () => {
   const o = await isle(istek(null, '', 'OPTIONS'), ortam(), okuyucu(), sahteFetch());
   assert.equal(o.status, 204); assert.equal(o.headers.get('Access-Control-Allow-Origin'), 'capacitor://localhost');
   assert.equal((await isle(istek(null, 'Bearer x', 'GET'), ortam(), okuyucu(), sahteFetch())).status, 405);
+  const kok = async (k) => (await isle(new Request('https://x/f', { method: 'OPTIONS', headers: { Origin: k } }), ortam(), okuyucu(), sahteFetch())).headers.get('Access-Control-Allow-Origin');
+  assert.equal(await kok('http://localhost:8080'), 'http://localhost:8080');
+  assert.equal(await kok('http://127.0.0.1:5500'), 'http://127.0.0.1:5500');
+  assert.equal(await kok('https://kotu.site'), null);
+  assert.equal(await kok('http://localhost.kotu.site'), null);
   const e = await isle(istek({ gorsel: GORSEL }), ortam({ ANTHROPIC_API_KEY: undefined }), okuyucu(), sahteFetch());
   assert.equal(e.status, 503); assert.equal((await e.json()).hata, 'yapilandirma-eksik');
 });

@@ -46,7 +46,8 @@ function cors(koken: string | null): Record<string, string> {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Vary': 'Origin',
   };
-  if (koken && IZINLI_KOKENLER.includes(koken)) b['Access-Control-Allow-Origin'] = koken;
+  // localhost: masaüstünde yerel sunucuyla deneme (kimlik yine Supabase oturumuyla denetlenir)
+  if (koken && (IZINLI_KOKENLER.includes(koken) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(koken))) b['Access-Control-Allow-Origin'] = koken;
   return b;
 }
 function yanit(durum: number, govde: unknown, koken: string | null): Response {
