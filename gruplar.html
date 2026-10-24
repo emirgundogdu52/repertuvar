@@ -54,11 +54,6 @@
 #r-topnav-container { position: sticky; top: 0; z-index: 500; background: var(--bg); }
 /* Üye kartları + arama sonuçları: çift-dokunuş yakınlaştırmasını kapat (kıstırma-zoom kalır) */
 #membersList, #membersList *, #userSearchResults, #userSearchResults * { touch-action: manipulation; }
-/* Rol açılır menüsü: beyaz-üstü-beyaz okunmazlığını gider (her iki tema). Çıkar (inline kırmızı) korunur. */
-#membersList .role-dd-menu, #userSearchResults .role-dd-menu { background: var(--surface); border: 1px solid var(--border); }
-#membersList .role-dd-menu button, #userSearchResults .role-dd-menu button { color: var(--text); background: transparent; }
-#membersList .role-dd-menu button:hover, #userSearchResults .role-dd-menu button:hover { background: var(--surface2); }
-#membersList .role-dd-menu button.active, #userSearchResults .role-dd-menu button.active { color: var(--accent); }
 .section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
 .section-title { font-size: 13px; font-weight: 700; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 16px; }
 .group-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
@@ -109,6 +104,34 @@
 .member-meta span { display: flex; align-items: center; gap: 3px; }
 .member-instrument { font-size: 11px; color: var(--accent2); margin-top: 3px; display: flex; align-items: center; gap: 3px; }
 
+/* (2026-10-24) Üye satırı: bilgi + rol + "⋯"; işlemler pencerede (telefonda alttan açılır). */
+.member-item.tiklanir { cursor: pointer; }
+.uye-sag { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.role-engelli { background: rgba(255,90,95,.12); color: var(--red, #FF5A5F); border: 1px solid rgba(255,90,95,.3); }
+.uye-islem-btn { width: 40px; height: 40px; min-width: 40px; padding: 0 !important; border-radius: 50% !important; display: inline-flex; align-items: center; justify-content: center; }
+.uye-islem-btn .ti { font-size: 18px !important; }
+.uye-sheet { position: fixed; inset: 0; z-index: 700; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.uye-sheet-kart { width: 100%; max-width: 420px; max-height: calc(100% - 32px); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 18px 12px 14px; box-shadow: 0 20px 50px rgba(0,0,0,.45); }
+.us-bas { display: flex; align-items: center; gap: 12px; padding: 0 6px 14px; margin-bottom: 6px; border-bottom: 1px solid var(--border); }
+.us-bas .member-avatar { width: 44px; height: 44px; font-size: 17px; }
+.us-ad { font-size: 17px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.us-alt { font-size: 12px; color: var(--text3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.us-satir { width: 100%; min-height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 10px; border: 0; border-radius: 12px; background: transparent; color: var(--text); font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer; }
+.us-satir:hover, .us-satir:active { background: var(--surface2); }
+.us-satir .ti { width: 22px; font-size: 20px; color: var(--text2); text-align: center; flex-shrink: 0; }
+.us-satir em { margin-left: auto; font-style: normal; font-size: 12px; color: var(--red, #FF5A5F); }
+.us-tehlike, .us-tehlike .ti { color: var(--red, #FF5A5F); }
+.us-ayrac { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--border); }
+.us-baslik { margin: 12px 10px 8px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); }
+.us-roller { display: flex; gap: 6px; padding: 0 4px; }
+.us-rol { flex: 1 1 0; min-width: 0; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface2); color: var(--text2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.us-rol.active { border-color: var(--accent); color: var(--text); background: color-mix(in srgb, var(--accent) 16%, transparent); cursor: default; }
+.us-kapat { width: 100%; min-height: 44px !important; margin-top: 12px; font-size: 14px; }   /* sayfanın .btn 40 px kuralı daha özgül */
+/* Enstrüman düzenleme (satır içi stilleri ezer): çip "×" 13 px yazıydı → 28 px daire; kutu 27 → 40 px. */
+[id^="instr-chips-"] > span { font-size: 13px !important; padding: 2px 2px 2px 11px !important; min-height: 32px; }
+[id^="instr-chips-"] > span > button { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 17px !important; }
+[id^="instr-edit-"] input.fi { min-height: 40px; }
+
 /* ── MOBİL DÜZEN (masaüstünü etkilemez) ── */
 html { -webkit-text-size-adjust: 100%; }
 @media (max-width: 600px) {
@@ -121,8 +144,10 @@ html { -webkit-text-size-adjust: 100%; }
   .member-item { gap: 10px; }
   .member-meta { font-size: 10px; }
   .member-meta span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .role-dd-menu { right: 0; left: auto; }   /* açılır menü sağ kenardan taşmasın */
   .toast { white-space: normal; max-width: 90vw; text-align: center; }
+  /* Üye işlemleri penceresi alttan açılır (alt menünün de üstünde) */
+  .uye-sheet { align-items: flex-end; padding: 0; }
+  .uye-sheet-kart { max-width: none; max-height: 88vh; border-radius: 22px 22px 0 0; border-bottom: 0; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
   /* form buton satırları: sar + tam genişliğe yayıl (kolay dokunma) */
   .m-btn-row { flex-wrap: wrap; }
   .m-btn-row .btn { flex: 1 1 auto; min-height: 42px; }
@@ -410,8 +435,8 @@ function _yazmaKilitle() {
     var b = btnlar[i];
     var f = (b.getAttribute('onclick') || '');
     // Salt okunur eylemler acik kalsin: karekod goster/gizle, kopyala,
-    // rol menusunu acma. Geri kalan her sey sunucuya yaziyor.
-    if (/_qrGosterGizle|copyInviteLink|toggleRoleDD|shareViaWhatsApp/.test(f)) continue;
+    // uye islemleri penceresini acma (penceredeki islemler orada kilitlenir). Geri kalan her sey sunucuya yaziyor.
+    if (/_qrGosterGizle|copyInviteLink|_uyeIslemAc|shareViaWhatsApp/.test(f)) continue;
     b.disabled = true;
     b.style.opacity = '.45';
     b.title = _grCev('gr.cevrimdisiIslem','Çevrimdışı — bu işlem internet bağlantısı gerektiriyor');
@@ -584,7 +609,7 @@ function renderMembersList(members) {
   const roleLabels = { owner: _grCev('gr.kurucu','Kurucu'), admin: _grCev('gr.admin','Admin'), member: _grCev('gr.uyeBuyuk','Üye') };
   const roleClass = { owner: 'role-owner', admin: 'role-admin', member: 'role-member' };
   document.getElementById('membersList').innerHTML = members.map(m => `
-    <div class="member-item" id="mi-${m.user_id}">
+    <div class="member-item${_uyeIslemVar(m) ? ' tiklanir' : ''}" id="mi-${m.user_id}" onclick="_uyeSatirTik('${m.user_id}', event)">
       <div class="member-avatar">${esc((m.display_name || m.user_id || '?').charAt(0).toUpperCase())}</div>
       <div class="member-info">
         <div class="member-name">${esc(m.display_name || m.email || m.user_id)}</div>
@@ -609,27 +634,92 @@ function renderMembersList(members) {
           </div>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+      <div class="uye-sag">
+        ${(window.RB && RB.engelliMi(m.user_id)) ? `<span class="role-badge role-engelli">${_grCev('rb.engelliEtiket','Engellendi')}</span>` : ''}
         <span class="role-badge ${roleClass[m.role]||'role-member'}">${roleLabels[m.role]||_grCev('gr.uyeBuyuk','Üye')}</span>
-        ${m.user_id !== uid ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="_rbUye(this)" data-uid="${m.user_id}" data-ad="${_rbAttr(m.display_name || '')}" title="${_grCev('rb.bildir','Bildir')} / ${_grCev('rb.engelle','Engelle')}"><i class="ti ti-flag" style="font-size:11px;"></i>${(window.RB && RB.engelliMi(m.user_id)) ? ' ' + _grCev('rb.engelliEtiket','Engellendi') : ''}</button>` : ''}
-        ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="editInstrument('${m.user_id}')"><i class="ti ti-pencil" style="font-size:11px;"></i></button>` : ''}
-        ${(isAdmin() || userRole==='owner') ? `<button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="addMemberAsSolist('${m.user_id}')" title="${_grCev('gr.solistlereEkle','Solistler listesine ekle')}"><i class="ti ti-microphone" style="font-size:11px;"></i></button>` : ''}
-        ${(isAdmin() || userRole==='owner') && m.user_id !== uid ? `
-          <div class="role-dropdown" id="rd-${m.user_id}">
-            <button class="btn btn-secondary role-dd-btn" style="padding:6px 12px;font-size:12px;display:flex;align-items:center;gap:5px;" onclick="toggleRoleDD('${m.user_id}', event)">
-              ${m.role==='owner'?_grCev('gr.kurucu','Kurucu'):m.role==='admin'?_grCev('gr.admin','Admin'):_grCev('gr.uyeBuyuk','Üye')} <i class="ti ti-chevron-down" style="font-size:12px;"></i>
-            </button>
-            <div class="role-dd-menu" id="rdm-${m.user_id}" style="display:none;">
-              <button onclick="pickRole('${m.user_id}','member')" class="${m.role==='member'?'active':''}"><i class="ti ti-user" style="font-size:14px;"></i> ${_grCev('gr.uyeBuyuk','Üye')}</button>
-              <button onclick="pickRole('${m.user_id}','admin')" class="${m.role==='admin'?'active':''}"><i class="ti ti-shield" style="font-size:14px;"></i> ${_grCev('gr.admin','Admin')}</button>
-              <button onclick="pickRole('${m.user_id}','owner')" class="${m.role==='owner'?'active':''}"><i class="ti ti-crown" style="font-size:14px;"></i> ${_grCev('gr.kurucu','Kurucu')}</button>
-              <div style="border-top:1px solid var(--border);margin:4px 0;"></div>
-              <button onclick="removeMember('${m.user_id}')" style="color:var(--red);"><i class="ti ti-user-minus" style="font-size:14px;"></i> ${_grCev('gr.cikar','Çıkar')}</button>
-            </div>
-          </div>` : ''}
+        ${_uyeIslemVar(m) ? `<button class="btn btn-secondary uye-islem-btn" onclick="_uyeIslemAc('${m.user_id}', event)" aria-label="${_grCev('gr.uyeIslemleri','Üye işlemleri')}" title="${_grCev('gr.uyeIslemleri','Üye işlemleri')}"><i class="ti ti-dots" aria-hidden="true"></i></button>` : ''}
       </div>
     </div>`).join('') || '<div style="color:var(--text3);font-size:13px;padding:12px 0;">' + _grCev('gr.henuzUyeYok','Henüz üye yok.') + '</div>';
 }
+
+// ── (2026-10-24) ÜYE İŞLEMLERİ PENCERESİ ─────────────────────────────────
+// Kullanıcı: "üye bilgileri üstte kalsın, düğmeleri bir adım sonraya, düzenleme penceresine koyalım; telefonda dikeyde
+// dağılıyor, çok karmaşık". Her satırda 4–5 düğme vardı (bildir, enstrüman, solist, rol menüsü) — 10 üyede ~40 düğme.
+// Satırda artık yalnız bilgi + rol + "⋯"; satıra ya da ⋯'ye dokununca bu pencere açılır (telefonda alttan). İşlevler aynı
+// (editInstrument, addMemberAsSolist, _rbUye, pickRole, removeMember); kimin neyi gördüğü eski satırla aynı.
+function _uyeIslemVar(m) {
+  return (isAdmin() || userRole === 'owner') || m.user_id !== getUserId();
+}
+function _uyeSatirTik(userId, e) {
+  if (e.target.closest('[id^="instr-edit-"], a, button, input')) return;   // enstrüman formu ve bağlantılar kendi işini yapar
+  const m = (currentMembers || []).find(x => x.user_id === userId);
+  if (m && _uyeIslemVar(m)) _uyeIslemAc(userId, e);
+}
+function _uyeIslemAc(userId, e) {
+  if (e) e.stopPropagation();
+  const m = (currentMembers || []).find(x => x.user_id === userId);
+  if (!m) return;
+  const ben = m.user_id === getUserId();
+  const yonetici = isAdmin() || userRole === 'owner';
+  const ad = m.display_name || m.email || m.user_id;
+  const rolAd = { owner: _grCev('gr.kurucu','Kurucu'), admin: _grCev('gr.admin','Admin'), member: _grCev('gr.uyeBuyuk','Üye') };
+  const rolSinif = { owner: 'role-owner', admin: 'role-admin', member: 'role-member' };
+  const rolIkon = { member: 'ti-user', admin: 'ti-shield', owner: 'ti-crown' };
+  const satir = (ikon, yazi, tik, ek) => `<button class="us-satir${ek && ek.sinif ? ' ' + ek.sinif : ''}"${ek && ek.attr ? ' ' + ek.attr : ''} onclick="${tik}"><i class="ti ${ikon}" aria-hidden="true"></i><span>${yazi}</span>${ek && ek.not ? `<em>${ek.not}</em>` : ''}</button>`;
+  let h = `<div class="us-bas">
+      <div class="member-avatar">${esc(ad.charAt(0).toUpperCase())}</div>
+      <div style="flex:1;min-width:0;"><div class="us-ad" id="usAd">${esc(ad)}</div>${m.email ? `<div class="us-alt">${esc(m.email)}</div>` : ''}</div>
+      <span class="role-badge ${rolSinif[m.role] || 'role-member'}">${rolAd[m.role] || rolAd.member}</span>
+    </div><div class="us-liste">`;
+  if (yonetici) {
+    h += satir('ti-pencil', _grCev('gr.enstrumanDuzenle','Enstrümanları düzenle'), `_uyeIslemKapat();_uyeEnstrumanDuzenle('${m.user_id}')`);
+    h += satir('ti-microphone', _grCev('gr.solistlereEkle','Solistler listesine ekle'), `_uyeIslemKapat();addMemberAsSolist('${m.user_id}')`);
+  }
+  if (!ben) {
+    h += satir('ti-flag', _grCev('rb.bildir','Bildir') + ' / ' + _grCev('rb.engelle','Engelle'), `_uyeIslemKapat();_rbUye(this)`,
+      { attr: `data-uid="${m.user_id}" data-ad="${_rbAttr(m.display_name || '')}"`,
+        not: (window.RB && RB.engelliMi(m.user_id)) ? _grCev('rb.engelliEtiket','Engellendi') : '' });
+  }
+  h += '</div>';
+  if (yonetici && !ben) {
+    h += `<div class="us-baslik">${_grCev('gr.rol','Rol')}</div><div class="us-roller">` +
+      ['member', 'admin', 'owner'].map(r => `<button class="us-rol${m.role === r ? ' active' : ''}"${m.role === r ? ' aria-pressed="true"' : ` onclick="_uyeIslemKapat();pickRole('${m.user_id}','${r}')"`}><i class="ti ${rolIkon[r]}" aria-hidden="true"></i> ${rolAd[r]}</button>`).join('') +
+      '</div>';
+    h += `<div class="us-liste us-ayrac">` + satir('ti-user-minus', _grCev('gr.gruptanCikar','Gruptan çıkar'), `_uyeIslemKapat();removeMember('${m.user_id}')`, { sinif: 'us-tehlike' }) + '</div>';
+  }
+  h += `<button class="btn btn-secondary us-kapat" onclick="_uyeIslemKapat()">${_grCev('ortak.kapat','Kapat')}</button>`;
+  let s = document.getElementById('uyeSheet');
+  if (!s) {
+    s = document.createElement('div');
+    s.id = 'uyeSheet';
+    s.className = 'uye-sheet';
+    s.addEventListener('click', ev => { if (ev.target === s) _uyeIslemKapat(); });
+    document.body.appendChild(s);
+  }
+  s.innerHTML = `<div class="uye-sheet-kart" role="dialog" aria-modal="true" aria-labelledby="usAd">${h}</div>`;
+  s.style.display = 'flex';
+  if (!navigator.onLine) {   // _yazmaKilitle ile aynı: sunucuya yazan işlemler çevrimdışı kapalı
+    s.querySelectorAll('.us-satir, .us-rol:not(.active)').forEach(btn => {
+      btn.disabled = true; btn.style.opacity = '.45';
+      btn.title = _grCev('gr.cevrimdisiIslem','Çevrimdışı — bu işlem internet bağlantısı gerektiriyor');
+    });
+  }
+}
+function _uyeIslemKapat() {
+  const s = document.getElementById('uyeSheet');
+  if (!s || s.style.display === 'none') return false;
+  s.style.display = 'none';
+  return true;
+}
+// Enstrüman düzenleme satırın içinde açılıyor (eski davranış) → satır görünür olsun.
+function _uyeEnstrumanDuzenle(userId) {
+  editInstrument(userId);
+  const satir = document.getElementById('mi-' + userId);
+  if (satir) satir.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+// Android geri tuşu / Escape açık pencereyi kapatır (topnav.js RGeri sözleşmesi).
+window.RGeri = function () { return _uyeIslemKapat(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') _uyeIslemKapat(); });
 
 // ── 2026-08-23: KAREKODLU DAVET ───────────────────────────────────────────
 // Provada 20 kisiyi tek tek e-posta ile davet etmek yerine ekrani gosterip
@@ -937,7 +1027,7 @@ function _enstrCizChips(userId) {
     return '<span style="display:inline-flex;align-items:center;gap:5px;background:var(--bg2);'
       + 'border:1px solid var(--border);border-radius:14px;padding:3px 9px;font-size:11px;">'
       + _esc(ad)
-      + '<button onclick="_enstrSil(\'' + userId + '\',' + i + ')" '
+      + '<button aria-label="' + _grCev('uye.kaldir','Kaldır') + '" onclick="_enstrSil(\'' + userId + '\',' + i + ')" '
       + 'style="background:none;border:none;color:var(--text3);cursor:pointer;'
       + 'font-size:13px;line-height:1;padding:0;">×</button></span>';
   }).join('') : '<span style="font-size:11px;color:var(--text3);font-style:italic;">' + _grCev('gr.henuzEklenmedi','Henüz eklenmedi') + '</span>';
@@ -1144,19 +1234,8 @@ let searchDebounce = null;
 // olmadan başkasının grubuna eklenebiliyordu. Tek yol artık davet linki
 // (generateInvite → login.html?invite=<token>), kabul edenin kendi eylemiyle.
 
-// Rol dropdown
-function toggleRoleDD(userId, e) {
-  e.stopPropagation();
-  const menu = document.getElementById('rdm-' + userId);
-  const isOpen = menu.style.display !== 'none';
-  document.querySelectorAll('.role-dd-menu').forEach(m => m.style.display = 'none');
-  if (!isOpen) menu.style.display = '';
-}
-document.addEventListener('click', () => {
-  document.querySelectorAll('.role-dd-menu').forEach(m => m.style.display = 'none');
-});
+// Rol seçimi (2026-10-24'ten beri üye işlemleri penceresinden; eski açılır menü kaldırıldı)
 async function pickRole(userId, newRole) {
-  document.querySelectorAll('.role-dd-menu').forEach(m => m.style.display = 'none');
   await changeRole(userId, newRole);
   await loadPage();
 }

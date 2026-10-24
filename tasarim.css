@@ -948,11 +948,7 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
   /* Gruplar, Önerilerim, Mesajlar, Bildirimler, Ayarlar, Çalışma Odası, Solistler, Üyeler */
   html[data-tasarim="v3"][data-sayfa="gruplar"] .btn { min-height: 40px; min-width: 40px; font-size: 13px; }   /* simgeli üye düğmeleri 29 px genişti */
   html[data-tasarim="v3"][data-sayfa="gruplar"] .grp-chip { min-height: 40px; }
-  /* Üye satırı: rozet + simge düğmeleri + rol seçimi tek dikey sütundu; düğmeler büyüyünce satır ~220 px oldu → sağa yaslı,
-     3 düğme genişliğinde sarmalı sıra (2 sıra). Sütun satır içi stille kurulu (gruplar.html), seçici ona bağlı. */
-  html[data-tasarim="v3"][data-sayfa="gruplar"] .member-item > div[style*="flex-direction:column"] {
-    flex-direction: row !important; flex-wrap: wrap; justify-content: flex-end; align-items: center !important; max-width: 136px;
-  }
+  /* Üye satırındaki düğme sütunu 2026-10-24'te kalktı: işlemler gruplar.html'deki üye işlemleri penceresinde. */
   html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.btn-edit, .btn-soz, .btn-restore) { min-height: 40px; font-size: 13px; padding-left: 14px; padding-right: 14px; }
   html[data-tasarim="v3"][data-sayfa="mesajlar"] .btn-new-msg { min-height: 40px; font-size: 13px; }
   html[data-tasarim="v3"][data-sayfa="mesajlar"] .tab-btn { min-height: 40px; }
@@ -1143,7 +1139,7 @@ html[data-tasarim="v3"][data-sayfa="artiesten"] .work-pick-item.selected { backg
 /* ══ (2026-10-24) GRUP / KORO — iPad. Kullanıcı: "iPad'de Grup / Koro sayfasını kontrol et" + "Gruplarım ve diğer kutuların
    genişliği az olmuş, tam genişliğe getir". iPad 7. nesilde ölçüldü: içerik 680 px'te kalıyordu (dikeyde barlar 778 px, sağda
    ~130 px boşluk; yatayda 148 px). Telefon dokunma kuralları (≤768) iPad'e gelmiyordu: üye simge düğmeleri 29×22, rol 29 px,
-   Yeni Grup / Düzenle 27 px. Üye düğmeleri dikey sütundu (her satır ~95 px) → iPad'de yer var, tek sıra. Masaüstü değişmez. ══ */
+   Yeni Grup / Düzenle 27 px. Üye düğmeleri satırdan pencereye taşındı (gruplar.html). Masaüstü değişmez. ══ */
 @media (min-width: 601px) and (max-width: 1023px) {
   html[data-tasarim="v3"][data-sayfa="gruplar"] .page-content { max-width: none; }
 }
@@ -1154,8 +1150,4 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"][data-sayfa="gruplar"] .btn .ti { font-size: 16px !important; }   /* satır içi 11–13 px */
   html[data-tasarim="v3"][data-sayfa="gruplar"] .grp-chip { min-height: 40px; }
   html[data-tasarim="v3"][data-sayfa="gruplar"] #inviteMaxUses { min-height: 40px; }
-  html[data-tasarim="v3"][data-sayfa="gruplar"] .role-dd-menu button { min-height: 44px; }
-  html[data-tasarim="v3"][data-sayfa="gruplar"] .member-item > div[style*="flex-direction:column"] {
-    flex-direction: row !important; align-items: center !important; gap: 8px !important;
-  }
 }
