@@ -413,6 +413,12 @@ html, body { overflow-x: hidden; }
 .field input:focus { border-color: var(--accent); }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 
+/* (2026-10-24) iPad denetimi — dokunma: aç/kapa anahtarı 44×24 px'ti (telefonda da) → 50×30, düğme 24 px; davet e-posta
+   kutusu ve Gönder 38 → 40 px (satır içi stil). */
+.toggle { width: 50px; height: 30px; }
+.toggle-slider::before { width: 24px; height: 24px; }
+#davetEmail, #davetBtn { min-height: 40px; }
+
   .sb-user-x { position:relative; }
   .sb-user-dropdown { display:none; position:fixed; bottom:90px; left:10px; right:10px;
     background:var(--surface); border:1px solid var(--border); border-radius:10px;
