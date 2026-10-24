@@ -858,7 +858,8 @@ html[data-cam][data-theme="light"] .sec-action:active { background: rgba(0, 0, 0
   html[data-tasarim="v3"] .knot-durum { font-size: 13px; }
   /* Eser detayı — sekmeler; Eserler listesi — Tümü/Favoriler/Taslaklarım, dil/tür çipleri, araç çubuğu */
   /* Sekmeler tek satır (tasarımdaki gibi), sığmazsa yana kayar — büyüyünce "Hikaye" alt satıra düşüyordu. */
-  html[data-tasarim="v3"] .detail.mobile-visible .detail-tabs { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; }
+  /* justify-content:center taşan şeritte soldaki "Söz"ü kesiyordu (ortalanan taşma sola kaydırılamaz) → sola yaslı. */
+  html[data-tasarim="v3"] .detail.mobile-visible .detail-tabs { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; justify-content: flex-start !important; }
   html[data-tasarim="v3"] .detail.mobile-visible .detail-tabs::-webkit-scrollbar { display: none; }
   html[data-tasarim="v3"] .detail.mobile-visible .dtab { min-height: 40px; font-size: 13px; flex: 0 0 auto !important; padding: 0 14px !important; white-space: nowrap; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .fav-toggle-btn { min-height: 40px; font-size: 13px !important; }
