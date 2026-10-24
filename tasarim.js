@@ -25,6 +25,28 @@ if (typeof AbortSignal !== 'undefined' && typeof AbortController !== 'undefined'
     return c.signal;
   };
 }
+// (2026-10-24) YEREL UYGULAMADA PAYLAŞIM: Android WebView'da navigator.share yok → eser/repertuvar paylaş yalnız kopyalıyor,
+// Ayarlar'daki "Diğer" bir şey yapmıyordu. Yerel uygulamada (iOS + Android) @capacitor/share eklentisine yönlenir; sayfaların
+// kodu aynı kalır. Eklentinin "iptal" hatası AbortError'a çevrilir (çağıranlar iptalde kopyalamaya düşmesin).
+(function () {
+  function kur() {
+    var c = window.Capacitor;
+    if (!c || !c.isNativePlatform || !c.isNativePlatform() || !c.Plugins || !c.Plugins.Share) return false;
+    var p = c.Plugins.Share;
+    try {
+      navigator.share = function (d) {
+        d = d || {};
+        return p.share({ title: d.title, text: d.text, url: d.url, dialogTitle: d.title }).then(function () {}, function (e) {
+          var m = String((e && (e.message || e.code)) || '');
+          if (/cancel/i.test(m)) throw new DOMException('Share canceled', 'AbortError');
+          throw e;
+        });
+      };
+    } catch (e) { return false; }
+    return true;
+  }
+  if (!kur()) document.addEventListener('DOMContentLoaded', kur);
+})();
 (function () {
   'use strict';
 

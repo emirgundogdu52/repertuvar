@@ -4173,7 +4173,11 @@ function loadSideWork(id) {
 (function(){
   var _wl = null;        // aktif WakeLockSentinel
   var _istendi = false;  // sahne acik mi — kilidin OLMASI GEREKEN hali
-  var _destek = !!(navigator.wakeLock && typeof navigator.wakeLock.request === 'function');
+  // (2026-10-24) Yerel uygulamada @capacitor-community/keep-awake (iOS isIdleTimerDisabled / Android KEEP_SCREEN_ON): iOS
+  // WKWebView'da Web Wake Lock 15–16.3'te yok, 16.4–18.3'te güvenilmez → sahnede ekran kararabiliyordu. Varsa web kilidi yerine.
+  var _ka = (function(){ try { var c = window.Capacitor; return (c && c.isNativePlatform && c.isNativePlatform() && c.Plugins && c.Plugins.KeepAwake) || null; } catch(e){ return null; } })();
+  var _kaAcik = false;
+  var _destek = !!(_ka || (navigator.wakeLock && typeof navigator.wakeLock.request === 'function'));
 
   function _sahneAcik(){
     return !!(document.body && document.body.classList.contains('stage-active'));
@@ -4181,6 +4185,7 @@ function loadSideWork(id) {
 
   function _al(){
     if(!_destek || !_istendi) return;
+    if(_ka){ if(!_kaAcik){ _kaAcik = true; _ka.keepAwake().catch(function(){ _kaAcik = false; }); } return; }
     if(_wl) return;                                   // zaten elimizde
     if(document.visibilityState !== 'visible') return; // gorunmezken reddedilir
     navigator.wakeLock.request('screen').then(function(s){
@@ -4194,6 +4199,7 @@ function loadSideWork(id) {
 
   function _birak(){
     _istendi = false;
+    if(_ka && _kaAcik){ _kaAcik = false; _ka.allowSleep().catch(function(){}); }
     if(_wl){ try{ _wl.release(); }catch(e){} _wl = null; }
   }
 
@@ -4216,7 +4222,7 @@ function loadSideWork(id) {
   // Test icin: sahnedeyken konsola window._wlDurum() yaz.
   window._wlDurum = function(){
     return { destek:_destek, sahneAcik:_sahneAcik(), istendi:_istendi,
-             kilitAktif: !!_wl, gorunur: document.visibilityState };
+             kilitAktif: !!_wl || _kaAcik, yerelEklenti: !!_ka, gorunur: document.visibilityState };
   };
 
   _senkron();

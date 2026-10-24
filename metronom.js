@@ -640,10 +640,16 @@ button, .mx-btn, [role="button"] {
     }
 
     // ── Ekranı açık tut ─────────────────────────────────────────────────────
+    // (2026-10-24) Yerel uygulamada @capacitor-community/keep-awake (iOS WKWebView'da Web Wake Lock yok/güvenilmez).
+    const _ka = (() => { try { const c = window.Capacitor; return (c && c.isNativePlatform && c.isNativePlatform() && c.Plugins && c.Plugins.KeepAwake) || null; } catch (e) { return null; } })();
     async function requestWake(){
+      if (_ka) { try { await _ka.keepAwake(); } catch (e) {} return; }
       try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
     }
-    function releaseWake(){ try { if (wakeLock) { wakeLock.release(); wakeLock = null; } } catch(e) {} }
+    function releaseWake(){
+      if (_ka) { _ka.allowSleep().catch(() => {}); return; }
+      try { if (wakeLock) { wakeLock.release(); wakeLock = null; } } catch(e) {}
+    }
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && running && wakeOn) requestWake();
     });
