@@ -1142,6 +1142,11 @@ html[data-tasarim="v3"][data-sayfa="artiesten"] .work-pick-item.selected { backg
    ~130 px boşluk; yatayda 148 px). Telefon dokunma kuralları (≤768) iPad'e gelmiyordu: üye simge düğmeleri 29×22, rol 29 px,
    Yeni Grup / Düzenle 27 px. Üye düğmeleri satırdan pencereye taşındı (gruplar.html). Masaüstü değişmez. ══ */
 /* Çalışma Odası + Metronom (aynı ölçüyü paylaşır, sekme geçişinde zıplamasın) da aynı: 680 px ortalı → tam genişlik. */
+/* Ana Sayfa yatay iPad (≥901, iki sütun): sağdaki önizleme uzun, metin üstte kalıp altında ~450 px boşluk bırakıyordu →
+   metin sütunu dikeyde ortalı. */
+@media (min-width: 901px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="index"] .hero-section { align-items: center; }
+}
 @media (min-width: 601px) and (max-width: 1023px) {
   html[data-tasarim="v3"]:is([data-sayfa="gruplar"], [data-sayfa="calisma"], [data-sayfa="metronom"]) .page-content { max-width: none; }
   /* Mesajlar: sayfa 720, kutular 680 px ortalıydı (2026-10-24 iPad denetimi). */
@@ -1160,6 +1165,9 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   /* Ayarlar dokunma ölçüleri telefondaki gibi (DOKUNMA BOYUTLARI ≤768): düğme/seçim 35–36, eser alanı çipleri 34, paylaşım 37. */
   html[data-tasarim="v3"][data-sayfa="ayarlar"] :is(.setting-btn, .setting-select) { min-height: 40px; }
   html[data-tasarim="v3"][data-sayfa="ayarlar"] .page button { min-height: 40px; }
+  /* Ana Sayfa (2026-10-24 iPad denetimi): tanıtım düğmeleri 38, "Tümü" 34 px → 44 / 40 (yazı boyu aynı: yatayda iki düğme yan yana kalsın). */
+  html[data-tasarim="v3"][data-sayfa="index"] :is(.hero-btn-primary, .hero-btn-secondary) { min-height: 44px; }
+  html[data-tasarim="v3"][data-sayfa="index"] .sec-action { min-height: 40px; height: auto !important; }
   html[data-tasarim="v3"][data-sayfa="gruplar"] .btn { min-height: 40px; min-width: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
   html[data-tasarim="v3"][data-sayfa="gruplar"] .btn .ti { font-size: 16px !important; }   /* satır içi 11–13 px */
   html[data-tasarim="v3"][data-sayfa="gruplar"] .grp-chip { min-height: 40px; }
