@@ -1039,7 +1039,7 @@
       'ana.neler': 'Neler Yapabilirsiniz?',
       'ana.detay': 'Detay →',
       'ana.sonEklenen': 'Son Eklenen Eserler',
-      'ana.tumu': 'Tümü →',
+      'ana.tumu': 'Tümü',
       'ana.ajanda': 'Konser Ajandası',
       'ana.yakinda': 'yakında',
       // Hero sayacinin etiketi. `menu.repertuvarlar` cogul ve menu icin;
@@ -2770,7 +2770,7 @@
       'ana.neler': 'What You Can Do',
       'ana.detay': 'Details →',
       'ana.sonEklenen': 'Recently Added',
-      'ana.tumu': 'See all →',
+      'ana.tumu': 'See all',
       'ana.ajanda': 'Concert Calendar',
       'ana.yakinda': 'coming soon',
       'ana.repertuvar': 'Setlists',
