@@ -692,6 +692,11 @@ html[data-cam][data-theme="light"] {
   html[data-cam], html[data-cam][data-theme="light"] { --cam-opaklik: .94; }
 }
 
+/* Kullanıcı (2026-10-24, iPad): "barları genişlet; Offline çalışır kartının sol çizgisi ile Pedalla uyumlu kartının sağ
+   çizgisiyle aynı olsun" → tablette barlar içerikle aynı 16 px kenar çizgisinde (önce ~720 px'e sınırlı, ortalı). Telefonda 12 px. */
+@media (min-width: 600px) and (max-width: 1023px) {
+  html[data-cam] { --cam-yan: 16px; }
+}
 @media (max-width: 1023px) {
   /* ── Üst bar ── */
   html[data-cam] .r-topnav,
