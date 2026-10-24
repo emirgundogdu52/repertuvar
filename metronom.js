@@ -90,7 +90,7 @@ button, .mx-btn, [role="button"] {
 /* ── Vuruş noktaları ─────────────────────────────────────────────────── */
 .mx-beats{ display:flex; flex-wrap:wrap; gap:9px; justify-content:center; margin:18px 0 6px; }
 .mx-beat{
-  width:34px; height:34px; border-radius:11px; cursor:pointer; border:1px solid var(--border);
+  width:40px; height:40px; border-radius:12px; cursor:pointer; border:1px solid var(--border);   /* 34 → 40 (2026-10-24 dokunma) */
   background:var(--surface2); color:var(--text3); font-size:12px; font-weight:700;
   display:flex; align-items:center; justify-content:center; font-family:inherit;
   transition:transform .09s ease-out, background .12s, color .12s, box-shadow .12s;
@@ -105,12 +105,12 @@ button, .mx-btn, [role="button"] {
 .mx-group-row{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
 .mx-group{ font-size:12px; font-weight:700; color:var(--text2); letter-spacing:.04em; }
 .mx-group-field{ width:132px; text-align:center; font-family:inherit; font-size:13px; font-weight:700;
-  background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:7px 8px; color:var(--text); outline:none; }
+  background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:7px 8px; color:var(--text); outline:none; height:40px; box-sizing:border-box; }
 .mx-group-field:focus{ border-color:var(--tempo-color); }
-.mx-group-plus{ font-family:inherit; font-size:17px; font-weight:700; width:38px; padding:7px 0; border-radius:9px; cursor:pointer;
+.mx-group-plus{ font-family:inherit; font-size:17px; font-weight:700; width:40px; height:40px; padding:0; border-radius:9px; cursor:pointer;
   background:var(--surface2); border:1px solid var(--border); color:var(--text2); }
 .mx-group-plus:active{ background:var(--tempo-color); color:#0b1226; }
-.mx-group-go{ font-family:inherit; font-size:12px; font-weight:700; padding:8px 12px; border-radius:9px; cursor:pointer;
+.mx-group-go{ font-family:inherit; font-size:13px; font-weight:700; min-height:40px; padding:0 14px; border-radius:9px; cursor:pointer;
   background:color-mix(in srgb, var(--tempo-color) 16%, transparent);
   border:1px solid color-mix(in srgb, var(--tempo-color) 45%, transparent); color:var(--tempo-color); }
 .mx-legend{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; font-size:11px; color:var(--text3); margin-top:10px; }
@@ -119,13 +119,13 @@ button, .mx-btn, [role="button"] {
 .mx-legend .tek{ background:var(--tempo-color); }
 .mx-legend .bos{ background:var(--surface2); border:1px solid var(--border); }
 .mx-beat.grp{ margin-left:14px; }
-.mx-beat.sm{ width:26px; height:26px; border-radius:9px; font-size:10px; }
+.mx-beat.sm{ width:32px; height:32px; border-radius:10px; font-size:11px; }
 .mx-tabs{ display:flex; gap:6px; margin-bottom:13px; flex-wrap:wrap; }
-.mx-tab{ flex:1; min-width:96px; padding:8px 6px; border-radius:9px; cursor:pointer; font-family:inherit;
+.mx-tab{ flex:1; min-width:96px; min-height:40px; padding:8px 6px; border-radius:9px; cursor:pointer; font-family:inherit;
   font-size:12px; font-weight:600; background:var(--surface2); border:1px solid var(--border); color:var(--text3); }
 .mx-tab.on{ background:color-mix(in srgb, var(--tempo-color) 16%, transparent); border-color:color-mix(in srgb, var(--tempo-color) 45%, transparent); color:var(--tempo-color); }
 .mx-count-field{ width:64px; text-align:center; font-size:15px; font-weight:700; font-family:inherit;
-  background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:7px 0; color:var(--text); outline:none; }
+  background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:7px 0; color:var(--text); outline:none; height:40px; box-sizing:border-box; }
 .mx-count-field:focus{ border-color:var(--tempo-color); }
 
 /* ── Denetimler ──────────────────────────────────────────────────────── */
@@ -149,7 +149,7 @@ button, .mx-btn, [role="button"] {
 .mx-title{ font-size:12px; font-weight:700; color:var(--text3); letter-spacing:.08em; text-transform:uppercase; margin-bottom:13px; }
 .mx-chips{ display:flex; flex-wrap:wrap; gap:8px; }
 .mx-chip{
-  padding:7px 13px; border-radius:9px; cursor:pointer; font-family:inherit; font-size:12px; font-weight:600;
+  min-height:40px; min-width:40px; padding:7px 13px; border-radius:9px; cursor:pointer; font-family:inherit; font-size:13px; font-weight:600;
   background:var(--surface2); border:1px solid var(--border); color:var(--text2);
 }
 .mx-chip:hover{ border-color:var(--tempo-color); color:var(--tempo-color); }
