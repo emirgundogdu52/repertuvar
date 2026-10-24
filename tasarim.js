@@ -89,7 +89,8 @@ if (typeof AbortSignal !== 'undefined' && typeof AbortController !== 'undefined'
     }
     // (2026-10-24) DENEME — yüzen cam barlar (todo/02, dal deneme/cam-tasarim). Üst bar + alt menü olan sayfalar;
     // stage (Sahne Modu) ve login dışarıda. Kurallar tasarim.css sonundaki "YÜZEN CAM BARLAR" bloğunda (<1024 px).
-    if ((TOPNAV_SAYFALARI + 'bildirimler ').indexOf(' ' + sayfa + ' ') !== -1) html.setAttribute('data-cam', '1');
+    // (2026-10-24) Kullanıcı: Sahne Modu'nun repertuvar SEÇİM ekranına da uygula (performans ekranında barlar zaten gizli).
+    if ((TOPNAV_SAYFALARI + 'bildirimler stage ').indexOf(' ' + sayfa + ' ') !== -1) html.setAttribute('data-cam', '1');
 
     var head = document.head || document.getElementsByTagName('head')[0];
     var linkEkle = function (href) {

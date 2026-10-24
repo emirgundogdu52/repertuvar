@@ -741,7 +741,18 @@ html[data-cam][data-theme="light"] {
     border: 0 !important; border-radius: 18px !important;
     background: transparent !important; color: var(--cam-pasif) !important;
   }
+  /* Kullanıcı (2026-10-24): "Ana Sayfa seçiliyken barın radyusu ile menünün radyusu örtüşmüyor" — iç içe köşeler aynı merkezden:
+     bar 66 px → dış yarıçap 33, iç pay 5 → uçtaki sekmenin dış köşeleri 28 px (= 56 px yüksekliğin yarısı); iç köşeler 18 px. */
+  html[data-cam] .bottom-nav .bn-item:first-child { border-radius: 28px 18px 18px 28px !important; }
+  html[data-cam] .bottom-nav .bn-item:last-child { border-radius: 18px 28px 28px 18px !important; }
   html[data-cam] .bottom-nav .bn-item i { font-size: 23px !important; }
+  /* Kullanıcı (2026-10-24, iPad): seçili sekme köşeleri menüyle uyumsuz. Tablette sekmeler geniş (~109 px) → hepsi menüyle aynı
+     merkezli tam kapsül (28 px = 33 − 5); yazı içeride rahat kalır. Telefonda dar sekmede yazı kapsül kıvrımına taşmasın diye
+     ortadakiler 18 px (uçlar 28). */
+  @media (min-width: 600px) {
+    html[data-cam] .bottom-nav .bn-item, html[data-cam] .bottom-nav .bn-item:first-child,
+    html[data-cam] .bottom-nav .bn-item:last-child { border-radius: 28px !important; }
+  }
   /* Kullanıcı (2026-10-24): telefonda "Repertuvarlar" yazısı düğmenin dışına taşıyor — barlar 16 px'e çekilince düğme 78 px'e
      indi (440 px), yazı 74 px; tam yuvarlak hap zeminin alt kıvrımında yazı dışarıda görünüyordu → sekme zemini 18 px köşeli,
      yazı 10 px (iki yana nefes payı). */
@@ -789,6 +800,28 @@ html[data-cam][data-theme="light"] {
   /* .dp üst payı −16: repertuvar detayındaki "‹ Repertuvar Listesi" hap düğmesi Eserler'deki "‹ Listeye Dön" ile aynı yerde
      (bara 6 px = 12 − 16 + .dh üst payı 10). Düğme değil kap kayar: .dh'nin zemin sınırı düğmeyi kesmesin, barın altında kalsın. */
   html[data-cam][data-sayfa="repertoires"] .dp { padding-top: calc(var(--cam-icerik-ust) - 16px); padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; }
+
+  /* ── Sahne Modu — yalnız repertuvar SEÇİM ekranı (kullanıcı 2026-10-24). Performans ekranında (body.stage-active) barlar
+     gizli; aşağıdakiler #pickerScreen'e bağlı, performans ekranına (#stageScreen) dokunmaz. Başlık + arama + liste birlikte
+     kayar; "Sahneye Çık →" alt menünün üstünde yüzer; Gündüz/Gece listenin sonunda; eski ☰ düğmesi (alt menü görünürken
+     gereksiz, menünün arkasında kalıyordu) gizli. */
+  html[data-cam][data-sayfa="stage"] #pickerScreen { top: 0 !important; }
+  html[data-cam][data-sayfa="stage"] #pickerScreen .pi {
+    display: block; overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
+  }
+  html[data-cam][data-sayfa="stage"] #pickerScreen .pi-fixed-top { padding-top: var(--cam-icerik-ust); }
+  html[data-cam][data-sayfa="stage"] #pickerScreen .pi-scroll { overflow: visible; }
+  html[data-cam][data-sayfa="stage"] #pickerScreen .pi-fixed-bottom { padding-bottom: calc(var(--cam-icerik-alt) + 64px); }
+  html[data-cam][data-sayfa="stage"] #pickerScreen .bstart {
+    position: fixed; z-index: 150; width: auto; min-height: 48px; border-radius: 14px; font-weight: 700;
+    left: max(var(--cam-yan), calc(50% - 260px)); right: max(var(--cam-yan), calc(50% - 260px));
+    bottom: calc(var(--cam-alt) + var(--cam-alt-h) + 12px); box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+  }
+  /* Seçim yokken düğme %35 saydamdı → yüzerken alttaki liste içinden okunuyordu; düz, sönük zemin. */
+  html[data-cam][data-sayfa="stage"] #pickerScreen .bstart:disabled {
+    opacity: 1; background: var(--surface2); color: var(--text3); border: 1px solid var(--border2);
+  }
+  html[data-cam][data-sayfa="stage"] #pickerScreen > button[onclick^="openStageNav"] { display: none; }
 }
 @media (max-width: 768px) {
   /* Repertuvarlar telefonda yüzen "+" (repertoires.html .rep-fab): Eserler'deki gibi alt menünün üstünde, 58 px. */
