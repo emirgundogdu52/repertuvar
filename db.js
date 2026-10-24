@@ -702,6 +702,56 @@ window.notaIndir = function (anahtar, urls) {
   return _notaIndirme[anahtar];
 };
 
+// ── (2026-10-24) SERVICE WORKER'SIZ ÇEVRİMDIŞI NOTA (iOS uygulaması) ──────────────────────────────────
+// notaIndir dosyaları Cache Storage'a yazıyor; onları sayfaya veren service worker iOS uygulamasında yok (capacitor://
+// şeması SW desteklemez, Info.plist'te WKAppBoundDomains yok) → uçak modunda nota görseli boş, PDF "açılamadı", "Offline
+// hazır" rozeti yanıltıcıydı. SW sayfayı kontrol etmiyorsa önbellekteki kopya kullanılır (önbellek önce: nota adresleri
+// değişmez dosyalar). Android uygulaması ve web'de SW zaten veriyor — orada hiçbir şey değişmez.
+const _NOTA_ADRES = /^https?:\/\/[^/]+\/storage\/v1\/object\//i;
+const _notaBlobAdres = {};
+function _swYok() { return !(navigator.serviceWorker && navigator.serviceWorker.controller); }
+// → önbellekte varsa blob: adresi, yoksa (ya da SW varsa) adresin kendisi.
+window.notaYerelAdres = async function (url) {
+  try {
+    if (!url || !_NOTA_ADRES.test(url) || typeof caches === 'undefined' || !_swYok()) return url;
+    if (_notaBlobAdres[url]) return _notaBlobAdres[url];
+    const r = await (await caches.open(_NOTA_CACHE)).match(url);
+    if (!r) return url;
+    return (_notaBlobAdres[url] = URL.createObjectURL(await r.blob()));
+  } catch (e) { return url; }
+};
+// → fetch yerine: SW yokken önbellekteki yanıt (PDF nota), yoksa ağ.
+window.notaYerelYanit = async function (url) {
+  try {
+    if (url && _NOTA_ADRES.test(url) && typeof caches !== 'undefined' && _swYok()) {
+      const r = await (await caches.open(_NOTA_CACHE)).match(url);
+      if (r) return r;
+    }
+  } catch (e) {}
+  return fetch(url);
+};
+// Sayfaya eklenen / adresi değişen nota görselleri kendiliğinden yerel kopyaya geçer (sahne, eser detayı Nota sekmesi…).
+(function () {
+  if (typeof caches === 'undefined' || typeof MutationObserver === 'undefined' || !_swYok()) return;
+  const gec = im => {
+    const s = im.getAttribute('src') || '';
+    if (!_NOTA_ADRES.test(s) || im.dataset.yerelAdres === s) return;
+    im.dataset.yerelAdres = s;
+    window.notaYerelAdres(s).then(y => { if (y !== s && im.getAttribute('src') === s) im.src = y; });
+  };
+  const tara = kok => { if (kok.tagName === 'IMG') gec(kok); else if (kok.querySelectorAll) kok.querySelectorAll('img').forEach(gec); };
+  const izle = () => {
+    tara(document.documentElement);
+    new MutationObserver(ms => {
+      for (const m of ms) {
+        if (m.type === 'attributes') { if (m.target.tagName === 'IMG') gec(m.target); continue; }
+        for (const n of m.addedNodes) if (n.nodeType === 1) tara(n);
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', izle); else izle();
+})();
+
 // ── KUYRUK GÖSTERGESİ (2026-09-27) ────────────────────────────────────────────
 // Çevrimdışı yapılmış ve henüz gönderilmemiş kişisel değişiklik varsa sağ altta
 // küçük bir hap: "⏳ 2 değişiklik bekliyor". Dokununca hemen göndermeyi dener.

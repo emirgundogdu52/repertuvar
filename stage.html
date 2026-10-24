@@ -2635,7 +2635,8 @@ function pdfKutuphane(){
 function pdfBelge(url){
   if (!_pdfBelgeler[url]) {
     _pdfBelgeler[url] = pdfKutuphane()
-      .then(lib => fetch(url).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
+      // (2026-10-24) notaYerelYanit: iOS uygulamasında SW yok → indirilmiş PDF önbellekten (db.js); diğerlerinde düz fetch.
+      .then(lib => (window.notaYerelYanit ? window.notaYerelYanit(url) : fetch(url)).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
       .then(buf => lib.getDocument({ data: buf }).promise))
       .then(doc => { _pdfSayfaSayisi[url] = doc.numPages; return doc; })
       .catch(e => { delete _pdfBelgeler[url]; throw e; });
