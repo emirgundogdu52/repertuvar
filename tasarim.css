@@ -987,3 +987,27 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
   html[data-tasarim="v3"] .detail .stage-open-btn { min-height: 44px; font-size: 14px; }
   html[data-tasarim="v3"] .detail .act-btn { min-height: 40px; font-size: 13px; }
 }
+
+/* ══ (2026-10-24) SAHNE MODU — kullanıcı: "iPad'de Sahne Modu seçim ekranını kontrol et; Söz Akor Nota Bilgi butonlarını
+   gözden geçir". Ölçüldü: görünüm şeridi telefonda 36 px (karar bölmesi 28), iPad'de 28 px — sahnede çalarken dokunmak için
+   küçük; kesilen öğe yok, kenarlar 16 px'te. iPad seçim ekranında "Sahneye Çık" liste sütunundan 16 px taşıyordu; Gündüz/Gece
+   30 px. Yükseklik artışı söz alanından az yer alır (telefonda +4 px). ══ */
+@media (max-width: 768px) {
+  html[data-tasarim="v3"][data-sayfa="stage"] .vm-tabs { border-radius: 12px; padding: 3px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] :is(.vm-tab, .stage-info-btn) { height: 40px; min-height: 0; border-radius: 9px; font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] .vm-karar { height: 40px; }
+}
+@media (min-width: 769px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="stage"] .vm-tabs { border-radius: 14px; padding: 3px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] :is(.vm-tab, .stage-info-btn) { height: 44px; border-radius: 11px; font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] :is(.vm-tab, .stage-info-btn) .ti { font-size: 17px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] .vm-karar { height: 44px; font-size: 13px; }
+}
+@media (max-width: 1023px) {
+  /* Seçim ekranı: yüzen "Sahneye Çık" liste sütunuyla aynı çizgide (sütun en çok 520 px, iç payı 16 px). */
+  html[data-cam][data-sayfa="stage"] #pickerScreen .bstart {
+    left: max(var(--cam-yan), calc(50% - 260px + 16px)) !important; right: max(var(--cam-yan), calc(50% - 260px + 16px)) !important;
+  }
+  /* Gündüz / Gece seçimi 30 → 40 px */
+  html[data-cam][data-sayfa="stage"] #pickerScreen :is(#tc-day, #tc-night) { min-height: 40px; display: inline-flex; align-items: center; padding: 0 18px !important; font-size: 13px !important; }
+}
