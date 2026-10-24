@@ -1026,7 +1026,7 @@ function renderDetail(){
   dc.innerHTML=`
     <div class="dh" style="padding:10px 14px 8px;">
       <button type="button" class="mobile-back-btn" onclick="goBackToList()" style="display:none;" id="mobileBackBtn"><i class="ti ti-chevron-left" aria-hidden="true"></i><span>${_r('rep.listeyeDon','← Repertuvar Listesi').replace(/^[←‹<]\s*/, '')}</span></button>
-      <div class="dn" style="font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;margin-bottom:8px;">${_rEsc(rep.name)}</div>
+      <div class="dn" style="font-size:18px;font-weight:700;line-height:1.3;word-break:break-word;margin-bottom:8px;">${_rEsc(rep.name)}</div>
       <div class="cta-row">
         <a href="stage.html" class="bstage-primary" onclick="localStorage.setItem('stageRepId','${rep.id}');localStorage.setItem('stageSource','repertoires');localStorage.setItem('stageShowChords','0')"><i class="ti ti-microphone" style="font-size:15px;" aria-hidden="true"></i> ${_r('rep.sahneyeCik','Sahneye Çık')}</a>
         ${(rep.items||[]).length ? `<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openDinleSheet('${rep.id}')" title="${_r('rep.dinleT','Repertuvarı YouTube bağlantılarından sırayla dinle')}">${_r('rep.dinleBtn','🎧 Dinle')}</button>` : ''}

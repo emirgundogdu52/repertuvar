@@ -399,6 +399,32 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
   .ra button[onclick^="mvActive"] { display:none; }
   .ra { gap:4px; justify-content:flex-end; }
 }
+
+/* ══ (2026-10-24) RENK UYUMU — kullanıcı: "Repertuvar detay sayfası renkleri farklı, bir uyumsuzluk var". Eski paletten
+   kalan sabit renkler Eserler / Eser detayı diliyle eşlendi (tema değişkenleri zaten aynıydı). ══ */
+/* Durum çipleri koyu temaya sabitti (#1a2d1a…): açık temada siyaha yakın hap. Eserler etiketleri gibi saydam zemin + renkli yazı. */
+.sp{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid transparent;}
+.sc{background:rgba(255,200,61,.12);color:#FFC83D;border-color:rgba(255,200,61,.35);}
+.sf{background:rgba(52,199,89,.12);color:#6FD98A;border-color:rgba(52,199,89,.35);}
+.sa{background:rgba(77,163,255,.12);color:#8CC5FF;border-color:rgba(77,163,255,.35);}
+[data-theme="light"] .sc{background:rgba(229,169,0,.12);color:#8A5A00;border-color:rgba(229,169,0,.35);}
+[data-theme="light"] .sf{background:rgba(26,127,60,.10);color:#1A7F3C;border-color:rgba(26,127,60,.30);}
+[data-theme="light"] .sa{background:rgba(11,111,222,.08);color:#0B5FC0;border-color:rgba(11,111,222,.28);}
+/* Eser tablosu: satırlar sayfa zemini / beyaz bant diye dönüşüyordu → Eserler kartları gibi tek kart, zebra iki yüzey tonu.
+   Eski mor vurgular (124,111,255) marka sarısına. */
+#dc table{border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+#dc tbody tr:nth-child(even) td,#dc tbody tr.zebra-tr td{background:var(--surface2);}
+#dc tbody tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,200,61,.06);}
+tr.drag-over td{background:rgba(255,200,61,.12);}
+/* Satır düğmeleri en soluk yazı renginde, devre dışı gibi görünüyordu; Düzenle sabit maviydi → nötr, Sil kırmızı (Eser detayı gibi). */
+.br{color:var(--text2);border-color:var(--border2);}
+.be{color:var(--text2) !important;}
+.br.dl{color:var(--red);border-color:rgba(255,90,95,.32);}
+.br.bl.linked{background:rgba(255,200,61,.12);}
+/* Düğme grubu .45 saydamdı (hover'da 1); dokunmatikte hover yok → hep soluk kalıyordu. Tam görünür, devre dışılar zaten .25. */
+.ra{opacity:1;}
+tr.medley-row{background:rgba(255,200,61,.05);}   /* potpuri satırı: eski mor ton yerine marka sarısı */
 </style>
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
