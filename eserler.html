@@ -6586,6 +6586,8 @@ function setupNeNotaZone() {
   if (kam) kam.innerHTML = notaKameraHtml('ne');
   const zone = document.getElementById('notaDrop_ne');
   const box  = document.getElementById('notaPaste_ne');
+  // (2026-10-24) Düzenleme formundaki kutuda ipucu yoktu (boş kesikli kutu) — eser detayındakiyle aynı metin.
+  if (box) box.dataset.ipucu = _esCev('es.notaYapistirKutu','📋  Buraya basılı tut → Yapıştır');
   const al = files => {
     if (!files || !files.length) return;
     if (editingWorkId === null) { renderNeNotaList(); return; }
