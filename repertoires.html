@@ -296,7 +296,9 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
     .nb[href="index.html"] img { height:28px !important; }
     .layout { min-height:calc(100vh - 52px); }
     /* .lp max-height removed — fixMobileHeight() handles this dynamically */
-    .dmr { flex-direction:column; gap:6px; }
+    /* (2026-10-24) Kullanıcı: "Onaylandı çipinin altında kümelenme var, sağ taraf boş — yer kazanalım" → sütun yerine
+       yan yana, sığmayan alt satıra (satır içi nowrap/overflow ezilir). */
+    .dmr { flex-direction:row; flex-wrap:wrap !important; align-items:center; gap:6px 14px !important; overflow:visible !important; }
     .dt { font-size:11px; }
     .da { flex-wrap:nowrap; overflow-x:auto; gap:4px; }
     .bi { font-size:11px; padding:5px 8px; }
