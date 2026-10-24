@@ -843,3 +843,56 @@ html[data-cam][data-theme="light"] .sec-action:active { background: rgba(0, 0, 0
     box-shadow: var(--cam-golge);
   }
 }
+
+/* ══ (2026-10-24) DOKUNMA BOYUTLARI — kullanıcı: "Kişisel notum penceresinin altındaki butonlar çok küçük; başka benzer sorun
+   varsa tespit et ve hallet". 390 px'te sayfalar ölçüldü: 22–36 px yükseklik, 11–12 px yazılı düğmeler (not Kaydet/İptal/Sil,
+   repertuvar satırı 25–28 px genişlik, gruplar 27 px, önerilerim 28 px, üyeler 26 px…). Telefonda (≤768 px) en az 40 px,
+   birincil 44 px, yazı 13–15 px. Repertuvar satırında 5 ikon düğmesi yan yana → yer darlığından 36×40. Yeni tasarıma bağlı
+   (data-tasarim v3), cam denemesinden bağımsız. Satır içi stilleri ezmek gereken yerlerde !important. ══ */
+@media (max-width: 768px) {
+  /* Eser detayı — kişisel not */
+  html[data-tasarim="v3"] .knot-dugmeler { gap: 8px; margin-top: 10px; }
+  html[data-tasarim="v3"] .knot-dugmeler .rbtn { min-height: 44px; padding: 0 20px; font-size: 15px; border-radius: 12px; }
+  html[data-tasarim="v3"] .knot-bos { display: inline-flex; align-items: center; min-height: 40px; font-size: 14px; }
+  html[data-tasarim="v3"] .knot-durum { font-size: 13px; }
+  /* Eser detayı — sekmeler; Eserler listesi — Tümü/Favoriler/Taslaklarım, dil/tür çipleri, araç çubuğu */
+  /* Sekmeler tek satır (tasarımdaki gibi), sığmazsa yana kayar — büyüyünce "Hikaye" alt satıra düşüyordu. */
+  html[data-tasarim="v3"] .detail.mobile-visible .detail-tabs { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; }
+  html[data-tasarim="v3"] .detail.mobile-visible .detail-tabs::-webkit-scrollbar { display: none; }
+  html[data-tasarim="v3"] .detail.mobile-visible .dtab { min-height: 40px; font-size: 13px; flex: 0 0 auto !important; padding: 0 14px !important; white-space: nowrap; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .fav-toggle-btn { min-height: 40px; font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .tur-chip { min-height: 40px; font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .tur-ok { min-height: 40px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .toolbar > button { min-height: 40px !important; font-size: 13px !important; }
+  /* Repertuvar detayı — satır ikon düğmeleri, görünürlük çipi */
+  /* 5 düğme 36 px tek sırada eser adına ~80 px bırakıyor, adlar kelime ortasından bölünüyordu → 3 + 2 iki sıra (ad ~2 kat yer). */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ra { gap: 4px !important; flex-wrap: wrap; justify-content: flex-end; width: calc(36px * 3 + 4px * 2); min-width: calc(36px * 3 + 4px * 2); margin-left: auto; }
+  /* display VERİLMEZ: ↑/↓ telefonda bilerek gizli (repertoires.html .ra button[onclick^="mvActive"]); simge satır yüksekliğiyle ortalanır. */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .br {
+    min-width: 36px; height: 40px; padding: 0 !important; font-size: 14px !important;
+    line-height: 38px; text-align: center; border-radius: 9px;
+  }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] #dc tbody td { padding-top: 6px; padding-bottom: 6px; }   /* iki sıra düğmeyle satır ~95 px */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .chip-vis { min-height: 36px; padding: 0 12px; font-size: 12px; }
+  /* Ana sayfa */
+  html[data-tasarim="v3"][data-sayfa="index"] .hero-btn-primary,
+  html[data-tasarim="v3"][data-sayfa="index"] .hero-btn-secondary { min-height: 44px; font-size: 14px; }
+  html[data-tasarim="v3"] .sec-action { min-height: 40px; height: auto !important; }
+  /* Gruplar, Önerilerim, Mesajlar, Bildirimler, Ayarlar, Çalışma Odası, Solistler, Üyeler */
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .btn { min-height: 40px; min-width: 40px; font-size: 13px; }   /* simgeli üye düğmeleri 29 px genişti */
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .grp-chip { min-height: 40px; }
+  /* Üye satırı: rozet + simge düğmeleri + rol seçimi tek dikey sütundu; düğmeler büyüyünce satır ~220 px oldu → sağa yaslı,
+     3 düğme genişliğinde sarmalı sıra (2 sıra). Sütun satır içi stille kurulu (gruplar.html), seçici ona bağlı. */
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .member-item > div[style*="flex-direction:column"] {
+    flex-direction: row !important; flex-wrap: wrap; justify-content: flex-end; align-items: center !important; max-width: 136px;
+  }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.btn-edit, .btn-soz, .btn-restore) { min-height: 40px; font-size: 13px; padding-left: 14px; padding-right: 14px; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .btn-new-msg { min-height: 40px; font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .tab-btn { min-height: 40px; }
+  html[data-tasarim="v3"][data-sayfa="bildirimler"] button { min-height: 40px; }
+  html[data-tasarim="v3"][data-sayfa="ayarlar"] :is(.setting-btn, .setting-select) { min-height: 40px; }
+  html[data-tasarim="v3"][data-sayfa="ayarlar"] .page button { min-height: 40px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] .co-sekme { min-height: 40px; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] :is(.btn-new, .work-chip-add) { min-height: 40px; font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="uyeler"] .btn-sm { min-height: 36px; font-size: 12px; padding-left: 12px; padding-right: 12px; }
+}
