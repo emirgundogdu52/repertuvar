@@ -269,11 +269,12 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
     .lp.mobile-hidden { display:none !important; }
     /* (2026-10-24) Kullanıcı: "repertuvardan geri dönme butonunu da değiştirelim" → eserler.html "‹ Listeye Dön" ile aynı hap
        düğme. JS display'i flex/none yapar → genişlik fit-content. Cam düzeninde konum tasarim.css'te (bara 6 px). */
-    .mobile-back-btn { align-items:center; gap:4px; width:fit-content; height:40px; min-height:0; margin:0 0 8px 2px; padding:0 16px 0 10px;
+    .mobile-back-btn { align-items:center; gap:4px; width:fit-content; height:40px; min-height:0; margin:0 0 4px 2px; padding:0 16px 0 10px;
       border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.07); color:var(--accent);
       font-family:inherit; font-size:15px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent;
       transition:transform .12s, background .15s; }
     .mobile-back-btn i { font-size:20px; line-height:1; }
+    /* Kullanıcı (2026-10-24): "repertuvar detayındaki başlığı biraz yukarı al" → alt pay 8 → 4 px (~0,7 mm). */
     .mobile-back-btn:active { transform:scale(.96); background:rgba(255,255,255,.12); }
     [data-theme="light"] .mobile-back-btn { border-color:rgba(0,0,0,.08); background:rgba(0,0,0,.045); color:#8A5A00; }
     [data-theme="light"] .mobile-back-btn:active { background:rgba(0,0,0,.08); }
