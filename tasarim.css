@@ -1139,3 +1139,23 @@ html[data-tasarim="v3"][data-sayfa="artiesten"] .work-pick-item.selected { backg
 @media (min-width: 1024px) {
   html[data-tasarim="v3"][data-sayfa="artiesten"] .layout { height: calc(100vh - env(safe-area-inset-top, 0px)); height: calc(100dvh - env(safe-area-inset-top, 0px)); }
 }
+
+/* ══ (2026-10-24) GRUP / KORO — iPad. Kullanıcı: "iPad'de Grup / Koro sayfasını kontrol et" + "Gruplarım ve diğer kutuların
+   genişliği az olmuş, tam genişliğe getir". iPad 7. nesilde ölçüldü: içerik 680 px'te kalıyordu (dikeyde barlar 778 px, sağda
+   ~130 px boşluk; yatayda 148 px). Telefon dokunma kuralları (≤768) iPad'e gelmiyordu: üye simge düğmeleri 29×22, rol 29 px,
+   Yeni Grup / Düzenle 27 px. Üye düğmeleri dikey sütundu (her satır ~95 px) → iPad'de yer var, tek sıra. Masaüstü değişmez. ══ */
+@media (min-width: 601px) and (max-width: 1023px) {
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .page-content { max-width: none; }
+}
+html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; }   /* 35 px idi */
+@media (min-width: 769px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .page-content { max-width: none; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .btn { min-height: 40px; min-width: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .btn .ti { font-size: 16px !important; }   /* satır içi 11–13 px */
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .grp-chip { min-height: 40px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] #inviteMaxUses { min-height: 40px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .role-dd-menu button { min-height: 44px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .member-item > div[style*="flex-direction:column"] {
+    flex-direction: row !important; align-items: center !important; gap: 8px !important;
+  }
+}
