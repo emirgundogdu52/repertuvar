@@ -925,3 +925,30 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
   html[data-tasarim="v3"][data-sayfa="artiesten"] :is(.btn-new, .work-chip-add) { min-height: 40px; font-size: 13px; }
   html[data-tasarim="v3"][data-sayfa="uyeler"] .btn-sm { min-height: 36px; font-size: 12px; padding-left: 12px; padding-right: 12px; }
 }
+
+/* ══ (2026-10-24) iPAD / DOKUNMATİK TABLET (liste + detay yan yana) — kullanıcı: "iPad'de repertuvar detayını da kontrol et".
+   810 px'te ölçüldü: dokunma boyutu kuralları yalnız ≤768 px'teydi → iPad'de satır düğmeleri 31–35×30, Sahne Modunda Aç 33,
+   Dinle/Sırala/Eser Ekle 35–36, görünürlük çipi 22, Diğer menüsü 32 px; bilgi satırı tek satıra zorlanıp kesiliyor (kaydırma
+   çubuğu görünüyordu); sol panelde "MEVCUT REPERTUVARLAR" ve "+ Yeni" iki satıra kırılıyordu. Yalnız dokunmatik (fareli
+   masaüstü değişmez). ══ */
+@media (min-width: 769px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+  /* Repertuvarlar — sol panel */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lph h2 { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lph .bn { white-space: nowrap; flex-shrink: 0; min-height: 36px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] #list > div[style*="font-size:17px"] { font-size: 15px !important; }
+  /* Repertuvarlar — detay */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dmr { flex-wrap: wrap !important; overflow: visible !important; gap: 6px 14px !important; align-items: center; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .cta-row .bstage-primary { min-height: 44px; font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .cta-row > .bi,
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .cta-row > .ov-menu > summary { min-height: 44px; display: inline-flex; align-items: center; font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ih .bi { min-height: 40px; display: inline-flex; align-items: center; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ra { gap: 6px !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .br {
+    min-width: 40px; height: 40px; padding: 0 !important; font-size: 15px !important; line-height: 38px; text-align: center; border-radius: 9px;
+  }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .chip-vis { min-height: 32px; padding: 0 12px; font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ov-menu-body button { min-height: 44px; font-size: 14px; }
+  /* Eser detayı (yan panel) */
+  html[data-tasarim="v3"] .detail .stage-open-btn { min-height: 44px; font-size: 14px; }
+  html[data-tasarim="v3"] .detail .act-btn { min-height: 40px; font-size: 13px; }
+}
