@@ -850,6 +850,17 @@ html[data-cam][data-theme="light"] .sec-action:active { background: rgba(0, 0, 0
    .detail-header alt kenarlığı + .tab-divider. Başlık kutusunun zemini sayfadan zaten ayrışıyor; ikisi de kalkar (tüm genişlikler). */
 html[data-tasarim="v3"] .detail .tab-divider { display: none; }
 html[data-tasarim="v3"] .detail .detail-header { border-bottom: none !important; }
+/* Kullanıcı (2026-10-24): sekmeleri Kişisel Notum kutusuna 1 mm yaklaştır → aralık 12 → 6 px (iPhone 17 Pro Max 6 px ≈ 1 mm). */
+html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
+/* Kullanıcı (2026-10-24): sekmeler not kutusunun sol ve sağ kenarına hizalı. Telefonda zaten öyle (DOKUNMA BOYUTLARI bloğu);
+   tablet/masaüstünde (liste + detay yan yana) ortalanıyordu → satırı doldurur, kenarlar not kutusuyla aynı (16 px). */
+@media (min-width: 769px) {
+  html[data-tasarim="v3"] .detail .detail-tabs { justify-content: flex-start; flex-wrap: nowrap; gap: 6px; padding-left: 16px; padding-right: 16px; }
+  html[data-tasarim="v3"] .detail .dtab {
+    flex: 1 1 auto; min-width: 0; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+}
 
 /* ══ (2026-10-24) DOKUNMA BOYUTLARI — kullanıcı: "Kişisel notum penceresinin altındaki butonlar çok küçük; başka benzer sorun
    varsa tespit et ve hallet". 390 px'te sayfalar ölçüldü: 22–36 px yükseklik, 11–12 px yazılı düğmeler (not Kaydet/İptal/Sil,
