@@ -3411,7 +3411,20 @@ function selectWork(id, silent) {
     if (history.state && history.state.eserDetay) history.replaceState({ eserDetay: id }, '');
     else history.pushState({ eserDetay: id }, '');
   }
+  _sahneOrtaAyarla();
 }
+// (2026-10-24) Kullanıcı: "eser adının zemini Sahne Modu düğmesinin tam ortasından yukarı doğru siyaha dönsün" — geçişin
+// başladığı yükseklik başlığın uzunluğuna göre değişir (ad iki satıra kırılabilir) → ölçülüp --sahne-orta olarak verilir.
+function _sahneOrtaAyarla() {
+  requestAnimationFrame(() => {
+    const bas = document.querySelector('.detail.mobile-visible .detail-header');
+    const btn = bas && bas.querySelector('.stage-open-btn');
+    if (!bas || !btn) return;
+    const y = btn.getBoundingClientRect().top + btn.offsetHeight / 2 - bas.getBoundingClientRect().top;
+    bas.style.setProperty('--sahne-orta', Math.round(y) + 'px');
+  });
+}
+window.addEventListener('resize', () => _sahneOrtaAyarla());
 
 // ── TEK KAYNAK YARDIMCILARI (ChordPro) ──
 // Akor alanı ChordPro formatında: akorlar sözlerin İÇİNDE [Am] köşeli parantezle,

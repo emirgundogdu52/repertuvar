@@ -868,6 +868,11 @@ html[data-cam][data-theme="light"] .sec-action:active { background: rgba(0, 0, 0
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: center; justify-content: center; gap: 3px;
   }
   html[data-tasarim="v3"] .detail.mobile-visible .dtab .ti { font-size: 13px; }
+  /* Kullanıcı (2026-10-24): eser adının zemini Sahne Modu düğmesinin tam ortasından yukarı doğru siyaha dönsün (sağda boşluk
+     varmış gibi duran keskin şerit sınırı kalkar). Üst renk = sayfa zemini (koyu temada siyah #070A0F, açıkta krem). */
+  html[data-tasarim="v3"] .detail.mobile-visible .detail-header {
+    background: linear-gradient(to bottom, var(--bg) 0, var(--surface) var(--sahne-orta, 60%), var(--surface) 100%) !important;
+  }
   html[data-tasarim="v3"][data-sayfa="eserler"] .fav-toggle-btn { min-height: 40px; font-size: 13px !important; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .tur-chip { min-height: 40px; font-size: 13px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .tur-ok { min-height: 40px; }
