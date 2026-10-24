@@ -41,6 +41,17 @@
 #r-topnav-container { position: sticky; top: 0; z-index: 500; background: var(--bg); }
 
 .rk-head { margin-bottom: 14px; }
+/* (2026-10-24) Kullanıcı: "Yeni ritim kes ile ekrana girince listeye geri dön butonu yok; dönmek için yeniden başlamak gerekiyor"
+   (telefon + iPad; uygulamada tarayıcı geri tuşu yok). Eserler'deki "‹ Listeye Dön" hap düğmesinin aynısı → Çalışma Odası
+   Ritim sekmesi (calisma.html?sekme=ritim). */
+.rk-geri { display: inline-flex; align-items: center; gap: 4px; height: 40px; margin: 0 0 12px; padding: 0 16px 0 10px;
+           border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.07); color: var(--accent);
+           font-size: 15px; font-weight: 600; text-decoration: none; -webkit-tap-highlight-color: transparent;
+           transition: transform .12s, background .15s; }
+.rk-geri i { font-size: 20px; line-height: 1; }
+.rk-geri:active { transform: scale(.96); background: rgba(255,255,255,.12); }
+[data-theme="light"] .rk-geri { border-color: rgba(0,0,0,.08); background: rgba(0,0,0,.045); color: #8A5A00; }
+[data-theme="light"] .rk-geri:active { background: rgba(0,0,0,.08); }
 .rk-title { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -.01em; }
 .rk-sub { font-size: 13px; color: var(--text3); margin-top: 3px; line-height: 1.5; max-width: 62ch; }
 
@@ -134,6 +145,7 @@
 <div class="main-wrap">
 <div class="page-content">
 
+  <a class="rk-geri" href="calisma.html?sekme=ritim"><i class="ti ti-chevron-left" aria-hidden="true"></i><span data-i18n="ca.rbBanka">Ritim bankam</span></a>
   <div class="rk-head">
     <div class="rk-title" data-i18n="rk.baslik">Ritim kes</div>
     <div class="rk-sub" data-i18n="rk.altBaslik">Elindeki uzun ritim kaydından kusursuz dönen bir döngü kes. Orijinal kayıt cihazından çıkmaz; yalnız kestiğin döngü kaydedilir.</div>
