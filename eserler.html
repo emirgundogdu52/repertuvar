@@ -1014,7 +1014,15 @@
     .detail.mobile-visible .detail-body { padding:12px 16px; overflow-x:hidden; width:100%; }
     .detail.mobile-visible .lyrics-box { overflow-x:hidden; word-break:break-word; white-space:pre-wrap; width:100%; max-width:100%; box-sizing:border-box; }
     .detail.mobile-visible::-webkit-scrollbar { display:none; }
-    .back-btn { display:flex; align-items:center; gap:6px; padding:12px 16px; color:var(--accent); font-size:14px; cursor:pointer; border-bottom:1px solid var(--border); }
+    /* (2026-10-24) Kullanıcı: "Listeye Dön'ü şık bir butonla değiştirelim" → çizgili yazı satırı yerine hap düğme (‹ + metin). */
+    .back-btn { display:inline-flex; align-items:center; gap:4px; height:40px; margin:6px 16px 4px; padding:0 16px 0 10px;
+      border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.07); color:var(--accent);
+      font-family:inherit; font-size:15px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent;
+      transition:transform .12s, background .15s; }
+    .back-btn i { font-size:20px; line-height:1; }
+    .back-btn:active { transform:scale(.96); background:rgba(255,255,255,.12); }
+    [data-theme="light"] .back-btn { border-color:rgba(0,0,0,.08); background:rgba(0,0,0,.045); color:#8A5A00; }
+    [data-theme="light"] .back-btn:active { background:rgba(0,0,0,.08); }
     .sort-bar { padding:8px 12px; gap:6px; }
     .sort-btn { font-size:11px; padding:4px 10px; }
     .layout { height:calc(100vh - 66px - env(safe-area-inset-top) - 68px - env(safe-area-inset-bottom)); height:calc(100dvh - 66px - env(safe-area-inset-top) - 68px - env(safe-area-inset-bottom)); }
@@ -1151,6 +1159,7 @@
     cursor:pointer; white-space:nowrap; transition:all .15s;
   }
   .act-btn i { font-size:15px; line-height:1; }
+  .act-lbl-kisa { display:none; }   /* (2026-10-24) cam düzeninde telefonda 5'li sırada kısa etiket (tasarim.css) */
   .act-btn:hover { background:var(--surface); color:var(--text); border-color:var(--border2); }
   .act-btn.is-fav { color:var(--accent); border-color:rgba(255,200,61,.45); }
   .act-btn.is-fav i { color:var(--accent); }
@@ -3135,7 +3144,7 @@ function selectWork(id, silent) {
   const _canEditW = (isAdmin() || isEditor() || w.submitted_by === getUserId());
   const moreBtn = `
       <div class="act-bar">
-        <button class="act-btn" onclick="event.stopPropagation();openRepAddSheet(${w.id})" title="${_esCev('es.repertuvaraEkle','Repertuvara Ekle')}"><i class="ti ti-playlist-add"></i> ${_esCev('es.repertuvaraEkle','Repertuvara Ekle')}</button>
+        <button class="act-btn" onclick="event.stopPropagation();openRepAddSheet(${w.id})" title="${_esCev('es.repertuvaraEkle','Repertuvara Ekle')}"><i class="ti ti-playlist-add"></i> <span class="act-lbl-uzun">${_esCev('es.repertuvaraEkle','Repertuvara Ekle')}</span><span class="act-lbl-kisa">${_esCev('es.ekleKisa','Ekle')}</span></button>
         <button class="act-btn" onclick="event.stopPropagation();shareWork(${w.id})" title="${_esCev('es.paylasBtn','Paylaş')}"><i class="ti ti-share"></i> ${_esCev('es.paylasBtn','Paylaş')}</button>
         <button class="act-btn${isFavNow?' is-fav':''}" id="actFav_${w.id}" onclick="event.stopPropagation();toggleFavoriteInline(${w.id})" title="${_esCev('es.t_favori','Favori')}" data-i18n-title="es.t_favori"><i class="ti ti-star${isFavNow?'-filled':''}"></i> <span class="act-lbl">${isFavNow?_esCev('es.favoride','Favoride'):_esCev('es.t_favori','Favori')}</span></button>
         ${_canEditW ? `<button class="act-btn" onclick="event.stopPropagation();openEditEserModal(${w.id})" title="${_esCev('rep.duzenle','Düzenle')}"><i class="ti ti-edit"></i> ${_esCev('rep.duzenle','Düzenle')}</button>` : ''}
@@ -3160,7 +3169,7 @@ function selectWork(id, silent) {
   const dispLyrics = _pc ? chordsToLyrics(_pc) : (w.lyrics || '');
 
   dc.innerHTML = `
-    <div class="back-btn" onclick="backFromDetail()">${_esCev('es.listeyeDon','← Listeye Dön')}</div>
+    <button type="button" class="back-btn" onclick="backFromDetail()"><i class="ti ti-chevron-left" aria-hidden="true"></i><span>${_esCev('es.listeyeDon','← Listeye Dön').replace(/^[←‹<]\s*/, '')}</span></button>
     <div class="detail-header">
       <div class="detail-title">${_esHtml(w.name||_esCev('es.isimsiz','(isimsiz)'))}</div>
       ${(w.region || w.sourcePerson || w.composer) ? `<div class="detail-subtitle">${[w.region ? `📍 ${_esHtml(w.region)}` : '', (w.sourcePerson||w.composer) ? `👤 ${_esHtml(w.sourcePerson||w.composer)}` : ''].filter(Boolean).join(' &nbsp;•&nbsp; ')}</div>` : ''}

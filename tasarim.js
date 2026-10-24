@@ -54,6 +54,9 @@
       try { tema = localStorage.getItem('r_theme') || 'dark'; } catch (e) {}
       html.setAttribute('data-theme', tema);
     }
+    // (2026-10-24) DENEME — yüzen cam barlar (todo/02, dal deneme/cam-tasarim). Üst bar + alt menü olan sayfalar;
+    // stage (Sahne Modu) ve login dışarıda. Kurallar tasarim.css sonundaki "YÜZEN CAM BARLAR" bloğunda (<1024 px).
+    if ((TOPNAV_SAYFALARI + 'bildirimler ').indexOf(' ' + sayfa + ' ') !== -1) html.setAttribute('data-cam', '1');
 
     var head = document.head || document.getElementsByTagName('head')[0];
     var linkEkle = function (href) {

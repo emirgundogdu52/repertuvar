@@ -583,9 +583,9 @@ html[data-tasarim="v3"][data-theme="light"] #recentWorks .work-row.zebra { backg
    kazanır) → içteki öğeler koyu temadaki gibi boyanır. topnav.js ve bu dosyadaki açık moda özel sabit renkler
    (!important) aşağıda koyu karşılıklarıyla ezilir. Açılır menüler (.r-tn-dropdown vb.) açık temada kalır.
    Durum çubuğu: topnav.js sistemCubuklariniAyarla yeni tasarımda hep DARK (açık simge). */
-html[data-tasarim="v3"][data-theme="light"] .r-topnav,
-html[data-tasarim="v3"][data-theme="light"] .bottom-nav,
-html[data-tasarim="v3"][data-theme="light"] .v2-bottom-nav,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-topnav,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bottom-nav,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bottom-nav,
 html[data-tasarim="v3"][data-theme="light"] .sidebar,
 html[data-tasarim="v3"][data-theme="light"] aside.sidebar,
 html[data-tasarim="v3"][data-theme="light"] .v2-sidebar {
@@ -597,24 +597,24 @@ html[data-tasarim="v3"][data-theme="light"] .v2-sidebar {
   color: var(--text);
 }
 /* Opak: koyu temadaki .92/.96 saydamlık açık içerik üstünde griye kaçıyordu (krem içerik alttan kayınca). */
-html[data-tasarim="v3"][data-theme="light"] .r-topnav { background: #070A0F !important; border-bottom-color: rgba(255, 255, 255, .08) !important; }
-html[data-tasarim="v3"][data-theme="light"] .bottom-nav,
-html[data-tasarim="v3"][data-theme="light"] .v2-bottom-nav { background: #070A0F !important; border-top-color: rgba(255, 255, 255, .08) !important; }
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-topnav { background: #070A0F !important; border-bottom-color: rgba(255, 255, 255, .08) !important; }
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bottom-nav,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bottom-nav { background: #070A0F !important; border-top-color: rgba(255, 255, 255, .08) !important; }
 html[data-tasarim="v3"][data-theme="light"] .sidebar,
 html[data-tasarim="v3"][data-theme="light"] aside.sidebar,
 html[data-tasarim="v3"][data-theme="light"] .v2-sidebar { background: #090D14 !important; border-right-color: rgba(255, 255, 255, .08) !important; }
 /* Üst çubuk: kullanıcı düğmesi */
-html[data-tasarim="v3"][data-theme="light"] .r-tn-user { background: rgba(255, 200, 61, .12); }
-html[data-tasarim="v3"][data-theme="light"] .r-tn-uname { color: #FFFFFF; }
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-tn-user { background: rgba(255, 200, 61, .12); }
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-tn-uname { color: #FFFFFF; }
 /* Alt menü */
-html[data-tasarim="v3"][data-theme="light"] .bn-item,
-html[data-tasarim="v3"][data-theme="light"] .v2-bn-item,
-html[data-tasarim="v3"][data-theme="light"] .bn-item .bn-label,
-html[data-tasarim="v3"][data-theme="light"] .v2-bn-item .bn-label { color: #8A93A6 !important; }
-html[data-tasarim="v3"][data-theme="light"] .bn-item.active,
-html[data-tasarim="v3"][data-theme="light"] .v2-bn-item.active,
-html[data-tasarim="v3"][data-theme="light"] .bn-item.active .bn-label,
-html[data-tasarim="v3"][data-theme="light"] .v2-bn-item.active .bn-label { color: #FFC83D !important; }
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bn-item,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bn-item,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bn-item .bn-label,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bn-item .bn-label { color: #8A93A6 !important; }
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bn-item.active,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bn-item.active,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bn-item.active .bn-label,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bn-item.active .bn-label { color: #FFC83D !important; }
 /* Yan menü (≥1024px) */
 html[data-tasarim="v3"][data-theme="light"] .sb-item,
 html[data-tasarim="v3"][data-theme="light"] .v2-sb-item { color: #AEB6C5 !important; }
@@ -634,13 +634,13 @@ html[data-tasarim="v3"][data-theme="light"] .sb-divider,
 html[data-tasarim="v3"][data-theme="light"] .v2-sb-divider { background: rgba(255, 255, 255, .08) !important; }
 html[data-tasarim="v3"][data-theme="light"] .sb-user-x { background: #111722 !important; border-color: rgba(255, 255, 255, .12) !important; }
 /* Üst çubuktaki zil ve tema anahtarı: topnav.js açık tema için koyu renk yazıyordu (siyah zeminde görünmüyordu). */
-html[data-tasarim="v3"][data-theme="light"] .r-topnav .r-tn-bell i { color: #e6e2ff; }
-html[data-tasarim="v3"][data-theme="light"] .r-topnav .r-theme-toggle,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-topnav .r-tn-bell i { color: #e6e2ff; }
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-topnav .r-theme-toggle,
 html[data-tasarim="v3"][data-theme="light"] .sidebar .r-theme-toggle,
 html[data-tasarim="v3"][data-theme="light"] .v2-sidebar .r-theme-toggle { background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .10); }
 /* Alt menüdeki "Sahne Modu" yazısı koyu temadaki gibi sarı (yukarıdaki .bn-label kuralı griye çekiyordu). */
-html[data-tasarim="v3"][data-theme="light"] .bn-stage,
-html[data-tasarim="v3"][data-theme="light"] .bn-stage .bn-label { color: #FFC83D !important; }
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bn-stage,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bn-stage .bn-label { color: #FFC83D !important; }
 
 /* (2026-10-24, todo/01) iOS YAKINLAŞTIRMA TUZAĞI — iOS, yazısı 16 px'ten küçük bir alana odaklanınca sayfayı büyütüp
    öyle bırakıyor: eser detayı "yana taşıyor, her şey büyük" görünüyordu (alt menü de kayıyordu = taşma değil, yakınlaştırma).
@@ -652,4 +652,151 @@ html[data-tasarim="v3"][data-theme="light"] .bn-stage .bn-label { color: #FFC83D
     select, textarea, [contenteditable="true"], [contenteditable=""]) { font-size: 16px !important; }
   /* Yapıştır kutusunun ipucu yazısı eski boyunda kalsın (yakınlaştırmaya odaklanan öğenin kendi boyu bakılır). */
   html:not([data-sayfa="stage"]) .nota-paste:empty::before { font-size: 12.5px; }
+}
+
+/* ══ (2026-10-24) DENEME: YÜZEN CAM BARLAR (todo/02; dal deneme/cam-tasarim) ═════════════════════════════════════════
+   Kullanıcı kararı: üst bar + alt menü kenarlardan ayrık, yuvarlak, yarı şeffaf buzlu cam; içerik altlarından kayar.
+   Açık temada beyaz cam, koyuda lacivert cam. Alt menüde Sahne Modu vurgusu kalktı (yalnız bulunulan sekme vurgulu).
+   data-cam'i tasarim.js koyar (üst bar/alt menü olan sayfalar; stage ve login hariç). Yalnız <1024 px — yan menü değişmez.
+   Siyah çerçeve kuralları cam sayfalarında :not([data-cam]) ile devre dışı. Beğenilmezse dal atılır. Tasarım tuvali:
+   artifact "Yarı Şeffaf Barlar". z-index bilerek eski 200: sayfaların sheet/modal katmanları (≥600) barların üstünde kalır. */
+html[data-cam] {
+  --cam-blur: 20px;
+  --cam-opaklik: .58;                       /* tasarımda kaydırıcı %72 → dock = .72 − .14 */
+  --cam-zemin: rgba(28, 34, 46, var(--cam-opaklik));
+  --cam-kenar: rgba(255, 255, 255, .14);
+  --cam-golge: 0 10px 30px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .08);
+  --cam-hap: rgba(255, 255, 255, .12);      /* etkin sekme / bar içi düğme zemini */
+  --cam-etkin: #F5C542;
+  --cam-pasif: #D4D8E0;
+  --cam-ust-h: 58px;
+  --cam-alt-h: 66px;
+  --cam-ust: calc(env(safe-area-inset-top, 0px) + 8px);                     /* üst barın top'u */
+  --cam-alt: max(12px, calc(env(safe-area-inset-bottom, 0px) - 8px));       /* alt menünün bottom'u (home çubuğunun üstü) */
+  --cam-yan: max(12px, calc(50% - 360px));                                  /* geniş ekranda ~720 px ortalanır */
+  --cam-icerik-ust: calc(var(--cam-ust) + var(--cam-ust-h) + 12px);
+  --cam-icerik-alt: calc(var(--cam-alt) + var(--cam-alt-h) + 20px);
+}
+html[data-cam][data-theme="light"] {
+  --cam-zemin: rgba(255, 255, 255, var(--cam-opaklik));
+  --cam-kenar: rgba(255, 255, 255, .85);
+  --cam-golge: 0 10px 30px rgba(0, 0, 0, .12), 0 0 0 .5px rgba(0, 0, 0, .06), inset 0 1px 0 rgba(255, 255, 255, .9);
+  --cam-hap: rgba(0, 0, 0, .07);
+  --cam-etkin: #8A5A00;                     /* açık temada okunur altın */
+  --cam-pasif: #1F2430;
+}
+/* Cam desteklenmiyorsa barlar neredeyse opak: metin okunur kalsın. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html[data-cam], html[data-cam][data-theme="light"] { --cam-opaklik: .94; }
+}
+
+@media (max-width: 1023px) {
+  /* ── Üst bar ── */
+  html[data-cam] .r-topnav,
+  html[data-cam].r-natural-scroll-page .r-topnav {
+    position: fixed !important; z-index: 200;
+    top: var(--cam-ust) !important; left: var(--cam-yan) !important; right: var(--cam-yan) !important;
+    width: auto !important; max-width: none !important;
+    height: var(--cam-ust-h) !important; min-height: 0 !important;
+    padding: 5px 6px 5px 18px !important;
+    border: .5px solid var(--cam-kenar) !important; border-radius: 999px;
+    background: var(--cam-zemin) !important;
+    -webkit-backdrop-filter: blur(var(--cam-blur)) saturate(180%); backdrop-filter: blur(var(--cam-blur)) saturate(180%);
+    box-shadow: var(--cam-golge);
+  }
+  html[data-cam] .r-topnav img.r-logo {
+    width: min(172px, 42vw) !important; height: auto !important;
+    margin-left: calc(min(172px, 42vw) * -10 / 664) !important;   /* görselin soldaki saydam payı */
+  }
+  html[data-cam] .r-topnav .r-tn-right { gap: 4px !important; }
+  html[data-cam] .r-topnav .r-tn-bell { width: 44px; height: 44px; padding: 0 !important; border-radius: 999px; }
+  html[data-cam] .r-topnav .r-tn-bell i { font-size: 21px !important; color: var(--text) !important; }
+  html[data-cam] .r-topnav .r-theme-toggle { width: 50px !important; height: 30px !important; border-radius: 999px !important; }
+  html[data-cam] .r-topnav .r-theme-toggle .toggle-knob { width: 24px; height: 24px; top: 3px; left: 3px; }
+  html[data-cam][data-theme="light"] .r-topnav .r-theme-toggle .toggle-knob { left: 23px; }
+  html[data-cam] .r-topnav .r-tn-user {
+    width: 44px; height: 44px; margin-left: 4px; background: none !important; border: 1.5px solid rgba(245, 197, 66, .6);
+  }
+  html[data-cam] .r-topnav .r-tn-avatar { width: 41px; height: 41px; }
+
+  /* ── Alt menü ── */
+  html[data-cam] .bottom-nav {
+    left: var(--cam-yan) !important; right: var(--cam-yan) !important; width: auto !important;
+    bottom: var(--cam-alt) !important; height: var(--cam-alt-h) !important;
+    padding: 5px !important; margin: 0 !important;
+    border: .5px solid var(--cam-kenar) !important; border-radius: 999px;
+    background: var(--cam-zemin) !important;
+    -webkit-backdrop-filter: blur(var(--cam-blur)) saturate(180%); backdrop-filter: blur(var(--cam-blur)) saturate(180%);
+    box-shadow: var(--cam-golge);
+  }
+  html[data-cam] .bottom-nav .bn-items {
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; padding: 0; height: 100%;
+  }
+  html[data-cam] .bottom-nav .bn-item {
+    margin: 0 !important; padding: 0 2px !important; gap: 2px; min-height: 0;
+    border: 0 !important; border-radius: 999px !important;
+    background: transparent !important; color: var(--cam-pasif) !important;
+  }
+  html[data-cam] .bottom-nav .bn-item i { font-size: 23px !important; }
+  html[data-cam] .bottom-nav .bn-item .bn-label { font-size: 10.5px; font-weight: 600; color: inherit !important; }
+  html[data-cam] .bottom-nav .bn-item.active { background: var(--cam-hap) !important; color: var(--cam-etkin) !important; }
+  html[data-cam] .bottom-nav .bn-item.active .bn-label { font-weight: 700; }
+  /* Klavye açıkken alt menü yazı alanını örtmesin (topnav.js, yalnız dokunmatik). */
+  html[data-cam] body.klavye-acik .bottom-nav { display: none !important; }
+
+  /* ── Doğal kaydırmalı sayfalar: içerik barların altından kayar; ilk/son öğe barların altında kalmaz ── */
+  html[data-cam].r-natural-scroll-page body {
+    padding-top: var(--cam-icerik-ust) !important; padding-bottom: var(--cam-icerik-alt) !important;
+  }
+
+  /* ── Eserler (kabuk sayfa): liste ve detay ekranın tamamında kayar; arama/çipler listeyle birlikte kayar ── */
+  html[data-cam][data-sayfa="eserler"] .layout { height: 100vh !important; height: 100dvh !important; }
+  html[data-cam][data-sayfa="eserler"] #listCol {
+    overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; box-sizing: border-box;
+    padding-top: var(--cam-icerik-ust); padding-bottom: var(--cam-icerik-alt);
+  }
+  html[data-cam][data-sayfa="eserler"] #listPanel { flex: none; overflow: visible; }
+  html[data-cam][data-sayfa="eserler"] .detail { padding-top: var(--cam-icerik-ust); padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; }
+  html[data-cam][data-sayfa="eserler"] .fab-new-eser {
+    bottom: calc(var(--cam-alt) + var(--cam-alt-h) + 14px) !important; right: calc(var(--cam-yan) + 6px) !important;
+    width: 58px !important; height: 58px !important;
+  }
+
+  /* ── Repertuvarlar (kabuk sayfa): sol panel tek kaydırma kabı (başlık + arama listeyle kayar) ── */
+  html[data-cam][data-sayfa="repertoires"] .layout { height: 100vh !important; height: 100dvh !important; }
+  html[data-cam][data-sayfa="repertoires"] .lp {
+    height: 100% !important; max-height: none !important; overflow-y: auto !important; overflow-x: hidden;
+    overscroll-behavior-y: contain; box-sizing: border-box;
+    padding-top: var(--cam-icerik-ust); padding-bottom: var(--cam-icerik-alt);
+  }
+  html[data-cam][data-sayfa="repertoires"] .ls { height: auto !important; overflow: visible !important; flex: none !important; }
+  html[data-cam][data-sayfa="repertoires"] .dp { padding-top: var(--cam-icerik-ust); padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; }
+}
+@media (max-width: 768px) {
+  /* Eserler: telefonda detay tam ekran katmanı (setDetailTop'un satır içi top'u ezilir). */
+  html[data-cam][data-sayfa="eserler"] .detail.mobile-visible { top: 0 !important; bottom: 0 !important; }
+}
+@media (max-width: 380px) {
+  html[data-cam] .bottom-nav .bn-item .bn-label { font-size: 9.5px; letter-spacing: -.1px; }   /* 375 px'te "Repertuvarlar" sığsın */
+}
+@media (max-width: 768px) {
+  /* Eser detayı eylem düğmeleri (tasarım): "Sahne Modunda Aç" tam genişlik, altında tek sırada küçük düğmeler
+     (Ekle · Paylaş · Favori · Düzenle · Sil; sahibi olmayanda Bildir/Engelle), ikon üstte + kısa etiket. */
+  html[data-cam][data-sayfa="eserler"] .detail.mobile-visible .detail-stage-row {
+    display: grid !important; grid-template-columns: minmax(0, 1fr); gap: 8px !important;
+  }
+  html[data-cam][data-sayfa="eserler"] .detail.mobile-visible .stage-open-btn {
+    height: 48px; border-radius: 14px; padding: 0 12px !important; font-size: 16px !important;
+  }
+  html[data-cam][data-sayfa="eserler"] .detail.mobile-visible .video-btn { height: 40px; border-radius: 12px; justify-content: center; }
+  html[data-cam][data-sayfa="eserler"] .detail.mobile-visible .detail-stage-row .act-bar {
+    display: grid !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px;
+  }
+  html[data-cam][data-sayfa="eserler"] .detail.mobile-visible .act-btn {
+    height: 60px; min-width: 0; flex-direction: column; gap: 4px; padding: 0 2px !important;
+    border-radius: 12px; font-size: 11.5px !important; overflow: hidden; text-overflow: ellipsis;
+  }
+  html[data-cam][data-sayfa="eserler"] .detail.mobile-visible .act-btn i { font-size: 19px; }
+  html[data-cam][data-sayfa="eserler"] .detail.mobile-visible .act-btn .act-lbl-uzun { display: none; }
+  html[data-cam][data-sayfa="eserler"] .detail.mobile-visible .act-btn .act-lbl-kisa { display: inline; }
 }

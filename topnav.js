@@ -477,7 +477,7 @@ function _m(anahtar, tr) {
   // ── Theme Toggle: tek standart kaynak ──
   // Tüm sayfalarda (sidebar, mobil header, eski desktop topbar) aynı switch.
   function themeToggleMarkup(id, theme) {
-    return `<button id="${id}" class="r-theme-toggle" title="${_m('menu.temaDegistir','Tema değiştir')}"><span class="toggle-knob">${temaIkonu(theme)}</span></button>`;
+    return `<button id="${id}" class="r-theme-toggle" title="${_m('menu.temaDegistir','Tema değiştir')}" aria-label="${_m('menu.temaDegistir','Tema değiştir')}"><span class="toggle-knob">${temaIkonu(theme)}</span></button>`;
   }
   function bindThemeToggle(id) {
     const btn = document.getElementById(id);
@@ -492,8 +492,11 @@ function _m(anahtar, tr) {
 
   // (2026-10-08) Yeni tasarımda açık modda da koyu logo — siyah plaka içinde (tasarim.css).
   // logo_light.png açık zeminde silik kalıyordu (sarı .app krem/beyaz üstünde). Eski tasarım aynen.
-  function logoDosyasi(isLight) {
-    return (isLight && document.documentElement.getAttribute('data-tasarim') !== 'v3') ? 'logo_light.png' : 'logo_dark.png';
+  // (2026-10-24 deneme, cam barlar) Cam sayfalarında ÜST BAR beyaz camda → açık temada açık logo; yan menü siyah kalır.
+  function logoDosyasi(isLight, ustBar) {
+    const h = document.documentElement;
+    const koyuZemin = h.getAttribute('data-tasarim') === 'v3' && !(ustBar && h.hasAttribute('data-cam'));
+    return (isLight && !koyuZemin) ? 'logo_light.png' : 'logo_dark.png';
   }
 
   // HTML inject
@@ -501,14 +504,14 @@ function _m(anahtar, tr) {
     const container = document.getElementById('r-topnav-container');
     if (!container) return;
     const _theme = localStorage.getItem('r_theme') || 'dark';
-    const _logo = logoDosyasi(_theme === 'light');
+    const _logo = logoDosyasi(_theme === 'light', true);
     container.innerHTML = `
       <header class="r-topnav">
         <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
         <div class="r-tn-right">
           <button class="r-tn-bell" id="rTnBell" onclick="toggleNotifPanel(event)" title="Bildirimler" aria-label="Bildirimler"><i class="ti ti-bell"></i><span id="rTnBellBadge"></span></button>
           ${themeToggleMarkup('rThemeToggle', _theme)}
-          <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser">
+          <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser" role="button" tabindex="0" aria-label="${_m('menu.profil','Profil')}">
             <div class="r-tn-avatar" id="rTnAvatar"><i class="ti ti-user" style="font-size:16px;"></i></div>
           </div>
         </div>
@@ -903,6 +906,21 @@ function _m(anahtar, tr) {
     renderBottomNav();
   }
 
+  // (2026-10-24 deneme, cam barlar) iOS klavyesi açılınca sabit alt menü klavyenin üstüne zıplayıp yazı alanını örtüyor →
+  // dokunmatik cihazda bir yazı alanı odaktayken alt menü gizlenir (body.klavye-acik, tasarim.css). inputmode=none
+  // (yapıştır kutusu) klavye açmaz, sayılmaz.
+  (function () {
+    if (!document.documentElement.hasAttribute('data-cam')) return;
+    if (!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)) return;
+    const yaziAlani = el => !!el && el.getAttribute && el.getAttribute('inputmode') !== 'none' &&
+      (el.isContentEditable || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' ||
+       (el.tagName === 'INPUT' && !/^(checkbox|radio|range|button|submit|reset|file|color|image|hidden)$/i.test(el.type)));
+    document.addEventListener('focusin', e => { if (yaziAlani(e.target)) document.body.classList.add('klavye-acik'); });
+    document.addEventListener('focusout', () => setTimeout(() => {
+      if (!yaziAlani(document.activeElement)) document.body.classList.remove('klavye-acik');
+    }, 60));
+  })();
+
   // Theme logic
   window._applyNavTheme = function(theme) { applyTheme(theme); };
   function applyTheme(theme) {
@@ -932,7 +950,7 @@ function _m(anahtar, tr) {
     document.querySelectorAll('img').forEach(img => {
       const src = (img.getAttribute('src') || '') + (img.src || '');
       if (src.includes('logo_dark') || src.includes('logo_light') || src.includes('logo_slogan') || src.includes('Repertuvar_logo')) {
-        img.src = logoDosyasi(isLight);
+        img.src = logoDosyasi(isLight, !!img.closest('.r-topnav'));
       }
     });
 
@@ -956,8 +974,10 @@ function _m(anahtar, tr) {
         kenarKenara = !!(m && +m[1] >= 140 && vp && /viewport-fit=cover/.test(vp.content));
       }
       // (2026-10-18) Yeni tasarımda üst çubuk açık modda da koyu (tasarim.css "SİYAH ÇERÇEVE") → simgeler hep açık (DARK).
+      // (2026-10-24 deneme) Cam barlarda üst çubuk yok, durum çubuğu içeriğin üstünde → simgeler temayı izler.
       const v3 = document.documentElement.getAttribute('data-tasarim') === 'v3';
-      const p = sb.setStyle({ style: (kenarKenara && isLight && !v3) ? 'LIGHT' : 'DARK' });
+      const cam = document.documentElement.hasAttribute('data-cam');
+      const p = sb.setStyle({ style: (kenarKenara && isLight && (!v3 || cam)) ? 'LIGHT' : 'DARK' });
       if (p && p.catch) p.catch(function () {});
     } catch (e) {}
   }
