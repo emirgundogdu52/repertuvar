@@ -1085,3 +1085,47 @@ html[data-tasarim="v3"][data-sayfa="artiesten"] .work-chip-add {
 }
 html[data-tasarim="v3"][data-sayfa="artiesten"] .work-chip-add i { font-size: 15px; }
 html[data-tasarim="v3"][data-sayfa="artiesten"] :is(.btn-save, .btn-cancel) { min-height: 44px; padding: 0 20px; border-radius: 12px; font-size: 14px; font-weight: 600; }
+/* Kullanıcı: "Solist düzenle ekranındaki düğmeleri de stile uydur; iPad'de de". Kaydet/İptal sağda 69/85 px'lik küçük düğmelerdi →
+   Düzenle/Sil gibi satırı paylaşır; pencere diğer v3 pencereleri gibi 22 px köşe; girdiler 44 px; Eser Ekle seçiminde satırlar
+   48 px, seçili satır eski mavi yerine sarı. Telefon ve iPad aynı. */
+html[data-tasarim="v3"][data-sayfa="artiesten"] .modal { border-radius: 22px; padding: 22px 20px 20px; }
+html[data-tasarim="v3"][data-sayfa="artiesten"] .modal h2 { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+html[data-tasarim="v3"][data-sayfa="artiesten"] input.form-input { min-height: 44px; }
+html[data-tasarim="v3"][data-sayfa="artiesten"] .form-actions { gap: 8px; margin-top: 18px; }
+html[data-tasarim="v3"][data-sayfa="artiesten"] .form-actions > button { flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; }
+html[data-tasarim="v3"][data-sayfa="artiesten"] .btn-cancel { border: 1px solid var(--border); background: var(--surface2); color: var(--text2); }
+html[data-tasarim="v3"][data-sayfa="artiesten"] .btn-save { border: 1px solid transparent; }   /* iki düğme eşit genişlikte */
+html[data-tasarim="v3"][data-sayfa="artiesten"] .work-picker-list { border-radius: 14px; margin-top: 10px; }
+html[data-tasarim="v3"][data-sayfa="artiesten"] .work-pick-item { min-height: 48px; padding: 8px 14px; display: flex; flex-direction: column; justify-content: center; }
+html[data-tasarim="v3"][data-sayfa="artiesten"] .work-pick-item.selected { background: rgba(255, 200, 61, .14); box-shadow: inset 3px 0 0 var(--accent); }
+
+/* Kullanıcı: "iPhone'da seçtiğim kişinin detaylarını ve Düzenle/Sil düğmelerini aşağı al, yukarıda seçim yaptığım liste alanını
+   büyüt". Liste 160 px'e sabitti (başlıkla ~1,5 satır görünüyordu), detayın altında boş alan kalıyordu. Telefonda detay sıkılaşır;
+   boş bilgi ızgarası artık hiç basılmıyor (artiesten.html). */
+@media (max-width: 768px) {
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .artist-list-panel { max-height: 46vh; }   /* cam yoksa (siyah çerçeve) doğal kaydırma */
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .detail-inner { padding-top: 16px; padding-bottom: 8px; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .detail-top { margin-bottom: 16px; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .info-grid { gap: 8px; margin-bottom: 16px; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] #detailContent { padding-bottom: 0 !important; }   /* satır içi 40px */
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .empty-state { padding: 20px 16px; }
+}
+/* Cam barlarla: sayfa kaymaz, ekran ikiye bölünür. Telefonda liste üstte kalan alanı doldurup kendi içinde kayar; detay altta içeriği
+   kadar (en çok %58) yer kaplar, uzarsa kendi içinde kayar ve alt menünün altından geçer. iPad'de (yan yana) iki sütun da tam boy. */
+@media (max-width: 1023px) {
+  html[data-cam].r-natural-scroll-page[data-sayfa="artiesten"] body { padding-bottom: 0 !important; }
+  html[data-cam][data-sayfa="artiesten"] .layout { height: calc(100vh - var(--cam-icerik-ust)); height: calc(100dvh - var(--cam-icerik-ust)); min-height: 0; }
+  html[data-cam][data-sayfa="artiesten"] .detail-panel { padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; overscroll-behavior-y: contain; }
+}
+@media (max-width: 768px) {
+  html[data-cam][data-sayfa="artiesten"] .artist-list-panel { flex: 1 1 0; max-height: none; min-height: 0; }
+  html[data-cam][data-sayfa="artiesten"] .detail-panel { flex: 0 0 auto; max-height: 58%; }
+}
+@media (min-width: 769px) and (max-width: 1023px) {
+  html[data-cam][data-sayfa="artiesten"] .list-scroll { padding-bottom: var(--cam-icerik-alt); }
+}
+/* ≥1024 (yan menü, üst bar yok): yükseklik "100vh − 57px" üst bar payıyla kalmıştı → altta 57 px boş şerit. Yatay iPad'de
+   ana kap üst güvenli alanı alıyor (yukarıdaki iPad kuralı), o kadar düşülür. */
+@media (min-width: 1024px) {
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .layout { height: calc(100vh - env(safe-area-inset-top, 0px)); height: calc(100dvh - env(safe-area-inset-top, 0px)); }
+}

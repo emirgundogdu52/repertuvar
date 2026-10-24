@@ -376,11 +376,11 @@ function renderDetail() {
           <button class="btn-icon btn-danger" onclick="deleteArtist('${a.id}')"><i class="ti ti-trash" aria-hidden="true"></i> ${_soCev('ortak.sil','Sil')}</button>
         </div>
       </div>
-      <div class="info-grid">
+      ${(a.phone || a.email || a.notes) ? `<div class="info-grid">
         ${a.phone?`<div class="info-card"><div class="info-card-label">${_soCev('so.telefon','Telefon')}</div><div class="info-card-value"><a href="tel:${encodeURIComponent(String(a.phone).replace(/[^\d+]/g,''))}">${htmlKac(a.phone)}</a></div></div>`:''}
         ${a.email?`<div class="info-card"><div class="info-card-label">${_soCev('so.eposta','E-posta')}</div><div class="info-card-value"><a href="mailto:${htmlKac(encodeURIComponent(a.email).replace(/%40/g,'@'))}">${htmlKac(a.email)}</a></div></div>`:''}
         ${a.notes?`<div class="info-card full"><div class="info-card-label">${_soCev('so.notlar','Notlar')}</div><div class="notes-box">${htmlKac(a.notes)}</div></div>`:''}
-      </div>
+      </div>` : ''}
       <div class="works-chips">
         ${workChips}
         <button class="work-chip-add" onclick="openWorkModal('${a.id}')"><i class="ti ti-plus" aria-hidden="true"></i> ${_soCev('so.eserEkle','Eser Ekle')}</button>
