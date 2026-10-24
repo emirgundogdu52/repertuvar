@@ -32,7 +32,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 @media(max-width:1023px){.layout{height:calc(100vh - 66px - env(safe-area-inset-top) - 68px - env(safe-area-inset-bottom));height:calc(100dvh - 66px - env(safe-area-inset-top) - 68px - env(safe-area-inset-bottom));}}
 .lp{width:300px;min-width:300px;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;}
 .lph{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.lph h2{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;}
+/* (2026-10-24) Kullanıcı: "MEVCUT REPERTUVARLAR diğer başlıklara oranla silik" → bölüm başlıklarıyla (Repertuvarlarım /
+   Grubun Repertuvarları, repertoires.js) aynı: 17px, 700, text3, .07em. */
+.lph h2{font-size:17px;font-weight:700;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;margin:0;}
 .bn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:6px;padding:5px 12px;color:#1a1000;font-size:12px;font-weight:500;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);cursor:pointer;}
 .bn:hover{background:var(--accent2);}
 .ls{overflow-y:auto;overflow-x:hidden;flex:1;padding:10px 10px 4px;}
