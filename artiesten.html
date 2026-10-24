@@ -361,7 +361,7 @@ function renderDetail() {
   const works = a.works || [];
   const workChips = works.map((w, idx) => `
     <div class="work-chip">${htmlKac(w.name)}${w.makam?`<span>${htmlKac(w.makam)}</span>`:''}
-      <span class="work-chip-remove" onclick="removeWork('${a.id}',${idx})">✕</span>
+      <span class="work-chip-remove" role="button" aria-label="${_soCev('uye.kaldir','Kaldır')}" onclick="removeWork('${a.id}',${idx})">✕</span>
     </div>`).join('');
   dc.innerHTML = `
     <div class="detail-inner">
