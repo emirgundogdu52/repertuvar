@@ -846,6 +846,11 @@ html[data-cam][data-theme="light"] .sec-action:active { background: rgba(0, 0, 0
   }
 }
 
+/* (2026-10-24) Kullanıcı (iPad): "Söz/Akorlar butonlarının üstünde gereksiz bir çizgi kalmış" — aslında iki çizgi üst üsteydi:
+   .detail-header alt kenarlığı + .tab-divider. Başlık kutusunun zemini sayfadan zaten ayrışıyor; ikisi de kalkar (tüm genişlikler). */
+html[data-tasarim="v3"] .detail .tab-divider { display: none; }
+html[data-tasarim="v3"] .detail .detail-header { border-bottom: none !important; }
+
 /* ══ (2026-10-24) DOKUNMA BOYUTLARI — kullanıcı: "Kişisel notum penceresinin altındaki butonlar çok küçük; başka benzer sorun
    varsa tespit et ve hallet". 390 px'te sayfalar ölçüldü: 22–36 px yükseklik, 11–12 px yazılı düğmeler (not Kaydet/İptal/Sil,
    repertuvar satırı 25–28 px genişlik, gruplar 27 px, önerilerim 28 px, üyeler 26 px…). Telefonda (≤768 px) en az 40 px,
