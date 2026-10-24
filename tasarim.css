@@ -738,11 +738,14 @@ html[data-cam][data-theme="light"] {
   }
   html[data-cam] .bottom-nav .bn-item {
     margin: 0 !important; padding: 0 2px !important; gap: 2px; min-height: 0;
-    border: 0 !important; border-radius: 999px !important;
+    border: 0 !important; border-radius: 18px !important;
     background: transparent !important; color: var(--cam-pasif) !important;
   }
   html[data-cam] .bottom-nav .bn-item i { font-size: 23px !important; }
-  html[data-cam] .bottom-nav .bn-item .bn-label { font-size: 10.5px; font-weight: 600; color: inherit !important; }
+  /* Kullanıcı (2026-10-24): telefonda "Repertuvarlar" yazısı düğmenin dışına taşıyor — barlar 16 px'e çekilince düğme 78 px'e
+     indi (440 px), yazı 74 px; tam yuvarlak hap zeminin alt kıvrımında yazı dışarıda görünüyordu → sekme zemini 18 px köşeli,
+     yazı 10 px (iki yana nefes payı). */
+  html[data-cam] .bottom-nav .bn-item .bn-label { font-size: 10px; font-weight: 600; color: inherit !important; }
   html[data-cam] .bottom-nav .bn-item.active { background: var(--cam-hap) !important; color: var(--cam-etkin) !important; }
   html[data-cam] .bottom-nav .bn-item.active .bn-label { font-weight: 700; }
   /* Klavye açıkken alt menü yazı alanını örtmesin (topnav.js, yalnız dokunmatik). */
@@ -933,8 +936,7 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
    masaüstü değişmez). ══ */
 @media (min-width: 769px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
   /* Repertuvarlar — sol panel */
-  html[data-tasarim="v3"][data-sayfa="repertoires"] .lph h2 { font-size: 15px; }
-  html[data-tasarim="v3"][data-sayfa="repertoires"] .lph .bn { white-space: nowrap; flex-shrink: 0; min-height: 36px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lph .bn-arti { width: 40px; height: 40px; }   /* dokunmatikte 40 px yuvarlak + */
   html[data-tasarim="v3"][data-sayfa="repertoires"] #list > div[style*="font-size:17px"] { font-size: 15px !important; }
   /* Repertuvarlar — detay */
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dmr { flex-wrap: wrap !important; overflow: visible !important; gap: 6px 14px !important; align-items: center; }

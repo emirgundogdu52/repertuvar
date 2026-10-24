@@ -425,6 +425,12 @@ tr.drag-over td{background:rgba(255,200,61,.12);}
 /* Düğme grubu .45 saydamdı (hover'da 1); dokunmatikte hover yok → hep soluk kalıyordu. Tam görünür, devre dışılar zaten .25. */
 .ra{opacity:1;}
 tr.medley-row{background:rgba(255,200,61,.05);}   /* potpuri satırı: eski mor ton yerine marka sarısı */
+/* (2026-10-24) Kullanıcı: "+Yeni'yi sarı yuvarlak içinde + yapsak alan açılır, sığar mı?" — ölçüldü: iPad'de panel içi ~267 px,
+   başlık 15 px'te 235 px (sığmaz), 14 px + sıkı harf aralığıyla ~214 px → 40 px yuvarlak + ile tek satır. Telefonda gizli (yüzen +). */
+.lph .bn-arti{width:36px;height:36px;min-height:0;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:0;box-shadow:0 4px 12px rgba(255,200,61,.35);}
+.lph .bn-arti i{font-size:20px;line-height:1;}
+@media (min-width:769px){ .lph{gap:8px;} .lph h2{font-size:14px;letter-spacing:.05em;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;} }
 /* (2026-10-24) Kullanıcı: "Eserler'de sade bir + var, Repertuvar'daki +Yeni de sadeleşsin; detaydaki +Eser Ekle de bu stile girsin".
    Telefonda başlıklardaki düğmeler gizlenir, işleri tek yüzen "+" yapar. Tablet/masaüstünde başlık düğmeleri kalır. */
 .rep-fab{display:none;}
@@ -466,7 +472,7 @@ tr.medley-row{background:rgba(255,200,61,.05);}   /* potpuri satırı: eski mor 
 <button type="button" id="repFab" class="rep-fab" onclick="repFabTikla()" aria-label="Yeni repertuvar" title="Yeni repertuvar"><i class="ti ti-plus" aria-hidden="true"></i></button>
 <div class="layout">
   <aside class="lp">
-    <div class="lph"><h2><i class="ti ti-stack-2" style="font-size:18px;vertical-align:-2px;margin-right:6px;" aria-hidden="true"></i><span data-i18n="rep.mevcut">Mevcut Repertuvarlar</span></h2><button class="bn" onclick="openNew()" title="+ Yeni Repertuvar Oluştur" data-i18n-title="rep.yeniRepT" data-i18n="rep.yeni">+ Yeni</button></div>
+    <div class="lph"><h2><i class="ti ti-stack-2" style="font-size:18px;vertical-align:-2px;margin-right:6px;" aria-hidden="true"></i><span data-i18n="rep.mevcut">Mevcut Repertuvarlar</span></h2><button class="bn bn-arti" onclick="openNew()" title="Yeni Repertuvar Oluştur" data-i18n-title="rep.yeniRepT" aria-label="Yeni Repertuvar Oluştur" data-i18n-aria="rep.yeniRepT"><i class="ti ti-plus" aria-hidden="true"></i></button></div>
     <div style="padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
       <input type="text" id="repSearchInput" data-temizle placeholder="Repertuvar veya eser adı ara..." data-i18n-ph="rep.ph_ara" oninput="onRepSearchInput(this.value)"
         style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;transition:border-color .15s;"
