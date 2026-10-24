@@ -1896,6 +1896,13 @@ let bulkMode = false;               // Uzun-basma ile toplu seçim modu (2026-07
 let bulkSelectedIds = new Set();    // Toplu seçimde işaretli eser id'leri
 let longPressTimer = null;
 let longPressFiredId = null;        // Long-press tetiklendiyse ardından gelen click'i yut
+let longPressFiredAt = 0;           // (2026-10-24) …ama yalnız hemen ardından: Android uzun basmadan sonra click GÖNDERMİYOR,
+                                    // bayrak asılı kalıp aynı satıra yapılan SONRAKİ dokunuşu yutuyordu.
+function _uzunBasmaClickiYut(id) {
+  const yut = longPressFiredId === id && Date.now() - longPressFiredAt < 800;
+  longPressFiredId = null;
+  return yut;
+}
 
 function getUnique(field) {
   const counts = {};
@@ -2902,7 +2909,7 @@ function _weMouseUp() {
 
 function weCardClick(e, id) {
   // 2026-07-19: uzun-basma tetiklendiyse ardından gelen click'i yut (detay açılmasın)
-  if (longPressFiredId === id) { longPressFiredId = null; return; }
+  if (_uzunBasmaClickiYut(id)) return;
   const card = e.currentTarget;
   if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) {
     weCloseOpenCard();
@@ -2938,23 +2945,54 @@ function initLongPressHandlers() {
 
   function findItem(target) { return target.closest ? target.closest('.work-item') : null; }
 
+  // (2026-10-24) ANDROID DÜZELTMESİ (kullanıcı: arkadaşının Android Chrome'unda basılı tutunca seçim kutusu ve
+  // "Repertuvara ekle / Yeni oluştur" çubuğu hiç çıkmadı). İki sebep: (1) Android parmağın titremesini sürekli
+  // pointermove olarak gönderiyor, HER pointermove sayacı iptal ediyordu (iOS'ta duran parmak pointermove üretmez);
+  // (2) Chrome kendi uzun-basma jestini ~400 ms'de başlatıp contextmenu + pointercancel gönderiyor — 500 ms dolmadan
+  // sayaç siliniyordu. Çözüm repertoires.js'teki satır uzun-basmasıyla aynı: 10 px tolerans + dokunmatikte
+  // contextmenu engellenip uzun basma HEMEN tetiklenir (son basış hareketsizse; pointercancel o bilgiyi silmez).
+  const LP_GECIKME = 500, LP_TOLERANS = 10;
+  let sonBasis = null;   // { id, x, y, t }: son dokunuş; parmak kaydıysa null
+  function tetikle(id) {
+    clearTimeout(longPressTimer);
+    sonBasis = null;
+    longPressFiredId = id;
+    longPressFiredAt = Date.now();
+    try { if (navigator.vibrate) navigator.vibrate(15); } catch(err) {}
+    if (!bulkMode) enterBulkMode(id);
+    else toggleBulkSelect(id, null);
+  }
+
   panel.addEventListener('pointerdown', (e) => {
     // 2026-07-19: uzun-basma artık HER filtrede çalışır (eskiden yalnızca Favoriler'de).
+    if (e.button != null && e.button > 0) return;              // fare sağ/orta tuş: başlatma
     if (_weOpenCard) return;                                  // açık kaydırma paneli varken başlatma
     if (e.target.closest && e.target.closest('.work-fav')) return;  // yıldıza basmak seçim başlatmasın
     const item = findItem(e.target);
     if (!item) return;
     const id = parseInt(item.dataset.id);
+    sonBasis = { id, x: e.clientX, y: e.clientY, t: Date.now() };
     clearTimeout(longPressTimer);
-    longPressTimer = setTimeout(() => {
-      longPressFiredId = id;
-      try { if (navigator.vibrate) navigator.vibrate(15); } catch(err) {}
-      if (!bulkMode) enterBulkMode(id);
-      else toggleBulkSelect(id, null);
-    }, 500);
+    longPressTimer = setTimeout(() => tetikle(id), LP_GECIKME);
   });
-  ['pointerup', 'pointermove', 'pointercancel', 'pointerleave'].forEach(evt => {
-    panel.addEventListener(evt, () => clearTimeout(longPressTimer));
+  panel.addEventListener('pointermove', (e) => {
+    if (!sonBasis) return;
+    if (Math.abs(e.clientX - sonBasis.x) > LP_TOLERANS || Math.abs(e.clientY - sonBasis.y) > LP_TOLERANS) {
+      clearTimeout(longPressTimer);
+      sonBasis = null;                                        // kaydırma: contextmenu da tetiklemesin
+    }
+  }, { passive: true });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
+    panel.addEventListener(evt, () => clearTimeout(longPressTimer), { passive: true });
+  });
+  // Dokunmatik cihazda uzun basmanın sistem menüsü yerine seçim modu (Android Chrome ~400 ms'de gönderir).
+  panel.addEventListener('contextmenu', (e) => {
+    if (!window.matchMedia || !window.matchMedia('(pointer:coarse)').matches) return;   // masaüstü sağ tık aynen
+    const item = findItem(e.target);
+    if (!item) return;
+    e.preventDefault();
+    const id = parseInt(item.dataset.id);
+    if (sonBasis && sonBasis.id === id && Date.now() - sonBasis.t < 1500) tetikle(id);
   });
 }
 
@@ -2975,7 +3013,7 @@ function exitBulkMode() {
 function toggleBulkSelect(id, ev) {
   if (ev) { ev.stopPropagation(); ev.preventDefault(); }
   // Long-press'in tetiklediği aynı id için gelen click'i yut (çift işlem olmasın)
-  if (longPressFiredId === id) { longPressFiredId = null; return; }
+  if (_uzunBasmaClickiYut(id)) return;
   if (bulkSelectedIds.has(id)) bulkSelectedIds.delete(id);
   else bulkSelectedIds.add(id);
   if (bulkSelectedIds.size === 0) { exitBulkMode(); return; }
