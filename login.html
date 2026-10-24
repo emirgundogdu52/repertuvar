@@ -768,10 +768,11 @@ const APPLE_GIRIS_AKTIF = true;   // (2026-10-08) açıldı: üyelik + Supabase 
 // içi sekme) henüz test edilmedi → emülatörde denenince true yapılacak.
 // (2026-10-24) Kullanıcı kararı: Android'de ve tarayıcıda da açılsın (iPhone'da Apple'la — çoğu zaman gizli e-postayla —
 // kaydolan kişi Android telefondan ya da bilgisayardan giremiyordu). EMÜLATÖRDE DENENDİ → Apple 'invalid_request: Invalid
-// client id or web redirect url': Supabase OAuth'ta client_id=com.repertuvar.app (App ID) gidiyor; tarayıcı akışı Services ID
-// ister. Yapılacak (kullanıcı: App Store onayından SONRA): Apple Developer'da Services ID (+ Sign in with Apple, alan
-// ehytkzxdhjyjuubizdnl.supabase.co, dönüş …/auth/v1/callback) → D4U8DA3V42 anahtarıyla o Services ID için istemci sırrı →
-// Supabase Apple: Client IDs başına Services ID (com.repertuvar.app listede KALIR, iPhone yerel girişi için) + yeni sır.
+// client id or web redirect url': Supabase OAuth'ta Client IDs listesinin İLKİ gidiyor = com.repertuvar.app (App ID); tarayıcı
+// akışı Services ID ister. Services ID app.repertuvar.web 2026-10-08'de kuruldu, Supabase sırrı da onun için (sub). Yapılacak
+// (kullanıcı: App Store onayından SONRA): Supabase → Auth → Apple → Client IDs sırası 'app.repertuvar.web,com.repertuvar.app'
+// (iPhone yerel girişi için com.repertuvar.app listede KALIR); Apple Developer'da app.repertuvar.web dönüş adreslerinde
+// https://ehytkzxdhjyjuubizdnl.supabase.co/auth/v1/callback olduğu kontrol edilir.
 // Sonra iki bayrak true. Kod yolu hazır: Android _appleTarayiciIle, web _appleWebIle.
 const APPLE_ANDROID_AKTIF = false;   // Services ID kurulunca true (aşağıdaki not)
 // Tarayıcı: Supabase OAuth (Google'ın tarayıcı yedeğiyle aynı yol); dönüş app.repertuvar.app/login.html#access_token=…
