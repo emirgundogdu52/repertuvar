@@ -762,6 +762,8 @@ html[data-cam][data-theme="light"] {
   html[data-cam][data-sayfa="eserler"] #listPanel { flex: none; overflow: visible; }
   /* − 9 px: kullanıcı (2026-10-24) "eser detayında da üstteki boşluğu 1,5 mm azalt" — liste ile aynı (bara 9 px). */
   html[data-cam][data-sayfa="eserler"] .detail { padding-top: calc(var(--cam-icerik-ust) - 9px); padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; }
+  /* Klavye açıkken yüzen + düğmeleri de gizli (iOS'ta sabit öğeler klavyenin üstüne zıplıyor). */
+  html[data-cam] body.klavye-acik .fab-new-eser, html[data-cam] body.klavye-acik .rep-fab { display: none !important; }
   html[data-cam][data-sayfa="eserler"] .fab-new-eser {
     bottom: calc(var(--cam-alt) + var(--cam-alt-h) + 14px) !important; right: calc(var(--cam-yan) + 6px) !important;
     width: 58px !important; height: 58px !important;
@@ -784,6 +786,10 @@ html[data-cam][data-theme="light"] {
   html[data-cam][data-sayfa="repertoires"] .dp { padding-top: calc(var(--cam-icerik-ust) - 16px); padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; }
 }
 @media (max-width: 768px) {
+  /* Repertuvarlar telefonda yüzen "+" (repertoires.html .rep-fab): Eserler'deki gibi alt menünün üstünde, 58 px. */
+  html[data-cam][data-sayfa="repertoires"] .rep-fab {
+    bottom: calc(var(--cam-alt) + var(--cam-alt-h) + 14px); right: calc(var(--cam-yan) + 6px); width: 58px; height: 58px;
+  }
   /* Eserler: telefonda detay tam ekran katmanı (setDetailTop'un satır içi top'u ezilir). */
   html[data-cam][data-sayfa="eserler"] .detail.mobile-visible { top: 0 !important; bottom: 0 !important; }
 }

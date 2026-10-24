@@ -952,6 +952,7 @@ function sel(id){
     if (history.state && history.state.repDetay) history.replaceState({ repDetay: id }, '');
     else history.pushState({ repDetay: id }, '');
   }
+  repFabGuncelle();
 }
 
 function goBackToList(){
@@ -984,6 +985,23 @@ window.RGeri = function () {
   return false;
 };
 
+// (2026-10-24) Telefondaki tek "+": listede yeni repertuvar, detayda (düzenleme yetkisi varsa) bu repertuvara eser ekle.
+function repFabTikla(){
+  const dp=document.getElementById('dp');
+  if (dp && dp.classList.contains('mobile-open') && selId) { openWM(selId); return; }
+  openNew();
+}
+function repFabGuncelle(){
+  const b=document.getElementById('repFab'); if(!b) return;
+  const dp=document.getElementById('dp');
+  const detay=!!(dp && dp.classList.contains('mobile-open'));
+  const rep=detay && selId ? getRep(selId) : null;
+  b.hidden = detay && !(rep && rep.canManage);
+  const ad = detay ? _r('rep.eserekle','Eser Ekle') : _r('rep.yeniRepT','+ Yeni Repertuvar Oluştur').replace(/^\+\s*/, '');
+  b.setAttribute('aria-label', ad); b.title = ad;
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', repFabGuncelle); else repFabGuncelle();
+
 function _listeyeDon(){
   const lp=document.querySelector('.lp');
   const dp=document.getElementById('dp');
@@ -991,6 +1009,7 @@ function _listeyeDon(){
   if(dp) dp.classList.remove('mobile-open');
   const btn=document.getElementById('mobileBackBtn');
   if(btn) btn.style.display='none';
+  repFabGuncelle();
 }
 // (2026-10-24) Yerel uygulamada (iOS/Android WebView) print() hiçbir şey yapmıyor, hata da atmıyor → 'Yazdır' gizlenir.
 function _yerelUygulama(){try{return !!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());}catch(e){return false;}}
@@ -998,6 +1017,7 @@ function getRep(id){return reps.find(r=>r.id===id);}
 
 function renderDetail(){
   const rep=getRep(selId);
+  setTimeout(repFabGuncelle, 0);   // (2026-10-24) yetki (canManage) veri tazelenince değişebilir
   document.getElementById('es').style.display=rep?'none':'flex';
   const dc=document.getElementById('dc');
   dc.style.display=rep?'block':'none';
@@ -1106,7 +1126,7 @@ function renderDetail(){
       </div>
     </div>
     <div class="is">
-      <div class="ih"><h3>${(items.length===1?_r('rep.nEserBaslikTekil','{n} Eser'):_r('rep.nEserBaslik','{n} Eser')).replace('{n}',items.length)}${_no.filter(n=>n!==null).length!==items.length?` <span style="font-weight:500;color:var(--text3);font-size:12px;">· ${_r('rep.nSira','{n} sıra').replace('{n}',_no.filter(n=>n!==null).length)}</span>`:''}</h3>${rep.canManage?`<button class="bi" style="font-size:12px;padding:9px 12px;" onclick="openWM('${rep.id}')"><i class="ti ti-plus" style="font-size:14px;vertical-align:-2px;" aria-hidden="true"></i> ${_r('rep.eserekle','Eser Ekle')}</button>`:''}</div>
+      <div class="ih"><h3>${(items.length===1?_r('rep.nEserBaslikTekil','{n} Eser'):_r('rep.nEserBaslik','{n} Eser')).replace('{n}',items.length)}${_no.filter(n=>n!==null).length!==items.length?` <span style="font-weight:500;color:var(--text3);font-size:12px;">· ${_r('rep.nSira','{n} sıra').replace('{n}',_no.filter(n=>n!==null).length)}</span>`:''}</h3>${rep.canManage?`<button class="bi ih-ekle" style="font-size:12px;padding:9px 12px;" onclick="openWM('${rep.id}')"><i class="ti ti-plus" style="font-size:14px;vertical-align:-2px;" aria-hidden="true"></i> ${_r('rep.eserekle','Eser Ekle')}</button>`:''}</div>
       <table><thead><tr><th class="sq" style="text-align:center;">${_r('rep.thSira','Sıra')}</th><th>${_r('rep.thEserAdi','Eser Adı')}</th><th class="col-kapanis">${_r('rep.thKapanis','Kapanış')}</th><th class="col-not">${_r('rep.thNot','Not')}</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
   _offRepRozet(rep.id);
