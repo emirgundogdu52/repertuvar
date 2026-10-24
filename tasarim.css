@@ -671,7 +671,9 @@ html[data-cam] {
   --cam-pasif: #D4D8E0;
   --cam-ust-h: 58px;
   --cam-alt-h: 66px;
-  --cam-ust: calc(env(safe-area-inset-top, 0px) + 8px);                     /* üst barın top'u */
+  /* üst barın top'u — kullanıcı (2026-10-24): "çentiğe 1–1,5 mm yaklaştır" → güvenli alanın hemen altı (önce +8 px; 17 Pro Max'te
+     8 px ≈ 1,3 mm). Güvenli alan yoksa (yatay iPhone, Android, masaüstü) kenardan 8 px. */
+  --cam-ust: max(8px, env(safe-area-inset-top, 0px));
   --cam-alt: max(12px, calc(env(safe-area-inset-bottom, 0px) - 8px));       /* alt menünün bottom'u (home çubuğunun üstü) */
   --cam-yan: max(12px, calc(50% - 360px));                                  /* geniş ekranda ~720 px ortalanır */
   --cam-icerik-ust: calc(var(--cam-ust) + var(--cam-ust-h) + 12px);
