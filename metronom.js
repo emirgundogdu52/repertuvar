@@ -161,10 +161,10 @@ button, .mx-btn, [role="button"] {
 .mx-switch-label{ font-size:13px; color:var(--text); display:flex; align-items:center; gap:9px; }
 .mx-switch-sub{ font-size:11px; color:var(--text3); margin-top:2px; }
 .mx-toggle{
-  width:46px; height:26px; border-radius:13px; background:var(--surface2); border:1px solid var(--border);
+  width:50px; height:30px; border-radius:15px; background:var(--surface2); border:1px solid var(--border);   /* 46x26 → 50x30 (2026-10-24, Ayarlar ile aynı) */
   position:relative; cursor:pointer; flex-shrink:0; transition:background .18s, border-color .18s;
 }
-.mx-toggle::after{ content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--text3); transition:transform .18s, background .18s; }
+.mx-toggle::after{ content:''; position:absolute; top:2px; left:2px; width:24px; height:24px; border-radius:50%; background:var(--text3); transition:transform .18s, background .18s; }
 .mx-toggle.on{ background:color-mix(in srgb, var(--tempo-color) 25%, transparent); border-color:color-mix(in srgb, var(--tempo-color) 50%, transparent); }
 .mx-toggle.on::after{ transform:translateX(20px); background:var(--tempo-color); }
 
