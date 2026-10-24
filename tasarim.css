@@ -1144,12 +1144,16 @@ html[data-tasarim="v3"][data-sayfa="artiesten"] .work-pick-item.selected { backg
 /* Çalışma Odası + Metronom (aynı ölçüyü paylaşır, sekme geçişinde zıplamasın) da aynı: 680 px ortalı → tam genişlik. */
 @media (min-width: 601px) and (max-width: 1023px) {
   html[data-tasarim="v3"]:is([data-sayfa="gruplar"], [data-sayfa="calisma"], [data-sayfa="metronom"]) .page-content { max-width: none; }
+  /* Mesajlar: sayfa 720, kutular 680 px ortalıydı (2026-10-24 iPad denetimi). */
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] :is(.page, .tabs, .compose-box, .ann-card, .conv-item) { max-width: none; }
 }
 html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; }   /* 35 px idi */
 @media (min-width: 769px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
   html[data-tasarim="v3"]:is([data-sayfa="gruplar"], [data-sayfa="calisma"], [data-sayfa="metronom"]) .page-content { max-width: none; }
   /* ≥1024'te .main-wrap esnek sütun: "margin: 0 auto" ile sınırsız kap içeriği kadar daralıyordu (Kayıtlarım 385 px) → yaslı. */
   html[data-tasarim="v3"]:is([data-sayfa="calisma"], [data-sayfa="metronom"]) .page-content { margin-left: 0; margin-right: 0; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] :is(.page, .tabs, .compose-box, .ann-card, .conv-item) { max-width: none; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .page { margin-left: 0; margin-right: 0; }
   html[data-tasarim="v3"][data-sayfa="gruplar"] .btn { min-height: 40px; min-width: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
   html[data-tasarim="v3"][data-sayfa="gruplar"] .btn .ti { font-size: 16px !important; }   /* satır içi 11–13 px */
   html[data-tasarim="v3"][data-sayfa="gruplar"] .grp-chip { min-height: 40px; }

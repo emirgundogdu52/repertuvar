@@ -190,6 +190,23 @@ body { -webkit-text-size-adjust: 100%; }
    yalnızca çift dokunuş büyütmesi ve 300ms tıklama gecikmesi kalkar. */
 .thread-msg, .thread-msg-content, .thread-reply-box, .compose-box,
 .thread-msg-header, .thread-actions { touch-action: manipulation; }
+
+/* ══ (2026-10-24) Kullanıcı: "iPad'de Mesajlar sayfasını kontrol et". Dokunma ölçüleri (telefon + iPad) — 810 px'te ölçüldü:
+   Yeni Mesaj 31, sekmeler 38, Duyuruyu Yayınla 39; konuşmada Geri 29, Yanıtla ~30, Sil 26; pencerede İptal/Gönder 34,
+   arama/Tümü 38, onay kutusu 15 px, üye listesi uzun ekranda da 200 px. Geri diğer sayfalardaki gibi hap. ══ */
+.btn-new-msg, .tab-btn { min-height: 40px; }
+.btn-new-msg { font-size: 13px; }
+.btn-send { min-height: 44px; }
+.btn-back { min-height: 40px; padding: 0 16px 0 12px; border-radius: 200px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.btn-reply, .btn-delete-msg { min-height: 40px; padding: 0 14px; border-radius: 200px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+.btn-delete-msg .ti { font-size: 15px !important; }
+.thread-actions { gap: 8px; margin-top: 10px; }
+.reply-form .btn-send { min-height: 40px; padding: 0 18px !important; font-size: 13px !important; }   /* satır içi 7px/12px */
+#nmSearch { min-height: 40px !important; font-size: 13px; }   /* satır içi min-height:unset */
+#nmSelectAllBtn { min-height: 40px; padding: 0 14px !important; font-size: 12px !important; }
+.nm-member-item input[type=checkbox] { width: 20px; height: 20px; }
+.nm-actions .btn-nm-cancel, .nm-actions .btn-nm-send { flex: 1 1 0; min-height: 44px; font-size: 14px; }
+@media (min-height: 700px) { #nmMemberList { max-height: min(36vh, 360px) !important; } }   /* satır içi 200px */
 </style>
 <link rel="stylesheet" href="tasarim.css">
 </head>
