@@ -641,3 +641,15 @@ html[data-tasarim="v3"][data-theme="light"] .v2-sidebar .r-theme-toggle { backgr
 /* Alt menüdeki "Sahne Modu" yazısı koyu temadaki gibi sarı (yukarıdaki .bn-label kuralı griye çekiyordu). */
 html[data-tasarim="v3"][data-theme="light"] .bn-stage,
 html[data-tasarim="v3"][data-theme="light"] .bn-stage .bn-label { color: #FFC83D !important; }
+
+/* (2026-10-24, todo/01) iOS YAKINLAŞTIRMA TUZAĞI — iOS, yazısı 16 px'ten küçük bir alana odaklanınca sayfayı büyütüp
+   öyle bırakıyor: eser detayı "yana taşıyor, her şey büyük" görünüyordu (alt menü de kayıyordu = taşma değil, yakınlaştırma).
+   Kaynak: Nota sekmesindeki "basılı tut → Yapıştır" kutusu (contenteditable, 12.5px), söz düzenleyici (14px) ve gruplar/
+   mesajlar/üyeler/ayarlar/çalışma'daki 12–15 px kutular. Dokunmatik cihazlarda tüm düzenlenebilir alanlar en az 16 px.
+   Kıstırarak yakınlaştırma AÇIK kalır (user-scalable/maximum-scale EKLENMEZ). stage.html kendi düzenini yönetir, hariç. */
+@media (hover: none) and (pointer: coarse) {
+  html:not([data-sayfa="stage"]) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]),
+    select, textarea, [contenteditable="true"], [contenteditable=""]) { font-size: 16px !important; }
+  /* Yapıştır kutusunun ipucu yazısı eski boyunda kalsın (yakınlaştırmaya odaklanan öğenin kendi boyu bakılır). */
+  html:not([data-sayfa="stage"]) .nota-paste:empty::before { font-size: 12.5px; }
+}
