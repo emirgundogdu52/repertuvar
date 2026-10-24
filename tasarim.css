@@ -675,7 +675,9 @@ html[data-cam] {
      8 px ≈ 1,3 mm). Güvenli alan yoksa (yatay iPhone, Android, masaüstü) kenardan 8 px. */
   --cam-ust: max(8px, env(safe-area-inset-top, 0px));
   --cam-alt: max(12px, calc(env(safe-area-inset-bottom, 0px) - 8px));       /* alt menünün bottom'u (home çubuğunun üstü) */
-  --cam-yan: max(12px, calc(50% - 360px));                                  /* geniş ekranda ~720 px ortalanır */
+  /* Kullanıcı (2026-10-24): barlar içerikle aynı 16 px kenar çizgisinde (önce telefonda 12 px, tablette ~720 px ortalı).
+     Yatay iPhone'da çentik/Dynamic Island yanda: güvenli alan 16 px'ten büyükse o kadar içeride. */
+  --cam-yan: max(16px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   --cam-icerik-ust: calc(var(--cam-ust) + var(--cam-ust-h) + 12px);
   --cam-icerik-alt: calc(var(--cam-alt) + var(--cam-alt-h) + 20px);
 }
@@ -692,11 +694,6 @@ html[data-cam][data-theme="light"] {
   html[data-cam], html[data-cam][data-theme="light"] { --cam-opaklik: .94; }
 }
 
-/* Kullanıcı (2026-10-24, iPad): "barları genişlet; Offline çalışır kartının sol çizgisi ile Pedalla uyumlu kartının sağ
-   çizgisiyle aynı olsun" → tablette barlar içerikle aynı 16 px kenar çizgisinde (önce ~720 px'e sınırlı, ortalı). Telefonda 12 px. */
-@media (min-width: 600px) and (max-width: 1023px) {
-  html[data-cam] { --cam-yan: 16px; }
-}
 @media (max-width: 1023px) {
   /* ── Üst bar ── */
   html[data-cam] .r-topnav,
