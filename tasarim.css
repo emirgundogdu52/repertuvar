@@ -817,3 +817,17 @@ html[data-cam] .sec-action i { font-size: 17px; line-height: 1; }
 html[data-cam] .sec-action:active { transform: scale(.96); background: rgba(255, 255, 255, .12); }
 html[data-cam][data-theme="light"] .sec-action { border-color: rgba(0, 0, 0, .08); background: rgba(0, 0, 0, .045); color: #8A5A00 !important; }   /* topnav.js açık temada !important gri yazıyor */
 html[data-cam][data-theme="light"] .sec-action:active { background: rgba(0, 0, 0, .08); }
+@media (max-width: 1023px) {
+  /* (2026-10-24, deneme) Eserler toplu seçim çubuğu ("N seçildi · İptal · Var Olana Ekle · Repertuvar Oluştur"): tam
+     genişlikte alta yapışıktı, yüzen alt menü üstünden taşıyordu (Android emülatöründe görüldü). Seçim modunda alt menü
+     gizlenir, çubuk onun yerinde aynı camla durur. */
+  html[data-cam] body.toplu-secim .bottom-nav { display: none !important; }
+  html[data-cam][data-sayfa="eserler"] #bulkActionBar {
+    left: var(--cam-yan) !important; right: var(--cam-yan) !important; bottom: var(--cam-alt) !important;
+    min-height: var(--cam-alt-h); box-sizing: border-box; padding: 8px 10px 8px 16px !important;
+    border: .5px solid var(--cam-kenar) !important; border-radius: 24px;
+    background: var(--cam-zemin) !important;
+    -webkit-backdrop-filter: blur(var(--cam-blur)) saturate(180%); backdrop-filter: blur(var(--cam-blur)) saturate(180%);
+    box-shadow: var(--cam-golge);
+  }
+}

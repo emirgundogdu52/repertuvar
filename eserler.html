@@ -3028,6 +3028,7 @@ function updateBulkBar() {
   const label = document.getElementById('bulkCountLabel');
   if (!bar || !label) return;
   bar.style.display = bulkMode ? 'flex' : 'none';
+  document.body.classList.toggle('toplu-secim', bulkMode);   // (2026-10-24) cam düzeninde alt menü yerine bu çubuk (tasarim.css)
   label.textContent = _esCev('es.secildi','{n} seçildi').replace('{n}', bulkSelectedIds.size);
 }
 
