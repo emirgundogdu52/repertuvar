@@ -1028,10 +1028,19 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
   html[data-tasarim="v3"] .detail .act-btn i { font-size: 19px; }
   html[data-tasarim="v3"] .detail .act-btn .act-lbl-uzun { display: none; }
   html[data-tasarim="v3"] .detail .act-btn .act-lbl-kisa { display: inline; }
+  /* Eserler listesi (kullanıcı: "iPad'de eser listesini de düzelt"): üst düğmeler/çipler 32 px'ti (telefon kuralı ≤768 px) */
+  html[data-tasarim="v3"][data-sayfa="eserler"] .fav-toggle-btn { min-height: 40px; font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] :is(.tur-chip, .tur-ok) { min-height: 40px; font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .toolbar > button { min-height: 40px !important; font-size: 13px !important; }
 }
-/* Yüzen "+" liste sütununda: detay paneli 769–1023 px'te 520, 1024–1366'da 380, üstünde 520 px genişlikte (eserler.html). */
+/* Kullanıcı (2026-10-24): "iPad'de eser listesini de düzelt" — dikey iPad'de (810 px) detay sabit 520 px, listeye 290 px kalıyordu
+   (Tümü/Favoriler/Taslaklarım sıkışık, araç çubuğu iki satır, adlar kısalıyor) → 769–1023 px'te ekran liste/detay yarı yarıya. */
 @media (min-width: 769px) and (max-width: 1023px) {
-  html[data-tasarim="v3"][data-sayfa="eserler"] .fab-new-eser { right: calc(520px + 16px) !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .detail { width: 50% !important; min-width: 0 !important; }
+}
+/* Yüzen "+" liste sütununda: detay paneli 769–1023 px'te %50, 1024–1366'da 380, üstünde 520 px genişlikte (eserler.html). */
+@media (min-width: 769px) and (max-width: 1023px) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .fab-new-eser { right: calc(50% + 16px) !important; }
 }
 @media (min-width: 1024px) and (max-width: 1366px) {
   html[data-tasarim="v3"][data-sayfa="eserler"] .fab-new-eser { right: calc(380px + 20px) !important; }
