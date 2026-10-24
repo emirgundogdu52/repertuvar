@@ -766,9 +766,20 @@ const APPLE_GIRIS_AKTIF = true;   // (2026-10-08) açıldı: üyelik + Supabase 
 // sağlayıcısında Services ID + gizli anahtar (6 ayda bir yenilenir) gerektirir.
 // (2026-10-08) iPhone uçtan uca test edildi (giriş + ad + silme + Apple iptali). Android akışı (Supabase OAuth + uygulama
 // içi sekme) henüz test edilmedi → emülatörde denenince true yapılacak.
-const APPLE_ANDROID_AKTIF = false;
+// (2026-10-24) Kullanıcı kararı: Android'de ve tarayıcıda da açılsın (iPhone'da Apple'la — çoğu zaman gizli e-postayla —
+// kaydolan kişi Android telefondan ya da bilgisayardan giremiyordu). EMÜLATÖRDE DENENDİ → Apple 'invalid_request: Invalid
+// client id or web redirect url': Supabase OAuth'ta client_id=com.repertuvar.app (App ID) gidiyor; tarayıcı akışı Services ID
+// ister. Yapılacak (kullanıcı: App Store onayından SONRA): Apple Developer'da Services ID (+ Sign in with Apple, alan
+// ehytkzxdhjyjuubizdnl.supabase.co, dönüş …/auth/v1/callback) → D4U8DA3V42 anahtarıyla o Services ID için istemci sırrı →
+// Supabase Apple: Client IDs başına Services ID (com.repertuvar.app listede KALIR, iPhone yerel girişi için) + yeni sır.
+// Sonra iki bayrak true. Kod yolu hazır: Android _appleTarayiciIle, web _appleWebIle.
+const APPLE_ANDROID_AKTIF = false;   // Services ID kurulunca true (aşağıdaki not)
+// Tarayıcı: Supabase OAuth (Google'ın tarayıcı yedeğiyle aynı yol); dönüş app.repertuvar.app/login.html#access_token=…
+// (sayfanın üstündeki hash işleyicisi oturumu kurar).
+const APPLE_WEB_AKTIF = false;       // Services ID kurulunca true
 function _appleKullanilabilir() {
-  if (!APPLE_GIRIS_AKTIF || !_nativeMi()) return false;
+  if (!APPLE_GIRIS_AKTIF) return false;
+  if (!_nativeMi()) return APPLE_WEB_AKTIF;
   const c = window.Capacitor;
   if (c.getPlatform() === 'ios') return !!_nativeEklenti('GirisOturumu');
   return APPLE_ANDROID_AKTIF && !!_nativeEklenti('Browser');
@@ -787,7 +798,15 @@ async function _appleTarayiciIle() {
   try { localStorage.setItem(GOOGLE_BEKLIYOR, String(Date.now())); } catch (e) {}
   await tarayici.open({ url: data.url, toolbarColor: '#070A0F' });
 }
+async function _appleWebIle() {
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'apple',
+    options: { redirectTo: 'https://app.repertuvar.app/login.html', scopes: 'name email' }
+  });
+  if (error) showMsg('err', _gCev('giris.appleAcilamadi', 'Apple ile giriş başlatılamadı. Lütfen tekrar deneyin.'));
+}
 async function loginApple() {
+  if (!_nativeMi()) { await _appleWebIle(); return; }
   const eklenti = _nativeEklenti('GirisOturumu');
   if (!eklenti) { await _appleTarayiciIle(); return; }
   let ham, ozet;
