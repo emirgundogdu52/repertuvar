@@ -760,7 +760,8 @@ html[data-cam][data-theme="light"] {
     padding-top: calc(var(--cam-icerik-ust) - 9px); padding-bottom: var(--cam-icerik-alt);
   }
   html[data-cam][data-sayfa="eserler"] #listPanel { flex: none; overflow: visible; }
-  html[data-cam][data-sayfa="eserler"] .detail { padding-top: var(--cam-icerik-ust); padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; }
+  /* − 9 px: kullanıcı (2026-10-24) "eser detayında da üstteki boşluğu 1,5 mm azalt" — liste ile aynı (bara 9 px). */
+  html[data-cam][data-sayfa="eserler"] .detail { padding-top: calc(var(--cam-icerik-ust) - 9px); padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; }
   html[data-cam][data-sayfa="eserler"] .fab-new-eser {
     bottom: calc(var(--cam-alt) + var(--cam-alt-h) + 14px) !important; right: calc(var(--cam-yan) + 6px) !important;
     width: 58px !important; height: 58px !important;
