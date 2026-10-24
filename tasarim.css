@@ -968,7 +968,7 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
 @media (min-width: 769px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
   /* Repertuvarlar — sol panel */
   html[data-tasarim="v3"][data-sayfa="repertoires"] .lph .bn-arti { width: 40px; height: 40px; }   /* dokunmatikte 40 px yuvarlak + */
-  html[data-tasarim="v3"][data-sayfa="repertoires"] #list > div[style*="font-size:17px"] { font-size: 15px !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] #list > div[style*="font-size:17px"] { font-size: 14px !important; letter-spacing: .04em !important; }   /* 15 px'te "GRUBUN REPERTUVARLARI" iki satıra kırılıyordu (2026-10-24) */
   /* Repertuvarlar — detay */
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dmr { flex-wrap: wrap !important; overflow: visible !important; gap: 6px 14px !important; align-items: center; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .cta-row .bstage-primary { min-height: 44px; font-size: 14px; }
@@ -979,7 +979,7 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .br {
     min-width: 40px; height: 40px; padding: 0 !important; font-size: 15px !important; line-height: 38px; text-align: center; border-radius: 9px;
   }
-  html[data-tasarim="v3"][data-sayfa="repertoires"] .chip-vis { min-height: 32px; padding: 0 12px; font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .chip-vis { min-height: 36px; padding: 0 12px; font-size: 12px; }   /* 32 → telefondaki gibi 36 (2026-10-24) */
   html[data-tasarim="v3"][data-sayfa="repertoires"] .ov-menu-body button { min-height: 44px; font-size: 14px; }
   /* Eser detayı (yan panel) */
   html[data-tasarim="v3"] .detail .stage-open-btn { min-height: 44px; font-size: 14px; }
@@ -1142,6 +1142,27 @@ html[data-tasarim="v3"][data-sayfa="artiesten"] .work-pick-item.selected { backg
    ~130 px boşluk; yatayda 148 px). Telefon dokunma kuralları (≤768) iPad'e gelmiyordu: üye simge düğmeleri 29×22, rol 29 px,
    Yeni Grup / Düzenle 27 px. Üye düğmeleri satırdan pencereye taşındı (gruplar.html). Masaüstü değişmez. ══ */
 /* Çalışma Odası + Metronom (aynı ölçüyü paylaşır, sekme geçişinde zıplamasın) da aynı: 680 px ortalı → tam genişlik. */
+/* ══ (2026-10-24) Kullanıcı: "iPad'de Repertuvarlar sayfasını da kontrol et". Dikey iPad'de (769–1023) sol panel 300 px:
+   "MEVCUT REPERTUVARLAR" kesiliyor (…), "GRUBUN REPERTUVARLARI" iki satır, kart tarihleri alt satıra iniyordu → 320 px (detay
+   510 → 490). Dokunmatikte (telefon + iPad) Yeni Repertuvar / Eser Ekle pencerelerinde kutular 38, görünürlük seçenekleri 34,
+   İptal/Kaydet/Ekle 34 px → 40/44; düğmeler diğer pencereler gibi satırı paylaşır. ══ */
+@media (min-width: 769px) and (max-width: 1023px) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lp { width: 320px !important; min-width: 320px !important; }
+}
+/* ≥1024 (yan menü, üst bar yok): yükseklikten hâlâ üst barın 66 px'i düşülüyordu → altta 66 px boş şerit (Solistler'deki
+   hatanın aynısı). Ana kap üst güvenli alanı alıyor, yalnız o düşülür. */
+@media (min-width: 1024px) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .layout { height: calc(100vh - env(safe-area-inset-top, 0px)); height: calc(100dvh - env(safe-area-inset-top, 0px)); }
+  /* Eserler: eserler.html "masaüstü üst çubuğu" için 49 px düşüyordu; yeni tasarımda o çubuk yok → altta 49 px boş şerit. */
+  html[data-tasarim="v3"][data-sayfa="eserler"] .layout { height: calc(100vh - env(safe-area-inset-top, 0px)); height: calc(100dvh - env(safe-area-inset-top, 0px)); }
+}
+@media (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .md .fi:not(textarea) { min-height: 40px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .vis-opt { min-height: 44px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .md .fa { gap: 8px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .md .fa > button { flex: 1 1 0; min-height: 44px; font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .wpi { min-height: 44px; display: flex; flex-direction: column; justify-content: center; }
+}
 /* ══ (2026-10-24) Kullanıcı: "iPad'de Eserler sayfasını da kontrol et". Dokunmatikte (telefon + iPad) küçük kalanlar:
    Filtre & Sıralama panelinde filtre satırları 26, sıralama seçenekleri 32, kapat (✕) 14×18 px; liste satırındaki yıldız 28×28;
    toplu seçim çubuğunda İptal / Var Olana Ekle / Repertuvar Oluştur 31–33 px → 40. Yıldız: dokunma alanı 40, görünür yeri ve
