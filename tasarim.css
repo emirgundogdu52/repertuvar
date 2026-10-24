@@ -1009,6 +1009,24 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
   /* Gündüz / Gece seçimi 30 → 40 px */
   html[data-cam][data-sayfa="stage"] #pickerScreen :is(#tc-day, #tc-night) { min-height: 40px; display: inline-flex; align-items: center; padding: 0 18px !important; font-size: 13px !important; }
 }
+/* (2026-10-24) Kullanıcı: "iPad'de Sahne Modu sayfasını da kontrol et". Dikey iPad'de seçim listesi 520 px'te ortalıydı (iki
+   yanda ~140 px boşluk) → barlarla aynı çizgide tam genişlik; "Sahneye Çık" da. Yatayda (yan menü) ortalı sütun kalır. */
+@media (min-width: 769px) and (max-width: 1023px) {
+  html[data-cam][data-sayfa="stage"] #pickerScreen .pi { max-width: none; }
+  html[data-cam][data-sayfa="stage"] #pickerScreen :is(.pi-fixed-top, .pi-scroll, .pi-fixed-bottom) { padding-left: var(--cam-yan); padding-right: var(--cam-yan); }
+  html[data-cam][data-sayfa="stage"] #pickerScreen .bstart { left: var(--cam-yan) !important; right: var(--cam-yan) !important; }
+}
+/* Dokunmatik (telefon + iPad): Görünüm Ayarları'nda bölmeli seçici 30, tek kapsül (Gece/Gündüz…) 32 → 36 px; Eser Bilgileri
+   kapat ✕ 26 → 40. Yatay iPad seçim ekranı (≥1024, cam yok): "Sahneye Çık" 38 → 44, Gündüz/Gece 30 → 40. */
+@media (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="stage"] #stageScreen #stageToolsPanel .st-grp-row .align-btn,
+  html[data-tasarim="v3"][data-sayfa="stage"] #stageScreen #stageToolsPanel .st-grp-row > .align-btn:only-child { height: 36px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] .info-sheet-close { width: 40px; height: 40px; align-items: center; justify-content: center; margin: -8px -8px -8px 0; }
+}
+@media (min-width: 1024px) and (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="stage"] #pickerScreen .bstart { min-height: 44px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] #pickerScreen :is(#tc-day, #tc-night) { min-height: 40px; display: inline-flex; align-items: center; padding: 0 18px !important; font-size: 13px !important; }
+}
 
 /* ══ (2026-10-24) iPAD — ESER DETAYI — kullanıcı: "iPad'de eser detayını da kontrol et". Hizalar ve boyutlar tamamdı; düğmeler
    dikeyde 2, yatayda 3 satıra dağınık diziliyordu (Sil tek başına) → telefondaki düzen: "Sahne Modunda Aç" tam genişlik + altında
