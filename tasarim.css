@@ -755,7 +755,9 @@ html[data-cam][data-theme="light"] {
   html[data-cam][data-sayfa="eserler"] .layout { height: 100vh !important; height: 100dvh !important; }
   html[data-cam][data-sayfa="eserler"] #listCol {
     overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; box-sizing: border-box;
-    padding-top: var(--cam-icerik-ust); padding-bottom: var(--cam-icerik-alt);
+    /* − 9 px: kullanıcı (2026-10-24) "Eser Ara kutusunu altındakilerle 1,5 mm yukarı al" (17 Pro Max'te 9 px ≈ 1,5 mm);
+       kutu barın 18 px yerine 9 px altında (listCol'un ilk kabının kendi 6 px üst payı dahil). */
+    padding-top: calc(var(--cam-icerik-ust) - 9px); padding-bottom: var(--cam-icerik-alt);
   }
   html[data-cam][data-sayfa="eserler"] #listPanel { flex: none; overflow: visible; }
   html[data-cam][data-sayfa="eserler"] .detail { padding-top: var(--cam-icerik-ust); padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; }
