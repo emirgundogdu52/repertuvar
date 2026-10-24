@@ -779,7 +779,9 @@ html[data-cam][data-theme="light"] {
      9 px altında (Eserler'de arama kutusu da 9 px). Başlık satırının üst iç payı 0, sol panel üst payı −3 px. */
   html[data-cam][data-sayfa="repertoires"] .lp { padding-top: calc(var(--cam-icerik-ust) - 3px); }
   html[data-cam][data-sayfa="repertoires"] .lph { padding-top: 0; }
-  html[data-cam][data-sayfa="repertoires"] .dp { padding-top: var(--cam-icerik-ust); padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; }
+  /* .dp üst payı −16: repertuvar detayındaki "‹ Repertuvar Listesi" hap düğmesi Eserler'deki "‹ Listeye Dön" ile aynı yerde
+     (bara 6 px = 12 − 16 + .dh üst payı 10). Düğme değil kap kayar: .dh'nin zemin sınırı düğmeyi kesmesin, barın altında kalsın. */
+  html[data-cam][data-sayfa="repertoires"] .dp { padding-top: calc(var(--cam-icerik-ust) - 16px); padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; }
 }
 @media (max-width: 768px) {
   /* Eserler: telefonda detay tam ekran katmanı (setDetailTop'un satır içi top'u ezilir). */
