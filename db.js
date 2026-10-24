@@ -827,12 +827,14 @@ window.offlineRozetMetni = function (status) {
   if (typeof document === 'undefined') return;
   var ESIK = 70;          // bu kadar piksel çekilince tazeleme tetiklenir
   var MAKS = 110;         // göstergenin inebileceği en fazla mesafe
-  var baslangic = null, mesafe = 0, calisiyor = false, gosterge = null;
+  var baslangic = null, mesafe = 0, calisiyor = false;
   // (2026-10-17) Gösterge SOL ÜSTTEKİ LOGO (kullanıcı: "ok çok uzun süre görünüyor, yerine splash'teki animasyon
   // logoda"): çektikçe sarı nokta yukarı kalkar, bırakınca splash'teki vuruş sahnesi (acilis-logo.js logoZipla) bir kez
   // oynar (~3,5 sn) — eşitlemeyi BEKLEMEZ, eşitleme arkada sürer (üstteki ince #sync-bar zaten gösteriyor).
-  // Logo görünmüyorsa (ör. sahne ekranı) eski ok yedek olarak kalır ama en fazla 1,2 sn görünür.
-  var logo = null, logoOynuyor = false, mod = null;   // mod: bu çekişte 'logo' ya da 'ok' (her dokunuşta yeniden seçilir)
+  // (2026-10-24) Logo görünmüyorsa (ör. sahne ekranı) eskiden yedek bir aşağı ok çıkıyordu — KALDIRILDI (kullanıcı: "stage'de
+  // yukarıdan aşağı swipe yapınca eskiden kalma ok çıkıyor, kaldır; dans eden üç nokta var onu kullanıyoruz"). Çekerken
+  // gösterge yok; bırakınca eşitleme başlar, onu topnav.js'teki üç nokta (#sync-halka) gösterir.
+  var logo = null, logoOynuyor = false, mod = null;   // mod: bu çekişte 'logo' ya da 'yok' (her dokunuşta yeniden seçilir)
   var NOKTA_MAKS = 90;    // çekerken noktanın en fazla kalkacağı yer (% — noktanın kutusu = tüm logo yüksekliği)
 
   function betikYukle() {   // acilis-logo.js yalnız giriş/splash'te yüklü; ilk çekişte getir (SW önbelleğinde)
@@ -856,15 +858,14 @@ window.offlineRozetMetni = function (status) {
     var ilerleme = Math.min(1, y / ESIK);
     return 'translateY(' + (-NOKTA_MAKS * ilerleme).toFixed(1) + '%)' + (ilerleme >= 1 ? ' scale(1.15)' : '');
   }
-  // Çekerken: logo varsa noktayı kaldır, yoksa ok. y = 0 → bırak/geri al.
+  // Çekerken: logo varsa noktayı kaldır (yoksa gösterge yok). y = 0 → bırak/geri al.
   function goster(y) {
     if (mod === null && y > 6) {
       var img = window.logoParcala ? logoBul() : null;
       logo = img ? window.logoParcala(img) : null;
-      mod = logo ? 'logo' : 'ok';
+      mod = logo ? 'logo' : 'yok';
     }
-    if (mod === 'logo') { logo.dot.style.transform = noktaDonusum(y); return; }
-    if (mod === 'ok') { kur(); ciz(y, y >= ESIK); }
+    if (mod === 'logo') logo.dot.style.transform = noktaDonusum(y);
   }
   function logoGeriAl() {   // eşiğe varmadan bırakıldı: nokta yaylanarak yerine, sonra kopya kalkar
     var l = logo; logo = null;
@@ -873,28 +874,6 @@ window.offlineRozetMetni = function (status) {
     l.dot.style.transform = '';
     l.dot.animate([{ transform: su }, { transform: 'none' }], { duration: 260, easing: 'cubic-bezier(0.34,1.56,0.64,1)' })
       .finished.catch(function () {}).then(l.kaldir);
-  }
-
-  function kur() {
-    if (gosterge) return;
-    gosterge = document.createElement('div');
-    gosterge.setAttribute('aria-hidden', 'true');
-    gosterge.style.cssText =
-      'position:fixed;left:50%;top:0;transform:translate(-50%,-46px);z-index:99999;' +
-      'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;' +
-      'background:var(--surface,#19233F);border:1px solid var(--border,rgba(255,255,255,.15));' +
-      'box-shadow:0 4px 14px rgba(0,0,0,.35);pointer-events:none;opacity:0;transition:opacity .15s;';
-    gosterge.innerHTML =
-      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" ' +
-      'stroke-linecap="round" style="color:var(--accent,#FFC83D);"><path d="M12 5v14M5 12l7 7 7-7"/></svg>';
-    document.body.appendChild(gosterge);
-  }
-
-  function ciz(y, donuyor) {
-    if (!gosterge) return;
-    gosterge.style.opacity = y > 6 ? '1' : '0';
-    gosterge.style.transform = 'translate(-50%,' + Math.min(y, MAKS) + 'px)' +
-      (donuyor ? ' rotate(180deg)' : '');
   }
 
   // Sayfanın gerçekten en üstünde miyiz? (iç kaydırma kapları dahil)
@@ -936,13 +915,13 @@ window.offlineRozetMetni = function (status) {
   document.addEventListener('touchcancel', function () {
     if (baslangic === null) return;
     baslangic = null; mesafe = 0;
-    if (logo) logoGeriAl(); else ciz(0, false);
+    if (logo) logoGeriAl();
   }, { passive: true });
 
   document.addEventListener('touchend', function () {
     if (baslangic === null || calisiyor || logoOynuyor) { baslangic = null; return; }
     baslangic = null;
-    if (mesafe < ESIK) { if (logo) logoGeriAl(); else ciz(0, false); return; }
+    if (mesafe < ESIK) { if (logo) logoGeriAl(); return; }
     calisiyor = true;
     if (logo) {
       var l = logo; logo = null; logoOynuyor = true;
@@ -950,9 +929,6 @@ window.offlineRozetMetni = function (status) {
       l.dot.style.transform = '';
       Promise.resolve(window.logoZipla(l, { dotBas: bas })).catch(function () {})
         .then(function () { l.kaldir(); logoOynuyor = false; });
-    } else {
-      ciz(46, true);
-      setTimeout(function () { ciz(0, false); }, 1200);
     }
     // (2026-10-15) Üst sınır: eşitleme asılı kalırsa (fetch'lerde zaman aşımı yok,
     // yavaş ağda dakikalarca sürebiliyor) gösterge ekranın tepesinde sonsuza dek
@@ -961,8 +937,7 @@ window.offlineRozetMetni = function (status) {
     var bitir = function () {
       if (bitti) return;
       bitti = true;
-      calisiyor = false; mesafe = 0;
-      setTimeout(function () { ciz(0, false); }, 250);   // yedek ok (logo yoksa); logo kendi sahnesini bitirir
+      calisiyor = false; mesafe = 0;   // logo kendi sahnesini bitirir
     };
     setTimeout(bitir, 20000);
     if (typeof window.syncOfflineData === 'function') {

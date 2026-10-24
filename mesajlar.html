@@ -202,7 +202,10 @@ body { -webkit-text-size-adjust: 100%; }
 .btn-delete-msg .ti { font-size: 15px !important; }
 .thread-actions { gap: 8px; margin-top: 10px; }
 .reply-form .btn-send { min-height: 40px; padding: 0 18px !important; font-size: 13px !important; }   /* satır içi 7px/12px */
-#nmSearch { min-height: 40px !important; font-size: 13px; }   /* satır içi min-height:unset */
+#nmSearch { min-height: 40px !important; font-size: 13px; }
+#newMsgBtnWrap { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+#newMsgBtnWrap .btn-new-msg { margin-left: 0; }
+.btn-duyuru-yaz[aria-expanded="true"] { border-color: var(--accent); background: rgba(255,200,61,.10); }   /* satır içi min-height:unset */
 #nmSelectAllBtn { min-height: 40px; padding: 0 14px !important; font-size: 12px !important; }
 .nm-member-item input[type=checkbox] { width: 20px; height: 20px; }
 .nm-actions .btn-nm-cancel, .nm-actions .btn-nm-send { flex: 1 1 0; min-height: 44px; font-size: 14px; }
@@ -228,6 +231,7 @@ body { -webkit-text-size-adjust: 100%; }
 
   <!-- Admin: Yeni Mesaj butonu -->
   <div id="newMsgBtnWrap" class="admin-only" style="display:none;margin-bottom:16px;">
+    <button class="btn-new-msg btn-duyuru-yaz" id="duyuruYazBtn" onclick="duyuruFormAcKapat()" aria-expanded="false" aria-controls="announceSection"><i class="ti ti-speakerphone" style="font-size:14px;"></i> <span data-i18n="ms.duyuruYaz">Duyuru Yaz</span></button>
     <button class="btn-new-msg" onclick="openNewMsgModal()"><i class="ti ti-edit" style="font-size:14px;"></i> <span data-i18n="ms.yeniMesaj">Yeni Mesaj</span></button>
   </div>
 
@@ -598,6 +602,17 @@ async function sendReply(msgId, fromId, email) {
   } catch(e) { toast(_msCev('mod.hata','Hata: ') + e.message, 'er'); }
 }
 
+// ── Duyuru formu aç/kapat (admin) ──
+function duyuruFormAcKapat(ac) {
+  const kutu = document.getElementById('announceSection');
+  const btn = document.getElementById('duyuruYazBtn');
+  if (!kutu) return;
+  if (typeof ac !== 'boolean') ac = kutu.style.display === 'none';
+  kutu.style.display = ac ? 'block' : 'none';
+  if (btn) btn.setAttribute('aria-expanded', ac ? 'true' : 'false');
+  if (ac) { const t = document.getElementById('annTitle'); if (t) t.focus(); }
+}
+
 // ── Duyuru gönder (admin) ──
 async function sendAnnouncement() {
   const title = document.getElementById('annTitle').value.trim();
@@ -615,6 +630,7 @@ async function sendAnnouncement() {
     document.getElementById('annTitle').value = '';
     document.getElementById('annContent').value = '';
     toast(_msCev('ms.duyuruYayinlandi','Duyuru yayınlandı ✓'));
+    duyuruFormAcKapat(false);
     loadAnnouncements();
   } catch(e) { toast(_msCev('mod.hata','Hata: ') + e.message, 'er'); }
   btn.disabled = false; btn.textContent = _msCev('ms.duyuruYayinla','Duyuruyu Yayınla');
@@ -652,8 +668,10 @@ async function loadAnnouncements() {
 
   if (isAdmin()) {
     document.querySelectorAll('.admin-only').forEach(el => { el.classList.remove('admin-only'); el.style.display = ''; });
-    document.getElementById('announceSection').style.display = 'block';
-    document.getElementById('newMsgBtnWrap').style.display = 'block';
+    // (2026-10-24) Kullanıcı: duyuru formu hep açık ve en üstteydi, mesajlar ancak altında başlıyordu → kapalı başlar,
+    // "Duyuru Yaz" ile açılır (admin-only döngüsü satır içi display'i sildiği için burada yeniden gizleniyor).
+    document.getElementById('announceSection').style.display = 'none';
+    document.getElementById('newMsgBtnWrap').style.display = 'flex';
     const r1 = document.getElementById('sbUserRole'); if(r1) r1.textContent = 'Admin';
   } else {
     document.getElementById('composeSection').style.display = 'block';

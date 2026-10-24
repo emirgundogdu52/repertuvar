@@ -1463,6 +1463,12 @@ function _m(anahtar, tr) {
     '#sync-halka.var{display:flex;}' +
     '#sync-halka.serbest{position:fixed;right:16px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:2147483647;}' +
     '#sync-halka.on{opacity:1;}' +
+    // (2026-10-24) Sahne ekranında üst menü yok: üç nokta sağ üstte serbest (güvenli alanın 12 px altı) "biraz aşağıda sağda"
+    // kalıyordu (kullanıcı) → sahnenin üst şeridinin (sayfa noktaları + 1/15) sağ ucunda, sayaçla aynı yükseklikte.
+    '#stageScreen .stb-r2{position:relative;}' +
+    '#sync-halka.sahnede{right:0;top:calc(50% - 8px);}' +
+    // Dar telefonda (≤~400 px) potpuri rozetiyle şerit doluysa noktalar rozetin üstüne binerdi → şeridin hemen altında, sağda.
+    '#sync-halka.sahnede.sahne-alt{top:calc(100% + 12px);}' +
     '#sync-halka i{width:5px;height:5px;border-radius:50%;background:#FFC83D;opacity:.45;' +
     'animation:syncZipla 1s ease-in-out infinite;}' +
     '#sync-halka i:nth-child(2){animation-delay:.15s;}' +
@@ -1505,8 +1511,20 @@ function _m(anahtar, tr) {
       halka.innerHTML = '<i></i><i></i><i></i>';
     }
     var sag = menuVar ? tn.querySelector('.r-tn-right') : null;
-    if (sag) { if (halka.parentNode !== sag) sag.insertBefore(halka, sag.firstChild); halka.classList.remove('serbest'); }
-    else { if (halka.parentNode !== document.body) (document.body || document.documentElement).appendChild(halka); halka.classList.add('serbest'); }
+    var sahne = null;
+    if (!sag) {
+      var sr = document.querySelector('#stageScreen:not(.hidden) .stb-r2');
+      var srr = sr ? sr.getBoundingClientRect() : null;
+      if (srr && srr.width > 0 && srr.height > 0) sahne = sr;   // nota odak kipinde şerit gizli → serbest konum
+    }
+    if (sag) { if (halka.parentNode !== sag) sag.insertBefore(halka, sag.firstChild); halka.classList.remove('serbest', 'sahnede'); }
+    else if (sahne) {
+      if (halka.parentNode !== sahne) sahne.appendChild(halka);
+      halka.classList.remove('serbest', 'sahne-alt'); halka.classList.add('sahnede', 'var');
+      var stp = sahne.querySelector('.stp'), pr = stp ? stp.getBoundingClientRect() : null, hr = halka.getBoundingClientRect();
+      if (pr && pr.width > 0 && pr.right > hr.left - 6) halka.classList.add('sahne-alt');
+    }
+    else { if (halka.parentNode !== document.body) (document.body || document.documentElement).appendChild(halka); halka.classList.remove('sahnede'); halka.classList.add('serbest'); }
     halka.classList.add('var');
     void halka.offsetWidth;
     halka.classList.add('on');
