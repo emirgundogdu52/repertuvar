@@ -853,7 +853,6 @@ html[data-cam][data-theme="light"] .sec-action:active { background: rgba(0, 0, 0
   /* Eser detayı — kişisel not */
   html[data-tasarim="v3"] .knot-dugmeler { gap: 8px; margin-top: 10px; }
   html[data-tasarim="v3"] .knot-dugmeler .rbtn { min-height: 44px; padding: 0 20px; font-size: 15px; border-radius: 12px; }
-  html[data-tasarim="v3"] .knot-bos { display: inline-flex; align-items: center; min-height: 40px; font-size: 14px; }
   html[data-tasarim="v3"] .knot-durum { font-size: 13px; }
   /* Eser detayı — sekmeler; Eserler listesi — Tümü/Favoriler/Taslaklarım, dil/tür çipleri, araç çubuğu */
   /* Sekmeler tek satır (tasarımdaki gibi), sığmazsa yana kayar — büyüyünce "Hikaye" alt satıra düşüyordu. */
