@@ -354,14 +354,16 @@ async function sendMessage() {
 }
 
 // ── Mesajları yükle ──
-async function markRead(ids) {
+async function markRead(ids, alan) {
   if (!ids || !ids.length) return;
-  // Her mesajı read_at ile güncelle
+  // Admin: read_at (üyenin mesajını okudu). Üye: uye_okudu_at (adminin yanıtını okudu) — 2026-10-24'ten önce ikisi de
+  // read_at'ti; admin konuşmayı açınca üyenin sayacı hiç artmıyordu.
+  const govde = {}; govde[alan || 'read_at'] = new Date().toISOString();
   await Promise.all(ids.map(id =>
     fetch(SUPA_URL + '/rest/v1/messages?id=eq.' + id, {
       method: 'PATCH',
       headers: { ...H(), 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ read_at: new Date().toISOString() })
+      body: JSON.stringify(govde)
     })
   ));
   if (window._loadUnreadBadge) window._loadUnreadBadge();
@@ -404,8 +406,8 @@ async function loadMessages() {
           </div>`;
         }).join('') + '</div>';
     } else {
-      const unread = data.filter(m => !m.read_at && m.admin_reply).map(m => m.id);
-      if (unread.length) setTimeout(() => markRead(unread), 1000);
+      const unread = data.filter(m => !m.uye_okudu_at && m.admin_reply).map(m => m.id);
+      if (unread.length) setTimeout(() => markRead(unread, 'uye_okudu_at'), 1000);
       panel.innerHTML = data.map(m => `
         <div class="thread-msg" id="msg-${m.id}">
           <div class="thread-msg-header">
@@ -660,6 +662,8 @@ async function loadAnnouncements() {
 
   loadMessages();
   loadAnnouncements();
+  // Duyuru bildirimi buraya ?sekme=duyurular ile getirir (topnav.js zil paneli).
+  try { if (new URLSearchParams(location.search).get('sekme') === 'duyurular') switchTab('announcements'); } catch (e) {}
 })();
 </script>
 

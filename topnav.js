@@ -1038,8 +1038,9 @@ function _m(anahtar, tr) {
         // Admin: read_at null olan TÜM mesajlar (üyelerden gelen)
         countUrl = SUPA_URL + '/rest/v1/messages?read_at=is.null&select=id';
       } else {
-        // Üye: kendi gönderdiği, admin cevapladı ama üye okumadı
-        countUrl = SUPA_URL + '/rest/v1/messages?from_id=eq.' + uid + '&admin_reply=not.is.null&read_at=is.null&select=id';
+        // Üye: admin yazdı/yanıtladı ama üye okumadı. (2026-10-24) read_at yerine uye_okudu_at: read_at "admin okudu"
+        // demek; admin konuşmayı açınca (ya da Yeni Mesaj kaydı baştan read_at dolu yazıldığı için) sayaç hiç artmıyordu.
+        countUrl = SUPA_URL + '/rest/v1/messages?from_id=eq.' + uid + '&admin_reply=not.is.null&uye_okudu_at=is.null&select=id';
       }
       const r = await fetch(countUrl, { headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token } });
       if (!r.ok) return;
@@ -1154,19 +1155,33 @@ function _m(anahtar, tr) {
     const _bBaslik = '<div class="r-notif-head">' + _m('menu.bildirimler','Bildirimler') + '</div>';
     p.innerHTML = _bBaslik + '<div style="padding:16px;color:#9aa4b2;font-size:13px;">' + _m('menu.yukleniyor','Yükleniyor…') + '</div>';
     try {
-      const r = await fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&order=created_at.desc&limit=10&select=id,type,title,body,is_read,created_at', { headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token } });
+      const r = await fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&order=created_at.desc&limit=10&select=id,type,title,body,data,is_read,created_at', { headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token } });
       const rows = r.ok ? await r.json() : [];
       if (!rows.length) {
         p.innerHTML = _bBaslik + '<div style="padding:22px 16px;color:#6b7482;font-size:13px;text-align:center;">' + _m('menu.bildirimYok','Henüz bildirim yok.') + '</div>';
         return;
       }
+      // (2026-10-24) Duyuru / admin mesajı bildirimleri (veritabanı tetikleyicileri) ilgili sayfaya götürür. Yalnız
+      // uygulamanın kendi sayfaları (dış adres yok). Sabit başlıklı türler arayüz diliyle; duyuru başlığı adminin metni.
+      const _git = function (n) {
+        const u = n && n.data && n.data.url;
+        return (typeof u === 'string' && /^[a-z0-9-]+\.html(\?[a-z0-9=&_-]*)?$/i.test(u)) ? u : '';
+      };
+      const _baslik = function (n) {
+        if (n.type === 'admin_message') return _m('menu.bildirimAdminMesaj', n.title);
+        return n.title;
+      };
       p.innerHTML = _bBaslik + rows.map(function(n){
-        return '<div class="r-notif-item' + (n.is_read ? '' : ' unread') + '">' +
-          '<div class="r-notif-title">' + _notifEsc(n.title) + '</div>' +
+        const u = _git(n);
+        return '<div class="r-notif-item' + (n.is_read ? '' : ' unread') + (u ? ' tiklanir" role="link" tabindex="0" data-url="' + _notifEsc(u) + '"' : '"') + '>' +
+          '<div class="r-notif-title">' + _notifEsc(_baslik(n)) + '</div>' +
           (n.body ? '<div class="r-notif-body">' + _notifEsc(n.body) + '</div>' : '') +
           '<div class="r-notif-time">' + _notifTime(n.created_at) + '</div>' +
         '</div>';
       }).join('');
+      p.querySelectorAll('.r-notif-item[data-url]').forEach(function (el) {
+        el.addEventListener('click', function () { location.href = el.dataset.url; });
+      });
       // Panel açıldığında kullanıcının TÜM okunmamış bildirimlerini okundu yap
       // (sadece son 10'u değil — yoksa listede görünmeyen eski okunmamışlar rozeti takar)
       fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&is_read=eq.false', {
@@ -1194,6 +1209,8 @@ function _m(anahtar, tr) {
       .r-notif-item { padding:11px 14px; border-bottom:1px solid rgba(255,255,255,0.05); }
       [data-theme="light"] .r-notif-item { border-bottom-color:rgba(0,0,0,0.05); }
       .r-notif-item.unread { background:rgba(255,200,61,0.07); }
+      .r-notif-item.tiklanir { cursor:pointer; }
+      .r-notif-item.tiklanir:active { background:rgba(255,200,61,0.12); }
       .r-notif-title { font-size:13px; font-weight:700; color:#e6edf3; }
       [data-theme="light"] .r-notif-title { color:#1a1a2e; }
       .r-notif-body { font-size:12px; color:#9aa4b2; margin-top:2px; line-height:1.4; }
