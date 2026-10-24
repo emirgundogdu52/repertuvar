@@ -124,6 +124,12 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     /* Dar alanda (telefon; yatay iPad'de iki sütunlu girişin sol sütunu ~346 px) düğme alta, tam genişlik — yoksa metin simgeyle
        düğme arasında tek kelimelik satırlara sıkışıyordu. Kap sorgusu desteklenmeyen eski tarayıcıda telefon kuralı kalır. */
     .hero-text { container-type:inline-size; }
+    /* Kullanıcı (2026-10-24): "bu blok hareket eden iPad görselinin altına giriyor" — tek sütunda (≤900) kartın hemen altında
+       inip kalkan önizleme (previewFloat −10 px) var; kartın alt payı yoktu, görsel üstüne biniyordu → 30 px ara + kart önde. */
+    @media (max-width:900px) {
+      .hero-actions { margin-bottom:0; }
+      .ana-defter { margin:16px 0 30px; position:relative; z-index:2; }
+    }
     @container (max-width:520px) { .ana-defter { flex-wrap:wrap; } .ana-defter-cta { width:100%; justify-content:center; } }
     @media (max-width:600px) { .ana-defter { flex-wrap:wrap; } .ana-defter-cta { width:100%; justify-content:center; } }
     [data-theme="light"] .ana-defter { background:linear-gradient(135deg, #FFF3CF, #FFFBEF); border-color:rgba(176,120,0,.45); }
@@ -343,7 +349,7 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
           <span class="ana-defter-ust"><span class="ana-defter-rozet" data-i18n="ana.yeni">Yeni</span><b data-i18n="ana.defterBaslik">Nota defterini tara, dijitale geç</b></span>
           <small data-i18n="ana.defterAlt">Defterindeki notaları telefonla tara; her sayfa eserinin sözlerinin ve akorlarının yanına eklenir, sahnede hep yanında.</small>
         </span>
-        <span class="ana-defter-cta"><span data-i18n="ana.defterCta">Defterini Tara</span><i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+        <span class="ana-defter-cta"><span data-i18n="ana.defterCta">Nota Defterini Tara</span><i class="ti ti-arrow-right" aria-hidden="true"></i></span>
       </a>
       </div>
 
