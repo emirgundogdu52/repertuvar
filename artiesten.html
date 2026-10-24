@@ -154,7 +154,7 @@ html{background:var(--bg);}
   <aside class="artist-list-panel">
     <div class="panel-header">
       <h2 data-i18n="so.solistler">Solistler</h2>
-      <button class="btn-new" onclick="openNewModal()" data-i18n="so.yeni">+ Yeni</button>
+      <button class="btn-new btn-new-arti" onclick="openNewModal()" title="Yeni Solist" aria-label="Yeni Solist" data-i18n-title="so.yeniSolist" data-i18n-aria="so.yeniSolist"><i class="ti ti-plus" aria-hidden="true"></i></button>
     </div>
     <div class="list-scroll" id="artistListScroll"></div>
   </aside>
@@ -372,8 +372,8 @@ function renderDetail() {
           
         </div>
         <div class="detail-actions">
-          <button class="btn-icon" onclick="openEditModal('${a.id}')">✏️ ${_soCev('rep.duzenle','Düzenle')}</button>
-          <button class="btn-icon btn-danger" onclick="deleteArtist('${a.id}')">${_soCev('ortak.sil','Sil')}</button>
+          <button class="btn-icon" onclick="openEditModal('${a.id}')"><i class="ti ti-edit" aria-hidden="true"></i> ${_soCev('rep.duzenle','Düzenle')}</button>
+          <button class="btn-icon btn-danger" onclick="deleteArtist('${a.id}')"><i class="ti ti-trash" aria-hidden="true"></i> ${_soCev('ortak.sil','Sil')}</button>
         </div>
       </div>
       <div class="info-grid">
@@ -383,7 +383,7 @@ function renderDetail() {
       </div>
       <div class="works-chips">
         ${workChips}
-        <button class="work-chip-add" onclick="openWorkModal('${a.id}')"><i class="ti ti-plus" style="font-size:13px;"></i> ${_soCev('so.eserEkle','Eser Ekle')}</button>
+        <button class="work-chip-add" onclick="openWorkModal('${a.id}')"><i class="ti ti-plus" aria-hidden="true"></i> ${_soCev('so.eserEkle','Eser Ekle')}</button>
       </div>
     </div>`;
 }
