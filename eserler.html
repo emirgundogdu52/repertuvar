@@ -1015,11 +1015,12 @@
     .detail.mobile-visible .lyrics-box { overflow-x:hidden; word-break:break-word; white-space:pre-wrap; width:100%; max-width:100%; box-sizing:border-box; }
     .detail.mobile-visible::-webkit-scrollbar { display:none; }
     /* (2026-10-24) Kullanıcı: "Listeye Dön'ü şık bir butonla değiştirelim" → çizgili yazı satırı yerine hap düğme (‹ + metin). */
-    .back-btn { display:inline-flex; align-items:center; gap:4px; height:40px; margin:6px 16px 4px; padding:0 16px 0 10px;
+    .back-btn { display:inline-flex; align-items:center; gap:4px; height:40px; margin:1.5px 16px 8.5px; padding:0 16px 0 10px;
       border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.07); color:var(--accent);
       font-family:inherit; font-size:15px; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent;
       transition:transform .12s, background .15s; }
     .back-btn i { font-size:20px; line-height:1; }
+    /* Kullanıcı (2026-10-24): "Listeye Dön'ü 0,75 mm yukarı taşı" → üst pay 6 → 1,5 px, alttaki içerik yerinde kalsın diye alt pay 4 → 8,5 px. */
     .back-btn:active { transform:scale(.96); background:rgba(255,255,255,.12); }
     [data-theme="light"] .back-btn { border-color:rgba(0,0,0,.08); background:rgba(0,0,0,.045); color:#8A5A00; }
     [data-theme="light"] .back-btn:active { background:rgba(0,0,0,.08); }
