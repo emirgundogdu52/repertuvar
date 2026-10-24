@@ -1,3 +1,14 @@
+// (2026-10-24) iOS 15 (uygulamanın en düşük hedefi) AbortSignal.timeout'u bilmiyor (Safari 16+): ~40 çağrıda TypeError,
+// her istek "ağ hatası" sayılıp token yenilenmiyordu. Eksikse AbortController + setTimeout ile eklenir (tasarim.js + auth.js).
+if (typeof AbortSignal !== 'undefined' && typeof AbortController !== 'undefined' && typeof AbortSignal.timeout !== 'function') {
+  AbortSignal.timeout = function (ms) {
+    var c = new AbortController();
+    setTimeout(function () {
+      try { c.abort(new DOMException('signal timed out', 'TimeoutError')); } catch (e) { c.abort(); }
+    }, ms);
+    return c.signal;
+  };
+}
 // auth.js — tüm sayfalarda kullanılan auth yardımcı fonksiyonları
 var SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
 var SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
