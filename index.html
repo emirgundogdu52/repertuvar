@@ -102,6 +102,33 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
       .hero-ipad { max-width: 100% !important; margin: 0 !important; }
     }
 
+    /* (2026-10-24) NOTA DEFTERİ VURGUSU — kullanıcı: "tarama fonksiyonu defterden dijitale geçmek isteyen herkes için çok büyük
+       bir özellik, çok iyi vurgulamamız lazım". Giriş alanında düğmelerin altında; dokununca Eserler'de defter akışı açılır. */
+    .ana-defter { display:flex; align-items:center; gap:14px; margin:6px 0 0; padding:14px 14px 14px 16px; border-radius:18px;
+      text-decoration:none; color:var(--text); background:linear-gradient(135deg, rgba(255,200,61,.16), rgba(255,200,61,.04));
+      border:1px solid rgba(255,200,61,.5); box-shadow:0 12px 28px -14px rgba(255,200,61,.45);
+      transition:transform .15s, border-color .15s; animation:heroFadeUp .7s ease both; animation-delay:.24s; -webkit-tap-highlight-color:transparent; }
+    .ana-defter:hover { border-color:var(--accent); }
+    .ana-defter:active { transform:scale(.985); }
+    .ana-defter-ik { flex:none; width:48px; height:48px; border-radius:14px; display:grid; place-items:center;
+      background:rgba(255,200,61,.18); color:var(--accent); font-size:26px; }
+    .ana-defter-metin { flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
+    .ana-defter-ust { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .ana-defter-ust b { font-size:16px; font-weight:800; line-height:1.3; color:var(--text); }
+    .ana-defter-rozet { font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; padding:2px 8px;
+      border-radius:999px; background:var(--accent); color:#1a1200; }
+    .ana-defter small { font-size:13px; line-height:1.45; color:var(--text2); }
+    .ana-defter-cta { flex:none; display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:0 16px; border-radius:999px;
+      background:var(--yt-btn, var(--accent)); color:var(--yt-btn-yazi, #1a1200); font-size:14px; font-weight:700; white-space:nowrap; }
+    .ana-defter-cta i { font-size:16px; }
+    /* Dar alanda (telefon; yatay iPad'de iki sütunlu girişin sol sütunu ~346 px) düğme alta, tam genişlik — yoksa metin simgeyle
+       düğme arasında tek kelimelik satırlara sıkışıyordu. Kap sorgusu desteklenmeyen eski tarayıcıda telefon kuralı kalır. */
+    .hero-text { container-type:inline-size; }
+    @container (max-width:520px) { .ana-defter { flex-wrap:wrap; } .ana-defter-cta { width:100%; justify-content:center; } }
+    @media (max-width:600px) { .ana-defter { flex-wrap:wrap; } .ana-defter-cta { width:100%; justify-content:center; } }
+    [data-theme="light"] .ana-defter { background:linear-gradient(135deg, #FFF3CF, #FFFBEF); border-color:rgba(176,120,0,.45); }
+    [data-theme="light"] .ana-defter-ik { background:rgba(255,200,61,.35); color:#8A5A00; }
+
     .hero-bullets { list-style:none; margin:0 0 20px; padding:0; }
     .hero-bullets li { font-size:15px; line-height:1.5; color:var(--text2); padding:6px 0; display:flex; align-items:flex-start; gap:8px; }
     .hero-bullets li i { color:var(--accent); font-size:16px; width:18px; text-align:center; flex-shrink:0; margin-top:3px; }
@@ -310,6 +337,14 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
         <a href="repertoires.html" class="hero-btn-primary"><i class="ti ti-music"></i> <span data-i18n="ana.repbak">Repertuvarlara Bak →</span></a>
         <a href="calisma.html" class="hero-btn-secondary" data-i18n="ana.demo">Çalışma Odası'nı Aç</a>
       </div>
+      <a href="eserler.html?defter=1" class="ana-defter">
+        <span class="ana-defter-ik"><i class="ti ti-scan" aria-hidden="true"></i></span>
+        <span class="ana-defter-metin">
+          <span class="ana-defter-ust"><span class="ana-defter-rozet" data-i18n="ana.yeni">Yeni</span><b data-i18n="ana.defterBaslik">Nota defterini tara, dijitale geç</b></span>
+          <small data-i18n="ana.defterAlt">Defterindeki notaları telefonla tara; her sayfa eserinin sözlerinin ve akorlarının yanına eklenir, sahnede hep yanında.</small>
+        </span>
+        <span class="ana-defter-cta"><span data-i18n="ana.defterCta">Defterini Tara</span><i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+      </a>
       </div>
 
       <!-- iPad + PEDAL ÖNİZLEME -->

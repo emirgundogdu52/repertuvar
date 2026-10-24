@@ -7170,6 +7170,17 @@ function openEditFromQuery() {
   } catch(e) { console.warn('[eserler] ?edit işlenemedi:', e); }
 }
 window.addEventListener('load', () => setTimeout(openEditFromQuery, 400));
+// (2026-10-24) Ana Sayfa'daki "Defterini Tara" kartı → eserler.html?defter=1: defter akışı doğrudan açılır (bir kez; adres
+// temizlenir, geri gelince/yenileyince yeniden açılmaz). İlk açılışta defterAc önce tarama ipuçlarını gösterir.
+window.addEventListener('load', () => setTimeout(() => {
+  try {
+    const q = new URLSearchParams(location.search);
+    if (q.get('defter') !== '1') return;
+    q.delete('defter');
+    history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+    defterAc();
+  } catch (e) {}
+}, 500));
 
 // ── GÜFTE EDİTÖR TOOLBAR ──
 // (2026-10-24) Android Chrome araç düğmesine dokununca odağı düğmeye veriyordu (iOS vermez) → klavye kapanıp açılıyor, seçim
