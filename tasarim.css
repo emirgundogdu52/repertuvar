@@ -564,7 +564,9 @@ html[data-tasarim="v3"][data-theme="light"] #recentWorks .work-row.zebra { backg
 @media (max-width: 1023px) {
   html[data-tasarim="v3"] .we-wrap,
   html[data-tasarim="v3"] .work-item:not(.we-wrap > .work-item) { margin-left: 16px; margin-right: 16px; }
-  html[data-tasarim="v3"] .lp > div:has(> #repSearchInput) { padding-left: 16px !important; padding-right: 16px !important; }   /* satır içi 12px */
+  /* (2026-10-24) "> #repSearchInput" artık eşleşmiyordu: arama-temizle.js kutuyu .ara-kap içine sarıyor → kutu kartlardan 4 px dışarıdaydı. */
+  html[data-tasarim="v3"] .lp > div:has(#repSearchInput) { padding-left: 16px !important; padding-right: 16px !important; }   /* satır içi 12px */
+  html[data-tasarim="v3"] #repSearchInput { min-height: 40px; }
   html[data-tasarim="v3"] .lp .ls { padding-left: 16px; padding-right: 16px; }
 }
 /* (2026-10-08) iPad UYGULAMASI (≥1024px masaüstü düzeni): üst çubuk yok; sol menü kendi üst güvenli alanını alıyor ama ana içerik
@@ -928,7 +930,7 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .fav-toggle-btn { min-height: 40px; font-size: 13px !important; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .tur-chip { min-height: 40px; font-size: 13px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .tur-ok { min-height: 40px; }
-  html[data-tasarim="v3"][data-sayfa="eserler"] .toolbar > button { min-height: 40px !important; font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .toolbar > button:not(.fab-new-eser) { min-height: 40px !important; font-size: 13px !important; }
   /* Repertuvar detayı — satır ikon düğmeleri, görünürlük çipi */
   /* 5 düğme 36 px tek sırada eser adına ~80 px bırakıyor, adlar kelime ortasından bölünüyordu → 3 + 2 iki sıra (ad ~2 kat yer). */
   html[data-tasarim="v3"][data-sayfa="repertoires"] .ra { gap: 4px !important; flex-wrap: wrap; justify-content: flex-end; width: calc(36px * 3 + 4px * 2); min-width: calc(36px * 3 + 4px * 2); margin-left: auto; }
@@ -1031,7 +1033,7 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
   /* Eserler listesi (kullanıcı: "iPad'de eser listesini de düzelt"): üst düğmeler/çipler 32 px'ti (telefon kuralı ≤768 px) */
   html[data-tasarim="v3"][data-sayfa="eserler"] .fav-toggle-btn { min-height: 40px; font-size: 13px !important; }
   html[data-tasarim="v3"][data-sayfa="eserler"] :is(.tur-chip, .tur-ok) { min-height: 40px; font-size: 13px; }
-  html[data-tasarim="v3"][data-sayfa="eserler"] .toolbar > button { min-height: 40px !important; font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .toolbar > button:not(.fab-new-eser) { min-height: 40px !important; font-size: 13px !important; }
 }
 /* Kullanıcı (2026-10-24): "iPad'de eser listesini de düzelt" — dikey iPad'de (810 px) detay sabit 520 px, listeye 290 px kalıyordu
    (Tümü/Favoriler/Taslaklarım sıkışık, araç çubuğu iki satır, adlar kısalıyor) → 769–1023 px'te ekran liste/detay yarı yarıya. */
