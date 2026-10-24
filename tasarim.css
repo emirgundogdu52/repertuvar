@@ -857,11 +857,17 @@ html[data-cam][data-theme="light"] .sec-action:active { background: rgba(0, 0, 0
   html[data-tasarim="v3"] .knot-dugmeler .rbtn { min-height: 44px; padding: 0 20px; font-size: 15px; border-radius: 12px; }
   html[data-tasarim="v3"] .knot-durum { font-size: 13px; }
   /* Eser detayı — sekmeler; Eserler listesi — Tümü/Favoriler/Taslaklarım, dil/tür çipleri, araç çubuğu */
-  /* Sekmeler tek satır (tasarımdaki gibi), sığmazsa yana kayar — büyüyünce "Hikaye" alt satıra düşüyordu. */
-  /* justify-content:center taşan şeritte soldaki "Söz"ü kesiyordu (ortalanan taşma sola kaydırılamaz) → sola yaslı. */
-  html[data-tasarim="v3"] .detail.mobile-visible .detail-tabs { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; justify-content: flex-start !important; }
-  html[data-tasarim="v3"] .detail.mobile-visible .detail-tabs::-webkit-scrollbar { display: none; }
-  html[data-tasarim="v3"] .detail.mobile-visible .dtab { min-height: 40px; font-size: 13px; flex: 0 0 auto !important; padding: 0 14px !important; white-space: nowrap; }
+  /* Sekmeler: tek satır, KAYDIRMASIZ, 16 px çizgileri arasına sığar (kullanıcı: "Söz soldan / Hikaye sağdan kesildi,
+     butonları küçülterek ölçüye sığdır"). 40 px yükseklik kalır; yazı 12 px, iç pay 7 px, genişlik içeriğe göre paylaşılır. */
+  html[data-tasarim="v3"] .detail.mobile-visible .detail-tabs {
+    flex-wrap: nowrap !important; justify-content: flex-start !important; overflow: visible; gap: 4px !important;
+    padding-left: 16px !important; padding-right: 16px !important;
+  }
+  html[data-tasarim="v3"] .detail.mobile-visible .dtab {
+    min-height: 40px; font-size: 12px !important; padding: 0 7px !important; flex: 1 1 auto !important; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+  }
+  html[data-tasarim="v3"] .detail.mobile-visible .dtab .ti { font-size: 13px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .fav-toggle-btn { min-height: 40px; font-size: 13px !important; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .tur-chip { min-height: 40px; font-size: 13px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .tur-ok { min-height: 40px; }
