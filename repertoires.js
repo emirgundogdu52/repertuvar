@@ -322,7 +322,9 @@ function riTouchEnd(e) {
   card.style.transition = 'transform .2s ease';
   // Gerçek bir yatay hareket olduysa (ne kadar küçük olursa olsun), bunu takip eden
   // "click" olayını görmezden gel — bir swipe denemesi asla kart seçimine dönüşmemeli.
-  if (Math.abs(_riSwipe.dx) > 5) card.dataset.justSwiped = '1';
+  // (2026-10-24) Bayrak yalnız click ile siliniyordu; dokunarak kaydırmada click gelmez → kaydırmadan sonraki ilk dokunuş
+  // yutuluyordu. Hemen ardından gelebilecek hayalet click'i yutmaya yetecek kadar (400 ms) kalır.
+  if (Math.abs(_riSwipe.dx) > 5) { card.dataset.justSwiped = '1'; setTimeout(() => { delete card.dataset.justSwiped; }, 400); }
   card.classList.remove('swiped-open-left', 'swiped-open-right');
   const wrap = card.closest('.ri-wrap');
   if (_riSwipe.dx <= -RI_SWIPE_THRESHOLD) {
@@ -946,10 +948,43 @@ function sel(id){
     if(dp) dp.classList.add('mobile-open');
     const btn=document.getElementById('mobileBackBtn');
     if(btn) btn.style.display='flex';
+    // (2026-10-24) Geçmişe bir adım: Android geri tuşu/jesti ve Chrome geri hareketi sayfadan çıkmak yerine detayı kapatsın.
+    if (history.state && history.state.repDetay) history.replaceState({ repDetay: id }, '');
+    else history.pushState({ repDetay: id }, '');
   }
 }
 
 function goBackToList(){
+  // Detay geçmişe adım ekleyerek açıldıysa geri git: popstate kapatır (geçmiş adımı da tüketilir).
+  if (history.state && history.state.repDetay) { history.back(); return; }
+  _listeyeDon();
+}
+window.addEventListener('popstate', function () {
+  const dp = document.getElementById('dp');
+  if (dp && dp.classList.contains('mobile-open') && !(history.state && history.state.repDetay)) _listeyeDon();
+});
+// Sahneden geri dönüldüğünde (sayfa yeniden yüklenir) eski detay adımı kalmasın — yoksa geri iki kez basılmak zorunda kalır.
+if (history.state && history.state.repDetay) history.replaceState(null, '');
+// (2026-10-24) ANDROID GERİ TUŞU (topnav.js çağırır): en üstteki açık katmanı kapatır; kapattıysa true.
+window.RGeri = function () {
+  const gor = id => { const el = document.getElementById(id); return !!(el && getComputedStyle(el).display !== 'none'); };
+  const sinif = (id, c) => { const el = document.getElementById(id); return !!(el && el.classList.contains(c)); };
+  if (sinif('knotSheet', 'open')) { closeKnotSheet(); return true; }
+  if (sinif('rlpSheet', 'open')) { closeRepMoveSheet(); return true; }
+  if (gor('dnlOverlay')) { closeDinleSheet(); return true; }
+  if (gor('shareOverlay')) { closeShare(); return true; }
+  if (gor('sortOverlay')) { closeSortSheet(); return true; }
+  if (gor('lycOverlay')) { closeLyricsSheet(); return true; }
+  if (gor('iem')) { closeIEM(); return true; }
+  if (gor('wm')) { closeWM(); return true; }
+  if (gor('rm')) { closeRM(); return true; }
+  const ov = document.querySelector('details.ov-menu[open]');
+  if (ov) { ov.open = false; return true; }
+  if (sinif('dp', 'mobile-open')) { goBackToList(); return true; }
+  return false;
+};
+
+function _listeyeDon(){
   const lp=document.querySelector('.lp');
   const dp=document.getElementById('dp');
   if(lp) lp.classList.remove('mobile-hidden');
@@ -957,6 +992,8 @@ function goBackToList(){
   const btn=document.getElementById('mobileBackBtn');
   if(btn) btn.style.display='none';
 }
+// (2026-10-24) Yerel uygulamada (iOS/Android WebView) print() hiçbir şey yapmıyor, hata da atmıyor → 'Yazdır' gizlenir.
+function _yerelUygulama(){try{return !!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());}catch(e){return false;}}
 function getRep(id){return reps.find(r=>r.id===id);}
 
 function renderDetail(){
@@ -1037,7 +1074,7 @@ function renderDetail(){
           <div class="ov-menu-body">
             <button onclick="openEdit('${rep.id}')"><i class="ti ti-edit" aria-hidden="true"></i> ${_r('rep.duzenle','Düzenle')}</button>
             <button onclick="shareRep('${rep.id}')"><i class="ti ti-share" aria-hidden="true"></i> ${_r('rep.paylas','Paylaş')}</button>
-            <button onclick="printR('${rep.id}')"><i class="ti ti-printer" aria-hidden="true"></i> ${_r('rep.yazdir','Yazdır')}</button>
+            ${_yerelUygulama() ? '' : `<button onclick="printR('${rep.id}')"><i class="ti ti-printer" aria-hidden="true"></i> ${_r('rep.yazdir','Yazdır')}</button>`}
             <button onclick="copyRep('${rep.id}')"><i class="ti ti-copy" aria-hidden="true"></i> ${_r('rep.kopyalaRep','Kopyala')}</button>
             ${rep.isOwner ? `<button class="ov-danger" onclick="delRep('${rep.id}')"><i class="ti ti-trash" aria-hidden="true"></i> ${_r('ortak.sil','Sil')}</button>` : `<button onclick="_rbRepBildir('${rep.id}')"><i class="ti ti-flag" aria-hidden="true"></i> ${_r('rep.bildir','Bildir')}</button>`}
           </div>

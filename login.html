@@ -335,7 +335,7 @@ if(!window.location.search.includes('logout=1') && !window.location.hash.include
       // kullanılacağını kullanıcı görüp onaylamalı.
       showInviteConfirm(_inviteToken);
     } else {
-      window.location.href = 'index.html';
+      window.location.replace('index.html');
     }
   }
 }
@@ -413,7 +413,7 @@ async function showInviteConfirm(token) {
     yes.disabled = true; yes.textContent = _gCev('giris.katiliniyor', 'Katılınıyor...');
     try { localStorage.setItem('invite_confirmed', '1'); } catch (e) {}
     const d = await handlePendingInvite();
-    if (d && d.ok === true) window.location.href = 'index.html?joined=1';
+    if (d && d.ok === true) window.location.replace('index.html?joined=1');
     else { yes.disabled = false; yes.textContent = _gCev('giris.buHesaplaKatil', 'Bu hesapla katıl'); }
   };
   const no = document.getElementById('invNo');
@@ -441,7 +441,7 @@ async function showInviteConfirm(token) {
   const kapat = document.getElementById('invClose');
   if (kapat) kapat.onclick = function () {
     try { localStorage.removeItem('pending_invite'); } catch (e) {}
-    window.location.href = 'index.html';
+    window.location.replace('index.html');
   };
 }
 
@@ -512,7 +512,7 @@ async function doLogin() {
     localStorage.setItem('sb_token', data.session.access_token);
     localStorage.setItem('sb_refresh', data.session.refresh_token);
     await handlePendingInvite(data.session.user.id);
-    window.location.href = 'index.html';
+    window.location.replace('index.html');
   }
 }
 
@@ -550,7 +550,7 @@ async function doRegister() {
     localStorage.setItem('sb_refresh', data.session.refresh_token);
     await writeSignupProfile(data.session.user.id);
     await handlePendingInvite(data.session.user.id);
-    window.location.href = 'index.html';
+    window.location.replace('index.html');
     return;
   }
 
@@ -582,7 +582,7 @@ async function verifySignup() {
     localStorage.setItem('sb_refresh', data.session.refresh_token);
     await writeSignupProfile(data.session.user.id);
     await handlePendingInvite(data.session.user.id);
-    window.location.href = 'index.html';
+    window.location.replace('index.html');
   }
 }
 

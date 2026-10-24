@@ -373,7 +373,9 @@
 <head>
 <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="Repertuvar_logo.png">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<!-- (2026-10-24) user-scalable=no kaldırıldı (kullanıcı kararı: sahnede iki parmakla büyütme açık). iOS Safari zaten yok sayıyordu;
+     Android Chrome uyuyordu → notayı büyütmek mümkün değildi. Düğmelerde çift dokunuş engeli touch-action:manipulation ile duruyor. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script src="tasarim.js"></script>
 <script src="arama-temizle.js" defer></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1794,7 +1796,9 @@ function rsTouchEnd(e) {
   }
   const card = _rsSwipe.card;
   card.style.transition = 'transform .2s ease';
-  if (Math.abs(_rsSwipe.dx) > 5) card.dataset.justSwiped = '1';
+  // (2026-10-24) Bayrak yalnız click ile siliniyordu; dokunarak kaydırmada click gelmez → kaydırmadan sonraki ilk dokunuş
+  // yutuluyordu. Hemen ardından gelebilecek hayalet click'i yutmaya yetecek kadar (400 ms) kalır.
+  if (Math.abs(_rsSwipe.dx) > 5) { card.dataset.justSwiped = '1'; setTimeout(() => { delete card.dataset.justSwiped; }, 400); }
   card.classList.remove('swiped-open-left', 'swiped-open-right');
   const wrap = card.closest('.rs-wrap');
   if (_rsSwipe.dx <= -RS_SWIPE_THRESHOLD) {

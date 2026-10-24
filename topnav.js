@@ -906,6 +906,28 @@ function _m(anahtar, tr) {
     renderBottomNav();
   }
 
+  // (2026-10-24) ANDROID GERİ TUŞU / JESTİ (yerel uygulama). Dinleyici yoktu: eser detayı, alt pencere ya da modal açıkken
+  // geri tuşu sayfadan çıkıyordu. Sıra: sayfanın window.RGeri()'si (en üstteki açık katmanı kapatır, kapattıysa true) →
+  // profil menüsü / bildirim paneli → önceki sayfa; ana sayfada uygulamadan çıkış. Dinleyici olmayan sayfalarda (login,
+  // paylas, pro) Capacitor'ın varsayılanı (geçmişte geri / çıkış) geçerli.
+  (function () {
+    const cap = window.Capacitor;
+    if (!cap || !cap.isNativePlatform || !cap.isNativePlatform() || cap.getPlatform() !== 'android') return;
+    const App = cap.Plugins && cap.Plugins.App;
+    if (!App || !App.addListener) return;
+    App.addListener('backButton', function (ev) {
+      try { if (typeof window.RGeri === 'function' && window.RGeri()) return; } catch (e) {}
+      const dd = document.getElementById('rTnDropdown');
+      if (dd && dd.classList.contains('open')) { dd.classList.remove('open'); return; }
+      const np = document.querySelector('.r-notif-panel.open');
+      if (np) { np.classList.remove('open'); return; }
+      const anaSayfa = /(^|\/)(index\.html)?$/.test(location.pathname);
+      if (anaSayfa) App.exitApp();
+      else if (ev && ev.canGoBack) history.back();
+      else location.replace('index.html');
+    });
+  })();
+
   // (2026-10-24 deneme, cam barlar) iOS klavyesi açılınca sabit alt menü klavyenin üstüne zıplayıp yazı alanını örtüyor →
   // dokunmatik cihazda bir yazı alanı odaktayken alt menü gizlenir (body.klavye-acik, tasarim.css). inputmode=none
   // (yapıştır kutusu) klavye açmaz, sayılmaz.

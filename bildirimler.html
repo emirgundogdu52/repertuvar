@@ -111,7 +111,9 @@ function ciz() {
     const hedefKisi = k.target_user_id;
     const askida = hedefKisi && ADLAR[hedefKisi] && ADLAR[hedefKisi].status === 'suspended';
     const tuslar = [];
-    if (eser) tuslar.push('<a href="eserler.html?id=' + encodeURIComponent(k.target_id) + '" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> Eseri aç</a>');
+    // (2026-10-24) iOS uygulamasında target=_blank iç bağlantı Safari'ye capacitor:// adresiyle gidip sessizce düşüyordu → yerelde aynı pencere.
+    const yeniSekme = (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) ? '' : ' target="_blank" rel="noopener"';
+    if (eser) tuslar.push('<a href="eserler.html?id=' + encodeURIComponent(k.target_id) + '"' + yeniSekme + '><i class="ti ti-external-link"></i> Eseri aç</a>');
     if (DURUM === 'open') {
       if (eser) tuslar.push('<button type="button" class="kirmizi" onclick="eseriKaldir(\'' + k.id + '\')"><i class="ti ti-trash"></i> Eseri kaldır</button>');
       if (icerik) tuslar.push('<button type="button" class="kirmizi" onclick="paylasimdanKaldir(\'' + k.id + '\')"><i class="ti ti-eye-off"></i> Paylaşımdan kaldır</button>');
