@@ -1011,3 +1011,31 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
   /* Gündüz / Gece seçimi 30 → 40 px */
   html[data-cam][data-sayfa="stage"] #pickerScreen :is(#tc-day, #tc-night) { min-height: 40px; display: inline-flex; align-items: center; padding: 0 18px !important; font-size: 13px !important; }
 }
+
+/* ══ (2026-10-24) iPAD — ESER DETAYI — kullanıcı: "iPad'de eser detayını da kontrol et". Hizalar ve boyutlar tamamdı; düğmeler
+   dikeyde 2, yatayda 3 satıra dağınık diziliyordu (Sil tek başına) → telefondaki düzen: "Sahne Modunda Aç" tam genişlik + altında
+   eşit beşli sıra (kısa etiketler). Yüzen "+" (yeni eser, listeye ait) yan yana düzende eser detayının sözlerinin üstüne
+   biniyordu → liste sütununun sağ alt köşesi. Yalnız dokunmatik tablet. ══ */
+@media (min-width: 769px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"] .detail .detail-stage-row { display: grid !important; grid-template-columns: minmax(0, 1fr); gap: 8px !important; }
+  html[data-tasarim="v3"] .detail .stage-open-btn { height: 48px; border-radius: 14px; padding: 0 12px !important; font-size: 16px !important; }
+  html[data-tasarim="v3"] .detail .video-btn { height: 40px; border-radius: 12px; justify-content: center; }
+  html[data-tasarim="v3"] .detail .detail-stage-row .act-bar { display: grid !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
+  html[data-tasarim="v3"] .detail .act-btn {
+    height: 60px; min-width: 0; flex-direction: column; gap: 4px; padding: 0 2px !important;
+    border-radius: 12px; font-size: 12px !important; overflow: hidden; text-overflow: ellipsis;
+  }
+  html[data-tasarim="v3"] .detail .act-btn i { font-size: 19px; }
+  html[data-tasarim="v3"] .detail .act-btn .act-lbl-uzun { display: none; }
+  html[data-tasarim="v3"] .detail .act-btn .act-lbl-kisa { display: inline; }
+}
+/* Yüzen "+" liste sütununda: detay paneli 769–1023 px'te 520, 1024–1366'da 380, üstünde 520 px genişlikte (eserler.html). */
+@media (min-width: 769px) and (max-width: 1023px) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .fab-new-eser { right: calc(520px + 16px) !important; }
+}
+@media (min-width: 1024px) and (max-width: 1366px) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .fab-new-eser { right: calc(380px + 20px) !important; }
+}
+@media (min-width: 1367px) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .fab-new-eser { right: calc(520px + 20px) !important; }
+}
