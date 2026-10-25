@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
-const CACHE_NAME = 'repertuvar-v618';
+const CACHE_NAME = 'repertuvar-v619';
 
 // (2026-09-27, Offline Düzeltme 2) DEPLOY SONRASI OFFLINE KAYBI KAPATILDI.
 // Eskiden burada yalnız '/' ve '/index.html' vardı ve activate eski önbelleği
@@ -33,7 +33,7 @@ const PRECACHE = [
   '/artiesten.html', '/onerilerim.html', '/login.html', '/reset-password.html',
   '/splash.html', '/acilis-logo.js', '/arama-temizle.js', '/supabase-js-2.118.0.js',
   // betikler ve stil (soundtouch.js calisma.html'de dinamik import ile yükleniyor)
-  '/auth.js', '/db.js', '/i18n.js', '/topnav.js', '/repertoires.js', '/secici.js',
+  '/auth.js', '/db.js', '/i18n.js', '/topnav.js', '/repertoires.js', '/secici.js', '/ice-aktar.js',
   '/metronom.js', '/ritimcalar.js', '/ses.js', '/dongu.js', '/zamanlayici.js',
   '/qrcode.min.js', '/soundtouch.js', '/style.css',
   // (2026-10-09) içerik bildirme / kullanıcı engelleme (Apple Guideline 1.2)

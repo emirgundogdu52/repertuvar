@@ -1200,17 +1200,41 @@
   @media (hover:hover) and (pointer:fine) { .nota-kamera:not(.nota-tara), .nota-kamera-ipucu:not(.nota-tara) { display:none; } }
 
   /* (2026-10-18) "+" seçimi + DEFTERDEN ESER EKLE */
+  /* (2026-10-25) Kullanıcı: "Yeni Eser Yaz / Defterden Ekle metin büyüklükleri çok küçük" — başlık 14 → 16, açıklama 12 → 13.5 px,
+     simge 22 → 26, satır en az 64 px, menü 300 → 340 px (üçüncü seçenek "Başka uygulamadan aktar" da aynı ölçüde). */
   .ekleme-secim { position:fixed; right:20px; bottom:84px; z-index:600; display:none; flex-direction:column; gap:4px;
-    width:min(300px, calc(100vw - 32px)); padding:6px; border-radius:14px; background:var(--surface);
+    width:min(340px, calc(100vw - 32px)); padding:6px; border-radius:16px; background:var(--surface);
     border:1px solid var(--border2, var(--border)); box-shadow:0 14px 40px rgba(0,0,0,.35); }
   .ekleme-secim.acik { display:flex; }
-  .ekleme-secim button { display:flex; align-items:center; gap:12px; padding:11px 12px; border:none; border-radius:10px;
+  .ekleme-secim button { display:flex; align-items:center; gap:14px; min-height:64px; padding:12px 14px; border:none; border-radius:12px;
     background:none; color:var(--text); text-align:left; font-family:inherit; cursor:pointer; }
   .ekleme-secim button:hover, .ekleme-secim button:active { background:var(--surface2); }
-  .ekleme-secim i { font-size:22px; color:var(--accent); }
-  .ekleme-secim b { display:block; font-size:14px; }
-  .ekleme-secim small { display:block; font-size:12px; color:var(--text3); margin-top:2px; line-height:1.35; }
+  .ekleme-secim i { font-size:26px; color:var(--accent); flex:0 0 auto; }
+  .ekleme-secim b { display:block; font-size:16px; font-weight:700; }
+  .ekleme-secim small { display:block; font-size:13.5px; color:var(--text3); margin-top:3px; line-height:1.4; }
 
+  /* (2026-10-25) BAŞKA UYGULAMADAN AKTAR — defter penceresinin iskeleti (.defter-modal/.df-*) + kart */
+  .ia-kart { display:flex; gap:12px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+  .ia-kart.kapali { opacity:.55; }
+  .ia-kart input[type=checkbox] { width:22px; height:22px; margin:9px 0 0; accent-color:var(--accent); flex:0 0 auto; }
+  .ia-govde { flex:1; min-width:0; display:flex; flex-direction:column; gap:5px; }
+  .ia-ad { width:100%; min-height:40px; padding:0 10px; border-radius:10px; border:1px solid var(--border); background:var(--surface2);
+    color:var(--text); font-size:15px; font-weight:700; font-family:inherit; box-sizing:border-box; }
+  .ia-meta { font-size:12.5px; color:var(--text2); line-height:1.45; }
+  .ia-ozet { font-size:12.5px; color:var(--text3); line-height:1.45; white-space:pre-line; overflow:hidden; max-height:3.0em; }
+  .ia-uyari { font-size:12px; color:var(--warning-color, #FF9500); line-height:1.4; }
+  .ia-kaynak { font-size:11px; color:var(--text3); opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ia-yapistir { width:100%; min-height:220px; padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface2);
+    color:var(--text); font-size:14px; line-height:1.5; font-family:ui-monospace, Menlo, monospace; box-sizing:border-box; resize:vertical; }
+  .ia-yapistir-ayak { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+  .ia-yapistir-ayak button { min-height:40px; padding:0 16px; border-radius:10px; font-weight:700; font-family:inherit; cursor:pointer;
+    border:1px solid var(--border); background:var(--surface2); color:var(--text); }
+  .ia-yapistir-ayak .ia-ayristir { border:none; background:var(--accent); color:#111; }
+  .ia-yardim { font-size:12.5px; color:var(--text2); line-height:1.55; }
+  .ia-yardim summary { cursor:pointer; color:var(--text3); min-height:32px; display:flex; align-items:center; }
+  .ia-yardim ul { margin:6px 0 0 18px; padding:0; }
+  .ia-hepsi { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text2); min-height:36px; }
+  .ia-hepsi input { width:20px; height:20px; accent-color:var(--accent); }
   .defter-modal { position:fixed; inset:0; z-index:1200; display:none; align-items:center; justify-content:center;
     background:rgba(0,0,0,.55); }
   .df-kutu { width:min(760px, 100vw); height:min(900px, 100dvh); display:flex; flex-direction:column; background:var(--bg, var(--surface));
@@ -1561,6 +1585,7 @@
 <script src="bildir.js"></script>
 <script src="topnav.js" defer></script>
 <script src="db.js"></script>
+<script src="ice-aktar.js"></script>
 <script src="secici.js" defer></script>
 
 <link rel="stylesheet" href="style.css">
@@ -5458,7 +5483,10 @@ function eklemeSecimAc(e) {
         <small data-i18n="es.yeniEserYazAlt">${_esCev('es.yeniEserYazAlt','Adı, sözü, akoru ve notayı kendin gir')}</small></span></button>
       <button type="button" onclick="eklemeSecimKapat();defterAc()"><i class="ti ti-notebook"></i>
         <span><b data-i18n="es.defterdenEkle">${_esCev('es.defterdenEkle','Defterden ekle')}</b>
-        <small data-i18n="es.defterdenEkleAlt">${_esCev('es.defterdenEkleAlt','Defterini tara: mevcut esere nota ekle ya da yeni eser aç')}</small></span></button>`;
+        <small data-i18n="es.defterdenEkleAlt">${_esCev('es.defterdenEkleAlt','Defterini tara: mevcut esere nota ekle ya da yeni eser aç')}</small></span></button>
+      <button type="button" onclick="eklemeSecimKapat();iaAc()"><i class="ti ti-file-import"></i>
+        <span><b data-i18n="es.iaMenu">${_esCev('es.iaMenu','Başka uygulamadan aktar')}</b>
+        <small data-i18n="es.iaMenuAlt">${_esCev('es.iaMenuAlt','OnSong, SongbookPro, Ultimate Guitar… ChordPro, Word, metin ya da zip')}</small></span></button>`;
     m.addEventListener('click', ev => ev.stopPropagation());
     document.body.appendChild(m);
     document.addEventListener('click', () => eklemeSecimKapat());
@@ -5466,6 +5494,156 @@ function eklemeSecimAc(e) {
   m.classList.toggle('acik');
 }
 function eklemeSecimKapat() { const m = document.getElementById('eklemeSecim'); if (m) m.classList.remove('acik'); }
+
+// ── BAŞKA UYGULAMADAN AKTAR (2026-10-25) ───────────────────────────────────
+// Kullanıcı: "rakiplerden geçişi kolaylaştıracak yöntemlere bakalım, içe aktar gibi" → "1 ve 2 birlikte". Dosya (.cho/.chopro/
+// .onsong/.txt ya da bunları içeren .zip) ya da yapıştırılan metin (Ultimate Guitar, WhatsApp) → her şarkı bir kart → seçilenler
+// YENİ ESER olarak açılır: yalnız sen görürsün (private, onaysız — telif durumu bilinmiyor; defterden eklemeyle aynı kural).
+// Ayrıştırma ice-aktar.js'te (../rakip_import test dosyalarıyla sınandı). Aynı adlı eser varsa kart işaretsiz gelir.
+let _ia = [], _iaKayit = false;
+function _iaVarMi(ad) { const n = trNorm(ad); return !!n && DATA.some(w => !w.deleted_at && trNorm(w.name) === n); }
+function iaAc() {
+  let m = document.getElementById('iaModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'iaModal';
+    m.className = 'defter-modal';
+    m.innerHTML = `<div class="df-kutu" role="dialog" aria-modal="true" aria-labelledby="iaBaslik">
+      <div class="df-bas"><div>
+          <div class="df-baslik" id="iaBaslik">${_esCev('es.iaBaslik','📥 Başka Uygulamadan Aktar')}</div>
+          <div class="df-alt-baslik">${_esCev('es.iaAciklama','Şarkılarını ChordPro (.cho, .chopro), OnSong (.onsong), Word (.docx) ya da metin (.txt) dosyası olarak — tek tek ya da .zip içinde — seç; ya da şarkı metnini yapıştır. Her şarkı bir kart olur; seçtiklerin yeni eser olarak açılır ve yalnız sana görünür.')}</div></div>
+        <button type="button" class="df-kapat" onclick="iaKapat()" aria-label="${_esCev('ortak.kapat','Kapat')}">×</button></div>
+      <input type="file" id="ia_dosya" multiple accept=".cho,.chopro,.chordpro,.crd,.pro,.chord,.onsong,.txt,.text,.docx,.odt,.zip,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none;" onchange="iaDosyaSecildi(this)">
+      <div id="ia_liste" class="df-liste"></div>
+      <div id="ia_durum" class="df-durum"></div>
+      <div class="df-ayak">
+        <button type="button" class="df-ekle" onclick="if(!_iaKayit)document.getElementById('ia_dosya').click()"><i class="ti ti-file-import"></i>${_esCev('es.iaDosya','Dosya seç')}</button>
+        <button type="button" class="df-ekle df-sec" onclick="iaYapistirAc()"><i class="ti ti-clipboard-text"></i>${_esCev('es.iaYapistir','Metin yapıştır')}</button>
+        <button type="button" class="df-kaydet" id="ia_kaydet" onclick="iaKaydet()"></button>
+      </div></div>`;
+    m.addEventListener('click', e => { if (e.target === m) iaKapat(); });
+    m.addEventListener('dragover', e => e.preventDefault());
+    m.addEventListener('drop', e => { e.preventDefault(); const f = Array.from((e.dataTransfer && e.dataTransfer.files) || []); if (f.length && !_iaKayit) iaDosyalar(f); });
+    document.body.appendChild(m);
+  }
+  _ia = [];
+  m.style.display = 'flex';
+  iaCiz();
+}
+function iaKapat() {
+  if (_iaKayit) return;
+  const sec = _ia.filter(e => e.sec).length;
+  if (sec && !confirm(_esCev('es.iaKapatOnay','{n} şarkı henüz içe aktarılmadı. Kapatılsın mı?').replace('{n}', sec))) return;
+  _ia = [];
+  const m = document.getElementById('iaModal'); if (m) m.style.display = 'none';
+}
+function iaYardimHtml() {
+  return `<details class="ia-yardim"><summary>${_esCev('es.iaNasil','Uygulamamdan nasıl dışa aktarırım?')}</summary><ul>
+    <li>${_esCev('es.iaNasilOnsong','OnSong: Paylaş → Dosyalar → biçim “ChordPro” (ya da “OnSong Text”); kitaplığın tamamını seçebilirsin.')}</li>
+    <li>${_esCev('es.iaNasilDiger','SongbookPro, BandHelper ve diğerleri: şarkıları ChordPro ya da metin (.txt) olarak dışa aktar; çok dosya varsa .zip de olur.')}</li>
+    <li>${_esCev('es.iaNasilWord','Sözlerin Word’de mi? .docx dosyasını seç — her belge bir şarkı olur; akorlar sözün üstündeyse yerine oturur. Eski .doc ise Word’de “Farklı Kaydet → .docx”.')}</li>
+    <li>${_esCev('es.iaNasilUg','Ultimate Guitar ve benzeri siteler: şarkının metnini (akorlar sözün üstünde) kopyala, “Metin yapıştır”a bırak.')}</li>
+    <li>${_esCev('es.iaNasilPdf','Notan PDF ya da kâğıtta mı? “Defterden ekle” ile tara ya da PDF’i seç.')}</li></ul></details>`;
+}
+function iaYapistirAc() {
+  if (_iaKayit) return;
+  const l = document.getElementById('ia_liste');
+  if (document.getElementById('ia_metin')) { document.getElementById('ia_metin').focus(); return; }
+  const kutu = document.createElement('div');
+  kutu.innerHTML = `<textarea id="ia_metin" class="ia-yapistir" placeholder="${_esCev('es.iaPh','Şarkı metnini buraya yapıştır — ilk satır şarkının adı olur. Akorlar sözün üstünde ya da [Am] biçiminde olabilir. Birden çok şarkı için ChordPro’da {new_song} kullan.')}"></textarea>
+    <div class="ia-yapistir-ayak"><button type="button" onclick="this.closest('div').parentElement.remove();iaCiz()">${_esCev('ortak.iptal','İptal')}</button>
+      <button type="button" class="ia-ayristir" onclick="iaMetinAyristir()">${_esCev('es.iaAyristir','Şarkıya çevir')}</button></div>`;
+  l.prepend(kutu);
+  document.getElementById('ia_metin').focus();
+}
+function iaMetinAyristir() {
+  const t = document.getElementById('ia_metin');
+  if (!t || !t.value.trim()) return;
+  const yeni = IceAktar.ayristir(t.value, '').map(e => Object.assign(e, { kaynak: _esCev('es.iaYapistirilan','Yapıştırılan metin') }));
+  t.closest('div').remove();
+  iaEkle(yeni);
+}
+async function iaDosyaSecildi(inp) { const f = Array.from(inp.files || []); inp.value = ''; if (f.length) iaDosyalar(f); }
+async function iaDosyalar(dosyalar) {
+  const d = document.getElementById('ia_durum');
+  if (d) d.textContent = _esCev('es.iaOkunuyor','Dosyalar okunuyor…');
+  let s;
+  try { s = await IceAktar.dosyalariAyristir(dosyalar); }
+  catch (e) { if (d) d.textContent = _esCev('mod.hata','Hata: ') + e.message; return; }
+  iaEkle(s.eserler);
+  if (d) d.textContent = s.atlanan.length ? _esCev('es.iaAtlanan','Okunamayan ya da desteklenmeyen {n} dosya atlandı: {liste}').replace('{n}', s.atlanan.length).replace('{liste}', s.atlanan.slice(0, 4).join(', ') + (s.atlanan.length > 4 ? '…' : '')) : '';
+}
+function iaEkle(liste) {
+  liste.forEach(e => { e.var = _iaVarMi(e.ad); e.sec = !e.var; _ia.push(e); });
+  iaCiz();
+}
+function iaSec(i, v) { if (_ia[i]) _ia[i].sec = v; iaCiz(true); }
+function iaHepsi(v) { _ia.forEach(e => { e.sec = v; }); iaCiz(); }
+function iaAd(i, v) { if (!_ia[i]) return; _ia[i].ad = v; _ia[i].var = _iaVarMi(v); iaCiz(true); }
+function iaCiz(yalnizAyak) {
+  const l = document.getElementById('ia_liste'), k = document.getElementById('ia_kaydet');
+  if (!l || !k) return;
+  const n = _ia.filter(e => e.sec).length;
+  k.disabled = !n || _iaKayit;
+  k.innerHTML = `<i class="ti ti-check"></i>${(n ? _esCev('es.iaAktarN','İçe aktar ({n})').replace('{n}', n) : _esCev('es.iaAktar','İçe aktar'))}`;
+  if (yalnizAyak) { _ia.forEach((e, i) => { const c = document.getElementById('ia_k_' + i); if (c) { c.classList.toggle('kapali', !e.sec); const u = c.querySelector('.ia-uyari'); if (u) u.hidden = !e.var; } }); return; }
+  const yapistir = document.getElementById('ia_metin') ? document.getElementById('ia_metin').closest('div') : null;
+  if (!_ia.length) {
+    l.innerHTML = `<div class="df-bos">${_esCev('es.iaBos','Henüz şarkı yok. Aşağıdan dosya seç ya da metin yapıştır.')}<div style="margin-top:14px;text-align:left;">${iaYardimHtml()}</div></div>`;
+  } else {
+    const hepsi = _ia.every(e => e.sec);
+    l.innerHTML = `<label class="ia-hepsi"><input type="checkbox" ${hepsi ? 'checked' : ''} onchange="iaHepsi(this.checked)"> ${_esCev('es.iaHepsi','Hepsini seç')} · ${_ia.length}</label>` +
+      _ia.map((e, i) => {
+        const meta = [e.besteci.join(', '), e.ton ? _esCev('es.iaTon','Ton') + ' ' + e.ton + (e.capo && e.capo !== '0' ? ' · Capo ' + e.capo : '') : '',
+          e.olcu, e.tempo ? e.tempo + ' BPM' : '', e.makam, e.usul, e.yore].filter(Boolean).map(htmlKac).join(' · ');
+        const ozet = (e.soz || '').split('\n').filter(s => s.trim() && !/^—/.test(s)).slice(0, 2).join('\n');
+        return `<div class="ia-kart${e.sec ? '' : ' kapali'}" id="ia_k_${i}">
+          <input type="checkbox" ${e.sec ? 'checked' : ''} onchange="iaSec(${i}, this.checked)" aria-label="${htmlKac(e.ad)}">
+          <div class="ia-govde">
+            <input class="ia-ad" value="${htmlKac(e.ad)}" oninput="iaAd(${i}, this.value)" aria-label="${_esCev('es.adSoyadKisa','Ad')}">
+            ${meta ? `<div class="ia-meta">${meta}</div>` : ''}
+            ${ozet ? `<div class="ia-ozet">${htmlKac(ozet)}</div>` : `<div class="ia-ozet">${_esCev('es.iaSozYok','(söz yok — yalnız ad ve bilgiler)')}</div>`}
+            <div class="ia-uyari" ${e.var ? '' : 'hidden'}>${_esCev('es.iaVar','Bu adla bir eserin zaten var — işaretlersen yine de yeni eser açılır.')}</div>
+            ${e.kaynak ? `<div class="ia-kaynak">${htmlKac(e.kaynak)}</div>` : ''}
+          </div></div>`;
+      }).join('') + `<div style="margin-top:4px;">${iaYardimHtml()}</div>`;
+  }
+  if (yapistir) l.prepend(yapistir);
+}
+async function iaKaydet() {
+  const secilen = _ia.filter(e => e.sec && (e.ad || '').trim());
+  if (!secilen.length || _iaKayit) return;
+  const d = document.getElementById('ia_durum');
+  if (!navigator.onLine) { if (d) d.textContent = _esCev('es.iaCevrimdisi','İçe aktarmak için internet bağlantısı gerekiyor.'); return; }
+  _iaKayit = true; iaCiz(true);
+  let tamam = 0, hata = 0;
+  for (const e of secilen) {
+    if (d) d.textContent = _esCev('es.iaAktariliyor','{i} / {n} içe aktarılıyor…').replace('{i}', tamam + hata + 1).replace('{n}', secilen.length);
+    try {
+      const alanlar = {
+        name: e.ad.trim(), composer: e.besteci.join('; '), lyric_writer: e.sozYazari || '', makam: e.makam || '', measurement: e.olcu || '',
+        tur: null, form: '', tuning: '', instrument: '', region: e.yore || '', source_person: '', collector: '', story: '', ritim: e.usul || '',
+        metronom: e.tempo || null, video_link: '', lyrics: e.soz || '', chords: e.akorlu || '', closing_note: e.karar || '',
+        visibility: 'private', status: 'approved', group_id: null,
+        submitted_by: getUserId(), submitter_email: getUser()?.email || '', submitted_at: new Date().toISOString()
+      };
+      const r = await fetch(SUPA_URL + '/rest/v1/works', { method: 'POST', headers: { ...authHeaders(), 'Prefer': 'return=representation' }, body: JSON.stringify(alanlar) });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const satir = (await r.json() || [])[0];
+      if (!satir || !satir.id) throw new Error('id');
+      DATA.push(mapWorkRow(satir));
+      e.sec = false; e.aktarildi = true; tamam++;
+    } catch (err) { hata++; console.warn('[içe aktar]', e.ad, err); }
+  }
+  _iaKayit = false;
+  _ia = _ia.filter(e => !e.aktarildi);
+  if (tamam) { buildFilters(); applyFilters(); }
+  toastMsg(hata
+    ? _esCev('es.iaKismen','{n} eser içe aktarıldı, {h} eser aktarılamadı — kartları yeniden dene.').replace('{n}', tamam).replace('{h}', hata)
+    : _esCev('es.iaBitti','{n} eser içe aktarıldı ✓ (yalnız sen görürsün)').replace('{n}', tamam));
+  if (!hata) { const m = document.getElementById('iaModal'); if (m) m.style.display = 'none'; }
+  else { if (d) d.textContent = ''; iaCiz(); }
+}
 
 function defterAc() {
   let m = document.getElementById('defterModal');

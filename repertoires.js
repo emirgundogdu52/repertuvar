@@ -1228,8 +1228,8 @@ function applyVisOptions(){ const gl=document.getElementById('visGroupLabel'); i
 function setVisChoice(v){ if(v==='group' && !getGroupId()) v='private'; const el=document.getElementById(v==='public'?'fVisPublic':(v==='group'?'fVisGroup':'fVisPrivate')); if(el) el.checked=true; }
 function getVisChoice(){ const el=document.querySelector('input[name="fVisibility"]:checked'); return el?el.value:'private'; }
 
-function openNew(){editId=null;document.getElementById('rmt').textContent=_r('rep.yeniRepertuvar','Yeni Repertuvar');['fN','fD','fV','fNo'].forEach(x=>document.getElementById(x).value='');document.getElementById('fS').value='concept';applyVisOptions();setVisChoice(getGroupId()?'group':'private');document.getElementById('rm').style.display='flex';setTimeout(()=>document.getElementById('fN').focus(),50);}
-function openEdit(id){const r=getRep(id);if(!r)return;editId=id;document.getElementById('rmt').textContent=_r('rep.duzenle','Düzenle');document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';applyVisOptions();setVisChoice(repVis(r));document.getElementById('rm').style.display='flex';}
+function openNew(){editId=null;lstSifirla(true);document.getElementById('rmt').textContent=_r('rep.yeniRepertuvar','Yeni Repertuvar');['fN','fD','fV','fNo'].forEach(x=>document.getElementById(x).value='');document.getElementById('fS').value='concept';applyVisOptions();setVisChoice(getGroupId()?'group':'private');document.getElementById('rm').style.display='flex';setTimeout(()=>document.getElementById('fN').focus(),50);}
+function openEdit(id){const r=getRep(id);if(!r)return;editId=id;lstSifirla(false);document.getElementById('rmt').textContent=_r('rep.duzenle','Düzenle');document.getElementById('fN').value=r.name;document.getElementById('fD').value=r.date||'';document.getElementById('fV').value=r.venue||'';document.getElementById('fS').value=r.status||'concept';document.getElementById('fNo').value=r.notes||'';applyVisOptions();setVisChoice(repVis(r));document.getElementById('rm').style.display='flex';}
 function closeRM(){document.getElementById('rm').style.display='none';}
 
 // (2026-08-20) YENİ MODEL — GRUP PAYLAŞIM SATIRI.
@@ -1280,14 +1280,119 @@ async function saveRep(){
   sync('spin',_r('rep.kaydediliyor','Kaydediliyor...'));
   try{
     let repId=editId;
+    const yeniRep=!editId;
     if(editId){await dbPatch('repertoires',editId,data);}
     else{const r=await dbPost('repertoires',data);repId=r[0]?.id||r.id;selId=repId;}
     // Grup görünürlüğü PAYLAŞIM SATIRINA bağlı; sütun tek başına yetmiyor.
     const pay = await repGrupPaylasimiUygula(repId, vis, myGid);
+    // (2026-10-25) Şarkı listesinden doldur: eşleşenler sırayla, "yeni" seçilenler önce eser olarak açılıp eklenir.
+    const lst = (yeniRep && repId) ? await lstRepertuvaraEkle(repId) : null;
     closeRM();
-    toast(pay.ok ? _r('ortak.kaydedildi','Kaydedildi ✓') : pay.mesaj, pay.ok ? 'ok' : 'er');
+    if (lst && (lst.eklenen || lst.hata)) toast(_r('rep.lstSonuc','{n} eser eklendi').replace('{n}', lst.eklenen) + (lst.yeni ? ' · ' + _r('rep.lstYeniAcildi','{n} yeni eser açıldı').replace('{n}', lst.yeni) : '') + (lst.hata ? ' · ' + _r('rep.lstHata','{n} satır eklenemedi').replace('{n}', lst.hata) : ''), lst.hata ? 'er' : 'ok');
+    else toast(pay.ok ? _r('ortak.kaydedildi','Kaydedildi ✓') : pay.mesaj, pay.ok ? 'ok' : 'er');
     await load();
   }catch(e){sync('err',_r('ortak.hata','Hata'));toast(e.message,'er');}
+}
+
+// ── ŞARKI LİSTESİNDEN DOLDUR (2026-10-25) ────────────────────────────────
+// Kullanıcı: "rakiplerden geçişi kolaylaştıracak yöntemler" → başka uygulamadan çıkan şarkı listesi (metin/CSV) yapıştırılır,
+// ice-aktar.js satırları temizler (numara, sanatçı, süre) ve eserlerle Türkçe duyarsız eşleştirir; her satırda seçim
+// (eşleşen eser / adaylar / yeni eser olarak aç / atla). Kaydet'te repertuvar açıldıktan sonra sırayla eklenir.
+let _lst = [];
+function lstSifirla(goster) {
+  _lst = [];
+  const b = document.getElementById('lstBolum'); if (b) b.hidden = !goster;
+  const a = document.getElementById('lstAlan'); if (a) a.hidden = true;
+  const btn = document.getElementById('lstAcBtn'); if (btn) btn.setAttribute('aria-expanded', 'false');
+  const t = document.getElementById('lstMetin'); if (t) t.value = '';
+  const s = document.getElementById('lstSonuc'); if (s) s.innerHTML = '';
+}
+function lstAcKapat() {
+  const a = document.getElementById('lstAlan'), btn = document.getElementById('lstAcBtn');
+  if (!a) return;
+  a.hidden = !a.hidden;
+  if (btn) btn.setAttribute('aria-expanded', a.hidden ? 'false' : 'true');
+  if (!a.hidden) setTimeout(() => document.getElementById('lstMetin').focus(), 30);
+}
+function lstEslestir() {
+  const t = document.getElementById('lstMetin');
+  if (!t || !window.IceAktar) return;
+  const kaynak = WLIST.filter(_rbEserGorunur);
+  _lst = IceAktar.listeSatirlari(t.value).map(s => {
+    const adaylar = IceAktar.eslestir(s, kaynak, trNorm);
+    const enIyi = adaylar[0];
+    return { satir: s, adaylar, secim: enIyi ? 'w:' + enIyi.eser.id : 'yeni', kontrol: !!enIyi && enIyi.puan < 80 };
+  });
+  lstCiz();
+}
+// (2026-10-25) Excel / Word / LibreOffice / CSV / TXT → kutuya metin (görünür, düzeltilebilir) → eşleştir. Sınır 500 satır.
+async function lstDosyaSecildi(inp) {
+  const f = inp.files && inp.files[0];
+  inp.value = '';
+  if (!f || !window.IceAktar) return;
+  try {
+    let satirlar = (await IceAktar.listeDosyasiOku(f)).split('\n').filter(x => x.trim());
+    if (!satirlar.length) { toast(_r('rep.lstBos','Listede şarkı bulunamadı.'), 'er'); return; }
+    if (satirlar.length > 500) { satirlar = satirlar.slice(0, 500); toast(_r('rep.lstKirpildi','Listenin ilk 500 satırı alındı'), 'er'); }
+    document.getElementById('lstMetin').value = satirlar.join('\n');
+    lstEslestir();
+  } catch (e) {
+    toast(e && e.message === 'eski'
+      ? _r('rep.lstEskiBicim','Bu dosya okunamıyor. Excel/Word’de “Farklı Kaydet” ile .xlsx ya da .docx yap; ya da listeyi kopyalayıp kutuya yapıştır.')
+      : _r('rep.lstDosyaHata','Dosya okunamadı'), 'er');
+  }
+}
+function lstSecim(i, v) { if (_lst[i]) { _lst[i].secim = v; _lst[i].kontrol = false; lstCiz(); } }
+function lstCiz() {
+  const s = document.getElementById('lstSonuc');
+  if (!s) return;
+  if (!_lst.length) { s.innerHTML = '<div class="lst-ozet">' + _r('rep.lstBos','Listede şarkı bulunamadı.') + '</div>'; return; }
+  const es = _lst.filter(x => x.secim.startsWith('w:')).length, yeni = _lst.filter(x => x.secim === 'yeni').length,
+    kontrol = _lst.filter(x => x.kontrol).length, atla = _lst.filter(x => x.secim === 'atla').length;
+  s.innerHTML = '<div class="lst-ozet">' + [
+      _r('rep.lstEslesti','{n} eşleşti').replace('{n}', es),
+      kontrol ? _r('rep.lstKontrol','{n} tanesini kontrol et').replace('{n}', kontrol) : '',
+      yeni ? _r('rep.lstYeni','{n} yeni eser açılacak').replace('{n}', yeni) : '',
+      atla ? _r('rep.lstAtla','{n} atlanacak').replace('{n}', atla) : ''
+    ].filter(Boolean).join(' · ') + '</div><div class="lst-satirlar">' +
+    _lst.map((x, i) => {
+      const se = x.secim.startsWith('w:') ? 'es' : x.secim;
+      const ops = x.adaylar.map(a => `<option value="w:${a.eser.id}" ${x.secim === 'w:' + a.eser.id ? 'selected' : ''}>✓ ${_rEsc(a.eser.name)}${a.eser.composer ? ' — ' + _rEsc(a.eser.composer) : ''}</option>`).join('') +
+        `<option value="yeni" ${x.secim === 'yeni' ? 'selected' : ''}>＋ ${_r('rep.lstYeniEser','Yeni eser olarak aç')}: ${_rEsc(x.satir.ad)}</option>` +
+        `<option value="atla" ${x.secim === 'atla' ? 'selected' : ''}>${_r('rep.lstAtlaSec','Atla (ekleme)')}</option>`;
+      return `<div class="lst-satir${x.kontrol ? ' kontrol' : ''}${se === 'yeni' ? ' yok' : ''}"><span class="lst-no">${i + 1}</span>
+        <span class="lst-ham" title="${_rEsc(x.satir.ham)}">${_rEsc(x.satir.ham)}</span>
+        <span></span><select onchange="lstSecim(${i}, this.value)" aria-label="${_rEsc(x.satir.ham)}">${ops}</select></div>`;
+    }).join('') + '</div>';
+}
+// Kaydet'te: repertuvar açıldıktan SONRA çağrılır. Yeni eserler yalnız sahibine görünür açılır (eserlerdeki içe aktarmayla aynı kural).
+async function lstRepertuvaraEkle(repId) {
+  const a = document.getElementById('lstAlan');
+  if (!_lst.length || !a || a.hidden) return null;
+  let seq = 1, eklenen = 0, yeni = 0, hata = 0;
+  const eklendi = new Set();
+  for (const x of _lst) {
+    if (x.secim === 'atla') continue;
+    try {
+      let workId = x.secim.startsWith('w:') ? x.secim.slice(2) : null;
+      if (x.secim === 'yeni') {
+        const alanlar = { name: x.satir.ad, composer: x.satir.ek || '', lyric_writer: '', makam: '', measurement: '', tur: null, form: '', tuning: '',
+          instrument: '', region: '', source_person: '', collector: '', story: '', ritim: '', metronom: null, video_link: '', lyrics: '', chords: '',
+          closing_note: '', visibility: 'private', status: 'approved', group_id: null,
+          submitted_by: getUserId(), submitter_email: getUser()?.email || '', submitted_at: new Date().toISOString() };
+        const r = await fetch(SUPA_URL + '/rest/v1/works', { method: 'POST', headers: { ...authHeaders(), 'Prefer': 'return=representation' }, body: JSON.stringify(alanlar) });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const satir = (await r.json() || [])[0];
+        if (!satir || !satir.id) throw new Error('id');
+        workId = satir.id; yeni++;
+      }
+      if (!workId || eklendi.has(String(workId))) continue;
+      await dbPost('repertoire_items', { repertoire_id: repId, work_id: workId, seq: seq++, linked_prev: false });
+      eklendi.add(String(workId)); eklenen++;
+    } catch (e) { hata++; console.warn('[liste]', x.satir.ham, e); }
+  }
+  _lst = [];
+  return { eklenen, yeni, hata };
 }
 
 async function delRep(id){

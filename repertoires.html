@@ -355,6 +355,25 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
     font-size:20px;cursor:pointer;line-height:1; }
 
   /* Görünürlük seçici — Kişisel / Grup / Genel */
+  /* (2026-10-25) Şarkı listesinden doldur */
+  #lstBolum .lst-ac { width:100%; min-height:44px; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:12px;
+    border:1px dashed var(--border2, var(--border)); background:none; color:var(--text2); font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+  #lstBolum .lst-ac[aria-expanded="true"] { border-style:solid; border-color:var(--accent); color:var(--text); }
+  #lstAlan { margin-top:10px; }
+  .lst-not { font-size:12px; color:var(--text3); line-height:1.45; margin:6px 0 8px; }
+  .lst-dugmeler { display:flex; gap:8px; flex-wrap:wrap; }
+  /* #lstBolum: sayfadaki genel button:not(.r-theme-toggle) {min-height:36px} kuralı tek sınıfı eziyordu */
+  #lstBolum .lst-esle { min-height:44px; display:inline-flex; align-items:center; justify-content:center; gap:6px; flex:1 1 140px; }
+  .lst-ozet { font-size:12.5px; color:var(--text2); margin:10px 0 6px; }
+  .lst-satirlar { display:flex; flex-direction:column; gap:6px; max-height:min(40vh, 340px); overflow-y:auto; }
+  .lst-satir { display:grid; grid-template-columns:22px 1fr; gap:4px 8px; align-items:center; padding:8px 10px; border-radius:10px;
+    border:1px solid var(--border); background:var(--surface2); }
+  .lst-satir.kontrol { border-color:rgba(255,149,0,.55); }
+  .lst-satir.yok { border-style:dashed; }
+  .lst-no { font-size:12px; color:var(--text3); text-align:right; font-variant-numeric:tabular-nums; }
+  .lst-ham { font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lst-satir select { grid-column:2; min-height:40px; width:100%; border-radius:10px; border:1px solid var(--border); background:var(--surface);
+    color:var(--text); font-family:inherit; font-size:13px; padding:0 8px; }
   .vis-opt { display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;
     border-radius:8px;border:1px solid var(--border);background:var(--surface2);
     transition:all .15s; }
@@ -521,6 +540,25 @@ tr.medley-row{background:rgba(255,200,61,.05);}   /* potpuri satırı: eski mor 
         </label>
       </div>
     </div>
+    <!-- (2026-10-25) BAŞKA UYGULAMADAN GEÇİŞ: şarkı listesini yapıştır → eserlerle eşleştir → yeni repertuvar sırayla dolar.
+         Yalnız YENİ repertuvarda görünür (openNew); düzenlemede gizli (openEdit). Ayrıştırma/eşleştirme ice-aktar.js. -->
+    <div class="fr" id="lstBolum">
+      <button type="button" class="lst-ac" id="lstAcBtn" onclick="lstAcKapat()" aria-expanded="false" aria-controls="lstAlan"><i class="ti ti-list-check" aria-hidden="true"></i> <span data-i18n="rep.lstAc">Şarkı listesinden doldur</span></button>
+      <div id="lstAlan" hidden>
+        <label class="fl" for="lstMetin" data-i18n="rep.lstBaslik">Şarkı listesi</label>
+        <textarea class="fi" id="lstMetin" rows="6" placeholder="1. Uzun İnce Bir Yoldayım&#10;2. Gesi Bağları - Anonim&#10;Ah Bir Ataş Ver" data-i18n-ph="rep.lstPh"></textarea>
+        <div class="lst-not" data-i18n="rep.lstNot">Listeyi yapıştır (her satıra bir şarkı; numara, sanatçı, süre olabilir — Excel'den kopyaladığın satırlar da olur) ya da Excel, Word, CSV dosyası seç. Bizdeki eserlerle eşleştirilir; bulunamayanlar istersen adıyla yeni eser olarak açılır.</div>
+        <!-- (2026-10-25) Kullanıcı: "Şarkı listesinden doldur aynı zamanda bir Word ya da Excel dosyası da olabilir mi?" —
+             dosya ice-aktar.js listeDosyasiOku ile metne çevrilip kutuya yazılır (kullanıcı görür, düzeltebilir), sonra eşleştirilir. -->
+        <div class="lst-dugmeler">
+          <button type="button" class="bc lst-esle" onclick="document.getElementById('lstDosya').click()"><i class="ti ti-file-spreadsheet" aria-hidden="true"></i> <span data-i18n="rep.lstDosya">Dosyadan al</span></button>
+          <button type="button" class="bs lst-esle" onclick="lstEslestir()"><i class="ti ti-arrows-shuffle" aria-hidden="true"></i> <span data-i18n="rep.lstEsle">Eşleştir</span></button>
+        </div>
+        <input type="file" id="lstDosya" hidden onchange="lstDosyaSecildi(this)"
+          accept=".xlsx,.docx,.csv,.tsv,.txt,.ods,.odt,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+        <div id="lstSonuc"></div>
+      </div>
+    </div>
     <div class="fa"><button class="bc" onclick="closeRM()" data-i18n="ortak.iptal">İptal</button><button class="bs" onclick="saveRep()" data-i18n="ortak.kaydet">Kaydet</button></div>
   </div>
 </div>
@@ -609,6 +647,7 @@ tr.medley-row{background:rgba(255,200,61,.05);}   /* potpuri satırı: eski mor 
   </div>
 </div>
 
+<script src="ice-aktar.js"></script>
 <script src="repertoires.js"></script>
 
 </div><!-- /main-wrap -->
