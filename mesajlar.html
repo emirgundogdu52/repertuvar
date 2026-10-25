@@ -42,10 +42,10 @@ body { -webkit-text-size-adjust: 100%; }
 .msg-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
 .msg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
 .msg-from{font-size:13px;font-weight:600;color:var(--accent2);}
-.msg-date{font-size:11px;color:var(--text3);}
+.msg-date{font-size:12px;color:var(--text3);}
 .msg-content{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px;}
 .msg-reply{background:var(--bg2);border-left:3px solid var(--accent);padding:10px 14px;border-radius:6px;font-size:12px;color:var(--text2);margin-top:8px;}
-.msg-reply-label{font-size:10px;font-weight:700;color:var(--accent);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;}
+.msg-reply-label{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;}
 .unread-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;}
 
 /* ── Compose ── */
@@ -70,7 +70,7 @@ body { -webkit-text-size-adjust: 100%; }
 .ann-card{background:rgba(124,111,255,0.08);border:1px solid rgba(124,111,255,0.25);border-radius:12px;padding:16px;margin-top:0;margin-bottom:12px;margin-left:calc(50% - 212px);margin-right:calc(50% - 212px);width:424px;box-sizing:border-box;}
 .ann-title{font-size:14px;font-weight:700;color:var(--accent3);margin-bottom:6px;}
 .ann-content{font-size:13px;color:var(--text);line-height:1.6;}
-.ann-date{font-size:11px;color:var(--text3);margin-top:8px;}
+.ann-date{font-size:12px;color:var(--text3);margin-top:8px;}
 
 /* ── Empty ── */
 .empty{text-align:center;padding:48px 16px;color:var(--text3);font-size:13px;}
@@ -91,8 +91,8 @@ body { -webkit-text-size-adjust: 100%; }
 .conv-email { font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .conv-preview { font-size:12px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
 .conv-meta { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
-.conv-date { font-size:11px; color:var(--text3); }
-.conv-badge { background:var(--accent); color:#fff; font-size:10px; font-weight:700; border-radius:10px; padding:2px 7px; }
+.conv-date { font-size:12px; color:var(--text3); }   /* 11 → 12 (2026-10-25 iPad denetimi) */
+.conv-badge { background:var(--accent); color:#fff; font-size:12px; font-weight:700; border-radius:10px; padding:2px 7px; }
 
 /* ── Thread view ── */
 .thread-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
@@ -103,12 +103,12 @@ body { -webkit-text-size-adjust: 100%; }
 .thread-msg.mine { background:rgba(124,111,255,0.08); border-color:rgba(124,111,255,0.25); }
 .thread-msg-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
 .thread-msg-from { font-size:12px; font-weight:600; color:var(--accent2); }
-.thread-msg-date { font-size:11px; color:var(--text3); }
+.thread-msg-date { font-size:12px; color:var(--text3); }
 .thread-msg-content { font-size:13px; color:var(--text); line-height:1.6; }
 .thread-reply-box { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 14px; margin-top:8px; font-size:12px; color:var(--text2); border-left:3px solid var(--accent); }
-.thread-reply-label { font-size:10px; font-weight:700; color:var(--accent); margin-bottom:3px; text-transform:uppercase; }
+.thread-reply-label { font-size:12px; font-weight:700; color:var(--accent); margin-bottom:4px; text-transform:uppercase; letter-spacing:.03em; }   /* 10 → 12 */
 .thread-actions { display:flex; gap:6px; margin-top:8px; }
-.btn-delete-msg { padding:5px 12px; border-radius:7px; border:1px solid rgba(248,113,113,.3); background:rgba(248,113,113,.08); color:var(--red); font-size:11px; cursor:pointer; font-family:var(--font); transition:all .15s; }
+.btn-delete-msg { padding:5px 12px; border-radius:7px; border:1px solid rgba(248,113,113,.3); background:rgba(248,113,113,.08); color:var(--red); font-size:13px; cursor:pointer; font-family:var(--font); transition:all .15s; }
 .btn-delete-msg:hover { background:rgba(248,113,113,.18); }
 /* ── Yeni Mesaj Modal ── */
 .nm-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:2000; align-items:center; justify-content:center; padding:20px; }
@@ -116,7 +116,7 @@ body { -webkit-text-size-adjust: 100%; }
 .nm-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; width:min(480px,96vw); padding:24px; }
 .nm-title { font-size:15px; font-weight:700; margin-bottom:16px; color:var(--text); }
 .nm-field { margin-bottom:12px; }
-.nm-field label { display:block; font-size:11px; font-weight:700; color:var(--text3); margin-bottom:5px; text-transform:uppercase; letter-spacing:.05em; }
+.nm-field label { display:block; font-size:12px; font-weight:700; color:var(--text3); margin-bottom:5px; text-transform:uppercase; letter-spacing:.05em; }
 .nm-select { width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-size:13px; font-family:var(--font); outline:none; }
 .nm-select:focus { border-color:var(--accent); }
 .nm-textarea { width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-size:13px; font-family:var(--font); outline:none; resize:vertical; min-height:100px; }
@@ -133,7 +133,7 @@ body { -webkit-text-size-adjust: 100%; }
    O kural başlık etiketleri ("ÜYE SEÇ", "MESAJ") için; burada iptal ediliyor. */
 .nm-member-item label { font-size:13px; color:var(--text); cursor:pointer; flex:1; min-width:0; text-transform:none; letter-spacing:normal; display:flex; flex-direction:column; gap:1px; }
 .nm-member-item .nm-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.nm-member-item .nm-mail { font-size:11px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nm-member-item .nm-mail { font-size:12px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 .btn-new-msg { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--accent); font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font); margin-left:auto; transition:all .15s; }
 .btn-new-msg:hover { border-color:var(--accent); background:rgba(124,111,255,0.08); }
@@ -274,7 +274,7 @@ body { -webkit-text-size-adjust: 100%; }
       <label><span data-i18n="ms.uyeSec">Üye Seç</span> <span id="nmSelectedCount" style="color:var(--accent);font-weight:700;"></span></label>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <input type="text" id="nmSearch" data-temizle class="nm-textarea" style="min-height:unset;padding:8px 12px;font-size:12px;" placeholder="İsim veya e-posta ile ara..." data-i18n-ph="ms.phAra">
-        <button onclick="toggleSelectAll()" id="nmSelectAllBtn" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;" data-i18n="ms.tumu">Tümü</button>
+        <button onclick="toggleSelectAll()" id="nmSelectAllBtn" style="min-height:40px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;" data-i18n="ms.tumu">Tümü</button>
       </div>
       <div id="nmMemberList" style="max-height:200px;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:4px;">
         <div style="padding:12px;color:var(--text3);font-size:12px;text-align:center;" data-i18n="ortak.yukleniyor">Yükleniyor...</div>
@@ -421,7 +421,7 @@ async function loadMessages() {
           <div class="thread-msg-content">${htmlKac(m.content)}</div>
           ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">${_msCev('ms.adminYaniti','Admin Yanıtı')} · ${timeAgo(m.replied_at)}</div>${htmlKac(m.admin_reply)}</div>` : ''}
           <div class="thread-actions">
-            <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:11px;"></i> ${_msCev('ortak.sil','Sil')}</button>
+            <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:14px;"></i> ${_msCev('ortak.sil','Sil')}</button>
           </div>
         </div>`).join('');
     }
@@ -451,7 +451,7 @@ function openThread(fromId, email) {
             ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">${_msCev('ms.adminYaniti','Admin Yanıtı')} · ${timeAgo(m.replied_at)}</div>${htmlKac(m.admin_reply)}</div>` : ''}
             <div class="thread-actions">
               ${!m.admin_reply ? `<button class="btn-reply" onclick="toggleReplyThread('${m.id}')"><i class="ti ti-reply"></i> ${_msCev('ms.yanitla','Yanıtla')}</button>` : ''}
-              <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:11px;"></i> ${_msCev('ortak.sil','Sil')}</button>
+              <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:14px;"></i> ${_msCev('ortak.sil','Sil')}</button>
             </div>
             <div class="reply-form" id="reply-${m.id}" style="display:none;">
               <textarea placeholder="${_msCev('ms.phYanit','Yanıtınızı yazın...')}" id="replyText-${m.id}" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:12px;font-family:inherit;outline:none;resize:vertical;min-height:70px;margin-top:8px;"></textarea>
