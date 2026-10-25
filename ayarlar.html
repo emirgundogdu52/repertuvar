@@ -512,6 +512,15 @@ html, body { overflow-x: hidden; }
 }
 .field input:focus { border-color: var(--accent); }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+/* (2026-10-25) iPad Ayarlar denetimi: "Hesabı Sil" penceresindeki .modal-btn'in HİÇ stili yoktu → tarayıcının gri, kabartmalı
+   20 px'lik varsayılan düğmesi (telefonda da). İptal nötr 44 px; silme kırmızı dolgu (beyaz yazı #D23A40 üstünde 4.6:1). */
+.modal-btn { min-height: 44px; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2);
+  color: var(--text); font-size: 15px; font-weight: 600; font-family: var(--font); cursor: pointer; }
+.modal-btn:hover { border-color: var(--accent2); }
+.modal-btn.danger { background: #D23A40; border-color: transparent; color: #fff; }
+.modal-btn.danger:hover { background: #B8323A; }
+.modal-btn:disabled { opacity: .5; cursor: default; }
+#silOnayEmail { min-height: 44px; }
 
 /* (2026-10-24) iPad denetimi — dokunma: aç/kapa anahtarı 44×24 px'ti (telefonda da) → 50×30, düğme 24 px; davet e-posta
    kutusu ve Gönder 38 → 40 px (satır içi stil). */
