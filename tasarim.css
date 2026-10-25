@@ -1338,8 +1338,14 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"][data-sayfa="eserler"] #listCol { flex: 0 0 var(--liste-sutun) !important; width: var(--liste-sutun) !important; max-width: var(--liste-sutun) !important; }
   html[data-tasarim="v3"][data-sayfa="eserler"] #detailPanel { flex: 1 1 auto !important; width: auto !important; min-width: 0 !important; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] aside.lp { flex: 0 0 var(--liste-sutun) !important; width: var(--liste-sutun) !important; max-width: var(--liste-sutun) !important; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .artist-list-panel { flex: 0 0 var(--liste-sutun) !important; width: var(--liste-sutun) !important; min-width: var(--liste-sutun) !important; max-width: var(--liste-sutun) !important; }
 }
 @media (min-width: 1280px) and (hover: hover) and (pointer: fine) {
   html[data-tasarim="v3"] { --liste-sutun: 380px; }
+}
+/* 4) Solistler — liste 280 → standart --liste-sutun (yukarıda); ad 13 → 15 (Eserler / Repertuvarlar listesiyle aynı), alt satır 11 → 12.5. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .artist-name { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .artist-sub { font-size: 12.5px; }
 }
 

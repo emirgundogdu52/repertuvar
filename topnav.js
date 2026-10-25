@@ -185,10 +185,12 @@ function _m(anahtar, tr) {
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
     .r-tn-dropdown.open { display: block; }
+    /* (2026-10-25) Kullanıcı: "avatar altındaki açılır menünün font büyüklüklerini kontrol et" — öğe 13 px / 32 px (parmak için
+       küçük) → 15 px / 44 px; menü başı ad 12 → 14; GRUPLARIM 10 → 12; yan menü (masaüstü) öğesi 12.5 / 31 → 14 / 38 (dokunmatikte 44). */
     .r-tn-dd-item {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 12px; border-radius: 7px;
-      font-size: 13px; color: #9d9bc4; cursor: pointer;
+      display: flex; align-items: center; gap: 10px; min-height: 44px;
+      padding: 10px 14px; border-radius: 8px;
+      font-size: 15px; color: #9d9bc4; cursor: pointer;
       font-family: inherit; background: none; border: none; width: 100%;
       text-align: left; transition: all .15s;
     }
@@ -402,8 +404,8 @@ function _m(anahtar, tr) {
     .sb-user-dropdown.open { display: block; }
     .sb-dd-item {
       display: flex; align-items: center; gap: 8px;
-      padding: 8px 11px; border-radius: 7px;
-      font-size: 12.5px; font-weight: 600; color: var(--text2, #9d9bc4);
+      min-height: 38px; padding: 8px 12px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; color: var(--text2, #9d9bc4);
       text-decoration: none; cursor: pointer; background: none; border: none;
       width: 100%; text-align: left; font-family: inherit; transition: all .15s;
     }
@@ -415,8 +417,9 @@ function _m(anahtar, tr) {
        Bir kullanıcı birden fazla gruba üye olabilir; menüdeki bu bölüm
        AKTİF grubu seçer (profiles.group_id). İki grup ya da fazlası yoksa
        hiç çizilmez. */
+    @media (hover: none) and (pointer: coarse) { .sb-dd-item { min-height: 44px; } }
     .r-grp-head {
-      font-size: 10px; font-weight: 700; letter-spacing: .06em;
+      font-size: 12px; font-weight: 700; letter-spacing: .06em;
       color: var(--text3, #78829A); padding: 6px 11px 4px; text-transform: uppercase;
     }
     .r-grp-sep { height: 1px; background: var(--border, rgba(255,200,61,0.18)); margin: 5px 6px; }
@@ -684,7 +687,7 @@ function _m(anahtar, tr) {
       dd.className = 'r-tn-dropdown';
       dd.innerHTML = `
         <div style="padding:8px 12px 6px;border-bottom:1px solid rgba(255,200,61,0.15);margin-bottom:4px;">
-          <div id="rTnUserName" style="font-size:12px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">—</div>
+          <div id="rTnUserName" style="font-size:14px;font-weight:600;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">—</div>
         </div>
         <div id="rTnGroups"></div>
         <div id="rTnAdmin"></div>

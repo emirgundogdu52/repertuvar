@@ -69,6 +69,11 @@
 .y-card-desc{font-size:13.5px;color:var(--text2);line-height:1.5;margin-top:4px;}
 .y-badge{background:var(--yt-btn,var(--accent));color:#1a1200;border-radius:20px;padding:1px 8px;font-size:12px;font-weight:800;}
 .y-note{font-size:13px;color:var(--text3);line-height:1.6;margin-top:20px;}
+/* (2026-10-25) HİZA KURALI — kullanıcı: "Yönetim, alt yazısı, KIRILIM, BÖLÜMLER gibi başlıklar alttaki bloğun içindeki metinle sola
+   hizalı olsun; bunu bugün başka bir yerde de uyguladık (Ana Sayfa bölüm başlıkları), bu bir kural olsun". Kutuların sol iç
+   boşluğu 16 px'e eşitlendi (istatistik / bölüm kartı 18 idi) → içerik kenarlıkla 17 px içeride; başlıklar da 17 px içeride. */
+.y-stat, .y-break, .y-card { padding-left: 16px; padding-right: 16px; }
+.page-title, .page-sub, .y-sec-title { padding-left: 17px; }
 </style>
 <link rel="stylesheet" href="tasarim.css">
 </head>

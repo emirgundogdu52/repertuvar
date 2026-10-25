@@ -44,6 +44,9 @@
   .b-tus a,.b-tus button{min-height:40px;display:inline-flex;align-items:center;gap:6px;padding:8px 13px;font-size:13px;}
 }
 .b-toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:9999;}
+/* (2026-10-25) HİZA KURALI (kullanıcı: başlıklar alttaki kutunun içindeki metinle sola hizalı; bellek baslik-hiza-kurali):
+   kutular 16 px iç boşluk + 1 px kenarlık → başlık bloğu 17 px içeride. */
+.page-title, .page-sub { padding-left: 17px; }
 </style>
 <link rel="stylesheet" href="tasarim.css">
 </head>

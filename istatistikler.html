@@ -57,6 +57,9 @@
   .stt-chart-wrap { height:220px; position:relative; min-width:0; }   /* Chart.js responsive: göreli kap, tuval kabı genişletmesin */
 
   .stt-loading { padding:60px 0; text-align:center; color:var(--text3); font-size:13px; }
+/* (2026-10-25) HİZA KURALI (kullanıcı: başlıklar alttaki kutunun içindeki metinle sola hizalı; bellek baslik-hiza-kurali):
+   kutular 16 px iç boşluk + 1 px kenarlık → başlık bloğu 17 px içeride. */
+.stt-header > div:first-child { padding-left: 17px; }
 </style>
 <link rel="stylesheet" href="tasarim.css">
 </head>
