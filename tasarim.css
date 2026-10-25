@@ -1716,3 +1716,20 @@ html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet .ks-alt .rbtn { mi
   html[data-tasarim="v3"][data-sayfa="stage"] .sip-label { font-size: 12.5px; min-width: 96px; }
   html[data-tasarim="v3"][data-sayfa="stage"] .sip-val { font-size: 14px; }
 }
+/* 20) Giriş / Kayıt (login.html) — 2026-10-25 madde 5. Ölçüm: Giriş Yap / Kayıt Ol sekmeleri 32 px, TR/EN 28, "Şifremi unuttum"
+   15 px yükseklikte yazı düğmesi, "veya" 11 px ve iki yanındaki çizgi kartta neredeyse görünmüyor (#303A55). Sayfa medya
+   kuralı içermiyor → telefonda da aynı. Kart 400 px masaüstünde yerinde. Google düğmesinin dili Google hesabından geliyor
+   (locale verilse de kişiselleştirilmiş düğme hesap dilini gösteriyor) — bizim elimizde değil. */
+html[data-tasarim="v3"][data-sayfa="login"] .tab { min-height: 36px; }
+html[data-tasarim="v3"][data-sayfa="login"] .dil-sec button { min-height: 32px; min-width: 40px; }
+html[data-tasarim="v3"][data-sayfa="login"] .forgot { padding: 9px 0; margin-top: 4px; }
+html[data-tasarim="v3"][data-sayfa="login"] .divider span { font-size: 12px; }
+html[data-tasarim="v3"][data-sayfa="login"] .divider hr { border-top-color: var(--border2, rgba(255, 255, 255, .16)); }
+@media (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="login"] .tab { min-height: 42px; font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="login"] .dil-sec button { min-height: 36px; min-width: 44px; }
+  html[data-tasarim="v3"][data-sayfa="login"] .forgot { padding: 12px 0; font-size: 13px; }
+}
+/* İlk açılış "Müziğini biraz tanıyalım" (onboarding.js): masaüstünde 560 px, temiz; yalnız Uygulama dili seçici 28 px. */
+html[data-tasarim="v3"] .ob-seg button { min-height: 32px; }
+@media (hover: none) and (pointer: coarse) { html[data-tasarim="v3"] .ob-seg button { min-height: 40px; padding: 0 16px; } }
