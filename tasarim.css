@@ -1733,3 +1733,16 @@ html[data-tasarim="v3"][data-sayfa="login"] .divider hr { border-top-color: var(
 /* İlk açılış "Müziğini biraz tanıyalım" (onboarding.js): masaüstünde 560 px, temiz; yalnız Uygulama dili seçici 28 px. */
 html[data-tasarim="v3"] .ob-seg button { min-height: 32px; }
 @media (hover: none) and (pointer: coarse) { html[data-tasarim="v3"] .ob-seg button { min-height: 40px; padding: 0 16px; } }
+/* 21) iPad — Önerilerim + Ritim Kes (2026-10-25 madde 6; iPad öykünmesi 810 / 1080 px, dokunmatik kurallar). Önerilerim:
+   Düzenle / Sözleri Aç / Geri Al 27–28 px (telefon ≤768 ve masaüstü kuralları vardı, iPad arada kalıyordu), rozetler 11 px.
+   Ritim Kes (yapay tık kaydıyla dolu hâl): ince ayar / seçim düğmeleri 34–36, Kes ve kaydet 39, sayı kutuları 38; yazı ve
+   taşma temiz. → dokunmatik iPad'de 40 / 44, rozet 12. Telefonda Ritim Kes satırları dar olduğu için dokunulmadı. */
+@media (min-width: 769px) and (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.btn-edit, .btn-soz, .btn-restore, .btn-retract, .btn-add) {
+    min-height: 40px; display: inline-flex; align-items: center; font-size: 13px; padding-left: 14px; padding-right: 14px; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .badge { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .card-meta { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="ritim-kes"] :is(.rk-kucuk, .rk-secim) { height: 40px; min-width: 40px; }
+  html[data-tasarim="v3"][data-sayfa="ritim-kes"] .rk-btn { min-height: 44px; }
+  html[data-tasarim="v3"][data-sayfa="ritim-kes"] :is(#rkTempo, #rkZaman, #rkOlcu) { height: 40px; }
+}
