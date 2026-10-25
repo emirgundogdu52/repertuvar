@@ -1814,8 +1814,10 @@ html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .cn { font-size: 12px; pad
 html[data-tasarim="v3"][data-sayfa="repertoires"] .ls > div[style*="text-transform:uppercase"] { padding-left: 17px !important; }
 html[data-tasarim="v3"][data-sayfa="repertoires"] #repSearchInput { padding-left: 16px !important; }
 @media (min-width: 1024px) {
-  html[data-tasarim="v3"][data-sayfa="repertoires"] .lph { padding-left: 27px; }   /* .ls 10 + 17 */
-  html[data-tasarim="v3"][data-sayfa="repertoires"] .lp > div:has(#repSearchInput) { padding-left: 10px !important; padding-right: 10px !important; }
+  /* (2026-10-25, 31) masaüstünde de 16 px kenar — Eserler ile birebir aynı geometri (kart 16, iç yazı 16 + 17 = 33) */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lph { padding-left: 33px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lp > div:has(#repSearchInput) { padding-left: 16px !important; padding-right: 16px !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lp .ls { padding-left: 16px; padding-right: 16px; }
 }
 @media (max-width: 1023px) {
   html[data-tasarim="v3"][data-sayfa="repertoires"] .lph { padding-left: 33px; }   /* .ls 16 + 17 */
@@ -1877,4 +1879,32 @@ html[data-tasarim="v3"][data-sayfa="eserler"] .es-bas { display: none; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .es-arti i { font-size: 20px; line-height: 1; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .es-arti:hover { filter: brightness(1.05); }
   html[data-tasarim="v3"][data-sayfa="eserler"] #btnAdminNewEser { display: none !important; }
+}
+/* 31) Eserler ↔ Repertuvarlar liste başlığı BİREBİR aynı (2026-10-25 kullanıcı: "+ butonu sayfa değiştirince oynuyor, tam yerinde sabit
+   değil, ölçüler de farklı"). Ölçüm (masaüstü): + 579–615 / 580–616; başlık 65 px çizgili / 58 çizgisiz; ikon 279 / 285; + gölgesi yok /
+   var; arama 262–621 × 36 / 268–616 × 42. → iki sayfada da liste kenarı 16 (Repertuvarlar 10'du), başlık 14 / 16 / 14 / 33 + alt çizgi
+   (65 px), + 36 px gölgesiz, arama kutusu 42 px ve başlığın 10 px altında. Sonuç: + 580–616, ikon 285, arama 268–616 iki sayfada aynı. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .es-bas { padding: 14px 16px 14px 33px; border-bottom: 1px solid var(--border); }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .es-bas + div { padding-top: 10px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .es-arti { box-shadow: none; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] #repSearchInput { height: 42px; min-height: 42px; box-sizing: border-box; }
+}
+/* (31 devamı) Repertuvarlar sütununun 1 px sağ çizgisi içeride → başlık/arama sağ payı 15 (Eserler'le aynı 616'da biter) */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lph { padding-right: 15px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lp > div:has(#repSearchInput) { padding-right: 15px !important; }
+}
+/* (31 devamı) Solistler de aynı (kullanıcı: "Solistler de daha büyük"): ölçüm + 40 px gölgeli (575–615), başlık 69 px, ikon yok, 15 px;
+   satırlar 268'den başlıyordu. → başlıkta mikrofon ikonu (her boyutta), masaüstünde başlık 14 / 15 / 14 / 33 (65 px), + 36 px gölgesiz
+   580–616, başlık 14 px; liste satırının içeriği (avatar) 285 — Eserler/Repertuvarlar kart iç yazısıyla aynı çizgi. */
+html[data-tasarim="v3"][data-sayfa="artiesten"] .panel-header h2 { display: flex; align-items: center; gap: 6px; min-width: 0; }
+html[data-tasarim="v3"][data-sayfa="artiesten"] .panel-header h2 i { font-size: 18px; }
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .panel-header { padding: 14px 15px 14px 33px; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .panel-header h2 { font-size: 14px; letter-spacing: .05em; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .btn-new-arti { width: 36px; height: 36px; box-shadow: none; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .btn-new-arti i { font-size: 20px; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .artist-item { padding-left: 33px; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .artist-item.active { padding-left: 30px; }   /* + 3 px sol şerit */
 }
