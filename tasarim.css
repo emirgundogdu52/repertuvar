@@ -1309,4 +1309,25 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"][data-sayfa="eserler"] .filter-sheet .filter-label { font-size: 12px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .filter-sheet .sort-dd-item { font-size: 14px; min-height: 34px; }
 }
+/* 3) Repertuvarlar — 1440'ta: sol liste alt satırı (.sp/.rm/.rc) 11 px, potpuri rozeti 10; sağ tablo başlıkları ve sıra no 10,
+   besteci / kapanış 11, eser adı 13; satır düğmeleri (.br) 30 px; görünürlük çipi 22 px; üst bilgi / eylem yazıları 12. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ri .rn { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ri :is(.rm, .rm span, .sp) { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ri .rc { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .rep-medley { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp :is(.mc, .mc strong, .dmr .mc) { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .sp { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .chip-vis { font-size: 12px; min-height: 30px; display: inline-flex; align-items: center; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .bi { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp thead th { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody .sq span { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .wn { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp :is(.ws, .cn) { font-size: 12.5px; }
+  /* satırdaki alt bilgi parçaları satır içi font-size:11px taşıyor → !important (eser adı .wn hariç) */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div:not(.wn),
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div:not(.wn) span:not(.cn) { font-size: 12.5px !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div.wn { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .br { min-height: 34px; min-width: 34px; }
+}
 
