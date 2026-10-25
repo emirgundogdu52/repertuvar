@@ -1249,3 +1249,35 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"] aside.sidebar .r-theme-toggle .toggle-knob { width: 24px; height: 24px; top: 3px; left: 3px; }
   html[data-tasarim="v3"][data-theme="light"] aside.sidebar .r-theme-toggle .toggle-knob { left: 23px; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+   MASAÜSTÜ DENETİMİ (2026-10-25) — kullanıcı: "mobil tamam, şimdi desktop'u tek tek ele alalım; font, buton büyüklükleri".
+   Ölçüt (fare): metin ≥14 px, yardımcı yazı ≥12 px, tıklanır ≥32 px (birincil 36–42). Yalnız ≥1024 px + fare/ince işaretçi
+   (hover:hover, pointer:fine) — telefon / iPad kuralları etkilenmez. Sayfa sayfa eklenir; tablo app/_not.md "MASAÜSTÜ DENETİMİ".
+   ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ */
+/* Ortak yan menü (≥1024, her işaretçi): öğe yazısı 13 → 14 px, yükseklik 38 → 40; tema anahtarı 44×24 → 50×30 (iPad'le aynı). */
+@media (min-width: 1024px) {
+  html[data-tasarim="v3"] aside.sidebar .sb-item { font-size: 14px; min-height: 40px; }
+  html[data-tasarim="v3"] aside.sidebar .r-theme-toggle { width: 50px !important; height: 30px !important; border-radius: 999px !important; }
+  html[data-tasarim="v3"] aside.sidebar .r-theme-toggle .toggle-knob { width: 24px; height: 24px; top: 3px; left: 3px; }
+  html[data-tasarim="v3"][data-theme="light"] aside.sidebar .r-theme-toggle .toggle-knob { left: 23px; }
+}
+/* 1) Ana Sayfa — 1440'ta ortanca metin 13 px idi (%83'ü 14 px altı). iPad maketinin içindeki minyatür ekran (sekme 9 px vb.)
+   süsleme olarak BİLEREK küçük kalır. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="index"] .hero-title { font-size: 28px; line-height: 1.2; }
+  html[data-tasarim="v3"][data-sayfa="index"] .hero-greeting { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="index"] :is(.hero-btn-primary, .hero-btn-secondary) { font-size: 14px; min-height: 42px; white-space: nowrap; }
+  html[data-tasarim="v3"][data-sayfa="index"] .hero-feature-card h5 { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="index"] .hero-feature-card p { font-size: 13px; line-height: 1.45; }
+  html[data-tasarim="v3"][data-sayfa="index"] .hero-visual-stats .hero-stat label { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="index"] .ana-defter-rozet { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="index"] .ana-defter small { font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="index"] .feat-title { font-size: 16px; }
+  html[data-tasarim="v3"][data-sayfa="index"] .feat-desc { font-size: 14px; line-height: 1.5; }
+  html[data-tasarim="v3"][data-sayfa="index"] .sec-header .sec-title { font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="index"] .work-name { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="index"] .work-num { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="index"] .hero-pedal-note { font-size: 12px; }
+}
+
