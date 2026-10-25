@@ -1807,3 +1807,16 @@ html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .cn { font-size: 12px; pad
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody :is(.sq, .sq span:not(.drag-handle)) { font-size: 12.5px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .cn { font-size: 13px; padding: 1px 9px; }
 }
+/* 25) Repertuvarlar sol sütun BAŞLIK HİZASI (2026-10-25 kullanıcı: "Mevcut repertuvarlar kurala göre hizalanmamış!!!"). Kural: başlık
+   (ikonuyla) alttaki kartların iç yazısıyla aynı çizgide = kart kenarı + 17 px. Ölçüm — telefon/iPad dikey: kart yazısı 33, "MEVCUT
+   REPERTUVARLAR" ikonu 16, bölüm başlıkları (REPERTUVARLARIM / GRUBUN…) 28, arama yazısı 29; masaüstü/iPad yatay: kart yazısı 279,
+   başlık 268, bölüm 274, arama yazısı 277 ve arama kutusu kartlardan 2 px içeride (satır içi 12 px, .ls 10 px). */
+html[data-tasarim="v3"][data-sayfa="repertoires"] .ls > div[style*="text-transform:uppercase"] { padding-left: 17px !important; }
+html[data-tasarim="v3"][data-sayfa="repertoires"] #repSearchInput { padding-left: 16px !important; }
+@media (min-width: 1024px) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lph { padding-left: 27px; }   /* .ls 10 + 17 */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lp > div:has(#repSearchInput) { padding-left: 10px !important; padding-right: 10px !important; }
+}
+@media (max-width: 1023px) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .lph { padding-left: 33px; }   /* .ls 16 + 17 */
+}
