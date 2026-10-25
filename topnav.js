@@ -1500,7 +1500,7 @@ function _m(anahtar, tr) {
   // (2026-10-17) Hangi gösterge: üst menü görünüyorsa (telefon/tablet) ya da dar ekransa üç nokta (#sync-halka), geniş ekranda çubuk.
   // Çubuk iPhone'da top:0 durum çubuğu şeridinde kayboluyordu; menünün alt kenarına taşınınca da logonun sarı çizgisiyle
   // yan yana iki sarı çizgi oluyordu — ikisi de kullanıcıyı rahatsız etti.
-  var halka = null, halkaModu = false;
+  var halka = null, halkaModu = false, halkaBekle = 0;
   function halkaGoster() {
     var tn = document.querySelector('.r-topnav');
     var r = tn ? tn.getBoundingClientRect() : null;   // offsetParent DEĞİL: sabit (fixed) menüde hep null döner
@@ -1524,7 +1524,17 @@ function _m(anahtar, tr) {
       var stp = sahne.querySelector('.stp'), pr = stp ? stp.getBoundingClientRect() : null, hr = halka.getBoundingClientRect();
       if (pr && pr.width > 0 && pr.right > hr.left - 6) halka.classList.add('sahne-alt');
     }
+    else if (document.getElementById('r-topnav-container')) {
+      // (2026-10-24) Sayfa üst menü kullanıyor ama menü henüz kurulmadı (ör. alt menüden Sahne Modu'na geçişte ilk eşitleme):
+      // eskiden sağ üstte serbest konuma — AVATARIN ARKASINA — düşüyor, yarım saniye sonra menüdeki yerine geçiyordu; kullanıcı
+      // ikisini birden görüyordu ("hem ortada hem avatarın arkasında"). Serbest gösterme; menü gelince yerine koy (en çok ~3 sn
+      // dener; sahnenin nota odak kipinde şerit de menü de gizli → gösterge yok).
+      if (halka.parentNode) halka.classList.remove('var', 'on');
+      if (halkaBekle < 20) { halkaBekle++; setTimeout(function () { if (count > 0) halkaGoster(); }, 150); }
+      return true;   // dar ekranda çubuk da açılmasın
+    }
     else { if (halka.parentNode !== document.body) (document.body || document.documentElement).appendChild(halka); halka.classList.remove('sahnede'); halka.classList.add('serbest'); }
+    halkaBekle = 0;
     halka.classList.add('var');
     void halka.offsetWidth;
     halka.classList.add('on');
