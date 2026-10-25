@@ -965,7 +965,7 @@ html[data-tasarim="v3"] .detail .detail-tabs { margin-top: -6px; }
   html[data-tasarim="v3"][data-sayfa="ayarlar"] :is(.setting-btn, .setting-select) { min-height: 40px; }
   html[data-tasarim="v3"][data-sayfa="ayarlar"] .page button { min-height: 40px; }
   html[data-tasarim="v3"][data-sayfa="calisma"] .co-sekme { min-height: 40px; }
-  html[data-tasarim="v3"][data-sayfa="uyeler"] .btn-sm { min-height: 36px; font-size: 12px; padding-left: 12px; padding-right: 12px; }
+  html[data-tasarim="v3"][data-sayfa="uyeler"] .btn-sm { min-height: 40px; font-size: 13px; padding-left: 12px; padding-right: 12px; }   /* 2026-10-25: 36 → 40 (iPad Üyeler denetimi, standart 40) */
 }
 
 /* ══ (2026-10-24) iPAD / DOKUNMATİK TABLET (liste + detay yan yana) — kullanıcı: "iPad'de repertuvar detayını da kontrol et".
