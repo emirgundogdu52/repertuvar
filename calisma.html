@@ -272,7 +272,13 @@
 .rb-hiz-cip.aktif { background:var(--yt-btn,var(--accent)); border-color:var(--yt-btn,var(--accent)); color:#1a1200; }
 .rb-hiz-cip:disabled { opacity:.4; cursor:default; }
 .rb-tempo-satir { flex-wrap:wrap; }
-.rb-satir-duzen { gap:8px; }
+.rb-satir-duzen { gap:8px; flex-direction:column; align-items:stretch; }
+.rb-duz-ust { display:flex; align-items:center; gap:8px; }
+.rb-duz-alt { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.rb-duz-etiket { font-size:12px; color:var(--text3); margin-left:4px; }
+.rb-duz-deger { min-width:24px; text-align:center; font-size:16px; font-variant-numeric:tabular-nums; }
+.rb-duz-bpm { margin-left:auto; font-size:16px; font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; }
+.rb-duz-ipucu { font-size:12px; color:var(--text3); line-height:1.45; }
 .rb-ad-gir { flex:1; min-width:0; height:40px; padding:0 12px; border-radius:10px; border:1px solid var(--accent); background:var(--surface);
   color:var(--text); font-family:inherit; font-size:15px; font-weight:700; outline:none; }
 .rb-ad-tamam { color:var(--accent); border-color:color-mix(in srgb, var(--accent) 45%, transparent); }
@@ -1425,12 +1431,28 @@ function rbBankaCiz() {
       ? `<button class="rb-ikon rb-ekle" onclick="rbBagla('${r.id}')">${_caCev('ca.rbEsereEkle', 'Esere ekle')}</button>` : '';
     // (2026-10-25) Kullanıcı: "ritimlerin adını değiştiremiyorum, edit etme imkânı yok" → sahibine ✎ (satır içinde ad kutusu)
     if (rbAdDuzenlenen === r.id) {
+      // (2026-10-25) Kullanıcı: "kayıtlı ritimlerin BPM'leri birbirini tutmuyor" — BPM kesilirken girilen ölçü sayısından
+      // türetiliyor (60 × zaman × ölçü ÷ süre); yanlış ölçü sayısı 2–4 kat BPM yapıyordu. Ölçü / zaman burada düzeltilir, BPM canlı.
       return `<div class="rb-satir rb-satir-duzen">
-        <input class="rb-ad-gir" id="rbAdGir" value="${rbKacis(r.ad)}" maxlength="80" autocomplete="off"
-               onkeydown="if(event.key==='Enter'){event.preventDefault();rbAdKaydet('${r.id}')} if(event.key==='Escape')rbAdIptal()"
-               aria-label="${_caCev('ca.rbAdDuzenle', 'Ritmin adı')}">
-        <button class="rb-ikon rb-ad-tamam" onclick="rbAdKaydet('${r.id}')" aria-label="${_caCev('ortak.kaydet', 'Kaydet')}"><i class="ti ti-check"></i></button>
-        <button class="rb-ikon" onclick="rbAdIptal()" aria-label="${_caCev('ortak.iptal', 'İptal')}"><i class="ti ti-x"></i></button>
+        <div class="rb-duz-ust">
+          <input class="rb-ad-gir" id="rbAdGir" value="${rbKacis(r.ad)}" maxlength="80" autocomplete="off"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();rbAdKaydet('${r.id}')} if(event.key==='Escape')rbAdIptal()"
+                 aria-label="${_caCev('ca.rbAdDuzenle', 'Ritmin adı')}">
+          <button class="rb-ikon rb-ad-tamam" onclick="rbAdKaydet('${r.id}')" aria-label="${_caCev('ortak.kaydet', 'Kaydet')}"><i class="ti ti-check"></i></button>
+          <button class="rb-ikon" onclick="rbAdIptal()" aria-label="${_caCev('ortak.iptal', 'İptal')}"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="rb-duz-alt">
+          <span class="rb-duz-etiket">${_caCev('ca.rbDuzOlcu', 'Döngüde ölçü')}</span>
+          <button class="rt-adim" onclick="rbDuzKaydir('olcu',-1)" aria-label="−">−</button>
+          <b class="rb-duz-deger" id="rbDuzOlcu">${rbDuz.olcu}</b>
+          <button class="rt-adim" onclick="rbDuzKaydir('olcu',1)" aria-label="+">+</button>
+          <span class="rb-duz-etiket">${_caCev('ca.rbDuzZaman', 'Ölçüde vuruş')}</span>
+          <button class="rt-adim" onclick="rbDuzKaydir('zaman',-1)" aria-label="−">−</button>
+          <b class="rb-duz-deger" id="rbDuzZaman">${rbDuz.zaman}</b>
+          <button class="rt-adim" onclick="rbDuzKaydir('zaman',1)" aria-label="+">+</button>
+          <span class="rb-duz-bpm" id="rbDuzBpm">${_bpm(_rbDuzTempo(r))} BPM</span>
+        </div>
+        <div class="rb-duz-ipucu">${_caCev('ca.rbDuzIpucu', 'BPM çalınan tempoyla uyuşmuyorsa döngüdeki ölçü sayısını düzelt — BPM bilinen tempoya gelince kaydet.')}</div>
       </div>`;
     }
     const duzenle = r.owner_id === ben
@@ -1510,9 +1532,25 @@ async function rbOnizle(id) {
   rtKilitYenile(); rbBankaCiz();
 }
 
-let rbAdDuzenlenen = null;   // adı düzenlenen ritmin id'si (satır içinde kutu)
+let rbAdDuzenlenen = null;   // düzenlenen ritmin id'si (satır içinde ad + ölçü / zaman)
+let rbDuz = { olcu: 1, zaman: 4 };
+function _rbDuzTempo(r) {
+  const sure = +r.sure_sn;
+  return sure > 0 ? Math.round(60 * rbDuz.zaman * rbDuz.olcu / sure * 100) / 100 : +r.tempo;
+}
+function rbDuzKaydir(alan, d) {
+  const r = RB_BANKA.find(x => x.id === rbAdDuzenlenen);
+  if (!r) return;
+  rbDuz[alan] = Math.min(alan === 'olcu' ? 16 : 32, Math.max(1, (rbDuz[alan] || 1) + d));
+  const o = document.getElementById('rbDuzOlcu'), z = document.getElementById('rbDuzZaman'), b = document.getElementById('rbDuzBpm');
+  if (o) o.textContent = rbDuz.olcu;
+  if (z) z.textContent = rbDuz.zaman;
+  if (b) b.textContent = _bpm(_rbDuzTempo(r)) + ' BPM';
+}
 function rbAdDuzenle(id) {
+  const r = RB_BANKA.find(x => x.id === id);
   rbAdDuzenlenen = id;
+  rbDuz = { olcu: parseInt(r && r.olcu_sayisi) || 1, zaman: parseInt(r && r.zaman_sayisi) || 4 };
   rbBankaCiz();
   const g = document.getElementById('rbAdGir');
   if (g) { g.focus(); g.select(); }
@@ -1522,8 +1560,10 @@ async function rbAdKaydet(id) {
   const r = RB_BANKA.find(x => x.id === id);
   const g = document.getElementById('rbAdGir');
   if (!r || !g) { rbAdIptal(); return; }
-  const ad = g.value.replace(/\s+/g, ' ').trim().slice(0, 80);
-  if (!ad || ad === r.ad) { rbAdIptal(); return; }
+  const ad = g.value.replace(/\s+/g, ' ').trim().slice(0, 80) || r.ad;
+  const olcuDegisti = rbDuz.olcu !== (parseInt(r.olcu_sayisi) || 1), zamanDegisti = rbDuz.zaman !== (parseInt(r.zaman_sayisi) || 4);
+  if (ad === r.ad && !olcuDegisti && !zamanDegisti) { rbAdIptal(); return; }
+  const eskiTempo = +r.tempo, yeniTempo = (olcuDegisti || zamanDegisti) ? _rbDuzTempo(r) : eskiTempo;
   // Grupla paylaşılan ritmin adını grup üyeleri de görür → paylaşılan alanlardaki kural: uygunsuz ifade engellenir
   if (r.group_id && typeof uygunsuzTara === 'function') {
     const bulunan = await uygunsuzTara([ad]);
@@ -1531,14 +1571,17 @@ async function rbAdKaydet(id) {
   }
   g.disabled = true;
   try {
+    const govde = { ad };
+    if (olcuDegisti || zamanDegisti) Object.assign(govde, { olcu_sayisi: rbDuz.olcu, zaman_sayisi: rbDuz.zaman, tempo: yeniTempo });
     const res = await fetch(SUPA_URL + '/rest/v1/ritimler?id=eq.' + encodeURIComponent(id), {
       method: 'PATCH', headers: Object.assign({}, authHeaders(), { 'Content-Type': 'application/json', 'Prefer': 'return=representation' }),
-      body: JSON.stringify({ ad })
+      body: JSON.stringify(govde)
     });
     const satir = res.ok ? await res.json() : null;
     if (!res.ok || !Array.isArray(satir) || !satir.length) throw new Error(res.ok ? 'yetki' : await res.text());
-    r.ad = ad;
-    rbBagli.forEach(b => { if (b.ritim && b.ritim.id === id) b.ritim.ad = ad; });
+    Object.assign(r, govde);
+    rbBagli.forEach(b => { if (b.ritim && b.ritim.id === id) Object.assign(b.ritim, govde); });
+    if (Math.abs(yeniTempo - eskiTempo) > 0.05) await _rbTempoDuzeltmesiniYay(id, eskiTempo, yeniTempo);
     rbAdDuzenlenen = null;
     const hiz = document.getElementById('rbHiz'); if (hiz && rbOnizSecili === id) hiz.dataset.id = '';   // tempo satırındaki adı da yenile
     rbBankaCiz(); if (rbEser) rbBagliCiz();
@@ -1547,6 +1590,25 @@ async function rbAdKaydet(id) {
     g.disabled = false;
     rbNot(_caCev('ca.rbAdKaydedilemedi', 'Ad kaydedilemedi. Bağlantını kontrol edip tekrar dene.'), true);
   }
+}
+
+// Ritmin kayıtlı temposu düzeltilince: bu ritmin bağlı olduğu (bu kullanıcının) eserlerde hedef tempo hâlâ ESKİ (yanlış) değerdeyse
+// — yani kullanıcı bilerek değiştirmemişse — o eserin bütün satırlarında yeni değere çekilir. Bilerek seçilmiş hedeflere dokunulmaz.
+// Dinleme temposu da eski değerdeyse sıfırlanır; açık eserin çaları yeniden hazırlanır.
+async function _rbTempoDuzeltmesiniYay(id, eski, yeni) {
+  try {
+    if (Math.abs((+RB_ONIZ_TEMPO[id] || eski) - eski) < 0.6) { delete RB_ONIZ_TEMPO[id]; try { localStorage.setItem('rbOnizTempo', JSON.stringify(RB_ONIZ_TEMPO)); } catch (e) {} }
+    const ben = uid(); if (!ben) return;
+    const r = await fetch(SUPA_URL + '/rest/v1/eser_ritimleri?select=work_id,hedef_tempo&ritim_id=eq.' + encodeURIComponent(id) + '&owner_id=eq.' + ben, { headers: authHeaders() });
+    const satirlar = r.ok ? await r.json() : [];
+    const eserler = [...new Set(satirlar.filter(s => s.hedef_tempo == null || Math.abs(+s.hedef_tempo - eski) < 0.6).map(s => s.work_id))];
+    for (const w of eserler) {
+      await fetch(SUPA_URL + '/rest/v1/eser_ritimleri?work_id=eq.' + w + '&owner_id=eq.' + ben, {
+        method: 'PATCH', headers: Object.assign({}, authHeaders(), { 'Content-Type': 'application/json' }), body: JSON.stringify({ hedef_tempo: yeni })
+      }).catch(() => {});
+    }
+    if (rbEser && rbBagli.some(b => b.ritim && b.ritim.id === id)) { if (rbCalar && rbCalar.calisiyorMu()) rbDurdur(); await rbBagliYukle(); }
+  } catch (e) {}
 }
 
 async function rbRitimSil(id) {
