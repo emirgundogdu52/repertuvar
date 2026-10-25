@@ -850,6 +850,25 @@ body.day-theme{--marker-color:#3F3BC0;}  /* açık: koyu indigo */
 .sb-menu-btn .ti{font-size:20px;}
 .sb-menu-btn:hover{color:var(--text);border-color:var(--accent);}
 .sb-menu-btn i{font-size:18px;}
+/* ── OTOMATİK KAYDIRMA (2026-10-25) — kullanıcı: "uzun söz ve akorlarda pedalsız kullananlar için yazıyı yavaş yavaş akıtan
+   bir özellik + rahatsız etmeyecek bir yerde hız ayar çubuğu; oynat'a basınca başlasın, başlat/durdur gibi". Örnekler (OnSong,
+   SongbookPro, BandHelper): tek düğme başlat/duraklat, hız çubuğu, elle kaydırınca geçici durup yeni yerden devam. Düğme
+   "Sıradaki" kartı ile ⚙ arasında, aynı görünüşte; yalnız içerik ekrana sığmıyorsa görünür. Hız hapı yalnız akarken düğmenin
+   üstünde; 3 sn dokunulmazsa soluklaşır (yazının önünde durmasın). */
+.ak-kap{position:relative;order:2;align-self:stretch;display:flex;margin-left:auto;}
+.ak-kap[hidden]{display:none;}
+.ak-kap + .sb-menu{margin-left:0;}
+.ak-btn.on{background:var(--accent);color:#1c1c1e;border-color:var(--accent);}
+body.day-theme .ak-btn.on{color:#fff;}
+.ak-hiz{position:absolute;right:0;bottom:calc(100% + 8px);display:flex;align-items:center;gap:8px;padding:6px;width:250px;max-width:calc(100vw - 32px);
+  box-sizing:border-box;background:var(--surface);border:1px solid var(--border);border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.35);
+  transition:opacity .4s;z-index:12;}
+.ak-hiz[hidden]{display:none;}
+.ak-hiz.soluk{opacity:.3;}
+.ak-hiz input[type=range]{flex:1;min-width:0;height:28px;margin:0;accent-color:var(--accent);}
+.ak-adim{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text);
+  display:grid;place-items:center;cursor:pointer;padding:0;}
+.ak-adim .ti{font-size:16px;}
 
 #v2StageBotNav{
   position:fixed;bottom:0;left:0;right:0;
@@ -1255,6 +1274,14 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   <button class="side-nav-btn side-nav-right" id="sideRight" onclick="event.stopPropagation();nextWork()"><i class="ti ti-chevron-right" style="font-size:22px;"></i></button>
   <div class="sb">
     <button class="nota-odak-kapat" onclick="event.stopPropagation();setNotaOdak(false)" title="Üst çubukları göster" data-i18n-title="sh.notaOdakKapat" aria-label="Üst çubukları göster" data-i18n-aria="sh.notaOdakKapat"><i class="ti ti-arrows-minimize" aria-hidden="true"></i></button>
+    <div class="ak-kap" id="akKap" hidden>
+      <div class="ak-hiz" id="akHiz" hidden onclick="event.stopPropagation()">
+        <button type="button" class="ak-adim" onclick="akisHizAdim(-1)" aria-label="Yavaşlat" data-i18n-aria="sh.akisYavas"><i class="ti ti-minus" aria-hidden="true"></i></button>
+        <input type="range" id="akHizCubuk" min="1" max="10" step="1" value="4" aria-label="Kaydırma hızı" data-i18n-aria="sh.akisHiz" oninput="akisHizAyarla(this.value)">
+        <button type="button" class="ak-adim" onclick="akisHizAdim(1)" aria-label="Hızlandır" data-i18n-aria="sh.akisHizli"><i class="ti ti-plus" aria-hidden="true"></i></button>
+      </div>
+      <button class="sb-menu-btn ak-btn" id="akBtn" onclick="event.stopPropagation();akisDegistir()" title="Otomatik kaydır" aria-label="Otomatik kaydır" data-i18n-title="sh.akisBaslat" data-i18n-aria="sh.akisBaslat" aria-pressed="false"><i class="ti ti-arrow-autofit-down" aria-hidden="true"></i></button>
+    </div>
     <div class="sb-menu">
       <button onclick="toggleStageTools(event)" id="stageToolsToggle" title="Görünüm Ayarları" data-i18n-title="sh.gorunumAyarlari" class="sb-menu-btn"><i class="ti ti-adjustments-horizontal"></i></button>
       <div id="stageToolsPanel" style="display:none;position:fixed;bottom:80px;right:12px;width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;overflow-x:hidden;border-radius:12px;padding:8px 12px;z-index:9999;">
@@ -2442,6 +2469,7 @@ function renderStage(){
   const items=curRep.items||[];
   const item=items[curIdx];
   if(!item)return;
+  if (_akis && _akis.acik) akisDurdur();   // (2026-10-25) eser/görünüm değişince otomatik kaydırma durur — bir sonraki eserde kendiliğinden akmasın
   const w=WL[item.workId]||{};
   _stageShowsPlaceholder = !w.name; // gerçek ad yoksa placeholder/… bastık demektir
   const total=items.length;
@@ -2571,7 +2599,121 @@ function renderStage(){
   }
   else np.style.display='none';
   if (viewMode === 'nota' && notaDuzen() !== 'alt') notaPagerOlc();   // kart görünürlüğü belli oldu → şerit ölçüsü
+  requestAnimationFrame(akisDugmeGuncelle);
 }
+
+// ── OTOMATİK KAYDIRMA (2026-10-25) ─────────────────────────────────────────
+// Kullanıcı: "Stage modda uzun söz ve akorlarda pedalsız kullananlar için yazıyı yavaş yavaş akıtan bir özellik ekleyelim, bir de
+// hız ayar çubuğu koyalım rahatsız etmeyecek bir yere; kişi oynat'a basınca başlasın, başlat/durdur gibi". Örneklerden (OnSong,
+// SongbookPro, BandHelper) alınanlar: tek düğme başlat/duraklat, hız çubuğu, elle kaydırınca geçici durup BIRAKTIĞI YERDEN devam.
+// Hız 10 kademe (px/sn); eser başına hatırlanır (yoksa son kullanılan). Sona gelince ya da eser değişince durur. Kaydırılan kap:
+// söz/akorda .wlyrics, alt alta notada #sm (akisKap). Pedal/ok tuşları eskisi gibi eser/sayfa değiştirir.
+// var (const değil): renderStage betik yüklenirken bu satırdan önce çağrılırsa TDZ hatası vermesin.
+var AKIS_PX = [6, 9, 13, 18, 24, 31, 40, 51, 65, 82];
+var _akis = { acik: false, raf: 0, son: 0, konum: 0, beklemeBitis: 0, elle: false, solTimer: 0 };
+function _akisEserId() { const it = curRep && curRep.items ? curRep.items[curIdx] : null; return it ? String(it.workId) : ''; }
+function akisSeviye() {
+  let h = {}; try { h = JSON.parse(localStorage.getItem('stageAkisEser') || '{}'); } catch (e) {}
+  let v = parseInt(h[_akisEserId()], 10);
+  if (!(v >= 1 && v <= 10)) v = parseInt(localStorage.getItem('stageAkisHiz'), 10);
+  return v >= 1 && v <= 10 ? v : 4;
+}
+function akisHizAyarla(v) {
+  v = Math.max(1, Math.min(10, parseInt(v, 10) || 4));
+  try {
+    localStorage.setItem('stageAkisHiz', String(v));
+    const h = JSON.parse(localStorage.getItem('stageAkisEser') || '{}');
+    h[_akisEserId()] = v;
+    localStorage.setItem('stageAkisEser', JSON.stringify(h));
+  } catch (e) {}
+  const c = document.getElementById('akHizCubuk');
+  if (c && String(c.value) !== String(v)) c.value = v;
+  akisSolukErtele();
+}
+function akisHizAdim(d) { akisHizAyarla(akisSeviye() + d); }
+function akisSolukErtele() {   // hız hapı 3 sn dokunulmazsa soluklaşır
+  const p = document.getElementById('akHiz');
+  if (!p) return;
+  p.classList.remove('soluk');
+  clearTimeout(_akis.solTimer);
+  _akis.solTimer = setTimeout(() => { if (_akis.acik) p.classList.add('soluk'); }, 3000);
+}
+function akisDugmeYaz(acik) {
+  const b = document.getElementById('akBtn');
+  if (!b) return;
+  const ad = acik ? _sCev('sh.akisDurdur', 'Kaydırmayı durdur') : _sCev('sh.akisBaslat', 'Otomatik kaydır');
+  b.classList.toggle('on', acik);
+  b.setAttribute('aria-pressed', acik ? 'true' : 'false');
+  b.setAttribute('aria-label', ad); b.title = ad;
+  b.innerHTML = '<i class="ti ' + (acik ? 'ti-player-pause' : 'ti-arrow-autofit-down') + '" aria-hidden="true"></i>';
+}
+// Kayan kap: söz/akorda #sm içindeki .wlyrics (kendi overflow'u var), alt alta notada #sm'nin kendisi.
+function akisKap() {
+  const sm = document.getElementById('sm');
+  if (!sm) return null;
+  const w = sm.querySelector('.wlyrics');
+  if (w && w.scrollHeight > w.clientHeight + 5 && /auto|scroll/.test(getComputedStyle(w).overflowY)) return w;
+  return sm;
+}
+function akisDegistir() { if (_akis.acik) akisDurdur(); else akisBaslat(); }
+function akisBaslat() {
+  const sm = akisKap();
+  if (!sm) return;
+  if (sm.scrollTop + sm.clientHeight >= sm.scrollHeight - 2) sm.scrollTop = 0;   // sondaysa baştan
+  Object.assign(_akis, { acik: true, son: 0, konum: sm.scrollTop, elle: false, beklemeBitis: 0 });
+  akisDugmeYaz(true);
+  const p = document.getElementById('akHiz'), c = document.getElementById('akHizCubuk');
+  if (c) c.value = akisSeviye();
+  if (p) { p.hidden = false; akisSolukErtele(); }
+  cancelAnimationFrame(_akis.raf);
+  _akis.raf = requestAnimationFrame(akisKare);
+}
+function akisDurdur() {
+  _akis.acik = false;
+  cancelAnimationFrame(_akis.raf);
+  clearTimeout(_akis.solTimer);
+  akisDugmeYaz(false);
+  const p = document.getElementById('akHiz');
+  if (p) { p.hidden = true; p.classList.remove('soluk'); }
+}
+function akisKare(t) {
+  if (!_akis.acik) return;
+  const sm = akisKap(), ekran = document.getElementById('stageScreen');
+  if (!sm || !ekran || ekran.classList.contains('hidden')) { akisDurdur(); return; }
+  if (_akis.son && !_akis.elle && t >= _akis.beklemeBitis) {
+    if (Math.abs(sm.scrollTop - _akis.konum) > 3) _akis.konum = sm.scrollTop;   // elle/pedalla oynandı → oradan devam
+    _akis.konum += AKIS_PX[akisSeviye() - 1] * Math.min(0.1, (t - _akis.son) / 1000);
+    sm.scrollTop = _akis.konum;
+    if (sm.scrollTop + sm.clientHeight >= sm.scrollHeight - 2) { akisDurdur(); return; }   // sona geldi
+  }
+  _akis.son = t;
+  _akis.raf = requestAnimationFrame(akisKare);
+}
+// Düğme yalnız içerik ekrana sığmıyorsa (kaydırılacak bir şey varsa) görünür.
+function akisDugmeGuncelle() {
+  const sm = akisKap(), kap = document.getElementById('akKap');
+  if (!sm || !kap) return;
+  const tasiyor = sm.scrollHeight > sm.clientHeight + 24;
+  if (!tasiyor && _akis.acik) akisDurdur();
+  kap.hidden = !tasiyor;
+}
+(function akisDinleyiciler() {
+  const kur = () => {
+    const sm = document.getElementById('sm');
+    if (!sm) return;
+    // Parmakla kaydırırken akış bekler; bırakınca 1,5 sn sonra BIRAKILAN yerden devam (momentum da hesaba katılır).
+    sm.addEventListener('touchstart', () => { if (_akis.acik) _akis.elle = true; }, { passive: true });
+    const birak = () => { if (!_akis.acik) return; const k = akisKap(); _akis.elle = false; _akis.konum = k ? k.scrollTop : 0; _akis.beklemeBitis = performance.now() + 1500; };
+    sm.addEventListener('touchend', birak, { passive: true });
+    sm.addEventListener('touchcancel', birak, { passive: true });
+    sm.addEventListener('wheel', () => { if (_akis.acik) { const k = akisKap(); _akis.konum = k ? k.scrollTop : 0; _akis.beklemeBitis = performance.now() + 1500; } }, { passive: true });
+    // Yazı boyutu, ekran döndürme, nota yüklenmesi gibi içerik boyu değişimlerini yakala (sahne açıkken, saniyede bir, ucuz).
+    setInterval(() => { const e = document.getElementById('stageScreen'); if (e && !e.classList.contains('hidden')) akisDugmeGuncelle(); }, 1000);
+    window.addEventListener('resize', () => requestAnimationFrame(akisDugmeGuncelle));
+    document.addEventListener('visibilitychange', () => { if (document.hidden && _akis.acik) akisDurdur(); });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', kur); else kur();
+})();
 
 // ── POTPURİ yardımcısı ──
 // items[idx] hangi zincirde? {inChain, pos (1-tabanlı), len, nextLinked}
