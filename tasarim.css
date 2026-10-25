@@ -281,11 +281,12 @@ html[data-tasarim="v3"][data-theme="light"][data-sayfa="index"] .hero-section {
    üstünde duruyor; giriş alanının üst kenarı zeminle sert çizgi yapıyordu → en üst katman: tepede sayfa zemini (--bg), başlığın
    alt kenarında (--hero-baslik-alt, index.html heroBaslikAlt ölçer; yoksa 80px) saydam. Üst kenar çizgisi de kalktı. Masaüstü aynı. */
 @media (max-width: 1023px) {
-  /* koyu: tepe rengi logo çubuğunun camı (rgba(28,34,46,.58) zemin üstünde ≈ #151B26) — sayfa zemini #070A0F giriş alanının
-     #0D121B'sine neredeyse eş olduğu için geçiş görünmüyordu (kullanıcı: "koyu moda da gradient geçişi uygula"). */
+  /* koyu: tepe = sayfa zemini (--bg #070A0F). Bir ara çubuğun camı (#151B26) denendi — giriş alanının üstündeki koyu zeminle
+     78. pikselde SERT ÇİZGİ yaptı (kullanıcı: "Hoş geldin bloğu üstte çizgi halinde bitiyor"). Tepe, üstündeki zeminle aynı renk
+     olmalı; geçiş başlığın altına kadar giriş alanının rengine (#0D121B + köşedeki altın ışık) açılır. */
   html[data-tasarim="v3"][data-theme="dark"][data-sayfa="index"] .hero-section {
     background:
-      linear-gradient(180deg, #151B26 0, rgba(21, 27, 38, 0) var(--hero-baslik-alt, 80px)),
+      linear-gradient(180deg, var(--bg) 0, rgba(7, 10, 15, 0) var(--hero-baslik-alt, 80px)),
       radial-gradient(circle at 82% 12%, rgba(255, 200, 61, .10), transparent 42%),
       linear-gradient(180deg, #0D121B 0%, #090D14 100%);
     border-top-color: transparent;
@@ -628,8 +629,7 @@ html[data-tasarim="v3"][data-theme="light"] #recentWorks .work-row.zebra { backg
    Durum çubuğu: topnav.js sistemCubuklariniAyarla yeni tasarımda hep DARK (açık simge). */
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-topnav,
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bottom-nav,
-html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bottom-nav,
-html[data-tasarim="v3"][data-theme="light"] .sb-brand {
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bottom-nav {
   --bg: #070A0F; --bg2: #090D14; --surface: #111722; --surface2: #1A2130;
   --border: rgba(255, 255, 255, .08); --border2: rgba(255, 255, 255, .14);
   --accent: #FFC83D; --accent2: #4DA3FF; --accent3: #8CC5FF;
@@ -642,12 +642,13 @@ html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-topnav { backgrou
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bottom-nav,
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bottom-nav { background: #070A0F !important; border-top-color: rgba(255, 255, 255, .08) !important; }
 /* (2026-10-25) YAN MENÜ AÇIK TEMADA BEYAZ (kullanıcı seçimi: "Beyaz menü"). Logo menünün tepesinde küçük koyu plakada (logo_dark;
-   sarı ".app" beyazda silik kalıyordu); plaka menü düğmeleriyle aynı 10 px çizgisinde. Telefonun üst çubuğu / alt menüsü değişmedi. */
+   sarı ".app" beyazda silik kalıyordu); plaka menü düğmeleriyle aynı 10 px çizgisinde. Telefonun üst çubuğu / alt menüsü değişmedi.
+   [Aynı gün plaka kalktı, açık logo — aşağıya bak.] */
 html[data-tasarim="v3"][data-theme="light"] .sidebar,
 html[data-tasarim="v3"][data-theme="light"] aside.sidebar,
 html[data-tasarim="v3"][data-theme="light"] .v2-sidebar { background: #FFFFFF !important; border-right-color: rgba(17, 23, 34, .08) !important; }
-html[data-tasarim="v3"][data-theme="light"] .sb-brand { background: #090D14; border-radius: 14px; margin: 10px 10px 10px; padding: 13px 12px; border-bottom: 0; }
-html[data-tasarim="v3"][data-theme="light"] .sb-brand img[data-logo] { height: 38px !important; margin-left: calc(-38px * 10 / 127); }
+/* (2026-10-25, aynı gün) Koyu plaka KALDIRILDI — kullanıcı: "açık modda desktopta telefon ve tabletteki logo şeklini kullanalım":
+   yan menüde açık logo (logo_light: koyu yazı + sarı .app, telefonun beyaz cam çubuğundaki gibi), topnav.js logoDosyasi(…, yanMenu). */
 /* Üst çubuk: kullanıcı düğmesi */
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-tn-user { background: rgba(255, 200, 61, .12); }
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-tn-uname { color: #FFFFFF; }
@@ -1581,4 +1582,17 @@ html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.page-title, .page-sub, .se
 }
 @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-listen { min-width: 34px; min-height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+}
+/* 15) iPad — Repertuvarlar denetimi (2026-10-25, kullanıcı: "iPad'de Repertuvarlar sayfasını da kontrol et"). 810 / 1080, dokunmatik
+   kurallar açık: düzen iyi (liste 320, ayrıntı 486 / 504, taşma yok). Masaüstünde düzeltilen küçük yazılar iPad'de duruyordu: liste
+   satırı alt bilgisi (.sp / .rm) ve eser sayısı (.rc) 11, potpuri rozeti 10; ayrıntıda tablo başlıkları ve sıra no 10 → 12–12.5.
+   Görünürlük çipi 36 → 40 px. */
+@media (min-width: 769px) and (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ri :is(.rm, .rm span, .sp) { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ri .rc { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .rep-medley { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp thead th { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody :is(.sq, .sq span) { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .sp { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .chip-vis { min-height: 40px; display: inline-flex; align-items: center; font-size: 12px; }
 }

@@ -504,8 +504,11 @@ function _m(anahtar, tr) {
   // (2026-10-08) Yeni tasarımda açık modda da koyu logo — siyah plaka içinde (tasarim.css).
   // logo_light.png açık zeminde silik kalıyordu (sarı .app krem/beyaz üstünde). Eski tasarım aynen.
   // (2026-10-24 deneme, cam barlar) Cam sayfalarında ÜST BAR beyaz camda → açık temada açık logo; yan menü siyah kalır.
-  function logoDosyasi(isLight, ustBar) {
+  // (2026-10-25) Yan menü açık temada BEYAZ (tasarim.css) → yan menüde açık logo, plakasız — kullanıcı: "açık modda desktopta telefon
+  // ve tabletteki logo şeklini kullanalım". Yalnız yan menü (yanMenu); diğer yerler eski kural.
+  function logoDosyasi(isLight, ustBar, yanMenu) {
     const h = document.documentElement;
+    if (yanMenu && h.getAttribute('data-tasarim') === 'v3') return isLight ? 'logo_light.png' : 'logo_dark.png';
     const koyuZemin = h.getAttribute('data-tasarim') === 'v3' && !(ustBar && h.hasAttribute('data-cam'));
     return (isLight && !koyuZemin) ? 'logo_light.png' : 'logo_dark.png';
   }
@@ -783,7 +786,7 @@ function _m(anahtar, tr) {
 
     const page = window.location.pathname.split('/').pop() || 'index.html';
     const theme = localStorage.getItem('r_theme') || 'dark';
-    const logo = logoDosyasi(theme === 'light');
+    const logo = logoDosyasi(theme === 'light', false, true);
 
     // localStorage'dan role kontrolü — network beklemeden
     const ADMIN_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
@@ -991,7 +994,7 @@ function _m(anahtar, tr) {
     document.querySelectorAll('img').forEach(img => {
       const src = (img.getAttribute('src') || '') + (img.src || '');
       if (src.includes('logo_dark') || src.includes('logo_light') || src.includes('logo_slogan') || src.includes('Repertuvar_logo')) {
-        img.src = logoDosyasi(isLight, !!img.closest('.r-topnav'));
+        img.src = logoDosyasi(isLight, !!img.closest('.r-topnav'), !!img.closest('.sb-brand'));
       }
     });
 
