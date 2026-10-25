@@ -1562,6 +1562,18 @@
   .rbtn-danger { border-color:rgba(239,68,68,.38); color:#ef4444; }
   .rbtn-danger:hover { border-color:#ef4444; background:rgba(239,68,68,.10); color:#ef4444; }
   .rbtn-sm { height:30px; padding:0 10px; font-size:12px; }
+  /* (2026-10-25) AKOR ÇUBUĞU — akor rengi (mavi) çip; dokunmatikte 40 px */
+  .akor-cubuk { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0 0 8px; }
+  .akor-cubuk:empty { display:none; }
+  .akor-cubuk-etiket { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); margin-right:2px; }
+  .akor-cip { min-width:44px; height:34px; padding:0 10px; border-radius:10px; border:1px solid rgba(77,163,255,.40); background:rgba(77,163,255,.10);
+    color:#7CB8FF; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .akor-cip:hover { border-color:#4DA3FF; background:rgba(77,163,255,.18); }
+  .akor-cip:active { transform:scale(.96); }
+  .akor-cip-bos { color:var(--text2); border-color:var(--border); background:var(--surface2); font-family:monospace; }
+  [data-theme="light"] .akor-cip { color:#0A5BC2; border-color:rgba(10,91,194,.30); background:rgba(10,91,194,.06); }
+  [data-theme="light"] .akor-cip-bos { color:var(--text2); border-color:var(--border); background:var(--surface2); }
+  @media (hover:none) and (pointer:coarse) { .akor-cip { height:40px; min-width:48px; } }
   /* (2026-10-25) TON ÇUBUĞU + AKOR KİPLERİ (cpModu). Ton: − [ G♯m · +2 ] + · Karar. */
   .ton-cubuk { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 12px; padding:8px 10px; border-radius:14px;
     background:var(--surface2); border:1px solid var(--border); }
@@ -3351,6 +3363,7 @@ function selectWork(id, silent) {
         <div id="cp_alan_${w.id}" class="cp-alan" data-mod="gorunum">
         <div class="cp-duzen">
         <div id="scope_help_${w.id}" style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;"></div>
+        <div class="akor-cubuk" id="akor_cubuk_${w.id}"></div>
         <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="_cpGrow(this);updateChordsPreview(${w.id})" style="width:100%;min-height:min(46vh,608px);padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
           placeholder="${_esCev('es.ph_akorOrnek','[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm\n[C]Telim örülürken [F]ağladı gözüm')}" data-i18n-ph="es.ph_akorOrnek"></textarea>
         <div class="rbtn-row" style="margin-top:10px;">
@@ -4241,6 +4254,74 @@ function updateChordsPreview(id){
   prev.innerHTML = picking ? _cpPickBody(shown, id) : renderChords(shown);
   if (typeof window.cpFixChordOverlaps === 'function') window.cpFixChordOverlaps();
 }
+// (2026-10-25) AKOR ÇUBUĞU — kullanıcı: "akor çubuğu (küçük adım)". Düzenleyicinin üstünde: metinde en çok kullanılan akorlar +
+// eserin tonundaki temel akorlar (ton ilk akordan, yoksa eserin tonu alanından; o da yoksa sık akorlar). Dokununca İMLECİN yerine
+// [Am] eklenir — köşeli parantez yazmak gerekmez; "[ ]" boş parantez koyup imleci içine alır. Eseri Düzenle penceresi Do-Re-Mi
+// yazımındaysa akor o yazımla eklenir. Odak metin kutusunda kalır (telefonda klavye kapanıp açılmaz).
+const _VARSAYILAN_AKORLAR = ['Am','Dm','E','E7','C','G','F','Em','D','A7'];
+function akorOnerileri(text, tuning){
+  const say = {}, sira = [];
+  const re = /\[([^\]]+)\]/g; let m;
+  while ((m = re.exec(text || ''))) {
+    const t = m[1].trim();
+    if (!_akorParcala(t)) continue;
+    if (!(t in say)) { say[t] = 0; sira.push(t); }
+    say[t]++;
+  }
+  const enCok = sira.slice().sort((x, y) => say[y] - say[x]).slice(0, 8);
+  let ton = akorTonuBul(text);
+  if (!ton && tuning) {
+    const a = _akorParcala(String(tuning).replace(/\s+/g, ''));
+    if (a && _NOTE_INDEX[a.kok] !== undefined) ton = { i: _NOTE_INDEX[a.kok], minor: /^(?:m(?!aj)|min)/.test(a.ek) };
+  }
+  let temel = _VARSAYILAN_AKORLAR;
+  if (ton) {
+    const tablo = tonBemolMu(ton, 0) === false ? _CHROM_SHARP : _CHROM_FLAT;
+    const ad = (k, ek) => tablo[((ton.i + k) % 12 + 12) % 12] + ek;
+    temel = ton.minor
+      ? [ad(0,'m'), ad(5,'m'), ad(7,''), ad(7,'7'), ad(8,''), ad(10,''), ad(3,''), ad(7,'m')]
+      : [ad(0,''), ad(5,''), ad(7,''), ad(7,'7'), ad(9,'m'), ad(2,'m'), ad(4,'m'), ad(10,'')];
+  }
+  const out = [];
+  enCok.concat(temel).forEach(c => { if (out.length < 12 && out.indexOf(c) < 0) out.push(c); });
+  return out;
+}
+function _akorYazimi(taId, akor){   // pencere Do-Re-Mi kipindeyse akoru o yazıma çevir
+  try { if (taId === 'ne_chords' && _neNotation === 'solfej' && typeof _cevirSimge === 'function') return _cevirSimge(akor, 'solfej'); } catch(e) {}
+  return akor;
+}
+function akorCubuguCiz(hostId, taId, tuning){
+  const host = document.getElementById(hostId), ta = document.getElementById(taId);
+  if (!host || !ta) return;
+  host.dataset.ta = taId;
+  host.innerHTML = '<span class="akor-cubuk-etiket" title="' + _esHtml(_esCev('es.akorCubukIpucu','İmleci hecenin önüne koy, akora dokun')) + '">'
+    + _esHtml(_esCev('es.akorCubuk','Akor ekle')) + '</span>'
+    + akorOnerileri(ta.value, tuning).map(c => '<button type="button" class="akor-cip" data-akor="' + _esHtml(c) + '">' + _esHtml(_akorYazimi(taId, c)) + '</button>').join('')
+    + '<button type="button" class="akor-cip akor-cip-bos" data-akor="" title="' + _esHtml(_esCev('es.akorBosParantez','Boş [ ] ekle, akoru kendin yaz')) + '">[ ]</button>';
+}
+function akorEkleImlece(taId, akor){
+  const ta = document.getElementById(taId);
+  if (!ta) return;
+  const a = (typeof ta.selectionStart === 'number') ? ta.selectionStart : ta.value.length;
+  const b = (typeof ta.selectionEnd === 'number') ? ta.selectionEnd : a;
+  const ek = akor ? '[' + _akorYazimi(taId, akor) + ']' : '[]';
+  ta.value = ta.value.slice(0, a) + ek + ta.value.slice(b);
+  const imlec = akor ? a + ek.length : a + 1;
+  try { ta.focus({ preventScroll: true }); } catch(e) { ta.focus(); }
+  ta.setSelectionRange(imlec, imlec);
+  ta.dispatchEvent(new Event('input', { bubbles: true }));
+}
+(function(){
+  const tut = e => { if (e.target.closest && e.target.closest('.akor-cip')) e.preventDefault(); };
+  document.addEventListener('pointerdown', tut, true);
+  document.addEventListener('mousedown', tut, true);
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('.akor-cip');
+    if (!b) return;
+    const host = b.closest('.akor-cubuk');
+    if (host && host.dataset.ta) akorEkleImlece(host.dataset.ta, b.dataset.akor || '');
+  });
+})();
 // Tonun adı: ilk gerçek akorun kökü (+ "m"); kaydırılmışsa doğru diyez/bemolle. Akor yoksa null.
 function tonAdi(text, n){
   const re = /\[([^\]]+)\]/g; let m;
@@ -4270,6 +4351,7 @@ function cpModu(id, mod){
   }
   if (mod === 'duzen') ta.dataset.ilk = ta.value;
   alan.dataset.mod = mod;
+  if (mod === 'duzen') akorCubuguCiz('akor_cubuk_'+id, 'inline_chords_'+id, (DATA.find(x=>x.id===id || x.id===parseInt(id)) || {}).tuning);
   updateChordsPreview(id);
   if (mod === 'duzen') { _cpGrow(ta); try { ta.focus({ preventScroll: true }); } catch(e) {} }
 }
@@ -6573,6 +6655,8 @@ function switchNeTab(name) {
     if (panel) panel.style.display = (t === name) ? 'grid' : 'none';
     if (btn) btn.classList.toggle('active', t === name);
   });
+  // (2026-10-25) Akor sekmesine her geçişte akor çubuğu güncel metinden yeniden çizilir
+  if (name === 'details') akorCubuguCiz('ne_akor_cubuk', 'ne_chords', (document.getElementById('ne_tuning') || {}).value || '');
 }
 
 // ── FORM LİSTESİ (2026-08-06) ────────────────────────────────────────
@@ -8774,6 +8858,7 @@ function openSuggestModal() { openNewEserModal(); }
         </div>
         <!-- Hiza sürgüsü / kaydırma paneli buraya çizilir (neOpenConvScale, neOpenNudgeOnly) -->
         <div id="ne_chordScale" style="display:none;margin:0 0 10px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
+        <div class="akor-cubuk" id="ne_akor_cubuk"></div>
         <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm" data-i18n-ph="es.ph_akorOrnek" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:430px;resize:vertical;"></textarea>
       </div>
     </div>
