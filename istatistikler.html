@@ -16,7 +16,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer crossorigin="anonymous"></script>
 <style>
   body { font-family: var(--font-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", sans-serif); }
-  .page { padding: 24px 20px 40px; max-width: 1080px; margin: 0 auto; }
+  /* (2026-10-25) iPad yatay denetimi: .main-wrap esnek kutu, .page içeriğinden (Chart.js tuvali 832 px) dar olamadığı için 934 px
+     genişleyip ekranın sağından taşıyordu ("Tümü" düğmesi ekran dışında). min-width:0 + width:100% → ana alana sığar, grafik daralır. */
+  .page { padding: 24px 20px 40px; max-width: 1080px; margin: 0 auto; min-width: 0; width: 100%; box-sizing: border-box; }
   @media(min-width:1024px) { .page { padding: 32px 32px 48px; } }
 
   .stt-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:22px; }
@@ -24,10 +26,13 @@
   .stt-sub { font-size:12px; color:var(--text3); margin-top:2px; }
 
   .stt-range { display:flex; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:4px; }
-  .stt-range-btn { padding:7px 13px; border-radius:7px; border:none; background:none; color:var(--text2); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+  .stt-range-btn { min-height:36px; padding:7px 13px; border-radius:7px; border:none; background:none; color:var(--text2); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+  @media (hover:none) and (pointer:coarse) { .stt-range-btn { min-height:40px; padding:9px 14px; font-size:13px; } }
   .stt-range-btn.active { background:rgba(255,200,61,0.14); color:var(--accent); }
 
   .stt-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:22px; }
+  /* 6 kart: telefonda 2×3, tablette 3×2 (iPad'de 4+2 / 5+1 diziliyordu) */
+  @media(min-width:700px) { .stt-cards { grid-template-columns:repeat(3,minmax(0,1fr)); } }
   .stt-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; }
   /* (2026-10-25) Kullanıcı: Yönetim başlıkları belirgin + font büyüklükleri — etiket 11 → 12, sayı 11 → 12.5, panel başlığı
      vurgu rengi (Yönetim'deki başlıklarla aynı), alt notlar 10 → 12 px. */
@@ -35,7 +40,7 @@
   .stt-card-value { font-size:26px; font-weight:800; color:var(--text); margin-top:8px; }
 
   .stt-grid { display:grid; grid-template-columns:1fr; gap:16px; }
-  @media(min-width:900px) { .stt-grid { grid-template-columns:1.4fr 1fr; } }
+  @media(min-width:700px) { .stt-grid { grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); } }   /* iPad dikeyde de iki sütun */
 
   .stt-panel { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; }
   .stt-panel-title { font-size:14px; font-weight:800; color:var(--accent); margin:0 0 14px; display:flex; align-items:center; gap:7px; }
@@ -49,7 +54,7 @@
   .stt-bar-count { font-size:12.5px; color:var(--text2); width:38px; text-align:right; flex-shrink:0; font-variant-numeric:tabular-nums; }
 
   .stt-empty { padding:30px 10px; text-align:center; color:var(--text3); font-size:13px; }
-  .stt-chart-wrap { height:220px; }
+  .stt-chart-wrap { height:220px; position:relative; min-width:0; }   /* Chart.js responsive: göreli kap, tuval kabı genişletmesin */
 
   .stt-loading { padding:60px 0; text-align:center; color:var(--text3); font-size:13px; }
 </style>
