@@ -1484,3 +1484,10 @@ html[data-tasarim="v3"][data-sayfa="ritim-kes"] :is(.rk-head, .rk-kota) { paddin
 html[data-tasarim="v3"][data-sayfa="onerilerim"] .card { padding-left: 16px; padding-right: 16px; }
 html[data-tasarim="v3"][data-sayfa="onerilerim"] .sec-empty { padding-left: 16px; }
 html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.page-title, .page-sub, .sec-head, .sec-desc) { padding-left: 17px; }
+/* 11) Üyeler — genişlik zaten tam (1238); satır düğmeleri (Editör Yap / Kaldır / Üye Yap) 30 px ×74, ad satırı 13 px.
+   Masaüstünde düğmeler 34, ad 15 (diğer listelerle aynı), alt satır 13. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="uyeler"] .btn-sm { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+  html[data-tasarim="v3"][data-sayfa="uyeler"] .member-email { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="uyeler"] .member-meta { font-size: 13px; }
+}
