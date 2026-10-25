@@ -149,8 +149,9 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     [data-theme="light"] .ana-defter-cta { background:#1E8E3E; color:#fff; }
     [data-theme="light"] .ana-defter:hover .ana-defter-cta { background:#1A7D36; }
     /* (2026-10-25) Kullanıcı: "tarama ikonunu biraz hareketlendirelim; yatay çizgi gerçek bir tarama efekti versin — sarı çizgi
-       yukarı çıkıp yeşile dönsün, aşağı insin, ortadaki yerine dönünce yine sarı olsun". Tabler ti-scan glifi tek parça olduğu için
-       aynı çizim satır içi SVG; çizgi + soluk ışık izi ayrı döner (3,2 sn). Renkler düz değer: düğmenin yeşili + temanın altını.
+       yukarı çıkıp yeşile [→ maviye] dönsün, aşağı insin, ortadaki yerine dönünce yine sarı olsun". Tabler ti-scan glifi tek parça olduğu için
+       aynı çizim satır içi SVG; çizgi + soluk ışık izi ayrı döner (3,2 sn). Renkler düz değer: temanın altını + "Hoş geldin"
+       selamlamasının mavisi (koyu #4DA3FF, açık #0A5BC2; kullanıcı: "yeşili mavi yapalım, hoş geldin mavisi").
        "Hareketi azalt" açıksa çizgi ortada, altın, durgun. */
     .ana-defter-tarama { display:block; width:26px; height:26px; overflow:visible; }
     .tarama-cizgi { color:#FFC83D; animation:defterTarama 3.2s ease-in-out infinite; }
@@ -158,15 +159,15 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     .tarama-isik { stroke-width:6; opacity:.22; }
     @keyframes defterTarama {
       0%, 12%   { transform:translateY(0);      color:#FFC83D; }
-      36%       { transform:translateY(-5.5px); color:#30B65A; }
-      66%       { transform:translateY(5.5px);  color:#30B65A; }
+      36%       { transform:translateY(-5.5px); color:#4DA3FF; }
+      66%       { transform:translateY(5.5px);  color:#4DA3FF; }
       90%, 100% { transform:translateY(0);      color:#FFC83D; }
     }
     [data-theme="light"] .tarama-cizgi { color:#8A5A00; animation-name:defterTaramaAcik; }
     @keyframes defterTaramaAcik {
       0%, 12%   { transform:translateY(0);      color:#8A5A00; }
-      36%       { transform:translateY(-5.5px); color:#1E8E3E; }
-      66%       { transform:translateY(5.5px);  color:#1E8E3E; }
+      36%       { transform:translateY(-5.5px); color:#0A5BC2; }
+      66%       { transform:translateY(5.5px);  color:#0A5BC2; }
       90%, 100% { transform:translateY(0);      color:#8A5A00; }
     }
     @media (prefers-reduced-motion: reduce) { .tarama-cizgi { animation:none; } }

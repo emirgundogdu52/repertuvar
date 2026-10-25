@@ -198,6 +198,9 @@ html { -webkit-text-size-adjust: 100%; }
          Üyelik group_members'ta tutulur; buradaki seçim yalnızca AKTİF grubu
          (profiles.group_id) değiştirir. Aktif grup, repertuvar/solist
          listelerinin hangi gruba göre çekileceğini belirler. -->
+    <!-- (2026-10-25) Masaüstünde iki sütun: solda gruplar + grup bilgisi + davet, sağda üyeler (tasarim.css MASAÜSTÜ DENETİMİ 5).
+         Telefon / iPad'de sarmalayıcılar düz blok; düzen değişmez. -->
+    <div class="grp-sol">
     <div class="section" id="myGroupsSection">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
         <div class="section-title" style="margin-bottom:0;" data-i18n="gr.gruplarim">Gruplarım</div>
@@ -293,7 +296,10 @@ html { -webkit-text-size-adjust: 100%; }
          keşfi / enumeration). Yeni kural: gruba katılım YALNIZCA davet linkiyle
          ve davet edilenin KABULÜYLE olur — kimse kimseyi habersiz gruba ekleyemez. -->
 
+    </div><!-- /.grp-sol -->
+
     <!-- Üyeler -->
+    <div class="grp-sag">
     <div class="section">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div class="section-title" style="margin-bottom:0;" data-i18n="gr.uyeler">Grup / Koro Üyeleri</div>
@@ -304,6 +310,7 @@ html { -webkit-text-size-adjust: 100%; }
       </div>
       <div id="membersList"></div>
     </div>
+    </div><!-- /.grp-sag -->
   </div>
 </div>
 </div>

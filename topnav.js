@@ -4,7 +4,7 @@
    saklı değil, iki tıkla erişilebilir; menüde Ayarlar da var. Avatar mobil topnav'daki
    ile aynı: yuvarlak altın-mavi degrade + ti-user simgesi. Menü yukarı doğru açılıyor
    (sidebar'ın en altında). .sb-nav'daki flex:1 bloğu zaten dibe ittiği için ek
-   konumlandırma gerekmedi.
+   konumlandırma gerekmedi. [2026-10-25: menü artık esnemiyor; hesap bloğu ayraçla menünün hemen altında.]
    Önceki: v2026-06-30-switch-unified — sbThemeToggle/rThemeToggle/dtThemeToggle hepsi
    tek .r-theme-toggle markup'ı kullanır */
 
@@ -47,7 +47,9 @@ function _m(anahtar, tr) {
         border-bottom: 1px solid var(--border, rgba(48,58,85,0.38));
         margin-bottom: 10px;
       }
-      .sb-nav { flex: 1; padding: 0 10px; display: flex; flex-direction: column; gap: 2px; }
+      /* (2026-10-25) Kullanıcı: "üstteki menü grubuyla bloklayalım" — menü flex:1 ile esneyip hesap kutusunu + tema anahtarını
+         yan menünün ortasına (1134 px yükseklikte 553 px'e) itiyordu; menü artık içeriği kadar, hesap bloğu ayraçla hemen altında. */
+      .sb-nav { flex: none; padding: 0 10px; display: flex; flex-direction: column; gap: 2px; }
       .sb-item {
         display: flex; align-items: center; gap: 10px;
         padding: 10px 12px; border-radius: 10px;
@@ -385,6 +387,10 @@ function _m(anahtar, tr) {
       transition: background .15s;
     }
     .sb-user-x:hover { background: rgba(124,111,255,0.12); }
+    /* (2026-10-25) Kullanıcı: "Avatar kalsın yerinde, alttaki açık/kapalı düğmesini ona uyduralım" — anahtar 12 px'teydi, avatar
+       23 px'te (kutu payı 12 + kenarlık 1 + iç pay 10) → anahtarın sol payı 23. */
+    .sb-tema { padding: 8px 12px 4px 23px; }
+    .sb-divider-hesap { margin: 8px 20px 4px; }   /* menüdeki ayraçla aynı genişlik (menü iç payı 10 + ayraç payı 10) */
     .sb-user-avatar {
       width: 32px; height: 32px; border-radius: 50%;
       background: linear-gradient(135deg, #FFC83D, #4DA3FF);
@@ -828,6 +834,7 @@ function _m(anahtar, tr) {
         <img src="${logo}" alt="repertuvar.app" style="height:42px;width:auto;max-width:230px;display:block;" data-logo="true">
       </div>
       <nav class="sb-nav">${navHtml}</nav>
+      <div class="sb-divider sb-divider-hesap"></div>
       <div class="sb-user-x" id="sbUserX" onclick="toggleSbDropdown(event)" title="${_m('menu.hesap','Hesap')}">
         <div class="sb-user-avatar"><i class="ti ti-user" style="font-size:15px;" aria-hidden="true"></i></div>
         <span class="sb-user-name" id="sbUserName">—</span>
@@ -838,7 +845,7 @@ function _m(anahtar, tr) {
           <button class="sb-dd-item danger" onclick="logout()"><i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> ${_m('menu.oturumKapat','Oturumu Kapat')}</button>
         </div>
       </div>
-      <div style="padding:8px 12px 4px;">
+      <div class="sb-tema">
         ${themeToggleMarkup('sbThemeToggle', theme)}
       </div>
       <div style="flex:1"></div>

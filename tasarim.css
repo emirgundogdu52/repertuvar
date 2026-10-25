@@ -1349,3 +1349,40 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"][data-sayfa="artiesten"] .artist-sub { font-size: 12.5px; }
 }
 
+/* 5) Grup / Koro — 1505 px pencerede içerik 680 px sola yaslı, sağda ~800 px boş. Yeni Grup / Düzenle / Sil / Ayrıl 27 px
+   (satır içi 5 px pay), enstrüman düzenleme düğmeleri 11 px; üye adı 13, davet linki ve alt yazılar 11–12, arama yazısı 12.
+   ≥1280: iki sütun — solda 420 px Gruplarım + grup bilgisi + davet, sağda üyeler (380'de grup adı + Düzenle/Sil satırında
+   "Ezgi Harmanı" iki satıra kırılıyordu).
+   1024–1279: tek sütun, tam genişlik. Kutuların içindeki başlıklar zaten iç metinle hizalı (başlık hizası kuralı). */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .page-content { max-width: 1240px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .btn { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 0 14px !important; font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .btn .ti { font-size: 15px !important; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .btn-danger:has(> .ti:only-child) { min-width: 34px; padding: 0 !important; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .btn-primary { min-height: 36px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .uye-islem-btn { padding: 0 !important; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .grp-chip { min-height: 36px; font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .fi { font-size: 14px !important; min-height: 36px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 38px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] #inviteMaxUses { min-height: 36px; font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .fl { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .group-meta { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] #groupDescEl { font-size: 14px !important; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] #myGroupsHint { font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .member-name { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .member-meta { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .member-instrument { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] :is(.member-meta, .member-instrument) .ti { font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .member-avatar { width: 38px; height: 38px; font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .invite-link { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] #inviteLinkBox [data-i18n="gr.davetiyeLinki"],
+  html[data-tasarim="v3"][data-sayfa="gruplar"] #inviteLinkBox [data-i18n="gr.kameraOkut"],
+  html[data-tasarim="v3"][data-sayfa="gruplar"] #inviteExpiry { font-size: 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] #inviteQuota { font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] .us-baslik { font-size: 12px; }
+}
+@media (min-width: 1280px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="gruplar"] #groupState { display: grid; grid-template-columns: 420px minmax(0, 1fr); column-gap: 20px; align-items: start; }
+  html[data-tasarim="v3"][data-sayfa="gruplar"] #groupState .grp-sag > .section { margin-bottom: 0; }
+}
