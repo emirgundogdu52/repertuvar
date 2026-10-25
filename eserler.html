@@ -1562,6 +1562,33 @@
   .rbtn-danger { border-color:rgba(239,68,68,.38); color:#ef4444; }
   .rbtn-danger:hover { border-color:#ef4444; background:rgba(239,68,68,.10); color:#ef4444; }
   .rbtn-sm { height:30px; padding:0 10px; font-size:12px; }
+  /* (2026-10-25) HECEYE DOKUN, AKOR SEÇ */
+  .cp-dokun-bar { position:sticky; top:8px; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    margin:0 0 10px; padding:8px 10px; border-radius:12px; background:var(--surface); border:1px solid rgba(77,163,255,.45);
+    box-shadow:0 8px 20px rgba(0,0,0,.18); }
+  .cp-dokun-bar-ipucu { font-size:13px; font-weight:600; color:var(--text2); display:inline-flex; align-items:center; gap:6px; }
+  .cp-dokun-bar-ipucu i { color:#4DA3FF; font-size:17px; }
+  .cp-dokun-bar-dug { display:inline-flex; gap:8px; }
+  .cp-dokun-bar-dug .rbtn { height:38px; }
+  .cp-dokun-kipte .cp-gorunum-alt { display:none; }
+  .cp-dokun { cursor:pointer; border-radius:6px; transition:background .12s; }
+  .cp-dokun .cp-lyric { text-decoration:underline dotted rgba(77,163,255,.55); text-underline-offset:4px; }
+  .cp-dokun:hover { background:rgba(77,163,255,.10); }
+  .cp-dokun-sec { background:rgba(77,163,255,.22) !important; }
+  .cp-dokun-panel { position:fixed; z-index:3000; width:min(320px, calc(100vw - 24px)); padding:10px 12px 12px; border-radius:16px;
+    background:var(--surface); border:1px solid var(--border); box-shadow:0 18px 44px rgba(0,0,0,.40); }
+  .cp-dokun-panel-bas { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .cp-dokun-panel-bas b { font-size:14px; color:var(--text); }
+  .cp-dokun-panel-mevcut { font-size:13px; font-weight:700; color:#4DA3FF; }
+  .cp-dokun-panel-kapat { margin-left:auto; width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface2);
+    color:var(--text2); font-size:20px; line-height:1; cursor:pointer; }
+  .cp-dokun-panel .akor-cubuk { margin-bottom:10px; }
+  .cp-dokun-panel-alt { display:flex; gap:6px; align-items:center; }
+  .cp-dokun-yaz { flex:1; min-width:0; height:38px; padding:0 10px; border-radius:10px; border:1px solid var(--border); background:var(--surface2);
+    color:var(--text); font-size:15px; font-family:inherit; }
+  @media (max-width:600px) {
+    .cp-dokun-panel { left:12px !important; right:12px; top:auto !important; width:auto; bottom:calc(84px + env(safe-area-inset-bottom, 0px)); }
+  }
   /* (2026-10-25) AKOR ÇUBUĞU — akor rengi (mavi) çip; dokunmatikte 40 px */
   .akor-cubuk { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0 0 8px; }
   .akor-cubuk:empty { display:none; }
@@ -3378,8 +3405,10 @@ function selectWork(id, silent) {
         <div id="chords_scale_${w.id}" style="display:none;margin-top:10px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
         <div id="chords_nudge_${w.id}" style="display:none;margin-top:10px;padding:10px 12px;border:1px solid var(--accent);border-radius:8px;"></div>
         </div><!-- /.cp-duzen -->
+        <div id="cp_dokun_bar_${w.id}" class="cp-dokun-bar" style="display:none;"></div>
         <div id="chords_preview_${w.id}" class="lyrics-box cp-onizleme" style="display:block;"></div>
-        <div class="cp-gorunum-alt"><button id="cp_duzenle_${w.id}" onclick="cpModu(${w.id},'duzen')" class="rbtn cp-duzenle-dug"><i class="ti ti-pencil"></i> <span>${_esCev('es.akorlariDuzenle','Akorları düzenle')}</span></button></div>
+        <div class="cp-gorunum-alt"><button id="cp_duzenle_${w.id}" onclick="cpModu(${w.id},'duzen')" class="rbtn cp-duzenle-dug"><i class="ti ti-pencil"></i> <span>${_esCev('es.akorlariDuzenle','Akorları düzenle')}</span></button>
+          <button id="cp_dokun_btn_${w.id}" onclick="cpDokunAc(${w.id})" class="rbtn cp-duzenle-dug" title="${_esCev('es.dokunIpucu','Sözdeki heceye dokun, akoru seç')}"><i class="ti ti-hand-finger"></i> <span>${_esCev('es.dokunarakEkle','Dokunarak ekle')}</span></button></div>
         </div><!-- /.cp-alan -->
       ` : `
         <div class="lyrics-box">
@@ -4241,6 +4270,10 @@ function updateChordsPreview(id){
   const val = ta.value.trim();
   const _akorVar = hasRealChords(val);
   _cpAltGuncelle(id, _akorVar);
+  if(!_akorVar && _cpDokun.id === id){
+    prev.innerHTML = _cpDokunBody(transposeChordPro(val, getTranspose(id)), id);
+    return;
+  }
   if(!_akorVar){
     const _duz = (document.getElementById('cp_alan_'+id) || {}).dataset;
     prev.innerHTML = '<span style="color:var(--text3);font-size:13px;">' + ((_duz && _duz.mod === 'duzen')
@@ -4251,7 +4284,7 @@ function updateChordsPreview(id){
   const nh = document.getElementById('chords_nudge_'+id);
   const picking = (_cpNudge.id === id) && nh && nh.style.display !== 'none';
   const shown = transposeChordPro(val, getTranspose(id));
-  prev.innerHTML = picking ? _cpPickBody(shown, id) : renderChords(shown);
+  prev.innerHTML = picking ? _cpPickBody(shown, id) : (_cpDokun.id === id ? _cpDokunBody(shown, id) : renderChords(shown));
   if (typeof window.cpFixChordOverlaps === 'function') window.cpFixChordOverlaps();
 }
 // (2026-10-25) AKOR ÇUBUĞU — kullanıcı: "akor çubuğu (küçük adım)". Düzenleyicinin üstünde: metinde en çok kullanılan akorlar +
@@ -4322,6 +4355,141 @@ function akorEkleImlece(taId, akor){
     if (host && host.dataset.ta) akorEkleImlece(host.dataset.ta, b.dataset.akor || '');
   });
 })();
+// ── (2026-10-25) HECEYE DOKUN, AKOR SEÇ — kullanıcı: "heceye dokun, akor seç (büyük)". Görünüm kipinde "Dokunarak ekle":
+// sözdeki her hece dokunulabilir; dokununca akor paleti (önerilen akorlar + elle yaz + varsa Kaldır) açılır, seçilen akor o
+// hecenin önüne [akor] olarak yazılır. Kaynak metin düzenleyicideki (inline_chords) metindir; konumlar ton kaydırmadan
+// etkilenmez (yalnız adlar değişir) → ekranda görünen tonda seçilen akor orijinal tona çevrilip yazılır. Kaydet / Bitti şeritte.
+let _cpDokun = { id: null, l: -1, at: -1 };
+function _cpDokunBody(text, id){
+  const esc = _cpEsc;
+  return text.split('\n').map((line, li) => {
+    const dir = line.match(/^\s*\{\s*(?:c|comment|comment_italic|ci)?\s*:?\s*([^}]*)\}\s*$/i);
+    if (dir) { const l = esc((dir[1]||'').trim()); return l ? '<div class="cp-comment">' + l + '</div>' : ''; }
+    if (line.trim() === '') return '<div class="cp-blank"></div>';
+    const p = _cpParseLine(line);
+    const sinir = new Set([0]);
+    _cpCandidates(p.plain).forEach(k => { if (k < p.plain.length) sinir.add(k); });
+    p.chords.forEach(c => sinir.add(Math.min(c.at, p.plain.length)));
+    const sirali = [...sinir].sort((a, b) => a - b);
+    let html = '<div class="cp-line">';
+    sirali.forEach((b, k) => {
+      const son = (k + 1 < sirali.length) ? sirali[k + 1] : p.plain.length;
+      const parca = p.plain.slice(b, son);
+      const akor = p.chords.filter(c => Math.min(c.at, p.plain.length) === b).map(c => c.name).join(' ');
+      if (parca === '' && !akor) return;
+      const sec = (_cpDokun.l === li && _cpDokun.at === b) ? ' cp-dokun-sec' : '';
+      html += '<span class="cp-seg cp-dokun' + sec + '" data-l="' + li + '" data-at="' + b + '" onclick="cpDokunHece(' + id + ',' + li + ',' + b + ',this)">'
+            + '<span class="cp-chord">' + esc(akor) + '</span><span class="cp-lyric">' + (parca === '' ? '&nbsp;' : esc(parca).replace(/ /g, '&nbsp;')) + '</span></span>';
+    });
+    return html + '</div>';
+  }).join('');
+}
+function _cpDokunKirli(id){ const ta = document.getElementById('inline_chords_'+id); return !!ta && ta.dataset.ilk != null && ta.value !== ta.dataset.ilk; }
+function _cpDokunBarCiz(id){
+  const bar = document.getElementById('cp_dokun_bar_'+id);
+  if (!bar) return;
+  const kirli = _cpDokunKirli(id);
+  bar.innerHTML = '<span class="cp-dokun-bar-ipucu"><i class="ti ti-hand-finger"></i> ' + _esCev('es.dokunIpucu','Sözdeki heceye dokun, akoru seç') + '</span>'
+    + '<span class="cp-dokun-bar-dug"><button class="rbtn rbtn-primary" onclick="saveChords(' + id + ')"' + (kirli ? '' : ' disabled') + '>' + _esCev('ortak.kaydet','Kaydet') + '</button>'
+    + '<button class="rbtn" onclick="_cpDokunKapat(' + id + ')">' + _esCev('es.bitti','Bitti') + '</button></span>';
+}
+function cpDokunAc(id){
+  const ta = document.getElementById('inline_chords_'+id);
+  if (!ta) return;
+  ta.dataset.ilk = ta.value;
+  _cpDokun = { id: id, l: -1, at: -1 };
+  const alan = document.getElementById('cp_alan_'+id);
+  if (alan) alan.classList.add('cp-dokun-kipte');
+  const bar = document.getElementById('cp_dokun_bar_'+id);
+  if (bar) bar.style.display = '';
+  _cpDokunBarCiz(id);
+  updateChordsPreview(id);
+}
+function _cpDokunKapat(id, kaydedildi){
+  if (!kaydedildi && _cpDokunKirli(id)) {
+    if (!confirm(_esCev('es.akorKaydedilmediOnay','Kaydedilmemiş akor değişikliklerin var. Kaydetmeden kapatılsın mı?'))) return;
+    const ta = document.getElementById('inline_chords_'+id); if (ta) ta.value = ta.dataset.ilk;
+  }
+  _cpDokun = { id: null, l: -1, at: -1 };
+  _cpPanelKapat();
+  const alan = document.getElementById('cp_alan_'+id);
+  if (alan) alan.classList.remove('cp-dokun-kipte');
+  const bar = document.getElementById('cp_dokun_bar_'+id);
+  if (bar) { bar.style.display = 'none'; bar.innerHTML = ''; }
+  updateChordsPreview(id);
+}
+function _cpPanelKapat(){ const p = document.getElementById('cpDokunPanel'); if (p) p.remove(); }
+function cpDokunHece(id, li, at, el){
+  if (_cpDokun.id !== id) return;
+  _cpDokun.l = li; _cpDokun.at = at;
+  document.querySelectorAll('.cp-dokun-sec').forEach(x => x.classList.remove('cp-dokun-sec'));
+  if (el) el.classList.add('cp-dokun-sec');
+  const ta = document.getElementById('inline_chords_'+id);
+  const n = getTranspose(id);
+  const gorunen = transposeChordPro(ta.value, n);
+  const p = _cpParseLine(gorunen.split('\n')[li] || '');
+  const mevcut = p.chords.find(c => Math.min(c.at, p.plain.length) === at);
+  const w = DATA.find(x => x.id === id || x.id === parseInt(id)) || {};
+  const oneri = akorOnerileri(gorunen, w.tuning);
+  _cpPanelKapat();
+  const panel = document.createElement('div');
+  panel.id = 'cpDokunPanel';
+  panel.className = 'cp-dokun-panel';
+  panel.innerHTML = '<div class="cp-dokun-panel-bas"><b>' + (mevcut ? _esCev('es.akoruDegistir','Akoru değiştir') : _esCev('es.akorSec','Akor seç')) + '</b>'
+    + (mevcut ? '<span class="cp-dokun-panel-mevcut">' + _cpEsc(mevcut.name) + '</span>' : '')
+    + '<button class="cp-dokun-panel-kapat" onclick="_cpPanelKapat()" aria-label="' + _esCev('ortak.kapat','Kapat') + '">×</button></div>'
+    + '<div class="akor-cubuk">' + oneri.map(c => '<button type="button" class="akor-cip cp-dokun-cip" data-akor="' + _esHtml(c) + '">' + _esHtml(c) + '</button>').join('') + '</div>'
+    + '<div class="cp-dokun-panel-alt"><input id="cpDokunYaz" class="cp-dokun-yaz" placeholder="' + _esCev('es.akorYaz','Akor yaz (ör. Bm7)') + '" autocapitalize="off" autocorrect="off" spellcheck="false">'
+    + '<button class="rbtn" onclick="_cpDokunYazEkle(' + id + ')">' + _esCev('ortak.ekle','Ekle') + '</button>'
+    + (mevcut ? '<button class="rbtn rbtn-danger" onclick="_cpDokunUygula(' + id + ',\'\')">' + _esCev('es.akoruKaldir','Kaldır') + '</button>' : '') + '</div>';
+  panel.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('.cp-dokun-cip');
+    if (b) { e.stopPropagation(); _cpDokunUygula(id, b.dataset.akor); }
+  });
+  document.body.appendChild(panel);
+  const yaz = panel.querySelector('#cpDokunYaz');
+  yaz.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); _cpDokunYazEkle(id); } if (e.key === 'Escape') _cpPanelKapat(); });
+  // Konum: masaüstünde hecenin altında; dar ekranda alttan (CSS)
+  if (window.innerWidth > 600 && el) {
+    const r = el.getBoundingClientRect();
+    const g = Math.min(320, window.innerWidth - 24);
+    panel.style.left = Math.max(12, Math.min(r.left, window.innerWidth - g - 12)) + 'px';
+    const ust = r.bottom + 6;
+    panel.style.top = (ust + panel.offsetHeight > window.innerHeight - 12 ? Math.max(12, r.top - panel.offsetHeight - 6) : ust) + 'px';
+  }
+}
+function _cpDokunYazEkle(id){
+  const v = ((document.getElementById('cpDokunYaz') || {}).value || '').trim().replace(/^\[|\]$/g, '');
+  if (!v) return;
+  _cpDokunUygula(id, v);
+}
+function _cpDokunUygula(id, ad){
+  const ta = document.getElementById('inline_chords_'+id);
+  if (!ta || _cpDokun.l < 0) return;
+  const satirlar = ta.value.split('\n');
+  const p = _cpParseLine(satirlar[_cpDokun.l] || '');
+  const at = _cpDokun.at;
+  const n = getTranspose(id);
+  // Ekranda kaydırılmış tonda seçildi → kayıt orijinal tonda (yazım orijinal tona göre)
+  const kayit = (ad && n) ? transposeChordToken(ad, -n, tonBemolMu(akorTonuBul(ta.value), 0)) : ad;
+  const k = p.chords.findIndex(c => Math.min(c.at, p.plain.length) === at);
+  if (!ad) { if (k > -1) p.chords.splice(k, 1); }
+  else if (k > -1) p.chords[k].name = kayit;
+  else { p.chords.push({ at: at, name: kayit }); p.chords.sort((a, b) => a.at - b.at); }
+  satirlar[_cpDokun.l] = _cpSerializeLine(p);
+  ta.value = satirlar.join('\n');
+  _cpPanelKapat();
+  updateChordsPreview(id);
+  updateTonBadge(id);
+  _cpDokunBarCiz(id);
+}
+// Panel dışına dokununca kapanır (heceye dokunma yeni paneli zaten açar)
+document.addEventListener('click', e => {
+  const p = document.getElementById('cpDokunPanel');
+  if (!p || p.contains(e.target)) return;
+  if (e.target.closest && e.target.closest('.cp-dokun')) return;
+  _cpPanelKapat();
+}, true);
 // Tonun adı: ilk gerçek akorun kökü (+ "m"); kaydırılmışsa doğru diyez/bemolle. Akor yoksa null.
 function tonAdi(text, n){
   const re = /\[([^\]]+)\]/g; let m;
@@ -4747,6 +4915,7 @@ function _afterChordsSaved(id, hasCh, chords, isShared){
   if (_ta) _ta.dataset.ilk = _ta.value;          // kaydedilen metin artık "değişmemiş" sayılır
   const _alan = document.getElementById('cp_alan_'+id);
   if (_alan) _alan.dataset.mod = 'gorunum';
+  if (_cpDokun.id === id) _cpDokunKapat(id, true);
   const prev = document.getElementById('chords_preview_'+id);
   if (prev) {
     // 2026-07-28: parantezsiz ama dolu metin de gösterilsin (kaydedildiği belli olsun)
