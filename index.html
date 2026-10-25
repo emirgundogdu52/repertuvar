@@ -121,6 +121,13 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     .ana-defter-cta { flex:none; display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:0 16px; border-radius:999px;
       background:var(--yt-btn, var(--accent)); color:var(--yt-btn-yazi, #1a1200); font-size:14px; font-weight:700; white-space:nowrap; }
     .ana-defter-cta i { font-size:16px; }
+    /* (2026-10-25) Kullanıcı: "Desktop'ta nota defterini tarama kamera ile olmayacağı için ayırıcı betimleme gerek var mı?" →
+       masaüstünde (yerel uygulama değil, tablet değil, fare) açıklama ve düğme dosya yüklemeyi anlatır; Eserler'deki tarama
+       penceresi masaüstünü zaten böyle anlatıyor (eserler.html _masaustu / es.ipMasaustu). Sınıf html.masaustu-cihaz (aşağıda). */
+    .defter-masaustu { display:none; }
+    html.masaustu-cihaz .defter-masaustu { display:inline; }
+    html.masaustu-cihaz small.defter-masaustu { display:block; }
+    html.masaustu-cihaz .defter-kamerali { display:none; }
     /* (2026-10-25) Kullanıcı: "Nota Defterini Tara düğmesi farklı bir renkte olabilir (mesela yeşil) — trafikteki yeşil 'geç'
        anlamında, çok abartmadan". YALNIZ DÜĞME yeşil (ilk denemede kart/simge/rozet de yeşildi → kullanıcı: "çok fazla yeşil
        oldu, sadece düğme"). Kart altın kalır. Koyu temada yeşil zemin + koyu yazı (~8:1), açık temada koyu yeşil + beyaz. */
@@ -322,6 +329,18 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
 <link rel="stylesheet" href="tasarim.css">
 </head>
 <body data-onboarding="oto">
+<script>
+/* (2026-10-25) Masaüstü cihaz: yerel uygulama değil, tablet değil (trackpad'li iPad 'pointer: fine' der ama kamerası var),
+   fare / ince işaretçi — eserler.html _masaustu() ile aynı kural. Ana Sayfa defter kartı metnini seçer. */
+(function () {
+  try {
+    var C = window.Capacitor, ua = navigator.userAgent || '';
+    var yerel = !!(C && C.isNativePlatform && C.isNativePlatform());
+    var tablet = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) || (/Android/.test(ua) && !/Mobile/.test(ua));
+    if (!yerel && !tablet && window.matchMedia('(hover: hover) and (pointer: fine)').matches) document.documentElement.classList.add('masaustu-cihaz');
+  } catch (e) {}
+})();
+</script>
 <div class="bg-glow"></div>
 
 <!-- ══ MAIN WRAP ══ -->
@@ -354,9 +373,10 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
         <span class="ana-defter-ik"><i class="ti ti-scan" aria-hidden="true"></i></span>
         <span class="ana-defter-metin">
           <span class="ana-defter-ust"><span class="ana-defter-rozet" data-i18n="ana.yeni">Yeni</span><b data-i18n="ana.defterBaslik">Nota defterini tara, dijitale geç</b></span>
-          <small data-i18n="ana.defterAlt">Defterindeki notaları telefonla tara; her sayfa eserinin sözlerinin ve akorlarının yanına eklenir, sahnede hep yanında.</small>
+          <small class="defter-kamerali" data-i18n="ana.defterAlt">Defterindeki notaları telefonla tara; her sayfa eserinin sözlerinin ve akorlarının yanına eklenir, sahnede hep yanında.</small>
+          <small class="defter-masaustu" data-i18n="ana.defterAltMasaustu">Taradığın defter sayfalarını (JPG/PNG ya da tek PDF) yükle; her sayfa eserinin sözlerinin ve akorlarının yanına eklenir. Telefonda doğrudan kamerayla taranır.</small>
         </span>
-        <span class="ana-defter-cta"><span data-i18n="ana.defterCta">Nota Defterini Tara</span><i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+        <span class="ana-defter-cta"><span class="defter-kamerali" data-i18n="ana.defterCta">Nota Defterini Tara</span><span class="defter-masaustu" data-i18n="ana.defterCtaMasaustu">Sayfaları Yükle</span><i class="ti ti-arrow-right" aria-hidden="true"></i></span>
       </a>
       </div>
 

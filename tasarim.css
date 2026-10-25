@@ -1330,4 +1330,16 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div.wn { font-size: 15px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .br { min-height: 34px; min-width: 34px; }
 }
+/* LİSTE SÜTUNU STANDARDI (2026-10-25) — kullanıcı: "Eserler'de eserler kolonu geniş olmuş, Repertuvarlar'da dar; bir standarda
+   getir". Eserler'de liste kalan alanı alıyor (1440'ta 639), ayrıntı sabit 520; Repertuvarlar'da liste 300 (kart 275). İkisinde
+   de liste = --liste-sutun (1024–1279: 320, ≥1280: 380), sağdaki ayrıntı / tablo kalanı alır. Yalnız fare (iPad yatay değişmez). */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"] { --liste-sutun: 320px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #listCol { flex: 0 0 var(--liste-sutun) !important; width: var(--liste-sutun) !important; max-width: var(--liste-sutun) !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #detailPanel { flex: 1 1 auto !important; width: auto !important; min-width: 0 !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] aside.lp { flex: 0 0 var(--liste-sutun) !important; width: var(--liste-sutun) !important; max-width: var(--liste-sutun) !important; }
+}
+@media (min-width: 1280px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"] { --liste-sutun: 380px; }
+}
 
