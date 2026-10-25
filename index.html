@@ -160,12 +160,14 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
        Altın → mavi / altın renk geçişi KALDIRILDI; çizgi her an NEON YEŞİL bir tüp: dış hale + iç hale + çekirdek + beyazımsı öz.
        Hareket aynı (3,2 sn: ortada kısa bekleme → yukarı → aşağı → ortaya); hale hareket ederken güçlenir. Açık temada çekirdek
        bir ton koyu (#00C93C) — açık zeminde kaybolmasın. Çerçeve (köşeler) altın kalır, tarama başlarken parlar. */
-    .tarama-cizgi { color:#39FF14; animation:defterTarama 3.2s ease-in-out infinite; }
+    /* (2026-10-25, aynı gün) Kullanıcı: "tarama çizgisini neon mavi yapalım; dış çerçeve de parlayınca mavi parlasın, sonra kendi rengine
+       dönsün" → neon yeşil #39FF14 yerine neon mavi #22B8FF (açık temada #0A84FF); çerçeve tepede maviye, sonra altına. */
+    .tarama-cizgi { color:#22B8FF; animation:defterTarama 3.2s ease-in-out infinite; }
     .tarama-cizgi path { stroke:currentColor; }
     .tarama-hale { stroke-width:8; opacity:.12; animation:defterHale 3.2s ease-in-out infinite; }
     .tarama-isik { stroke-width:4.5; opacity:.32; animation:defterIsik 3.2s ease-in-out infinite; }
     .tarama-cekirdek { stroke-width:2; }
-    .tarama-cizgi .tarama-oz { stroke:#F2FFEC; stroke-width:.8; opacity:.9; }
+    .tarama-cizgi .tarama-oz { stroke:#EAF8FF; stroke-width:.8; opacity:.9; }
     @keyframes defterTarama {
       0%, 12%   { transform:translateY(0); }
       36%       { transform:translateY(-5.5px); }
@@ -174,7 +176,7 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     }
     @keyframes defterHale { 0%, 12% { opacity:.10; } 36%, 66% { opacity:.24; } 90%, 100% { opacity:.10; } }
     @keyframes defterIsik { 0%, 12% { opacity:.28; } 36%, 66% { opacity:.55; } 90%, 100% { opacity:.28; } }
-    [data-theme="light"] .tarama-cizgi { color:#00C93C; }
+    [data-theme="light"] .tarama-cizgi { color:#0A84FF; }
     [data-theme="light"] .tarama-hale { animation-name:defterHaleAcik; }
     @keyframes defterHaleAcik { 0%, 12% { opacity:.16; } 36%, 66% { opacity:.30; } 90%, 100% { opacity:.16; } }
     /* (2026-10-25) Kullanıcı: "dışındaki çerçeve de tarama işlemi başlayınca parlayıp sönsün, tarama devam etsin" — köşe çizgileri
@@ -183,10 +185,10 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     .tarama-cerceve { color:#FFC83D; animation:defterCerceve 3.2s ease-in-out infinite; }
     .tarama-cerceve path { stroke:currentColor; }
     .tarama-cerceve-isik { stroke-width:5; opacity:0; animation:defterCerceveIsik 3.2s ease-in-out infinite; }
-    @keyframes defterCerceve { 0%, 4% { color:#FFC83D; } 12% { color:#FFF0BF; } 30%, 100% { color:#FFC83D; } }
+    @keyframes defterCerceve { 0%, 4% { color:#FFC83D; } 12% { color:#22B8FF; } 30%, 100% { color:#FFC83D; } }
     @keyframes defterCerceveIsik { 0%, 4% { opacity:0; } 12% { opacity:.5; } 30%, 100% { opacity:0; } }
     [data-theme="light"] .tarama-cerceve { color:#8A5A00; animation-name:defterCerceveAcik; }
-    @keyframes defterCerceveAcik { 0%, 4% { color:#8A5A00; } 12% { color:#D99A00; } 30%, 100% { color:#8A5A00; } }
+    @keyframes defterCerceveAcik { 0%, 4% { color:#8A5A00; } 12% { color:#0A84FF; } 30%, 100% { color:#8A5A00; } }
     @media (prefers-reduced-motion: reduce) { .tarama-cizgi, .tarama-hale, .tarama-isik, .tarama-cerceve, .tarama-cerceve-isik { animation:none; } }
 
     /* (2026-10-25) "Başka uygulamadan aktar" kartı — defter kartıyla aynı yapı (yerleşim, dar alanda düğme alta), MAVİ kimlik
