@@ -172,8 +172,18 @@
       <div class="y-rows">
         <div class="y-row"><span class="y-row-lbl" data-i18n="yo.son7Eser">Son 7 günde eklenen eser</span><span class="y-row-val" id="br7">—</span></div>
         <div class="y-row"><span class="y-row-lbl" data-i18n="yo.son30Eser">Son 30 günde eklenen eser</span><span class="y-row-val" id="br30">—</span></div>
+      </div>
+      <!-- (2026-10-25) Kullanıcı: "Kaç kişi davete icabet etti, kaç kişi vazgeçti ya da kullanmadı görsek iyi olur" —
+           davet_istatistik() RPC (sql/davet_istatistik.sql). "Açıp katılmayan" = davet penceresini açtı, 1 günde katılmadı. -->
+      <h4 style="margin-top:14px;" data-i18n="yo.davetler">Grup davetleri</h4>
+      <div class="y-rows">
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.dvOlusturulan">Oluşturulan bağlantı</span><span class="y-row-val" id="dvOlusturulan">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.dvKatilan">Davete katılan kişi</span><span class="y-row-val" id="dvKatilan">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.dvVazgecen">Açıp katılmayan</span><span class="y-row-val" id="dvVazgecen">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.dvDolan">Kullanılmadan süresi dolan</span><span class="y-row-val" id="dvDolan">—</span></div>
         <div class="y-row"><span class="y-row-lbl" data-i18n="yo.aktifDavet">Aktif davet bağlantısı</span><span class="y-row-val" id="brInvite">—</span></div>
       </div>
+      <div id="dvNot" style="margin-top:8px;font-size:11.5px;color:var(--text3);line-height:1.45;"></div>
     </div>
   </div>
 
@@ -265,6 +275,7 @@ async function panoYukle() {
   }
 
   kirilimYukle(pending);
+  davetYukle();
   trafikYukle();
   kullanimYukle();
 }
@@ -272,6 +283,36 @@ async function panoYukle() {
 // Alt kırılımlar. Hepsi aynı ucuz sayaçla (satır indirmeden) alınıyor ve
 // PARALEL gidiyor; üstteki büyük sayılar zaten ekrana gelmiş oluyor, bunlar
 // arkadan doluyor. Bir sorgu düşerse yalnızca o satır "—" kalır.
+// (2026-10-25) Grup davetleri: oluşturulan / katılan / açıp katılmayan / kullanılmadan dolan / aktif — davet_istatistik().
+// "Açıp katılmayan" kaydı 2026-10-25'te başladı (öncesi bilinmiyor) → altta "takip … tarihinden beri" notu.
+async function davetYukle() {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/davet_istatistik', {
+      method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: '{}',
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!r.ok) {
+      // Sunucu işlevi yoksa (eski kurulum) en azından aktif bağlantı sayısı eski yoldan gösterilsin
+      yaz('brInvite', await sayac('group_invites?select=id&used_by=is.null&expires_at=gte.' + new Date().toISOString()));
+      return;
+    }
+    const d = await r.json();
+    yaz('dvOlusturulan', d.olusturulan); yaz('dvKatilan', d.katilan);
+    yaz('dvVazgecen', d.acilip_katilmayan); yaz('dvDolan', d.kullanilmadan_dolan); yaz('brInvite', d.bekleyen);
+    const not = document.getElementById('dvNot');
+    if (not) {
+      const parca = [];
+      if (d.son30) parca.push(_yoCev('yo.dvSon30', 'Son 30 gün: {o} bağlantı, {k} katılım, {d} kullanılmadan doldu.')
+        .replace('{o}', d.son30.olusturulan).replace('{k}', d.son30.katilan).replace('{d}', d.son30.kullanilmadan_dolan));
+      if (d.karar_bekleyen) parca.push(_yoCev('yo.dvKararBekleyen', '{n} kişi bağlantıyı açtı, henüz karar vermedi (1 günden az).').replace('{n}', d.karar_bekleyen));
+      parca.push(d.takip_baslangic
+        ? _yoCev('yo.dvTakip', '"Açıp katılmayan" {t} tarihinden beri sayılıyor.').replace('{t}', new Date(d.takip_baslangic).toLocaleDateString())
+        : _yoCev('yo.dvTakipYok', '"Açıp katılmayan" bugünden itibaren sayılacak; öncesi kaydedilmedi.'));
+      not.textContent = parca.join(' ');
+    }
+  } catch (e) {}
+}
+
 // Landing trafiği — sayılar `landing_stats()` RPC'sinden tek çağrıda gelir.
 // Fonksiyon admin değilse `ok:false` döner, o zaman kart "—" kalır.
 async function trafikYukle() {
@@ -358,7 +399,7 @@ async function kirilimYukle(pending) {
     sayac('solistler?select=id'),
     sayac('works?select=id&submitted_at=gte.' + gun(7)),
     sayac('works?select=id&submitted_at=gte.' + gun(30)),
-    sayac('group_invites?select=id&used_by=is.null&expires_at=gte.' + new Date().toISOString()),
+    Promise.resolve(null),   // (2026-10-25) aktif davet artık davetYukle() → davet_istatistik() (çok kullanımlık bağlantı doğru sayılır)
     // Kullanım: profiles.last_seen_at (auth.js günde bir kez damgalıyor)
     sayac('profiles?select=id&last_seen_at=gte.' + gun(1)),
     sayac('profiles?select=id&last_seen_at=gte.' + gun(7)),
@@ -371,7 +412,7 @@ async function kirilimYukle(pending) {
   yaz('brAdmin', admin); yaz('brEditor', editor); yaz('brMember', member);
   yaz('brInGroup', inGroup);
   yaz('brRepGroup', repGroup); yaz('brRepPublic', repPublic); yaz('brSolist', solist);
-  yaz('br7', son7); yaz('br30', son30); yaz('brInvite', davet);
+  yaz('br7', son7); yaz('br30', son30);
   yaz('brAct1', act1); yaz('brAct7', act7); yaz('brAct30', act30);
   yaz('brActNever', actNever);
 
