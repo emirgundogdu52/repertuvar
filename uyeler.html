@@ -33,13 +33,14 @@ function showToast(msg) {
 .member-avatar{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--accent);flex-shrink:0;}
 .member-info{flex:1;min-width:0;}
 .member-email{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}.member-email:hover{color:var(--accent);}.name-input{background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:3px 8px;font-size:13px;font-weight:500;color:var(--text);font-family:var(--font);width:180px;outline:none;}
-.member-meta{font-size:11px;color:var(--text3);margin-top:2px;}
-.role-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+/* (2026-10-25) font büyüklükleri: e-posta/tarih 11 → 12.5, rol rozeti 11 → 12 px */
+.member-meta{font-size:12.5px;color:var(--text3);margin-top:2px;}
+.role-badge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;}
 .role-badge.admin{background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.3);color:#F85149;}
 .role-badge.editor{background:rgba(188,140,255,.12);border:1px solid rgba(188,140,255,.3);color:#BC8CFF;}
 .role-badge.member{background:rgba(120,100,255,.1);border:1px solid rgba(120,100,255,.2);color:var(--text2);}
 .member-actions{display:flex;gap:6px;flex-shrink:0;}
-.btn-sm{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:none;color:var(--text2);white-space:nowrap;}
+.btn-sm{padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:none;color:var(--text2);white-space:nowrap;}
 .btn-sm:hover{border-color:var(--accent);color:var(--accent);}
 .btn-sm.danger:hover{border-color:var(--red);color:var(--red);}
 .btn-sm.promote{border-color:rgba(188,140,255,.4);color:#BC8CFF;background:rgba(188,140,255,.08);}
@@ -95,7 +96,7 @@ function showToast(msg) {
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
       <i class="ti ti-trash" style="font-size:16px;color:var(--red);"></i>
       <span style="font-size:13px;font-weight:700;color:var(--red);" data-i18n="uye.silmeTalepleri">Hesap Silme Talepleri</span>
-      <span id="deletionCount" style="background:rgba(248,113,113,.2);border:1px solid rgba(248,113,113,.4);color:var(--red);border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;"></span>
+      <span id="deletionCount" style="background:rgba(248,113,113,.2);border:1px solid rgba(248,113,113,.4);color:var(--red);border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700;"></span>
     </div>
     <div id="deletionList"></div>
   </div>
@@ -267,7 +268,7 @@ function renderDeletionRequests(members) {
     var suspendBtn = isSuspended
       ? '<button class="btn-sm" style="border-color:rgba(250,180,50,.4);color:#facc15;background:rgba(250,180,50,.08);" data-id="' + htmlKac(m.id) + '" data-email="' + htmlKac(m.email||'') + '" onclick="hesabiAktifYap(this.dataset.id, this.dataset.email)"><i class="ti ti-lock-open"></i> ' + _uCev('uye.askiyiKaldir','Askıyı Kaldır') + '</button>'
       : '<button class="btn-sm" style="border-color:rgba(250,180,50,.4);color:#facc15;background:rgba(250,180,50,.08);" data-id="' + htmlKac(m.id) + '" data-email="' + htmlKac(m.email||'') + '" onclick="hesabiAskiyaAl(this.dataset.id, this.dataset.email)"><i class="ti ti-lock"></i> ' + _uCev('uye.askiyaAl','Askıya Al') + '</button>';
-    var suspendedBadge = isSuspended ? ' <span style="background:rgba(250,180,50,.15);border:1px solid rgba(250,180,50,.35);color:#facc15;border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700;">' + _uCev('uye.askida','Askıda') + '</span>' : '';
+    var suspendedBadge = isSuspended ? ' <span style="background:rgba(250,180,50,.15);border:1px solid rgba(250,180,50,.35);color:#facc15;border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700;">' + _uCev('uye.askida','Askıda') + '</span>' : '';
     return '<div class="member-card" style="border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.04);">' +
       '<div class="member-avatar" style="background:rgba(248,113,113,.3);">' + htmlKac((m.email||'?').charAt(0).toUpperCase()) + '</div>' +
       '<div class="member-info">' +

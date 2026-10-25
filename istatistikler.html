@@ -29,22 +29,24 @@
 
   .stt-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:22px; }
   .stt-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; }
-  .stt-card-label { font-size:11px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; display:flex; align-items:center; gap:6px; }
+  /* (2026-10-25) Kullanıcı: Yönetim başlıkları belirgin + font büyüklükleri — etiket 11 → 12, sayı 11 → 12.5, panel başlığı
+     vurgu rengi (Yönetim'deki başlıklarla aynı), alt notlar 10 → 12 px. */
+  .stt-card-label { font-size:12px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:.06em; display:flex; align-items:center; gap:6px; }
   .stt-card-value { font-size:26px; font-weight:800; color:var(--text); margin-top:8px; }
 
   .stt-grid { display:grid; grid-template-columns:1fr; gap:16px; }
   @media(min-width:900px) { .stt-grid { grid-template-columns:1.4fr 1fr; } }
 
   .stt-panel { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; }
-  .stt-panel-title { font-size:13px; font-weight:700; color:var(--text); margin:0 0 14px; display:flex; align-items:center; gap:7px; }
+  .stt-panel-title { font-size:14px; font-weight:800; color:var(--accent); margin:0 0 14px; display:flex; align-items:center; gap:7px; }
   .stt-panel-title i { color:var(--accent2); font-size:16px; }
 
   .stt-bar-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   .stt-bar-row:last-child { margin-bottom:0; }
-  .stt-bar-label { font-size:12px; color:var(--text2); width:120px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .stt-bar-label { font-size:13px; color:var(--text2); width:120px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .stt-bar-track { flex:1; height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
   .stt-bar-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--accent),var(--accent2)); }
-  .stt-bar-count { font-size:11px; color:var(--text3); width:38px; text-align:right; flex-shrink:0; font-variant-numeric:tabular-nums; }
+  .stt-bar-count { font-size:12.5px; color:var(--text2); width:38px; text-align:right; flex-shrink:0; font-variant-numeric:tabular-nums; }
 
   .stt-empty { padding:30px 10px; text-align:center; color:var(--text3); font-size:13px; }
   .stt-chart-wrap { height:220px; }
@@ -113,7 +115,7 @@
           <div id="sttTopPages"></div>
         </div>
         <div class="stt-panel">
-          <div class="stt-panel-title"><i class="ti ti-world"></i> <span data-i18n="ist.bolge">Bölge</span> <span data-i18n="ist.bolgeNot" style="font-weight:400;color:var(--text3);font-size:10px;">(saat dilimine göre yaklaşık)</span></div>
+          <div class="stt-panel-title"><i class="ti ti-world"></i> <span data-i18n="ist.bolge">Bölge</span> <span data-i18n="ist.bolgeNot" style="font-weight:400;color:var(--text3);font-size:12px;">(saat dilimine göre yaklaşık)</span></div>
           <div id="sttRegions"></div>
         </div>
       </div>
@@ -144,13 +146,13 @@
            Ham kayıtlarda şehir yalnız son 30 gün tutulur; uzun dönem dağılım buradan gelir. -->
       <div class="stt-panel" style="margin-top:16px;">
         <div class="stt-panel-title"><i class="ti ti-map-pin"></i> <span data-i18n="ist.sehirUzun">Şehirler — uzun dönem (toplu)</span>
-          <span id="sttSehirOzetAlt" style="font-weight:400;color:var(--text3);font-size:10px;"></span></div>
+          <span id="sttSehirOzetAlt" style="font-weight:400;color:var(--text3);font-size:12px;"></span></div>
         <div id="sttSehirOzet"><div class="stt-empty" data-i18n="ist.yukleniyor">Yükleniyor...</div></div>
       </div>
 
       <div class="stt-grid" style="margin-top:16px;">
         <div class="stt-panel">
-          <div class="stt-panel-title"><i class="ti ti-clock"></i> <span data-i18n="ist.saatDagilimi">Saat Dağılımı</span> <span data-i18n="ist.yerelSaat" style="font-weight:400;color:var(--text3);font-size:10px;">(yerel saat)</span></div>
+          <div class="stt-panel-title"><i class="ti ti-clock"></i> <span data-i18n="ist.saatDagilimi">Saat Dağılımı</span> <span data-i18n="ist.yerelSaat" style="font-weight:400;color:var(--text3);font-size:12px;">(yerel saat)</span></div>
           <div id="sttHours"></div>
         </div>
         <div class="stt-panel">
@@ -160,7 +162,7 @@
       </div>
 
       <div class="stt-panel" style="margin-top:16px;">
-        <div class="stt-panel-title"><i class="ti ti-user-check"></i> <span data-i18n="ist.kullanicilar">Kullanıcılar</span> <span id="sttUserCount" style="font-weight:400;color:var(--text3);font-size:11px;"></span></div>
+        <div class="stt-panel-title"><i class="ti ti-user-check"></i> <span data-i18n="ist.kullanicilar">Kullanıcılar</span> <span id="sttUserCount" style="font-weight:400;color:var(--text3);font-size:12px;"></span></div>
         <div id="sttUsers"><div class="stt-loading" style="padding:20px 0;" data-i18n="ist.yukleniyor">Yükleniyor…</div></div>
       </div>
     </div>
@@ -407,7 +409,7 @@ async function loadUsers() {
     const esc = function(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
     box.innerHTML =
       '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
-      '<thead><tr style="text-align:left;color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.04em;">' +
+      '<thead><tr style="text-align:left;color:var(--text3);font-size:12px;text-transform:uppercase;letter-spacing:.04em;">' +
         '<th style="padding:8px 10px;">' + _iCev('ist.thEposta','E-posta') + '</th>' +
         '<th style="padding:8px 10px;">' + _iCev('ist.thIsim','İsim') + '</th>' +
         '<th style="padding:8px 10px;">' + _iCev('ist.thGrup','Grup') + '</th>' +
