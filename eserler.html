@@ -1222,6 +1222,8 @@
     color:var(--text); font-size:15px; font-weight:700; font-family:inherit; box-sizing:border-box; }
   .ia-meta { font-size:12.5px; color:var(--text2); line-height:1.45; }
   .ia-ozet { font-size:12.5px; color:var(--text3); line-height:1.45; white-space:pre-line; overflow:hidden; max-height:3.0em; }
+  /* (2026-10-25) Rakip adları yalnız "nasıl dışa aktarırım" adımlarında, bilgi amaçlı; bağlantı yok notu */
+  .ia-marka { font-size:11.5px; color:var(--text3); line-height:1.4; margin:6px 0 0; }
   .ia-uyari, .ia-uygunsuz { font-size:12px; color:var(--warning-color, #FF9500); line-height:1.4; }
   .ia-uygunsuz { font-weight:600; }
   .pm-uygunsuz { font-size:12.5px; font-weight:600; color:var(--warning-color, #FF9500); margin:2px 0 6px; }
@@ -5488,7 +5490,7 @@ function eklemeSecimAc(e) {
         <small data-i18n="es.defterdenEkleAlt">${_esCev('es.defterdenEkleAlt','Defterini tara: mevcut esere nota ekle ya da yeni eser aç')}</small></span></button>
       <button type="button" onclick="eklemeSecimKapat();iaAc()"><i class="ti ti-file-import"></i>
         <span><b data-i18n="es.iaMenu">${_esCev('es.iaMenu','Başka uygulamadan aktar')}</b>
-        <small data-i18n="es.iaMenuAlt">${_esCev('es.iaMenuAlt','OnSong, SongbookPro, Ultimate Guitar… ChordPro, Word, metin ya da zip')}</small></span></button>`;
+        <small data-i18n="es.iaMenuAlt">${_esCev('es.iaMenuAlt','ChordPro, Word, metin ya da zip dosyası')}</small></span></button>`;
     m.addEventListener('click', ev => ev.stopPropagation());
     document.body.appendChild(m);
     document.addEventListener('click', () => eklemeSecimKapat());
@@ -5499,7 +5501,7 @@ function eklemeSecimKapat() { const m = document.getElementById('eklemeSecim'); 
 
 // ── BAŞKA UYGULAMADAN AKTAR (2026-10-25) ───────────────────────────────────
 // Kullanıcı: "rakiplerden geçişi kolaylaştıracak yöntemlere bakalım, içe aktar gibi" → "1 ve 2 birlikte". Dosya (.cho/.chopro/
-// .onsong/.txt ya da bunları içeren .zip) ya da yapıştırılan metin (Ultimate Guitar, WhatsApp) → her şarkı bir kart → seçilenler
+// .onsong/.txt ya da bunları içeren .zip) ya da yapıştırılan akorlu metin → her şarkı bir kart → seçilenler
 // YENİ ESER olarak açılır: yalnız sen görürsün (private, onaysız — telif durumu bilinmiyor; defterden eklemeyle aynı kural).
 // Ayrıştırma ice-aktar.js'te (../rakip_import test dosyalarıyla sınandı). Aynı adlı eser varsa kart işaretsiz gelir.
 let _ia = [], _iaKayit = false;
@@ -5544,8 +5546,9 @@ function iaYardimHtml() {
     <li>${_esCev('es.iaNasilOnsong','OnSong: Paylaş → Dosyalar → biçim “ChordPro” (ya da “OnSong Text”); kitaplığın tamamını seçebilirsin.')}</li>
     <li>${_esCev('es.iaNasilDiger','SongbookPro, BandHelper ve diğerleri: şarkıları ChordPro ya da metin (.txt) olarak dışa aktar; çok dosya varsa .zip de olur.')}</li>
     <li>${_esCev('es.iaNasilWord','Sözlerin Word’de mi? .docx dosyasını seç — her belge bir şarkı olur; akorlar sözün üstündeyse yerine oturur. Eski .doc ise Word’de “Farklı Kaydet → .docx”.')}</li>
-    <li>${_esCev('es.iaNasilUg','Ultimate Guitar ve benzeri siteler: şarkının metnini (akorlar sözün üstünde) kopyala, “Metin yapıştır”a bırak.')}</li>
-    <li>${_esCev('es.iaNasilPdf','Notan PDF ya da kâğıtta mı? “Defterden ekle” ile tara ya da PDF’i seç.')}</li></ul></details>`;
+    <li>${_esCev('es.iaNasilUg','Akorları sözün üstünde yazılı bir metnin mi var? Kopyala, “Metin yapıştır”a bırak — akorlar yerine oturur.')}</li>
+    <li>${_esCev('es.iaNasilPdf','Notan PDF ya da kâğıtta mı? “Defterden ekle” ile tara ya da PDF’i seç.')}</li></ul>
+    <div class="ia-marka">${_esCev('es.iaMarka','OnSong, SongbookPro ve BandHelper sahiplerinin markalarıdır; Repertuvar bu uygulamalarla bağlantılı değildir.')}</div></details>`;
 }
 function iaYapistirAc() {
   if (_iaKayit) return;
