@@ -272,6 +272,10 @@
 .rb-hiz-cip.aktif { background:var(--yt-btn,var(--accent)); border-color:var(--yt-btn,var(--accent)); color:#1a1200; }
 .rb-hiz-cip:disabled { opacity:.4; cursor:default; }
 .rb-tempo-satir { flex-wrap:wrap; }
+.rb-satir-duzen { gap:8px; }
+.rb-ad-gir { flex:1; min-width:0; height:40px; padding:0 12px; border-radius:10px; border:1px solid var(--accent); background:var(--surface);
+  color:var(--text); font-family:inherit; font-size:15px; font-weight:700; outline:none; }
+.rb-ad-tamam { color:var(--accent); border-color:color-mix(in srgb, var(--accent) 45%, transparent); }
 .rb-tempo-gir { width:76px; height:40px; padding:0 6px; border-radius:10px; border:1px solid var(--border); background:var(--surface2);
   color:var(--text); font-family:inherit; font-size:18px; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; }
 .rb-tempo-gir:focus { outline:none; border-color:var(--accent); }
@@ -1419,6 +1423,18 @@ function rbBankaCiz() {
     const dinliyor = rbOnizleme && rbOnizleme.id === r.id;
     const ekle = rbEser && !bagliIdler.has(r.id)
       ? `<button class="rb-ikon rb-ekle" onclick="rbBagla('${r.id}')">${_caCev('ca.rbEsereEkle', 'Esere ekle')}</button>` : '';
+    // (2026-10-25) Kullanıcı: "ritimlerin adını değiştiremiyorum, edit etme imkânı yok" → sahibine ✎ (satır içinde ad kutusu)
+    if (rbAdDuzenlenen === r.id) {
+      return `<div class="rb-satir rb-satir-duzen">
+        <input class="rb-ad-gir" id="rbAdGir" value="${rbKacis(r.ad)}" maxlength="80" autocomplete="off"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();rbAdKaydet('${r.id}')} if(event.key==='Escape')rbAdIptal()"
+               aria-label="${_caCev('ca.rbAdDuzenle', 'Ritmin adı')}">
+        <button class="rb-ikon rb-ad-tamam" onclick="rbAdKaydet('${r.id}')" aria-label="${_caCev('ortak.kaydet', 'Kaydet')}"><i class="ti ti-check"></i></button>
+        <button class="rb-ikon" onclick="rbAdIptal()" aria-label="${_caCev('ortak.iptal', 'İptal')}"><i class="ti ti-x"></i></button>
+      </div>`;
+    }
+    const duzenle = r.owner_id === ben
+      ? `<button class="rb-ikon" onclick="rbAdDuzenle('${r.id}')" aria-label="${_caCev('ca.rbAdDegistir', 'Adını değiştir')}" title="${_caCev('ca.rbAdDegistir', 'Adını değiştir')}"><i class="ti ti-pencil"></i></button>` : '';
     const sil = r.owner_id === ben
       ? `<button class="rb-ikon" onclick="rbRitimSil('${r.id}')" aria-label="${_caCev('ortak.sil', 'Sil')}"><i class="ti ti-trash"></i></button>`
       : `<button class="rb-ikon" onclick="rbBildirMenu(event,'rhythm','${r.id}')" aria-label="${_caCev('ca.bildir', 'Bildir')}" title="${_caCev('ca.bildir', 'Bildir')}"><i class="ti ti-flag"></i></button>`;
@@ -1426,7 +1442,7 @@ function rbBankaCiz() {
     return `<div class="rb-satir">
       <button class="rb-ikon rb-oynat" onclick="rbOnizle('${r.id}')" aria-label="${_caCev('ca.dinle', 'Dinle')}"><i class="ti ${dinliyor ? 'ti-player-stop' : 'ti-player-play'}"></i></button>
       <div class="rb-ad"><b>${rbKacis(r.ad)}</b><small>${rbOzet(r)}${grup}</small></div>
-      ${ekle}${sil}
+      ${ekle}${duzenle}${sil}
     </div>`;
   }).join('');
 }
@@ -1492,6 +1508,45 @@ async function rbOnizle(id) {
     }
   } catch (e) { rbNot(_caCev('ca.rbIndirilemedi', 'Ritim indirilemedi.'), true); }
   rtKilitYenile(); rbBankaCiz();
+}
+
+let rbAdDuzenlenen = null;   // adı düzenlenen ritmin id'si (satır içinde kutu)
+function rbAdDuzenle(id) {
+  rbAdDuzenlenen = id;
+  rbBankaCiz();
+  const g = document.getElementById('rbAdGir');
+  if (g) { g.focus(); g.select(); }
+}
+function rbAdIptal() { rbAdDuzenlenen = null; rbBankaCiz(); }
+async function rbAdKaydet(id) {
+  const r = RB_BANKA.find(x => x.id === id);
+  const g = document.getElementById('rbAdGir');
+  if (!r || !g) { rbAdIptal(); return; }
+  const ad = g.value.replace(/\s+/g, ' ').trim().slice(0, 80);
+  if (!ad || ad === r.ad) { rbAdIptal(); return; }
+  // Grupla paylaşılan ritmin adını grup üyeleri de görür → paylaşılan alanlardaki kural: uygunsuz ifade engellenir
+  if (r.group_id && typeof uygunsuzTara === 'function') {
+    const bulunan = await uygunsuzTara([ad]);
+    if (bulunan && bulunan[0]) { rbNot(typeof uygunsuzIleti === 'function' ? uygunsuzIleti(bulunan[0]) : bulunan[0], true); g.focus(); return; }
+  }
+  g.disabled = true;
+  try {
+    const res = await fetch(SUPA_URL + '/rest/v1/ritimler?id=eq.' + encodeURIComponent(id), {
+      method: 'PATCH', headers: Object.assign({}, authHeaders(), { 'Content-Type': 'application/json', 'Prefer': 'return=representation' }),
+      body: JSON.stringify({ ad })
+    });
+    const satir = res.ok ? await res.json() : null;
+    if (!res.ok || !Array.isArray(satir) || !satir.length) throw new Error(res.ok ? 'yetki' : await res.text());
+    r.ad = ad;
+    rbBagli.forEach(b => { if (b.ritim && b.ritim.id === id) b.ritim.ad = ad; });
+    rbAdDuzenlenen = null;
+    const hiz = document.getElementById('rbHiz'); if (hiz && rbOnizSecili === id) hiz.dataset.id = '';   // tempo satırındaki adı da yenile
+    rbBankaCiz(); if (rbEser) rbBagliCiz();
+    rbNot('');
+  } catch (e) {
+    g.disabled = false;
+    rbNot(_caCev('ca.rbAdKaydedilemedi', 'Ad kaydedilemedi. Bağlantını kontrol edip tekrar dene.'), true);
+  }
 }
 
 async function rbRitimSil(id) {
