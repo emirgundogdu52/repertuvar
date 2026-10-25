@@ -1562,6 +1562,30 @@
   .rbtn-danger { border-color:rgba(239,68,68,.38); color:#ef4444; }
   .rbtn-danger:hover { border-color:#ef4444; background:rgba(239,68,68,.10); color:#ef4444; }
   .rbtn-sm { height:30px; padding:0 10px; font-size:12px; }
+  /* (2026-10-25) TON ÇUBUĞU + AKOR KİPLERİ (cpModu). Ton: − [ G♯m · +2 ] + · Karar. */
+  .ton-cubuk { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 12px; padding:8px 10px; border-radius:14px;
+    background:var(--surface2); border:1px solid var(--border); }
+  .ton-cubuk-etiket { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); margin-right:2px; }
+  .ton-cubuk-dug { width:40px; height:40px; border-radius:12px; border:1px solid var(--border); background:var(--surface); color:var(--text);
+    display:inline-flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; font-family:inherit; }
+  .ton-cubuk-dug:hover { border-color:var(--accent); color:var(--accent); }
+  .ton-cubuk-gosterge { min-width:92px; height:40px; padding:0 12px; border-radius:12px; border:1px solid var(--border); background:var(--surface);
+    display:inline-flex; align-items:baseline; justify-content:center; gap:6px; cursor:pointer; font-family:inherit; color:var(--text); }
+  .ton-cubuk-gosterge b { font-size:17px; font-weight:800; line-height:40px; }
+  .ton-cubuk-gosterge small { font-size:12px; font-weight:600; color:var(--text3); }
+  .ton-cubuk-gosterge.is-on { border-color:var(--accent); background:rgba(255,200,61,.10); }
+  .ton-cubuk-gosterge.is-on b, .ton-cubuk-gosterge.is-on small { color:var(--accent); }
+  .ton-cubuk-karar { font-size:13px; font-weight:700; color:var(--text2); margin-left:4px; }
+  .cp-alan[data-mod="gorunum"] .cp-duzen { display:none; }
+  .cp-alan[data-mod="duzen"] .cp-gorunum-alt { display:none; }
+  .cp-gorunum-alt { margin-top:12px; }
+  .cp-duzenle-dug { height:40px; padding:0 16px; font-size:14px; }
+  .cp-alan[data-mod="duzen"] .cp-onizleme { margin-top:12px; }
+  @media (min-width:1024px) {
+    /* düzenlerken masaüstünde metin solda, canlı önizleme sağda */
+    .cp-alan[data-mod="duzen"] { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:16px; align-items:start; }
+    .cp-alan[data-mod="duzen"] .cp-onizleme { margin-top:0; position:sticky; top:12px; }
+  }
   .rbtn-ico { width:34px; padding:0; font-size:15px; font-weight:700; }
   .rbtn-ico.rbtn-sm { width:30px; }
   /* Segmentli grup: yardımcı eylemler tek gövde içinde, saç teli bölmelerle —
@@ -3315,21 +3339,24 @@ function selectWork(id, silent) {
           ${_canShared ? `<button id="scope_ortak_${w.id}" onclick="setChordScope(${w.id},'ortak')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">${_esCev('es.scopeOrtak','🎼 Eserin akoru')}</button>` : ''}
           <button id="scope_kisisel_${w.id}" onclick="setChordScope(${w.id},'kisisel')" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;">${_esCev('es.scopeKisisel','👤 Kişisel kopyam')}</button>
         </div>
-        <div id="scope_help_${w.id}" style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;"></div>
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-          <span style="font-size:12px;color:var(--text3);">${_esCev('es.tonEtiket','Ton:')}</span>
-          <button onclick="stepTranspose(${w.id},-1)" title="${_esCev('es.yariTonPes','Yarım ton pes')}" class="rbtn rbtn-sm rbtn-ico">−</button>
-          <button id="ton_badge_${w.id}" onclick="resetTranspose(${w.id})" title="${_esCev('es.t_orijinalTon','Orijinal tona dön')}" class="rbtn rbtn-sm" style="min-width:56px;">${_esCev('es.orijinal','Orijinal')}</button>
-          <button onclick="stepTranspose(${w.id},1)" title="${_esCev('es.yariTonTiz','Yarım ton tiz')}" class="rbtn rbtn-sm rbtn-ico">+</button>
-          <span id="karar_lbl_${w.id}" style="font-size:12px;font-weight:700;color:var(--text2);margin-left:4px;"></span>
-          <span style="font-size:11px;color:var(--text3);">${_esCev('es.tonNotu','sadece görünümü kaydırır, kayıtlı akoru değiştirmez')}</span>
+        <!-- (2026-10-25) Kullanıcı: "transpoze ve akor ekleme tarafına bakalım". Ton denetimi büyüdü ve TONUN ADINI gösteriyor
+             (ör. G#m +2); sekme artık ÇİZİLMİŞ AKORLARLA açılıyor, ham [Am] metni "Akorları düzenle" ile (cpModu). -->
+        <div class="ton-cubuk">
+          <span class="ton-cubuk-etiket">${_esCev('es.tonBaslik','Ton')}</span>
+          <button onclick="stepTranspose(${w.id},-1)" title="${_esCev('es.yariTonPes','Yarım ton pes')}" aria-label="${_esCev('es.yariTonPes','Yarım ton pes')}" class="ton-cubuk-dug"><i class="ti ti-minus"></i></button>
+          <button id="ton_badge_${w.id}" onclick="resetTranspose(${w.id})" title="${_esCev('es.t_orijinalTon','Orijinal tona dön')} · ${_esCev('es.tonNotu','sadece görünümü kaydırır, kayıtlı akoru değiştirmez')}" class="ton-cubuk-gosterge"></button>
+          <button onclick="stepTranspose(${w.id},1)" title="${_esCev('es.yariTonTiz','Yarım ton tiz')}" aria-label="${_esCev('es.yariTonTiz','Yarım ton tiz')}" class="ton-cubuk-dug"><i class="ti ti-plus"></i></button>
+          <span id="karar_lbl_${w.id}" class="ton-cubuk-karar"></span>
         </div>
+        <div id="cp_alan_${w.id}" class="cp-alan" data-mod="gorunum">
+        <div class="cp-duzen">
+        <div id="scope_help_${w.id}" style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;"></div>
         <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="_cpGrow(this);updateChordsPreview(${w.id})" style="width:100%;min-height:min(46vh,608px);padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
           placeholder="${_esCev('es.ph_akorOrnek','[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm\n[C]Telim örülürken [F]ağladı gözüm')}" data-i18n-ph="es.ph_akorOrnek"></textarea>
         <div class="rbtn-row" style="margin-top:10px;">
           <button onclick="saveChords(${w.id})" class="rbtn rbtn-primary" data-i18n="ortak.kaydet">${_esCev('ortak.kaydet','Kaydet')}</button>
+          <button onclick="cpModu(${w.id},'gorunum')" class="rbtn">${_esCev('es.bitti','Bitti')}</button>
           <span class="rbtn-group">
-            <button id="chords_preview_btn_${w.id}" onclick="toggleChordsPreview(${w.id})" class="rbtn">${_esCev('es.onizle','Önizle')}</button>
             <button onclick="convertChordsInEditor(${w.id})" title="${_esCev('es.chordProT','Akorlar sözlerin üstünde ayrı satırdaysa [Am] biçimine çevirir')}" class="rbtn"><span class="rgl">⇄</span> ${_esCev('es.chordProyaCevir','ChordPro\'ya çevir')}</button>
             <button id="chords_nudge_btn_${w.id}" onclick="toggleNudgeEditor(${w.id})" title="${_esCev('es.nudgeT','Akora dokun, ◀ ▶ veya ok tuşlarıyla hece hece kaydır')}" data-i18n-title="es.t_akorKaydir" class="rbtn"><span class="rgl">↔</span> ${_esCev('es.akoruKaydir','Akoru kaydır')}</button>
           </span>
@@ -3337,7 +3364,10 @@ function selectWork(id, silent) {
         </div>
         <div id="chords_scale_${w.id}" style="display:none;margin-top:10px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
         <div id="chords_nudge_${w.id}" style="display:none;margin-top:10px;padding:10px 12px;border:1px solid var(--accent);border-radius:8px;"></div>
-        <div id="chords_preview_${w.id}" class="lyrics-box" style="display:none;margin-top:12px;"></div>
+        </div><!-- /.cp-duzen -->
+        <div id="chords_preview_${w.id}" class="lyrics-box cp-onizleme" style="display:block;"></div>
+        <div class="cp-gorunum-alt"><button id="cp_duzenle_${w.id}" onclick="cpModu(${w.id},'duzen')" class="rbtn cp-duzenle-dug"><i class="ti ti-pencil"></i> <span>${_esCev('es.akorlariDuzenle','Akorları düzenle')}</span></button></div>
+        </div><!-- /.cp-alan -->
       ` : `
         <div class="lyrics-box">
           ${dispChords && dispChords.trim()
@@ -3490,22 +3520,54 @@ function applyLyricsLockState(){
 // Eser başına saklanır (personal_chords.transpose). GÖRÜNÜM dönüşümüdür:
 // kayıtlı akor metni ASLA değiştirilmez, sadece ekranda kaydırılmış gösterilir.
 let TRANSPOSE = {}; // {work_id: yarım ton (+/-)}
-const _CHROM_FLAT = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
-const _NOTE_INDEX = {'C':0,'B#':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'Fb':4,'E#':5,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11,'Cb':11};
-function transposeNote(note, n) {
+const _CHROM_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const _CHROM_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const _NOTE_INDEX  = {'C':0,'B#':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'Fb':4,'E#':5,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11,'Cb':11};
+// (2026-10-25) DİYEZ / BEMOL YAZIMI KAYDIRILAN TONA GÖRE (eserler.html ile stage.html AYNI motor).
+// Eskiden hep bemol yazılıyordu ("Türk müziği yazımında bemol tercih edilir"): F#m +2 → Abm, D +4 → Gb, Em +2 → Gbm — diyez
+// tonda çalan müzisyeni yanıltıyordu (kullanıcı: "transpoze tarafına bakalım"). Şimdi eserin tonu İLK GERÇEK AKORDAN (kök +
+// minör mü) bulunur, kaydırılmış tonun armürüne bakılır: majörde C, Db, Eb, F, Ab, Bb → bemol; D, E, F#, G, A, B → diyez;
+// minörde paralel majörünki. Türk müziğinde sık olan Am / Dm / Gm / Cm tonları bemolde kalır (eski niyet korunur).
+// Akor biçiminde olmayan köşeli etiketler ([Bağlantı], [Chorus]) artık kaydırılmaz.
+const _MAJ_BEMOL  = [true, true, false, true, false, true, false, false, true, false, true, false];
+const _AKOR_EK_RE = /^(?:maj|min|dim|aug|sus|add|m|M|°|ø|\+|-|b|#|[0-9]|\(|\))*$/;
+function _akorParcala(tok) {   // "F#m7/C#" → { kok:'F#', ek:'m7', bas:'C#' }; akor değilse null
+  const p = String(tok || '').trim().split('/');
+  if (p.length > 2) return null;
+  const m = p[0].match(/^([A-G](?:#|b)?)(.*)$/);
+  if (!m || !_AKOR_EK_RE.test(m[2])) return null;
+  if (p.length === 2 && !/^[A-G](?:#|b)?$/.test(p[1])) return null;
+  return { kok: m[1], ek: m[2], bas: p.length === 2 ? p[1] : null };
+}
+function akorTonuBul(text) {   // ilk gerçek akorun kökü ve minörlüğü → { i, minor } ya da null
+  const re = /\[([^\]]+)\]/g; let m;
+  while ((m = re.exec(text || ''))) {
+    const a = _akorParcala(m[1]);
+    if (a && _NOTE_INDEX[a.kok] !== undefined) return { i: _NOTE_INDEX[a.kok], minor: /^(?:m(?!aj)|min)/.test(a.ek) };
+  }
+  return null;
+}
+function tonBemolMu(ton, n) {   // kaydırılmış tonun yazımı: true bemol, false diyez, null bilinmiyor
+  if (!ton) return null;
+  const k = ((ton.i + (n || 0)) % 12 + 12) % 12;
+  return _MAJ_BEMOL[ton.minor ? (k + 3) % 12 : k];
+}
+function transposeNote(note, n, bemol) {
   const i = _NOTE_INDEX[note];
-  if (i === undefined) return note;
-  return _CHROM_FLAT[((i + n) % 12 + 12) % 12];
+  if (i === undefined) return note;              // tanımadığımız kökü olduğu gibi bırak
+  return (bemol === false ? _CHROM_SHARP : _CHROM_FLAT)[((i + n) % 12 + 12) % 12];
 }
-function transposeChordToken(tok, n) {
-  return tok.split('/').map(part => {
-    const m = part.match(/^([A-G](?:#|b)?)(.*)$/);
-    return m ? transposeNote(m[1], n) + m[2] : part;
-  }).join('/');
+// Tek bir akor jetonunu kaydır: kök + son ek + (varsa) /bas. Akor değilse dokunma.
+function transposeChordToken(tok, n, bemol) {
+  const a = _akorParcala(tok);
+  if (!a) return tok;
+  return transposeNote(a.kok, n, bemol) + a.ek + (a.bas ? '/' + transposeNote(a.bas, n, bemol) : '');
 }
+// ChordPro metnindeki TÜM [akor] etiketlerini kaydır; sözlere dokunma
 function transposeChordPro(text, n) {
   if (!text || !n) return text || '';
-  return text.replace(/\[([^\]]+)\]/g, (full, inner) => '[' + transposeChordToken(inner.trim(), n) + ']');
+  const bemol = tonBemolMu(akorTonuBul(text), n);
+  return text.replace(/\[([^\]]+)\]/g, (full, inner) => '[' + transposeChordToken(inner.trim(), n, bemol) + ']');
 }
 function getTranspose(workId) { return TRANSPOSE[String(workId)] || 0; }
 
@@ -3525,11 +3587,17 @@ function parseKararNote(s){
   return (k in _KARAR_IN) ? _KARAR_IN[k] : null;
 }
 // "A (La)" biçiminde etiket üretir; n kadar kaydırır
-function kararLabel(closingNote, n){
+// (2026-10-25) Diyez tabloları + akorlarla aynı yazım tercihi (stage.html kararLabel ile aynı kural): kaydırma yokken
+// kullanıcının yazımı (F#/Fa# girdiyse diyez); kaydırılınca akorlar diyezle yazılıyorsa karar da diyez.
+const _KARAR_LATIN_D = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const _KARAR_TR_D    = ['Do','Do#','Re','Re#','Mi','Fa','Fa#','Sol','Sol#','La','La#','Si'];
+function _kararDiyezMi(s){ return /(#|♯)$/.test((s||'').toString().trim().replace(/\s+/g,'')); }
+function kararLabel(closingNote, n, bemol){
   const i = parseKararNote(closingNote);
   if (i === null) return null;
   const j = ((i + (n||0)) % 12 + 12) % 12;
-  return _KARAR_LATIN[j] + ' (' + _KARAR_TR[j] + ')';
+  const d = n ? (bemol === false || (bemol == null && _kararDiyezMi(closingNote))) : _kararDiyezMi(closingNote);
+  return (d ? _KARAR_LATIN_D : _KARAR_LATIN)[j] + ' (' + (d ? _KARAR_TR_D : _KARAR_TR)[j] + ')';
 }
 
 // ── ESKİ FORMAT ("akor üstte") → ChordPro ÇEVİRİCİ ──
@@ -4158,8 +4226,13 @@ function updateChordsPreview(id){
   if(!prev || !ta) return;
   if(prev.style.display !== 'block') return; // gizliyken boşuna render etme
   const val = ta.value.trim();
-  if(!hasRealChords(val)){
-    prev.innerHTML = '<span style="color:var(--text3);font-size:12px;">' + _esCev('es.onizlemeAkorEkle','Önizlemek için akor ([Am]) ekleyin.') + '</span>';
+  const _akorVar = hasRealChords(val);
+  _cpAltGuncelle(id, _akorVar);
+  if(!_akorVar){
+    const _duz = (document.getElementById('cp_alan_'+id) || {}).dataset;
+    prev.innerHTML = '<span style="color:var(--text3);font-size:13px;">' + ((_duz && _duz.mod === 'duzen')
+      ? _esCev('es.onizlemeAkorEkle','Önizlemek için akor ([Am]) ekleyin.')
+      : _esCev('es.akorHenuzYok','Akor bilgisi henüz eklenmemiş.')) + '</span>';
     return;
   }
   const nh = document.getElementById('chords_nudge_'+id);
@@ -4168,20 +4241,68 @@ function updateChordsPreview(id){
   prev.innerHTML = picking ? _cpPickBody(shown, id) : renderChords(shown);
   if (typeof window.cpFixChordOverlaps === 'function') window.cpFixChordOverlaps();
 }
+// Tonun adı: ilk gerçek akorun kökü (+ "m"); kaydırılmışsa doğru diyez/bemolle. Akor yoksa null.
+function tonAdi(text, n){
+  const re = /\[([^\]]+)\]/g; let m;
+  while ((m = re.exec(text || ''))) {
+    const a = _akorParcala(m[1]);
+    if (!a || _NOTE_INDEX[a.kok] === undefined) continue;
+    const minor = /^(?:m(?!aj)|min)/.test(a.ek);
+    const kok = n ? transposeNote(a.kok, n, tonBemolMu({ i: _NOTE_INDEX[a.kok], minor }, n)) : a.kok;
+    return kok + (minor ? 'm' : '');
+  }
+  return null;
+}
+function _tonGoster(ad){ return String(ad).replace(/^([A-G])#/, '$1♯').replace(/^([A-G])b/, '$1♭'); }
+// (2026-10-25) Akorlar sekmesi iki kipte: 'gorunum' (çizilmiş akorlar + "Akorları düzenle") / 'duzen' (ham metin + araçlar,
+// masaüstünde yanında canlı önizleme). Bitti: kaydedilmemiş değişiklik varsa sorar, vazgeçilirse metin geri alınır.
+function cpModu(id, mod){
+  const alan = document.getElementById('cp_alan_'+id);
+  const ta = document.getElementById('inline_chords_'+id);
+  if (!alan || !ta) return;
+  if (mod === 'gorunum' && alan.dataset.mod === 'duzen') {
+    if (ta.dataset.ilk != null && ta.value !== ta.dataset.ilk) {
+      if (!confirm(_esCev('es.akorKaydedilmediOnay','Kaydedilmemiş akor değişikliklerin var. Kaydetmeden kapatılsın mı?'))) return;
+      ta.value = ta.dataset.ilk;
+    }
+    const nh = document.getElementById('chords_nudge_'+id);
+    if (nh && nh.style.display !== 'none' && typeof toggleNudgeEditor === 'function') toggleNudgeEditor(id);
+  }
+  if (mod === 'duzen') ta.dataset.ilk = ta.value;
+  alan.dataset.mod = mod;
+  updateChordsPreview(id);
+  if (mod === 'duzen') { _cpGrow(ta); try { ta.focus({ preventScroll: true }); } catch(e) {} }
+}
+function _cpAltGuncelle(id, akorVar){
+  const d = document.getElementById('cp_duzenle_'+id);
+  if (!d) return;
+  d.innerHTML = akorVar
+    ? '<i class="ti ti-pencil"></i> <span>' + _esCev('es.akorlariDuzenle','Akorları düzenle') + '</span>'
+    : '<i class="ti ti-plus"></i> <span>' + _esCev('es.akorEkle','Akor ekle') + '</span>';
+  d.classList.toggle('rbtn-primary', !akorVar);
+}
+// Ekranda gösterilen akor metni (düzenleyicideki, yoksa kişisel kopya, yoksa eserin akoru) — tonun yazımı buna göre seçilir
+function _eserAkorMetni(id){
+  const ta = document.getElementById('inline_chords_'+id);
+  if (ta && ta.value.trim()) return ta.value;
+  return PERSONAL_CHORDS[String(id)] || (DATA.find(x=>x.id===id || x.id===parseInt(id)) || {}).chords || '';
+}
 // ± Ton — eser başına, kişisel katmanda saklanır (stage.html ile aynı davranış)
 function updateTonBadge(id){
   const b = document.getElementById('ton_badge_'+id);
   const v = getTranspose(id);
   if(b){
-    b.textContent = v > 0 ? '+'+v : (v < 0 ? String(v) : _esCev('es.orijinal','Orijinal'));
-    b.style.color = v ? 'var(--accent)' : 'var(--text2)';
+    // (2026-10-25) Tonun ADI (ilk akordan, kaydırılmış ve doğru diyez/bemolle) + fark: "G♯m · +2"; akor yoksa yalnız fark
+    const ad = tonAdi(_eserAkorMetni(id), v);
+    const fark = v > 0 ? '+'+v : (v < 0 ? String(v) : _esCev('es.orijinal','Orijinal'));
+    b.innerHTML = '<b>' + _esHtml(ad ? _tonGoster(ad) : (v ? fark : '—')) + '</b><small>' + _esHtml(ad ? fark : (v ? _esCev('es.yarimTon','yarım ton') : fark)) + '</small>';
     b.classList.toggle('is-on', !!v);
   }
   // Karar sesi: kaydırılmış güncel değer (örn. "A (La)")
   const kl = document.getElementById('karar_lbl_'+id);
   if(kl){
     const w = DATA.find(x=>x.id===id || x.id===parseInt(id)) || {};
-    const cur = kararLabel(w.closingNote, v);
+    const cur = kararLabel(w.closingNote, v, tonBemolMu(akorTonuBul(_eserAkorMetni(id)), v));
     if(cur){
       const orig = v ? kararLabel(w.closingNote, 0) : null;
       kl.textContent = _esCev('es.kararEtiket','Karar: ') + cur;
@@ -4481,6 +4602,7 @@ function setChordScope(id, scope){
   const shared = w.chords || '';
   const personal = PERSONAL_CHORDS[String(id)] || '';
   ta.value = scope==='ortak' ? (shared || w.lyrics || '') : (personal || shared || w.lyrics || '');
+  ta.dataset.ilk = ta.value;   // (2026-10-25) kapsam değişince "kaydedilmemiş değişiklik" sayılmasın (cpModu)
   const bo=document.getElementById('scope_ortak_'+id), bk=document.getElementById('scope_kisisel_'+id);
   const setBtn=(b,on)=>{ if(!b)return; b.style.background=on?'var(--accent)':'transparent'; b.style.color=on?'#1a1200':'var(--text2)'; b.style.borderColor=on?'var(--accent)':'var(--border)'; };
   setBtn(bo, scope==='ortak'); setBtn(bk, scope==='kisisel');
@@ -4539,6 +4661,10 @@ function toastMsg(text){
   m.textContent=text; document.body.appendChild(m); setTimeout(()=>m.remove(),2500);
 }
 function _afterChordsSaved(id, hasCh, chords, isShared){
+  const _ta = document.getElementById('inline_chords_'+id);
+  if (_ta) _ta.dataset.ilk = _ta.value;          // kaydedilen metin artık "değişmemiş" sayılır
+  const _alan = document.getElementById('cp_alan_'+id);
+  if (_alan) _alan.dataset.mod = 'gorunum';
   const prev = document.getElementById('chords_preview_'+id);
   if (prev) {
     // 2026-07-28: parantezsiz ama dolu metin de gösterilsin (kaydedildiği belli olsun)

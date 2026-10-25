@@ -2012,23 +2012,53 @@ function stepLyricsFont(delta) {
 // kayıtlı akor metni ASLA değiştirilmez, sadece ekranda kaydırılmış gösterilir.
 let TRANSPOSE = {}; // {work_id: yarım ton (+/-)}
 const _CHROM_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const _CHROM_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const _NOTE_INDEX  = {'C':0,'B#':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'Fb':4,'E#':5,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11,'Cb':11};
-function transposeNote(note, n) {
+// (2026-10-25) DİYEZ / BEMOL YAZIMI KAYDIRILAN TONA GÖRE (eserler.html ile stage.html AYNI motor).
+// Eskiden hep bemol yazılıyordu ("Türk müziği yazımında bemol tercih edilir"): F#m +2 → Abm, D +4 → Gb, Em +2 → Gbm — diyez
+// tonda çalan müzisyeni yanıltıyordu (kullanıcı: "transpoze tarafına bakalım"). Şimdi eserin tonu İLK GERÇEK AKORDAN (kök +
+// minör mü) bulunur, kaydırılmış tonun armürüne bakılır: majörde C, Db, Eb, F, Ab, Bb → bemol; D, E, F#, G, A, B → diyez;
+// minörde paralel majörünki. Türk müziğinde sık olan Am / Dm / Gm / Cm tonları bemolde kalır (eski niyet korunur).
+// Akor biçiminde olmayan köşeli etiketler ([Bağlantı], [Chorus]) artık kaydırılmaz.
+const _MAJ_BEMOL  = [true, true, false, true, false, true, false, false, true, false, true, false];
+const _AKOR_EK_RE = /^(?:maj|min|dim|aug|sus|add|m|M|°|ø|\+|-|b|#|[0-9]|\(|\))*$/;
+function _akorParcala(tok) {   // "F#m7/C#" → { kok:'F#', ek:'m7', bas:'C#' }; akor değilse null
+  const p = String(tok || '').trim().split('/');
+  if (p.length > 2) return null;
+  const m = p[0].match(/^([A-G](?:#|b)?)(.*)$/);
+  if (!m || !_AKOR_EK_RE.test(m[2])) return null;
+  if (p.length === 2 && !/^[A-G](?:#|b)?$/.test(p[1])) return null;
+  return { kok: m[1], ek: m[2], bas: p.length === 2 ? p[1] : null };
+}
+function akorTonuBul(text) {   // ilk gerçek akorun kökü ve minörlüğü → { i, minor } ya da null
+  const re = /\[([^\]]+)\]/g; let m;
+  while ((m = re.exec(text || ''))) {
+    const a = _akorParcala(m[1]);
+    if (a && _NOTE_INDEX[a.kok] !== undefined) return { i: _NOTE_INDEX[a.kok], minor: /^(?:m(?!aj)|min)/.test(a.ek) };
+  }
+  return null;
+}
+function tonBemolMu(ton, n) {   // kaydırılmış tonun yazımı: true bemol, false diyez, null bilinmiyor
+  if (!ton) return null;
+  const k = ((ton.i + (n || 0)) % 12 + 12) % 12;
+  return _MAJ_BEMOL[ton.minor ? (k + 3) % 12 : k];
+}
+function transposeNote(note, n, bemol) {
   const i = _NOTE_INDEX[note];
   if (i === undefined) return note;              // tanımadığımız kökü olduğu gibi bırak
-  return _CHROM_FLAT[((i + n) % 12 + 12) % 12];  // Türk müziği yazımında bemol tercih edilir
+  return (bemol === false ? _CHROM_SHARP : _CHROM_FLAT)[((i + n) % 12 + 12) % 12];
 }
-// Tek bir akor jetonunu kaydır: kök + son ek + (varsa) /bas
-function transposeChordToken(tok, n) {
-  return tok.split('/').map(part => {
-    const m = part.match(/^([A-G](?:#|b)?)(.*)$/);
-    return m ? transposeNote(m[1], n) + m[2] : part;
-  }).join('/');
+// Tek bir akor jetonunu kaydır: kök + son ek + (varsa) /bas. Akor değilse dokunma.
+function transposeChordToken(tok, n, bemol) {
+  const a = _akorParcala(tok);
+  if (!a) return tok;
+  return transposeNote(a.kok, n, bemol) + a.ek + (a.bas ? '/' + transposeNote(a.bas, n, bemol) : '');
 }
 // ChordPro metnindeki TÜM [akor] etiketlerini kaydır; sözlere dokunma
 function transposeChordPro(text, n) {
   if (!text || !n) return text || '';
-  return text.replace(/\[([^\]]+)\]/g, (full, inner) => '[' + transposeChordToken(inner.trim(), n) + ']');
+  const bemol = tonBemolMu(akorTonuBul(text), n);
+  return text.replace(/\[([^\]]+)\]/g, (full, inner) => '[' + transposeChordToken(inner.trim(), n, bemol) + ']');
 }
 function getTranspose(workId) { return TRANSPOSE[String(workId)] || 0; }
 
@@ -2079,11 +2109,17 @@ function _kararDiyezMi(s){
 // çünkü kaydırılmış akorlar da bemolle yazılıyor, ikisi tutarlı kalsın.
 const _KARAR_LATIN_D = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const _KARAR_TR_D    = ['Do','Do#','Re','Re#','Mi','Fa','Fa#','Sol','Sol#','La','La#','Si'];
-function kararLabel(closingNote, n){
+// (2026-10-25) bemol: akorlarla aynı tercih (tonBemolMu). Kaydırılmışken akorlar diyezle yazılıyorsa karar da diyez; akor yoksa
+// kullanıcının yazımı (diyezle girmişse diyez).
+function _kararDiyezGoster(closingNote, n, bemol){
+  if (!n) return _kararDiyezMi(closingNote);
+  return bemol === false || (bemol == null && _kararDiyezMi(closingNote));
+}
+function kararLabel(closingNote, n, bemol){
   const i = parseKararNote(closingNote);
   if (i === null) return null;
   const j = ((i + (n||0)) % 12 + 12) % 12;
-  const d = !n && _kararDiyezMi(closingNote);
+  const d = _kararDiyezGoster(closingNote, n, bemol);
   return (d ? _KARAR_LATIN_D : _KARAR_LATIN)[j] + ' (' + (d ? _KARAR_TR_D : _KARAR_TR)[j] + ')';
 }
 
@@ -2120,13 +2156,13 @@ let _tonSonMode = 'lyrics';    // panel yeniden kurulurken kullanılacak görün
 let _tonAcikWid = '';          // kaydırıcının açık olduğu eser (esere geçilince kapanır)
 const TON_MIN = -6, TON_MAX = 6;
 // Varılan sesin adı: 'solfej' tercihinde "La", değilse "A". Bilinmiyorsa null.
-function tonSesAdi(closingNote, n) {
+function tonSesAdi(closingNote, n, bemol) {
   const i = parseKararNote(closingNote);
   if (i === null) return null;
   const j = ((i + (n||0)) % 12 + 12) % 12;
   const yazim = (typeof getAkorYazim === 'function') ? getAkorYazim() : 'abc';
-  // Kaydırma yokken kullanıcının diyez yazımı korunur (bkz. kararLabel notu).
-  const d = !n && _kararDiyezMi(closingNote);
+  // Kaydırma yokken kullanıcının diyez yazımı korunur; kaydırılınca akorlarla aynı tercih (bkz. kararLabel notu).
+  const d = _kararDiyezGoster(closingNote, n, bemol);
   if (yazim === 'solfej') return (d ? _KARAR_TR_D : _KARAR_TR)[j];
   return (d ? _KARAR_LATIN_D : _KARAR_LATIN)[j];
 }
@@ -2139,6 +2175,12 @@ function _sCev(anahtar, tr) {
 }
 
 function _tonAktifItem() { return (curRep && (curRep.items||[])[curIdx]) || null; }
+// Etkin eserin akorlarına göre kaydırılmış tonun yazımı (true bemol / false diyez / null akor yok)
+function _tonBemolAktif(n) {
+  const item = _tonAktifItem();
+  if (!item) return null;
+  return tonBemolMu(akorTonuBul((WL[String(item.workId)] || {}).chords || ''), n);
+}
 function _tonKararSesi() {
   const item = _tonAktifItem();
   if (!item) return '';
@@ -2177,7 +2219,7 @@ function tonSliderInput(v) {
   updateTonSliderUI(n);
 }
 function _tonKutuIcerik(n) {
-  const ad = htmlKac(tonSesAdi(_tonKararSesi(), n));   // karar sesi eserden gelir
+  const ad = htmlKac(tonSesAdi(_tonKararSesi(), n, _tonBemolAktif(n)));   // karar sesi eserden gelir
   const fark = n > 0 ? '+' + n : (n < 0 ? String(n) : _sCev('sh.tonOzgun','özgün'));
   return (ad || (n ? fark : _sCev('sh.ton','Ton'))) + '<small>' + fark + '</small>';
 }
@@ -2550,7 +2592,7 @@ function renderStage(){
   }
   const _cn = item.closingNote || w.closingNote || '';
   const _kt = getTranspose(item.workId);
-  const _kl = kararLabel(_cn, _kt);
+  const _kl = kararLabel(_cn, _kt, tonBemolMu(akorTonuBul(w.chords || ''), _kt));
   // (2026-10-18) Karar sesi başlığın altında değil, Söz/Akor/Nota şeridinin solunda (#vmKarar) — bir satır yer kazanılır.
   const _vk = document.getElementById('vmKarar');
   if (_vk) {
@@ -3242,7 +3284,7 @@ function buildStageToolsRow(mode) {
       <button onclick="event.stopPropagation();stepTranspose(1)" title="${_sCev('sh.yarimTonTiz','Yarım ton tiz')}" class="align-btn"><i class="ti ti-plus"></i></button>
       ${_cnTon ? `<span class="ton-karar" style="font-size:11px;white-space:nowrap;padding:0 6px;color:var(--text3, #6b7482);">${htmlKac(_cnTon)}</span>` : ''}`;
     } else if (!_tonAcik) {
-      const _ad = htmlKac(tonSesAdi(_cnTon, tVal));   // karar sesi metni eserden gelir — kaçış
+      const _ad = htmlKac(tonSesAdi(_cnTon, tVal, _tonBemolAktif(tVal)));   // karar sesi metni eserden gelir — kaçış
       const _org = htmlKac(tonSesAdi(_cnTon, 0));
       tonBtns = `
       <button onclick="tonKaydiriciAc(event)" id="tonBtn" class="ton-btn${tVal?' shifted':''}"
