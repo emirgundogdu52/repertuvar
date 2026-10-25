@@ -31,6 +31,11 @@
 
 /* Sayı kartları */
 .y-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0 26px;}
+/* (2026-10-25) iPad denetimi: 5 kutu 4 + 1 diziliyordu ("Grup / Koro" ikinci satırda tek). Tablette tek satır 5 sütun;
+   telefonda ikişerli, tek kalan son kutu satırı kaplar. */
+@media (min-width:700px){ .y-stats{grid-template-columns:repeat(5,minmax(0,1fr));}
+  .y-stat{padding:14px 14px;display:flex;flex-direction:column;justify-content:space-between;} }   /* iki satıra kayan etikette sayılar aynı hizada */
+@media (max-width:699px){ .y-stats{grid-template-columns:repeat(2,minmax(0,1fr));} .y-stat:last-child:nth-child(odd){grid-column:1/-1;} }
 .y-stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
 .y-stat-lbl{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);font-weight:700;}
 .y-stat-val{font-size:26px;font-weight:800;color:var(--text);margin-top:6px;line-height:1;font-variant-numeric:tabular-nums;}

@@ -1235,3 +1235,11 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"][data-sayfa="gruplar"] .grp-chip { min-height: 40px; }
   html[data-tasarim="v3"][data-sayfa="gruplar"] #inviteMaxUses { min-height: 40px; }
 }
+/* (2026-10-25) iPad YATAY (≥1024, yan menü görünür) — Yönetim denetiminde bulundu, bütün sayfalarda ortak yan menü:
+   menü öğeleri 36 px → 44 px; yan menüdeki tema anahtarı 44×24 → 50×30 (dikeydeki üst çubuk anahtarıyla aynı). */
+@media (min-width: 1024px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"] aside.sidebar .sb-item { min-height: 44px; }
+  html[data-tasarim="v3"] aside.sidebar .r-theme-toggle { width: 50px !important; height: 30px !important; border-radius: 999px !important; }
+  html[data-tasarim="v3"] aside.sidebar .r-theme-toggle .toggle-knob { width: 24px; height: 24px; top: 3px; left: 3px; }
+  html[data-tasarim="v3"][data-theme="light"] aside.sidebar .r-theme-toggle .toggle-knob { left: 23px; }
+}
