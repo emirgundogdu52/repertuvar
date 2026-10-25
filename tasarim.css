@@ -1354,12 +1354,12 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .chip-vis { font-size: 12px; min-height: 30px; display: inline-flex; align-items: center; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .bi { font-size: 13px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp thead th { font-size: 12px; }
-  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody .sq span { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody .sq span:not(.drag-handle) { font-size: 12.5px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .wn { font-size: 15px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp :is(.ws, .cn) { font-size: 12.5px; }
   /* satırdaki alt bilgi parçaları satır içi font-size:11px taşıyor → !important (eser adı .wn hariç) */
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div:not(.wn),
-  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div:not(.wn) span:not(.cn) { font-size: 12.5px !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div:not(.wn) span:not(.cn):not(.drag-handle) { font-size: 12.5px !important; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div.wn { font-size: 15px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .br { min-height: 34px; min-width: 34px; }
 }
@@ -1591,7 +1591,7 @@ html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.page-title, .page-sub, .se
   html[data-tasarim="v3"][data-sayfa="repertoires"] .ri .rc { font-size: 12.5px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .rep-medley { font-size: 12px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp thead th { font-size: 12px; }
-  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody :is(.sq, .sq span) { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody :is(.sq, .sq span:not(.drag-handle)) { font-size: 12.5px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .sp { font-size: 12px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .chip-vis { min-height: 40px; display: inline-flex; align-items: center; font-size: 12px; }
 }
@@ -1783,4 +1783,27 @@ html[data-tasarim="v3"][data-sayfa="eserler"] .work-rep-count { font-size: 12px;
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name { display: flex; align-items: center; gap: 6px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name .work-ad { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name > span:not(.work-ad) { flex-shrink: 0; }
+}
+/* 24) Repertuvarlar listesi — Eserler'le aynı ölçü (2026-10-25 kullanıcı: "Repertuvarlar listesine de aynısını uygula").
+   Ölçüm: repertuvar adı telefon/iPad 14, masaüstü 15; durum çipi (Onaylandı/Taslak) telefonda 11; tarih/eser sayısı 11. Repertuvarın
+   içindeki eser satırı: ad telefon/iPad 13, masaüstü 15; makam·besteci ve sıra no 11, karar çipi 11. → ad 16 (her yerde); çipler
+   telefonda 12, iPad/masaüstünde 13; alt bilgi 12 / 12.5. */
+html[data-tasarim="v3"][data-sayfa="repertoires"] .ri .rn { font-size: 16px; }
+html[data-tasarim="v3"][data-sayfa="repertoires"] .ri :is(.rm, .rm span) { font-size: 12px; }
+html[data-tasarim="v3"][data-sayfa="repertoires"] .ri .rm :is(.sp, .rep-medley) { font-size: 12px; }
+html[data-tasarim="v3"][data-sayfa="repertoires"] .ri .rc { font-size: 12px; }
+html[data-tasarim="v3"][data-sayfa="repertoires"] .dp :is(.wn, tbody td div.wn) { font-size: 16px; }
+html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div:not(.wn),
+html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div:not(.wn) span:not(.cn):not(.drag-handle) { font-size: 12px !important; }
+html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody :is(.sq, .sq span:not(.drag-handle)) { font-size: 12px; }
+html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .cn { font-size: 12px; padding: 1px 8px; }
+@media (min-width: 769px) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ri :is(.rm, .rm span) { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ri .rm .sp { font-size: 13px; padding: 1px 9px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ri .rm .rep-medley { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ri .rc { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div:not(.wn),
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody td div:not(.wn) span:not(.cn):not(.drag-handle) { font-size: 12.5px !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp tbody :is(.sq, .sq span:not(.drag-handle)) { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .cn { font-size: 13px; padding: 1px 9px; }
 }
