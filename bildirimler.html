@@ -38,6 +38,11 @@
 .b-tus .ana{background:var(--accent);border-color:transparent;color:#1a1200;}
 .b-bos{text-align:center;color:var(--text3);font-size:14px;padding:40px 10px;}
 .b-durum{font-size:12px;color:var(--text3);margin-top:6px;}
+/* (2026-10-25) iPad denetimi (dokunmatik): sekmeler 32 → 40 px, kart düğme/bağlantıları 29 → 40 px. */
+@media (hover:none) and (pointer:coarse){
+  .b-sekme button{min-height:40px;padding:9px 16px;}
+  .b-tus a,.b-tus button{min-height:40px;display:inline-flex;align-items:center;gap:6px;padding:8px 13px;font-size:13px;}
+}
 .b-toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:9999;}
 </style>
 <link rel="stylesheet" href="tasarim.css">

@@ -346,8 +346,14 @@ html[data-tasarim="v3"][data-theme="light"] .v2-bn-item.active { color: var(--yt
 html[data-tasarim="v3"][data-theme="light"] .tn-tab.active { color: var(--yt-amber-yazi) !important; border-bottom-color: var(--yt-btn) !important; }
 html[data-tasarim="v3"][data-theme="light"] .wb-key,
 html[data-tasarim="v3"][data-theme="light"] .meta-badge,
-html[data-tasarim="v3"][data-theme="light"] .role-badge,
 html[data-tasarim="v3"][data-theme="light"] .chord-line { color: var(--accent) !important; }
+/* (2026-10-25) Rol çipleri açık temada da ayırt edilsin (eskiden hepsi altın): Kurucu altın · Admin yeşil · Editör mor · Üye nötr.
+   gruplar.html: .role-owner/.role-admin/.role-member · uyeler.html: .role-badge.admin/.editor/.member */
+html[data-tasarim="v3"][data-theme="light"] .role-owner { color: var(--accent) !important; background: rgba(154, 91, 0, .10) !important; border-color: rgba(154, 91, 0, .32) !important; }
+html[data-tasarim="v3"][data-theme="light"] .role-admin { color: #1E7B34 !important; background: rgba(30, 123, 52, .10) !important; border-color: rgba(30, 123, 52, .32) !important; }
+html[data-tasarim="v3"][data-theme="light"] :is(.role-member, .role-badge.member) { color: #4A5468 !important; background: #F1F3F7 !important; border-color: #D5DAE3 !important; }
+html[data-tasarim="v3"][data-theme="light"] .role-badge.admin { color: #B42318 !important; background: rgba(180, 35, 24, .08) !important; border-color: rgba(180, 35, 24, .30) !important; }
+html[data-tasarim="v3"][data-theme="light"] .role-badge.editor { color: #6D3FC0 !important; background: rgba(109, 63, 192, .08) !important; border-color: rgba(109, 63, 192, .30) !important; }
 /* Mesajlar sekmesi: beyaz yazı + sarı zemin (2.1) → koyu yazı + marka sarısı */
 html[data-tasarim="v3"][data-theme="light"] .tab-btn.active { background: var(--yt-btn) !important; color: #1A1305 !important; }
 
