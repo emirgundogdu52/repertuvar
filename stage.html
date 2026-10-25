@@ -1361,7 +1361,7 @@ const H = new Proxy({}, {
   getOwnPropertyDescriptor(){ return {enumerable:true, configurable:true}; }
 });
 
-let WL = {}, WL_loaded = false, _stageShowsPlaceholder = false; // WL_loaded: yükleme bitti mi; _stageShowsPlaceholder: sahnede şu an gerçek ad yerine placeholder/… gösteriliyor mu
+let WL = {}, WL_loaded = false, _stageShowsPlaceholder = false, _stageIcerikBos = false; // WL_loaded: yükleme bitti mi; _stageShowsPlaceholder: sahnede şu an gerçek ad yerine placeholder/… gösteriliyor mu
 
 // ── Çevrimdışı bildirimi (repertuvarlar/eserler ile aynı davranış) ──
 // Bağlantı GERÇEKTEN yoksa (navigator offline) ve veri yerelden gösteriliyorsa,
@@ -2433,15 +2433,30 @@ document.addEventListener('click', function(e) {
     scheduleStageToolsHide(); // panel içinde bir butona basıldıysa süreyi yenile
   }
 });
+// (2026-10-25) Kullanıcı: "Açık modda repertuvar seçip sahneye çıkınca siyah mod geliyor, neden?" Sahne teması uygulama
+// temasından bağımsızdı ve seçim ekranı her açılışta 'stageTheme'e sessizce 'night' yazıyordu (Ayarlar ise boşken 'Gündüz'
+// gösteriyordu). Yeni düzen: varsayılan Ayarlar'da (stageTemaVarsayilan: 'oto' | 'day' | 'night'; boşsa 'oto' = uygulama
+// açıksa Gündüz, koyuysa Gece); sahnede/seçim ekranında Gece–Gündüz'e basmak BU OTURUM için geçerli (sessionStorage).
+// Eski 'stageTheme' anahtarı kullanıcı seçimi sayılmaz (herkeste otomatik 'night' yazılıydı).
+function _sahneTemasi(){
+  try { const o = sessionStorage.getItem('stageThemeOturum'); if (o === 'day' || o === 'night') return o; } catch(e) {}
+  let v = 'oto'; try { v = localStorage.getItem('stageTemaVarsayilan') || 'oto'; } catch(e) {}
+  if (v === 'day' || v === 'night') return v;
+  let app = 'dark'; try { app = localStorage.getItem('r_theme') || 'dark'; } catch(e) {}
+  return app === 'light' ? 'day' : 'night';
+}
+function _sahneTemasiYaz(t){
+  try { sessionStorage.setItem('stageThemeOturum', t); } catch(e) {}
+}
 function toggleStageTheme(){
-  const t = localStorage.getItem('stageTheme')||'night';
-  const next = t==='night' ? 'day' : 'night';
-  localStorage.setItem('stageTheme', next);
+  const next = _sahneTemasi()==='night' ? 'day' : 'night';
+  _sahneTemasiYaz(next);
   applyStageTheme('stage');
+  _temaDugmeleri(next);
 }
 
 function applyStageTheme(screen){
-  const t = localStorage.getItem('stageTheme') || 'night';
+  const t = _sahneTemasi();
   const isStageDay   = screen === 'stage' && t === 'day';
   const isStageNight = screen === 'stage' && t === 'night';
   document.body.classList.toggle('day-theme', isStageDay);
@@ -2479,7 +2494,11 @@ function applyStageTheme(screen){
   }
 }
 function setTheme(t){
-  localStorage.setItem('stageTheme',t);
+  _sahneTemasiYaz(t);
+  _temaDugmeleri(t);
+}
+// Seçim ekranındaki Gündüz / Gece düğmelerini boyar (seçim yazmadan)
+function _temaDugmeleri(t){
   const active={background:'rgba(255,200,61,0.12)',borderColor:'rgba(255,200,61,0.4)',color:'#E5A900'};
   const inactive={background:'',borderColor:'rgba(148,148,168,0.18)',color:'#8b8aa8'};
   ['day','night'].forEach(k=>{
@@ -2504,7 +2523,6 @@ async function startStage(){
   }
   if (startButton) startButton.disabled = false;
   curIdx=0;
-  if(!localStorage.getItem('stageTheme')) localStorage.setItem('stageTheme','night');
   window._stageActive = true;
   window.dispatchEvent(new Event('stageEnter'));
   // (2026-09-27, Offline Düzeltme 4) Bağlantı varken repertuvarın notalarını
@@ -2616,6 +2634,9 @@ function renderStage(){
   // binmiş görünüyordu (yenileyince geçiyordu). Artık üçü de tek karede.
   const savedScale = Math.min(1, parseFloat(localStorage.getItem('stageLyricsScale')) || 1);   // eski kayıt >1 olabilir
   document.documentElement.style.setProperty('--lyrics-scale', savedScale);
+  // (2026-10-25) Repertuvarlar'dan doğrudan girişte eser adı yerel önbellekten gelip SÖZ henüz yokken çiziliyordu; tam liste
+  // gelince yalnız "ad eksikse" yeniden çiziliyordu → sahne boş kalıyordu. İçerik boş basıldıysa da tazeleme beklesin.
+  _stageIcerikBos = !bodyHtml;
   document.getElementById('sm').innerHTML = bodyHtml;
   const savedAlign = localStorage.getItem('stageLyricsAlign') || 'left';
   setLyricsAlign(savedAlign);
@@ -4257,7 +4278,7 @@ function loadSideWork(id) {
   }
 
   reps=await loadReps();
-  setTheme(localStorage.getItem('stageTheme')||'night');
+  _temaDugmeleri(_sahneTemasi());
 
   // (2026-08-19) SEÇİCİ EKRANI BİR AN GÖRÜNÜP KAPANIYORDU. Emir: "repertuvarı
   // seçip 'Sahne modunda aç' dediğimde bir an stage'in repertuvar listesi
@@ -4343,6 +4364,11 @@ function loadSideWork(id) {
         var _it = (curRep.items || [])[curIdx];
         var _nowResolved = _it && WL[_it.workId] && WL[_it.workId].name;
         if (_nowResolved) renderStage();
+      } else if (stage && !stage.classList.contains('hidden') && _stageIcerikBos &&
+          typeof curRep !== 'undefined' && curRep && typeof renderStage === 'function') {
+        // Ad doğru ama söz / akor / nota boş basılmıştı: şimdi geldiyse bir kez yeniden çiz (gerçekten içeriksiz eserde çizmez)
+        var _it2 = (curRep.items || [])[curIdx], _w2 = _it2 && WL[_it2.workId];
+        if (_w2 && (_w2.lyrics || _w2.chords || (typeof stageNotaPages === 'function' && stageNotaPages(_w2).length))) renderStage();
       }
     }, 150);
   }

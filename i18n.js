@@ -1540,6 +1540,7 @@
       'es.gorunurNot_grup': '👥 Eseri yalnızca grup üyeleriniz görür. Genel kataloğa girmez, onay gerekmez.',
       'es.gorunurNot_yetkili': '🌐 Eser doğrudan yayımlanacak — onay yetkiniz var.',
       'es.gorunurNot_oneri': '🌐 Eser katalog önerisi olarak iletilecek; yönetici onayından sonra herkese açık olacak.',
+      'ay.temaOto': '🌓 Uygulama temasıyla aynı',
       'ay.gunduz': '☀️ Gündüz',
       'ay.gece': '🌙 Gece',
       'alan.makam': 'Makam', 'alan.usul': 'Usul', 'alan.olcu': 'Ölçü',
@@ -3430,6 +3431,7 @@
       'es.gorunurNot_grup': '👥 Only your group members will see this piece. It does not enter the public catalogue and needs no approval.',
       'es.gorunurNot_yetkili': '🌐 This piece will be published straight away — you have approval rights.',
       'es.gorunurNot_oneri': '🌐 This piece will be submitted to the catalogue; it becomes public once an admin approves it.',
+      'ay.temaOto': '🌓 Same as app theme',
       'ay.gunduz': '☀️ Day',
       'ay.gece': '🌙 Night',
       // 'Meter', 'Time signature' degil: bu anahtar CIPLERDE kullaniliyor

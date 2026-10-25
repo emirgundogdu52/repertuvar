@@ -771,7 +771,8 @@ html, body { overflow-x: hidden; }
           <div class="setting-label" data-i18n="ay.tema">Varsayılan Tema</div>
           <div class="setting-desc" data-i18n="ay.tema_alt">Sahne modunda açılış teması</div>
         </div>
-        <select class="setting-select" id="stageTheme" onchange="saveSetting('stageTheme',this.value)">
+        <select class="setting-select" id="stageTheme" onchange="sahneTemasiKaydet(this.value)">
+          <option value="oto" data-i18n="ay.temaOto">🌓 Uygulama temasıyla aynı</option>
           <option value="day" data-i18n="ay.gunduz">☀️ Gündüz</option>
           <option value="night" data-i18n="ay.gece">🌙 Gece</option>
         </select>
@@ -1335,8 +1336,14 @@ async function saveDisplayName(){
   }
 }
 
+// (2026-10-25) Sahne varsayılan teması yeni anahtarda: eski 'stageTheme'e sahne her açılışta 'night' yazıyordu (seçim
+// sayılmaz). Değişince bu oturumdaki sahne içi Gece/Gündüz seçimi silinir ki yeni varsayılan hemen geçerli olsun.
+function sahneTemasiKaydet(v) {
+  try { sessionStorage.removeItem('stageThemeOturum'); } catch (e) {}
+  saveSetting('stageTemaVarsayilan', v);
+}
 function loadSettings() {
-  const theme = localStorage.getItem('stageTheme') || 'day';
+  const theme = localStorage.getItem('stageTemaVarsayilan') || 'oto';
   const align = localStorage.getItem('stageLyricsAlign') || 'center';
   const chords = localStorage.getItem('stageShowChords') || '0';
   const el = document.getElementById('stageTheme'); if(el) el.value = theme;
