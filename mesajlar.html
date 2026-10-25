@@ -210,6 +210,15 @@ body { -webkit-text-size-adjust: 100%; }
 .nm-member-item input[type=checkbox] { width: 20px; height: 20px; }
 .nm-actions .btn-nm-cancel, .nm-actions .btn-nm-send { flex: 1 1 0; min-height: 44px; font-size: 14px; }
 @media (min-height: 700px) { #nmMemberList { max-height: min(36vh, 360px) !important; } }   /* satır içi 200px */
+
+/* (2026-10-25) Sayfa başlığı + yönetici düğmeleri aynı satırda (dar ekranda düğmeler alta iner). Başlık hiza kuralı: konuşma
+   satırı / ileti / duyuru kutuları 16 + 1 kenarlık = 17 → başlık, alt başlık ve sekme yazısı 17 px içeride; yazma kutuları da 16. */
+.ms-bas { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.ms-bas .page-title { font-size:20px; font-weight:700; color:var(--text); padding-left:17px; }
+.ms-bas .page-sub { font-size:13px; color:var(--text3); margin-top:3px; padding-left:17px; }
+.compose-box { padding-left:16px !important; padding-right:16px !important; }
+.tab-btn { padding-left:17px; padding-right:17px; }
+.conv-item.secili { border-color:var(--accent); background:color-mix(in srgb, var(--accent) 8%, var(--surface)); }
 </style>
 <link rel="stylesheet" href="tasarim.css">
 </head>
@@ -222,17 +231,24 @@ body { -webkit-text-size-adjust: 100%; }
 
 <div class="page">
 
+  <!-- (2026-10-25) Sayfa başlığı (kullanıcı onayı: diğer sayfalarda var). Başlık hiza kuralı: kutuların içeriği 16 + 1 = 17. -->
+  <div class="ms-bas">
+    <div>
+      <div class="page-title" data-i18n="menu.mesajlar">Mesajlar</div>
+      <div class="page-sub" data-i18n="ms.altBaslik">Yazışmalar ve duyurular.</div>
+    </div>
+    <!-- Admin: Duyuru Yaz / Yeni Mesaj (başlığın sağında) -->
+    <div id="newMsgBtnWrap" class="admin-only" style="display:none;">
+      <button class="btn-new-msg btn-duyuru-yaz" id="duyuruYazBtn" onclick="duyuruFormAcKapat()" aria-expanded="false" aria-controls="announceSection"><i class="ti ti-speakerphone" style="font-size:14px;"></i> <span data-i18n="ms.duyuruYaz">Duyuru Yaz</span></button>
+      <button class="btn-new-msg" onclick="openNewMsgModal()"><i class="ti ti-edit" style="font-size:14px;"></i> <span data-i18n="ms.yeniMesaj">Yeni Mesaj</span></button>
+    </div>
+  </div>
+
   <!-- Üye: Mesaj gönder -->
   <div id="composeSection" class="compose-box" style="display:none;">
     <h3 data-i18n="ms.adminMesaj">✉️ Admin'e Mesaj Gönder</h3>
     <textarea id="composeText" placeholder="Sorunuzu, talebinizi ya da geri bildiriminizi yazın. Ne kadar ayrıntı verirseniz o kadar hızlı yardımcı olabiliriz." data-i18n-ph="ms.phSoru"></textarea>
     <button class="btn-send" onclick="sendMessage()" id="sendBtn" data-i18n="ms.gonder">Gönder</button>
-  </div>
-
-  <!-- Admin: Yeni Mesaj butonu -->
-  <div id="newMsgBtnWrap" class="admin-only" style="display:none;margin-bottom:16px;">
-    <button class="btn-new-msg btn-duyuru-yaz" id="duyuruYazBtn" onclick="duyuruFormAcKapat()" aria-expanded="false" aria-controls="announceSection"><i class="ti ti-speakerphone" style="font-size:14px;"></i> <span data-i18n="ms.duyuruYaz">Duyuru Yaz</span></button>
-    <button class="btn-new-msg" onclick="openNewMsgModal()"><i class="ti ti-edit" style="font-size:14px;"></i> <span data-i18n="ms.yeniMesaj">Yeni Mesaj</span></button>
   </div>
 
   <!-- Admin: Duyuru yaz -->
@@ -253,9 +269,12 @@ body { -webkit-text-size-adjust: 100%; }
     </button>
   </div>
 
-  <!-- Mesajlar -->
-  <div id="messagesPanel">
-    <div class="empty" data-i18n="ortak.yukleniyor">Yükleniyor...</div>
+  <!-- Mesajlar — (2026-10-25) masaüstünde yöneticide iki bölme: liste (#messagesPanel) solda, açılan konuşma (#threadPanel) sağda -->
+  <div id="msIki" class="ms-iki">
+    <div id="messagesPanel">
+      <div class="empty" data-i18n="ortak.yukleniyor">Yükleniyor...</div>
+    </div>
+    <div id="threadPanel" class="ms-konusma" hidden></div>
   </div>
 
   <!-- Duyurular -->
@@ -329,7 +348,7 @@ function timeAgo(dateStr) {
 function switchTab(tab) {
   document.getElementById('tabMessages').classList.toggle('active', tab === 'messages');
   document.getElementById('tabAnnouncements').classList.toggle('active', tab === 'announcements');
-  document.getElementById('messagesPanel').style.display = tab === 'messages' ? '' : 'none';
+  document.getElementById('msIki').style.display = tab === 'messages' ? '' : 'none';   // liste + (masaüstünde) konuşma bölmesi
   document.getElementById('announcementsPanel').style.display = tab === 'announcements' ? '' : 'none';
 }
 
@@ -409,6 +428,7 @@ async function loadMessages() {
             </div>
           </div>`;
         }).join('') + '</div>';
+      _seciliIsaretle();
     } else {
       const unread = data.filter(m => !m.uye_okudu_at && m.admin_reply).map(m => m.id);
       if (unread.length) setTimeout(() => markRead(unread, 'uye_okudu_at'), 1000);
@@ -430,15 +450,46 @@ async function loadMessages() {
   }
 }
 
+// (2026-10-25) Kullanıcı onayı: masaüstünde (geniş ekran + fare) YÖNETİCİ görünümü İKİ BÖLMELİ — konuşma listesi solda kalır,
+// açılan konuşma sağdaki #threadPanel'e çizilir (Geri düğmesi yok). Telefon / iPad / üye görünümü eskisi gibi: konuşma listenin
+// yerini alır, Geri ile listeye dönülür. Yanıt / silme / yeni mesaj akışları aynı işlevler (sendReply → openThread yeniden çizer).
+const _ikiBolmeMq = window.matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)');
+let _acikKonusma = null;   // { fromId, email } — açık konuşma (seçili satır + pencere boyu değişince yeniden çizim)
+let _konusmaIstek = 0;     // hızlı art arda tıklamada geç gelen eski yanıt yeni konuşmanın üstüne yazılmasın
+function _ikiBolme() { return isAdmin() && _ikiBolmeMq.matches; }
+function _ikiBolmeKur() {
+  const ac = _ikiBolme();
+  document.getElementById('msIki').classList.toggle('aktif', ac);
+  const sag = document.getElementById('threadPanel');
+  sag.hidden = !ac;
+  if (ac && !_acikKonusma) sag.innerHTML = '<div class="empty">' + _msCev('ms.konusmaSec', 'Okumak için soldan bir konuşma seç.') + '</div>';
+}
+function _seciliIsaretle() {
+  const iki = _ikiBolme();
+  document.querySelectorAll('#messagesPanel .conv-item').forEach(el => {
+    el.classList.toggle('secili', iki && !!_acikKonusma && el.dataset.key === String(_acikKonusma.fromId));
+  });
+}
+function _listeyeDon() { _acikKonusma = null; loadMessages(); }
+
 function openThread(fromId, email) {
-  const panel = document.getElementById('messagesPanel');
+  const iki = _ikiBolme();
+  const panel = document.getElementById(iki ? 'threadPanel' : 'messagesPanel');
+  _acikKonusma = { fromId, email };
+  const istek = ++_konusmaIstek;
+  if (iki) _seciliIsaretle();
   fetch(SUPA_URL + '/rest/v1/messages?from_id=eq.' + fromId + '&order=created_at.desc', { headers: H() })
     .then(r => r.json())
     .then(data => {
+      if (istek !== _konusmaIstek) return;
       const unread = data.filter(m => !m.read_at).map(m => m.id);
       if (unread.length) markRead(unread);
+      if (iki) {   // listedeki okunmamış işareti hemen kalksın (liste yeniden çizilmeden)
+        const sec = document.querySelector('#messagesPanel .conv-item.secili');
+        if (sec) { sec.classList.remove('unread'); const rz = sec.querySelector('.conv-badge'); if (rz) rz.remove(); }
+      }
       panel.innerHTML = `<div class="thread-header">
-          <button class="btn-back" onclick="loadMessages()"><i class="ti ti-arrow-left"></i> ${_msCev('ortak.geri','Geri')}</button>
+          ${iki ? '' : `<button class="btn-back" onclick="_listeyeDon()"><i class="ti ti-arrow-left"></i> ${_msCev('ortak.geri','Geri')}</button>`}
           <div class="thread-email">${htmlKac(email)}</div>
         </div>` +
         data.map(m => `
@@ -458,7 +509,8 @@ function openThread(fromId, email) {
               <button class="btn-send" style="margin-top:8px;padding:7px 16px;font-size:12px;" data-email="${htmlKac(email)}" onclick="sendReply('${m.id}','${fromId}',this.dataset.email)" data-i18n="ms.gonder">${_msCev('ms.gonder','Gönder')}</button>
             </div>
           </div>`).join('');
-      setTimeout(() => { panel.scrollTop = panel.scrollHeight; }, 50);
+      if (iki) panel.scrollTop = 0;   // en yeni ileti üstte
+      else setTimeout(() => { panel.scrollTop = panel.scrollHeight; }, 50);
     });
 }
 
@@ -672,6 +724,11 @@ async function loadAnnouncements() {
     // "Duyuru Yaz" ile açılır (admin-only döngüsü satır içi display'i sildiği için burada yeniden gizleniyor).
     document.getElementById('announceSection').style.display = 'none';
     document.getElementById('newMsgBtnWrap').style.display = 'flex';
+    _ikiBolmeKur();
+    _ikiBolmeMq.addEventListener('change', () => {
+      _ikiBolmeKur();
+      loadMessages().then(() => { if (_acikKonusma) openThread(_acikKonusma.fromId, _acikKonusma.email); });
+    });
     const r1 = document.getElementById('sbUserRole'); if(r1) r1.textContent = 'Admin';
   } else {
     document.getElementById('composeSection').style.display = 'block';

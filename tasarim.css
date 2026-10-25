@@ -1435,7 +1435,7 @@ html[data-tasarim="v3"][data-sayfa="ritim-kes"] :is(.rk-head, .rk-kota) { paddin
 /* 8) Mesajlar — 1505'te içerik 390 px, ortada (sayfa "margin:0 auto" esnek sütunda; kutular 424/680 px'e sabit, kendi içinde
    ortalı). Masaüstünde 1040 px sola yaslı, kutular sayfa genişliğinde. Konuşma satırı adı 13 → 15 (diğer listeler), önizleme
    12 → 13, mesaj gövdeleri 13 → 14, sekmeler 13 → 14. Sekme yazısı konuşma satırlarının içeriğiyle aynı 17 px çizgisinde.
-   İki bölmeli (liste + konuşma yan yana) düzen JS ister (openThread listeyi siliyor) — bilerek yapılmadı. */
+   İki bölmeli düzen 2026-10-25 akşam kullanıcı onayıyla eklendi (aşağıda, .ms-iki). */
 @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
   html[data-tasarim="v3"][data-sayfa="mesajlar"] .page { max-width: 1040px; width: 100%; margin-left: 0; margin-right: 0; padding: 16px 20px 40px; }
   html[data-tasarim="v3"][data-sayfa="mesajlar"] :is(.tabs, .compose-box, .ann-card, .conv-item) { max-width: none; width: 100%; margin-left: 0; margin-right: 0; }
@@ -1448,6 +1448,13 @@ html[data-tasarim="v3"][data-sayfa="ritim-kes"] :is(.rk-head, .rk-kota) { paddin
   html[data-tasarim="v3"][data-sayfa="mesajlar"] .thread-email { font-size: 15px; }
   html[data-tasarim="v3"][data-sayfa="mesajlar"] .reply-form textarea { font-size: 14px !important; }
   html[data-tasarim="v3"][data-sayfa="mesajlar"] .empty { font-size: 14px; }
+  /* (2026-10-25, kullanıcı onayı) İKİ BÖLME (yönetici; mesajlar.html _ikiBolme): liste --liste-sutun genişliğinde solda, açık
+     konuşma sağda — sayfa 1240'a açılır; konuşma bölmesi kendi içinde kayar ve sayfa kayarken yerinde durur. */
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .page:has(.ms-iki.aktif) { max-width: 1240px; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .ms-iki.aktif { display: grid; grid-template-columns: var(--liste-sutun) minmax(0, 1fr); column-gap: 20px; align-items: start; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .ms-iki.aktif .ms-konusma { position: sticky; top: 16px; max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px);
+    overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .ms-iki.aktif .ms-konusma .thread-header { padding-left: 17px; min-height: 40px; }
 }
 /* 9) Ayarlar — 1505'te sayfa 640 px sola yaslı, bölümler onun içinde 424 px ortalı (soldan 108 px boşluk), sayfa 3820 px uzun.
    Masaüstünde 1040 px, bölümler iki sütunlu akışta (CSS sütunları: yukarıdan aşağı, bölüm bölünmez) → ~1900 px. Yazı / düğme
