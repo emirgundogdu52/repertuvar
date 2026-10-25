@@ -13,8 +13,28 @@
 <script src="auth.js"></script>
 <script src="bildir.js"></script>
 <script src="onboarding.js"></script>
+<script src="verilerim.js"></script>
 <script src="topnav.js" defer></script>
 <script>
+// (2026-10-25) VERİLERİMİ İNDİR — kullanıcının kendi verisi tek .zip (verilerim.js). Katalog sözleri dahil değil.
+let _verilerimSuruyor = false;
+async function verilerimiIndir() {
+  const btn = document.getElementById('verilerimBtn'), msg = document.getElementById('verilerimMsg');
+  const goster = (t, ok) => { msg.textContent = t; msg.style.color = ok ? 'var(--green, #3FB950)' : 'var(--red)'; msg.style.display = ''; };
+  if (_verilerimSuruyor || !window.Verilerim) return;
+  if (navigator.onLine === false) { goster(_t('ay.verCevrimdisi', 'İndirmek için internet bağlantısı gerekiyor.'), false); return; }
+  _verilerimSuruyor = true;
+  const eski = btn.textContent;
+  btn.disabled = true; btn.textContent = _t('ay.verHazirlaniyor', 'Hazırlanıyor…'); msg.style.display = 'none';
+  try {
+    const p = await Verilerim.indir();
+    if (p.durum !== 'iptal') goster(_t('ay.verHazir', 'Hazır: {e} eser, {r} repertuvar ({ad}).').replace('{e}', p.ozet.eser).replace('{r}', p.ozet.repertuvar).replace('{ad}', p.ad), true);
+  } catch (e) {
+    goster(_t('ay.verHata', 'Veriler hazırlanamadı: {hata}').replace('{hata}', (e && e.message) || e), false);
+  } finally {
+    _verilerimSuruyor = false; btn.disabled = false; btn.textContent = eski;
+  }
+}
 async function hesapSilOnay() {
   document.getElementById('silOnayEmail').value = '';
   document.getElementById('silHataMsg').style.display = 'none';
@@ -538,6 +558,15 @@ html, body { overflow-x: hidden; }
            avatar/hesap menüsünde (masaüstü) ve mobil üst çubuktaki avatar menüsünde.
            Tek yerde durması "çıkış nerede?" karışıklığını bitiriyor. logout() fonksiyonu
            dosyada duruyor, silinmedi. -->
+      <!-- (2026-10-25) Kullanıcı: "Verilerimi indir ekle" — GDPR taşınabilirlik; yalnız kendi verisi (verilerim.js). -->
+      <div class="setting-row">
+        <div style="flex:1;min-width:0;">
+          <div class="setting-label" data-i18n="ay.verilerim">Verilerimi İndir</div>
+          <div class="setting-desc" data-i18n="ay.verilerim_alt">Eklediğin eserler (söz, akor, bilgiler — ChordPro), repertuvarların, kişisel akor ve notların tek bir .zip dosyasında. Ortak katalog eserlerinin sözleri dahil değildir.</div>
+          <div id="verilerimMsg" role="status" style="margin-top:6px;font-size:12px;display:none;"></div>
+        </div>
+        <button class="setting-btn" id="verilerimBtn" onclick="verilerimiIndir()" data-i18n="ay.indir">İndir</button>
+      </div>
       <div class="setting-row">
         <div>
           <div class="setting-label" style="color:var(--red);" data-i18n="ay.hesapsil">Hesabımı Sil</div>

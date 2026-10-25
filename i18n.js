@@ -1331,6 +1331,14 @@
       'es.yeniEserYazAlt': 'Adı, sözü, akoru ve notayı kendin gir',
       'es.defterdenEkle': 'Defterden ekle',
       'es.defterdenEkleAlt': 'Defterini tara: mevcut esere nota ekle ya da yeni eser aç',
+      // (2026-10-25) Verilerimi indir (verilerim.js)
+      'ay.verilerim': "Verilerimi İndir",
+      'ay.verilerim_alt': "Eklediğin eserler (söz, akor, bilgiler — ChordPro), repertuvarların, kişisel akor ve notların tek bir .zip dosyasında. Ortak katalog eserlerinin sözleri dahil değildir.",
+      'ay.indir': "İndir",
+      'ay.verHazirlaniyor': "Hazırlanıyor…",
+      'ay.verHazir': "Hazır: {e} eser, {r} repertuvar ({ad}).",
+      'ay.verHata': "Veriler hazırlanamadı: {hata}",
+      'ay.verCevrimdisi': "İndirmek için internet bağlantısı gerekiyor.",
       // (2026-10-25) Uygunsuz içerik (sql/icerik_koruma.sql)
       'ortak.uygunsuzIcerik': "Kaydedilmedi: “{ifade}” ifadesi başkalarının gördüğü ad ve açıklamalarda kullanılamaz. Lütfen değiştir.",
       'es.iaUygunsuz': "Uygunsuz olabilecek ifade var: “{ifade}”. Paylaşmadan önce kontrol et.",
@@ -3116,6 +3124,14 @@
       'es.yeniEserYazAlt': 'Enter the title, lyrics, chords and sheet music yourself',
       'es.defterdenEkle': 'Add from notebook',
       'es.defterdenEkleAlt': 'Scan your notebook: add sheet music to existing pieces or create new ones',
+      // (2026-10-25) Download my data (verilerim.js)
+      'ay.verilerim': "Download My Data",
+      'ay.verilerim_alt': "Pieces you added (lyrics, chords, details — ChordPro), your repertoires, personal chords and notes in a single .zip file. Lyrics of shared catalogue pieces are not included.",
+      'ay.indir': "Download",
+      'ay.verHazirlaniyor': "Preparing…",
+      'ay.verHazir': "Ready: {e} pieces, {r} repertoires ({ad}).",
+      'ay.verHata': "Could not prepare your data: {hata}",
+      'ay.verCevrimdisi': "Downloading needs an internet connection.",
       // (2026-10-25) Inappropriate content (sql/icerik_koruma.sql)
       'ortak.uygunsuzIcerik': "Not saved: “{ifade}” can’t be used in names or descriptions that others can see. Please change it.",
       'es.iaUygunsuz': "Possibly inappropriate wording: “{ifade}”. Check before sharing.",
