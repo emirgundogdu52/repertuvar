@@ -1820,3 +1820,24 @@ html[data-tasarim="v3"][data-sayfa="repertoires"] #repSearchInput { padding-left
 @media (max-width: 1023px) {
   html[data-tasarim="v3"][data-sayfa="repertoires"] .lph { padding-left: 33px; }   /* .ls 16 + 17 */
 }
+/* 26) Eserler listesi — soldaki 🎵 karesi kaldırıldı (2026-10-25 kullanıcı: "soldaki nota yer kaplıyor", 6 seçenekli önizlemeden B).
+   Her satırda aynı ikon bilgi taşımıyordu, ~46 px yer kaplıyordu. Ad artık kartın iç kenarından (kenar + 17) başlıyor — başlık hiza
+   kuralındaki çizgiyle aynı. Toplu seçim kutusu (.work-bulk-check) yerinde. */
+html[data-tasarim="v3"][data-sayfa="eserler"] .work-item > .work-icon { display: none; }
+/* 27) Repertuvar eser satırı — telefonda DİKEY konumda işlemler "⋯" menüsünde (2026-10-25 kullanıcı: "kapalı menü mü koysak, hep
+   görünmesi gereken sadece varsa potpuri ikonu" + "yatay çevirince çıkabilir, dikey konum için uygulayalım"). Dikey telefonda (≤768,
+   portrait) satırda yalnız ⋯ ve bağlıysa 🔗 (bağı çözme düğmesi); dinle / kişisel not / potpuri / düzenle / çıkar menüde (satirMenuAc).
+   Yatay telefon, iPad ve masaüstünde düğmeler eskisi gibi; ⋯ gizli. */
+html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .ra-menu { display: none; }
+@media (max-width: 768px) and (orientation: portrait) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ra { width: auto !important; min-width: 0 !important; flex-wrap: nowrap !important; opacity: 1; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ra > :not(.ra-menu):not(.bl.linked) { display: none !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .ra-menu { display: inline-flex; align-items: center; justify-content: center; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .ra-menu i { font-size: 20px; }
+}
+/* Eserler ≥1024: kartlar arama kutusu / çip satırından 4 px dışarıdaydı (kart 264, arama 268) — <1024'teki 16 px kenar standardı
+   masaüstünde de (2026-10-25, ikon kaldırılınca fark edildi). */
+@media (min-width: 1024px) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .we-wrap,
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item:not(.we-wrap > .work-item) { margin-left: 16px; margin-right: 16px; }
+}

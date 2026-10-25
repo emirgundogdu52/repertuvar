@@ -970,6 +970,7 @@ if (history.state && history.state.repDetay) history.replaceState(null, '');
 window.RGeri = function () {
   const gor = id => { const el = document.getElementById(id); return !!(el && getComputedStyle(el).display !== 'none'); };
   const sinif = (id, c) => { const el = document.getElementById(id); return !!(el && el.classList.contains(c)); };
+  if (document.getElementById('smSheet')) { satirMenuKapat(); return true; }
   if (sinif('knotSheet', 'open')) { closeKnotSheet(); return true; }
   if (sinif('rlpSheet', 'open')) { closeRepMoveSheet(); return true; }
   if (gor('dnlOverlay')) { closeDinleSheet(); return true; }
@@ -1076,6 +1077,7 @@ function renderDetail(){
         <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
         <button class="br dl" data-ad="${_rEsc(w.name||_r('rep.buEser','Bu eser'))}" onclick="rmItem('${rep.id}','${it.id}',this.dataset.ad)"><i class="ti ti-trash" aria-hidden="true"></i></button>
         `:''}
+        <button class="br ra-menu" onclick="event.stopPropagation();satirMenuAc('${rep.id}','${it.id}')" aria-label="${_r('rep.satirIslemleri','Eser işlemleri')}" title="${_r('rep.satirIslemleri','Eser işlemleri')}"><i class="ti ti-dots" aria-hidden="true"></i></button>
       </div></td>
     </tr>`;
   }).join(''):`<tr><td colspan="5" class="ei">${_r('rep.henuzEserYok','Henüz eser eklenmedi.')}</td></tr>`;
@@ -3230,6 +3232,65 @@ function _knotEsc(s){
 
 // Satırdaki düğme. Not varsa turkuaz ve dolu, yoksa soluk — listeye bakarken
 // hangi eserde notun olduğu tek bakışta görünsün.
+// (2026-10-25) Kullanıcı: "Telefonda repertuvar eser listesi bozuldu… bunlara kapalı menü mü koysak, burada hep görünmesi gereken
+// sadece varsa potpuri ikonu". Telefonda (≤768, tasarim.css) satırdaki dinle / kişisel not / potpuri / düzenle / sil düğmeleri iki
+// sıraya taşıyordu → satırda yalnız "⋯" (+ bağlıysa 🔗) kalır; işlemler bu alttan açılan menüde. iPad / masaüstünde düğmeler aynen.
+function satirMenuAc(repId, itemId){
+  const rep = getRep(repId); if (!rep) return;
+  const items = rep.items || [];
+  const idx = items.findIndex(x => String(x.id) === String(itemId)); if (idx < 0) return;
+  const it = items[idx], w = WL[it.workId] || {};
+  const canM = !!rep.canManage;
+  const linked = idx > 0 && !!it.linkedPrev;
+  const notVar = !!PERSONAL_NOTES[String(it.workId)];
+  const vid = _ytId(w.videoLink);
+  if (!document.getElementById('sm-style')) {
+    const st = document.createElement('style'); st.id = 'sm-style';
+    st.textContent =
+      '.sm-ov{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.55);}' +
+      '.sm-sheet{position:fixed;left:0;right:0;bottom:0;z-index:9999;background:var(--surface);border-top:1px solid var(--border2);' +
+        'border-radius:16px 16px 0 0;padding:6px 0 calc(10px + env(safe-area-inset-bottom));box-shadow:0 -8px 32px rgba(0,0,0,.45);' +
+        'max-height:80vh;overflow-y:auto;animation:smAc .22s cubic-bezier(.32,.72,0,1);}' +
+      '@keyframes smAc{from{transform:translateY(100%)}to{transform:none}}' +
+      '.sm-bas{padding:12px 20px 10px;border-bottom:1px solid var(--border);}' +
+      '.sm-bas b{display:block;font-size:16px;font-weight:700;color:var(--text);line-height:1.3;}' +
+      '.sm-bas span{display:block;font-size:12.5px;color:var(--text3);margin-top:2px;}' +
+      '.sm-item{display:flex;align-items:center;gap:12px;width:100%;min-height:50px;padding:0 20px;background:none;border:0;' +
+        'color:var(--text);font:inherit;font-size:15px;text-align:left;text-decoration:none;cursor:pointer;}' +
+      '.sm-item i{font-size:19px;width:22px;text-align:center;color:var(--text2);flex-shrink:0;}' +
+      '.sm-item.dolu i{color:#2dd4bf;}.sm-item.potpuri i{color:var(--accent);}' +
+      '.sm-item.tehlike,.sm-item.tehlike i{color:var(--red,#ef4444);}' +
+      '.sm-item:active{background:var(--surface2);}' +
+      '.sm-ayrac{height:1px;background:var(--border);margin:4px 0;}';
+    document.head.appendChild(st);
+  }
+  satirMenuKapat();
+  const esc = _rEsc;
+  let h = '<div class="sm-bas"><b>' + esc(w.name || ('#' + it.workId)) + '</b>' +
+          ((w.makam || w.composer) ? '<span>' + esc([w.makam, w.composer].filter(Boolean).join(' · ')) + '</span>' : '') + '</div>';
+  if (vid) h += '<a class="sm-item" href="https://www.youtube.com/watch?v=' + vid + '" target="_blank" rel="noopener" onclick="satirMenuKapat()">' +
+                '<i class="ti ti-player-play" aria-hidden="true"></i>' + _r('rep.tekDinleT', 'Bu eseri YouTube’da dinle') + '</a>';
+  h += '<button class="sm-item' + (notVar ? ' dolu' : '') + '" onclick="satirMenuKapat();openKnotSheet(\'' + it.workId + '\')">' +
+       '<i class="ti ti-lock" aria-hidden="true"></i>' + (notVar ? _r('rep.notunuAc', 'Kişisel notunu aç') : _r('rep.notEkleT', 'Kişisel not ekle')) + '</button>';
+  if (canM) {
+    if (idx > 0) h += '<button class="sm-item potpuri" onclick="satirMenuKapat();toggleLink(\'' + repId + '\',\'' + it.id + '\')">' +
+                      '<i class="ti ti-link" aria-hidden="true"></i>' + (linked ? _r('rep.potpuriCoz', 'Potpuri bağını çöz') : _r('rep.potpuriYapKisa', 'Bir öncekiyle potpuri yap')) + '</button>';
+    h += '<button class="sm-item" onclick="satirMenuKapat();openItemEdit(\'' + repId + '\',\'' + it.id + '\')">' +
+         '<i class="ti ti-edit" aria-hidden="true"></i>' + _r('rep.satirDuzenle', 'Bu repertuvardaki bilgileri düzenle') + '</button>';
+    h += '<div class="sm-ayrac"></div><button class="sm-item tehlike" data-ad="' + esc(w.name || _r('rep.buEser', 'Bu eser')) + '" ' +
+         'onclick="satirMenuKapat();rmItem(\'' + repId + '\',\'' + it.id + '\',this.dataset.ad)">' +
+         '<i class="ti ti-trash" aria-hidden="true"></i>' + _r('rep.repdenCikar', 'Repertuvardan çıkar') + '</button>';
+  }
+  const ov = document.createElement('div'); ov.className = 'sm-ov'; ov.id = 'smOv'; ov.onclick = satirMenuKapat;
+  const sh = document.createElement('div'); sh.className = 'sm-sheet'; sh.id = 'smSheet'; sh.setAttribute('role', 'dialog'); sh.innerHTML = h;
+  document.body.appendChild(ov); document.body.appendChild(sh);
+}
+function satirMenuKapat(){
+  document.getElementById('smOv')?.remove();
+  document.getElementById('smSheet')?.remove();
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') satirMenuKapat(); });
+
 function _knotDugme(workId){
   const varMi = !!PERSONAL_NOTES[String(workId)];
   return '<button class="br knb' + (varMi ? ' dolu' : '') + '" data-knot="' + workId + '"' +
