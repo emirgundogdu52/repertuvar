@@ -1275,6 +1275,7 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"][data-sayfa="index"] .ana-defter small { font-size: 14px; }
   /* Kullanıcı (2026-10-25): "Not defteri bloğunu biraz aşağı al" — karşılama düğmelerinin 6 px altındaydı → 26 px */
   html[data-tasarim="v3"][data-sayfa="index"] .ana-defter { margin-top: 26px; }
+  html[data-tasarim="v3"][data-sayfa="index"] .ana-defter.ana-aktar { margin-top: 12px; }   /* altındaki "Başka uygulamadan getir" kartı (2026-10-25) */
   html[data-tasarim="v3"][data-sayfa="index"] .feat-title { font-size: 16px; }
   html[data-tasarim="v3"][data-sayfa="index"] .feat-desc { font-size: 14px; line-height: 1.5; }
   html[data-tasarim="v3"][data-sayfa="index"] .sec-header .sec-title { font-size: 14px; }

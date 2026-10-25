@@ -7404,6 +7404,16 @@ window.addEventListener('load', () => setTimeout(() => {
     defterAc();
   } catch (e) {}
 }, 500));
+// (2026-10-25) Ana Sayfa'daki "Başka uygulamadan getir" kartı → eserler.html?aktar=1: içe aktarma penceresi doğrudan açılır (bir kez).
+window.addEventListener('load', () => setTimeout(() => {
+  try {
+    const q = new URLSearchParams(location.search);
+    if (q.get('aktar') !== '1') return;
+    q.delete('aktar');
+    history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+    iaAc();
+  } catch (e) {}
+}, 500));
 
 // ── GÜFTE EDİTÖR TOOLBAR ──
 // (2026-10-24) Android Chrome araç düğmesine dokununca odağı düğmeye veriyordu (iOS vermez) → klavye kapanıp açılıyor, seçim

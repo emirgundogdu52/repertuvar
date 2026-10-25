@@ -182,6 +182,25 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     @keyframes defterCerceveAcik { 0%, 4% { color:#8A5A00; } 12% { color:#D99A00; } 30%, 100% { color:#8A5A00; } }
     @media (prefers-reduced-motion: reduce) { .tarama-cizgi, .tarama-cerceve, .tarama-cerceve-isik { animation:none; } }
 
+    /* (2026-10-25) "Başka uygulamadan aktar" kartı — defter kartıyla aynı yapı (yerleşim, dar alanda düğme alta), MAVİ kimlik
+       ("Hoş geldin" mavisi): altın + yeşil düğmeli defter kartıyla karışmasın, önde olan yine defter kartı. */
+    .ana-aktar { margin-top:12px; animation-delay:.3s;
+      background:linear-gradient(135deg, rgba(77,163,255,.14), rgba(77,163,255,.03));
+      border-color:rgba(77,163,255,.45); box-shadow:0 12px 28px -14px rgba(77,163,255,.4); }
+    .ana-aktar:hover { border-color:#4DA3FF; }
+    .ana-aktar-ik { background:rgba(77,163,255,.16); color:#4DA3FF; font-size:30px; }
+    .ana-aktar .ana-defter-cta { background:#4DA3FF; color:#06182E; }
+    .ana-aktar:hover .ana-defter-cta { background:#6BB4FF; }
+    [data-theme="light"] .ana-aktar { background:linear-gradient(135deg, #E6F0FF, #F5F9FF); border-color:rgba(10,91,194,.35); }
+    [data-theme="light"] .ana-aktar-ik { background:rgba(10,91,194,.12); color:#0A5BC2; }
+    [data-theme="light"] .ana-aktar .ana-defter-cta { background:#0A5BC2; color:#fff; }
+    [data-theme="light"] .ana-aktar:hover .ana-defter-cta { background:#084A9E; }
+    /* tek sütunda (≤900) defter kartının alt payı (30, yüzen önizlemeden uzak dursun) iki kartın altına taşınır */
+    @media (max-width:900px) {
+      .ana-defter:has(+ .ana-aktar) { margin-bottom:0; }
+      .ana-aktar { margin:12px 0 30px; }
+    }
+
     .hero-bullets { list-style:none; margin:0 0 20px; padding:0; }
     .hero-bullets li { font-size:15px; line-height:1.5; color:var(--text2); padding:6px 0; display:flex; align-items:flex-start; gap:8px; }
     .hero-bullets li i { color:var(--accent); font-size:16px; width:18px; text-align:center; flex-shrink:0; margin-top:3px; }
@@ -453,6 +472,17 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
           <small class="defter-masaustu" data-i18n="ana.defterAltMasaustu">Taradığın defter sayfalarını (JPG/PNG ya da tek PDF) yükle; her sayfa eserinin sözlerinin ve akorlarının yanına eklenir. Telefonda doğrudan kamerayla taranır.</small>
         </span>
         <span class="ana-defter-cta"><span class="defter-kamerali" data-i18n="ana.defterCta">Nota Defterini Tara</span><span class="defter-masaustu" data-i18n="ana.defterCtaMasaustu">Sayfaları Yükle</span><i class="ti ti-arrow-right" aria-hidden="true"></i></span>
+      </a>
+      <!-- (2026-10-25) Kullanıcı: "Nota defterini tara bloğunun altına Başka uygulamalardan aktar için bir blok oluşturalım".
+           Eserler'de içe aktarma penceresi doğrudan açılır (eserler.html?aktar=1). Rakip uygulama adı burada YOK (marka notu
+           yalnız içe aktarma penceresinde). -->
+      <a href="eserler.html?aktar=1" class="ana-defter ana-aktar">
+        <span class="ana-defter-ik ana-aktar-ik"><i class="ti ti-file-import" aria-hidden="true"></i></span>
+        <span class="ana-defter-metin">
+          <span class="ana-defter-ust"><b data-i18n="ana.aktarBaslik">Şarkılarını başka uygulamadan getir</b></span>
+          <small data-i18n="ana.aktarAlt">Başka bir uygulamada ya da Word’de duran şarkılarını ChordPro, Word, metin ya da zip dosyası olarak yükle; akorlar sözün üstünde yerine oturur.</small>
+        </span>
+        <span class="ana-defter-cta"><span data-i18n="ana.aktarCta">İçe Aktar</span><i class="ti ti-arrow-right"></i></span>
       </a>
       </div>
 
