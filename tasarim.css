@@ -1858,3 +1858,23 @@ html[data-tasarim="v3"][data-theme="light"][data-sayfa="repertoires"] .ra .ra-me
    YouTube bağlantısı olmayan eserde ▶ yok → kalan 6 düğme sola kayıyordu (sağda 50 px boşluk), sütunlar satırdan satıra kayıyordu.
    Telefon/iPad'de zaten flex-end idi. */
 html[data-tasarim="v3"][data-sayfa="repertoires"] .ra { justify-content: flex-end; }
+/* 30) Eserler — masaüstünde "+" başlıkta (2026-10-25 kullanıcı: "Desktop'ta Eserlerde + eser ekleme butonunu yukarıya alalım,
+   Repertuvarlarda olduğu gibi"). Liste sütununun üstünde "ESERLER" + sarı yuvarlak "+" (Repertuvarlar .lph ile aynı ölçü);
+   başlık ikonu kart iç yazısı çizgisinde (kart 16 + 17 = 33), "+" arama kutusunun sağ kenarında. Yüzen "+" masaüstünde gizli. */
+html[data-tasarim="v3"][data-sayfa="eserler"] .es-bas { display: none; }
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .es-bas {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 14px 16px 8px 33px; background: var(--bg); }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .es-bas h2 {
+    margin: 0; display: flex; align-items: center; gap: 6px; min-width: 0;
+    font-size: 14px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text3); white-space: nowrap; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .es-bas h2 i { font-size: 18px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .es-arti {
+    width: 36px; height: 36px; min-height: 0; padding: 0; border: none; border-radius: 50%; flex-shrink: 0; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--yt-btn, var(--accent)); color: #111; box-shadow: 0 4px 12px rgba(255, 200, 61, .35); }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .es-arti i { font-size: 20px; line-height: 1; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .es-arti:hover { filter: brightness(1.05); }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #btnAdminNewEser { display: none !important; }
+}
