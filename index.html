@@ -272,7 +272,11 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     .hero-ipad-screen { flex:1 1 auto; display:flex; flex-direction:column; }
     .hero-ipad-screen > .hero-list-name { margin-bottom:0; }
     .hero-ipad-screen > :is(.hero-song-row, .hero-drop-slot) { margin:7px 0 0; flex-shrink:0; }
-    .hero-ipad-screen > :is(.hero-song-row, .hero-drop-slot):nth-last-child(2) { margin-bottom:10px; }
+    .hero-ipad-screen > .hero-song-row[hidden] { display:none; }
+    /* bir satır daha sığmayınca kalan küçük boşluk satırlara paylaşılır (en çok 58 px satır; artan sekme çubuğunun üstüne) */
+    .hero-ipad-screen > .hero-song-row { flex:1 0 auto; max-height:58px; }
+    /* son GÖRÜNÜR satır ile sekme çubuğu arası en az 10 (ek satırlar gizliyken de) */
+    .hero-ipad-screen > .hero-song-row:not([hidden]):not(:has(~ .hero-song-row:not([hidden]))) { margin-bottom:10px; }
     .hero-ipad-tabbar { margin-top:auto; }
     @media (max-width: 900px) {
       .hero-preview-wrap, .hero-ipad { max-width:400px !important; margin-left:auto !important; margin-right:auto !important; }
@@ -287,6 +291,18 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     }
     @media (max-width: 600px) {
       .hero-preview-wrap, .hero-ipad { max-width:100% !important; }
+    }
+    /* (2026-10-25) Kullanıcı: "iPad'de yanlar çok boş kaldı" — dikey iPad'de (601–900) maket 400 px ortada, pedal / sayaçlar / slogan
+       altında tek sütundu (763 px alanda iki yanda ~180 px boş). Maket solda, diğerleri sağda dikeyde ortalı. */
+    @media (min-width: 601px) and (max-width: 900px) {
+      .hero-visual-row { display:grid !important; grid-template-columns:minmax(0, 400px) minmax(0, 1fr); column-gap:28px; row-gap:18px;
+        grid-template-rows:1fr auto auto auto 1fr; grid-template-areas:"maket ." "maket pedal" "maket sayac" "maket slogan" "maket .";
+        align-items:center; justify-items:center; }
+      .hero-visual-row > .hero-preview-wrap { grid-area:maket; margin:0 !important; }
+      .hero-visual-row > .hero-pedal-col { grid-area:pedal; flex-direction:column; gap:6px; }
+      .hero-visual-row > .hero-pedal-col .hero-pedal-wrap { max-width:100%; }
+      .hero-visual-row > .hero-visual-stats { grid-area:sayac; }
+      .hero-visual-row > .hero-visual-tagline { grid-area:slogan; margin-top:0; }
     }
 
     /* Bluetooth pedal — stilize temsil (gerçek fotoğraf değil) */
@@ -461,6 +477,11 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
               <div class="hero-song-row swap-fade"><span class="num">4</span><b>Çarşamba’yı Sel Aldı</b><span>Hicaz · La</span></div>
               <div class="hero-song-row swap-fade"><span class="num">5</span><b>Havada Turna Sesi Var</b><span>Eviç · Fa♯</span></div>
               <div class="hero-song-row swap-fade"><span class="num">6</span><b>Atım Araptır Benim</b><span>Mahur · Sol</span></div>
+              <!-- (2026-10-25) Ek satırlar: maket 7:10 oranında, dar ekranda boyu uzadığı için listenin altı boş kalıyordu → sığdığı kadarı
+                   açılır (heroEkSatir). Eserler katalogdan, anonim / geleneksel (telifsiz); LISTELER ile aynı sırada. -->
+              <div class="hero-song-row hero-ek swap-fade" hidden><span class="num">7</span><b>Kırmızı Gülün Alı Var</b><span>Hicaz · La</span></div>
+              <div class="hero-song-row hero-ek swap-fade" hidden><span class="num">8</span><b>Yayla Yolları</b><span>Gülizar · La</span></div>
+              <div class="hero-song-row hero-ek swap-fade" hidden><span class="num">9</span><b>Fidayda</b><span>Ferahnüma · Re</span></div>
               <div class="hero-ipad-tabbar">
                 <!-- (2026-08-30) Bu etiketlerde data-i18n YOK ve olmamali.
                      Maketteki sekmeler arayuz dilini degil, o an gosterilen
@@ -740,6 +761,27 @@ function _c(k, tr) {
   // basılınca Bluetooth sinyali pedaldan tablete gider ve çalınan eser bir alt
   // satıra geçer. Pedal SAYFA ÇEVİRİR, sıralama yapmaz. Bağlantı cihaz
   // seviyesindedir; ekranın İÇİNE bluetooth simgesi/rozeti konmaz.
+  // (2026-10-25) Maket 7:10 (CSS aspect-ratio). Dar ekranda boyu uzuyor, listenin altı boş kalıyordu ("satır boş kaldı") → ek satırlar
+  // (.hero-ek) maketin oranını bozmadan sığdığı kadar açılır: her satır açıldığında maket orana göre yüksekliğinden uzadıysa o satır
+  // geri kapanır. offsetWidth/Height dönüşten (previewFloat) etkilenmez. Masaüstünde 6 satır tam oturur → ek satır açılmaz.
+  (function() {
+    const ipad = document.querySelector('.hero-ipad');
+    if (!ipad) return;
+    function heroEkSatir() {
+      const ekler = Array.from(ipad.querySelectorAll('.hero-ek'));
+      ekler.forEach(r => { r.hidden = true; });
+      for (const r of ekler) {
+        r.hidden = false;
+        if (ipad.offsetHeight > Math.ceil(ipad.offsetWidth * 10 / 7) + 1) { r.hidden = true; break; }
+      }
+    }
+    let bekleyen = 0;
+    window.addEventListener('resize', () => { cancelAnimationFrame(bekleyen); bekleyen = requestAnimationFrame(heroEkSatir); });
+    heroEkSatir();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(heroEkSatir);
+    window.heroEkSatir = heroEkSatir;
+  })();
+
   (function() {
     const screen = document.querySelector('.hero-ipad-screen');
     const ipad = document.querySelector('.hero-ipad');
@@ -823,11 +865,14 @@ function _c(k, tr) {
       { ad: 'Anadolu\u2019dan Türküler', dil: 'tr', eserler: [
         ['Drama Köprüsü', 'Hüseyni · La'], ['Mendilimin Yeşili', 'Saba · La'],
         ['Ankara\u2019nın Bağları', 'Eviç · Fa\u266f'], ['Çarşamba\u2019yı Sel Aldı', 'Hicaz · La'],
-        ['Havada Turna Sesi Var', 'Eviç · Fa\u266f'], ['Atım Araptır Benim', 'Mahur · Sol'] ] },
+        ['Havada Turna Sesi Var', 'Eviç · Fa\u266f'], ['Atım Araptır Benim', 'Mahur · Sol'],
+        // 7–9: yalnız uzun maketlerde görünen ek satırlar (2026-10-25; katalogda anonim, makam/karar katalogdan)
+        ['Kırmızı Gülün Alı Var', 'Hicaz · La'], ['Yayla Yolları', 'Gülizar · La'], ['Fidayda', 'Ferahnüma · Re'] ] },
       { ad: 'Folk Night', dil: 'en', eserler: [
         ['Danny Boy', 'C · 60'], ['Scarborough Fair', 'E · 96'],
         ['The Water Is Wide', 'D · 72'], ['Loch Lomond', 'G · 84'],
-        ['Amazing Grace', 'G · 76'], ['Shenandoah', 'D · 60'] ] }
+        ['Amazing Grace', 'G · 76'], ['Shenandoah', 'D · 60'],
+        ['Greensleeves', 'E · 50'], ['The Parting Glass', 'E · 72'], ['Skye Boat Song', 'G · 100'] ] }
     ];
     const adEl = document.getElementById('heroListName');
     // Sekme cubugu satirlarin ALTINDA duruyor ve ekranin cocugu. Satirlari
