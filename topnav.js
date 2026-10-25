@@ -820,9 +820,12 @@ function _m(anahtar, tr) {
       // Aynı bağlantının hem listede hem menüde durması gereksiz tekrardı.
     ];
 
+    // (2026-10-25) Menüde kendi satırı olmayan alt sayfalarda üst bölüm vurgulu kalsın (Ritim Kes'te menüde hiçbir öğe seçili değildi).
+    const UST_SAYFA = { 'ritim-kes.html': 'calisma.html', 'metronom.html': 'calisma.html', 'onerilerim.html': 'eserler.html',
+                        'uyeler.html': 'yonetim.html', 'istatistikler.html': 'yonetim.html' };
     const navHtml = navItems.map(item => {
       if (item.divider) return '<div class="sb-divider"></div>';
-      const isActive = page === item.href;
+      const isActive = (UST_SAYFA[page] || page) === item.href;
       // adminOnly ise localStorage'a göre anında göster/gizle
       if (item.adminOnly && !isAdminNow) return '';
       return `<a href="${item.href}" class="sb-item${isActive ? ' active' : ''}"><i class="ti ${item.icon}" style="font-size:16px;width:20px;text-align:center;" aria-hidden="true"></i>${item.label}</a>`;
