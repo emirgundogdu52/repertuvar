@@ -1854,3 +1854,7 @@ html[data-tasarim="v3"][data-theme="light"][data-sayfa="repertoires"] .ra .ra-me
   html[data-cam][data-tasarim="v3"][data-theme="light"] .bottom-nav {
     background: var(--cam-zemin) !important; border-color: var(--cam-kenar) !important; }
 }
+/* 29) Repertuvar eser satırı düğmeleri her yerde SAĞA yaslı (2026-10-25 kullanıcı: "ikonlar sola hizalı, sağa hizala"). Masaüstünde
+   YouTube bağlantısı olmayan eserde ▶ yok → kalan 6 düğme sola kayıyordu (sağda 50 px boşluk), sütunlar satırdan satıra kayıyordu.
+   Telefon/iPad'de zaten flex-end idi. */
+html[data-tasarim="v3"][data-sayfa="repertoires"] .ra { justify-content: flex-end; }
