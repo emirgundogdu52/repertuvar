@@ -1201,6 +1201,8 @@ html[data-tasarim="v3"][data-sayfa="artiesten"] .work-pick-item.selected { backg
   }
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-fav { padding: 10px; margin: -6px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] #bulkActionBar button { min-height: 40px; }   /* yazı 12 px kalır: telefonda iki satıra kırılmasın */
+  /* "Defterden Ekle" penceresinin kapat ✕'i 36×36 → 40 (2026-10-25 iPad denetimi) */
+  html[data-tasarim="v3"][data-sayfa="eserler"] .df-kapat { width: 40px; height: 40px; min-width: 40px; }
 }
 /* Ana Sayfa yatay iPad (≥901, iki sütun): sağdaki önizleme uzun, metin üstte kalıp altında ~450 px boşluk bırakıyordu →
    metin sütunu dikeyde ortalı. */
