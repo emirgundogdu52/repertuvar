@@ -92,6 +92,9 @@
             background: color-mix(in srgb, var(--accent) 10%, transparent);
             border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
 .rk-oneri[hidden] { display: none; }
+.rk-oneri.vurgu { animation: rkVurgu 1.2s ease 2; border-color: var(--accent); }
+@keyframes rkVurgu { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 40% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .rk-oneri.vurgu { animation: none; } }
 .rk-kota .uyari { color: var(--accent); margin-left: 8px; }
 .rk-dalga-ad { position: absolute; top: 7px; left: 10px; font-size: 11px; color: var(--text3);
                pointer-events: none; }
@@ -308,6 +311,7 @@ let secili = 'bas';      // ince ayar düğmelerinin taşıdığı çizgi
 // ya da tempoyu vur'dan. Çizgilerden türetilen tempodan ayrı tutuluyor:
 // çizgiler taşınınca aradaki vuruş sayısını tahmin etmek için kullanılıyor.
 let refTempo = null;
+let _tempoOnay = null;   // tempo uyarısına rağmen kaydet: bu çizgi/ölçü imzası için ikinci basış
 let oneriOlcu = null;
 let gorunum = null;      // {a, b} sn — döngü görünümünün penceresi; kendiliğinden KAYMAZ
 let dongu = null;        // kesilmiş + dikişi yapılmış kanallar — kaydedilecek olanın AYNISI
@@ -447,22 +451,43 @@ function tempoTuret() {
 // Çalışma Odası esere uyarlarken yanlış oranla uzatır.
 function oneriHesapla() {
   oneriOlcu = null;
-  const kutu = $('rkOneri');
-  if (!refTempo || !kanallar) { kutu.hidden = true; return; }
-  const vurus = (bitisSn - basSn) * refTempo / 60;
-  const tam = Math.round(vurus);
-  const olcuTahmin = tam / zaman;
-  if (tam >= zaman && Math.abs(vurus - tam) < 0.12 && Number.isInteger(olcuTahmin)
-      && olcuTahmin !== olcu && olcuTahmin <= 64) {
-    oneriOlcu = olcuTahmin;
-    $('rkOneriMetin').textContent = _rkCev('rk.oneri',
-      'Seçim {t} BPM’de {v} vuruş ediyor, yani {n} ölçü. Ölçü sayısı {o} girili olduğu için tempo yanlış hesaplanıyor.')
-      .replace('{t}', refTempo).replace('{v}', tam).replace('{n}', olcuTahmin).replace('{o}', olcu);
-    $('rkOneriBtn').textContent = _rkCev('rk.oneriUygula', 'Ölçü sayısını {n} yap').replace('{n}', olcuTahmin);
-    kutu.hidden = false;
-  } else {
-    kutu.hidden = true;
+  const kutu = $('rkOneri'), btn = $('rkOneriBtn');
+  if (!kanallar || !(bitisSn > basSn)) { kutu.hidden = true; return; }
+  let metin = null;
+  if (refTempo) {
+    const vurus = (bitisSn - basSn) * refTempo / 60;
+    const tam = Math.round(vurus);
+    const olcuTahmin = tam / zaman;
+    // (2026-10-25) Pay %3'e kadar esnetildi: dosya adındaki tempo yuvarlak ("127"), gerçek 125,1 → 8 vuruşta 0,12 sapma
+    // eski 0,12 sınırına takılıp öneri hiç çıkmıyordu (Eşarbını 127 yanlış ölçüyle kaydedilmişti).
+    if (tam >= zaman && Math.abs(vurus - tam) < Math.max(0.12, tam * 0.03) && Number.isInteger(olcuTahmin)
+        && olcuTahmin !== olcu && olcuTahmin <= 64) {
+      oneriOlcu = olcuTahmin;
+      metin = _rkCev('rk.oneri',
+        'Seçim {t} BPM’de {v} vuruş ediyor, yani {n} ölçü. Ölçü sayısı {o} girili olduğu için tempo yanlış hesaplanıyor.')
+        .replace('{t}', refTempo).replace('{v}', tam).replace('{n}', olcuTahmin).replace('{o}', olcu);
+    } else if (Math.abs(tempo / refTempo - 1) > 0.08) {
+      metin = _rkCev('rk.tempoFarki', 'Çizgilere göre tempo {t} BPM, bildiğin tempo {r} BPM. Ölçü sayısını ve çizgileri kontrol et.')
+        .replace('{t}', tempo).replace('{r}', refTempo);
+    }
+  } else if (zaman <= 4) {
+    // Bilinen tempo yoksa: 2–4 zamanlı ritimde olağan dışı tempo büyük ihtimalle yanlış ölçü sayısı (Disko120 240, Darbuka 180
+    // kaydedilmişti). Aksak ritimler (5, 7, 9…) sekizlik BPM'le yazıldığı için yüksek tempo olağan → bakılmaz.
+    if (tempo > 200 && olcu % 2 === 0) oneriOlcu = olcu / 2;
+    else if (tempo < 45 && olcu * 2 <= 64) oneriOlcu = olcu * 2;
+    if (oneriOlcu) {
+      metin = _rkCev(tempo > 200 ? 'rk.tempoYuksek' : 'rk.tempoDusuk',
+        tempo > 200 ? '{t} BPM çok hızlı görünüyor — seçimde büyük ihtimalle {n} ölçü var (tempo {y} BPM olur).'
+                    : '{t} BPM çok yavaş görünüyor — seçimde büyük ihtimalle {n} ölçü var (tempo {y} BPM olur).')
+        .replace('{t}', tempo).replace('{n}', oneriOlcu)
+        .replace('{y}', Math.round(zaman * oneriOlcu * 60 / (bitisSn - basSn) * 10) / 10);
+    }
   }
+  if (!metin) { kutu.hidden = true; kutu.classList.remove('vurgu'); return; }
+  $('rkOneriMetin').textContent = metin;
+  btn.style.display = oneriOlcu ? '' : 'none';
+  if (oneriOlcu) btn.textContent = _rkCev('rk.oneriUygula', 'Ölçü sayısını {n} yap').replace('{n}', oneriOlcu);
+  kutu.hidden = false;
 }
 // Öneriyi uygula: ÇİZGİLER YERİNDE KALIR, yalnız ölçü sayısı değişir ve
 // tempo yeniden türetilir (olcuYaz'dan farklı: o bitiş çizgisini taşır).
@@ -875,6 +900,18 @@ async function kaydet() {
   if (!ad) { durum(_rkCev('rk.adGerekli', 'Ritme bir ad ver.'), 'hata'); $('rkAd').focus(); return; }
   const u = uid();
   if (!u) { durum(_rkCev('rk.girisGerekli', 'Kaydetmek için giriş yapmalısın.'), 'hata'); return; }
+  // (2026-10-25) Tempo uyarısı açıkken ilk basış kaydetmez: uyarıyı öne çıkarır, ikinci basış (aynı çizgi/ölçü) kaydeder.
+  // Yanlış ölçü sayısı döngünün sesini bozmaz ama tempoyu bozar; Çalışma Odası esere uyarlarken yanlış oranla uzatır.
+  const imza = [basSn.toFixed(3), bitisSn.toFixed(3), zaman, olcu].join('|');
+  if (!$('rkOneri').hidden && _tempoOnay !== imza) {
+    _tempoOnay = imza;
+    const kutu = $('rkOneri');
+    kutu.classList.remove('vurgu'); void kutu.offsetWidth; kutu.classList.add('vurgu');
+    kutu.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    durum(_rkCev('rk.tempoOnay', 'Kaydedilecek tempo {t} BPM ({o} ölçü × {z} zaman). Uyarıyı kontrol et; doğruysa yeniden “Kes ve kaydet”e bas.')
+      .replace('{t}', tempo).replace('{z}', zaman).replace('{o}', olcu), 'hata');
+    return;
+  }
 
   const btn = $('rkKaydetBtn');
   btn.disabled = true;
