@@ -1501,3 +1501,12 @@ html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.page-title, .page-sub, .se
   /* listenin kaydırma çubuğu koyu temada beyaz şerit olarak görünüyordu */
   html[data-tasarim="v3"][data-sayfa="stage"] #pickerScreen .pi-scroll { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 }
+/* 13) Hiza tutarlılığı (masaüstü): tek sütunlu sayfalar yan menünün hemen sağından (iç pay 20) başlar, 1040 px standardı.
+   İstatistikler 1080 px ORTALIYDI (32 iç pay) — Yönetim'in alt sayfası, Yönetim gibi sola yaslı; Bildirimler 900 / 32 → 1040 / 20;
+   Yönetim iç payı 32 → 20. Sonuç (1505): Grup, Çalışma, Ritim Kes, Mesajlar, Ayarlar, Önerilerim, Bildirimler, İstatistikler, Yönetim
+   içeriği hep 272 px'ten başlar. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="istatistikler"] .page { margin-left: 0; margin-right: 0; padding-left: 20px; padding-right: 20px; }
+  html[data-tasarim="v3"][data-sayfa="bildirimler"] .page-content { max-width: 1040px; padding-left: 20px; padding-right: 20px; }
+  html[data-tasarim="v3"][data-sayfa="yonetim"] .page-content { padding-left: 20px; padding-right: 20px; }   /* 32 → 20: aynı sol çizgi (272) */
+}
