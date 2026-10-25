@@ -1077,7 +1077,7 @@
       'ana.demo': 'Çalışma Odası\'nı Aç',   // (2026-10-17) eskiden "Demo İzle" → Sahne Modu'na gidiyordu; demo bilerek Çalışma Odası (sitedeki "Canlı demo" da #calisma) — kullanıcı
       'ana.yeni': 'Yeni',
       'ana.defterBaslik': 'Nota defterini tara, dijitale geç',
-      'ana.defterAlt': 'Defterindeki notaları telefonla tara; her sayfa eserinin sözlerinin ve akorlarının yanına eklenir, sahnede hep yanında.',
+      'ana.defterAlt': 'Defterindeki notaları telefonla tara; her sayfa eserinin sözlerinin ve akorlarının yanına eklenir. Repertuvarın her zaman, her yerde yanında.',
       'ana.defterCta': 'Nota Defterini Tara',
       'ana.aktarBaslik': 'Şarkılarını başka uygulamadan getir',
       'ana.aktarAlt': 'Başka bir uygulamada ya da Word’de duran şarkılarını ChordPro, Word, metin ya da zip dosyası olarak yükle; akorlar sözün üstünde yerine oturur.',
@@ -2954,7 +2954,7 @@
       'ana.demo': 'Open Practice Room',
       'ana.yeni': 'New',
       'ana.defterBaslik': 'Scan your music notebook — go digital',
-      'ana.defterAlt': 'Scan the sheet music in your notebook with your phone; each page goes next to the song\'s lyrics and chords, always with you on stage.',
+      'ana.defterAlt': 'Scan the sheet music in your notebook with your phone; each page goes next to the song\'s lyrics and chords. Your repertoire, with you anytime, anywhere.',
       'ana.defterCta': 'Scan Music Notebook',
       'ana.aktarBaslik': 'Bring your songs from another app',
       'ana.aktarAlt': 'Songs sitting in another app or in Word? Upload them as ChordPro, Word, text or zip files; chords land right above the lyrics.',
