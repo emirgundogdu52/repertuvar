@@ -1282,4 +1282,31 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"][data-sayfa="index"] .work-num { font-size: 12px; }
   html[data-tasarim="v3"][data-sayfa="index"] .hero-pedal-note { font-size: 12px; }
 }
+/* 2) Eserler — 1440'ta: üst çipler / düğmeler 29 px, liste rozetleri 10–11 px, favori 28 px, ayrıntı çipleri 29 px / 12 px,
+   filtre paneli düğmeleri 26 px ve rozet / bölüm başlığı 10 px. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .tur-chip { font-size: 13px; min-height: 34px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .tur-chip-n { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .tur-ok { min-height: 34px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] :is(.clear-btn, #btnPendingReviewDesktop, #btnOnerilerim) { min-height: 34px; font-size: 13px; }
+  /* sayaçlar ve satırdaki 🔒 Taslak / grup rozetleri satır içi font-size:10px taşıyor → !important */
+  html[data-tasarim="v3"][data-sayfa="eserler"] :is(#draftCount, #pendingCountDesktop, .work-count-badge) { font-size: 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .fav-toggle-btn { font-size: 13px; min-height: 36px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-tur-badge { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name + span,
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item span[class*="taslak"],
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name span { font-size: 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-rep-count { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-fav { width: 34px; height: 34px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .detail .tur-chip { font-size: 13px; min-height: 34px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] :is(.act-btn, .act-lbl, .act-lbl-uzun) { font-size: 13.5px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .detail-subtitle { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] :is(.knot-bas, .knot-ipuc) { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .detail [id^="offb_"] { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .filter-sheet .filter-btn { min-height: 34px; font-size: 13.5px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .filter-sheet .filter-btn .badge { font-size: 11.5px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .filter-sheet .filter-label { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .filter-sheet .sort-dd-item { font-size: 14px; min-height: 34px; }
+}
 

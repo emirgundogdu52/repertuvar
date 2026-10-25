@@ -121,6 +121,17 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     .ana-defter-cta { flex:none; display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:0 16px; border-radius:999px;
       background:var(--yt-btn, var(--accent)); color:var(--yt-btn-yazi, #1a1200); font-size:14px; font-weight:700; white-space:nowrap; }
     .ana-defter-cta i { font-size:16px; }
+    /* (2026-10-25) Kullanıcı: "bu bloğu biraz ayrıştırsak diğer içerikten, çünkü önemli; Nota defterini tara düğmesi farklı bir
+       renkte olabilir (mesela yeşil) — hem kullandığımız bir renk hem trafikteki yeşil 'geç' anlamında, çok abartmadan".
+       Altın karşılama alanından ayrışsın diye blok YEŞİL kimlik aldı (uygulamanın --green #34C759'u): hafif yeşil zemin + ince
+       yeşil çerçeve, simge ve 'Yeni' rozeti yeşil, düğme yeşil zemin + koyu yazı (koyu temada ~8:1). Açık tema aşağıda. */
+    .ana-defter { background:linear-gradient(135deg, rgba(52,199,89,.13), rgba(52,199,89,.03));
+      border-color:rgba(52,199,89,.45); box-shadow:0 12px 28px -16px rgba(52,199,89,.45); }
+    .ana-defter:hover { border-color:#34C759; }
+    .ana-defter-ik { background:rgba(52,199,89,.16); color:#34C759; }
+    .ana-defter-rozet { background:#34C759; color:#04210F; }
+    .ana-defter-cta { background:#30B65A; color:#04210F; }
+    .ana-defter:hover .ana-defter-cta { background:#38C764; }
     /* Dar alanda (telefon; yatay iPad'de iki sütunlu girişin sol sütunu ~346 px) düğme alta, tam genişlik — yoksa metin simgeyle
        düğme arasında tek kelimelik satırlara sıkışıyordu. Kap sorgusu desteklenmeyen eski tarayıcıda telefon kuralı kalır. */
     .hero-text { container-type:inline-size; }
@@ -128,12 +139,15 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
        inip kalkan önizleme (previewFloat −10 px) var; kartın alt payı yoktu, görsel üstüne biniyordu → 30 px ara + kart önde. */
     @media (max-width:900px) {
       .hero-actions { margin-bottom:0; }
-      .ana-defter { margin:16px 0 30px; position:relative; z-index:2; }
+      .ana-defter { margin:22px 0 30px; position:relative; z-index:2; }   /* 16 → 22 (2026-10-25: ayrışsın) */
     }
     @container (max-width:520px) { .ana-defter { flex-wrap:wrap; } .ana-defter-cta { width:100%; justify-content:center; } }
     @media (max-width:600px) { .ana-defter { flex-wrap:wrap; } .ana-defter-cta { width:100%; justify-content:center; } }
-    [data-theme="light"] .ana-defter { background:linear-gradient(135deg, #FFF3CF, #FFFBEF); border-color:rgba(176,120,0,.45); }
-    [data-theme="light"] .ana-defter-ik { background:rgba(255,200,61,.35); color:#8A5A00; }
+    [data-theme="light"] .ana-defter { background:linear-gradient(135deg, #E6F6EB, #F6FCF8); border-color:rgba(30,123,52,.40);
+      box-shadow:0 12px 28px -18px rgba(30,123,52,.40); }
+    [data-theme="light"] .ana-defter-ik { background:rgba(30,123,52,.12); color:#1E7B34; }
+    [data-theme="light"] :is(.ana-defter-rozet, .ana-defter-cta) { background:#1E8E3E; color:#fff; }
+    [data-theme="light"] .ana-defter:hover .ana-defter-cta { background:#1A7D36; }
 
     .hero-bullets { list-style:none; margin:0 0 20px; padding:0; }
     .hero-bullets li { font-size:15px; line-height:1.5; color:var(--text2); padding:6px 0; display:flex; align-items:flex-start; gap:8px; }
