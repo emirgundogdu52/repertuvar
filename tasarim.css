@@ -1462,3 +1462,25 @@ html[data-tasarim="v3"][data-sayfa="ritim-kes"] :is(.rk-head, .rk-kota) { paddin
   html[data-tasarim="v3"][data-sayfa="ayarlar"] .settings-section[style*="display: none"],
   html[data-tasarim="v3"][data-sayfa="ayarlar"] .settings-section[style*="display:none"] { display: none !important; }
 }
+/* 10) Önerilerim (başlık "Eserlerim") — 800 px sola yaslı, kartlar alt alta; kart düğmeleri (Düzenle / Sözleri Aç / Geri Al /
+   Geri Yükle / Ekle) 27–28 px, rozetler 11, kart altı 12. Masaüstünde 1040 px, her bölümün kartları iki sütun (bölüm başlığı /
+   açıklaması tam satır); düğmeler 34, rozet 12, başlık 20 (Yönetim ile aynı). */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .page { max-width: 1040px; width: 100%; padding: 20px; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .sec { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; align-items: start; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .sec > :is(.sec-head, .sec-desc, .sec-empty) { grid-column: 1 / -1; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .page-title { font-size: 20px; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .page-sub { font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .sec-title { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.sec-desc, .sec-empty) { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .sec-count { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .badge { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .card-meta { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.btn-edit, .btn-soz, .btn-restore, .btn-retract, .btn-add) {
+    min-height: 34px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+  html[data-tasarim="v3"][data-sayfa="onerilerim"] .empty { font-size: 14px; }
+}
+/* Başlık hiza kuralı (Önerilerim, her cihaz): kart iç payı 16 (+1 = 17); sayfa ve bölüm başlıkları / açıklamaları 17 px içeride. */
+html[data-tasarim="v3"][data-sayfa="onerilerim"] .card { padding-left: 16px; padding-right: 16px; }
+html[data-tasarim="v3"][data-sayfa="onerilerim"] .sec-empty { padding-left: 16px; }
+html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.page-title, .page-sub, .sec-head, .sec-desc) { padding-left: 17px; }
