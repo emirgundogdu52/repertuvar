@@ -1077,7 +1077,7 @@ function renderDetail(){
         <button class="br be" onclick="openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
         <button class="br dl" data-ad="${_rEsc(w.name||_r('rep.buEser','Bu eser'))}" onclick="rmItem('${rep.id}','${it.id}',this.dataset.ad)"><i class="ti ti-trash" aria-hidden="true"></i></button>
         `:''}
-        <button class="br ra-menu" onclick="event.stopPropagation();satirMenuAc('${rep.id}','${it.id}')" aria-label="${_r('rep.satirIslemleri','Eser işlemleri')}" title="${_r('rep.satirIslemleri','Eser işlemleri')}"><i class="ti ti-dots" aria-hidden="true"></i></button>
+        <button class="br ra-menu${PERSONAL_NOTES[String(it.workId)]?' not-var':''}" data-knot="${it.workId}" onclick="event.stopPropagation();satirMenuAc('${rep.id}','${it.id}')" aria-label="${_r('rep.satirIslemleri','Eser işlemleri')}" title="${_r('rep.satirIslemleri','Eser işlemleri')}"><i class="ti ti-dots" aria-hidden="true"></i></button>
       </div></td>
     </tr>`;
   }).join(''):`<tr><td colspan="5" class="ei">${_r('rep.henuzEserYok','Henüz eser eklenmedi.')}</td></tr>`;
@@ -3311,6 +3311,10 @@ function _knotDugmeleriTazele(){
     const varMi = !!PERSONAL_NOTES[String(b.dataset.knot)];
     b.classList.toggle('dolu', varMi);
     b.title = varMi ? _r('rep.notVarT','Kişisel notun var — okumak/düzenlemek için dokun') : _r('rep.notEkleT','Kişisel not ekle');
+  });
+  // Dikey telefondaki ⋯ düğmesi: notu olan eserde turkuaz nokta (kilit düğmesi orada satırda görünmüyor)
+  document.querySelectorAll('button.ra-menu[data-knot]').forEach(b => {
+    b.classList.toggle('not-var', !!PERSONAL_NOTES[String(b.dataset.knot)]);
   });
 }
 

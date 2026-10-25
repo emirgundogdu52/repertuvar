@@ -1841,3 +1841,9 @@ html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .ra-menu { display: none; 
   html[data-tasarim="v3"][data-sayfa="eserler"] .we-wrap,
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-item:not(.we-wrap > .work-item) { margin-left: 16px; margin-right: 16px; }
 }
+/* ⋯ üstünde kişisel not noktası (2026-10-25 kullanıcı: "Nokta koyalım") — kişisel not rengi turkuaz (#2DD4BF; açıkta #0D9488) */
+html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .ra-menu { position: relative; }
+html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .ra-menu.not-var::after {
+  content: ''; position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%;
+  background: #2DD4BF; box-shadow: 0 0 0 2px var(--surface); }
+html[data-tasarim="v3"][data-theme="light"][data-sayfa="repertoires"] .ra .ra-menu.not-var::after { background: #0D9488; }
