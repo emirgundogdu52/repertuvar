@@ -251,6 +251,8 @@
       }
       return 'paylasildi';
     }
+    // Yerel uygulamada <a download> hiçbir şey yapmaz (WKWebView / Android WebView) → sessiz kalmak yerine söyle.
+    if (C && C.isNativePlatform && C.isNativePlatform()) throw new Error('dosya kaydetme eklentisi yok (uygulamayı güncelle)');
     var url = URL.createObjectURL(new Blob([b], { type: 'application/zip' }));
     var a = document.createElement('a');
     a.href = url; a.download = ad; a.rel = 'noopener';
