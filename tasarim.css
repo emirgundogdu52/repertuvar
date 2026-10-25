@@ -1432,3 +1432,20 @@ html[data-tasarim="v3"][data-sayfa="calisma"] #bolumRitim > .rb-bas { padding-le
 /* Başlık hiza kuralı (Ritim Kes, her cihaz): dosya kutusu iç payı 15.5 + 1.5 kesikli kenarlık = 17; başlık / açıklama / kota 17. */
 html[data-tasarim="v3"][data-sayfa="ritim-kes"] .rk-sec { padding-left: 15.5px; }
 html[data-tasarim="v3"][data-sayfa="ritim-kes"] :is(.rk-head, .rk-kota) { padding-left: 17px; }
+/* 8) Mesajlar — 1505'te içerik 390 px, ortada (sayfa "margin:0 auto" esnek sütunda; kutular 424/680 px'e sabit, kendi içinde
+   ortalı). Masaüstünde 1040 px sola yaslı, kutular sayfa genişliğinde. Konuşma satırı adı 13 → 15 (diğer listeler), önizleme
+   12 → 13, mesaj gövdeleri 13 → 14, sekmeler 13 → 14. Sekme yazısı konuşma satırlarının içeriğiyle aynı 17 px çizgisinde.
+   İki bölmeli (liste + konuşma yan yana) düzen JS ister (openThread listeyi siliyor) — bilerek yapılmadı. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .page { max-width: 1040px; width: 100%; margin-left: 0; margin-right: 0; padding: 16px 20px 40px; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] :is(.tabs, .compose-box, .ann-card, .conv-item) { max-width: none; width: 100%; margin-left: 0; margin-right: 0; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .tab-btn { font-size: 14px; padding-left: 17px; padding-right: 17px; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .conv-email { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .conv-preview { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .conv-date { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] :is(.thread-msg-content, .msg-content, .ann-content) { font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] :is(.thread-reply-box, .msg-reply) { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .thread-email { font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .reply-form textarea { font-size: 14px !important; }
+  html[data-tasarim="v3"][data-sayfa="mesajlar"] .empty { font-size: 14px; }
+}
