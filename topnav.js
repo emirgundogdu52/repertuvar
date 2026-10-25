@@ -284,12 +284,16 @@ function _m(anahtar, tr) {
     [data-theme="light"] .work-row:hover, [data-theme="light"] .eser-row:hover { background: #F0F1F5 !important; }
     [data-theme="light"] .work-row.zebra { background: #F0F1F5 !important; }
 
-    /* Input, textarea, select */
-    [data-theme="light"] input, [data-theme="light"] textarea, [data-theme="light"] select {
+    /* Input, textarea, select — (2026-10-25) yalnız ESKİ tasarımda: yeni tasarımda (v3) her girdiyi beyaz zemin + soluk sarı
+       kenarlığa zorluyordu (gri kutu içinde beyaz kutu, nötr açık paletle uyumsuz). v3'te girdiler sayfanın kendi kurallarındaki
+       palet değişkenlerini (--surface2 / --border) kullanır; 17 sayfa tarandı, kural kalkınca koyu kalan girdi yok. */
+    html:not([data-tasarim="v3"])[data-theme="light"] input, html:not([data-tasarim="v3"])[data-theme="light"] textarea,
+    html:not([data-tasarim="v3"])[data-theme="light"] select {
       background: #ffffff !important; color: #111827 !important;
       border-color: rgba(255,200,61,0.25) !important;
     }
-    [data-theme="light"] input::placeholder, [data-theme="light"] textarea::placeholder { color: #9390b0 !important; }
+    html:not([data-tasarim="v3"])[data-theme="light"] input::placeholder,
+    html:not([data-tasarim="v3"])[data-theme="light"] textarea::placeholder { color: #9390b0 !important; }
     [data-theme="light"] input:focus, [data-theme="light"] textarea:focus, [data-theme="light"] select:focus {
       border-color: #E5A900 !important;
     }

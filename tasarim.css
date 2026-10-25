@@ -1746,3 +1746,18 @@ html[data-tasarim="v3"] .ob-seg button { min-height: 32px; }
   html[data-tasarim="v3"][data-sayfa="ritim-kes"] .rk-btn { min-height: 44px; }
   html[data-tasarim="v3"][data-sayfa="ritim-kes"] :is(#rkTempo, #rkZaman, #rkOlcu) { height: 40px; }
 }
+/* 22) AÇIK TEMA ikinci tur (2026-10-25 madde 7). topnav.js'teki eski açık tema girdi kuralı (her girdiye beyaz zemin + soluk sarı
+   kenarlık, !important) yalnız eski tasarıma alındı → girdiler sayfa kurallarındaki nötr palet değişkenlerini kullanıyor; yer
+   tutucu yazı da o kuraldan (#9390b0 mor-gri) geliyordu → --text3. Kişisel not başlığı açık turkuaz (#5EEAD4) beyazda okunmuyordu;
+   Sırala satır çizgileri beyaz (rgba 255 .04) → açıkta görünmüyordu. Kişisel not İptal/Sil bu sayfada tarayıcı varsayılanıydı
+   (2 px siyah kabarık kenar, #EFEFEF) — iki temada da. */
+html[data-tasarim="v3"][data-theme="light"] :is(input, textarea)::placeholder { color: var(--text3); opacity: 1; }
+html[data-tasarim="v3"][data-theme="light"] .knot-sheet .ks-bas { color: #0F766E; }
+html[data-tasarim="v3"][data-theme="light"] .br.knb.dolu { color: #0D9488; border-color: rgba(13, 148, 136, .5); }
+html[data-tasarim="v3"][data-theme="light"] .sort-row { border-bottom-color: rgba(17, 23, 34, .07); }
+html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet .ks-alt .rbtn:not(.rbtn-primary) {
+  background: var(--surface2); border: 1px solid var(--border2); color: var(--text); font-family: inherit; font-weight: 600; cursor: pointer; }
+html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet .ks-alt .rbtn.rbtn-primary { border: 0; font-family: inherit; font-weight: 700; cursor: pointer; }
+/* Açık temada kontrast taraması (14 sayfa, metin/zemin < 3:1): yalnız Önerilerim "Geri Al" yeşili #3FB950 beyazda 2.5:1 → koyu yeşil.
+   (Avatarlardaki beyaz harf gradyan zemin üstünde — tarama yanlış alarmı.) */
+html[data-tasarim="v3"][data-theme="light"][data-sayfa="onerilerim"] .btn-restore { color: #1A7F37; border-color: rgba(26, 127, 55, .35); background: rgba(26, 127, 55, .08); }
