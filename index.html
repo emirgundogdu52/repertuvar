@@ -261,6 +261,33 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     .hero-ipad-tabbar .tab { display:flex; flex-direction:column; align-items:center; gap:3px; font-size:9px; color:var(--text3); }
     .hero-ipad-tabbar .tab.active { color:var(--accent); }
     .hero-ipad-tabbar .tab i { font-size:15px; }
+    /* (2026-10-25) Kullanıcı: "iPad animasyonunun ölçüleri orantısız, eni daha dar olmalı; ölçerek normal boyuta getir, tüm platformlara
+       uyarla" + "telefonda yandan daraltma, boyunu uzat". Maketin eni sabit (380; ≤900'de tam genişlik), boyu içerikten geliyordu →
+       en/boy masaüstünde 0,84, iPad dikeyde 1,68 (yatay ekran gibi), telefonda 0,75–0,86. Dikey iPad gövdesi ≈ 0,70 (10,2": 174 × 251 mm)
+       → maket her yerde 7:10. Masaüstü / iPad yatay: en 316 (boy içerikle aynı ~452); iPad dikey (601–900): 400, ortalı; telefon (≤600):
+       tam genişlik korunur, boy orana göre uzar — sekme çubuğu altta, liste üstte (liste katalogdan, satır eklenmedi).
+       Ekran esnek sütun: satır payları çökmediği için üst pay 7 (eskiden 7/7 çökerek 7), son satır ile çubuk arası en az 10. */
+    .hero-ipad { aspect-ratio: 7 / 10; display:flex; flex-direction:column; width:100%; max-width:316px; }
+    .hero-preview-wrap { max-width:316px; }
+    .hero-ipad-screen { flex:1 1 auto; display:flex; flex-direction:column; }
+    .hero-ipad-screen > .hero-list-name { margin-bottom:0; }
+    .hero-ipad-screen > :is(.hero-song-row, .hero-drop-slot) { margin:7px 0 0; flex-shrink:0; }
+    .hero-ipad-screen > :is(.hero-song-row, .hero-drop-slot):nth-last-child(2) { margin-bottom:10px; }
+    .hero-ipad-tabbar { margin-top:auto; }
+    @media (max-width: 900px) {
+      .hero-preview-wrap, .hero-ipad { max-width:400px !important; margin-left:auto !important; margin-right:auto !important; }
+    }
+    /* Geniş telefon / iPad dikey (en 391–400): maket büyük, satırlar ve yazı ona göre (listenin altında daha az boşluk). ≤400 px
+       telefonda büyütülmez — 360'ta satır iki satıra kırılıp oran 0,60'a düşüyordu. */
+    @media (min-width: 401px) and (max-width: 900px) {
+      .hero-ipad-screen > .hero-song-row { padding:14px 14px; font-size:14px; margin-top:8px; }
+      .hero-song-row .num { font-size:13px; }
+      .hero-song-row span { font-size:12px; }
+      .hero-list-name { font-size:12px; }
+    }
+    @media (max-width: 600px) {
+      .hero-preview-wrap, .hero-ipad { max-width:100% !important; }
+    }
 
     /* Bluetooth pedal — stilize temsil (gerçek fotoğraf değil) */
     .hero-pedal-col { width:100%; display:flex; align-items:center; justify-content:center; gap:16px; animation: heroFadeUp .8s ease .3s both; flex-wrap:wrap; }
