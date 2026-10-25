@@ -1595,3 +1595,28 @@ html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.page-title, .page-sub, .se
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .sp { font-size: 12px; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .dp .chip-vis { min-height: 40px; display: inline-flex; align-items: center; font-size: 12px; }
 }
+/* 16) Eserler — PENCERELER (2026-10-25 masaüstü denetimi, kullanıcı: "3'ten başla" — açılan pencereler). Yeni Eser / Eseri Düzenle:
+   560 px dar sütundu (boyu 1000+ px), söz araç çubuğu düğmeleri 23–30 px, kapat ✕ 15×24, Defterden oku 30, yardım yazıları 11–11.5.
+   Defterden ekle / İçe aktar zaten 760 px ve temiz → Yeni Eser de 760; düğmeler 34, ✕ 36, yazılar 12–12.5. Telefon kuralları
+   eserler.html'de (≤600) aynen. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] #newEserModal > div { width: min(760px, 92vw) !important; padding: 28px 32px !important; }
+  /* yalnız başlıktaki ✕ (alttaki İptal de closeNewEserModal çağırıyor — ona dokunma) */
+  html[data-tasarim="v3"][data-sayfa="eserler"] #newEserModal > div > div:first-child > button[onclick="closeNewEserModal()"] {
+    width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 18px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #newEserModal > div > div:first-child > button[onclick="closeNewEserModal()"]:hover { background: var(--surface2) !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #lyricsToolbar { gap: 4px !important; padding: 8px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #lyricsToolbar button { min-width: 34px; height: 34px !important; font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #lyricsToolbar select { height: 34px !important; font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #lyricsToolbar > span { font-size: 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #ne_defterOkuBtn { min-height: 34px; font-size: 13px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] :is(#ne_defterOkuSatir span, #ne_defterOkuIpucu) { font-size: 12.5px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #newEserModal :is(button[onclick^="chordMark"], button[onclick^="chordRepeat"],
+    button[onclick="neConvertChords()"], button[onclick="neOpenNudgeOnly()"]) { min-height: 34px; font-size: 12.5px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #newEserModal :is(span[data-i18n="es.isaret"], span[data-i18n="es.isaretNot"],
+    span[data-i18n="es.akorKaydirNot"]) { font-size: 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #newEserModal .akor-cubuk-etiket { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] :is(#newEserModal .nota-paste-hint, .nota-drop-sub) { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #newEserModal .ne-tab-btn { font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #iaModal .ia-marka { font-size: 12px; }
+}
