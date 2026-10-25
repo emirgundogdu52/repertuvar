@@ -1698,3 +1698,21 @@ html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet .ks-alt .rbtn { mi
 @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
   html[data-tasarim="v3"][data-sayfa="artiesten"] :is(#artistModal .form-label, #workModal .work-pick-sub) { font-size: 12px; }
 }
+/* 19) Sahne Modu — MASAÜSTÜ (2026-10-25, "3'ten başla" madde 4). Ölçüm (1495 px, fare): söz alanı yalnız 16 px iç payla tam
+   genişlikti, sol/sağ gezinme okları (8–62 px, yalnız masaüstünde görünür) sözün başının ÜSTÜNE biniyordu; Söz/Akor/Nota/Bilgi
+   şeridi 28 px; Eser Bilgileri 1495 px tam genişlik alttan çekmece, etiketler 11 px, ✕ 26. → söz alanı iki yanda okların
+   dışında (78 px), şerit 34, Bilgi çekmecesi ortada 560 px, yazılar 12.5–14, ✕ 36. Görünüm Ayarları paneli iOS ölçüsünde
+   (30–32 px bölmeli seçici) bilinçli bırakıldı — farede yeterli. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="stage"] #sm { padding-left: 78px; padding-right: 78px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] :is(.vm-tab, .stage-info-btn) { height: 34px; font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] .vm-karar { height: 34px; font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] .info-sheet { left: 50%; right: auto; width: min(560px, 92vw); transform: translate(-50%, 100%); }
+  html[data-tasarim="v3"][data-sayfa="stage"] .info-sheet.open { transform: translate(-50%, 0); }
+  html[data-tasarim="v3"][data-sayfa="stage"] .info-sheet-header { font-size: 16px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] .info-sheet-close {
+    width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 50%; margin: -6px -8px -6px 0; }
+  html[data-tasarim="v3"][data-sayfa="stage"] .info-sheet-close:hover { background: rgba(255, 255, 255, .08); }
+  html[data-tasarim="v3"][data-sayfa="stage"] .sip-label { font-size: 12.5px; min-width: 96px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] .sip-val { font-size: 14px; }
+}
