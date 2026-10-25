@@ -91,19 +91,22 @@ html[data-tasarim="v3"][data-theme="dark"] {
    text3 #8A93A6 → 2.8:1, accent #D68A00 metin olarak → 2.8:1 (226 sorunlu metnin 174'ü bu ikisiydi).
    --accent artık METİN/ikon/kenar rengi (koyu amber); koyu yazılı SARI DOLGU gereken yerler
    --yt-btn (#FFC83D) kullanır — aşağıdaki "açık mod: dolgu ve rozetler" bölümüne bak. */
+/* (2026-10-25) Kullanıcı: "açık tema hiç iyi değil, içime sinmiyor". Krem/bej palet (zemin #F7F5EF, paneller #EFEADF, ikinci yüzey
+   #FBF8F1 — birbirine yakın üç "beyaz") soluk/eski görünüyordu; altın yazı #9A5B00 kahveye kaçıyordu → NÖTR palet: açık gri zemin,
+   saf beyaz kartlar, daha altın bir yazı rengi (#8A6100: beyazda 5.5, zeminde 5.0, panelde 4.8). Altın asıl olarak DOLGU (--yt-btn). */
 html[data-tasarim="v3"][data-theme="light"] {
-  --bg: #F7F5EF !important;
-  --bg2: #EFEADF !important;
+  --bg: #F3F4F7 !important;
+  --bg2: #ECEEF2 !important;
   --surface: #FFFFFF !important;
-  --surface2: #FBF8F1 !important;
-  --border: rgba(17, 23, 34, .12) !important;
-  --border2: rgba(17, 23, 34, .20) !important;
-  --accent: #9A5B00 !important;      /* beyazda 5.4, kremde 5.1, beyaz yazı üstünde 5.4 — 6 haneli hex kalmalı */
+  --surface2: #F6F7F9 !important;
+  --border: rgba(17, 23, 34, .10) !important;
+  --border2: rgba(17, 23, 34, .18) !important;
+  --accent: #8A6100 !important;      /* beyazda 5.5, zeminde 5.0 — 6 haneli hex kalmalı (eski #9A5B00) */
   --accent2: #0A5BC2 !important;     /* bağlantılar: beyazda 6.4 */
   --accent3: #0A5BC2 !important;
   --text: #111722 !important;        /* landing ink */
   --text2: #4A5466 !important;       /* 7.6 */
-  --text3: #5F6878 !important;       /* 5.6 — en koyu zeminde (#EEE8DA) bile 4.6 */
+  --text3: #5F6878 !important;       /* 5.6 — en koyu zeminde (#ECEEF2) 4.8 */
   --yt-btn: #FFC83D;                 /* marka sarısı dolgu (koyu yazıyla 12:1) */
 }
 /* topnav'ın açık temadaki sabit zeminleri */
@@ -111,7 +114,7 @@ html[data-tasarim="v3"][data-theme="light"] body { background: var(--bg) !import
 html[data-tasarim="v3"][data-theme="light"] .page,
 html[data-tasarim="v3"][data-theme="light"] .main-wrap,
 html[data-tasarim="v3"][data-theme="light"] .v2-main-wrap { background: var(--bg); }
-html[data-tasarim="v3"][data-theme="light"] .r-topnav { background: rgba(247, 245, 239, .94); border-bottom-color: rgba(17, 23, 34, .08); }
+html[data-tasarim="v3"][data-theme="light"] .r-topnav { background: rgba(243, 244, 247, .94); border-bottom-color: rgba(17, 23, 34, .08); }
 html[data-tasarim="v3"][data-theme="light"] .sidebar,
 html[data-tasarim="v3"][data-theme="light"] aside.sidebar,
 html[data-tasarim="v3"][data-theme="light"] .v2-sidebar { background: #FFFFFF !important; border-right-color: rgba(17, 23, 34, .08) !important; }
@@ -267,7 +270,9 @@ html[data-tasarim="v3"][data-theme="dark"][data-sayfa="index"] .hero-section {
   border-radius: 28px;
 }
 html[data-tasarim="v3"][data-theme="light"][data-sayfa="index"] .hero-section {
-  background: linear-gradient(180deg, #FFFFFF 0%, #FFF7E6 100%);
+  background:
+    radial-gradient(circle at 82% 12%, rgba(255, 200, 61, .14), transparent 42%),
+    linear-gradient(180deg, #FFFFFF 0%, #F6F7FA 100%);   /* krem #FFF7E6 → nötr (2026-10-25) */
   border-color: rgba(17, 23, 34, .08);
   border-radius: 28px;
 }
@@ -336,7 +341,7 @@ html[data-tasarim="v3"] .qb-label { max-width: 100%; overflow: hidden; text-over
    yeni tasarım + açık modda; koyu mod ve sayfa kaynakları değişmez. Sayfaya gömülü (satır içi)
    renkler !important ve [style]/[onclick] seçicileriyle eziliyor. */
 html[data-tasarim="v3"][data-theme="light"] {
-  --yt-amber-yazi: #8A5A00;   /* sarı iz zemin üstünde aktif öğe yazısı (5.7) */
+  --yt-amber-yazi: #7A5800;   /* sarı iz zemin üstünde aktif öğe yazısı (5.9; eski #8A5A00 kahveye kaçıyordu) */
 }
 /* topnav.js açık temada aktif öğeleri sabit #E5A900 ile boyuyordu (2.0:1) */
 html[data-tasarim="v3"][data-theme="light"] .sb-item.active,
@@ -377,7 +382,7 @@ html[data-tasarim="v3"][data-theme="light"] .rs-wrap::before { background: linea
 /* Eser detayı çipleri (beyaz yazı) */
 html[data-tasarim="v3"][data-theme="light"] .chip.meas { background: #2563C9; }
 html[data-tasarim="v3"][data-theme="light"] .chip.form { background: #1F7A4A; }
-html[data-tasarim="v3"][data-theme="light"] .chip.tuning { background: #9A5B00; }
+html[data-tasarim="v3"][data-theme="light"] .chip.tuning { background: var(--yt-btn); color: #1A1305; }   /* kahve #9A5B00 → sarı dolgu (2026-10-25) */
 
 /* Rozet ve etiketler (açık renkli zemin üstünde renkli yazı) */
 html[data-tasarim="v3"][data-theme="light"] span[style*="58A6FF" i] { color: #0A5BC2 !important; }          /* 🔒 Taslak */
@@ -602,9 +607,7 @@ html[data-tasarim="v3"][data-theme="light"] #recentWorks .work-row.zebra { backg
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-topnav,
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bottom-nav,
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bottom-nav,
-html[data-tasarim="v3"][data-theme="light"] .sidebar,
-html[data-tasarim="v3"][data-theme="light"] aside.sidebar,
-html[data-tasarim="v3"][data-theme="light"] .v2-sidebar {
+html[data-tasarim="v3"][data-theme="light"] .sb-brand {
   --bg: #070A0F; --bg2: #090D14; --surface: #111722; --surface2: #1A2130;
   --border: rgba(255, 255, 255, .08); --border2: rgba(255, 255, 255, .14);
   --accent: #FFC83D; --accent2: #4DA3FF; --accent3: #8CC5FF;
@@ -616,9 +619,13 @@ html[data-tasarim="v3"][data-theme="light"] .v2-sidebar {
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-topnav { background: #070A0F !important; border-bottom-color: rgba(255, 255, 255, .08) !important; }
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bottom-nav,
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bottom-nav { background: #070A0F !important; border-top-color: rgba(255, 255, 255, .08) !important; }
+/* (2026-10-25) YAN MENÜ AÇIK TEMADA BEYAZ (kullanıcı seçimi: "Beyaz menü"). Logo menünün tepesinde küçük koyu plakada (logo_dark;
+   sarı ".app" beyazda silik kalıyordu); plaka menü düğmeleriyle aynı 10 px çizgisinde. Telefonun üst çubuğu / alt menüsü değişmedi. */
 html[data-tasarim="v3"][data-theme="light"] .sidebar,
 html[data-tasarim="v3"][data-theme="light"] aside.sidebar,
-html[data-tasarim="v3"][data-theme="light"] .v2-sidebar { background: #090D14 !important; border-right-color: rgba(255, 255, 255, .08) !important; }
+html[data-tasarim="v3"][data-theme="light"] .v2-sidebar { background: #FFFFFF !important; border-right-color: rgba(17, 23, 34, .08) !important; }
+html[data-tasarim="v3"][data-theme="light"] .sb-brand { background: #090D14; border-radius: 14px; margin: 10px 10px 10px; padding: 13px 12px; border-bottom: 0; }
+html[data-tasarim="v3"][data-theme="light"] .sb-brand img[data-logo] { height: 38px !important; margin-left: calc(-38px * 10 / 127); }
 /* Üst çubuk: kullanıcı düğmesi */
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-tn-user { background: rgba(255, 200, 61, .12); }
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-tn-uname { color: #FFFFFF; }
@@ -631,29 +638,32 @@ html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bn-item.active,
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bn-item.active,
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bn-item.active .bn-label,
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .v2-bn-item.active .bn-label { color: #FFC83D !important; }
-/* Yan menü (≥1024px) */
+/* Yan menü (≥1024px) — açık temada beyaz zemin: koyu yazı, seçili öğe sarı iz zemin + koyu yazı (altın yazı yerine dolgu) */
 html[data-tasarim="v3"][data-theme="light"] .sb-item,
-html[data-tasarim="v3"][data-theme="light"] .v2-sb-item { color: #AEB6C5 !important; }
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-item { color: #4A5466 !important; }
 html[data-tasarim="v3"][data-theme="light"] .sb-item:hover,
-html[data-tasarim="v3"][data-theme="light"] .v2-sb-item:hover { background: #111722 !important; color: #FFFFFF !important; }
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-item:hover { background: #F3F4F7 !important; color: #111722 !important; }
 html[data-tasarim="v3"][data-theme="light"] .sb-item.active,
-html[data-tasarim="v3"][data-theme="light"] .v2-sb-item.active { background: rgba(255, 200, 61, .12) !important; color: #FFC83D !important; }
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-item.active { background: rgba(255, 200, 61, .26) !important; color: #111722 !important; font-weight: 700; }
+html[data-tasarim="v3"][data-theme="light"] .sb-item.active i,
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-item.active i { color: #7A5800 !important; }
 html[data-tasarim="v3"][data-theme="light"] .sb-label,
 html[data-tasarim="v3"][data-theme="light"] .v2-sb-label,
 html[data-tasarim="v3"][data-theme="light"] .sb-domain,
 html[data-tasarim="v3"][data-theme="light"] .sb-urole,
-html[data-tasarim="v3"][data-theme="light"] .v2-sb-urole { color: #8A93A6 !important; }
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-urole { color: #5F6878 !important; }
 html[data-tasarim="v3"][data-theme="light"] .sb-appname,
 html[data-tasarim="v3"][data-theme="light"] .sb-uname,
-html[data-tasarim="v3"][data-theme="light"] .v2-sb-uname { color: #FFFFFF !important; }
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-uname { color: #111722 !important; }
 html[data-tasarim="v3"][data-theme="light"] .sb-divider,
-html[data-tasarim="v3"][data-theme="light"] .v2-sb-divider { background: rgba(255, 255, 255, .08) !important; }
-html[data-tasarim="v3"][data-theme="light"] .sb-user-x { background: #111722 !important; border-color: rgba(255, 255, 255, .12) !important; }
+html[data-tasarim="v3"][data-theme="light"] .v2-sb-divider { background: rgba(17, 23, 34, .08) !important; }
+html[data-tasarim="v3"][data-theme="light"] .sb-user-x { background: #F6F7F9 !important; border-color: rgba(17, 23, 34, .10) !important; }
+html[data-tasarim="v3"][data-theme="light"] .sb-user-x .sb-user-name { color: #4A5466; }
 /* Üst çubuktaki zil ve tema anahtarı: topnav.js açık tema için koyu renk yazıyordu (siyah zeminde görünmüyordu). */
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-topnav .r-tn-bell i { color: #e6e2ff; }
-html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-topnav .r-theme-toggle,
+html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .r-topnav .r-theme-toggle { background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .10); }
 html[data-tasarim="v3"][data-theme="light"] .sidebar .r-theme-toggle,
-html[data-tasarim="v3"][data-theme="light"] .v2-sidebar .r-theme-toggle { background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .10); }
+html[data-tasarim="v3"][data-theme="light"] .v2-sidebar .r-theme-toggle { background: rgba(17, 23, 34, .10); box-shadow: inset 0 0 0 1px rgba(17, 23, 34, .08); }
 /* Alt menüdeki "Sahne Modu" yazısı koyu temadaki gibi sarı (yukarıdaki .bn-label kuralı griye çekiyordu). */
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bn-stage,
 html[data-tasarim="v3"][data-theme="light"]:not([data-cam]) .bn-stage .bn-label { color: #FFC83D !important; }
