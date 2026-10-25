@@ -281,21 +281,20 @@ html[data-tasarim="v3"][data-theme="light"][data-sayfa="index"] .hero-section {
    üstünde duruyor; giriş alanının üst kenarı zeminle sert çizgi yapıyordu → en üst katman: tepede sayfa zemini (--bg), başlığın
    alt kenarında (--hero-baslik-alt, index.html heroBaslikAlt ölçer; yoksa 80px) saydam. Üst kenar çizgisi de kalktı. Masaüstü aynı. */
 @media (max-width: 1023px) {
-  /* koyu: tepe = sayfa zemini (--bg #070A0F). Bir ara çubuğun camı (#151B26) denendi — giriş alanının üstündeki koyu zeminle
-     78. pikselde SERT ÇİZGİ yaptı (kullanıcı: "Hoş geldin bloğu üstte çizgi halinde bitiyor"). Tepe, üstündeki zeminle aynı renk
-     olmalı; geçiş başlığın altına kadar giriş alanının rengine (#0D121B + köşedeki altın ışık) açılır. */
+  /* (2026-10-25, 3. deneme — kullanıcının ekran görüntüsüyle) Sayfanın ARKASINDA sabit ışık katmanı var (.bg-glow: tepede altın
+     parıltı); logo çubuğunun çevresindeki bant bununla aydınlanıyor. Giriş alanı tepeden opak başladığı için (önce --bg, sonra
+     #151B26) parıltıyı kesip içeriğin başladığı hizada ÇİZGİ yapıyordu. Şimdi giriş alanının kendi rengi tepede TAMAMEN SAYDAM:
+     arkadaki zemin + parıltı aynen görünür, alanın rengi başlığın alt kenarına (--hero-baslik-alt) kadar belirir. Alanın KENDİ sağ üst
+     altın parıltısı (radial, %82 %12) burada YOK: tepede aniden başlayıp hiza farkı bırakıyordu (simülatörde görüldü); sıcaklığı
+     sayfanın arkasındaki ışık katmanı veriyor. */
   html[data-tasarim="v3"][data-theme="dark"][data-sayfa="index"] .hero-section {
     background:
-      linear-gradient(180deg, var(--bg) 0, rgba(7, 10, 15, 0) var(--hero-baslik-alt, 80px)),
-      radial-gradient(circle at 82% 12%, rgba(255, 200, 61, .10), transparent 42%),
-      linear-gradient(180deg, #0D121B 0%, #090D14 100%);
+      linear-gradient(180deg, rgba(13, 18, 27, 0) 0, #0D121B var(--hero-baslik-alt, 80px), #090D14 100%);
     border-top-color: transparent;
   }
   html[data-tasarim="v3"][data-theme="light"][data-sayfa="index"] .hero-section {
     background:
-      linear-gradient(180deg, var(--bg) 0, transparent var(--hero-baslik-alt, 80px)),
-      radial-gradient(circle at 82% 12%, rgba(255, 200, 61, .14), transparent 42%),
-      linear-gradient(180deg, #FFFFFF 0%, #F6F7FA 100%);
+      linear-gradient(180deg, rgba(255, 255, 255, 0) 0, #FFFFFF var(--hero-baslik-alt, 80px), #F6F7FA 100%);
     border-top-color: transparent;
   }
 }
