@@ -264,6 +264,16 @@
 .rb-banka-ust .rb-bas { margin:0; }
 .rb-kota { font-size:12px; color:var(--text3); flex:1; }
 .rb-kes { margin-top:0; text-decoration:none; min-height:40px; padding:0 14px; font-size:13px; }
+/* (2026-10-25) Dinleme hızı + hızlı tempo düğmeleri */
+.rb-hiz { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:0 0 12px; }
+.rb-hiz-etiket { font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:.04em; margin-right:4px; }
+.rb-hiz-cip { min-height:36px; min-width:52px; padding:0 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface2);
+  color:var(--text2); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; font-variant-numeric:tabular-nums; }
+.rb-hiz-cip.aktif { background:var(--yt-btn,var(--accent)); border-color:var(--yt-btn,var(--accent)); color:#1a1200; }
+.rb-hiz-cip:disabled { opacity:.4; cursor:default; }
+.rb-tempo-hizli { gap:6px; flex-wrap:wrap; }
+.rb-hiz-sifir { font-weight:600; }
+@media (hover:none) and (pointer:coarse) { .rb-hiz-cip { min-height:40px; } }
 </style>
 <link rel="stylesheet" href="tasarim.css">
 </head>
@@ -348,10 +358,19 @@
       <div class="rb-ayarlar">
         <div class="rb-ayar">
           <span class="rt-etiket" data-i18n="ca.tempo">Tempo</span>
-          <button class="rt-adim" onclick="rbTempoKaydir(-1)">−</button>
+          <button class="rt-adim" data-rb-tut="-1" onclick="rbTempoKaydir(-1)" aria-label="−1">−</button>
           <span class="rt-bpm-deger" id="rbTempo">—</span>
-          <button class="rt-adim" onclick="rbTempoKaydir(1)">+</button>
+          <button class="rt-adim" data-rb-tut="1" onclick="rbTempoKaydir(1)" aria-label="+1">+</button>
           <span class="rb-kucuk-not" id="rbTempoNot"></span>
+        </div>
+        <!-- (2026-10-25) Kullanıcı: "Ritim bankasına ritim hızlandırma / yavaşlatma ekleyelim" — hızlı adımlar + kayıt temposuna dönüş;
+             − / + basılı tutulunca hızlanarak değişir (rbBasiliTut). -->
+        <div class="rb-ayar rb-tempo-hizli">
+          <button class="rb-hiz-cip" onclick="rbTempoKaydir(-10)">−10</button>
+          <button class="rb-hiz-cip" onclick="rbTempoKaydir(-5)">−5</button>
+          <button class="rb-hiz-cip" onclick="rbTempoKaydir(5)">+5</button>
+          <button class="rb-hiz-cip" onclick="rbTempoKaydir(10)">+10</button>
+          <button class="rb-hiz-cip rb-hiz-sifir" id="rbTempoSifir" onclick="rbTempoSifirla()" data-i18n="ca.rbKayitTempo">Kayıt temposu</button>
         </div>
         <div class="rb-ayar">
           <span class="rt-etiket" data-i18n="ca.rbTon">Ton</span>
@@ -368,6 +387,7 @@
       <span class="rb-kota" id="rbKota"></span>
       <a class="co-btn ikincil rb-kes" href="ritim-kes.html"><i class="ti ti-scissors"></i><span data-i18n="ca.rbYeniKes">Yeni ritim kes</span></a>
     </div>
+    <div class="rb-hiz" id="rbHiz"></div>
     <div class="co-liste" id="rbBanka"></div>
     <div class="rb-bos" id="rbBankaBos" hidden data-i18n="ca.rbBankaBos">Bankan boş. Elindeki bir ritim kaydından döngü kesmek için "Yeni ritim kes"e dokun.</div>
   </div>
@@ -1296,7 +1316,12 @@ let rbEser = null;           // {id, name}
 let rbBagli = [];            // [{satir(eser_ritimleri), ritim}]
 let rbTempo = null, rbTon = 0;
 let rbCalar = null;
-let rbOnizleme = null;       // bankadaki ▶ dinle — {src, id}
+let rbOnizleme = null;       // bankadaki ▶ dinle — {src, id} ya da (hız ≠ %100) {calar, id, tempo}
+// (2026-10-25) Bankada DİNLEME HIZI (%75–%125): kullanıcı "ritim hızlandırma / yavaşlatma ekleyelim". %100'de ham döngü çalar;
+// başka hızda RitimCalar ile perdeyi bozmadan gerilir, dinlerken değişirse ölçü başında kesintisiz geçer. Tercih bu cihazda saklanır.
+const RB_HIZLAR = [0.75, 0.9, 1, 1.1, 1.25];
+let rbOnizHiz = 1;
+try { const _h = parseFloat(localStorage.getItem('rbOnizHiz')); if (RB_HIZLAR.indexOf(_h) > -1) rbOnizHiz = _h; } catch (e) {}
 const RB_TAMPON = new Map(); // ritimId → Promise<{kanallar, sr}>  (oturum boyu)
 let _ST2 = null;
 
@@ -1365,6 +1390,7 @@ async function rbBankaYukle() {
 }
 
 function rbBankaCiz() {
+  rbHizCiz();
   const el = document.getElementById('rbBanka');
   if (RB_KOTA) {
     document.getElementById('rbKota').textContent =
@@ -1418,7 +1444,7 @@ function rbTamponAl(r) {
 async function rbOnizle(id) {
   if (rbOnizleme) {
     const ayni = rbOnizleme.id === id;
-    try { rbOnizleme.src.stop(); } catch (e) {}
+    try { if (rbOnizleme.calar) rbOnizleme.calar.durdur(); else rbOnizleme.src.stop(); } catch (e) {}
     rbOnizleme = null; rtKilitYenile(); rbBankaCiz();
     if (ayni) return;
   }
@@ -1430,12 +1456,23 @@ async function rbOnizle(id) {
   if (!h.ok) { rbNot(_caCev('me.sesEngel', 'Tarayıcı sesi engelledi.'), true); return; }
   try {
     const t = await rbTamponAl(r);
-    const actx = Ses.ctx();
-    const buf = actx.createBuffer(t.kanallar.length, t.kanallar[0].length, t.sr);
-    t.kanallar.forEach((d, c) => buf.getChannelData(c).set(d));
-    const src = actx.createBufferSource();
-    src.buffer = buf; src.loop = true; src.connect(Ses.cikis()); src.start();
-    rbOnizleme = { src, id };
+    if (rbOnizHiz !== 1) {
+      if (!_ST2) _ST2 = (typeof _ST !== 'undefined' && _ST) ? _ST : await import('./soundtouch.js');
+      const tempo = +r.tempo || 100;
+      const calar = RitimCalar.olustur({ ctx: () => Ses.ctx(), cikis: () => Ses.cikis(), ST: _ST2, Dongu: Dongu });
+      calar.ayarla(tempo * rbOnizHiz, 0);
+      calar.yukle([{ id: r.id, ad: r.ad, tempo, zaman_sayisi: r.zaman_sayisi, olcu_sayisi: r.olcu_sayisi,
+                     kanallar: t.kanallar, sr: t.sr }]);
+      calar.basla(0);
+      rbOnizleme = { calar, id, tempo };
+    } else {
+      const actx = Ses.ctx();
+      const buf = actx.createBuffer(t.kanallar.length, t.kanallar[0].length, t.sr);
+      t.kanallar.forEach((d, c) => buf.getChannelData(c).set(d));
+      const src = actx.createBufferSource();
+      src.buffer = buf; src.loop = true; src.connect(Ses.cikis()); src.start();
+      rbOnizleme = { src, id };
+    }
   } catch (e) { rbNot(_caCev('ca.rbIndirilemedi', 'Ritim indirilemedi.'), true); }
   rtKilitYenile(); rbBankaCiz();
 }
@@ -1648,8 +1685,11 @@ function rbAyarCiz() {
   document.getElementById('rbTempo').textContent = rbTempo != null ? (+rbTempo).toFixed(rbTempo % 1 ? 1 : 0) : '—';
   document.getElementById('rbTon').textContent = (rbTon > 0 ? '+' : '') + rbTon;
   const ilk = rbBagli[0];
-  document.getElementById('rbTempoNot').textContent = ilk && rbTempo != null && Math.abs(rbTempo - ilk.ritim.tempo) > 0.05
-    ? _caCev('ca.rbOrijinal', 'kayıt: {t}').replace('{t}', (+ilk.ritim.tempo).toFixed(ilk.ritim.tempo % 1 ? 1 : 0)) : '';
+  const farkli = ilk && rbTempo != null && ilk.ritim.tempo && Math.abs(rbTempo - ilk.ritim.tempo) > 0.05;
+  document.getElementById('rbTempoNot').textContent = farkli
+    ? '%' + Math.round(rbTempo / ilk.ritim.tempo * 100) + ' · ' + _caCev('ca.rbOrijinal', 'kayıt: {t}').replace('{t}', (+ilk.ritim.tempo).toFixed(ilk.ritim.tempo % 1 ? 1 : 0)) : '';
+  const sf = document.getElementById('rbTempoSifir');
+  if (sf) sf.disabled = !farkli;
 }
 let _rbAyarZaman = null;
 function rbAyarUygula() {
@@ -1672,6 +1712,48 @@ function rbTempoKaydir(d) {
   if (rbTempo == null) return;
   rbTempo = Math.min(400, Math.max(20, Math.round(rbTempo + d)));
   rbAyarUygula();
+}
+function rbTempoSifirla() {
+  const ilk = rbBagli[0];
+  if (!ilk || ilk.ritim.tempo == null) return;
+  rbTempo = +ilk.ritim.tempo;
+  rbAyarUygula();
+}
+// − / + basılı tutulunca: 450 ms sonra tekrarlar, giderek hızlanır; bırakınca gelen tıklama yok sayılır.
+(function rbBasiliTut() {
+  let zaman = null, adim = 0, tekrarOldu = false;
+  const bitir = () => { clearTimeout(zaman); zaman = null; };
+  document.addEventListener('pointerdown', e => {
+    const b = e.target.closest && e.target.closest('[data-rb-tut]');
+    if (!b) return;
+    tekrarOldu = false; adim = 0;
+    const d = parseInt(b.dataset.rbTut, 10) || 0;
+    const tekrar = () => { tekrarOldu = true; adim++; rbTempoKaydir(d); zaman = setTimeout(tekrar, adim > 12 ? 40 : 90); };
+    zaman = setTimeout(tekrar, 450);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => document.addEventListener(t, bitir));
+  document.addEventListener('click', e => {
+    if (tekrarOldu && e.target.closest && e.target.closest('[data-rb-tut]')) { e.stopPropagation(); e.preventDefault(); tekrarOldu = false; }
+  }, true);
+})();
+function rbHizCiz() {
+  const el = document.getElementById('rbHiz');
+  if (!el) return;
+  el.innerHTML = '<span class="rb-hiz-etiket">' + _caCev('ca.rbDinlemeHizi', 'Dinleme hızı') + '</span>'
+    + RB_HIZLAR.map(h => '<button class="rb-hiz-cip' + (h === rbOnizHiz ? ' aktif' : '') + '" onclick="rbHizSec(' + h + ')">%' + Math.round(h * 100) + '</button>').join('');
+}
+async function rbHizSec(h) {
+  if (RB_HIZLAR.indexOf(h) < 0 || h === rbOnizHiz) return;
+  const onceki = rbOnizHiz;
+  rbOnizHiz = h;
+  try { localStorage.setItem('rbOnizHiz', String(h)); } catch (e) {}
+  rbHizCiz();
+  if (!rbOnizleme) return;
+  // Gerilmiş çalar sürüyorsa ve yeni hız da %100 değilse: kesintisiz geçiş; yoksa dinlemeyi yeni kipte baştan başlat
+  if (rbOnizleme.calar && h !== 1 && onceki !== 1) { rbOnizleme.calar.ayarla(rbOnizleme.tempo * h, 0); return; }
+  const id = rbOnizleme.id;
+  await rbOnizle(id);          // durdurur
+  await rbOnizle(id);          // yeni hızla başlatır
 }
 function rbTonKaydir(d) {
   rbTon = Math.min(12, Math.max(-12, rbTon + d));
