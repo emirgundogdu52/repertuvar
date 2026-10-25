@@ -1491,3 +1491,13 @@ html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.page-title, .page-sub, .se
   html[data-tasarim="v3"][data-sayfa="uyeler"] .member-email { font-size: 15px; }
   html[data-tasarim="v3"][data-sayfa="uyeler"] .member-meta { font-size: 13px; }
 }
+/* 12) Sahne Modu seçim ekranı — ortalı karşılama düzeni bilerek ortada kalır; liste 520 → 640 px (1505'te 1238 px alanda 390 px
+   şeritti). Satır altı (tarih · yer) ve eser sayısı 12 → 13; Gündüz / Gece seçimi 30 → 34 px (satır içi stil). */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="stage"] #pickerScreen .pi { max-width: 640px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] #pickerScreen :is(.rsm, .rsc) { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] #pickerScreen .psub { font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="stage"] :is(#tc-day, #tc-night) { min-height: 34px; display: inline-flex; align-items: center; font-size: 13px !important; }
+  /* listenin kaydırma çubuğu koyu temada beyaz şerit olarak görünüyordu */
+  html[data-tasarim="v3"][data-sayfa="stage"] #pickerScreen .pi-scroll { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+}
