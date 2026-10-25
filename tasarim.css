@@ -1847,3 +1847,10 @@ html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .ra-menu.not-var::after {
   content: ''; position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%;
   background: #2DD4BF; box-shadow: 0 0 0 2px var(--surface); }
 html[data-tasarim="v3"][data-theme="light"][data-sayfa="repertoires"] .ra .ra-menu.not-var::after { background: #0D9488; }
+/* 28) Açık tema — alt menü üst barla aynı cam (2026-10-25 kullanıcı: "açık modda logo bölümünün zemini beyaz, alt menü sarı gibi;
+   alt menüyü üst bara uydur"). Telefon/tablet cam barlarında (≤1023) üst bar --cam-zemin (beyaz cam) iken alt menüyü açık temanın
+   eski kuralı (krem #F7F5EF .97 + koyu üst çizgi, !important, daha güçlü seçici) eziyordu. Masaüstü (yan menü) etkilenmez. */
+@media (max-width: 1023px) {
+  html[data-cam][data-tasarim="v3"][data-theme="light"] .bottom-nav {
+    background: var(--cam-zemin) !important; border-color: var(--cam-kenar) !important; }
+}
