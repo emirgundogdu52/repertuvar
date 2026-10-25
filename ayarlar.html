@@ -28,6 +28,7 @@ async function verilerimiIndir() {
   btn.disabled = true; btn.textContent = _t('ay.verHazirlaniyor', 'Hazırlanıyor…'); msg.style.display = 'none';
   try {
     const p = await Verilerim.indir();
+    if (p.durum !== 'iptal' && typeof ozellikKaydet === 'function') ozellikKaydet('verilerim_indir', null, p.ozet.eser);
     if (p.durum !== 'iptal') goster(_t('ay.verHazir', 'Hazır: {e} eser, {r} repertuvar ({ad}).').replace('{e}', p.ozet.eser).replace('{r}', p.ozet.repertuvar).replace('{ad}', p.ad), true);
   } catch (e) {
     goster(_t('ay.verHata', 'Veriler hazırlanamadı: {hata}').replace('{hata}', (e && e.message) || e), false);

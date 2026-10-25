@@ -5568,6 +5568,16 @@ function iaMetinAyristir() {
   t.closest('div').remove();
   iaEkle(yeni);
 }
+function _iaYontem(e) {
+  const k = e.kaynak || '';
+  if (!k || k === _esCev('es.iaYapistirilan', 'Yapıştırılan metin')) return 'yapistir';
+  if (k.indexOf(' › ') >= 0) return 'zip';
+  const uz = ((/\.([a-z0-9]+)$/i.exec(k) || [])[1] || '').toLowerCase();
+  if (['cho', 'chopro', 'chordpro', 'crd', 'pro', 'chord'].indexOf(uz) >= 0) return 'chordpro';
+  if (uz === 'onsong') return 'onsong';
+  if (uz === 'docx' || uz === 'odt') return 'word';
+  return 'txt';
+}
 async function iaDosyaSecildi(inp) { const f = Array.from(inp.files || []); inp.value = ''; if (f.length) iaDosyalar(f); }
 async function iaDosyalar(dosyalar) {
   const d = document.getElementById('ia_durum');
@@ -5654,6 +5664,12 @@ async function iaKaydet() {
     } catch (err) { hata++; console.warn('[içe aktar]', e.ad, err); }
   }
   _iaKayit = false;
+  // (2026-10-25) özellik kullanımı: aktarılan eserler, yönteme göre (kaynak dosya uzantısı / zip / yapıştırma)
+  if (tamam && typeof ozellikKaydet === 'function') {
+    const say = {};
+    _ia.filter(e => e.aktarildi).forEach(e => { const y = _iaYontem(e); say[y] = (say[y] || 0) + 1; });
+    Object.keys(say).forEach(y => ozellikKaydet('ice_aktar', y, say[y]));
+  }
   _ia = _ia.filter(e => !e.aktarildi);
   if (tamam) { buildFilters(); applyFilters(); }
   toastMsg(hata
@@ -5692,6 +5708,7 @@ function defterAc() {
       const f = Array.from((e.dataTransfer && e.dataTransfer.files) || []);
       if (!f.length) return;
       try { localStorage.setItem('defterTaramaIpucu', '1'); } catch (x) {}
+      _defterKaynak = 'dosya';
       defterEkle(f);
     });
   }
@@ -5725,11 +5742,13 @@ function defterDurum(t, renk) {
   if (d) { d.textContent = t || ''; d.style.color = renk || 'var(--text3)'; }
 }
 
+// (2026-10-25) Özellik kullanımı: sayfanın geldiği yol — cihaz tarayıcısı / dosya (seç, sürükle) / PDF. defterKaydet sayar.
+let _defterKaynak = 'dosya';
 function defterSayfaEkle() {
   if (_defterKaydediliyor || _defterOkunuyor) return;
   try { localStorage.setItem('defterTaramaIpucu', '1'); } catch (e) {}
-  if (notaTarayiciVar()) notaTaraDosyalar(m => defterDurum(m.text, m.renk)).then(defterEkle);
-  else document.getElementById('df_dosya').click();
+  if (notaTarayiciVar()) { _defterKaynak = 'tarayici'; notaTaraDosyalar(m => defterDurum(m.text, m.renk)).then(defterEkle); }
+  else { _defterKaynak = 'dosya'; document.getElementById('df_dosya').click(); }
 }
 function defterDosyaSec(inp) { const f = Array.from(inp.files || []); inp.value = ''; defterEkle(f); }
 
@@ -5763,6 +5782,7 @@ async function _defterPdfSayfalari(file) {
 async function defterEkle(files) {
   files = (files || []).filter(f => f && ((f.type || '').indexOf('image/') === 0 || defterPdfMi(f)));
   if (!files.length) { defterCiz(); return; }
+  const kaynak = _defterKaynak, pdfVar = files.some(defterPdfMi);
   // (2026-10-22) Kullanıcı: "desktopta nasıl kullanırız — tüm defterini scan etse, bir dosyadan okutsak?" Taranmış defter çoğu zaman
   // tek PDF: okuma yetkisi olanda sayfaları ayrı görüntüye çevrilir (her sayfa okunur, eserlere ayrılır, sayfa sayfa nota olur).
   // Yetkisi olmayanda PDF eskisi gibi tek kart / tek nota.
@@ -5779,7 +5799,8 @@ async function defterEkle(files) {
     files = acik;
   }
   const ilkYeni = _defter.length;
-  files.forEach(f => _defter.push({ ad: '', sayfalar: [{ dosya: f, url: URL.createObjectURL(f) }] }));
+  // PDF'ten açılan sayfalar 'pdf'; kaynak yalnız sayım için (defterKaydet → ozellikKaydet)
+  files.forEach(f => _defter.push({ ad: '', sayfalar: [{ dosya: f, url: URL.createObjectURL(f), kaynak: (pdfVar && (defterPdfMi(f) || /-s\d+\.jpg$/.test(f.name || ''))) ? 'pdf' : kaynak }] }));
   defterDurum('');
   defterCiz();
   defterYapayOku(ilkYeni);
@@ -5989,6 +6010,7 @@ async function defterKaydet() {
   defterCiz();
   const toplam = _defter.length, kalan = [], hatalar = [];
   let sira = 0, eklenen = 0, notaEklenen = 0, sonMevcut = null;
+  const kaynakSayfa = {};   // (2026-10-25) özellik kullanımı: başarıyla kaydedilen sayfalar, kaynağa göre
   for (const k of _defter) {
     sira++;
     defterDurum(_esCev('es.dfKaydediliyor','⏳ Kaydediliyor {i}/{n} — {ad}').replace('{i}', sira).replace('{n}', toplam).replace('{ad}', k.ad.trim()));
@@ -6004,7 +6026,7 @@ async function defterKaydet() {
         await saveNotaPages(k.id, k.sayfalar.map(sy => sy.adres));
         eklenen++;
       }
-      k.sayfalar.forEach(sy => URL.revokeObjectURL(sy.url));
+      k.sayfalar.forEach(sy => { URL.revokeObjectURL(sy.url); const y = sy.kaynak || 'dosya'; kaynakSayfa[y] = (kaynakSayfa[y] || 0) + 1; });
     } catch (e) {
       hatalar.push(k.ad.trim() + ': ' + e.message);
       kalan.push(k);
@@ -6013,6 +6035,11 @@ async function defterKaydet() {
   _defter = kalan;
   _defterKaydediliyor = false;
   if (eklenen || notaEklenen) { buildFilters(); applyFilters(); }
+  if (typeof ozellikKaydet === 'function') {
+    const yontemler = Object.keys(kaynakSayfa);
+    // eser sayıları ilk yöntem satırına (bir kaydetme = bir defter işlemi; yöntem başına sayfa ayrı satır)
+    yontemler.forEach((y, i) => ozellikKaydet('defter', y, kaynakSayfa[y], i === 0 ? { yeni_eser: eklenen, nota_eklenen: notaEklenen } : null));
+  }
   if (!kalan.length) {
     const m = document.getElementById('defterModal');
     if (m) m.style.display = 'none';

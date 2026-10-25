@@ -559,6 +559,26 @@ async function uygunsuzTara(metinler) {
     return out;
   } catch (e) { return null; }
 }
+// (2026-10-25) ÖZELLİK KULLANIMI — kullanıcı: "tarama ve içe aktarma için raporlama / takip; kaç kişi defterden kaç eser aktarıyor,
+// en çok hangi yöntem tercih ediliyor". Başarılı işlemden sonra bir satır (sql/ozellik_kullanim.sql); içerik / şarkı adı YOK.
+// Sessiz: çevrimdışı, oturumsuz ya da sunucu tablosu yoksa hiçbir şey olmaz (local-first; işlem asla bunun yüzünden bozulmaz).
+function ozellikPlatform() {
+  try {
+    var C = window.Capacitor;
+    if (C && C.isNativePlatform && C.isNativePlatform()) return C.getPlatform ? C.getPlatform() : 'yerel';
+    return window.matchMedia('(hover: hover) and (pointer: fine)').matches ? 'web-masaustu' : 'web-mobil';
+  } catch (e) { return 'web'; }
+}
+function ozellikKaydet(ozellik, yontem, adet, ayrinti) {
+  try {
+    if (!getUserId || !getUserId() || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
+    fetch(SUPA_URL + '/rest/v1/ozellik_kullanim', {
+      method: 'POST', headers: Object.assign({}, authHeaders(), { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }),
+      body: JSON.stringify({ ozellik: ozellik, yontem: yontem || null, adet: Math.max(0, Math.min(10000, Math.round(adet || 0))),
+        platform: ozellikPlatform(), ayrinti: ayrinti || null })
+    }).catch(function () {});
+  } catch (e) {}
+}
 // Sunucu hata gövdesi (PostgREST JSON) → kullanıcıya gösterilecek ileti; JSON değilse gövdenin kendisi.
 function hataMetni(govde) {
   try { var j = JSON.parse(govde); return (j && (j.message || j.msg || j.error_description)) || govde; } catch (e) { return govde; }

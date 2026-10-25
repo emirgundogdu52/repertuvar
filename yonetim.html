@@ -197,6 +197,14 @@
       </div>
       <div id="dvNot" style="margin-top:8px;font-size:12.5px;color:var(--text3);line-height:1.45;"></div>
     </div>
+
+    <!-- (2026-10-25) ÖZELLİK KULLANIMI — kullanıcı: "tarama ve dosyadan içe aktarma için raporlama / takip; kaç kişi defterden kaç
+         eser aktarıyor, en çok hangi yöntem tercih ediliyor". ozellik_istatistik(30) (sql/ozellik_kullanim.sql). -->
+    <div class="y-break" id="ozKart">
+      <h4 data-i18n="yo.ozellikKullanim">Özellik Kullanımı (30 gün)</h4>
+      <div id="ozIcerik"><div class="y-row"><span class="y-row-lbl">—</span></div></div>
+      <div id="ozNot" style="margin-top:8px;font-size:12.5px;color:var(--text3);line-height:1.45;"></div>
+    </div>
   </div>
 
   <div class="y-sec-title" data-i18n="yo.bolumler">Bölümler</div>
@@ -288,6 +296,7 @@ async function panoYukle() {
 
   kirilimYukle(pending);
   davetYukle();
+  ozellikYukle();
   trafikYukle();
   kullanimYukle();
 }
@@ -323,6 +332,61 @@ async function davetYukle() {
       not.textContent = parca.join(' ');
     }
   } catch (e) {}
+}
+
+// (2026-10-25) Özellik kullanımı: defter / içe aktarma / liste doldurma / verilerimi indir — kişi, adet, yöntem dağılımı.
+const _OZ_YONTEM = {
+  tarayici: ['yo.ozTarayici', 'Cihaz tarayıcısı'], dosya: ['yo.ozDosya', 'Fotoğraf / dosya'], pdf: ['yo.ozPdf', 'PDF'],
+  chordpro: ['yo.ozChordpro', 'ChordPro'], onsong: ['yo.ozOnsong', 'OnSong'], word: ['yo.ozWord', 'Word'], txt: ['yo.ozTxt', 'Metin dosyası'],
+  zip: ['yo.ozZip', 'Zip'], yapistir: ['yo.ozYapistir', 'Yapıştırılan metin'], xlsx: ['yo.ozExcel', 'Excel'], docx: ['yo.ozWord', 'Word'],
+  csv: ['yo.ozCsv', 'CSV'], tsv: ['yo.ozCsv', 'CSV'], ods: ['yo.ozLibre', 'LibreOffice'], odt: ['yo.ozLibre', 'LibreOffice']
+};
+function _ozYontemAd(y) { const t = _OZ_YONTEM[y]; return t ? _yoCev(t[0], t[1]) : (y || '?'); }
+async function ozellikYukle() {
+  const kutu = document.getElementById('ozIcerik'), not = document.getElementById('ozNot');
+  if (!kutu) return;
+  let d;
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/ozellik_istatistik', { method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ p_gun: 30 }), signal: AbortSignal.timeout(8000) });
+    if (!r.ok) { kutu.innerHTML = '<div class="y-row"><span class="y-row-lbl">' + _yoCev('yo.ozKurulumYok', 'Sunucu kurulumu bekleniyor (sql/ozellik_kullanim.sql).') + '</span></div>'; return; }
+    d = await r.json();
+  } catch (e) { return; }
+  const o = d.ozellikler || {}, esc = s => String(s == null ? '' : s).replace(/</g, '&lt;');
+  const satir = (lbl, val, sinif) => `<div class="y-row${sinif ? ' ' + sinif : ''}"><span class="y-row-lbl">${lbl}</span><span class="y-row-val">${val}</span></div>`;
+  const yontemler = (liste) => {
+    const top = (liste || []).reduce((t, y) => t + (y.adet || 0), 0) || 1;
+    return (liste || []).map((y, i) => satir('&nbsp;&nbsp;' + (i === 0 ? '★ ' : '· ') + esc(_ozYontemAd(y.yontem)) + ' <span style="color:var(--text3)">(' + y.kisi + ' ' + _yoCev('yo.ozKisi', 'kişi') + ')</span>',
+      y.adet + ' <span style="color:var(--text3);font-weight:500">%' + Math.round(100 * y.adet / top) + '</span>')).join('');
+  };
+  let h = '';
+  const df = o.defter;
+  h += '<div class="y-alt-baslik" style="margin-top:2px">' + _yoCev('yo.ozDefter', 'Defterden ekle') + '</div><div class="y-rows">';
+  h += df ? satir(_yoCev('yo.ozKisiSay', 'Kullanan kişi'), df.kisi) + satir(_yoCev('yo.ozYeniEser', 'Oluşan yeni eser'), df.yeni_eser) +
+    satir(_yoCev('yo.ozNotaEklenen', 'Nota eklenen mevcut eser'), df.nota_eklenen) + satir(_yoCev('yo.ozSayfa', 'Eklenen sayfa'), df.adet) + yontemler(df.yontemler)
+    : satir(_yoCev('yo.ozHenuzYok', 'Henüz kullanım yok'), '0');
+  if (d.defter_okuma && d.defter_okuma.kayit) h += satir(_yoCev('yo.ozYapayOkuma', 'Yapay zekâyla okunan sayfa'), d.defter_okuma.sayfa + ' <span style="color:var(--text3);font-weight:500">(' + d.defter_okuma.kisi + ' ' + _yoCev('yo.ozKisi', 'kişi') + ')</span>');
+  h += '</div>';
+  const ia = o.ice_aktar;
+  h += '<div class="y-alt-baslik" style="margin-top:12px">' + _yoCev('yo.ozIceAktar', 'Başka uygulamadan aktar') + '</div><div class="y-rows">';
+  h += ia ? satir(_yoCev('yo.ozKisiSay', 'Kullanan kişi'), ia.kisi) + satir(_yoCev('yo.ozAktarilanEser', 'Aktarılan eser'), ia.adet) + yontemler(ia.yontemler)
+    : satir(_yoCev('yo.ozHenuzYok', 'Henüz kullanım yok'), '0');
+  h += '</div>';
+  const ls = o.liste_doldur;
+  h += '<div class="y-alt-baslik" style="margin-top:12px">' + _yoCev('yo.ozListe', 'Şarkı listesinden doldur') + '</div><div class="y-rows">';
+  h += ls ? satir(_yoCev('yo.ozKisiSay', 'Kullanan kişi'), ls.kisi) + satir(_yoCev('yo.ozEklenenSatir', 'Repertuvara eklenen eser'), ls.adet) +
+    satir(_yoCev('yo.ozYeniEser', 'Oluşan yeni eser'), ls.yeni_eser) + yontemler(ls.yontemler)
+    : satir(_yoCev('yo.ozHenuzYok', 'Henüz kullanım yok'), '0');
+  h += '</div>';
+  const vi = o.verilerim_indir;
+  h += '<div class="y-rows" style="margin-top:12px">' + satir(_yoCev('yo.ozVerilerim', 'Verilerimi indir'), vi ? vi.olay + ' <span style="color:var(--text3);font-weight:500">(' + vi.kisi + ' ' + _yoCev('yo.ozKisi', 'kişi') + ')</span>' : '0') + '</div>';
+  kutu.innerHTML = h;
+  if (not) {
+    const pl = Object.entries(d.platformlar || {}).map(([k, v]) => k + ' ' + v).join(' · ');
+    not.textContent = (d.takip_baslangic
+      ? _yoCev('yo.ozTakip', 'Takip {t} tarihinden beri.').replace('{t}', new Date(d.takip_baslangic).toLocaleDateString())
+      : _yoCev('yo.ozTakipYok', 'Takip bugün başladı; öncesi kaydedilmedi.')) + (pl ? ' ' + _yoCev('yo.ozPlatform', 'Platform:') + ' ' + pl : '');
+  }
 }
 
 // Landing trafiği — sayılar `landing_stats()` RPC'sinden tek çağrıda gelir.

@@ -1287,6 +1287,7 @@ async function saveRep(){
     const pay = await repGrupPaylasimiUygula(repId, vis, myGid);
     // (2026-10-25) Şarkı listesinden doldur: eşleşenler sırayla, "yeni" seçilenler önce eser olarak açılıp eklenir.
     const lst = (yeniRep && repId) ? await lstRepertuvaraEkle(repId) : null;
+    if (lst && lst.eklenen && typeof ozellikKaydet === 'function') ozellikKaydet('liste_doldur', _lstKaynak, lst.eklenen, { yeni_eser: lst.yeni || 0, eslesen: Math.max(0, lst.eklenen - (lst.yeni || 0)) });
     closeRM();
     if (lst && (lst.eklenen || lst.hata)) toast(_r('rep.lstSonuc','{n} eser eklendi').replace('{n}', lst.eklenen) + (lst.yeni ? ' · ' + _r('rep.lstYeniAcildi','{n} yeni eser açıldı').replace('{n}', lst.yeni) : '') + (lst.hata ? ' · ' + _r('rep.lstHata','{n} satır eklenemedi').replace('{n}', lst.hata) : ''), lst.hata ? 'er' : 'ok');
     else toast(pay.ok ? _r('ortak.kaydedildi','Kaydedildi ✓') : pay.mesaj, pay.ok ? 'ok' : 'er');
@@ -1299,12 +1300,14 @@ async function saveRep(){
 // ice-aktar.js satırları temizler (numara, sanatçı, süre) ve eserlerle Türkçe duyarsız eşleştirir; her satırda seçim
 // (eşleşen eser / adaylar / yeni eser olarak aç / atla). Kaydet'te repertuvar açıldıktan sonra sırayla eklenir.
 let _lst = [];
+let _lstKaynak = 'yapistir';   // (2026-10-25) özellik kullanımı: yapistir | dosya uzantısı (xlsx, docx, csv…)
 function lstSifirla(goster) {
   _lst = [];
   const b = document.getElementById('lstBolum'); if (b) b.hidden = !goster;
   const a = document.getElementById('lstAlan'); if (a) a.hidden = true;
   const btn = document.getElementById('lstAcBtn'); if (btn) btn.setAttribute('aria-expanded', 'false');
   const t = document.getElementById('lstMetin'); if (t) t.value = '';
+  _lstKaynak = 'yapistir';
   const s = document.getElementById('lstSonuc'); if (s) s.innerHTML = '';
 }
 function lstAcKapat() {
@@ -1335,6 +1338,7 @@ async function lstDosyaSecildi(inp) {
     if (!satirlar.length) { toast(_r('rep.lstBos','Listede şarkı bulunamadı.'), 'er'); return; }
     if (satirlar.length > 500) { satirlar = satirlar.slice(0, 500); toast(_r('rep.lstKirpildi','Listenin ilk 500 satırı alındı'), 'er'); }
     document.getElementById('lstMetin').value = satirlar.join('\n');
+    _lstKaynak = ((/\.([a-z0-9]+)$/i.exec(f.name || '') || [])[1] || 'dosya').toLowerCase();
     lstEslestir();
   } catch (e) {
     toast(e && e.message === 'eski'
