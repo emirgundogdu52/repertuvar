@@ -170,7 +170,17 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
       66%       { transform:translateY(5.5px);  color:#0A5BC2; }
       90%, 100% { transform:translateY(0);      color:#8A5A00; }
     }
-    @media (prefers-reduced-motion: reduce) { .tarama-cizgi { animation:none; } }
+    /* (2026-10-25) Kullanıcı: "dışındaki çerçeve de tarama işlemi başlayınca parlayıp sönsün, tarama devam etsin" — köşe çizgileri
+       (çerçeve) çizgi ortadan kalkarken (döngünün %4–30'u) açık altına parlar, altında yumuşak bir ışık halesi belirip söner.
+       Aynı 3,2 sn döngü, çizgiyle eş zamanlı. */
+    .tarama-cerceve { color:#FFC83D; animation:defterCerceve 3.2s ease-in-out infinite; }
+    .tarama-cerceve path { stroke:currentColor; }
+    .tarama-cerceve-isik { stroke-width:5; opacity:0; animation:defterCerceveIsik 3.2s ease-in-out infinite; }
+    @keyframes defterCerceve { 0%, 4% { color:#FFC83D; } 12% { color:#FFF0BF; } 30%, 100% { color:#FFC83D; } }
+    @keyframes defterCerceveIsik { 0%, 4% { opacity:0; } 12% { opacity:.5; } 30%, 100% { opacity:0; } }
+    [data-theme="light"] .tarama-cerceve { color:#8A5A00; animation-name:defterCerceveAcik; }
+    @keyframes defterCerceveAcik { 0%, 4% { color:#8A5A00; } 12% { color:#D99A00; } 30%, 100% { color:#8A5A00; } }
+    @media (prefers-reduced-motion: reduce) { .tarama-cizgi, .tarama-cerceve, .tarama-cerceve-isik { animation:none; } }
 
     .hero-bullets { list-style:none; margin:0 0 20px; padding:0; }
     .hero-bullets li { font-size:15px; line-height:1.5; color:var(--text2); padding:6px 0; display:flex; align-items:flex-start; gap:8px; }
@@ -393,7 +403,7 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
         <a href="calisma.html" class="hero-btn-secondary" data-i18n="ana.demo">Çalışma Odası'nı Aç</a>
       </div>
       <a href="eserler.html?defter=1" class="ana-defter">
-        <span class="ana-defter-ik"><svg class="ana-defter-tarama" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7v-1a2 2 0 0 1 2 -2h2M4 17v1a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v1M16 20h2a2 2 0 0 0 2 -2v-1"/><g class="tarama-cizgi"><path class="tarama-isik" d="M5 12h14"/><path d="M5 12h14"/></g></svg></span>
+        <span class="ana-defter-ik"><svg class="ana-defter-tarama" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="tarama-cerceve"><path class="tarama-cerceve-isik" d="M4 7v-1a2 2 0 0 1 2 -2h2M4 17v1a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v1M16 20h2a2 2 0 0 0 2 -2v-1"/><path d="M4 7v-1a2 2 0 0 1 2 -2h2M4 17v1a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v1M16 20h2a2 2 0 0 0 2 -2v-1"/></g><g class="tarama-cizgi"><path class="tarama-isik" d="M5 12h14"/><path d="M5 12h14"/></g></svg></span>
         <span class="ana-defter-metin">
           <span class="ana-defter-ust"><span class="ana-defter-rozet" data-i18n="ana.yeni">Yeni</span><b data-i18n="ana.defterBaslik">Nota defterini tara, dijitale geç</b></span>
           <small class="defter-kamerali" data-i18n="ana.defterAlt">Defterindeki notaları telefonla tara; her sayfa eserinin sözlerinin ve akorlarının yanına eklenir, sahnede hep yanında.</small>
