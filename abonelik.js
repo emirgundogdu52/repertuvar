@@ -40,6 +40,19 @@
     return (C && C.isNativePlatform && C.isNativePlatform()) ? C.getPlatform() : 'web';
   }
   function webSatis() { return platform() === 'web' && !!WEB_ANAHTAR; }
+  // (2026-10-25) TEK ÖDEME "1 yıl Pro" — iDEAL | Wero için (Paddle'da abonelikte iDEAL yok). Kullanıcı kararı: Wero/iDEAL'in
+  // kullanıldığı ülkelerde görünür. Paddle iDEAL | Wero'yu şimdilik YALNIZ Hollanda'da (EUR) gösterir; BE/DE/FR/LU'da aynı ürün
+  // kart / PayPal (BE: Bancontact) ile ödenir. Ülke saat diliminden tahmin edilir (konum izni / IP sorgusu yok); ?ulke=XX ile denenir.
+  var TEK_ULKELER = { 'Europe/Amsterdam': 'NL', 'Europe/Brussels': 'BE', 'Europe/Berlin': 'DE', 'Europe/Busingen': 'DE',
+                      'Europe/Paris': 'FR', 'Europe/Luxembourg': 'LU' };
+  function tekOdemeUlkesi() {
+    try {
+      var q = (new URLSearchParams(location.search).get('ulke') || '').toUpperCase();
+      if (/^(NL|BE|DE|FR|LU)$/.test(q)) return q;
+      if (q) return null;
+      return TEK_ULKELER[Intl.DateTimeFormat().resolvedOptions().timeZone] || null;
+    } catch (e) { return null; }
+  }
   function sayfa() { return (location.pathname.split('/').pop() || 'index.html'); }
   function uid() { try { return (typeof getUserId === 'function' && getUserId()) || null; } catch (e) { return null; } }
   function P() { var C = window.Capacitor; return C && C.Plugins && C.Plugins.Purchases; }
@@ -160,6 +173,9 @@
       var wc = wo && wo.current;
       if (!wc) throw new Error('teklif-yok');
       var wp = { yillik: webPaket(wc.annual), alti: webPaket(wc.sixMonth), aylik: webPaket(wc.monthly) };
+      // Tek ödeme paketi: RevenueCat teklifinde özel kimlik "tek_yil" (Pro yetkisine bağlı DEĞİL — süreyi sunucu hesaplar)
+      var tekPk = (wc.availablePackages || []).filter(function (x) { return x && x.identifier === 'tek_yil'; })[0];
+      if (tekPk && tekOdemeUlkesi()) { wp.tek = webPaket(tekPk); if (wp.tek) wp.tek.product.introPrice = null; }
       // Deneme: Paddle fiyatında tanımlı; HESAP BAŞINA TEK kuralını satın alma ekranı sunucunun deneme_kullanildi'siyle uygular.
       // AÇIK: denemesi kullanılmış hesap için denemesiz Paddle fiyatları (ayrı teklif) gerekecek — app/_not.md "PADDLE".
       var wd = { yillik: !!(wp.yillik && wp.yillik.product.introPrice), alti: !!(wp.alti && wp.alti.product.introPrice), aylik: !!(wp.aylik && wp.aylik.product.introPrice) };
@@ -322,7 +338,7 @@
   }
 
   window.Pro = {
-    platform: platform, webSatis: webSatis, onbellek: onbellek, durumTazele: durumTazele, proMu: proMu, zorunluMu: zorunluMu,
+    platform: platform, webSatis: webSatis, tekOdemeUlkesi: tekOdemeUlkesi, onbellek: onbellek, durumTazele: durumTazele, proMu: proMu, zorunluMu: zorunluMu,
     kontrol: kontrol, rcHazirla: rcHazirla, teklifler: teklifler, satinAl: satinAl, geriYukle: geriYukle,
     esitle: esitle, yonetimAdresi: yonetimAdresi, yonet: yonet, rcSil: rcSil,
     yillikTeklif: yillikTeklif, yilligaGec: yilligaGec, yilligaGecisBekliyor: yilligaGecisBekliyor

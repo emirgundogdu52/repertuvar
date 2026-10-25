@@ -137,7 +137,11 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
       ['🎧', 'Practice Room', 'Upload your recordings, match their speed and key to your own tuning, and start practising. Change the key without affecting the tempo, and vice versa.']
     ],
     kayit: ['Recordings:', '15 files, up to 8 MB each'], ritim: ['Rhythm bank:', 'cut loops from rhythm recordings, link them to your pieces, play along in time — 50 rhythms, up to 3 MB each'],
-    plan: { yillik: ['Yearly', '/ year', 'yearly'], alti: ['6 Months', '/ 6 months', 'every 6 months'], aylik: ['Monthly', '/ month', 'monthly'] },
+    plan: { yillik: ['Yearly', '/ year', 'yearly'], alti: ['6 Months', '/ 6 months', 'every 6 months'], aylik: ['Monthly', '/ month', 'monthly'],
+            tek: ['1 Year · one-time', '/ 1 year', 'once'] },
+    tekAlt: 'doesn\'t renew automatically', tekAlt13: '13 months on your first purchase · doesn\'t renew', ctaTek: 'Pay once',
+    acTek: '{x} is charged once. Pro stays active for {n} months and does not renew automatically; buy again before it ends and the new year is added to the time you have left. Payment is handled by our reseller Paddle.com.',
+    uzatBaslik: 'Add another year', uzatAlt: 'The new year is added to the end of your current Pro.',
     enAvantajli: 'Best value · Save {n}%', avantaj: 'Save {n}%', ucretsizAy: '1 month free', iptal: 'Cancel anytime', ayda: '{x} / month',
     denemeSatir: '1 month free, then {x} {per}', ctaDene: 'Try 1 month free', ctaAl: 'Subscribe',
     acIos: '{x} billed {sonra}. Your subscription renews automatically unless cancelled at least 24 hours before the end of the current period. You can cancel anytime in Settings › Subscriptions.',
@@ -169,7 +173,11 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
       ['🎧', 'Çalışma Odası', 'Kayıtlarını yükle, hızını ve tonunu kendi akorduna göre ayarla, çalışmaya başla. Tonu değiştirince hız, hızı değiştirince ton bozulmaz.']
     ],
     kayit: ['Kayıtlar:', '15 kayıt, her biri 8 MB’a kadar'], ritim: ['Ritim bankası:', 'ritim kaydından döngü kes, eserlerine bağla, tempoyla birlikte çal — 50 ritim, her biri 3 MB’a kadar'],
-    plan: { yillik: ['Yıllık', '/ yıl', 'yıllık'], alti: ['6 Aylık', '/ 6 ay', '6 ayda bir'], aylik: ['Aylık', '/ ay', 'aylık'] },
+    plan: { yillik: ['Yıllık', '/ yıl', 'yıllık'], alti: ['6 Aylık', '/ 6 ay', '6 ayda bir'], aylik: ['Aylık', '/ ay', 'aylık'],
+            tek: ['1 Yıl · tek ödeme', '/ 1 yıl', 'bir kez'] },
+    tekAlt: 'otomatik yenilenmez', tekAlt13: 'ilk alımda 13 ay · yenilenmez', ctaTek: 'Tek seferde öde',
+    acTek: '{x} bir kez ödenir. Pro {n} ay açık kalır ve otomatik yenilenmez; süre bitmeden yeniden alırsan yeni yıl kalan sürenin sonuna eklenir. Ödemeyi satıcımız Paddle.com alır.',
+    uzatBaslik: 'Bir yıl daha ekle', uzatAlt: 'Yeni yıl, mevcut Pro sürenin sonuna eklenir.',
     enAvantajli: 'En avantajlı · %{n}', avantaj: '%{n} avantajlı', ucretsizAy: '1 ay ücretsiz', iptal: 'istediğin zaman iptal edilebilir', ayda: 'ayda {x}',
     denemeSatir: '1 ay ücretsiz, sonra {x} {per}', ctaDene: '1 ay ücretsiz dene', ctaAl: 'Satın al',
     acIos: '{x} {sonra} ücretlendirilir. Dönem bitmeden en az 24 saat önce iptal edilmezse abonelik otomatik yenilenir. Ayarlar › Abonelikler’den istediğin zaman iptal edebilirsin.',
@@ -196,6 +204,9 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
   var donus = new URLSearchParams(location.search).get('donus') || 'index.html';
   if (!/^[a-z0-9_-]+\.html(\?.*)?$/i.test(donus) || /^pro\.html/i.test(donus)) donus = 'index.html';
   var platform = 'web', durum = null, teklif = null, secim = 'yillik', denemeVar = false, denemeler = {};   // denemeler: plan → uygun mu (karar B)
+  // (2026-10-25) ?uzat=1 — tek ödemeli Pro'su olan web kullanıcısı süre ekler (yalnız "1 yıl · tek ödeme" kartı görünür)
+  var uzat = new URLSearchParams(location.search).get('uzat') === '1';
+  function ilk13() { return !(durum && (durum.daha_once_pro || durum.deneme_kullanildi)); }
 
   // Sabit metinler
   $('kapatBtn').setAttribute('aria-label', M.kapat);
@@ -249,12 +260,16 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
 
   function planlariCiz() {
     var P = teklif.paketler, aylik = P.aylik && P.aylik.product;
-    var sira = [['yillik', 12], ['alti', 6], ['aylik', 1]].filter(function (x) { return P[x[0]]; });
+    var sira = (uzat ? [['tek', 12]] : [['yillik', 12], ['alti', 6], ['aylik', 1], ['tek', 12]]).filter(function (x) { return P[x[0]]; });
     $('planlar').innerHTML = sira.map(function (x) {
       var k = x[0], ay = x[1], p = P[k].product, t = M.plan[k];
       var rozet = '', alt;
       if (k === 'yillik') { var n = avantaj(p, 12, aylik); rozet = n > 0 ? '<span class="rozet sari">' + M.enAvantajli.replace('{n}', n) + '</span>' : ''; alt = M.ayda.replace('{x}', aydaAsagi(p, 12)); }
       else if (k === 'alti') { var n2 = avantaj(p, 6, aylik); rozet = n2 > 0 ? '<span class="rozet">' + M.avantaj.replace('{n}', n2) + '</span>' : ''; alt = M.ayda.replace('{x}', aydaAsagi(p, 6)); }
+      else if (k === 'tek') {   // iDEAL | Wero rozeti yalnız Paddle'ın gösterdiği yerde (Hollanda)
+        rozet = (Pro.tekOdemeUlkesi && Pro.tekOdemeUlkesi() === 'NL') ? '<span class="rozet">iDEAL | Wero</span>' : '';
+        alt = ilk13() ? M.tekAlt13 : M.tekAlt;
+      }
       else { alt = M.iptal; }   // (karar B) "1 ay ücretsiz" artık her planda — yalnız aylık kartta rozet yanıltırdı; deneme satırı seçilen plana göre
       return '<button class="plan' + (k === secim ? ' secili' : '') + '" role="radio" aria-checked="' + (k === secim) + '" data-k="' + k + '" type="button">'
         + '<span class="psol"><span class="nokta"></span><span class="pad"><b>' + t[0] + ' ' + rozet + '</b><small>' + alt + '</small></span></span>'
@@ -263,11 +278,12 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
     Array.prototype.forEach.call($('planlar').querySelectorAll('.plan'), function (b) {
       b.onclick = function () { secim = b.getAttribute('data-k'); planlariCiz(); };
     });
-    var p = P[secim].product, dene = !!denemeler[secim], ios = platform === 'ios';
+    var p = P[secim].product, dene = secim !== 'tek' && !!denemeler[secim], ios = platform === 'ios';
     $('denemeSatir').hidden = !dene;
     if (dene) yaz('denemeSatir', M.denemeSatir.replace('{x}', p.priceString).replace('{per}', M.plan[secim][1]));
-    yaz('alBtn', dene ? M.ctaDene : M.ctaAl);
+    yaz('alBtn', secim === 'tek' ? M.ctaTek : dene ? M.ctaDene : M.ctaAl);
     var web = platform === 'web';
+    if (secim === 'tek') { yaz('aciklama', M.acTek.replace('{x}', p.priceString).replace('{n}', ilk13() ? 13 : 12)); return; }
     var sablon = web ? (dene ? M.acWebDeneme : M.acWeb) : dene ? (ios ? M.acIosDeneme : M.acAndDeneme) : (ios ? M.acIos : M.acAnd);
     yaz('aciklama', sablon.replace('{x}', p.priceString).replace('{sonra}', M.plan[secim][2]));
   }
@@ -281,9 +297,10 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
       Object.keys(teklif.denemeler || {}).forEach(function (k) { denemeler[k] = !!teklif.denemeler[k] && !kullanildi; });
       if (!teklif.denemeler && teklif.deneme && !kullanildi) denemeler.aylik = true;   // eski abonelik.js (önbellek) uyumu
       denemeVar = !!(denemeler.yillik || denemeler.alti || denemeler.aylik);
-      secim = 'yillik';   // (karar B) varsayılan her zaman en avantajlı plan — deneme her planda
+      secim = uzat ? 'tek' : 'yillik';   // (karar B) varsayılan her zaman en avantajlı plan — deneme her planda
       if (!teklif.paketler[secim]) secim = Object.keys(teklif.paketler).filter(function (k) { return teklif.paketler[k]; })[0];
-      basliklar(); planlariCiz();
+      basliklar(); if (uzat) { yaz('baslik', M.uzatBaslik); yaz('altBaslik', M.uzatAlt); }
+      planlariCiz();
       ac('yukleniyor', false); ac('satis', true);
     } catch (e) {
       ac('yukleniyor', false); ac('satis', true);
@@ -355,7 +372,9 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
     platform = Pro.platform();
     durum = Pro.onbellek();
     try { durum = await Pro.durumTazele(); } catch (e) {}
-    if (Pro.proMu(durum)) { location.replace(donus); return; }
+    var tekPro = platform === 'web' && durum && durum.kaynak === 'web' && durum.otomatik_yenileme === false && durum.durum === 'aktif';
+    if (Pro.proMu(durum) && !(uzat && tekPro && Pro.webSatis())) { location.replace(donus); return; }
+    if (!(uzat && tekPro)) uzat = false;
     if (platform === 'web') ac('geriYukleBtn', false);   // web'de geri yükleme yok: satın alma hesaba bağlı
     if (platform === 'web' && !Pro.webSatis()) { basliklar(); kilitAc(); return; }
     if (platform === 'web') {   // iade politikası bağlantısı yalnız web satışında

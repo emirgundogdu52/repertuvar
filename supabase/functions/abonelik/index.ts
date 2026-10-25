@@ -12,7 +12,12 @@
 // Pro kararı DAİMA bizim tablomuzda (plan_of): RevenueCat yalnız besleyici; değiştirilirse
 // yalnız bu dosya değişir.
 //
-// Supabase Secrets: RC_SECRET_API_KEY (RevenueCat v1 gizli anahtar, sk_…), RC_WEBHOOK_SECRET.
+// (2026-10-25) TEK ÖDEME "1 yıl Pro" (Paddle tek seferlik ürün — iDEAL | Wero için; abonelikte iDEAL yok). RevenueCat bu
+// alımları `non_subscriptions` altında verir ve SÜRE BİÇMEZ; ürün Pro yetkisine BAĞLANMAZ (bağlansa ömür boyu açık kalırdı).
+// Süre burada hesaplanır (tekYilSatiri): alımlar sırayla eklenir, hiç Pro kaydı olmayan kişinin İLK alımı 13 ay.
+//
+// Supabase Secrets: RC_SECRET_API_KEY (RevenueCat v1 gizli anahtar, sk_…), RC_WEBHOOK_SECRET,
+// TEK_YIL_URUNLER (virgüllü RevenueCat ürün kimlikleri — Paddle tek ödeme fiyat kimlikleri, sandbox + canlı).
 // SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY ortamda kendiliğinden gelir.
 // Dış kütüphane yok — aynı dosya Node'da test edilir (test.mjs).
 
@@ -48,6 +53,73 @@ export function donemOf(urun: string): 'P1M' | 'P6M' | 'P1Y' | null {
 }
 
 const t = (s: string | null | undefined) => (s ? Date.parse(s) : NaN);
+
+// ── Tek ödeme "1 yıl Pro" ─────────────────────────────────────────────────
+// Ürün kimliği ortam listesinde (TEK_YIL_URUNLER) ya da adı "…tek_yil / …1y_once / …yearly_once" ile bitiyorsa.
+export function tekYilMi(urun: string, liste: string): boolean {
+  const u = (urun || '').trim().toLowerCase();
+  if (!u) return false;
+  if ((liste || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean).includes(u)) return true;
+  return /(^|[.:_-])(tek[-_]?yil|1y[-_]?once|yearly[-_]?once)$/.test(u);
+}
+
+// UTC'de ay ekler; ayın günü yoksa ayın son günü (31 Ocak + 1 ay = 28/29 Şubat).
+export function ayEkle(ms: number, ay: number): number {
+  const d = new Date(ms);
+  const hedefAy = d.getUTCMonth() + ay;
+  const yil = d.getUTCFullYear() + Math.floor(hedefAy / 12), a = ((hedefAy % 12) + 12) % 12;
+  const sonGun = new Date(Date.UTC(yil, a + 1, 0)).getUTCDate();
+  return Date.UTC(yil, a, Math.min(d.getUTCDate(), sonGun), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds());
+}
+
+// İade olayları (abonelik_olaylari): tek seferlik alım iade edilince RevenueCat CANCELLATION (cancel_reason
+// CUSTOMER_SUPPORT) gönderir; alım non_subscriptions'ta kalabilir. REFUND_REVERSED iadeyi geri alır. Olay sırasıyla işlenir.
+export function iadeEdilenler(olaylar: Record<string, any>[]): Set<string> {
+  const set = new Set<string>();
+  [...(olaylar || [])].sort((a, b) => Number(a.event_timestamp_ms || 0) - Number(b.event_timestamp_ms || 0)).forEach((o) => {
+    const kim = String(o.transaction_id || o.original_transaction_id || '');
+    if (!kim) return;
+    if (o.type === 'CANCELLATION' && (o.cancel_reason === 'CUSTOMER_SUPPORT' || o.cancel_reason === 'REFUND')) set.add(kim);
+    if (o.type === 'REFUND_REVERSED') set.delete(kim);
+  });
+  return set;
+}
+
+// RevenueCat `non_subscriptions[urun]` alımları → tek abonelikler satırı.
+// oncekiPro: bu alımlardan ÖNCE başlamış başka bir Pro kaydının (abonelik, deneme, hediye) en erken başlangıcı (ms) ya da null.
+// Kural (kullanıcı 2026-10-25): ilk alım, daha önce hiç Pro'su olmayan kişide 13 ay (abonelikteki 1 ay ücretsiz karşılığı),
+// sonrakiler 12 ay; süre bitmeden alınan yıl kalan sürenin sonuna eklenir. İade edilen alım sayılmaz.
+export function tekYilSatiri(uid: string, urun: string, alimlar: Record<string, any>[], oncekiPro: number | null, simdi = Date.now()) {
+  const gecerli = (alimlar || [])
+    .filter((a) => a && !a.refunded_at && !isNaN(t(a.purchase_date)))
+    .sort((x, y) => t(x.purchase_date) - t(y.purchase_date));
+  if (!gecerli.length) return null;
+  const kaynak = kaynakOf(gecerli[0].store);
+  if (!kaynak) return null;
+  const ilk = t(gecerli[0].purchase_date);
+  const ilk13 = !(oncekiPro != null && oncekiPro < ilk);
+  let bitis = 0;
+  gecerli.forEach((a, i) => {
+    const bas = Math.max(t(a.purchase_date), bitis);
+    bitis = ayEkle(bas, i === 0 && ilk13 ? 13 : 12);
+  });
+  return {
+    user_id: uid,
+    kaynak,
+    plan: 'pro',
+    urun_id: urun,
+    donem: 'P1Y',
+    durum: bitis > simdi ? 'aktif' : 'suresi_doldu',
+    deneme: false,
+    otomatik_yenileme: false,
+    baslangic: new Date(ilk).toISOString(),
+    bitis: new Date(bitis).toISOString(),
+    ortam: gecerli.some((a) => a.is_sandbox) ? 'sandbox' : 'production',
+    dis_kimlik: 'rc:' + uid + ':' + urun,
+    ham: { tek_odeme: true, ilk_13_ay: ilk13, alimlar: gecerli },
+    guncellendi: new Date(simdi).toISOString(),
+  };
+}
 
 // RevenueCat v1 `subscriber.subscriptions[urun]` → abonelikler satırı
 export function satirOf(uid: string, urun: string, a: Record<string, any>, simdi = Date.now()) {
@@ -148,6 +220,22 @@ function sb(ortam: Ortam, f: typeof fetch) {
       });
       if (!r.ok) throw new Error('kapat ' + r.status);
     },
+    // Tek ödeme dışındaki Pro kayıtlarının (abonelik / deneme / hediye) en erken başlangıcı — 13 ay hakkı için
+    async oncekiProlar(uid: string): Promise<{ dis_kimlik: string, an: number }[]> {
+      const r = await f(url + '/rest/v1/abonelikler?user_id=eq.' + uid + '&select=dis_kimlik,baslangic,olusturuldu', { headers: h });
+      if (!r.ok) throw new Error('oncekiPro ' + r.status);
+      const satirlar = await r.json();
+      return (Array.isArray(satirlar) ? satirlar : []).map((s: Record<string, any>) => {
+        const b = t(s.baslangic), o = t(s.olusturuldu);
+        return { dis_kimlik: String(s.dis_kimlik || ''), an: !isNaN(b) ? b : o };
+      }).filter((x) => !isNaN(x.an));
+    },
+    async olaylar(uid: string): Promise<Record<string, any>[]> {
+      const r = await f(url + '/rest/v1/abonelik_olaylari?user_id=eq.' + uid + '&tur=in.(CANCELLATION,REFUND_REVERSED)&select=govde', { headers: h });
+      if (!r.ok) throw new Error('olaylar ' + r.status);
+      const s = await r.json();
+      return (Array.isArray(s) ? s : []).map((x: Record<string, any>) => x.govde || {});
+    },
     async olayYaz(olay: Record<string, any>) {
       await f(url + '/rest/v1/abonelik_olaylari?on_conflict=id', {
         method: 'POST', headers: { ...h, Prefer: 'resolution=ignore-duplicates,return=minimal' },
@@ -165,10 +253,30 @@ export async function yenidenHesapla(uid: string, ortam: Ortam, f: typeof fetch 
   if (!r.ok) throw new Error('revenuecat ' + r.status);
   const veri = await r.json();
   const abonelikler = (veri && veri.subscriber && veri.subscriber.subscriptions) || {};
-  const satirlar = webSandboxEle(devredilenleriKapat(Object.entries(abonelikler)
+  const aboneSatirlari = devredilenleriKapat(Object.entries(abonelikler)
     .map(([urun, a]) => satirOf(uid, urun, a as Record<string, any>))
-    .filter(Boolean) as Record<string, any>[]), ortam('WEB_SANDBOX_IZINLI') || '');
+    .filter(Boolean) as Record<string, any>[]);
   const db = sb(ortam, f);
+  // Tek ödeme "1 yıl Pro" alımları (RevenueCat non_subscriptions)
+  const tekListe = ortam('TEK_YIL_URUNLER') || '';
+  const tekler = Object.entries((veri && veri.subscriber && veri.subscriber.non_subscriptions) || {})
+    .filter(([urun]) => tekYilMi(urun, tekListe));
+  const tekSatirlari: Record<string, any>[] = [];
+  if (tekler.length) {
+    const tekKimlikler = new Set(tekler.map(([urun]) => 'rc:' + uid + ':' + urun));
+    // Önceki Pro: RevenueCat abonelik başlangıçları + bizim tablodaki diğer kayıtlar (hediye dahil)
+    const anlar = aboneSatirlari.map((s) => t(s.baslangic)).filter((x) => !isNaN(x));
+    (await db.oncekiProlar(uid)).forEach((x) => { if (!tekKimlikler.has(x.dis_kimlik)) anlar.push(x.an); });
+    const oncekiPro = anlar.length ? Math.min(...anlar) : null;
+    const iade = iadeEdilenler(await db.olaylar(uid));
+    tekler.forEach(([urun, alimlar]) => {
+      const isaretli = (alimlar as Record<string, any>[]).map((a) =>
+        (iade.has(String(a.store_transaction_id || '')) || iade.has(String(a.id || ''))) ? { ...a, refunded_at: a.refunded_at || 'iade' } : a);
+      const s = tekYilSatiri(uid, urun, isaretli, oncekiPro);
+      if (s) tekSatirlari.push(s);
+    });
+  }
+  const satirlar = webSandboxEle([...aboneSatirlari, ...tekSatirlari], ortam('WEB_SANDBOX_IZINLI') || '');
   await db.upsert(satirlar);
   await db.kapat(uid, satirlar.map((s) => s.dis_kimlik));
   return satirlar.length;

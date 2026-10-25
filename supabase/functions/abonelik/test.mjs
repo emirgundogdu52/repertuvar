@@ -7,7 +7,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const kopya = join(mkdtempSync(join(tmpdir(), 'abonelik-')), 'index.mts');
 copyFileSync(join(dirname(fileURLToPath(import.meta.url)), 'index.ts'), kopya);
-const { kaynakOf, donemOf, satirOf, devredilenleriKapat, etkilenenler, isle, webSandboxEle } = await import(pathToFileURL(kopya).href);
+const { kaynakOf, donemOf, satirOf, devredilenleriKapat, etkilenenler, isle, webSandboxEle, tekYilMi, ayEkle, tekYilSatiri, iadeEdilenler } = await import(pathToFileURL(kopya).href);
 
 let gecti = 0;
 async function dene(ad, fn) { await fn(); gecti++; console.log('  ✓', ad); }
@@ -114,14 +114,21 @@ function ortam(ek = {}) {
     RC_SECRET_API_KEY: 'sk_test', RC_WEBHOOK_SECRET: 'gizli-123', ...ek };
   return (k) => o[k];
 }
-function sahteFetch(rcAbonelikler = {}) {
+let sahteOlaylar = [];
+function sahteFetch(rcAbonelikler = {}, rcTekler = {}, dbSatirlar = []) {
   const cagrilar = [];
   const f = async (url, init = {}) => {
     cagrilar.push({ url: String(url), method: init.method || 'GET', body: init.body, headers: init.headers || {} });
     const u = String(url);
     if (u.startsWith('https://api.revenuecat.com/v1/subscribers/')) {
       if ((init.method || 'GET') === 'DELETE') return new Response('{}', { status: 200 });
-      return new Response(JSON.stringify({ subscriber: { subscriptions: rcAbonelikler } }), { status: 200 });
+      return new Response(JSON.stringify({ subscriber: { subscriptions: rcAbonelikler, non_subscriptions: rcTekler } }), { status: 200 });
+    }
+    if (u.startsWith('https://sb.test/rest/v1/abonelikler?') && (init.method || 'GET') === 'GET') {
+      return new Response(JSON.stringify(dbSatirlar), { status: 200 });
+    }
+    if (u.startsWith('https://sb.test/rest/v1/abonelik_olaylari?') && (init.method || 'GET') === 'GET') {
+      return new Response(JSON.stringify(sahteOlaylar), { status: 200 });
     }
     if (u.startsWith('https://sb.test/auth/v1/user')) {
       return (init.headers && init.headers.Authorization === 'Bearer kullanici-jwt')
@@ -192,6 +199,103 @@ await dene('yapılandırma eksik → 503', async () => {
   const { f } = sahteFetch({});
   const r = await isle(istek('', {}, 'Bearer kullanici-jwt'), ortam({ RC_SECRET_API_KEY: undefined }), f);
   assert.equal(r.status, 503);
+});
+
+// ── Tek ödeme "1 yıl Pro" (2026-10-25) ───────────────────────────────────
+const TEK = 'pri_01tekyil000000000000000000';
+const alim = (gunu, ek = {}) => ({ id: 'n' + gunu, purchase_date: gun(gunu), store: 'paddle', is_sandbox: false, ...ek });
+
+await dene('tekYilMi: ortam listesi ya da ad sonu', () => {
+  assert.equal(tekYilMi(TEK, ' pri_x , ' + TEK.toUpperCase()), true);
+  assert.equal(tekYilMi('repertuvar_pro:tek_yil', ''), true);
+  assert.equal(tekYilMi('com.repertuvar.app.pro.yearly', ''), false);
+  assert.equal(tekYilMi('pri_01m5d6geb3354gp25c08088fkw', TEK), false);
+});
+
+await dene('ayEkle: ay sonu taşmaz, saat korunur', () => {
+  assert.equal(new Date(ayEkle(Date.parse('2026-01-31T10:00:00Z'), 1)).toISOString(), '2026-02-28T10:00:00.000Z');
+  assert.equal(new Date(ayEkle(Date.parse('2027-12-15T00:00:00Z'), 13)).toISOString(), '2029-01-15T00:00:00.000Z');
+  assert.equal(new Date(ayEkle(Date.parse('2026-10-25T08:30:00Z'), 12)).toISOString(), '2027-10-25T08:30:00.000Z');
+});
+
+await dene('tekYilSatiri: ilk Pro → 13 ay, aktif, yenilenmez', () => {
+  const s = tekYilSatiri(UID, TEK, [alim(-1)], null, SIMDI);
+  assert.equal(s.kaynak, 'web'); assert.equal(s.durum, 'aktif'); assert.equal(s.otomatik_yenileme, false);
+  assert.equal(s.donem, 'P1Y'); assert.equal(s.deneme, false); assert.equal(s.ham.ilk_13_ay, true);
+  assert.equal(s.bitis, new Date(ayEkle(Date.parse(gun(-1)), 13)).toISOString());
+  assert.equal(s.dis_kimlik, 'rc:' + UID + ':' + TEK);
+});
+
+await dene('tekYilSatiri: daha önce Pro (deneme/abonelik/hediye) → 12 ay', () => {
+  const s = tekYilSatiri(UID, TEK, [alim(-1)], Date.parse(gun(-60)), SIMDI);
+  assert.equal(s.ham.ilk_13_ay, false);
+  assert.equal(s.bitis, new Date(ayEkle(Date.parse(gun(-1)), 12)).toISOString());
+  // tek ödemeden SONRA başlayan abonelik 13 ayı geri almaz
+  assert.equal(tekYilSatiri(UID, TEK, [alim(-1)], Date.parse(gun(5)), SIMDI).ham.ilk_13_ay, true);
+});
+
+await dene('tekYilSatiri: süre bitmeden ikinci yıl üstüne eklenir; bittikten sonra alım bugünden başlar', () => {
+  const ust = tekYilSatiri(UID, TEK, [alim(-200), alim(-10)], null, SIMDI);
+  assert.equal(ust.bitis, new Date(ayEkle(ayEkle(Date.parse(gun(-200)), 13), 12)).toISOString());
+  const ara = tekYilSatiri(UID, TEK, [alim(-800), alim(-3)], null, SIMDI);   // ilki (13 ay) bitmiş, ikincisi bugünden 12 ay
+  assert.equal(ara.bitis, new Date(ayEkle(Date.parse(gun(-3)), 12)).toISOString());
+  assert.equal(ara.durum, 'aktif');
+  // sıra karışık gelse de aynı sonuç
+  assert.equal(tekYilSatiri(UID, TEK, [alim(-10), alim(-200)], null, SIMDI).bitis, ust.bitis);
+});
+
+await dene('tekYilSatiri: iade edilen alım sayılmaz; hepsi iadeyse satır yok; süresi dolan → suresi_doldu', () => {
+  const s = tekYilSatiri(UID, TEK, [alim(-10), alim(-5, { refunded_at: gun(-4) })], null, SIMDI);
+  assert.equal(s.ham.alimlar.length, 1);
+  assert.equal(tekYilSatiri(UID, TEK, [alim(-5, { refunded_at: gun(-4) })], null, SIMDI), null);
+  assert.equal(tekYilSatiri(UID, TEK, [alim(-500)], null, SIMDI).durum, 'suresi_doldu');
+  assert.equal(tekYilSatiri(UID, TEK, [alim(-1, { is_sandbox: true })], null, SIMDI).ortam, 'sandbox');
+});
+
+await dene('webhook NON_RENEWING_PURCHASE: tek ödeme satırı yazılır; önceki hediye 13 ayı kapatır; liste dışı ürün yok sayılır', async () => {
+  const { f, cagrilar } = sahteFetch({}, { [TEK]: [alim(-1)], 'pri_baska': [alim(-1)] },
+    [{ dis_kimlik: 'hediye:' + UID, baslangic: gun(-90), olusturuldu: gun(-90) }]);
+  const r = await isle(istek('?kaynak=rc', { event: { id: 'e9', type: 'NON_RENEWING_PURCHASE', app_user_id: UID } }, 'Bearer gizli-123'),
+    ortam({ TEK_YIL_URUNLER: TEK }), f);
+  assert.equal(r.status, 200);
+  const yaz = cagrilar.find((c) => c.method === 'POST' && c.url.includes('/rest/v1/abonelikler?on_conflict'));
+  const satirlar = JSON.parse(yaz.body);
+  assert.equal(satirlar.length, 1);
+  assert.equal(satirlar[0].urun_id, TEK); assert.equal(satirlar[0].ham.ilk_13_ay, false);
+  assert.equal(satirlar[0].bitis, new Date(ayEkle(Date.parse(gun(-1)), 12)).toISOString());
+});
+
+await dene('webhook: tek ödemenin kendi eski satırı 13 ay hakkını bozmaz (yeniden hesapta aynı sonuç)', async () => {
+  const { f, cagrilar } = sahteFetch({}, { [TEK]: [alim(-1)] },
+    [{ dis_kimlik: 'rc:' + UID + ':' + TEK, baslangic: gun(-1), olusturuldu: gun(-1) }]);
+  await isle(istek('?kaynak=rc', { event: { id: 'e10', type: 'NON_RENEWING_PURCHASE', app_user_id: UID } }, 'Bearer gizli-123'),
+    ortam({ TEK_YIL_URUNLER: TEK }), f);
+  const satirlar = JSON.parse(cagrilar.find((c) => c.method === 'POST' && c.url.includes('/rest/v1/abonelikler?on_conflict')).body);
+  assert.equal(satirlar[0].ham.ilk_13_ay, true);
+});
+
+await dene('webhook: tek ödeme yoksa abonelikler tablosu okunmaz (eski davranış)', async () => {
+  const { f, cagrilar } = sahteFetch({});
+  await isle(istek('?kaynak=rc', { event: { id: 'e11', type: 'RENEWAL', app_user_id: UID } }, 'Bearer gizli-123'), ortam(), f);
+  assert.equal(cagrilar.filter((c) => c.method === 'GET' && c.url.includes('/rest/v1/abonelikler?')).length, 0);
+});
+
+await dene('iade: CANCELLATION (CUSTOMER_SUPPORT) alımı düşürür, REFUND_REVERSED geri getirir', async () => {
+  const set = iadeEdilenler([
+    { type: 'CANCELLATION', cancel_reason: 'CUSTOMER_SUPPORT', transaction_id: 'txn_1', event_timestamp_ms: 1 },
+    { type: 'CANCELLATION', cancel_reason: 'UNSUBSCRIBE', transaction_id: 'txn_2', event_timestamp_ms: 2 },
+    { type: 'CANCELLATION', cancel_reason: 'CUSTOMER_SUPPORT', transaction_id: 'txn_3', event_timestamp_ms: 3 },
+    { type: 'REFUND_REVERSED', transaction_id: 'txn_3', event_timestamp_ms: 4 },
+  ]);
+  assert.deepEqual([...set], ['txn_1']);
+  sahteOlaylar = [{ govde: { type: 'CANCELLATION', cancel_reason: 'CUSTOMER_SUPPORT', transaction_id: 'txn_b', event_timestamp_ms: 5 } }];
+  const { f, cagrilar } = sahteFetch({}, { [TEK]: [alim(-20, { store_transaction_id: 'txn_a' }), alim(-2, { store_transaction_id: 'txn_b' })] });
+  await isle(istek('?kaynak=rc', { event: { id: 'e12', type: 'CANCELLATION', app_user_id: UID } }, 'Bearer gizli-123'),
+    ortam({ TEK_YIL_URUNLER: TEK }), f);
+  const satirlar = JSON.parse(cagrilar.find((c) => c.method === 'POST' && c.url.includes('/rest/v1/abonelikler?on_conflict')).body);
+  assert.equal(satirlar[0].ham.alimlar.length, 1);
+  assert.equal(satirlar[0].bitis, new Date(ayEkle(Date.parse(gun(-20)), 13)).toISOString());
+  sahteOlaylar = [];
 });
 
 console.log(`\n${gecti} test geçti`);
