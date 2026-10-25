@@ -1517,3 +1517,35 @@ html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.page-title, .page-sub, .se
   html[data-tasarim="v3"][data-sayfa="bildirimler"] .page-content { max-width: 1040px; padding-left: 20px; padding-right: 20px; }
   html[data-tasarim="v3"][data-sayfa="yonetim"] .page-content { padding-left: 20px; padding-right: 20px; }   /* 32 → 20: aynı sol çizgi (272) */
 }
+/* 14) iPad — Eserler denetimi (2026-10-25, kullanıcı: "iPad'de Eserler sayfasını da kontrol et"). iPad 7 ölçüsünde (810 dikey /
+   1080 yatay, dokunmatik kurallar açık):
+   · Liste sütunu standardı iPad yatayda yoktu: Eserler 444 / ayrıntı 380 (ayrıntı listeden dar), Repertuvarlar 300, Solistler 280
+     → masaüstüyle aynı ölçü: üçünde liste 320, ayrıntı kalanı (Eserler ayrıntısı 380 → 508).
+   · Masaüstünde düzeltilen küçük yazılar iPad'de duruyordu: tür sayıları / taslak & bekleyen sayaçları / satır rozetleri 10,
+     repertuvar sayısı 11, nota ipuçları 11 → 12–12.5 (dokunma ölçüleri zaten 40).
+   · "Dinle" (▶) düğmesi 21×25 → dokunmatikte 40×40 alan (görünür yeri aynı, negatif pay), masaüstünde 34×34. */
+@media (min-width: 1024px) and (max-width: 1366px) and (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"] { --liste-sutun: 320px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #listCol { flex: 0 0 var(--liste-sutun) !important; width: var(--liste-sutun) !important; max-width: var(--liste-sutun) !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] #detailPanel { flex: 1 1 auto !important; width: auto !important; min-width: 0 !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] aside.lp { flex: 0 0 var(--liste-sutun) !important; width: var(--liste-sutun) !important; max-width: var(--liste-sutun) !important; min-width: var(--liste-sutun) !important; }
+  html[data-tasarim="v3"][data-sayfa="artiesten"] .artist-list-panel { flex: 0 0 var(--liste-sutun) !important; width: var(--liste-sutun) !important; min-width: var(--liste-sutun) !important; max-width: var(--liste-sutun) !important; }
+}
+@media (min-width: 769px) and (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .tur-chip-n { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] :is(#draftCount, #pendingCountDesktop, .work-count-badge) { font-size: 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-tur-badge { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name + span,
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item span[class*="taslak"],
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name span { font-size: 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-rep-count { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] :is(.knot-bas, .knot-ipuc) { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .detail [id^="offb_"] { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .filter-sheet .filter-btn .badge { font-size: 12px; }
+}
+@media (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-listen { min-width: 40px; min-height: 40px; margin: -6px; display: inline-flex; align-items: center; justify-content: center; }
+}
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-listen { min-width: 34px; min-height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+}
