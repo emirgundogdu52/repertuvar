@@ -1620,3 +1620,81 @@ html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.page-title, .page-sub, .se
   html[data-tasarim="v3"][data-sayfa="eserler"] #newEserModal .ne-tab-btn { font-size: 14px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] #iaModal .ia-marka { font-size: 12px; }
 }
+
+/* 17) Repertuvarlar — PENCERELER (2026-10-25 masaüstü denetimi, "3'ten başla" devamı). Ölçüm (1495 px, fare):
+   "Repertuvara Ekle" (uzun basma / taşı) ve "Kişisel notum" alttan açılan TAM GENİŞLİK çekmeceydi (1495 px) → masaüstünde
+   ortada pencere. Kişisel not Kaydet/İptal 20 px (bu sayfada .rbtn tanımsız; telefonda yalnız genel 36 px kuralı tutuyordu,
+   iPad'de 20 px kalıyordu), Sırala ✕ 24×28, mod düğmeleri 31, Vazgeç/Uygula 27–29, Dinle ✕ 17×22, söz penceresi ✕ 17×22,
+   sanatçı çipindeki × 9×14; etiketler/alt yazılar 10.5–11 px. Masaüstü: düğmeler 34, ✕ 36, yazılar 12–12.5.
+   Dokunmatik (telefon + iPad): ✕ ve not düğmeleri 44. */
+/* Açık temada "Sanatçı ekle…" girdisi gri kutunun içinde beyaz kutu olarak görünüyordu (topnav.js açık tema girdi kuralı) */
+html[data-tasarim="v3"][data-sayfa="repertoires"] :is(#pfInput, #iemPfInput) { background: transparent !important; border: none !important; box-shadow: none !important; }
+html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet .ks-alt .rbtn { min-height: 36px; padding: 0 16px; font-size: 13px; border-radius: 10px; }
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .fl,
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .fl [data-i18n="rep.degismez"],
+  html[data-tasarim="v3"][data-sayfa="repertoires"] [data-i18n="rep.alanAciklama"] { font-size: 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .wps { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .pf-tag button {
+    width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 15px; margin-right: -5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .pf-tag button:hover { background: rgba(168, 85, 247, .2); }
+  /* Ortak kapat ✕ (Sırala + Misafir bağlantısı .sort-x, Dinle .dnl-x, söz penceresi) */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] :is(.sort-x, .dnl-x, #lycOverlay button[onclick="closeLyricsSheet()"]) {
+    width: 36px; height: 36px; padding: 0 !important; display: inline-flex !important; align-items: center; justify-content: center;
+    border-radius: 50%; flex-shrink: 0; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] :is(.sort-x, .dnl-x, #lycOverlay button[onclick="closeLyricsSheet()"]):hover {
+    background: var(--surface2) !important; color: var(--text) !important; }
+  /* Sırala */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .sort-box { max-width: 600px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .sort-head { padding: 12px 14px 12px 20px; font-size: 15px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .sort-modes { padding: 12px 20px; gap: 8px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .sort-mode { min-height: 34px; font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .sort-body { padding: 8px 20px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] :is(.sort-no, .sort-mk, .sort-tr, .sort-score) { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .sort-no { min-width: 20px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .sort-name { font-size: 13.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .sort-foot { padding: 12px 20px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] :is(.sort-foot, .share-foot) :is(.bi, .baw) { min-height: 34px; padding: 0 16px; font-size: 13px; }
+  /* Misafir bağlantısı */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .share-note { font-size: 12.5px; }
+  /* Repertuvara Ekle + Kişisel notum: alttan çekmece yerine ortada pencere (kapalıyken görünmez, tıklama almaz) */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] :is(.rlp-sheet, .knot-sheet) {
+    left: 50%; right: auto; top: 50%; bottom: auto; max-height: 80vh;
+    border: 1px solid var(--border2); border-radius: 22px; box-shadow: 0 18px 50px rgba(0, 0, 0, .45);
+    transform: translate(-50%, -47%); opacity: 0; visibility: hidden;
+    transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] :is(.rlp-sheet, .knot-sheet).open {
+    transform: translate(-50%, -50%); opacity: 1; visibility: visible; transition: opacity .18s ease, transform .18s ease; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .rlp-sheet { width: min(520px, 92vw); padding-bottom: 0; overflow: hidden; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] #rlpSheet > div:first-child { padding: 18px 22px 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] #rlpSheet > div:first-child > div:first-child { font-size: 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] #rlpSheet > div:first-child > div:last-child { font-size: 16px !important; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .rlp-item { padding: 11px 22px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .rlp-item:not(:disabled):hover { background: var(--surface2); }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .rlp-item .rlp-hint { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet { width: min(560px, 92vw); padding: 20px 22px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet :is(.ks-bas, .ks-ipuc) { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet .ks-eser { font-size: 16px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet .ks-durum { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet .ks-alt .rbtn { min-height: 34px; }
+  /* Dinle */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] :is(.dnl-no, .dnl-mk, .dnl-err) { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dnl-yt-not { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .dnl-tr:hover { background: var(--surface2); }
+  /* Söz penceresi */
+  html[data-tasarim="v3"][data-sayfa="repertoires"] #lycEditBtn { min-height: 34px; font-size: 13px !important; }
+}
+@media (hover: none) and (pointer: coarse) {
+  html[data-tasarim="v3"][data-sayfa="repertoires"] :is(.sort-x, .dnl-x, #lycOverlay button[onclick="closeLyricsSheet()"]) {
+    min-width: 44px; min-height: 44px; padding: 0 !important; display: inline-flex !important; align-items: center; justify-content: center; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet .ks-alt .rbtn { min-height: 44px; padding: 0 20px; font-size: 15px; border-radius: 12px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .sort-mode { min-height: 40px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] :is(.sort-foot, .share-foot) :is(.bi, .baw) { min-height: 44px; padding: 0 18px; font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] #lycEditBtn { min-height: 40px; }
+  html[data-tasarim="v3"][data-sayfa="repertoires"] .pf-tag button { min-width: 26px; min-height: 26px; font-size: 16px; }
+}
+/* 18) Diğer pencereler (2026-10-25 masaüstü denetimi): Mesajlar (Yeni Mesaj, Duyuru), Gruplar (üye işlemleri), Ayarlar
+   (hesap silme / şifre / e-posta) ölçüldü — temiz. Solistler: Yeni Solist etiketleri ve eser seçici alt yazıları 11 px → 12. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="artiesten"] :is(#artistModal .form-label, #workModal .work-pick-sub) { font-size: 12px; }
+}
