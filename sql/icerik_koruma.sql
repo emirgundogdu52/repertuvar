@@ -14,7 +14,16 @@
 --      · uygunsuz_kelimeler: yönetilen liste (seviye 'engel' | 'uyari'; eşleşme 'kelime' = tam sözcük, 'kok' = sözcük
 --        başı, ek alabilir). Liste gizli depoda: veri/sql/uygunsuz_kelimeler_tohum.sql (açık depoya konmaz).
 --      · uygunsuz_normal(): küçük harf (Türkçe I/İ doğru), leet (0→o 1→i 3→e 4→a 5→s 7→t @→a $→s), harf uzatma
---        (siiiktir → siktir), harf dışı → boşluk. ı/i AYRI tutulur: 'sıkıntı' ≠ 'sik…' (yanlış engel olmasın).
+--        (siiiktir → siktir), harf olmayan → boşluk (HER DİLİN harfi korunur: é ñ å ø í… kelimeyi bölmez).
+--        ı/i AYRI tutulur: 'sıkıntı' ≠ 'sik…' (yanlış engel olmasın).
+--      · DİLE DUYARLI (kullanıcı: "dünya marketine açılacak, diğer dillerde normal anlamı olan kelime küfür sayılmasın"):
+--        her kelimenin `dil`i var — '*' = her dilde uygunsuz ve başka dilde masum anlamı olmayan (siktir, orospu,
+--        motherfuck…); 'tr' / 'en' … = yalnız o dil bağlamında. Örnek çakışmalar: 'siker' Macarca "başarı", 'retard'
+--        Fransızca "gecikme", 'slut' İsveççe "son", 'bok' İsveççe "kitap", 'pust' Rusça "olsun"; 'faggot' harf
+--        sadeleştirince 'fagot' = Almanca/Hollandaca/Lehçe FAGOT (çalgı!) → listeye hiç alınmadı (fag/kike de: Norveççe
+--        "ders", İspanyolca lakap). Bağlam dili: kullanıcının arayüz dili (profiles.ui_lang, yoksa 'tr') + metinde
+--        Türkçeye özgü harf (ğ ı ş İ) varsa 'tr'. Yeni pazara açılınca o dilin listesi kendi `dil`iyle eklenir.
+--      · uygunsuz_istisnalar: yanlış alarm veren masum ifadeler (yönetici ekler) metinden çıkarılıp sonra aranır.
 --      · Tetikleyici (BEFORE INSERT/UPDATE, yalnız ilgili sütun değişince): başkalarının gördüğü alanlar —
 --        repertoires (genel/grup iken ad, yer, not), repertoire_items.note (paylaşılan repertuvarda), groups (ad,
 --        açıklama), profiles (görünen ad, ad soyad), solistler (ad, not). 'engel' seviyesinde kelime → kayıt reddedilir.
@@ -43,7 +52,7 @@ as $fn$
   select ' ' || btrim(regexp_replace(regexp_replace(
            translate(lower(translate(coalesce(t, ''), 'IİŞĞÜÖÇÂÎÛ', 'ıişğüöçâîû')), '013457@$', 'oieastas'),
            '(.)\1+', '\1', 'g'),
-         '[^a-zçğıöşüâîû]+', ' ', 'g')) || ' '
+         '[^[:alpha:]]+', ' ', 'g')) || ' '
 $fn$;
 
 create table if not exists public.uygunsuz_kelimeler (
@@ -52,16 +61,40 @@ create table if not exists public.uygunsuz_kelimeler (
   normal     text generated always as (btrim(public.uygunsuz_normal(kelime))) stored,
   seviye     text not null default 'engel' check (seviye in ('engel', 'uyari')),
   eslesme    text not null default 'kok' check (eslesme in ('kelime', 'kok')),
+  dil        text not null default '*' check (dil ~ '^(\*|[a-z]{2})$'),
   created_at timestamptz not null default now(),
-  unique (normal, eslesme)
+  unique (normal, eslesme, dil)
 );
+-- Yanlış alarm veren masum ifadeler (çok sözcüklü olabilir: 'ibne insha'). Aramadan önce metinden çıkarılır.
+create table if not exists public.uygunsuz_istisnalar (
+  ifade      text primary key check (char_length(ifade) between 2 and 80),
+  normal     text generated always as (btrim(public.uygunsuz_normal(ifade))) stored,
+  aciklama   text,
+  created_at timestamptz not null default now()
+);
+alter table public.uygunsuz_istisnalar enable row level security;
+revoke all on table public.uygunsuz_istisnalar from anon, authenticated;
 -- Liste istemciye açılmaz: politika yok → yalnız aşağıdaki SECURITY DEFINER işlevler ve SQL Editor okur.
 alter table public.uygunsuz_kelimeler enable row level security;
 revoke all on table public.uygunsuz_kelimeler from anon, authenticated;
 
+-- Bağlam dilleri: kullanıcının arayüz dili (yoksa 'tr') + metinde Türkçeye özgü harf varsa 'tr'.
+create or replace function public.uygunsuz_diller(p_metin text)
+returns text[]
+language sql
+stable
+security definer
+set search_path = public
+as $fn$
+  select array_remove(array[
+    coalesce((select nullif(lower(left(p.ui_lang, 2)), '') from public.profiles p where p.id = auth.uid()), 'tr'),
+    case when coalesce(p_metin, '') ~ '[ğışĞŞİ]' then 'tr' end], null)
+$fn$;
+
 -- Metindeki ilk uygunsuz ifade (yoksa NULL). p_seviye: 'engel' yalnız engel listesi, 'hepsi' uyarılar dahil.
--- 'kok' 6+ harfliyse boşluksuz metinde de aranır ("s i k t i r" gibi aralıklı yazımı yakalar).
-create or replace function public.uygunsuz_bul(p_metin text, p_seviye text default 'engel')
+-- p_diller: bağlam dilleri (NULL → uygunsuz_diller). 'kok' 6+ harfliyse boşluksuz metinde de aranır ("s i k t i r").
+drop function if exists public.uygunsuz_bul(text, text);
+create or replace function public.uygunsuz_bul(p_metin text, p_seviye text default 'engel', p_diller text[] default null)
 returns text
 language plpgsql
 stable
@@ -72,13 +105,18 @@ declare
   n text;
   s text;
   k record;
+  diller text[];
 begin
   if p_metin is null or btrim(p_metin) = '' then return null; end if;
+  diller := coalesce(p_diller, public.uygunsuz_diller(p_metin));
   n := public.uygunsuz_normal(left(p_metin, 20000));
+  for k in select normal from public.uygunsuz_istisnalar loop
+    n := replace(n, ' ' || k.normal || ' ', ' ');
+  end loop;
   s := replace(n, ' ', '');
   for k in
     select kelime, normal, eslesme from public.uygunsuz_kelimeler
-    where p_seviye = 'hepsi' or seviye = 'engel'
+    where (p_seviye = 'hepsi' or seviye = 'engel') and (dil = '*' or dil = any(diller))
     order by seviye, length(normal) desc
   loop
     if (k.eslesme = 'kelime' and position(' ' || k.normal || ' ' in n) > 0)
@@ -109,9 +147,11 @@ begin
 end
 $fn$;
 
-revoke execute on function public.uygunsuz_bul(text, text) from public, anon;
+revoke execute on function public.uygunsuz_diller(text) from public, anon;
+revoke execute on function public.uygunsuz_bul(text, text, text[]) from public, anon;
 revoke execute on function public.uygunsuz_tara(text[]) from public, anon;
-grant execute on function public.uygunsuz_bul(text, text) to authenticated;
+grant execute on function public.uygunsuz_diller(text) to authenticated;
+grant execute on function public.uygunsuz_bul(text, text, text[]) to authenticated;
 grant execute on function public.uygunsuz_tara(text[]) to authenticated;
 
 create or replace function public.uygunsuz_denetle()
@@ -184,11 +224,14 @@ create trigger trg_uygunsuz_denetle before insert or update of name, notes
 -- select has_table_privilege('anon', 'public.works', 'select') as anon_works;           -- false beklenir
 -- select count(*), count(*) filter (where seviye = 'engel') from public.uygunsuz_kelimeler;
 -- select public.uygunsuz_bul('S1kt1r git', 'engel'), public.uygunsuz_bul('Sıkıntı', 'hepsi'),
---        public.uygunsuz_bul('Kahpe felek', 'engel'), public.uygunsuz_bul('Kahpe felek', 'hepsi');  -- siktir, NULL, NULL, kahpe
+--        public.uygunsuz_bul('Kahpe felek', 'engel'), public.uygunsuz_bul('Kahpe felek', 'hepsi'),   -- siktir, NULL, NULL, kahpe
+--        public.uygunsuz_bul('Siker és boldogság', 'hepsi', array['hu']),                             -- NULL (Macarca "başarı")
+--        public.uygunsuz_bul('Konzert für Fagott', 'hepsi', array['de']);                             -- NULL (çalgı)
 
 -- ============================================================ GERİ AL
 -- grant select on table public.works to anon;
 -- grant execute on function public.purge_deleted_works() to anon, authenticated;
 -- drop trigger if exists trg_uygunsuz_denetle on public.repertoires;  (… repertoire_items, groups, profiles, solistler)
--- drop function if exists public.uygunsuz_denetle(), public.uygunsuz_tara(text[]), public.uygunsuz_bul(text, text);
--- drop table if exists public.uygunsuz_kelimeler; drop function if exists public.uygunsuz_normal(text);
+-- drop function if exists public.uygunsuz_denetle(), public.uygunsuz_tara(text[]), public.uygunsuz_bul(text, text, text[]),
+--   public.uygunsuz_diller(text);
+-- drop table if exists public.uygunsuz_kelimeler, public.uygunsuz_istisnalar; drop function if exists public.uygunsuz_normal(text);
