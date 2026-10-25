@@ -271,7 +271,17 @@
   color:var(--text2); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; font-variant-numeric:tabular-nums; }
 .rb-hiz-cip.aktif { background:var(--yt-btn,var(--accent)); border-color:var(--yt-btn,var(--accent)); color:#1a1200; }
 .rb-hiz-cip:disabled { opacity:.4; cursor:default; }
-.rb-tempo-hizli { gap:6px; flex-wrap:wrap; }
+.rb-tempo-satir { flex-wrap:wrap; }
+.rb-tempo-gir { width:76px; height:40px; padding:0 6px; border-radius:10px; border:1px solid var(--border); background:var(--surface2);
+  color:var(--text); font-family:inherit; font-size:18px; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; }
+.rb-tempo-gir:focus { outline:none; border-color:var(--accent); }
+.rb-birim { font-size:12px; font-weight:600; color:var(--text3); }
+.rb-kaydirici { width:100%; height:30px; margin:6px 0 2px; accent-color:var(--accent); cursor:pointer; }
+.rb-hiz-ad { font-size:13px; font-weight:700; color:var(--text); max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.rb-hiz-ipucu { font-size:13px; color:var(--text3); }
+.rb-hiz-satir { display:flex; align-items:center; gap:8px; flex-wrap:wrap; width:100%; }
+.rb-hiz-satir .rb-kaydirici { flex:1 1 200px; width:auto; margin:0; }
+@media (hover:none) and (pointer:coarse) { .rb-kaydirici { height:40px; } }
 .rb-hiz-sifir { font-weight:600; }
 @media (hover:none) and (pointer:coarse) { .rb-hiz-cip { min-height:40px; } }
 </style>
@@ -356,22 +366,19 @@
       </div>
 
       <div class="rb-ayarlar">
-        <div class="rb-ayar">
+        <!-- (2026-10-25) Kullanıcı: "hız olayını % olarak değil, hem değer girilebilsin hem çubukta sürüklensin" — tempo BPM olarak
+             kutuya yazılır ya da çubukta sürüklenir (kayıt temposunun yarısı – 1,5 katı); − / + basılı tutulunca hızlanır (rbBasiliTut). -->
+        <div class="rb-ayar rb-tempo-satir">
           <span class="rt-etiket" data-i18n="ca.tempo">Tempo</span>
           <button class="rt-adim" data-rb-tut="-1" onclick="rbTempoKaydir(-1)" aria-label="−1">−</button>
-          <span class="rt-bpm-deger" id="rbTempo">—</span>
+          <input type="number" class="rb-tempo-gir" id="rbTempoGir" min="20" max="400" step="1" inputmode="numeric"
+                 onchange="rbTempoGir(this.value)" onkeydown="if(event.key==='Enter')this.blur()" aria-label="Tempo (BPM)">
           <button class="rt-adim" data-rb-tut="1" onclick="rbTempoKaydir(1)" aria-label="+1">+</button>
+          <span class="rb-birim">BPM</span>
           <span class="rb-kucuk-not" id="rbTempoNot"></span>
-        </div>
-        <!-- (2026-10-25) Kullanıcı: "Ritim bankasına ritim hızlandırma / yavaşlatma ekleyelim" — hızlı adımlar + kayıt temposuna dönüş;
-             − / + basılı tutulunca hızlanarak değişir (rbBasiliTut). -->
-        <div class="rb-ayar rb-tempo-hizli">
-          <button class="rb-hiz-cip" onclick="rbTempoKaydir(-10)">−10</button>
-          <button class="rb-hiz-cip" onclick="rbTempoKaydir(-5)">−5</button>
-          <button class="rb-hiz-cip" onclick="rbTempoKaydir(5)">+5</button>
-          <button class="rb-hiz-cip" onclick="rbTempoKaydir(10)">+10</button>
           <button class="rb-hiz-cip rb-hiz-sifir" id="rbTempoSifir" onclick="rbTempoSifirla()" data-i18n="ca.rbKayitTempo">Kayıt temposu</button>
         </div>
+        <input type="range" class="rb-kaydirici" id="rbTempoKaydirici" min="20" max="400" step="1" oninput="rbTempoGir(this.value)" aria-label="Tempo">
         <div class="rb-ayar">
           <span class="rt-etiket" data-i18n="ca.rbTon">Ton</span>
           <button class="rt-adim" onclick="rbTonKaydir(-1)">−</button>
@@ -1316,12 +1323,21 @@ let rbEser = null;           // {id, name}
 let rbBagli = [];            // [{satir(eser_ritimleri), ritim}]
 let rbTempo = null, rbTon = 0;
 let rbCalar = null;
-let rbOnizleme = null;       // bankadaki ▶ dinle — {src, id} ya da (hız ≠ %100) {calar, id, tempo}
-// (2026-10-25) Bankada DİNLEME HIZI (%75–%125): kullanıcı "ritim hızlandırma / yavaşlatma ekleyelim". %100'de ham döngü çalar;
-// başka hızda RitimCalar ile perdeyi bozmadan gerilir, dinlerken değişirse ölçü başında kesintisiz geçer. Tercih bu cihazda saklanır.
-const RB_HIZLAR = [0.75, 0.9, 1, 1.1, 1.25];
-let rbOnizHiz = 1;
-try { const _h = parseFloat(localStorage.getItem('rbOnizHiz')); if (RB_HIZLAR.indexOf(_h) > -1) rbOnizHiz = _h; } catch (e) {}
+let rbOnizleme = null;       // bankadaki ▶ dinle — {src, id, tempo} (kayıt temposu) ya da {calar, id, tempo} (gerilmiş)
+// (2026-10-25) Bankada DİNLEME TEMPOSU — kullanıcı: "ritim hızlandırma / yavaşlatma" → "% olarak değil, değer girilsin + çubukta
+// sürüklensin". Her ritmin kendi temposu var: satır, dinlenen (ya da en son dinlenen) ritme bağlı; çubuk kayıt temposunun yarısı –
+// 1,5 katı, kutuya 20–400 yazılabilir. Kayıt temposunda ham döngü, başkasında RitimCalar ile perdeyi bozmadan gerilir; dinlerken
+// değişirse ölçü başında kesintisiz geçer. Ritim başına değer bu cihazda saklanır.
+let rbOnizSecili = null;
+const RB_ONIZ_TEMPO = {};
+try { Object.assign(RB_ONIZ_TEMPO, JSON.parse(localStorage.getItem('rbOnizTempo') || '{}')); } catch (e) {}
+function _rbOnizHedef(r) { const t = +r.tempo || 100, v = +RB_ONIZ_TEMPO[r.id]; return (v >= 20 && v <= 400) ? v : t; }
+function _rbAralik(t, v) {
+  let mn = Math.max(20, Math.round(t * 0.5)), mx = Math.min(400, Math.round(t * 1.5));
+  if (v != null) { mn = Math.min(mn, Math.round(v)); mx = Math.max(mx, Math.round(v)); }
+  return [mn, mx];
+}
+function _bpm(t) { t = +t; return Math.abs(t - Math.round(t)) < 0.05 ? String(Math.round(t)) : t.toFixed(1); }
 const RB_TAMPON = new Map(); // ritimId → Promise<{kanallar, sr}>  (oturum boyu)
 let _ST2 = null;
 
@@ -1455,12 +1471,13 @@ async function rbOnizle(id) {
   const h = await Ses.hazirla();
   if (!h.ok) { rbNot(_caCev('me.sesEngel', 'Tarayıcı sesi engelledi.'), true); return; }
   try {
+    rbOnizSecili = id;
     const t = await rbTamponAl(r);
-    if (rbOnizHiz !== 1) {
+    const tempo = +r.tempo || 100, hedef = _rbOnizHedef(r);
+    if (Math.abs(hedef - tempo) > 0.05) {
       if (!_ST2) _ST2 = (typeof _ST !== 'undefined' && _ST) ? _ST : await import('./soundtouch.js');
-      const tempo = +r.tempo || 100;
       const calar = RitimCalar.olustur({ ctx: () => Ses.ctx(), cikis: () => Ses.cikis(), ST: _ST2, Dongu: Dongu });
-      calar.ayarla(tempo * rbOnizHiz, 0);
+      calar.ayarla(hedef, 0);
       calar.yukle([{ id: r.id, ad: r.ad, tempo, zaman_sayisi: r.zaman_sayisi, olcu_sayisi: r.olcu_sayisi,
                      kanallar: t.kanallar, sr: t.sr }]);
       calar.basla(0);
@@ -1471,7 +1488,7 @@ async function rbOnizle(id) {
       t.kanallar.forEach((d, c) => buf.getChannelData(c).set(d));
       const src = actx.createBufferSource();
       src.buffer = buf; src.loop = true; src.connect(Ses.cikis()); src.start();
-      rbOnizleme = { src, id };
+      rbOnizleme = { src, id, tempo };
     }
   } catch (e) { rbNot(_caCev('ca.rbIndirilemedi', 'Ritim indirilemedi.'), true); }
   rtKilitYenile(); rbBankaCiz();
@@ -1682,14 +1699,27 @@ function rbDugmeYaz() {
 
 // ── Tempo ve ton (eser başına kaydedilir) ────────────────────────────────
 function rbAyarCiz() {
-  document.getElementById('rbTempo').textContent = rbTempo != null ? (+rbTempo).toFixed(rbTempo % 1 ? 1 : 0) : '—';
-  document.getElementById('rbTon').textContent = (rbTon > 0 ? '+' : '') + rbTon;
+  const gir = document.getElementById('rbTempoGir'), kay = document.getElementById('rbTempoKaydirici');
   const ilk = rbBagli[0];
-  const farkli = ilk && rbTempo != null && ilk.ritim.tempo && Math.abs(rbTempo - ilk.ritim.tempo) > 0.05;
-  document.getElementById('rbTempoNot').textContent = farkli
-    ? '%' + Math.round(rbTempo / ilk.ritim.tempo * 100) + ' · ' + _caCev('ca.rbOrijinal', 'kayıt: {t}').replace('{t}', (+ilk.ritim.tempo).toFixed(ilk.ritim.tempo % 1 ? 1 : 0)) : '';
+  const kt = ilk && ilk.ritim.tempo ? +ilk.ritim.tempo : null;
+  if (gir) { if (document.activeElement !== gir) gir.value = rbTempo != null ? Math.round(rbTempo) : ''; gir.disabled = rbTempo == null; }
+  if (kay) {
+    const [mn, mx] = _rbAralik(kt || rbTempo || 100, rbTempo);
+    kay.min = mn; kay.max = mx;
+    if (rbTempo != null) kay.value = Math.round(rbTempo);
+    kay.disabled = rbTempo == null;
+  }
+  document.getElementById('rbTon').textContent = (rbTon > 0 ? '+' : '') + rbTon;
+  const farkli = kt && rbTempo != null && Math.abs(rbTempo - kt) > 0.05;
+  document.getElementById('rbTempoNot').textContent = farkli ? _caCev('ca.rbOrijinal', 'kayıt: {t}').replace('{t}', _bpm(kt)) : '';
   const sf = document.getElementById('rbTempoSifir');
   if (sf) sf.disabled = !farkli;
+}
+function rbTempoGir(v) {
+  const n = Math.round(parseFloat(v));
+  if (!isFinite(n) || rbTempo == null) { rbAyarCiz(); return; }
+  rbTempo = Math.min(400, Math.max(20, n));
+  rbAyarUygula();
 }
 let _rbAyarZaman = null;
 function rbAyarUygula() {
@@ -1739,21 +1769,52 @@ function rbTempoSifirla() {
 function rbHizCiz() {
   const el = document.getElementById('rbHiz');
   if (!el) return;
-  el.innerHTML = '<span class="rb-hiz-etiket">' + _caCev('ca.rbDinlemeHizi', 'Dinleme hızı') + '</span>'
-    + RB_HIZLAR.map(h => '<button class="rb-hiz-cip' + (h === rbOnizHiz ? ' aktif' : '') + '" onclick="rbHizSec(' + h + ')">%' + Math.round(h * 100) + '</button>').join('');
+  const r = RB_BANKA.find(x => x.id === rbOnizSecili);
+  // Aynı ritmin satırı zaten çiziliyse BAŞTAN ÇİZME (banka her dinle/durdur'da yeniden çiziliyor; ilk sürüklemede dinleme gerilmiş
+  // çalara geçerken satır yenilenirse çubuk parmağın altından kayboluyordu) — yalnız değerleri eşitle.
+  const kayMevcut = document.getElementById('rbOnizKaydirici');
+  if (r && kayMevcut && el.dataset.id === r.id) {
+    const v = _rbOnizHedef(r), gir = document.getElementById('rbOnizGir'), sf = document.getElementById('rbOnizSifir');
+    kayMevcut.value = Math.round(v);
+    if (gir && document.activeElement !== gir) gir.value = Math.round(v);
+    if (sf) sf.disabled = Math.abs(v - (+r.tempo || 100)) < 0.05;
+    return;
+  }
+  el.dataset.id = r ? r.id : '';
+  const bas = '<span class="rb-hiz-etiket">' + _caCev('ca.rbDinlemeTempo', 'Dinleme temposu') + '</span>';
+  if (!r) { el.innerHTML = bas + '<span class="rb-hiz-ipucu">' + _caCev('ca.rbDinlemeIpucu', 'Ayarlamak için bir ritmi dinle (▶)') + '</span>'; return; }
+  const t = +r.tempo || 100, v = _rbOnizHedef(r), [mn, mx] = _rbAralik(t, v);
+  el.innerHTML = bas + '<span class="rb-hiz-ad">' + rbKacis(r.ad) + '</span>'
+    + '<div class="rb-hiz-satir">'
+    + '<input type="range" class="rb-kaydirici" id="rbOnizKaydirici" min="' + mn + '" max="' + mx + '" step="1" value="' + Math.round(v) + '"'
+    + ' oninput="rbOnizTempoGir(this.value,false)" onchange="rbOnizTempoGir(this.value,true)" aria-label="' + _caCev('ca.rbDinlemeTempo', 'Dinleme temposu') + '">'
+    + '<input type="number" class="rb-tempo-gir" id="rbOnizGir" min="20" max="400" step="1" inputmode="numeric" value="' + Math.round(v) + '"'
+    + ' onchange="rbOnizTempoGir(this.value,true)" onkeydown="if(event.key===\'Enter\')this.blur()" aria-label="BPM">'
+    + '<span class="rb-birim">BPM</span>'
+    + '<button class="rb-hiz-cip rb-hiz-sifir" id="rbOnizSifir" onclick="rbOnizTempoGir(' + t + ',true)"' + (Math.abs(v - t) < 0.05 ? ' disabled' : '') + '>'
+    + _caCev('ca.rbKayit', 'Kayıt {t}').replace('{t}', _bpm(t)) + '</button></div>';
 }
-async function rbHizSec(h) {
-  if (RB_HIZLAR.indexOf(h) < 0 || h === rbOnizHiz) return;
-  const onceki = rbOnizHiz;
-  rbOnizHiz = h;
-  try { localStorage.setItem('rbOnizHiz', String(h)); } catch (e) {}
-  rbHizCiz();
-  if (!rbOnizleme) return;
-  // Gerilmiş çalar sürüyorsa ve yeni hız da %100 değilse: kesintisiz geçiş; yoksa dinlemeyi yeni kipte baştan başlat
-  if (rbOnizleme.calar && h !== 1 && onceki !== 1) { rbOnizleme.calar.ayarla(rbOnizleme.tempo * h, 0); return; }
-  const id = rbOnizleme.id;
-  await rbOnizle(id);          // durdurur
-  await rbOnizle(id);          // yeni hızla başlatır
+let _rbOnizZaman = null;
+function rbOnizTempoGir(v, son) {
+  const r = RB_BANKA.find(x => x.id === rbOnizSecili);
+  if (!r) return;
+  const t = +r.tempo || 100;
+  let n = Math.round(parseFloat(v));
+  if (!isFinite(n)) { rbHizCiz(); return; }
+  n = Math.min(400, Math.max(20, n));
+  RB_ONIZ_TEMPO[r.id] = n;
+  const kay = document.getElementById('rbOnizKaydirici'), gir = document.getElementById('rbOnizGir'), sf = document.getElementById('rbOnizSifir');
+  if (kay) { const [mn, mx] = _rbAralik(t, n); kay.min = mn; kay.max = mx; kay.value = n; }
+  if (gir && document.activeElement !== gir) gir.value = n;
+  if (sf) sf.disabled = Math.abs(n - t) < 0.05;
+  if (son) { try { localStorage.setItem('rbOnizTempo', JSON.stringify(RB_ONIZ_TEMPO)); } catch (e) {} }
+  clearTimeout(_rbOnizZaman);
+  const uygula = async () => {
+    if (!rbOnizleme || rbOnizleme.id !== r.id) return;
+    if (rbOnizleme.calar) { rbOnizleme.calar.ayarla(n, 0); return; }   // gerilmiş çalar: ölçü başında kesintisiz geçer
+    if (Math.abs(n - t) > 0.05) { await rbOnizle(r.id); await rbOnizle(r.id); }   // ham döngüden gerilmişe: yeniden başlat
+  };
+  if (son) uygula(); else _rbOnizZaman = setTimeout(uygula, 350);   // sürüklerken her 350 ms'de bir (germe pahalı)
 }
 function rbTonKaydir(d) {
   rbTon = Math.min(12, Math.max(-12, rbTon + d));
