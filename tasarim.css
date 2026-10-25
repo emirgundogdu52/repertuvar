@@ -1328,7 +1328,7 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-tur-badge { font-size: 12px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name + span,
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-item span[class*="taslak"],
-  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name span { font-size: 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name span:not(.work-ad) { font-size: 12px !important; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name { font-size: 15px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-rep-count { font-size: 12.5px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-fav { width: 34px; height: 34px; }
@@ -1570,7 +1570,7 @@ html[data-tasarim="v3"][data-sayfa="onerilerim"] :is(.page-title, .page-sub, .se
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-tur-badge { font-size: 12px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name + span,
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-item span[class*="taslak"],
-  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name span { font-size: 12px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name span:not(.work-ad) { font-size: 12px !important; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .work-rep-count { font-size: 12.5px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] :is(.knot-bas, .knot-ipuc) { font-size: 12.5px; }
   html[data-tasarim="v3"][data-sayfa="eserler"] .detail [id^="offb_"] { font-size: 12px; }
@@ -1761,3 +1761,26 @@ html[data-tasarim="v3"][data-sayfa="repertoires"] .knot-sheet .ks-alt .rbtn.rbtn
 /* Açık temada kontrast taraması (14 sayfa, metin/zemin < 3:1): yalnız Önerilerim "Geri Al" yeşili #3FB950 beyazda 2.5:1 → koyu yeşil.
    (Avatarlardaki beyaz harf gradyan zemin üstünde — tarama yanlış alarmı.) */
 html[data-tasarim="v3"][data-theme="light"][data-sayfa="onerilerim"] .btn-restore { color: #1A7F37; border-color: rgba(26, 127, 55, .35); background: rgba(26, 127, 55, .08); }
+/* 23) Eserler listesi — eser adı ve çipler büyüdü (2026-10-25 kullanıcı: "eser adlarını ve çipleri biraz büyütsek mi?").
+   Ölçüm: ad telefon/iPad 14, masaüstü 15; tür çipi telefonda 10 (yükseklik 14), iPad/masaüstü 12; 🔒 Taslak çipi telefonda 10;
+   Offline satırı telefonda 11. → ad her yerde 16; çipler telefonda 12, iPad/masaüstünde 13, iç pay genişledi; alt satır 12. */
+html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name { font-size: 16px; }
+html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-tur-badge { font-size: 12px; padding: 1px 8px; line-height: 1.45; border-radius: 10px; }
+html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name + span,
+html[data-tasarim="v3"][data-sayfa="eserler"] .work-item span[class*="taslak"],
+html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name span:not(.work-ad) { font-size: 12px !important; }
+html[data-tasarim="v3"][data-sayfa="eserler"] .work-rep-count { font-size: 12px; }
+@media (min-width: 769px) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-tur-badge { font-size: 13px; padding: 1px 9px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name + span,
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item span[class*="taslak"],
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name span:not(.work-ad) { font-size: 12.5px !important; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-rep-count { font-size: 12.5px; }
+}
+/* Geniş ekranda (≥561) ad + 🔒 Taslak / grup çipi tek satır: eskiden uzun adda satır sonu "…" çipi de yutuyordu (çip kayboluyordu).
+   Artık ad (.work-ad) kısalır, çip her zaman görünür. Telefonda (≤560) eserler.html'deki sarmalı düzen geçerli. */
+@media (min-width: 561px) {
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name { display: flex; align-items: center; gap: 6px; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name .work-ad { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  html[data-tasarim="v3"][data-sayfa="eserler"] .work-item .work-name > span:not(.work-ad) { flex-shrink: 0; }
+}
