@@ -820,6 +820,22 @@ function _c(k, tr) {
     window.heroEkSatir = heroEkSatir;
   })();
 
+  // (2026-10-25) Telefon / tablet: giriş alanının üstündeki zemin geçişi başlığın alt kenarında biter (tasarim.css --hero-baslik-alt).
+  // Başlık dar ekranda iki satıra kırılabildiği için sabit değer yerine ölçülür.
+  (function() {
+    const hero = document.querySelector('.hero-section'), baslik = document.querySelector('.hero-title');
+    if (!hero || !baslik) return;
+    function heroBaslikAlt() {
+      const alt = Math.round(baslik.getBoundingClientRect().bottom - hero.getBoundingClientRect().top);
+      if (alt > 0) hero.style.setProperty('--hero-baslik-alt', alt + 'px');
+    }
+    let bekleyen = 0;
+    window.addEventListener('resize', () => { cancelAnimationFrame(bekleyen); bekleyen = requestAnimationFrame(heroBaslikAlt); });
+    heroBaslikAlt();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(heroBaslikAlt);
+    setTimeout(heroBaslikAlt, 1300);   // giriş canlandırması (heroFadeUp, ~1 sn) bitince
+  })();
+
   (function() {
     const screen = document.querySelector('.hero-ipad-screen');
     const ipad = document.querySelector('.hero-ipad');

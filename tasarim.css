@@ -276,6 +276,26 @@ html[data-tasarim="v3"][data-theme="light"][data-sayfa="index"] .hero-section {
   border-color: rgba(17, 23, 34, .08);
   border-radius: 28px;
 }
+/* (2026-10-25) Kullanıcı: "Açık ve koyu modda ana sayfada 'Sahnedeki en büyük yardımcın'ın altından başlayarak yukarıya doğru
+   gradient ile logo bloğunun altındaki renge geçiş ver" + "telefon tablet için geçerli bu". Üst çubuk (yüzen cam) sayfa zemininin
+   üstünde duruyor; giriş alanının üst kenarı zeminle sert çizgi yapıyordu → en üst katman: tepede sayfa zemini (--bg), başlığın
+   alt kenarında (--hero-baslik-alt, index.html heroBaslikAlt ölçer; yoksa 80px) saydam. Üst kenar çizgisi de kalktı. Masaüstü aynı. */
+@media (max-width: 1023px) {
+  html[data-tasarim="v3"][data-theme="dark"][data-sayfa="index"] .hero-section {
+    background:
+      linear-gradient(180deg, var(--bg) 0, transparent var(--hero-baslik-alt, 80px)),
+      radial-gradient(circle at 82% 12%, rgba(255, 200, 61, .10), transparent 42%),
+      linear-gradient(180deg, #0D121B 0%, #090D14 100%);
+    border-top-color: transparent;
+  }
+  html[data-tasarim="v3"][data-theme="light"][data-sayfa="index"] .hero-section {
+    background:
+      linear-gradient(180deg, var(--bg) 0, transparent var(--hero-baslik-alt, 80px)),
+      radial-gradient(circle at 82% 12%, rgba(255, 200, 61, .14), transparent 42%),
+      linear-gradient(180deg, #FFFFFF 0%, #F6F7FA 100%);
+    border-top-color: transparent;
+  }
+}
 /* Alt menüdeki "Sahne Modu": mavi gradyan yerine sarı ton (landing .bi) */
 html[data-tasarim="v3"] .bn-stage {
   background: rgba(255, 200, 61, .12);
