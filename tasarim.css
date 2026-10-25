@@ -308,10 +308,18 @@ html[data-tasarim="v3"] .hero-title { font-weight: 600; letter-spacing: -.025em;
 html[data-tasarim="v3"] .sb-title { font-weight: 600; letter-spacing: -.02em; }
 html[data-tasarim="v3"] .sec-title { font-weight: 600; letter-spacing: .1em; }
 html[data-tasarim="v3"] .feat-title { font-weight: 600; }
-html[data-tasarim="v3"] .feat-section-title { font-weight: 500; letter-spacing: -.01em; }
-/* (2026-10-08) "Neler Yapabilirsiniz?" ile kart arası 18px → 6px (alt pay 14+4 → 2+0; kaydırma alanının 4px üst payı
-   kartın hover kalkışı kırpılmasın diye kalır). */
-html[data-tasarim="v3"] .feat-section-title { margin-bottom: 2px; padding-bottom: 0; }
+/* (2026-10-24) Kullanıcı: "Neler Yapabilirsiniz?" başlığı "SON EKLENEN ESERLER" ile aynı biçimde olsun — 24 px normal yazı
+   yerine diğer bölüm başlıkları gibi (.sec-title) 13 px, kalın, büyük harf, geniş aralık; başlık–kart arası "Son Eklenen" ile
+   yakın (8 px + kaydırma alanının 4 px üst payı; o pay kartın hover kalkışı kırpılmasın diye kalır). */
+html[data-tasarim="v3"] .feat-section-title {
+  font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--text);
+  margin-bottom: 8px; padding-bottom: 0;
+}
+/* Kullanıcı (2026-10-24): "bu başlıkların soldan başlama noktasını alt kutudaki tekstin soldan başlangıç hizasına getir" —
+   başlıklar kutunun kenarında (16 px) başlıyordu; özellik kartının yazısı +13, son eklenen satırının sıra numarası +17 px içeride
+   (440 / 810 / 1080'de aynı ölçüldü). "Tümü" sağda yerinde kalır. */
+html[data-tasarim="v3"][data-sayfa="index"] .feat-section-title { padding-left: 13px; }
+html[data-tasarim="v3"][data-sayfa="index"] .sec-header .sec-title { margin-left: 17px; }
 
 /* ── 9. Taşma güvenceleri ── */
 html[data-tasarim="v3"] .qb-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
