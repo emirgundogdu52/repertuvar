@@ -148,6 +148,28 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     [data-theme="light"] .ana-defter-ik { background:rgba(255,200,61,.35); color:#8A5A00; }
     [data-theme="light"] .ana-defter-cta { background:#1E8E3E; color:#fff; }
     [data-theme="light"] .ana-defter:hover .ana-defter-cta { background:#1A7D36; }
+    /* (2026-10-25) Kullanıcı: "tarama ikonunu biraz hareketlendirelim; yatay çizgi gerçek bir tarama efekti versin — sarı çizgi
+       yukarı çıkıp yeşile dönsün, aşağı insin, ortadaki yerine dönünce yine sarı olsun". Tabler ti-scan glifi tek parça olduğu için
+       aynı çizim satır içi SVG; çizgi + soluk ışık izi ayrı döner (3,2 sn). Renkler düz değer: düğmenin yeşili + temanın altını.
+       "Hareketi azalt" açıksa çizgi ortada, altın, durgun. */
+    .ana-defter-tarama { display:block; width:26px; height:26px; overflow:visible; }
+    .tarama-cizgi { color:#FFC83D; animation:defterTarama 3.2s ease-in-out infinite; }
+    .tarama-cizgi path { stroke:currentColor; }
+    .tarama-isik { stroke-width:6; opacity:.22; }
+    @keyframes defterTarama {
+      0%, 12%   { transform:translateY(0);      color:#FFC83D; }
+      36%       { transform:translateY(-5.5px); color:#30B65A; }
+      66%       { transform:translateY(5.5px);  color:#30B65A; }
+      90%, 100% { transform:translateY(0);      color:#FFC83D; }
+    }
+    [data-theme="light"] .tarama-cizgi { color:#8A5A00; animation-name:defterTaramaAcik; }
+    @keyframes defterTaramaAcik {
+      0%, 12%   { transform:translateY(0);      color:#8A5A00; }
+      36%       { transform:translateY(-5.5px); color:#1E8E3E; }
+      66%       { transform:translateY(5.5px);  color:#1E8E3E; }
+      90%, 100% { transform:translateY(0);      color:#8A5A00; }
+    }
+    @media (prefers-reduced-motion: reduce) { .tarama-cizgi { animation:none; } }
 
     .hero-bullets { list-style:none; margin:0 0 20px; padding:0; }
     .hero-bullets li { font-size:15px; line-height:1.5; color:var(--text2); padding:6px 0; display:flex; align-items:flex-start; gap:8px; }
@@ -370,7 +392,7 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
         <a href="calisma.html" class="hero-btn-secondary" data-i18n="ana.demo">Çalışma Odası'nı Aç</a>
       </div>
       <a href="eserler.html?defter=1" class="ana-defter">
-        <span class="ana-defter-ik"><i class="ti ti-scan" aria-hidden="true"></i></span>
+        <span class="ana-defter-ik"><svg class="ana-defter-tarama" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7v-1a2 2 0 0 1 2 -2h2M4 17v1a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v1M16 20h2a2 2 0 0 0 2 -2v-1"/><g class="tarama-cizgi"><path class="tarama-isik" d="M5 12h14"/><path d="M5 12h14"/></g></svg></span>
         <span class="ana-defter-metin">
           <span class="ana-defter-ust"><span class="ana-defter-rozet" data-i18n="ana.yeni">Yeni</span><b data-i18n="ana.defterBaslik">Nota defterini tara, dijitale geç</b></span>
           <small class="defter-kamerali" data-i18n="ana.defterAlt">Defterindeki notaları telefonla tara; her sayfa eserinin sözlerinin ve akorlarının yanına eklenir, sahnede hep yanında.</small>
