@@ -387,9 +387,11 @@ function _m(anahtar, tr) {
       transition: background .15s;
     }
     .sb-user-x:hover { background: rgba(124,111,255,0.12); }
-    /* (2026-10-25) Kullanıcı: "Avatar kalsın yerinde, alttaki açık/kapalı düğmesini ona uyduralım" — anahtar 12 px'teydi, avatar
-       23 px'te (kutu payı 12 + kenarlık 1 + iç pay 10) → anahtarın sol payı 23. */
-    .sb-tema { padding: 8px 12px 4px 23px; }
+    /* (2026-10-25) Tema anahtarı hesap kutusuyla aynı çerçeveli satırda. Kullanıcı: anahtar kutunun kenarına (12 px) hizalanınca
+       "sola kayıyor", avatara (23 px) hizalanınca "sağa kaymış görünüyor" — iki referans çizgi 11 px ayrık. Satır hesap kutusunun
+       sınıfını paylaşır (zemin, kenarlık, açık tema): çerçeveler 12 px'te üst üste, anahtar içeride avatarla aynı 23 px çizgide.
+       Yükseklik 48 (anahtar 30 + 8 + 8 + kenarlık) = hesap kutusu; satırın tamamı tıklanır. */
+    .sb-tema { margin-top: 0; padding-top: 8px; padding-bottom: 8px; }
     .sb-divider-hesap { margin: 8px 20px 4px; }   /* menüdeki ayraçla aynı genişlik (menü iç payı 10 + ayraç payı 10) */
     .sb-user-avatar {
       width: 32px; height: 32px; border-radius: 50%;
@@ -845,14 +847,18 @@ function _m(anahtar, tr) {
           <button class="sb-dd-item danger" onclick="logout()"><i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> ${_m('menu.oturumKapat','Oturumu Kapat')}</button>
         </div>
       </div>
-      <div class="sb-tema">
+      <div class="sb-user-x sb-tema" id="sbTemaSatir">
         ${themeToggleMarkup('sbThemeToggle', theme)}
+        <span class="sb-user-name">${_m('menu.temaDegistir','Tema değiştir')}</span>
       </div>
       <div style="flex:1"></div>
     `;
     document.body.insertBefore(aside, document.body.firstChild);
 
     bindThemeToggle('sbThemeToggle');
+    // Satırın anahtar dışındaki yerine tıklamak da temayı değiştirir (anahtarın kendi tıklaması yayılmaz).
+    const _temaSatir = document.getElementById('sbTemaSatir');
+    if (_temaSatir) _temaSatir.addEventListener('click', function () { const b = document.getElementById('sbThemeToggle'); if (b) b.click(); });
     updateSbUserName();
 
     // Logo, tema değişiminde otomatik güncellenir (bkz. applyTheme)
