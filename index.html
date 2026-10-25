@@ -156,22 +156,27 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
        selamlamasının mavisi (koyu #4DA3FF, açık #0A5BC2; kullanıcı: "yeşili mavi yapalım, hoş geldin mavisi").
        "Hareketi azalt" açıksa çizgi ortada, altın, durgun. */
     .ana-defter-tarama { display:block; width:36px; height:36px; overflow:visible; }   /* 26 → 36; hareket ve hale orantılı büyür */
-    .tarama-cizgi { color:#FFC83D; animation:defterTarama 3.2s ease-in-out infinite; }
+    /* (2026-10-25) Kullanıcı (iPad'den): "bu tarama çizgisi olamadı, neon rengi bir çizgi kullanalım, tüm platformlara uygula".
+       Altın → mavi / altın renk geçişi KALDIRILDI; çizgi her an NEON YEŞİL bir tüp: dış hale + iç hale + çekirdek + beyazımsı öz.
+       Hareket aynı (3,2 sn: ortada kısa bekleme → yukarı → aşağı → ortaya); hale hareket ederken güçlenir. Açık temada çekirdek
+       bir ton koyu (#00C93C) — açık zeminde kaybolmasın. Çerçeve (köşeler) altın kalır, tarama başlarken parlar. */
+    .tarama-cizgi { color:#39FF14; animation:defterTarama 3.2s ease-in-out infinite; }
     .tarama-cizgi path { stroke:currentColor; }
-    .tarama-isik { stroke-width:6; opacity:.22; }
+    .tarama-hale { stroke-width:8; opacity:.12; animation:defterHale 3.2s ease-in-out infinite; }
+    .tarama-isik { stroke-width:4.5; opacity:.32; animation:defterIsik 3.2s ease-in-out infinite; }
+    .tarama-cekirdek { stroke-width:2; }
+    .tarama-cizgi .tarama-oz { stroke:#F2FFEC; stroke-width:.8; opacity:.9; }
     @keyframes defterTarama {
-      0%, 12%   { transform:translateY(0);      color:#FFC83D; }
-      36%       { transform:translateY(-5.5px); color:#4DA3FF; }
-      66%       { transform:translateY(5.5px);  color:#4DA3FF; }
-      90%, 100% { transform:translateY(0);      color:#FFC83D; }
+      0%, 12%   { transform:translateY(0); }
+      36%       { transform:translateY(-5.5px); }
+      66%       { transform:translateY(5.5px); }
+      90%, 100% { transform:translateY(0); }
     }
-    [data-theme="light"] .tarama-cizgi { color:#8A5A00; animation-name:defterTaramaAcik; }
-    @keyframes defterTaramaAcik {
-      0%, 12%   { transform:translateY(0);      color:#8A5A00; }
-      36%       { transform:translateY(-5.5px); color:#D99A00; }   /* (2026-10-25) açık temada mavi yerine altın sarısı (kullanıcı) */
-      66%       { transform:translateY(5.5px);  color:#D99A00; }
-      90%, 100% { transform:translateY(0);      color:#8A5A00; }
-    }
+    @keyframes defterHale { 0%, 12% { opacity:.10; } 36%, 66% { opacity:.24; } 90%, 100% { opacity:.10; } }
+    @keyframes defterIsik { 0%, 12% { opacity:.28; } 36%, 66% { opacity:.55; } 90%, 100% { opacity:.28; } }
+    [data-theme="light"] .tarama-cizgi { color:#00C93C; }
+    [data-theme="light"] .tarama-hale { animation-name:defterHaleAcik; }
+    @keyframes defterHaleAcik { 0%, 12% { opacity:.16; } 36%, 66% { opacity:.30; } 90%, 100% { opacity:.16; } }
     /* (2026-10-25) Kullanıcı: "dışındaki çerçeve de tarama işlemi başlayınca parlayıp sönsün, tarama devam etsin" — köşe çizgileri
        (çerçeve) çizgi ortadan kalkarken (döngünün %4–30'u) açık altına parlar, altında yumuşak bir ışık halesi belirip söner.
        Aynı 3,2 sn döngü, çizgiyle eş zamanlı. */
@@ -182,7 +187,7 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
     @keyframes defterCerceveIsik { 0%, 4% { opacity:0; } 12% { opacity:.5; } 30%, 100% { opacity:0; } }
     [data-theme="light"] .tarama-cerceve { color:#8A5A00; animation-name:defterCerceveAcik; }
     @keyframes defterCerceveAcik { 0%, 4% { color:#8A5A00; } 12% { color:#D99A00; } 30%, 100% { color:#8A5A00; } }
-    @media (prefers-reduced-motion: reduce) { .tarama-cizgi, .tarama-cerceve, .tarama-cerceve-isik { animation:none; } }
+    @media (prefers-reduced-motion: reduce) { .tarama-cizgi, .tarama-hale, .tarama-isik, .tarama-cerceve, .tarama-cerceve-isik { animation:none; } }
 
     /* (2026-10-25) "Başka uygulamadan aktar" kartı — defter kartıyla aynı yapı (yerleşim, dar alanda düğme alta), MAVİ kimlik
        ("Hoş geldin" mavisi): altın + yeşil düğmeli defter kartıyla karışmasın, önde olan yine defter kartı. */
@@ -470,7 +475,7 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
         <a href="calisma.html" class="hero-btn-secondary" data-i18n="ana.demo">Çalışma Odası'nı Aç</a>
       </div>
       <a href="eserler.html?defter=1" class="ana-defter">
-        <span class="ana-defter-ik"><svg class="ana-defter-tarama" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="tarama-cerceve"><path class="tarama-cerceve-isik" d="M4 7v-1a2 2 0 0 1 2 -2h2M4 17v1a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v1M16 20h2a2 2 0 0 0 2 -2v-1"/><path d="M4 7v-1a2 2 0 0 1 2 -2h2M4 17v1a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v1M16 20h2a2 2 0 0 0 2 -2v-1"/></g><g class="tarama-cizgi"><path class="tarama-isik" d="M5 12h14"/><path d="M5 12h14"/></g></svg></span>
+        <span class="ana-defter-ik"><svg class="ana-defter-tarama" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="tarama-cerceve"><path class="tarama-cerceve-isik" d="M4 7v-1a2 2 0 0 1 2 -2h2M4 17v1a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v1M16 20h2a2 2 0 0 0 2 -2v-1"/><path d="M4 7v-1a2 2 0 0 1 2 -2h2M4 17v1a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v1M16 20h2a2 2 0 0 0 2 -2v-1"/></g><g class="tarama-cizgi"><path class="tarama-hale" d="M4.5 12h15"/><path class="tarama-isik" d="M5 12h14"/><path class="tarama-cekirdek" d="M5 12h14"/><path class="tarama-oz" d="M6.5 12h11"/></g></svg></span>
         <span class="ana-defter-metin">
           <span class="ana-defter-ust"><span class="ana-defter-rozet" data-i18n="ana.yeni">Yeni</span><b data-i18n="ana.defterBaslik">Nota defterini tara, dijitale geç</b></span>
           <small class="defter-kamerali" data-i18n="ana.defterAlt">Defterindeki notaları telefonla tara; her sayfa eserinin sözlerinin ve akorlarının yanına eklenir. Repertuvarın her zaman, her yerde yanında.</small>
