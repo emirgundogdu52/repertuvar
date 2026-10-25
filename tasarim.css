@@ -1386,3 +1386,38 @@ html[data-tasarim="v3"][data-sayfa="gruplar"] #memberSearch { min-height: 40px; 
   html[data-tasarim="v3"][data-sayfa="gruplar"] #groupState { display: grid; grid-template-columns: 420px minmax(0, 1fr); column-gap: 20px; align-items: start; }
   html[data-tasarim="v3"][data-sayfa="gruplar"] #groupState .grp-sag > .section { margin-bottom: 0; }
 }
+/* 6) Çalışma Odası (calisma: Kayıtlarım / Ritim / Metronom) — 1505'te içerik 385 px, ortada ("margin:0 auto" esnek sütunda
+   içeriği kadar daralıyordu). Masaüstünde 1040 px (kayıt oynatıcısı katmanıyla aynı), sola yaslı; kayıt listesi ve ritim
+   bankası iki sütun; metronomda sarkaç kartı solda, Zaman sayısı / Usuller / ses kartları sağda (önce alt alta 1400 px).
+   Metronomda 10–11 px yazılar (usul alt satırı, ipuçları, renk açıklaması, anahtar alt yazısı) 12–12.5; kaydırıcılar 26/24 → 34. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  html[data-tasarim="v3"][data-sayfa="calisma"] .page-content { max-width: 1040px; margin-left: 0; margin-right: 0; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] .page-content .co-liste { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] :is(.co-meta, .co-kota-ust, .co-kota-alt, .rb-ad small, .rb-kota, .rb-kucuk-not, .yk-not, .yk-birak-alt) { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] .co-plan { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] .co-sekme { font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] .oy-tus[data-etiket] .oy-yuvarlak::after { font-size: 12px; }
+  /* Metronom */
+  html[data-tasarim="v3"][data-sayfa="calisma"] #bolumMetronom { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto auto 1fr;
+    column-gap: 20px; align-items: start; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] #bolumMetronom > .mx-stage { grid-column: 1; grid-row: 1 / span 4; margin-bottom: 0; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] #bolumMetronom > .mx-card { grid-column: 2; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] #bolumMetronom > .mx-hint { grid-column: 1 / -1; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] :is(.mx-hint, .mx-switch-sub) { font-size: 12.5px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] .mx-legend { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] .mx-chip small { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] :is(.mx-tab, .mx-term, .mx-group, .mx-beat) { font-size: 13px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] .mx-beat.sm { font-size: 12px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] .mx-switch-label { font-size: 14px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] .mx-slider { height: 34px; }
+  html[data-tasarim="v3"][data-sayfa="calisma"] #volSlider { height: 34px !important; }   /* satır içi 24 px */
+  /* Sağ sütun sarkaç kartından uzun (Usuller): kaydırırken Başlat / BPM görünür kalsın. */
+  html[data-tasarim="v3"][data-sayfa="calisma"] #bolumMetronom > .mx-stage { position: sticky; top: 16px; }
+}
+/* Başlık hiza kuralı (Çalışma Odası, her cihaz): kutuların sol iç payı 16 (+1 kenarlık = 17) — sekme düğmelerinin yazısı zaten
+   17'de (9px 16px + 1); başlık, alt başlık ve kutu üstü başlıklar 17 px içeride. */
+html[data-tasarim="v3"][data-sayfa="calisma"] :is(.co-kota, .co-item, .rb-satir) { padding-left: 16px; }
+html[data-tasarim="v3"][data-sayfa="calisma"] .co-ara { padding-left: 16px; }
+html[data-tasarim="v3"][data-sayfa="calisma"] .co-head > div:first-child,
+html[data-tasarim="v3"][data-sayfa="calisma"] .rb-banka-ust .rb-bas { padding-left: 17px; }
+html[data-tasarim="v3"][data-sayfa="calisma"] #bolumRitim > .rb-bas { padding-left: 15px; }   /* + 2 px kendi payı */
