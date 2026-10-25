@@ -35,6 +35,76 @@ async function verilerimiIndir() {
     _verilerimSuruyor = false; btn.disabled = false; btn.textContent = eski;
   }
 }
+// (2026-10-25) KATALOG KORUMA (yönetici) — sql/katalog_koruma.sql RPC'leri. Sunucu kurulmadıysa "kurulum bekleniyor".
+let _kk = null;
+async function kkRpc(ad, govde) {
+  const r = await fetch(SUPA_URL + '/rest/v1/rpc/' + ad, { method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify(govde || {}) });
+  if (r.status === 404) { const e = new Error('kurulum'); e.kurulum = true; throw e; }
+  if (!r.ok) throw new Error(hataMetni(await r.text()));
+  return r.status === 204 ? null : r.json().catch(() => null);
+}
+async function kkBaslat() {
+  try { _kk = await kkRpc('katalog_koruma_durum'); } catch (e) { _kk = null; }
+  const acik = _kk ? _kk.isaretler.filter(i => i.durum === 'acik').length : 0;
+  const s = document.getElementById('kkSayi');
+  if (s) { s.textContent = acik; s.hidden = !acik; }
+  if (location.hash === '#katalogKoruma') {
+    const p = document.getElementById('kkPanel');
+    if (p && p.hidden) kkAcKapat();
+    document.getElementById('katalogKoruma').scrollIntoView({ block: 'start' });
+  }
+}
+async function kkAcKapat() {
+  const p = document.getElementById('kkPanel'), b = document.getElementById('kkBtn');
+  p.hidden = !p.hidden;
+  b.setAttribute('aria-expanded', p.hidden ? 'false' : 'true');
+  b.textContent = p.hidden ? _t('ay.kkGoster', 'Göster') : _t('ay.kkGizle', 'Gizle');
+  if (!p.hidden) await kkCiz(true);
+}
+async function kkCiz(yenile) {
+  const p = document.getElementById('kkPanel');
+  if (yenile) {
+    p.innerHTML = '<div class="kk-bos">' + _t('ay.kkYukleniyor', 'Yükleniyor…') + '</div>';
+    try { _kk = await kkRpc('katalog_koruma_durum'); }
+    catch (e) {
+      p.innerHTML = '<div class="kk-bos">' + (e.kurulum ? _t('ay.kkKurulumYok', 'Sunucu kurulumu henüz yapılmadı (sql/katalog_koruma.sql).')
+        : _t('ay.kkHata', 'Yüklenemedi: {hata}').replace('{hata}', htmlKac(e.message))) + '</div>';
+      return;
+    }
+  }
+  const tarih = t => t ? new Date(t).toLocaleString(undefined, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+  const acik = _kk.isaretler.filter(i => i.durum === 'acik');
+  const s = document.getElementById('kkSayi'); if (s) { s.textContent = acik.length; s.hidden = !acik.length; }
+  let h = '<div class="kk-baslik">' + _t('ay.kkIsaretler', 'Açık işaretler') + '</div>';
+  h += acik.length ? acik.map(i => `<div class="kk-kart">
+      <div class="kk-eposta">${htmlKac(i.eposta || i.user_id)}</div>
+      <div class="kk-ayrinti">${htmlKac(tarih(i.tarih))} · ${htmlKac((i.ayrinti && i.ayrinti.ua) || i.sebep)}</div>
+      <div class="kk-dugmeler">
+        <button class="setting-btn danger" onclick="kkEngelle('${i.user_id}', 7, '${htmlKac(i.eposta || '')}')">${_t('ay.kkEngel7', '7 gün engelle')}</button>
+        <button class="setting-btn danger" onclick="kkEngelle('${i.user_id}', 0, '${htmlKac(i.eposta || '')}')">${_t('ay.kkEngelSuresiz', 'Süresiz engelle')}</button>
+        <button class="setting-btn" onclick="kkIsaretKapat(${i.id})">${_t('ay.kkIsaretKapat', 'Sorun yok, kapat')}</button>
+      </div></div>`).join('')
+    : '<div class="kk-bos">' + _t('ay.kkBos', 'Açık işaret yok — bütün girişler uygulamadan ya da tarayıcıdan.') + '</div>';
+  h += '<div class="kk-baslik">' + _t('ay.kkEngeller', 'Etkin engeller') + '</div>';
+  h += _kk.engeller.length ? _kk.engeller.map(e => `<div class="kk-kart">
+      <div class="kk-eposta">${htmlKac(e.eposta || e.user_id)}</div>
+      <div class="kk-ayrinti">${e.bitis ? _t('ay.kkBitis', 'Bitiş: {t}').replace('{t}', htmlKac(tarih(e.bitis))) : _t('ay.kkSuresiz', 'Süresiz')}${e.sebep ? ' · ' + htmlKac(e.sebep) : ''}</div>
+      <div class="kk-dugmeler"><button class="setting-btn" onclick="kkEngelKaldir('${e.user_id}')">${_t('ay.kkKaldir', 'Engeli kaldır')}</button></div>
+    </div>`).join('')
+    : '<div class="kk-bos">' + _t('ay.kkEngelYok', 'Engel yok.') + '</div>';
+  p.innerHTML = h;
+}
+async function kkIslem(fn) {
+  try { await fn(); await kkCiz(true); }
+  catch (e) { alert(_t('ay.kkHata', 'Yüklenemedi: {hata}').replace('{hata}', e.message)); }
+}
+function kkEngelle(uid, gun, eposta) {
+  if (!confirm(_t('ay.kkOnay', '{e} hesabının katalog erişimi kapatılsın mı? Kendi eserlerini görmeye devam eder.').replace('{e}', eposta || uid))) return;
+  kkIslem(() => kkRpc('katalog_engelle', { p_kullanici: uid, p_gun: gun, p_sebep: 'Tarayıcı dışı giriş (Katalog Koruma)' }));
+}
+function kkEngelKaldir(uid) { kkIslem(() => kkRpc('katalog_engel_kaldir', { p_kullanici: uid })); }
+function kkIsaretKapat(id) { kkIslem(() => kkRpc('katalog_isaret_kapat', { p_id: id })); }
 async function hesapSilOnay() {
   document.getElementById('silOnayEmail').value = '';
   document.getElementById('silHataMsg').style.display = 'none';
@@ -353,6 +423,16 @@ html, body { overflow-x: hidden; }
 .setting-select:focus { border-color: var(--accent); }
 
 /* Action button */
+.kk-sayi { display:inline-block; min-width:20px; padding:1px 7px; margin-left:6px; border-radius:10px; font-size:12px; font-weight:700;
+  background:rgba(248,113,113,.15); border:1px solid rgba(248,113,113,.4); color:var(--red); text-align:center; }
+.kk-panel { padding:4px 16px 14px; display:flex; flex-direction:column; gap:8px; }
+.kk-baslik { font-size:12px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.04em; margin-top:6px; }
+.kk-kart { border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:var(--surface2); }
+.kk-eposta { font-size:14px; font-weight:600; color:var(--text); word-break:break-all; }
+.kk-ayrinti { font-size:12px; color:var(--text3); margin-top:3px; line-height:1.4; word-break:break-word; }
+.kk-dugmeler { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.kk-dugmeler .setting-btn { min-height:40px; font-size:13px; }
+.kk-bos { font-size:13px; color:var(--text3); line-height:1.45; }
 .setting-btn {
   background: none; border: 1px solid var(--border);
   border-radius: 8px; padding: 7px 14px;
@@ -759,6 +839,16 @@ html, body { overflow-x: hidden; }
         </div>
         <a href="eserler.html" class="setting-btn" onclick="localStorage.setItem('openPending','1')" data-i18n="ay.incele">İncele →</a>
       </div>
+      <!-- (2026-10-25) KATALOG KORUMA — sql/katalog_koruma.sql. Kullanıcı: "2 yap" (oturumlu hesabın betikle toplu okumasına karşı
+           izleme + sınır). Tarayıcı dışı (betik) girişleri saatlik işaretlenir, yönetici burada süreli/süresiz engeller. -->
+      <div class="setting-row" id="katalogKoruma">
+        <div style="flex:1;min-width:0;">
+          <div class="setting-label"><span data-i18n="ay.kk">Katalog Koruma</span><span id="kkSayi" class="kk-sayi" hidden></span></div>
+          <div class="setting-desc" data-i18n="ay.kk_alt">Betikle (tarayıcı/uygulama dışından) giriş yapan hesaplar ve katalog engelleri</div>
+        </div>
+        <button class="setting-btn" id="kkBtn" onclick="kkAcKapat()" aria-expanded="false" aria-controls="kkPanel" data-i18n="ay.kkGoster">Göster</button>
+      </div>
+      <div id="kkPanel" class="kk-panel" hidden></div>
       <!-- (2026-10-17) "Veri Temizleme → temizle.html" kaldırıldı: araç a195a8f'de arac/ altına alınmıştı, bağlantı ölüydü
            (web'de 404, uygulamada www/'de kalmış eski kopyayı — toplu silme düğmesiyle — açıyordu). -->
     </div>
@@ -1376,6 +1466,7 @@ async function verifyEmailChange() {
     ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=roleLabel; });
     if (role === 'admin' || role === 'editor') {
       document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
+      kkBaslat();
     } else {
       document.querySelectorAll('.member-only').forEach(el => { el.style.display = ''; });
     }
