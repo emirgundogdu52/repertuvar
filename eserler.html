@@ -1222,7 +1222,9 @@
     color:var(--text); font-size:15px; font-weight:700; font-family:inherit; box-sizing:border-box; }
   .ia-meta { font-size:12.5px; color:var(--text2); line-height:1.45; }
   .ia-ozet { font-size:12.5px; color:var(--text3); line-height:1.45; white-space:pre-line; overflow:hidden; max-height:3.0em; }
-  .ia-uyari { font-size:12px; color:var(--warning-color, #FF9500); line-height:1.4; }
+  .ia-uyari, .ia-uygunsuz { font-size:12px; color:var(--warning-color, #FF9500); line-height:1.4; }
+  .ia-uygunsuz { font-weight:600; }
+  .pm-uygunsuz { font-size:12.5px; font-weight:600; color:var(--warning-color, #FF9500); margin:2px 0 6px; }
   .ia-kaynak { font-size:11px; color:var(--text3); opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .ia-yapistir { width:100%; min-height:220px; padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface2);
     color:var(--text); font-size:14px; line-height:1.5; font-family:ui-monospace, Menlo, monospace; box-sizing:border-box; resize:vertical; }
@@ -3084,7 +3086,7 @@ async function bulkCreateRepertoire() {
     if (gid) body.group_id = gid;
     if (uid) body.owner_id = uid;
     const res = await fetch(SUPA_URL + '/rest/v1/repertoires', { method: 'POST', headers, body: JSON.stringify(body) });
-    if (!res.ok) throw new Error('repertoire create failed');
+    if (!res.ok) throw new Error(hataMetni(await res.text()) || 'repertoire create failed');
     const rows = await res.json();
     const repId = rows?.[0]?.id;
     if (!repId) throw new Error('no repertoire id returned');
@@ -5576,6 +5578,18 @@ async function iaDosyalar(dosyalar) {
 function iaEkle(liste) {
   liste.forEach(e => { e.var = _iaVarMi(e.ad); e.sec = !e.var; _ia.push(e); });
   iaCiz();
+  iaUygunsuzTara(liste);
+}
+// (2026-10-25) Kullanıcı: "içe aktarma ile sisteme girebilecek küfürlü ve sakıncalı içerikleri süzecek bir filtre" → KARAR:
+// şarkı sözünde ENGEL YOK (türkülerde 'kahpe felek' gibi ifadeler), yalnız uyarı. Eser kişisel açılır; genele açılırsa
+// ekip onayından geçer ve onay kuyruğunda da işaretlenir. Sunucu işlevi yoksa / çevrimdışıysa sessizce atlanır.
+async function iaUygunsuzTara(liste) {
+  if (typeof uygunsuzTara !== 'function' || !liste.length) return;
+  const sonuc = await uygunsuzTara(liste.map(e => [e.ad, e.soz, e.akorlu].filter(Boolean).join('\n')));
+  if (!sonuc) return;
+  let degisti = false;
+  liste.forEach((e, i) => { if (sonuc[i]) { e.uygunsuz = sonuc[i]; degisti = true; } });
+  if (degisti) iaCiz();
 }
 function iaSec(i, v) { if (_ia[i]) _ia[i].sec = v; iaCiz(true); }
 function iaHepsi(v) { _ia.forEach(e => { e.sec = v; }); iaCiz(); }
@@ -5604,6 +5618,7 @@ function iaCiz(yalnizAyak) {
             ${meta ? `<div class="ia-meta">${meta}</div>` : ''}
             ${ozet ? `<div class="ia-ozet">${htmlKac(ozet)}</div>` : `<div class="ia-ozet">${_esCev('es.iaSozYok','(söz yok — yalnız ad ve bilgiler)')}</div>`}
             <div class="ia-uyari" ${e.var ? '' : 'hidden'}>${_esCev('es.iaVar','Bu adla bir eserin zaten var — işaretlersen yine de yeni eser açılır.')}</div>
+            ${e.uygunsuz ? `<div class="ia-uygunsuz">⚠️ ${_esCev('es.iaUygunsuz','Uygunsuz olabilecek ifade var: “{ifade}”. Paylaşmadan önce kontrol et.').replace('{ifade}', htmlKac(e.uygunsuz))}</div>` : ''}
             ${e.kaynak ? `<div class="ia-kaynak">${htmlKac(e.kaynak)}</div>` : ''}
           </div></div>`;
       }).join('') + `<div style="margin-top:4px;">${iaYardimHtml()}</div>`;
@@ -8189,7 +8204,19 @@ async function showPendingWorks() {
           <button class="pm-reject"  onclick="rejectWork(${w.id})">${_esCev('es.reddet','✕ Reddet')}</button>
         </div>
       </div>`).join('');
+    _pmUygunsuzIsaretle(pendingWorks);
   }
+}
+// (2026-10-25) Onay kuyruğunda uygunsuz olabilecek ifadeyi işaretle (yalnız uyarı; sunucu uygunsuz_tara, auth.js).
+async function _pmUygunsuzIsaretle(isler) {
+  if (typeof uygunsuzTara !== 'function' || !isler.length) return;
+  const sonuc = await uygunsuzTara(isler.map(w => [w.name, w.composer, w.lyrics, w.chords].filter(Boolean).join('\n')));
+  if (!sonuc) return;
+  isler.forEach((w, i) => {
+    const ad = sonuc[i] && document.querySelector(`#pm-item-${w.id} .pm-item-name`);
+    if (ad && !ad.nextElementSibling?.classList.contains('pm-uygunsuz'))
+      ad.insertAdjacentHTML('afterend', `<div class="pm-uygunsuz">⚠️ ${_esCev('es.pmUygunsuz','Uygunsuz olabilecek ifade: “{ifade}”').replace('{ifade}', _esHtml(sonuc[i]))}</div>`);
+  });
 }
 
 function closePendingModal() {

@@ -201,7 +201,7 @@ function hdrFor(table) {
 }
 async function dbGet(table, qs='', signal) {
   const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?'+qs, {headers: hdrFor(table), signal});
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) throw new Error(hataMetni(await r.text()));
   return r.json();
 }
 // (2026-08-06) Her yazmadan sonra kısa bir "kendi yankını yut" penceresi.
@@ -215,7 +215,7 @@ function _rtSustur(ms) {
 async function dbPost(table, data) {
   _rtSustur();
   const r = await fetch(SUPA_URL+'/rest/v1/'+table, {method:'POST',headers:hdrFor(table),body:JSON.stringify(data)});
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) throw new Error(hataMetni(await r.text()));
   return r.json();
 }
 // (2026-08-22) YAZ VE DOĞRULA — `!r.ok` TEK BAŞINA YETMİYOR.
@@ -228,7 +228,7 @@ async function dbPost(table, data) {
 async function dbPatch(table, id, data) {
   _rtSustur();
   const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {method:'PATCH',headers:hdrFor(table),body:JSON.stringify(data)});
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) throw new Error(hataMetni(await r.text()));
   const rows = await r.json().catch(() => null);
   // Dizi gelmediyse (204/boş gövde) doğrulayacak bir şey yok — eski davranış.
   // Dizi geldiyse BOŞ olması sessiz reddin ta kendisidir.
@@ -240,12 +240,12 @@ async function dbPatch(table, id, data) {
 async function dbDel(table, id) {
   _rtSustur();
   const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id, {method:'DELETE',headers:hdrFor(table)});
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) throw new Error(hataMetni(await r.text()));
   return true;
 }
 async function dbDelWhere(table, col, val) {
   const r = await fetch(SUPA_URL+'/rest/v1/'+table+'?'+col+'=eq.'+val, {method:'DELETE',headers:hdrFor(table)});
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) throw new Error(hataMetni(await r.text()));
   return true;
 }
 

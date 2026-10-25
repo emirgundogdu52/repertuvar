@@ -513,8 +513,55 @@ if (!window._supaFetchPatched) {
         }
       }
     } catch (e) {}
+
+    // (2026-10-25) UYGUNSUZ İÇERİK — sunucu (sql/icerik_koruma.sql, uygunsuz_denetle) başkalarının gördüğü ad /
+    // açıklamada yasaklı ifadeyi 400 + hint 'uygunsuz_icerik' + detail = ifade ile reddediyor. Sayfaların hata yolları
+    // çeşitli (r.text() / r.json().message / supabase-js error.message) → gövde burada dile göre okunur bir iletiyle
+    // yeniden kurulur (JSON, message alanı); hataMetni() ham gövdeden yalnız bu iletiyi çıkarır.
+    try {
+      if (isData && res.status === 400) {
+        var govde = await res.clone().text();
+        if (govde.indexOf('uygunsuz_icerik') !== -1) {
+          var hj = {};
+          try { hj = JSON.parse(govde); } catch (e) {}
+          var ileti = uygunsuzIleti(hj.details);
+          res = new Response(JSON.stringify({ code: hj.code || 'P0001', message: ileti, details: hj.details || null, hint: 'uygunsuz_icerik' }),
+            { status: 400, statusText: 'Bad Request', headers: { 'Content-Type': 'application/json' } });
+        }
+      }
+    } catch (e) {}
     return res;
   };
+}
+
+function uygunsuzIleti(ifade) {
+  var v = 'Kaydedilmedi: “{ifade}” ifadesi başkalarının gördüğü ad ve açıklamalarda kullanılamaz. Lütfen değiştir.';
+  return ((typeof window.t === 'function') ? window.t('ortak.uygunsuzIcerik', v) : v).replace('{ifade}', ifade || '…');
+}
+// (2026-10-25) Şarkı adı / sözü taraması — YALNIZ UYARI (içe aktarma kartı, admin onay kuyruğu). Sunucu uygunsuz_tara()
+// her metin için bulunan ifadeyi ya da null'ı aynı sırayla döndürür. İşlev yoksa / çevrimdışıysa / hata olursa null →
+// uyarı gösterilmez, hiçbir şey engellenmez (local-first).
+async function uygunsuzTara(metinler) {
+  if (!metinler || !metinler.length || (typeof navigator !== 'undefined' && navigator.onLine === false)) return null;
+  try {
+    var out = [];
+    for (var i = 0; i < metinler.length; i += 500) {
+      var parca = metinler.slice(i, i + 500).map(function (m) { return String(m || '').slice(0, 20000); });
+      var r = await fetch(SUPA_URL + '/rest/v1/rpc/uygunsuz_tara', {
+        method: 'POST', headers: Object.assign({}, authHeaders(), { 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ p_metinler: parca })
+      });
+      if (!r.ok) return null;
+      var j = await r.json();
+      if (!Array.isArray(j)) return null;
+      out = out.concat(j);
+    }
+    return out;
+  } catch (e) { return null; }
+}
+// Sunucu hata gövdesi (PostgREST JSON) → kullanıcıya gösterilecek ileti; JSON değilse gövdenin kendisi.
+function hataMetni(govde) {
+  try { var j = JSON.parse(govde); return (j && (j.message || j.msg || j.error_description)) || govde; } catch (e) { return govde; }
 }
 
 

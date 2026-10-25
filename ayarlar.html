@@ -1171,6 +1171,15 @@ async function saveDisplayName(){
   if (!u || !token) { show(_t('ay.oturumYokGiris','Oturum bulunamadı, tekrar giriş yapın.'), false); return; }
 
   try {
+    // (2026-10-25) ÖNCE profiles: görünen ad başkalarına görünüyor, sunucu uygunsuz ifadeyi reddediyor
+    // (sql/icerik_koruma.sql). Reddedilirse hesap bilgisine de yazılmaz; eskiden bu istek sonucuna bakılmıyordu.
+    const pr = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + u.id, {
+      method: 'PATCH',
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ display_name: name, full_name: name })
+    }).catch(() => null);
+    if (pr && pr.status === 400) { show(hataMetni(await pr.text()), false); return; }
+
     // 1) Hesap bilgisine yaz (user_metadata.full_name)
     const r = await fetch(SUPA_URL + '/auth/v1/user', {
       method: 'PUT',
@@ -1179,13 +1188,8 @@ async function saveDisplayName(){
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
 
-    // 2) profiles tablosuna yaz — iki sütuna birden (public_profiles görünümü
-    //    hangisi doluysa onu okuyor; "Ekleyen" alanı buradan besleniyor)
-    await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + u.id, {
-      method: 'PATCH',
-      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ display_name: name, full_name: name })
-    }).catch(() => {});
+    // 2) profiles tablosu yukarıda yazıldı — iki sütun birden (public_profiles görünümü hangisi doluysa onu okuyor;
+    //    "Ekleyen" alanı buradan besleniyor)
 
     // 3) Yereldeki kullanıcıyı güncelle — arayüz anında yansısın
     try {

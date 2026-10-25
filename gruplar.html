@@ -345,7 +345,7 @@ async function createGroup() {
       headers: { ...authHeaders(), 'Prefer': 'return=representation' },
       body: JSON.stringify({ name, description: desc || null, owner_id: uid })
     });
-    if (!r.ok) throw new Error(await r.text());
+    if (!r.ok) throw new Error(hataMetni(await r.text()));
     const [group] = await r.json();
 
     // Owner olarak group_members'a ekle
@@ -785,7 +785,7 @@ async function generateInvite() {
       headers: { ...authHeaders(), 'Prefer': 'return=representation' },
       body: JSON.stringify({ group_id: gid, created_by: getUserId(), max_uses: kisi })
     });
-    if (!r.ok) throw new Error(await r.text());
+    if (!r.ok) throw new Error(hataMetni(await r.text()));
     const [invite] = await r.json();
     // Davet linki HERKESE açık olmalı: native app'te origin 'capacitor://localhost'
     // olur ve o link paylaşılamaz. Web origin'i http ise onu kullan, değilse
@@ -873,7 +873,7 @@ async function saveGroupEdit() {
       headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
       body: JSON.stringify({ name, description: desc || null })
     });
-    if (!r.ok) throw new Error(await r.text());
+    if (!r.ok) throw new Error(hataMetni(await r.text()));
     toast(_grCev('gr.guncellendi','Grup / Koro güncellendi ✓'));
     hideEditGroup();
     await loadPage();
@@ -930,7 +930,7 @@ async function changeRole(userId, newRole) {
       headers: { ...authHeaders(), 'Prefer': 'return=minimal' },
       body: JSON.stringify({ role: newRole })
     });
-    if (!r.ok) throw new Error(await r.text());
+    if (!r.ok) throw new Error(hataMetni(await r.text()));
     toast(_grCev('gr.rolGuncellendi','Rol güncellendi ✓'));
   } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
@@ -993,7 +993,7 @@ async function addMemberAsSolist(userId) {
         group_id: gid
       })
     });
-    if (!r.ok) throw new Error(await r.text());
+    if (!r.ok) throw new Error(hataMetni(await r.text()));
     toast('🎤 ' + _grCev('gr.solistlereEklendi','{ad} solistlere eklendi').replace('{ad}', name));
   } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
@@ -1088,7 +1088,7 @@ async function saveInstrument(userId) {
       headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
       body: JSON.stringify({ instruments: liste, instrument: liste[0] || null })
     });
-    if (!r.ok) throw new Error(await r.text());
+    if (!r.ok) throw new Error(hataMetni(await r.text()));
     const satir = await r.json();
     if (!satir.length) throw new Error(_grCev('gr.satirGuncellenmedi','Sunucu hiçbir satır güncellemedi — yetkiniz olmayabilir'));
     delete _enstrTaslak[userId];

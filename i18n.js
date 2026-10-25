@@ -1331,6 +1331,10 @@
       'es.yeniEserYazAlt': 'Adı, sözü, akoru ve notayı kendin gir',
       'es.defterdenEkle': 'Defterden ekle',
       'es.defterdenEkleAlt': 'Defterini tara: mevcut esere nota ekle ya da yeni eser aç',
+      // (2026-10-25) Uygunsuz içerik (sql/icerik_koruma.sql)
+      'ortak.uygunsuzIcerik': "Kaydedilmedi: “{ifade}” ifadesi başkalarının gördüğü ad ve açıklamalarda kullanılamaz. Lütfen değiştir.",
+      'es.iaUygunsuz': "Uygunsuz olabilecek ifade var: “{ifade}”. Paylaşmadan önce kontrol et.",
+      'es.pmUygunsuz': "Uygunsuz olabilecek ifade: “{ifade}”",
       // (2026-10-25) Başka uygulamadan aktar (eserler.html) + şarkı listesinden doldur (repertoires.js)
       'es.iaAciklama': "Şarkılarını ChordPro (.cho, .chopro), OnSong (.onsong), Word (.docx) ya da metin (.txt) dosyası olarak — tek tek ya da .zip içinde — seç; ya da şarkı metnini yapıştır. Her şarkı bir kart olur; seçtiklerin yeni eser olarak açılır ve yalnız sana görünür.",
       'es.iaAktar': "İçe aktar",
@@ -3111,6 +3115,10 @@
       'es.yeniEserYazAlt': 'Enter the title, lyrics, chords and sheet music yourself',
       'es.defterdenEkle': 'Add from notebook',
       'es.defterdenEkleAlt': 'Scan your notebook: add sheet music to existing pieces or create new ones',
+      // (2026-10-25) Inappropriate content (sql/icerik_koruma.sql)
+      'ortak.uygunsuzIcerik': "Not saved: “{ifade}” can’t be used in names or descriptions that others can see. Please change it.",
+      'es.iaUygunsuz': "Possibly inappropriate wording: “{ifade}”. Check before sharing.",
+      'es.pmUygunsuz': "Possibly inappropriate wording: “{ifade}”",
       // (2026-10-25) Import from another app + fill from a song list
       'es.iaAciklama': "Choose your songs as ChordPro (.cho, .chopro), OnSong (.onsong), Word (.docx) or text (.txt) files — one by one or inside a .zip — or paste a song’s text. Each song becomes a card; the ones you select are added as new pieces visible only to you.",
       'es.iaAktar': "Import",
