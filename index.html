@@ -286,7 +286,10 @@ try { if (!getToken()) location.replace('login.html'); } catch (e) {}
        → maket her yerde 7:10. Masaüstü / iPad yatay: en 316 (boy içerikle aynı ~452); iPad dikey (601–900): 400, ortalı; telefon (≤600):
        tam genişlik korunur, boy orana göre uzar — sekme çubuğu altta, liste üstte (liste katalogdan, satır eklenmedi).
        Ekran esnek sütun: satır payları çökmediği için üst pay 7 (eskiden 7/7 çökerek 7), son satır ile çubuk arası en az 10. */
-    .hero-ipad { aspect-ratio: 7 / 10; display:flex; flex-direction:column; width:100%; max-width:316px; }
+    /* ORAN JS'TE (heroEkSatir: min-height = en × 10/7). CSS aspect-ratio KULLANILMAZ: Safari (iPad/iPhone) oranlı kutuyu içerik
+       sığmayınca uzatmıyor, liste ve sekme çubuğu maketin dışına taşıyordu (2026-10-25 kullanıcı: "iPad'de iPad animasyonu patlamış";
+       Chrome uzatıyordu, ölçümler orada temiz çıkmıştı). min-height her motorda içerikle büyür. */
+    .hero-ipad { display:flex; flex-direction:column; width:100%; max-width:316px; }
     .hero-preview-wrap { max-width:316px; }
     .hero-ipad-screen { flex:1 1 auto; display:flex; flex-direction:column; }
     .hero-ipad-screen > .hero-list-name { margin-bottom:0; }
@@ -791,18 +794,21 @@ function _c(k, tr) {
   // basılınca Bluetooth sinyali pedaldan tablete gider ve çalınan eser bir alt
   // satıra geçer. Pedal SAYFA ÇEVİRİR, sıralama yapmaz. Bağlantı cihaz
   // seviyesindedir; ekranın İÇİNE bluetooth simgesi/rozeti konmaz.
-  // (2026-10-25) Maket 7:10 (CSS aspect-ratio). Dar ekranda boyu uzuyor, listenin altı boş kalıyordu ("satır boş kaldı") → ek satırlar
-  // (.hero-ek) maketin oranını bozmadan sığdığı kadar açılır: her satır açıldığında maket orana göre yüksekliğinden uzadıysa o satır
-  // geri kapanır. offsetWidth/Height dönüşten (previewFloat) etkilenmez. Masaüstünde 6 satır tam oturur → ek satır açılmaz.
+  // (2026-10-25) Maket 7:10: en az yükseklik = en × 10/7 (CSS aspect-ratio Safari'de içerikle uzamadığı için burada). Dar ekranda
+  // boyu uzuyor, listenin altı boş kalıyordu ("satır boş kaldı") → ek satırlar (.hero-ek) sığdığı kadar açılır: her satır açıldığında
+  // maket bu yükseklikten uzadıysa o satır geri kapanır. offsetWidth/Height dönüşten (previewFloat) etkilenmez. Masaüstünde 6 satır
+  // tam oturur → ek satır açılmaz.
   (function() {
     const ipad = document.querySelector('.hero-ipad');
     if (!ipad) return;
     function heroEkSatir() {
+      const hedef = Math.round(ipad.offsetWidth * 10 / 7);
+      ipad.style.minHeight = hedef + 'px';
       const ekler = Array.from(ipad.querySelectorAll('.hero-ek'));
       ekler.forEach(r => { r.hidden = true; });
       for (const r of ekler) {
         r.hidden = false;
-        if (ipad.offsetHeight > Math.ceil(ipad.offsetWidth * 10 / 7) + 1) { r.hidden = true; break; }
+        if (ipad.offsetHeight > hedef + 1) { r.hidden = true; break; }
       }
     }
     let bekleyen = 0;
