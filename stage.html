@@ -673,11 +673,16 @@ body.day-theme #stageScreen #stageToolsPanel .st-grp-row > .align-btn:only-child
 #stageScreen #stageToolsPanel .ton-izgara{display:grid;grid-template-columns:repeat(6,44px);gap:6px;}
 #stageScreen #stageToolsPanel .ton-izgara-bas{grid-column:1/-1;font-size:14px;color:var(--st-lbl);opacity:.75;white-space:nowrap;}
 #stageScreen #stageToolsPanel .ton-izgara-dug{position:relative;height:50px;padding:0;border:none;border-radius:12px;background:var(--st-fill);color:var(--st-lbl);font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1;}
-#stageScreen #stageToolsPanel .ton-izgara-dug b{font-size:15px;font-weight:800;}
-#stageScreen #stageToolsPanel .ton-izgara-dug small{font-size:13px;font-weight:600;opacity:.75;}
+#stageScreen #stageToolsPanel .ton-izgara-dug b{font-size:15px;font-weight:600;}   /* (2026-10-27) daha ince (kullanıcı) */
+#stageScreen #stageToolsPanel .ton-izgara-dug small{font-size:13px;font-weight:500;opacity:.75;}
 #stageScreen #stageToolsPanel .ton-izgara-dug.orj::after{content:'';position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.6;}
 #stageScreen #stageToolsPanel .ton-izgara-dug.secili{background:var(--accent);color:#1c1c1e;}
 body.day-theme #stageScreen #stageToolsPanel .ton-izgara-dug.secili{color:#fff;}
+#stageScreen #stageToolsPanel .ton-izgara-kapo-bas{margin-top:4px;}
+#stageScreen #stageToolsPanel .ton-izgara-kapo{grid-column:1/-1;display:flex;gap:4px;}
+#stageScreen #stageToolsPanel .ton-izgara-kapo button{flex:1;min-width:0;height:36px;padding:0;border:none;border-radius:10px;background:var(--st-fill);color:var(--st-lbl);font-size:15px;font-weight:600;font-family:inherit;}
+#stageScreen #stageToolsPanel .ton-izgara-kapo button.secili{background:var(--accent);color:#1c1c1e;}
+body.day-theme #stageScreen #stageToolsPanel .ton-izgara-kapo button.secili{color:#fff;}
 /* Yazı boyutu kaydırıcısı */
 #stageScreen #stageToolsPanel .font-slider-wrap{background:transparent;border:none;padding:0;width:170px;gap:10px;}
 #stageScreen #stageToolsPanel .font-slider-wrap .fs-a-sm,
@@ -1448,7 +1453,10 @@ async function loadWL() {
         // transpose sütunu yoksa istek 400 döner — sütunsuz tekrar dene, yoksa
         // kişisel AKORLAR da yüklenmez (sessiz yan hasar).
         try {
-          let pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, {
+          let pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose,capo&user_id=eq.'+uid, {
+            headers:_pH, signal: AbortSignal.timeout(4000)
+          });
+          if (!pr.ok) pr = await fetch(SUPA_URL+'/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.'+uid, {   // kapo sütunu yoksa
             headers:_pH, signal: AbortSignal.timeout(4000)
           });
           if (!pr.ok) {
@@ -1507,6 +1515,7 @@ async function loadWL() {
             const id = String(parseInt(w)), x = akor[w];
             // Ton kaydırma eser başına saklanır (0 ise satır olsa bile etkisiz)
             if (x.transpose) TRANSPOSE[id] = parseInt(x.transpose) || 0;
+            if (x.capo) CAPO[id] = parseInt(x.capo) || 0;
             if (!x.chords) return;
             const lyr = x.chords.split('\n').filter(l=>!/^\s*\{.*\}\s*$/.test(l)).map(l=>l.replace(/\[[^\]]*\]/g,'')).join('\n').replace(/[ \t]+$/gm,'').trim();
             if (WL[id]) { WL[id].chords = x.chords; WL[id].lyrics = lyr; }
@@ -2027,6 +2036,9 @@ function stepLyricsFont(delta) {
 // Eser başına saklanır (personal_chords.transpose). GÖRÜNÜM dönüşümüdür:
 // kayıtlı akor metni ASLA değiştirilmez, sadece ekranda kaydırılmış gösterilir.
 let TRANSPOSE = {}; // {work_id: yarım ton (+/-)}
+// (2026-10-27) KAPO (personal_chords.capo, kişisel; eserler.html ile aynı): akorlar (TRANSPOSE − KAPO) şekliyle çizilir,
+// ton adı ve karar duyulan sesi (TRANSPOSE) gösterir.
+let CAPO = {};      // {work_id: perde (0–11)}
 const _CHROM_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
 const _CHROM_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const _NOTE_INDEX  = {'C':0,'B#':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'Fb':4,'E#':5,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11,'Cb':11};
@@ -2077,6 +2089,8 @@ function transposeChordPro(text, n) {
   return text.replace(/\[([^\]]+)\]/g, (full, inner) => '[' + transposeChordToken(inner.trim(), n, bemol) + ']');
 }
 function getTranspose(workId) { return TRANSPOSE[String(workId)] || 0; }
+function getCapo(workId) { return CAPO[String(workId)] || 0; }
+function getAkorKaydirma(workId) { return getTranspose(workId) - getCapo(workId); }   // ekrandaki akor şekli
 
 // ── KARAR SESİ (kaydırılmış) — eserler.html ile AYNI mantık ──
 // Solfej ("La", "Sib") ve Latin ("A", "Bb") yazımını tanır; perde adı gibi
@@ -2226,7 +2240,22 @@ function _tonIzgaraHtml(text, v) {
   } else {
     for (let n = -5; n <= 6; n++) dug += dugme(n, n > 0 ? '+' + n : String(n), '');
   }
-  return `<div class="ton-izgara" onclick="event.stopPropagation()">${bas ? `<div class="ton-izgara-bas">${htmlKac(bas)}</div>` : ''}${dug}</div>`;
+  // (2026-10-27) Kapo satırı (eserler.html ile aynı): Yok, 1…7
+  const item = _tonAktifItem(), c = item ? getCapo(item.workId) : 0;
+  let kapo = '';
+  for (let k = 0; k <= 7; k++) kapo += `<button type="button" class="${k === c ? 'secili' : ''}" onclick="event.stopPropagation();kapoSec(${k})">${k ? k : htmlKac(_sCev('es.kaposuz','Yok'))}</button>`;
+  return `<div class="ton-izgara" onclick="event.stopPropagation()">${bas ? `<div class="ton-izgara-bas">${htmlKac(bas)}</div>` : ''}${dug}`
+    + `<div class="ton-izgara-bas ton-izgara-kapo-bas">${htmlKac(_sCev('es.kapo','Kapo'))}</div><div class="ton-izgara-kapo">${kapo}</div></div>`;
+}
+// Kapo seçilince: kaydet, sahneyi tazele; ızgara açık kalır (kapodan sonra ton da seçilebilsin).
+function kapoSec(c) {
+  const item = _tonAktifItem();
+  if (!item) return;
+  const id = String(item.workId);
+  if (getCapo(id) === c) return;
+  CAPO[id] = c;
+  renderStage();
+  savePersonalTranspose(id, c, 'capo');
 }
 function tonListesiAc(e) {
   if (e && e.stopPropagation) e.stopPropagation();
@@ -2247,7 +2276,8 @@ function tonSec(n) {
 
 // personal_chords satırına yaz (eser başına, kullanıcıya özel, cihazlar arası senkron).
 // Kayıtlı akor metnine DOKUNULMAZ — sadece transpose alanı güncellenir.
-async function savePersonalTranspose(workId, val) {
+async function savePersonalTranspose(workId, val, alan) {   // alan = 'capo' → kapo kaydı (2026-10-27)
+  alan = alan === 'capo' ? 'capo' : 'transpose';
   try {
     const uid = (typeof getUserId==='function') ? getUserId() : null;
     if (!uid) return;
@@ -2255,13 +2285,13 @@ async function savePersonalTranspose(workId, val) {
     await fetch(SUPA_URL+'/rest/v1/personal_chords?on_conflict=user_id,work_id', {
       method:'POST',
       headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+tok,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
-      body: JSON.stringify({ user_id: uid, work_id: parseInt(workId), transpose: val, updated_at: new Date().toISOString() })
+      body: JSON.stringify({ user_id: uid, work_id: parseInt(workId), [alan]: val, updated_at: new Date().toISOString() })
     });
   } catch(e) {
     // (2026-09-27) Sahnede internet yoksa ton tercihi kuyruğa alınır (db.js),
     // bağlantı gelince gönderilir. Sahnede bildirim göstermiyoruz: dikkat dağıtmasın.
     if (window.kisiselAgHatasiMi && window.kisiselAgHatasiMi(e) && window.kisiselKuyrugaEkle) {
-      window.kisiselKuyrugaEkle({ tur:'ton', workId: workId, deger: val }).catch(()=>{});
+      window.kisiselKuyrugaEkle({ tur: alan === 'capo' ? 'kapo' : 'ton', workId: workId, deger: val }).catch(()=>{});
       return;
     }
     console.warn('[stage] ton kaydedilemedi:', e.message);
@@ -2604,7 +2634,7 @@ function renderStage(){
     // (2026-08-06) Ton kaydırma HARF üzerinde yapılır (motor harf bekliyor);
     // kullanıcının yazım tercihi ancak ondan SONRA, yalnızca gösterim için
     // uygulanır. Kayıtlı akor metni asla solfeje çevrilip saklanmaz.
-    const _akorHarf = transposeChordPro(w.chords, getTranspose(item.workId));
+    const _akorHarf = transposeChordPro(w.chords, getAkorKaydirma(item.workId));
     const _akorGoster = (typeof akorGoster === 'function') ? akorGoster(_akorHarf) : _akorHarf;
     bodyHtml = `<div class="wlyrics">${renderStageChords(_akorGoster)}</div>`;
   } else {
@@ -2622,8 +2652,9 @@ function renderStage(){
     _vk.title = _ak
       ? (_cn ? _sCev('es.notaKarari','Nota kararı (katalog): ') + _cn : '')
       : ((_cn && _kt && kararLabel(_cn,0)) ? _sCev('sh.orijinalKarar','Orijinal karar: {n}').replace('{n}', kararLabel(_cn,0)) : '');
+    const _kp = getCapo(item.workId);   // (2026-10-27) kapo varsa kararın yanında
     _vk.innerHTML = (_ak || _cn)
-      ? `<span class="vm-karar-on">${_sCev('sh.kararKisa','Karar')}:&nbsp;</span>${htmlKac(_kl || _cn)}${(!_kl && _kt) ? _sCev('es.kaydirilmadi',' (kaydırılmadı)') : ''}`
+      ? `<span class="vm-karar-on">${_sCev('sh.kararKisa','Karar')}:&nbsp;</span>${htmlKac(_kl || _cn)}${(!_kl && _kt) ? _sCev('es.kaydirilmadi',' (kaydırılmadı)') : ''}${_kp ? ` · ${htmlKac(_sCev('es.kapo','Kapo'))} ${_kp}` : ''}`
       : '';
   }
   const _head = document.getElementById('smHead');

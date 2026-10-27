@@ -123,7 +123,7 @@
       al('works?submitted_by=eq.' + q + '&deleted_at=is.null&select=*&order=name.asc'),
       al('repertoires?or=(owner_id.eq.' + q + ',user_id.eq.' + q + ')&select=*&order=created_at.asc'),
       alSessiz('profiles?id=eq.' + q + '&select=*'),
-      alSessiz('personal_chords?user_id=eq.' + q + '&select=work_id,chords,transpose,updated_at'),
+      alSessiz('personal_chords?user_id=eq.' + q + '&select=work_id,chords,transpose,capo,updated_at'),
       alSessiz('personal_work_notes?user_id=eq.' + q + '&select=work_id,note,updated_at'),
       alSessiz('work_favorites?user_id=eq.' + q + '&select=work_id,created_at'),
       alSessiz('solistler?user_id=eq.' + q + '&select=name,phone,email,notes,works,group_id'),
@@ -190,7 +190,7 @@
       // GDPR md. 20/4: taşınabilirlik başkalarının haklarını (telif) zedeleyemez.
       kisisel_akorlarim: akorlar.map(function (a) {
         var kendi = !!benim[String(a.work_id)];
-        return { eser_id: a.work_id, eser_adi: adi(a.work_id), akor: kendi ? a.chords : null, transpoze: a.transpose,
+        return { eser_id: a.work_id, eser_adi: adi(a.work_id), akor: kendi ? a.chords : null, transpoze: a.transpose, kapo: a.capo || 0,
           guncellendi: a.updated_at, akor_dahil_degil: kendi ? undefined : 'katalog/başkasının eseri — söz içerdiği için' };
       }),
       kisisel_notlarim: notlar.map(function (n) { return { eser_id: n.work_id, eser_adi: adi(n.work_id), not: n.note, guncellendi: n.updated_at }; }),

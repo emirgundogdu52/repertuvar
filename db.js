@@ -438,7 +438,7 @@ window.checkRepertoireOfflineReady = async function (repId) {
 // ve "sahnede kişisel notu göster" tercihi (profiles.sahne_kisisel_not) eskiden
 // YALNIZ canlı çekiliyordu; offline'da sessizce ortak akora dönülüyordu.
 // Artık mevcut `meta` store'unda tek kayıt: meta['kisisel'] =
-//   { uid, chords: {work_id: {chords, transpose}}, notes: {work_id: metin},
+//   { uid, chords: {work_id: {chords, transpose, capo}}, notes: {work_id: metin},   (capo: 2026-10-27)
 //     sahneKisiselNot: bool|null, chordsAt, notesAt }
 // Kayıt KULLANICIYA bağlı: uid tutmazsa okunmaz (cihazı paylaşan 2. kullanıcı).
 // Çıkışta clearOfflineData zaten meta'yı siliyor. Yeni store / şema değişikliği yok.
@@ -453,7 +453,7 @@ function _aktifUid() {
 window._kisiselAkorSatirlari = function (rows) {
   const c = {};
   (rows || []).forEach((x) => {
-    if (x.chords || x.transpose) c[String(x.work_id)] = { chords: x.chords || '', transpose: parseInt(x.transpose) || 0 };
+    if (x.chords || x.transpose || x.capo) c[String(x.work_id)] = { chords: x.chords || '', transpose: parseInt(x.transpose) || 0, capo: parseInt(x.capo) || 0 };
   });
   return c;
 };
@@ -500,7 +500,7 @@ window.kisiselGuncelle = async function (fn) {
 // meta['kisiselKuyruk'] = { uid, ops: [{tur, workId, deger, at}] } kuyruğuna
 // girer, yerel önbellek hemen güncellenir. Kuyruk syncOfflineData'nın başında
 // (bağlantı gelince, sayfa açılınca, sekmeye dönünce) sırayla gönderilir.
-// tur: 'akor' | 'ton' | 'akorSil' | 'not' | 'notSil'.
+// tur: 'akor' | 'ton' | 'kapo' | 'akorSil' | 'not' | 'notSil'.   (kapo: 2026-10-27, personal_chords.capo)
 // Aynı eser + aynı tür için yalnız SON işlem tutulur (5 kez ton = 1 istek).
 // Sunucu REDDEDERSE (yetki/400) işlem kuyruktan düşer ve konsola yazılır —
 // sonsuza dek denenip kuyruğu tıkamasın. Çakışma kuralı: son yazan kazanır
@@ -509,7 +509,7 @@ const _KUYRUK = 'kisiselKuyruk';
 const _Q_SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
 const _Q_SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
 function _kuyrukAnahtar(op) {
-  const t = op.tur === 'ton' ? 't' : ((op.tur === 'not' || op.tur === 'notSil') ? 'n' : 'a');
+  const t = op.tur === 'ton' ? 't' : (op.tur === 'kapo' ? 'k' : ((op.tur === 'not' || op.tur === 'notSil') ? 'n' : 'a'));
   return t + ':' + op.workId;
 }
 async function _kuyrukOku() {
@@ -526,6 +526,7 @@ function _kuyrukUygula(k, ops) {
     const w = String(op.workId);
     if (op.tur === 'akor') k.chords[w] = Object.assign({ chords: '', transpose: 0 }, k.chords[w], { chords: op.deger });
     else if (op.tur === 'ton') k.chords[w] = Object.assign({ chords: '', transpose: 0 }, k.chords[w], { transpose: parseInt(op.deger) || 0 });
+    else if (op.tur === 'kapo') k.chords[w] = Object.assign({ chords: '', transpose: 0 }, k.chords[w], { capo: parseInt(op.deger) || 0 });
     else if (op.tur === 'akorSil') delete k.chords[w];
     else if (op.tur === 'not') k.notes[w] = op.deger;
     else if (op.tur === 'notSil') delete k.notes[w];
@@ -565,6 +566,7 @@ async function _kuyrukIstek(op, jeton) {
     const govde = { user_id: uid, work_id: op.workId, updated_at: new Date().toISOString() };
     if (op.tur === 'akor') govde.chords = op.deger;
     else if (op.tur === 'ton') govde.transpose = parseInt(op.deger) || 0;
+    else if (op.tur === 'kapo') govde.capo = parseInt(op.deger) || 0;
     else govde.note = op.deger;
     const r = await fetch(_Q_SUPA_URL + '/rest/v1/' + tablo + '?on_conflict=user_id,work_id', {
       method: 'POST',
@@ -615,7 +617,8 @@ async function _kisiselSenkron(base, headers, uid) {
   if (!uid) return;
   const simdi = new Date().toISOString();
   const parca = {};
-  let r = await fetch(base + '/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.' + uid, { headers });
+  let r = await fetch(base + '/rest/v1/personal_chords?select=work_id,chords,transpose,capo&user_id=eq.' + uid, { headers });
+  if (!r.ok && r.status !== 404) r = await fetch(base + '/rest/v1/personal_chords?select=work_id,chords,transpose&user_id=eq.' + uid, { headers });
   if (!r.ok && r.status !== 404) r = await fetch(base + '/rest/v1/personal_chords?select=work_id,chords&user_id=eq.' + uid, { headers });
   if (r.ok) { parca.chords = window._kisiselAkorSatirlari(await r.json()); parca.chordsAt = simdi; }
   else if (r.status === 404) { parca.chords = {}; parca.chordsAt = simdi; }
