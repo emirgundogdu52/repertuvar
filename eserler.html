@@ -719,7 +719,8 @@
   .list-panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
   .work-item { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; margin:0 12px 8px; border-radius:16px; background:var(--surface); box-shadow:0 1px 3px rgba(0,0,0,.18); cursor:pointer; transition:background .12s, transform .15s ease, box-shadow .15s ease, border-color .2s; position:relative; overflow:hidden; border:1px solid transparent; -webkit-user-select:none; -webkit-touch-callout:none; user-select:none; }
   .work-item:first-child { margin-top:12px; }
-  .work-item:active { transform:scale(.98); border-color:var(--accent); box-shadow:0 0 0 1px rgba(255,200,61,.35),0 4px 18px rgba(255,200,61,.18); z-index:2; }
+  /* (2026-10-27) Basılı kart çerçevesi seçim yeşili (seçili kenar yeşil oldu; kullanıcı: "üzerine basınca oluşan sarı çizgi de yeşil olmalı"). */
+  .work-item:active { transform:scale(.98); border-color:var(--ready-color,#34C759); box-shadow:0 0 0 1px rgba(52,199,89,.35),0 4px 18px rgba(52,199,89,.18); z-index:2; }
   .work-item.zebra { background:var(--surface2); }
   /* ── İKİ YÖNLÜ KAYDIRMA: sağa → Değiştir (solda açılır), sola → Sil (sağda açılır) ── */
   .we-wrap { position:relative; overflow:hidden; border-radius:16px; margin:0 12px 8px; } /* satır arası 8px = repertuvar satırları (2026-10-08) */
@@ -732,7 +733,7 @@
      gibi görünüyordu); seçili kart yalnız sarı sol kenarla belli olur.
      Basılı parıltıda zemin: kartın alt kenarı kesirli pikselde olunca kart son cihaz satırını boyamıyor, parıltı sarmalayıcının
      dışından başlıyor → arada koyu çizgi kalıyordu (iPhone ölçümü). Zemin kartın altında kalır, yalnız o satırda görünür. */
-  .we-wrap:has(.work-item:active) { box-shadow:0 0 0 1px rgba(255,200,61,.35),0 4px 18px rgba(255,200,61,.18); border-radius:16px; background:rgba(255,200,61,.35); }
+  .we-wrap:has(.work-item:active) { box-shadow:0 0 0 1px rgba(52,199,89,.35),0 4px 18px rgba(52,199,89,.18); border-radius:16px; background:rgba(52,199,89,.35); }
   /* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
   .we-wrap::before {
     content:''; position:absolute; inset:0; border-radius:16px; padding:2.5px;
@@ -766,7 +767,9 @@
   [data-theme="light"] .work-item.zebra { background: #f5f4fb; }
   [data-theme="light"] .work-item { background: #ffffff; box-shadow:0 1px 3px rgba(0,0,0,.08); }
   .work-item:hover { background:var(--surface2); }
-  .work-item.selected { background:var(--surface2); border-left:3px solid var(--accent); padding-left:13px; }
+  /* (2026-10-27) Seçili kenar yeşil, repertuvar şeridi sarı (kullanıcı: "repertuvarı işaretleyeni sarı yapalım, seçili kartı
+     yeşil yapalım" — sayı rozeti zaten sarı). Seçili işaret telefonda detaydan dönünce kalkar; iPad/masaüstünde kalır. */
+  .work-item.selected { background:var(--surface2); border-left:3px solid var(--ready-color,#34C759); padding-left:13px; }
   .work-num { display:none; }
   .work-icon {
     width:34px; height:34px; border-radius:8px; flex-shrink:0; align-self:center;
@@ -783,9 +786,11 @@
   .work-rep-count { font-size:11px; font-weight:500; color:var(--text3); margin-top:2px; display:flex; align-items:center; gap:5px; }
   .status-dot { width:7px; height:7px; border-radius:50%; background:var(--ready-color,#34C759); flex-shrink:0; display:inline-block; }
   .work-item.has-stripe::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; }
-  .work-item.stripe-green::before { background:var(--ready-color,#34C759); }
-  /* (2026-10-27) Sol kenarda tek şerit: seçili kartta sarı kenar (border-left) ile yeşil "repertuvarda" şeridi yan yana
-     duruyordu (kullanıcı: "sarı ile yeşil birbirine geçiyor"). Karar: seçiliyken yalnız sarı; repertuvar bilgisi ★ rozetinde. */
+  /* (2026-10-27) "Repertuvarda" şeridi sayı rozetiyle aynı sarı (açık temada tasarim.css marka sarısı). Sınıf adı JS'te
+     geçtiği için stripe-green kaldı. */
+  .work-item.stripe-green::before { background:var(--accent); }
+  /* (2026-10-27) Sol kenarda tek şerit: seçili kenar (border-left) ile "repertuvarda" şeridi yan yana duruyordu
+     (kullanıcı: "sarı ile yeşil birbirine geçiyor"). Karar: seçiliyken yalnız seçili kenar; repertuvar bilgisi ★ rozetinde. */
   .work-item.selected.has-stripe::before { display:none; }
   .work-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; align-self:center; }
   /* (2026-09-05) Repertuvar sayısı rozeti ★'ın sağ ÜST köşesinde.
