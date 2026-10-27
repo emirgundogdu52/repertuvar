@@ -1681,6 +1681,29 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="tasarim.css">
+<style>
+/* (2026-10-26) OKUNURLUK — Eser Ekle / Eseri Düzenle penceresi. Kullanıcı: "Tekstler çok küçük, yaşlı insanları da düşün biraz"
+   (IMG_8090–8093). Pencerede 11–13 px yazılar vardı (ipuçları 11–12, etiketler 12, sekmeler 13–14). Alt sınır: ipucu 14,
+   etiket/düğme 15, sekme 16 px. Satır içi font-size'lar ve tasarim.css'teki kurallar yüzünden !important. */
+#newEserModal .ne-lbl, #newEserModal .ne-lbl span, #newEserModal label { font-size: 15px !important; }
+#newEserModal .ne-tab-btn { font-size: 16px !important; }
+#newEserModal strong, #newEserModal .nota-drop-main { font-size: 15px !important; }
+#newEserModal :is(#ne_visHint, .nota-drop-sub, .nota-paste-hint, .nota-paste-hint b, .nota-kamera-ipucu, .akor-cubuk-etiket, .df-ipucu, .cp-dokun-bar-ipucu, code) { font-size: 14px !important; }
+#newEserModal :is(#ne_visHint, .nota-drop-sub, .nota-paste-hint, .nota-kamera-ipucu, .df-ipucu) { line-height: 1.5 !important; }
+#newEserModal :is([style*="font-size:11px"], [style*="font-size:11.5px"], [style*="font-size:12px"], [style*="font-size:12.5px"],
+  [style*="font-size: 11px"], [style*="font-size: 12px"]) { font-size: 14px !important; }
+#newEserModal :is([style*="font-size:13px"], [style*="font-size: 13px"], [style*="font-size:13.5px"]) { font-size: 15px !important; }
+#newEserModal :is(.ql-toolbar button, .ql-toolbar .ql-picker-label) { font-size: 15px !important; }
+#newEserModal .akor-cip { font-size: 16px !important; }
+/* Aynı okunurluk: Defterden Ekle (#defterModal) ve Başka Uygulamadan Aktar (#iaModal) — ikisi de .defter-modal.
+   Kullanıcı: "Aynı sorun defterden ekle ve Başka uygulamadan aktar sayfalarında da var". 11–12,5 → 14 px, 13–13,5 → 15 px;
+   küçük sayfa numarası rozeti (.df-sno) 13 px (minik resmin üstüne sığsın). */
+.defter-modal :is(.ia-meta, .ia-ozet, .ia-marka, .ia-uyari, .ia-uygunsuz, .ia-kaynak, .ia-yardim, .ia-yardim li, .ia-yardim summary, .df-alt-baslik, .df-ipucu, .df-ipucu > div, .df-ipucu-ac, .df-no, .df-oneri small, .df-oneri em, .df-bagli, .df-bagli button, .df-tekrar, .df-tekrar button, .df-okunan summary, .df-okunan label, .df-okunan .df-ok-bilgi, .df-okunan .df-ok-not, .df-okunan button, .df-kart-alt button, .df-durum) { font-size: 14px !important; }
+.defter-modal :is(.ia-hepsi, .df-bos, .df-bos span, .df-oneri button) { font-size: 15px !important; }
+.defter-modal .df-sno { font-size: 13px !important; }
+.defter-modal :is(.df-alt-baslik, .df-ipucu, .ia-yardim, .df-durum, .ia-ozet, .ia-meta) { line-height: 1.5 !important; }
+.defter-modal .ia-ozet { max-height: 3.1em; }
+</style>
 </head>
 <body>
 
@@ -7332,6 +7355,9 @@ function setChordNotation(yon) {
   ta.value = cevirAkorMetni(ta.value, yon);
   _neNotation = yon;
   setAkorYazim(yon);
+  // (2026-10-26) 🐛 Kullanıcı ekran görüntüsü: Do Re Mi seçiliyken "Akor ekle" düğmeleri hâlâ Am, Dm… gösteriyordu.
+  // Yazım değişince akor çubuğu yeniden çizilmiyordu; artık düğmeler seçilen yazıma (Lam, Rem…) hemen geçer.
+  try { akorCubuguCiz('ne_akor_cubuk', 'ne_chords', (document.getElementById('ne_tuning') || {}).value || ''); } catch (e) {}
 }
 
 // Modal açılırken: kayıtlı tercihi uygula (metin kutusuna HARF olarak geldi).

@@ -705,6 +705,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 // Başka sekmede grup değiştirilirse anında haber alınır.
 window.addEventListener('storage', (e) => { if (!e.key || e.key === 'user_group_id' || e.key === 'myGroupRole') grupTazele(); });
 
+let _yerelOkumaAtla = false;   // applyReorder başarılı yazmadan sonra true: load() yerel önbelleği çizmez
 async function load(){
   dbg('load() başladı');
   let localHadData = false;
@@ -743,7 +744,9 @@ async function load(){
 
   // ── 1) LOCAL'DEN ANINDA GÖSTER (sinyal zayıf/yokken bile beklemeden) ──
   const yerelP = (async () => {
-    if (!window.db) return;
+    // (2026-10-26) Sıralama kaydından hemen sonraki yenilemede yerel kopya ATLANIR: önbellek henüz eski sırayı tuttuğu
+    // için liste bir an eski sıraya dönüp sonra yeniye geçiyordu (tanıtım videosunda görüldü: "taşınan potpurinin izi kalıyor").
+    if (!window.db || _yerelOkumaAtla) return;
     try {
       const [rLocal, iLocal, sLocal] = await Promise.all([
         db.repertoires.getAll(),
@@ -1972,12 +1975,54 @@ function dragPointerStart(e) {
   _dragScroller = _scrollKabi(tr);
 
   _touchSrcTr = tr;
-  _touchClone = tr.cloneNode(true);
-  _touchClone.style.cssText = 'position:fixed;z-index:9999;opacity:.9;pointer-events:none;'
-    + 'background:var(--surface2);border:1px solid var(--accent);border-radius:6px;'
-    + 'box-shadow:0 8px 24px rgba(0,0,0,.45);width:' + tr.offsetWidth + 'px;transition:none;';
+  // (2026-10-26) 🐛 SÜRÜKLENEN KOPYA EKRANIN DIŞINA TAŞIYORDU ve BOŞ görünüyordu.
+  // Kullanıcı tanıtım videosunda gördü: "sürüklenen satır kadrajın dışından gidiyor",
+  // "tutuyorsun ama sürüklemiyorsun". İki sebep: (1) kopya parmağı ORTASINA alıyordu;
+  // tutamaç satırın solunda olduğu için satırın yarısı ekranın solundan dışarı çıkıyordu.
+  // (2) <tr> tablonun dışına (body'ye) eklenince hücre düzeni kayboluyor, eser adı
+  // görünmüyordu. Artık kopya, aynı sınıflı tek satırlık bir <table> içinde, hücre
+  // genişlikleri korunarak çiziliyor; satırın kendi sol kenarında durup yalnız dikeyde
+  // parmakla birlikte kayıyor (parmağın satırdaki yeri korunur).
+  const kutu = tr.getBoundingClientRect();
+  _dragSol = kutu.left;
+  _dragUstFark = e.clientY - kutu.top;
+  // (2026-10-26 b) POTPURİ BAŞINDAN tutulunca BÜTÜN POTPURİ birlikte kalkar. Kullanıcı tanıtım videosunda gördü:
+  // "linked medleys move together deyip yaparken ikinci eser niye birlikte gitmiyor?" — bırakınca mvTo zinciri zaten
+  // blok olarak taşıyordu, ama sürüklerken yalnız ilk satır kayıyor, ötekiler yerinde bekliyordu. Kopya artık zincirin
+  // bütün satırlarını içeriyor; kaynak satırların hepsi soluklaşıyor. Zincirin ortasından tutulan satır tek başına gider
+  // (mvTo'daki kuralla aynı: yalnız zincir başı bloğu taşır).
+  let blok = [tr];
+  try {
+    const rep = getRep(_dragRepId), items = (rep && rep.items) || [];
+    if (items.length && isChainHead(items, _dragSrcIdx)) {
+      const [ca, cb] = chainRange(items, _dragSrcIdx);
+      if (cb > ca) {
+        const satirlar = Array.from(tr.parentElement.querySelectorAll('tr[data-idx]'))
+          .filter(r => { const i = parseInt(r.dataset.idx); return i >= ca && i <= cb; });
+        if (satirlar.length) blok = satirlar;
+      }
+    }
+  } catch (err) { blok = [tr]; }
+  _dragBlok = blok;
+  const anaTablo = tr.closest('table');
+  _touchClone = document.createElement('table');
+  if (anaTablo) _touchClone.className = anaTablo.className;
+  _touchClone.dataset.dragKopya = '1';
+  const govde = document.createElement('tbody');
+  blok.forEach(satir => {
+    const kopya = satir.cloneNode(true);
+    Array.from(satir.children).forEach((td, i) => {
+      if (kopya.children[i]) kopya.children[i].style.width = td.getBoundingClientRect().width + 'px';
+    });
+    govde.appendChild(kopya);
+  });
+  _touchClone.appendChild(govde);
+  _touchClone.style.cssText = 'position:fixed;z-index:9999;opacity:.97;pointer-events:none;margin:0;'
+    + 'table-layout:fixed;border-collapse:collapse;background:var(--surface2);'
+    + 'outline:2px solid var(--accent);border-radius:6px;box-shadow:0 12px 32px rgba(0,0,0,.55);'
+    + 'width:' + kutu.width + 'px;transition:none;';
   document.body.appendChild(_touchClone);
-  tr.style.opacity = '.3';
+  blok.forEach(satir => { satir.style.opacity = '.3'; });
   document.body.style.userSelect = 'none';
   _dragKonumla(e.clientX, e.clientY);
 
@@ -1992,10 +2037,13 @@ function dragPointerStart(e) {
   window.addEventListener('blur', _dragIptal);
 }
 
+let _dragSol = 0, _dragUstFark = 20, _dragBlok = null;
 function _dragKonumla(x, y) {
   if (!_touchClone) return;
-  _touchClone.style.left = (x - _touchClone.offsetWidth / 2) + 'px';
-  _touchClone.style.top  = (y - 20) + 'px';
+  // Yatayda satırın kendi yerinde (ekran içinde) kalır; dikeyde parmağı izler.
+  const sol = Math.max(0, Math.min(_dragSol, window.innerWidth - _touchClone.offsetWidth));
+  _touchClone.style.left = sol + 'px';
+  _touchClone.style.top  = (y - _dragUstFark) + 'px';
 }
 
 function _dragPointerMove(e) {
@@ -2031,11 +2079,13 @@ function _dragTemizle() {
   document.body.style.userSelect = '';
   if (_touchClone) { _touchClone.remove(); _touchClone = null; }
   if (_touchSrcTr) { try { _touchSrcTr.style.opacity = ''; } catch (e) {} _touchSrcTr = null; }
+  if (_dragBlok) { _dragBlok.forEach(satir => { try { satir.style.opacity = ''; } catch (e) {} }); _dragBlok = null; }
   document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
   // Artık DOM'da olmayan bir satırdan kalmış olabilecek kopyaları da süpür.
   document.querySelectorAll('tr[style*="position:fixed"]').forEach(el => {
     if (el.style.zIndex === '9999') el.remove();
   });
+  document.querySelectorAll('table[data-drag-kopya]').forEach(el => el.remove());
   _dragTr = null; _dragScroller = null;
 }
 
@@ -2123,6 +2173,12 @@ async function applyReorder(repId, origItems, merged, newActiveIdx){
   // Güvenlik ağı: zincir HİÇBİR ZAMAN ilk satırdan başlayamaz.
   if (merged[0]) merged[0].linkedPrev = false;
   merged.forEach((it,i)=> it.seq = i+1);
+  // (2026-10-26) 🐛 BIRAKINCA LİSTE ESKİ SIRAYA DÖNÜP SONRA DEĞİŞİYORDU. Kayıt (PATCH'ler)
+  // ve load() bitene kadar ekranda eski sıra kalıyordu; kullanıcı "sıralamanın değişmediği
+  // baya belli" dedi. Yeni sıra şimdi HEMEN çiziliyor; sunucu yazması arkadan geliyor,
+  // hata olursa load() gerçek sırayı geri getiriyor.
+  const _anlik = getRep(repId);
+  if (_anlik) { _anlik.items = merged; try { renderDetail(); } catch (e) {} }
   sync('spin','...');
   _rtSustur(6000);   // çok satırlı işlem: pencere daha geniş
   try{
@@ -2141,9 +2197,11 @@ async function applyReorder(repId, origItems, merged, newActiveIdx){
     await Promise.all(patches);
     _rtSustur(2500);   // yazma bitti; yankı bir süre daha yok sayılsın
     if (activeItemRepId === repId && newActiveIdx != null) activeItemIdx = newActiveIdx;
-    await load();
+    _yerelOkumaAtla = true;
+    try { await load(); } finally { _yerelOkumaAtla = false; }
   }catch(e){
     toast(/linked_prev/.test(e.message)?_r('rep.linkedPrevYok','linked_prev kolonu eksik'):e.message,'er');
+    try { await load(); } catch (e2) {}   // anlık çizilen sıra kaydedilemedi: gerçeğe dön
   }
 }
 
