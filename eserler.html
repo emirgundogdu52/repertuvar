@@ -726,10 +726,13 @@
   .we-wrap:first-child { margin-top:12px; }
   .we-wrap .work-item { margin:0; z-index:2; touch-action:pan-y; }
   .we-wrap { touch-action:pan-y; }
-  /* .work-item.selected VE :active'in box-shadow'u .we-wrap'in overflow:hidden'ı yüzünden
-     kırpılıyordu — aynı parıltı efektini dış sarmalayıcıya (kırpılmayan) taşıyoruz. */
-  .we-wrap:has(.work-item.selected) { box-shadow:0 2px 12px rgba(255,200,61,.18); border-radius:16px; }
-  .we-wrap:has(.work-item:active) { box-shadow:0 0 0 1px rgba(255,200,61,.35),0 4px 18px rgba(255,200,61,.18); border-radius:16px; }
+  /* .work-item:active'in box-shadow'u .we-wrap'in overflow:hidden'ı yüzünden kırpılıyordu — basılıyken parıltı dış
+     sarmalayıcıda (kırpılmayan).
+     (2026-10-27) Seçili kartın parıltısı kaldırıldı (kullanıcı: detaydan dönünce kartın altında sarı kenarın rengi yansıma
+     gibi görünüyordu); seçili kart yalnız sarı sol kenarla belli olur.
+     Basılı parıltıda zemin: kartın alt kenarı kesirli pikselde olunca kart son cihaz satırını boyamıyor, parıltı sarmalayıcının
+     dışından başlıyor → arada koyu çizgi kalıyordu (iPhone ölçümü). Zemin kartın altında kalır, yalnız o satırda görünür. */
+  .we-wrap:has(.work-item:active) { box-shadow:0 0 0 1px rgba(255,200,61,.35),0 4px 18px rgba(255,200,61,.18); border-radius:16px; background:rgba(255,200,61,.35); }
   /* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
   .we-wrap::before {
     content:''; position:absolute; inset:0; border-radius:16px; padding:2.5px;
@@ -751,15 +754,19 @@
   .we-edit-bg { padding-right:16px; }
   .we-delete-bg { padding-left:16px; }
   /* (2026-10-08) Kaydırma panelleri yalnız kart kayarken görünür. Kart dururken köşe yumuşatma (antialias)
-     piksellerinden arkadaki mavi/kırmızı sızıyor, köşeler kalın çizilmiş gibi görünüyordu. Kapanırken kart
-     geri kayana kadar .3s görünür kalır. :has() olmayan eski WebView'de kural yok sayılır → eskisi gibi. */
-  .we-wrap:not(:has(> .work-item[style*="translateX("]:not([style*="translateX(0)"]):not([style*="translateX(0px)"]))) > .we-edit-bg,
-  .we-wrap:not(:has(> .work-item[style*="translateX("]:not([style*="translateX(0)"]):not([style*="translateX(0px)"]))) > .we-delete-bg {
-    visibility:hidden; transition:visibility 0s linear .3s; }
+     piksellerinden arkadaki mavi/kırmızı sızıyor, köşeler kalın çizilmiş gibi görünüyordu.
+     (2026-10-27) Eski kural :has() + style niteliğiyle seçiyordu; WebKit satır içi stil değişince :has()'i her zaman
+     yeniden değerlendirmiyor → 1., 3., 5. satırlarda alt kenarda mavi/kırmızı çizgi kalıyordu. Artık JS .we-acik
+     sınıfını yönetir (_weYerineOturt). */
+  /* (2026-10-27) iPhone ölçümü: kartın alt kenarı kesirli (101,391 px) → kart son cihaz satırını boyamıyor, panel boyuyordu.
+     Panel gizlenince WebKit o satırı yeniden çizmiyor, tam #4DA3FF / #FF5A5F çizgi kalıyordu. Panel alttan 1px kısa: hiç uzanmasın. */
+  .we-edit-bg, .we-delete-bg { visibility:hidden; bottom:1px; }
+  .we-wrap.we-acik > .we-edit-bg,
+  .we-wrap.we-acik > .we-delete-bg { visibility:visible; }
   [data-theme="light"] .work-item.zebra { background: #f5f4fb; }
   [data-theme="light"] .work-item { background: #ffffff; box-shadow:0 1px 3px rgba(0,0,0,.08); }
   .work-item:hover { background:var(--surface2); }
-  .work-item.selected { background:var(--surface2); border-left:3px solid var(--accent); padding-left:13px; box-shadow:0 2px 12px rgba(255,200,61,.18); }
+  .work-item.selected { background:var(--surface2); border-left:3px solid var(--accent); padding-left:13px; }
   .work-num { display:none; }
   .work-icon {
     width:34px; height:34px; border-radius:8px; flex-shrink:0; align-self:center;
@@ -777,6 +784,9 @@
   .status-dot { width:7px; height:7px; border-radius:50%; background:var(--ready-color,#34C759); flex-shrink:0; display:inline-block; }
   .work-item.has-stripe::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; }
   .work-item.stripe-green::before { background:var(--ready-color,#34C759); }
+  /* (2026-10-27) Sol kenarda tek şerit: seçili kartta sarı kenar (border-left) ile yeşil "repertuvarda" şeridi yan yana
+     duruyordu (kullanıcı: "sarı ile yeşil birbirine geçiyor"). Karar: seçiliyken yalnız sarı; repertuvar bilgisi ★ rozetinde. */
+  .work-item.selected.has-stripe::before { display:none; }
   .work-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; align-self:center; }
   /* (2026-09-05) Repertuvar sayısı rozeti ★'ın sağ ÜST köşesinde.
      pointer-events:none KRİTİK: rozet yıldızın dokunma alanının üstünde
@@ -2898,6 +2908,22 @@ const WE_SWIPE_MAX = 84;
 let _weSwipe = null;
 let _weOpenCard = null;
 
+// (2026-10-27) Kart yerine dönünce: transform'u tamamen sil (GPU katmanı kalksın, kenar yarım piksele düşüp
+// yumuşatılmasın) ve panelleri gizle. translateX(0) stilde kalınca arkadaki panel alt kenardan sızıyordu.
+function _weYerineOturt(card, hemen) {
+  const bitir = function () {
+    if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) return;
+    // Bu arada yeniden yatay kaydırılmaya başlandıysa dokunma. Yalnız dokunup bırakma ya da dikey kaydırma
+    // temizliği engellemesin; yoksa kart translateX(0) + panel görünür hâlde kalır.
+    if (_weSwipe && _weSwipe.card === card && _weSwipe.dir === 'h') return;
+    card.style.transition = '';
+    card.style.transform = '';
+    const wrap = card.closest('.we-wrap');
+    if (wrap) wrap.classList.remove('we-acik');
+  };
+  if (hemen) bitir(); else setTimeout(bitir, 250);   // .2s geri kayma animasyonu bitsin
+}
+
 function weCloseOpenCard() {
   if (_weOpenCard) {
     _weOpenCard.style.transition = 'transform .2s ease';
@@ -2905,6 +2931,7 @@ function weCloseOpenCard() {
     _weOpenCard.classList.remove('swiped-open-left', 'swiped-open-right');
     const wrap = _weOpenCard.closest('.we-wrap');
     if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
+    _weYerineOturt(_weOpenCard);
     _weOpenCard = null;
   }
 }
@@ -2944,6 +2971,7 @@ function _weMove(cx, cy, prevent) {
     _weSwipe.card.style.transition = 'none';
     _weSwipe.card.style.transform = `translateX(${clamped}px)`;
     const wrap = _weSwipe.card.closest('.we-wrap');
+    if (wrap) wrap.classList.add('we-acik');
     if (wrap) wrap.style.setProperty('--swipe-glow', Math.min(1, Math.abs(clamped) / WE_SWIPE_MAX));
   }
 }
@@ -2973,6 +3001,7 @@ function _weEnd() {
     _weOpenCard = card;
   } else {
     card.style.transform = 'translateX(0)';
+    _weYerineOturt(card);
     if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
     if (_weOpenCard === card) _weOpenCard = null;
   }
@@ -3041,16 +3070,16 @@ function weCardClick(e, id) {
 // Sayfa bfcache'den geri geldiğinde önceki kaydırma durumu donmuş kalabiliyor —
 // her pageshow'da temiz duruma sıfırla (repertuvarlardaki ile aynı önlem).
 window.addEventListener('pageshow', () => {
+  _weSwipe = null;   // önce: donmuş bir kaydırma _weYerineOturt'u engellemesin
   document.querySelectorAll('.work-item.swiped-open-left, .work-item.swiped-open-right').forEach(card => {
     card.classList.remove('swiped-open-left', 'swiped-open-right');
     card.style.transition = 'none';
-    card.style.transform = 'translateX(0)';
+    _weYerineOturt(card, true);
     delete card.dataset.justSwiped;
     const wrap = card.closest('.we-wrap');
     if (wrap) wrap.style.setProperty('--swipe-glow', 0);
   });
   _weOpenCard = null;
-  _weSwipe = null;
 });
 
 // ── Uzun-basma ile toplu seçim (2026-07-19'dan beri TÜM filtrelerde) ──
@@ -6784,6 +6813,9 @@ function _detayKapat() {
   const lc = document.getElementById('listCol');
   if (lc) lc.classList.remove('mobil-gizli');
   selectedId = null;
+  // (2026-10-27) Telefonda liste ve detay ayrı ekran: dönüşte seçili işaretin (sarı kenar) anlamı yok (kullanıcı) → kaldır.
+  // iPad/masaüstünde detay yanda açık durduğu için işaret orada kalır (eşik, liste kolonunu gizleyen 768 ile aynı).
+  if (window.innerWidth <= 768) document.querySelectorAll('.work-item.selected').forEach(el => el.classList.remove('selected'));
 }
 
 // ── (2026-10-09) BİLDİR / ENGELLE — Apple Guideline 1.2 (ortak kod bildir.js) ──

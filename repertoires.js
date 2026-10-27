@@ -274,6 +274,21 @@ const RI_SWIPE_MAX = 84;         // silme/değiştir butonunun genişliği kadar
 let _riSwipe = null;
 let _riOpenCard = null; // o an açık (buton görünür) kart
 
+// (2026-10-27) Kart yerine dönünce: transform'u tamamen sil (GPU katmanı kalksın, kenar yarım piksele düşüp
+// yumuşatılmasın) ve panelleri gizle. translateX(0) stilde kalınca arkadaki panel alt kenardan sızıyordu (eserler.html ile aynı).
+function _riYerineOturt(card, hemen) {
+  const bitir = function () {
+    if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) return;
+    // Bu arada yeniden yatay kaydırılmaya başlandıysa dokunma; dokunup bırakma ya da dikey kaydırma temizliği engellemesin.
+    if (_riSwipe && _riSwipe.card === card && _riSwipe.dir === 'h') return;
+    card.style.transition = '';
+    card.style.transform = '';
+    const wrap = card.closest('.ri-wrap');
+    if (wrap) wrap.classList.remove('ri-acik');
+  };
+  if (hemen) bitir(); else setTimeout(bitir, 250);   // .2s geri kayma animasyonu bitsin
+}
+
 function riCloseOpenCard() {
   if (_riOpenCard) {
     _riOpenCard.style.transition = 'transform .2s ease';
@@ -281,6 +296,7 @@ function riCloseOpenCard() {
     _riOpenCard.classList.remove('swiped-open-left', 'swiped-open-right');
     const wrap = _riOpenCard.closest('.ri-wrap');
     if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
+    _riYerineOturt(_riOpenCard);
     _riOpenCard = null;
   }
 }
@@ -312,6 +328,7 @@ function riTouchMove(e) {
     _riSwipe.card.style.transition = 'none';
     _riSwipe.card.style.transform = `translateX(${clamped}px)`;
     const wrap = _riSwipe.card.closest('.ri-wrap');
+    if (wrap) wrap.classList.add('ri-acik');
     if (wrap) wrap.style.setProperty('--swipe-glow', Math.min(1, Math.abs(clamped) / RI_SWIPE_MAX));
   }
 }
@@ -339,6 +356,7 @@ function riTouchEnd(e) {
     _riOpenCard = card;
   } else {
     card.style.transform = 'translateX(0)';
+    _riYerineOturt(card);
     if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
     if (_riOpenCard === card) _riOpenCard = null;
   }
@@ -362,16 +380,16 @@ function riCardClick(e, id) {
 // donmuş halde kalabiliyor (özellikle ilk kartın "silmeye hazır" görünmesi). Her
 // pageshow'da (hem normal yükleme hem bfcache restore) temiz duruma sıfırla.
 window.addEventListener('pageshow', () => {
+  _riSwipe = null;   // önce: donmuş bir kaydırma _riYerineOturt'u engellemesin
   document.querySelectorAll('.ri.swiped-open-left, .ri.swiped-open-right').forEach(card => {
     card.classList.remove('swiped-open-left', 'swiped-open-right');
     card.style.transition = 'none';
-    card.style.transform = 'translateX(0)';
+    _riYerineOturt(card, true);
     delete card.dataset.justSwiped;
     const wrap = card.closest('.ri-wrap');
     if (wrap) wrap.style.setProperty('--swipe-glow', 0);
   });
   _riOpenCard = null;
-  _riSwipe = null;
 });
 
 // "Diğer İşlemler" menüsü dışına tıklanınca kapat

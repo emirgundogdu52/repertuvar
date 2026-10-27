@@ -427,10 +427,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 .rs-edit-bg{padding-right:10px;}
 .rs-delete-bg{padding-left:10px;}
 /* (2026-10-08) Kaydırma panelleri yalnız kart kayarken görünür: dururken köşe yumuşatma piksellerinden
-   arkadaki mavi/kırmızı sızıp köşeleri kalın gösteriyordu (eserler.html ile aynı). :has() yoksa eskisi gibi. */
-.rs-wrap:not(:has(> .rsi[style*="translateX("]:not([style*="translateX(0)"]):not([style*="translateX(0px)"]))) > .rs-edit-bg,
-.rs-wrap:not(:has(> .rsi[style*="translateX("]:not([style*="translateX(0)"]):not([style*="translateX(0px)"]))) > .rs-delete-bg {
-  visibility:hidden; transition:visibility 0s linear .3s; }
+   arkadaki mavi/kırmızı sızıp köşeleri kalın gösteriyordu (eserler.html ile aynı).
+   (2026-10-27) :has() + style niteliği kuralı WebKit'te tutmuyordu (alt kenarda mavi/kırmızı çizgi kalıyordu) →
+   görünürlüğü JS .rs-acik sınıfıyla yönetir (_rsYerineOturt). */
+/* (2026-10-27) Kart alt kenarı kesirli pikselde olunca kart son satırı boyamıyor, panel boyuyor; gizlenince WebKit o satırı
+   yeniden çizmediği için çizgi kalıyordu (iPhone ölçümü, eserler.html) → panel alttan 1px kısa. */
+.rs-edit-bg,.rs-delete-bg{visibility:hidden;bottom:1px;}
+.rs-wrap.rs-acik > .rs-edit-bg,
+.rs-wrap.rs-acik > .rs-delete-bg{visibility:visible;}
 /* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
 .rs-wrap::before {
   content:''; position:absolute; inset:0; border-radius:10px; padding:2.5px;
@@ -1771,6 +1775,21 @@ const RS_SWIPE_MAX = 84;
 let _rsSwipe = null;
 let _rsOpenCard = null;
 
+// (2026-10-27) Kart yerine dönünce: transform'u tamamen sil (GPU katmanı kalksın, kenar yarım piksele düşüp
+// yumuşatılmasın) ve panelleri gizle. translateX(0) stilde kalınca arkadaki panel alt kenardan sızıyordu (eserler.html ile aynı).
+function _rsYerineOturt(card, hemen) {
+  const bitir = function () {
+    if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) return;
+    // Bu arada yeniden yatay kaydırılmaya başlandıysa dokunma; dokunup bırakma ya da dikey kaydırma temizliği engellemesin.
+    if (_rsSwipe && _rsSwipe.card === card && _rsSwipe.dir === 'h') return;
+    card.style.transition = '';
+    card.style.transform = '';
+    const wrap = card.closest('.rs-wrap');
+    if (wrap) wrap.classList.remove('rs-acik');
+  };
+  if (hemen) bitir(); else setTimeout(bitir, 250);   // .2s geri kayma animasyonu bitsin
+}
+
 function rsCloseOpenCard() {
   if (_rsOpenCard) {
     _rsOpenCard.style.transition = 'transform .2s ease';
@@ -1778,6 +1797,7 @@ function rsCloseOpenCard() {
     _rsOpenCard.classList.remove('swiped-open-left', 'swiped-open-right');
     const wrap = _rsOpenCard.closest('.rs-wrap');
     if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
+    _rsYerineOturt(_rsOpenCard);
     _rsOpenCard = null;
   }
 }
@@ -1809,6 +1829,7 @@ function rsTouchMove(e) {
     _rsSwipe.card.style.transition = 'none';
     _rsSwipe.card.style.transform = `translateX(${clamped}px)`;
     const wrap = _rsSwipe.card.closest('.rs-wrap');
+    if (wrap) wrap.classList.add('rs-acik');
     if (wrap) wrap.style.setProperty('--swipe-glow', Math.min(1, Math.abs(clamped) / RS_SWIPE_MAX));
   }
 }
@@ -1826,6 +1847,7 @@ function rsTouchEnd(e) {
       c.style.transform = `translateX(${-RS_SWIPE_MAX}px)`;
     } else {
       c.style.transform = 'translateX(0)';
+      _rsYerineOturt(c);   // yalnız dokunmada bile translateX(0) yazılıyordu → kart katmanda kalmasın
       const w = c.closest('.rs-wrap');
       if (w) w.style.setProperty('--swipe-glow', 0);
     }
@@ -1851,6 +1873,7 @@ function rsTouchEnd(e) {
     _rsOpenCard = card;
   } else {
     card.style.transform = 'translateX(0)';
+    _rsYerineOturt(card);
     if (wrap) { wrap.style.transition = 'opacity .2s ease'; wrap.style.setProperty('--swipe-glow', 0); }
     if (_rsOpenCard === card) _rsOpenCard = null;
   }
@@ -1871,16 +1894,16 @@ function rsCardClick(e, id) {
 }
 
 window.addEventListener('pageshow', () => {
+  _rsSwipe = null;   // önce: donmuş bir kaydırma _rsYerineOturt'u engellemesin
   document.querySelectorAll('.rsi.swiped-open-left, .rsi.swiped-open-right').forEach(card => {
     card.classList.remove('swiped-open-left', 'swiped-open-right');
     card.style.transition = 'none';
-    card.style.transform = 'translateX(0)';
+    _rsYerineOturt(card, true);
     delete card.dataset.justSwiped;
     const wrap = card.closest('.rs-wrap');
     if (wrap) wrap.style.setProperty('--swipe-glow', 0);
   });
   _rsOpenCard = null;
-  _rsSwipe = null;
 });
 
 // Açık bir swipe kartı varken ekranın herhangi bir yerine tıklanınca (kartın dışına) kapat.

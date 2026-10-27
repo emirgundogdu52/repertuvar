@@ -51,10 +51,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 .ri-edit-bg{padding-right:10px;}
 .ri-delete-bg{padding-left:10px;}
 /* (2026-10-08) Kaydırma panelleri yalnız kart kayarken görünür: dururken köşe yumuşatma piksellerinden
-   arkadaki mavi/kırmızı sızıp köşeleri kalın gösteriyordu (eserler.html ile aynı). :has() yoksa eskisi gibi. */
-.ri-wrap:not(:has(> .ri[style*="translateX("]:not([style*="translateX(0)"]):not([style*="translateX(0px)"]))) > .ri-edit-bg,
-.ri-wrap:not(:has(> .ri[style*="translateX("]:not([style*="translateX(0)"]):not([style*="translateX(0px)"]))) > .ri-delete-bg {
-  visibility:hidden; transition:visibility 0s linear .3s; }
+   arkadaki mavi/kırmızı sızıp köşeleri kalın gösteriyordu (eserler.html ile aynı).
+   (2026-10-27) :has() + style niteliği kuralı WebKit'te tutmuyordu (alt kenarda mavi/kırmızı çizgi kalıyordu) →
+   görünürlüğü JS .ri-acik sınıfıyla yönetir (repertoires.js _riYerineOturt). */
+/* (2026-10-27) Kart alt kenarı kesirli pikselde olunca kart son satırı boyamıyor, panel boyuyor; gizlenince WebKit o satırı
+   yeniden çizmediği için çizgi kalıyordu (iPhone ölçümü, eserler.html) → panel alttan 1px kısa. */
+.ri-edit-bg,.ri-delete-bg{visibility:hidden;bottom:1px;}
+.ri-wrap.ri-acik > .ri-edit-bg,
+.ri-wrap.ri-acik > .ri-delete-bg{visibility:visible;}
 /* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
 .ri-wrap::before {
   content:''; position:absolute; inset:0; border-radius:10px; padding:2.5px;
