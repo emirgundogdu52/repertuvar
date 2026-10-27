@@ -1632,6 +1632,20 @@
   .ton-cubuk-gosterge.is-on { border-color:var(--accent); background:rgba(255,200,61,.10); }
   .ton-cubuk-gosterge.is-on b, .ton-cubuk-gosterge.is-on small { color:var(--accent); }
   .ton-cubuk-karar { font-size:13px; font-weight:700; color:var(--text2); margin-left:4px; }
+  /* (2026-10-27) Ton listesi: ton kutusuna basınca açılır; 12 ton (C…B), seçili dolu sarı, orijinal noktalı. */
+  .ton-secici { position:relative; }
+  .ton-cubuk-gosterge i { font-size:14px; color:var(--text3); align-self:center; }
+  .ton-liste { position:absolute; top:calc(100% + 6px); left:0; z-index:30; padding:10px; border-radius:16px; background:var(--surface);
+    border:1px solid var(--border2); box-shadow:0 10px 30px rgba(0,0,0,.35); display:grid; grid-template-columns:repeat(6, 48px); gap:6px; }
+  .ton-liste[hidden] { display:none; }
+  .ton-liste-bas { grid-column:1 / -1; font-size:14px; color:var(--text2); margin:0 2px 4px; white-space:nowrap; }
+  .ton-liste-dug { position:relative; height:44px; border-radius:12px; border:1px solid var(--border); background:var(--surface2); color:var(--text);
+    font-size:16px; font-weight:700; font-family:inherit; cursor:pointer; padding:0; }
+  .ton-liste-dug.orj::after { content:''; position:absolute; top:5px; right:5px; width:6px; height:6px; border-radius:50%; background:var(--text3); }
+  .ton-liste-dug.secili { background:var(--yt-btn,#FFC83D); border-color:var(--yt-btn,#FFC83D); color:#1A1305; }
+  .ton-liste-dug.secili.orj::after { background:#1A1305; }
+  @media (hover:hover) { .ton-liste-dug:not(.secili):hover { border-color:var(--accent); color:var(--accent); } }
+  @media (max-width:380px) { .ton-liste { grid-template-columns:repeat(4, 48px); } }
   .cp-alan[data-mod="gorunum"] .cp-duzen { display:none; }
   .cp-alan[data-mod="duzen"] .cp-gorunum-alt { display:none; }
   .cp-gorunum-alt { margin-top:12px; }
@@ -3445,11 +3459,14 @@ function selectWork(id, silent) {
         </div>
         <!-- (2026-10-25) Kullanıcı: "transpoze ve akor ekleme tarafına bakalım". Ton denetimi büyüdü ve TONUN ADINI gösteriyor
              (ör. G#m +2); sekme artık ÇİZİLMİŞ AKORLARLA açılıyor, ham [Am] metni "Akorları düzenle" ile (cpModu). -->
+        <!-- (2026-10-27) Kullanıcı: "ton seçme işini yarım ses yarım ses yapmak yerine bir listeye tıklatmak daha kolay" → −/+ kalktı,
+             ton kutusuna basınca 12 tonluk liste açılır (tonListesiAc). -->
         <div class="ton-cubuk">
           <span class="ton-cubuk-etiket">${_esCev('es.tonBaslik','Ton')}</span>
-          <button onclick="stepTranspose(${w.id},-1)" title="${_esCev('es.yariTonPes','Yarım ton pes')}" aria-label="${_esCev('es.yariTonPes','Yarım ton pes')}" class="ton-cubuk-dug"><i class="ti ti-minus"></i></button>
-          <button id="ton_badge_${w.id}" onclick="resetTranspose(${w.id})" title="${_esCev('es.t_orijinalTon','Orijinal tona dön')} · ${_esCev('es.tonNotu','sadece görünümü kaydırır, kayıtlı akoru değiştirmez')}" class="ton-cubuk-gosterge"></button>
-          <button onclick="stepTranspose(${w.id},1)" title="${_esCev('es.yariTonTiz','Yarım ton tiz')}" aria-label="${_esCev('es.yariTonTiz','Yarım ton tiz')}" class="ton-cubuk-dug"><i class="ti ti-plus"></i></button>
+          <div class="ton-secici">
+            <button id="ton_badge_${w.id}" onclick="tonListesiAc(${w.id}, event)" aria-haspopup="true" aria-expanded="false" title="${_esCev('es.tonSec','Ton seç')} · ${_esCev('es.tonNotu','sadece görünümü kaydırır, kayıtlı akoru değiştirmez')}" class="ton-cubuk-gosterge"></button>
+            <div id="ton_liste_${w.id}" class="ton-liste" hidden></div>
+          </div>
           <span id="karar_lbl_${w.id}" class="ton-cubuk-karar"></span>
         </div>
         <div id="cp_alan_${w.id}" class="cp-alan" data-mod="gorunum">
@@ -4555,18 +4572,109 @@ document.addEventListener('click', e => {
   if (e.target.closest && e.target.closest('.cp-dokun')) return;
   _cpPanelKapat();
 }, true);
-// Tonun adı: ilk gerçek akorun kökü (+ "m"); kaydırılmışsa doğru diyez/bemolle. Akor yoksa null.
-function tonAdi(text, n){
-  const re = /\[([^\]]+)\]/g; let m;
-  while ((m = re.exec(text || ''))) {
-    const a = _akorParcala(m[1]);
-    if (!a || _NOTE_INDEX[a.kok] === undefined) continue;
-    const minor = /^(?:m(?!aj)|min)/.test(a.ek);
-    const kok = n ? transposeNote(a.kok, n, tonBemolMu({ i: _NOTE_INDEX[a.kok], minor }, n)) : a.kok;
-    return kok + (minor ? 'm' : '');
-  }
-  return null;
+// (2026-10-27) TONUN ADI akorlar.com gibi. Kullanıcı: "akorlar.com'da A'yı seçtiğimde bizim sisteme yapıştırdığımda F# oluyor"
+// — ad ilk akordan geliyordu ("C"), yanındaki karar da katalogdaki nota kararıydı (Eviç → "Fa #"); akorlar aynıydı.
+// Akorların ait olduğu dizi (anahtar işareti) bulunur; şarkı o dizinin majör tonik akoruyla bitiyorsa majör adı (C),
+// bitmiyorsa La/minör adı (A) verilir. akorlar.com'da Ankara'nın Bağları: orijinal B = D/Bm dizisi, A = C/Am dizisi.
+const _MAJ_DIZI = [0, 2, 4, 5, 7, 9, 11];
+function _akorSesleri(ek){   // akorun köke göre sesleri (yarım ses)
+  let s;
+  if (/^(?:dim|°)/.test(ek)) s = [0, 3, 6];
+  else if (/^ø/.test(ek)) s = [0, 3, 6, 10];
+  else if (/^(?:aug|\+)/.test(ek)) s = [0, 4, 8];
+  else if (/^(?:m(?!aj)|min|-)/.test(ek)) s = [0, 3, 7];
+  else if (/^sus2/.test(ek)) s = [0, 2, 7];
+  else if (/^sus/.test(ek)) s = [0, 5, 7];
+  else s = [0, 4, 7];
+  if (/maj7|M7/.test(ek)) s.push(11); else if (/7/.test(ek)) s.push(10);
+  return s;
 }
+function akorDizisi(text){   // → { k: majör dizinin kökü, ad: tonun adı, son: son akorun kökü } (0–11) ya da null
+  const re = /\[([^\]]+)\]/g; let m; const say = new Array(12).fill(0); let son = null;
+  while ((m = re.exec(text || ''))) {
+    const a = _akorParcala(m[1].trim());
+    if (!a || _NOTE_INDEX[a.kok] === undefined) continue;
+    const r = _NOTE_INDEX[a.kok];
+    // kök çift sayılır: dizide olmayan bir kök (Uşşak/Hüseyni'deki F–Em inişinin F'si gibi) diziyi daha net belirler
+    _akorSesleri(a.ek).forEach((x, i) => { say[(r + x) % 12] += i ? 1 : 2; });
+    son = { i: r, minor: /^(?:m(?!aj)|min)/.test(a.ek) };
+  }
+  if (!son) return null;
+  let k = 0, enIyi = -Infinity;
+  for (let d = 0; d < 12; d++) {
+    let p = 0;
+    for (let i = 0; i < 12; i++) p += _MAJ_DIZI.includes((i - d + 12) % 12) ? say[i] : -say[i];
+    // eşitlikte şarkının bittiği akoru tonik (majör) ya da La (minör) yapan dizi
+    if ((son.i === d && !son.minor) || (son.i === (d + 9) % 12 && son.minor)) p += 0.5;
+    if (p > enIyi) { enIyi = p; k = d; }
+  }
+  return { k, ad: (!son.minor && son.i === k) ? k : (k + 9) % 12, son: son.i };
+}
+function _dizideBemol(k, n){ return _MAJ_BEMOL[((k + (n || 0)) % 12 + 12) % 12]; }
+// Tonun adı: yalnız nota (akorlar.com gibi "A", "F#"); kaydırılmışsa dizinin diyez/bemol yazımıyla. Akor yoksa null.
+function tonAdi(text, n){
+  const d = akorDizisi(text);
+  if (!d) return null;
+  return (_dizideBemol(d.k, n) ? _CHROM_FLAT : _CHROM_SHARP)[((d.ad + (n || 0)) % 12 + 12) % 12];
+}
+// (2026-10-27) Karar akorlardan: şarkının bittiği akorun kökü, tonla birlikte kayar ("E (Mi)"). Akor yoksa null
+// (o zaman katalogdaki karar sesi gösterilir; o, makamın nota kararıdır ve akorların tonuyla aynı olmayabilir).
+function akorKarari(text, n){
+  const d = akorDizisi(text);
+  if (!d) return null;
+  const j = ((d.son + (n || 0)) % 12 + 12) % 12, diyez = !_dizideBemol(d.k, n);
+  return (diyez ? _KARAR_LATIN_D : _KARAR_LATIN)[j] + ' (' + (diyez ? _KARAR_TR_D : _KARAR_TR)[j] + ')';
+}
+// (2026-10-27) TON LİSTESİ: ton kutusuna basınca 12 ton (C…B); dokunulan tona geçilir, orijinal noktalı, seçili dolu.
+// Akor yoksa liste katalogdaki karar sesine göre, o da okunamıyorsa yarım ses farkıyla çizilir.
+function tonListesiAc(id, ev){
+  if (ev) ev.stopPropagation();
+  const l = document.getElementById('ton_liste_'+id);
+  if (!l) return;
+  const acikti = !l.hidden;
+  tonListesiKapat();
+  if (acikti) return;
+  tonListesiCiz(id);
+  l.hidden = false;
+  const b = document.getElementById('ton_badge_'+id);
+  if (b) b.setAttribute('aria-expanded', 'true');
+}
+function tonListesiKapat(){
+  document.querySelectorAll('.ton-liste').forEach(l => { l.hidden = true; });
+  document.querySelectorAll('.ton-cubuk-gosterge[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+}
+function tonListesiCiz(id){
+  const l = document.getElementById('ton_liste_'+id);
+  if (!l) return;
+  const v = getTranspose(id);
+  const d = akorDizisi(_eserAkorMetni(id));
+  const w = DATA.find(x=>x.id===id || x.id===parseInt(id)) || {};
+  const taban = d ? d.ad : parseKararNote(w.closingNote);
+  let bas = _esCev('es.tonSec','Ton seç'), dug = '';
+  if (taban != null) {
+    const yaz = (j, n) => (d ? _dizideBemol(d.k, n) : _MAJ_BEMOL[j]) ? _CHROM_FLAT[j] : _CHROM_SHARP[j];
+    bas = _esCev('es.orijinalTonu','Orijinal ton: {t}').replace('{t}', _tonGoster(yaz(taban, 0)));
+    for (let j = 0; j < 12; j++) {
+      let n = (j - taban + 12) % 12; if (n > 6) n -= 12;
+      dug += '<button type="button" class="ton-liste-dug' + (n === v ? ' secili' : '') + (n === 0 ? ' orj' : '') + '" onclick="tonSec(' + id + ',' + n + ')">'
+        + _esHtml(_tonGoster(yaz(j, n))) + '</button>';
+    }
+  } else {
+    for (let n = -5; n <= 6; n++) {
+      dug += '<button type="button" class="ton-liste-dug' + (n === v ? ' secili' : '') + (n === 0 ? ' orj' : '') + '" onclick="tonSec(' + id + ',' + n + ')">'
+        + (n > 0 ? '+' + n : n) + '</button>';
+    }
+  }
+  l.innerHTML = '<div class="ton-liste-bas">' + _esHtml(bas) + '</div>' + dug;
+}
+function tonSec(id, n){
+  tonListesiKapat();
+  if (getTranspose(id) === n) return;
+  TRANSPOSE[String(id)] = n;
+  _afterTonChange(id);
+}
+document.addEventListener('click', e => { if (!(e.target.closest && e.target.closest('.ton-secici'))) tonListesiKapat(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') tonListesiKapat(); });
 function _tonGoster(ad){ return String(ad).replace(/^([A-G])#/, '$1♯').replace(/^([A-G])b/, '$1♭'); }
 // (2026-10-25) Akorlar sekmesi iki kipte: 'gorunum' (çizilmiş akorlar + "Akorları düzenle") / 'duzen' (ham metin + araçlar,
 // masaüstünde yanında canlı önizleme). Bitti: kaydedilmemiş değişiklik varsa sorar, vazgeçilirse metin geri alınır.
@@ -4606,18 +4714,25 @@ function _eserAkorMetni(id){
 function updateTonBadge(id){
   const b = document.getElementById('ton_badge_'+id);
   const v = getTranspose(id);
+  const metin = _eserAkorMetni(id);
   if(b){
-    // (2026-10-25) Tonun ADI (ilk akordan, kaydırılmış ve doğru diyez/bemolle) + fark: "G♯m · +2"; akor yoksa yalnız fark
-    const ad = tonAdi(_eserAkorMetni(id), v);
+    // (2026-10-25) Tonun ADI + fark: "A · +2"; akor yoksa yalnız fark. (2026-10-27) Ad akorlar.com gibi (tonAdi); ▾ = liste açılır.
+    const ad = tonAdi(metin, v);
     const fark = v > 0 ? '+'+v : (v < 0 ? String(v) : _esCev('es.orijinal','Orijinal'));
-    b.innerHTML = '<b>' + _esHtml(ad ? _tonGoster(ad) : (v ? fark : '—')) + '</b><small>' + _esHtml(ad ? fark : (v ? _esCev('es.yarimTon','yarım ton') : fark)) + '</small>';
+    b.innerHTML = '<b>' + _esHtml(ad ? _tonGoster(ad) : (v ? fark : '—')) + '</b><small>' + _esHtml(ad ? fark : (v ? _esCev('es.yarimTon','yarım ton') : fark)) + '</small><i class="ti ti-chevron-down" aria-hidden="true"></i>';
     b.classList.toggle('is-on', !!v);
   }
   // Karar sesi: kaydırılmış güncel değer (örn. "A (La)")
   const kl = document.getElementById('karar_lbl_'+id);
-  if(kl){
-    const w = DATA.find(x=>x.id===id || x.id===parseInt(id)) || {};
-    const cur = kararLabel(w.closingNote, v, tonBemolMu(akorTonuBul(_eserAkorMetni(id)), v));
+  const w = DATA.find(x=>x.id===id || x.id===parseInt(id)) || {};
+  const akorKarar = akorKarari(metin, v);
+  if(kl && akorKarar){
+    // (2026-10-27) Akor varsa karar akorlardan (son akorun kökü); katalogdaki nota kararı yalnız ipucunda
+    kl.textContent = _esCev('es.kararEtiket','Karar: ') + akorKarar;
+    kl.title = w.closingNote ? (_esCev('es.notaKarari','Nota kararı (katalog): ') + w.closingNote) : '';
+    kl.style.color = v ? 'var(--accent)' : 'var(--text2)';
+  } else if(kl){
+    const cur = kararLabel(w.closingNote, v, tonBemolMu(akorTonuBul(metin), v));
     if(cur){
       const orig = v ? kararLabel(w.closingNote, 0) : null;
       kl.textContent = _esCev('es.kararEtiket','Karar: ') + cur;
@@ -4649,17 +4764,6 @@ function _afterTonChange(id){
     if (src.trim()) box.innerHTML = renderChords(transposeChordPro(src.trim(), getTranspose(id)));
   }
   savePersonalTranspose(id, getTranspose(id));
-}
-function stepTranspose(id, delta){
-  let v = (getTranspose(id) + delta) % 12;
-  if (v > 6) v -= 12; else if (v < -6) v += 12; // -6..+6 aralığında tut
-  TRANSPOSE[String(id)] = v;
-  _afterTonChange(id);
-}
-function resetTranspose(id){
-  if (!getTranspose(id)) return;
-  TRANSPOSE[String(id)] = 0;
-  _afterTonChange(id);
 }
 // Kayıtlı akor metnine DOKUNMAZ — yalnızca transpose alanını günceller
 async function savePersonalTranspose(id, val){
@@ -6832,6 +6936,7 @@ window.RGeri = function () {
   if (acik('editorModal')) { document.getElementById('editorModal').style.display = 'none'; return true; }
   if (acik('newEserModal')) { closeNewEserModal(); return true; }
   if (bulkMode) { exitBulkMode(); return true; }
+  if (document.querySelector('.ton-liste:not([hidden])')) { tonListesiKapat(); return true; }   // (2026-10-27) açık ton listesi
   if (sinif('detailPanel', 'mobile-visible')) { backFromDetail(); return true; }
   return false;
 };
