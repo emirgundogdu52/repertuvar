@@ -1632,15 +1632,20 @@
   .ton-cubuk-gosterge.is-on { border-color:var(--accent); background:rgba(255,200,61,.10); }
   .ton-cubuk-gosterge.is-on b, .ton-cubuk-gosterge.is-on small { color:var(--accent); }
   .ton-cubuk-karar { font-size:13px; font-weight:700; color:var(--text2); margin-left:4px; }
-  /* (2026-10-27) Ton listesi: ton kutusuna basınca açılır; 12 ton (C…B), seçili dolu sarı, orijinal noktalı. */
+  /* (2026-10-27) Ton listesi: ton kutusuna basınca açılır; 12 ton (C…B), her düğmede üstte ton, altta o tondaki karar
+     ("her düğmede ton altına karar yaz"); seçili dolu sarı, orijinal noktalı. */
   .ton-secici { position:relative; }
   .ton-cubuk-gosterge i { font-size:14px; color:var(--text3); align-self:center; }
   .ton-liste { position:absolute; top:calc(100% + 6px); left:0; z-index:30; padding:10px; border-radius:16px; background:var(--surface);
     border:1px solid var(--border2); box-shadow:0 10px 30px rgba(0,0,0,.35); display:grid; grid-template-columns:repeat(6, 48px); gap:6px; }
   .ton-liste[hidden] { display:none; }
   .ton-liste-bas { grid-column:1 / -1; font-size:14px; color:var(--text2); margin:0 2px 4px; white-space:nowrap; }
-  .ton-liste-dug { position:relative; height:44px; border-radius:12px; border:1px solid var(--border); background:var(--surface2); color:var(--text);
-    font-size:16px; font-weight:700; font-family:inherit; cursor:pointer; padding:0; }
+  .ton-liste-dug { position:relative; height:54px; border-radius:12px; border:1px solid var(--border); background:var(--surface2); color:var(--text);
+    font-size:16px; font-weight:700; font-family:inherit; cursor:pointer; padding:0; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:1px; line-height:1.1; }
+  .ton-liste-dug b { font-size:16px; font-weight:800; }
+  .ton-liste-dug small { font-size:13px; font-weight:600; color:var(--text2); }
+  .ton-liste-dug.secili small { color:#1A1305; opacity:.8; }
   .ton-liste-dug.orj::after { content:''; position:absolute; top:5px; right:5px; width:6px; height:6px; border-radius:50%; background:var(--text3); }
   .ton-liste-dug.secili { background:var(--yt-btn,#FFC83D); border-color:var(--yt-btn,#FFC83D); color:#1A1305; }
   .ton-liste-dug.secili.orj::after { background:#1A1305; }
@@ -4643,27 +4648,38 @@ function tonListesiKapat(){
   document.querySelectorAll('.ton-liste').forEach(l => { l.hidden = true; });
   document.querySelectorAll('.ton-cubuk-gosterge[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
 }
+// (2026-10-27) Kullanıcı: "La karar çalmak için karardan seçim yapabileyim", ardından "her düğmede ton altına karar yaz" →
+// her düğmede üstte ton, altta o tondaki karar (Do Re Mi); tona da karara da bakarak seçilir (Ton | Karar geçişi kalktı).
+// Akor yoksa düğmeler katalogdaki karar sesine göre yalnız karar, o da okunamıyorsa yarım ses farkı gösterir.
+function _sesSolfej(j, bemol){ return (bemol ? _KARAR_TR : _KARAR_TR_D)[j].replace(/b$/, '♭').replace('#', '♯'); }
 function tonListesiCiz(id){
   const l = document.getElementById('ton_liste_'+id);
   if (!l) return;
   const v = getTranspose(id);
   const d = akorDizisi(_eserAkorMetni(id));
   const w = DATA.find(x=>x.id===id || x.id===parseInt(id)) || {};
-  const taban = d ? d.ad : parseKararNote(w.closingNote);
+  const dugme = (n, ust, alt) => '<button type="button" class="ton-liste-dug' + (n === v ? ' secili' : '') + (n === 0 ? ' orj' : '')
+    + '" onclick="tonSec(' + id + ',' + n + ')"><b>' + _esHtml(ust) + '</b>' + (alt ? '<small>' + _esHtml(alt) + '</small>' : '') + '</button>';
   let bas = _esCev('es.tonSec','Ton seç'), dug = '';
-  if (taban != null) {
-    const yaz = (j, n) => (d ? _dizideBemol(d.k, n) : _MAJ_BEMOL[j]) ? _CHROM_FLAT[j] : _CHROM_SHARP[j];
-    bas = _esCev('es.orijinalTonu','Orijinal ton: {t}').replace('{t}', _tonGoster(yaz(taban, 0)));
+  if (d) {
+    // Ton kullanıcının akor yazımıyla (ABC / Do Re Mi), karar hep Do Re Mi ("La karar")
+    const solfejTon = typeof getAkorYazim === 'function' && getAkorYazim() === 'solfej';
+    const tonYaz = (j, n) => solfejTon ? _sesSolfej(j, _dizideBemol(d.k, n)) : _tonGoster((_dizideBemol(d.k, n) ? _CHROM_FLAT : _CHROM_SHARP)[j]);
+    const kararYaz = (n) => _sesSolfej(((d.son + n) % 12 + 12) % 12, _dizideBemol(d.k, n));
+    bas = _esCev('es.orijinalTonKarar','Orijinal: {t} · karar {k}').replace('{t}', tonYaz(d.ad, 0)).replace('{k}', kararYaz(0));
+    for (let j = 0; j < 12; j++) {
+      let n = (j - d.ad + 12) % 12; if (n > 6) n -= 12;
+      dug += dugme(n, tonYaz(j, n), kararYaz(n));
+    }
+  } else if (parseKararNote(w.closingNote) != null) {
+    const taban = parseKararNote(w.closingNote);
+    bas = _esCev('es.orijinalKarar','Orijinal karar: ') + _sesSolfej(taban, _MAJ_BEMOL[taban]);
     for (let j = 0; j < 12; j++) {
       let n = (j - taban + 12) % 12; if (n > 6) n -= 12;
-      dug += '<button type="button" class="ton-liste-dug' + (n === v ? ' secili' : '') + (n === 0 ? ' orj' : '') + '" onclick="tonSec(' + id + ',' + n + ')">'
-        + _esHtml(_tonGoster(yaz(j, n))) + '</button>';
+      dug += dugme(n, _sesSolfej(j, _MAJ_BEMOL[j]), '');
     }
   } else {
-    for (let n = -5; n <= 6; n++) {
-      dug += '<button type="button" class="ton-liste-dug' + (n === v ? ' secili' : '') + (n === 0 ? ' orj' : '') + '" onclick="tonSec(' + id + ',' + n + ')">'
-        + (n > 0 ? '+' + n : n) + '</button>';
-    }
+    for (let n = -5; n <= 6; n++) dug += dugme(n, n > 0 ? '+' + n : String(n), '');
   }
   l.innerHTML = '<div class="ton-liste-bas">' + _esHtml(bas) + '</div>' + dug;
 }
