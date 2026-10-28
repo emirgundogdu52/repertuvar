@@ -382,8 +382,8 @@ html, body { overflow-x: hidden; }
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px;
 }
-.section-icon { font-size: 22px; }
-.section-title { font-size: 16px; font-weight: 700; color: var(--text); }
+/* (2026-10-28) Kullanıcı: başlık ikonları kalktı (Yönetim kırılımlarında da yok); başlık satırların yazısıyla aynı hizada (20 px). */
+/* (2026-10-28) Başlık yazısı Yönetim'deki kırılım başlıklarıyla aynı: tasarim.css .kirilim-baslik (13 px, büyük harf, vurgu rengi). */
 .section-subtitle { font-size: 14px; color: var(--text3); margin-top: 1px; }
 
 .setting-row {
@@ -562,8 +562,7 @@ html, body { overflow-x: hidden; }
          Durum sunucudan (rpc/abonelik_durumu, abonelik.js). iOS'ta başka mağazanın adı yazılmaz (Apple 2.3.10). -->
     <div class="settings-section" id="abonelikBolumu" style="display:none;">
       <div class="section-header">
-        <span class="section-icon">⭐</span>
-        <div><div class="section-title" data-i18n="ab.baslik">Abonelik</div></div>
+        <div><div class="section-title kirilim-baslik" data-i18n="ab.baslik">Abonelik</div></div>
       </div>
       <div class="setting-row">
         <div style="flex:1;min-width:0;">
@@ -593,8 +592,7 @@ html, body { overflow-x: hidden; }
     <!-- 1. PROFİL -->
     <div class="settings-section">
       <div class="section-header">
-        <span class="section-icon">👤</span>
-        <div><div class="section-title" data-i18n="ay.hesap">Hesap</div></div>
+        <div><div class="section-title kirilim-baslik" data-i18n="ay.hesap">Hesap</div></div>
       </div>
       <div class="setting-row">
         <div class="profile-avatar" id="profileAvatar">—</div>
@@ -671,8 +669,7 @@ html, body { overflow-x: hidden; }
          biri makam müziği çalışıyor olabilir. İkisi ayrı ayarlar. -->
     <div class="settings-section">
       <div class="section-header">
-        <span class="section-icon">🌐</span>
-        <div><div class="section-title" data-i18n="ayar.dil">Arayüz Dili</div>
+        <div><div class="section-title kirilim-baslik" data-i18n="ayar.dil">Arayüz Dili</div>
              <div class="section-subtitle" data-i18n="ayar.dil_alt">Uygulamanın gösterileceği dil</div></div>
       </div>
       <div class="setting-row">
@@ -714,8 +711,7 @@ html, body { overflow-x: hidden; }
          öneri/sıralama sinyali. Uygulama dilinden ve eser dilinden bağımsız. Çipler onboarding.js'te. -->
     <div class="settings-section">
       <div class="section-header">
-        <span class="section-icon">🎵</span>
-        <div><div class="section-title" data-i18n="ay.muzikTercih">Müzik Tercihlerim</div>
+        <div><div class="section-title kirilim-baslik" data-i18n="ay.muzikTercih">Müzik Tercihlerim</div>
              <div class="section-subtitle" data-i18n="ay.muzikTercih_alt">Hangi tür müzikle uğraşıyorsunuz?</div></div>
       </div>
 
@@ -740,8 +736,7 @@ html, body { overflow-x: hidden; }
          mevcut eserlerin alanları değişmez. -->
     <div class="settings-section">
       <div class="section-header">
-        <span class="section-icon">🎼</span>
-        <div><div class="section-title" data-i18n="ay.muzikalan">Müzik Alanları</div>
+        <div><div class="section-title kirilim-baslik" data-i18n="ay.muzikalan">Müzik Alanları</div>
              <div class="section-subtitle" data-i18n="ay.muzikalan_alt">Yeni eserlerde hangi alanlar açık gelsin</div></div>
       </div>
 
@@ -763,8 +758,7 @@ html, body { overflow-x: hidden; }
     <!-- 2. SAHNE MODU TERCİHLERİ -->
     <div class="settings-section">
       <div class="section-header">
-        <span class="section-icon">🎭</span>
-        <div><div class="section-title" data-i18n="ay.sahne">Sahne Modu</div><div class="section-subtitle" data-i18n="ay.sahne_alt">Sahneye çıkarken kullanılan varsayılan ayarlar</div></div>
+        <div><div class="section-title kirilim-baslik" data-i18n="ay.sahne">Sahne Modu</div><div class="section-subtitle" data-i18n="ay.sahne_alt">Sahneye çıkarken kullanılan varsayılan ayarlar</div></div>
       </div>
       <div class="setting-row">
         <div>
@@ -803,8 +797,7 @@ html, body { overflow-x: hidden; }
     <!-- 3. ADMİN ARAÇLARI -->
     <div class="settings-section">
       <div class="section-header">
-        <span class="section-icon">🎶</span>
-        <div><div class="section-title" data-i18n="ay.grup">Grup / Koro</div><div class="section-subtitle" data-i18n="ay.grup_alt">Grup üyeliği ve yönetimi</div></div>
+        <div><div class="section-title kirilim-baslik" data-i18n="ay.grup">Grup / Koro</div><div class="section-subtitle" data-i18n="ay.grup_alt">Grup üyeliği ve yönetimi</div></div>
       </div>
       <div class="setting-row">
         <div>
@@ -818,16 +811,14 @@ html, body { overflow-x: hidden; }
     <!-- (2026-10-09) ENGELLENEN KULLANICILAR — Apple Guideline 1.2 (ortak kod bildir.js) -->
     <div class="settings-section">
       <div class="section-header">
-        <span class="section-icon">🚫</span>
-        <div><div class="section-title" data-i18n="rb.engellenenler">Engellenen kullanıcılar</div><div class="section-subtitle" data-i18n="rb.engellenenlerAlt">Engellediğin kişilerin eserleri ve paylaştığı repertuvarlar sana gösterilmez</div></div>
+        <div><div class="section-title kirilim-baslik" data-i18n="rb.engellenenler">Engellenen kullanıcılar</div><div class="section-subtitle" data-i18n="rb.engellenenlerAlt">Engellediğin kişilerin eserleri ve paylaştığı repertuvarlar sana gösterilmez</div></div>
       </div>
       <div id="rbEngelListe"></div>
     </div>
 
     <div class="settings-section admin-only">
       <div class="section-header">
-        <span class="section-icon">🛠️</span>
-        <div><div class="section-title" data-i18n="ay.yonetim">Yönetim</div><div class="section-subtitle" data-i18n="ay.yonetim_alt">Sadece adminler görebilir</div></div>
+        <div><div class="section-title kirilim-baslik" data-i18n="ay.yonetim">Yönetim</div><div class="section-subtitle" data-i18n="ay.yonetim_alt">Sadece adminler görebilir</div></div>
       </div>
       <div class="setting-row">
         <div>
@@ -869,9 +860,8 @@ html, body { overflow-x: hidden; }
     <!-- DAVET ET -->
     <div class="settings-section member-only" style="display:none;">
       <div class="section-header">
-        <span class="section-icon">📋</span>
         <div>
-          <div class="section-title"><span data-i18n="ay.onerilerim">Önerilerim</span> <span id="pendingCountBadge" style="display:none;background:rgba(249,160,74,.2);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:14px;font-weight:700;border-radius:10px;padding:1px 8px;margin-left:4px;"></span></div>
+          <div class="section-title kirilim-baslik"><span data-i18n="ay.onerilerim">Önerilerim</span> <span id="pendingCountBadge" style="display:none;text-transform:none;letter-spacing:normal;background:rgba(249,160,74,.2);border:1px solid rgba(249,160,74,.4);color:#F9A04A;font-size:14px;font-weight:700;border-radius:10px;padding:1px 8px;margin-left:4px;"></span></div>
           <div class="section-subtitle" style="font-size:14px;color:var(--text3);margin-top:2px;" data-i18n="ay.onerilerim_alt">Gönderdiğiniz eser önerileri ve onay durumları</div>
         </div>
       </div>
@@ -883,9 +873,8 @@ html, body { overflow-x: hidden; }
 
     <div class="settings-section">
       <div class="section-header">
-        <span class="section-icon">🎵</span>
         <div>
-          <div class="section-title" data-i18n="ay.davet">Arkadaşını Davet Et</div>
+          <div class="section-title kirilim-baslik" data-i18n="ay.davet">Arkadaşını Davet Et</div>
           <div class="section-subtitle" style="font-size:14px;color:var(--text3);margin-top:2px;" data-i18n="ay.davet_alt">Repertuvar'ı müzisyen arkadaşlarınla paylaş</div>
         </div>
       </div>
@@ -934,8 +923,7 @@ html, body { overflow-x: hidden; }
 
     <div class="settings-section">
       <div class="section-header">
-        <span class="section-icon">ℹ️</span>
-        <div><div class="section-title" data-i18n="ay.hakkinda">Hakkında</div></div>
+        <div><div class="section-title kirilim-baslik" data-i18n="ay.hakkinda">Hakkında</div></div>
       </div>
       <div class="setting-row">
         <div>

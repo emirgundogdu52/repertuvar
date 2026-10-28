@@ -347,6 +347,11 @@ html[data-tasarim="v3"] .feat-section-title {
    (440 / 810 / 1080'de aynı ölçüldü). "Tümü" sağda yerinde kalır. */
 html[data-tasarim="v3"][data-sayfa="index"] .feat-section-title { padding-left: 13px; }
 html[data-tasarim="v3"][data-sayfa="index"] .sec-header .sec-title { margin-left: 17px; }
+/* (2026-10-28) Kullanıcı: Ayarlar'daki bölüm başlıkları (Hesap, Arayüz Dili, Müzik Tercihlerim …) Yönetim'deki kırılım
+   başlıklarıyla (ESERLER, KULLANICILAR …) aynı görünsün. Ortak sınıf: yonetim.html .y-break h4 + ayarlar.html .section-title.
+   Renk vurgu (koyu temada #FFC83D, açıkta #8A6100). Büyük harf sayfanın lang'ine göre (i18n.js dile göre değiştirir; lang
+   olmazsa Türkçede "i" → "I" olur). */
+.kirilim-baslik { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); font-weight: 800; }
 
 /* ── 9. Taşma güvenceleri ── */
 html[data-tasarim="v3"] .qb-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
