@@ -1350,6 +1350,27 @@
   .df-ayak .df-sec { flex:0 0 auto; padding:0 14px; }
   .df-kaydet { border:none; background:var(--accent); color:#111; }
   .df-kaydet:disabled { opacity:.45; cursor:default; }
+  /* (2026-10-29) KÜTÜPHANEDEN EKLE — defter penceresinin iskeleti (.defter-modal/.df-*) + arama kutusu, sonuç ve önizleme */
+  .kb-ara { padding:12px 16px 4px; }
+  .kb-ara input { width:100%; height:46px; padding:0 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface2);
+    color:var(--text); font-size:16px; font-family:inherit; box-sizing:border-box; }
+  .kb-ara input:focus { outline:none; border-color:var(--accent); }
+  .kb-sonuc { display:block; width:100%; text-align:left; padding:12px 14px; border-radius:12px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text); font-family:inherit; cursor:pointer; }
+  .kb-sonuc:hover, .kb-sonuc:focus-visible { border-color:var(--accent); outline:none; }
+  .kb-sonuc b { font-size:15px; }
+  .kb-sonuc .kb-meta { display:block; margin-top:3px; font-size:13px; color:var(--text3); }
+  .kb-sonuc .kb-dize { display:block; margin-top:4px; font-size:13px; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .kb-rozet { display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px; border:1px solid rgba(255,200,61,.45);
+    color:var(--accent); font-size:11px; font-weight:700; vertical-align:middle; }
+  .kb-ust { padding:2px 2px 10px; border-bottom:1px solid var(--border); }
+  .kb-ust h3 { margin:0; font-size:18px; color:var(--text); }
+  .kb-ust .kb-meta { margin-top:4px; font-size:13px; color:var(--text3); }
+  .kb-ust .kb-meta a { color:var(--text3); }
+  .kb-katalog { display:flex; align-items:center; gap:10px; margin-top:10px; padding:10px 12px; border-radius:10px;
+    border:1px solid rgba(255,200,61,.35); background:rgba(255,200,61,.07); font-size:13px; color:var(--text2); }
+  .kb-katalog button { margin-left:auto; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:none;
+    color:var(--text); font-size:12.5px; font-family:inherit; cursor:pointer; white-space:nowrap; }
   .df-ipucu { display:flex; align-items:center; gap:12px; margin:0 0 10px; padding:12px 12px 12px 14px; border-radius:12px;
     border:1px solid rgba(255,200,61,.35); background:rgba(255,200,61,.07); }
   .df-ipucu > i { font-size:26px; color:var(--accent); flex:0 0 auto; }
@@ -6082,7 +6103,11 @@ function eklemeSecimAc(e) {
         <small data-i18n="es.defterdenEkleAlt">${_esCev('es.defterdenEkleAlt','Defterini tara: mevcut esere nota ekle ya da yeni eser aç')}</small></span></button>
       <button type="button" onclick="eklemeSecimKapat();iaAc()"><i class="ti ti-file-import"></i>
         <span><b data-i18n="es.iaMenu">${_esCev('es.iaMenu','Başka uygulamadan aktar')}</b>
-        <small data-i18n="es.iaMenuAlt">${_esCev('es.iaMenuAlt','ChordPro, Word, metin ya da zip dosyası')}</small></span></button>`;
+        <small data-i18n="es.iaMenuAlt">${_esCev('es.iaMenuAlt','ChordPro, Word, metin ya da zip dosyası')}</small></span></button>`
+      + (_kbYetkili() ? `
+      <button type="button" onclick="eklemeSecimKapat();kbAc()"><i class="ti ti-books"></i>
+        <span><b data-i18n="es.kbMenu">${_esCev('es.kbMenu','Kütüphaneden ekle')}</b>
+        <small data-i18n="es.kbMenuAlt">${_esCev('es.kbMenuAlt','Akorlu 9.800\'den fazla şarkıda ara')}</small></span></button>` : '');
     m.addEventListener('click', ev => ev.stopPropagation());
     document.body.appendChild(m);
     document.addEventListener('click', () => eklemeSecimKapat());
@@ -6281,6 +6306,167 @@ async function iaKaydet() {
     : _esCev('es.iaBitti','{n} eser içe aktarıldı ✓ (yalnız sen görürsün)').replace('{n}', tamam));
   if (!hata) { const m = document.getElementById('iaModal'); if (m) m.style.display = 'none'; }
   else { if (d) d.textContent = ''; iaCiz(); }
+}
+
+// ── KÜTÜPHANEDEN EKLE (2026-10-29) ─────────────────────────────────────────
+// Kullanıcı: "Kütüphaneden ekle … hemen başla". akorculuk.com'dan izinle alınan ~9.800 akorlu şarkı (akor_kutuphanesi)
+// sunucuda üç RPC ile açılır (sql/kutuphane_ekle.sql): kutuphane_ara → kutuphane_getir (önizleme) → kutuphane_aktar
+// (KİŞİSEL eser; aynı şarkı ikinci kez aktarılırsa kopya açılmaz, mevcut eser döner). Şimdilik yalnız editör/yönetici —
+// herkese açmak için _kbYetkili() ve SQL'deki koşul birlikte değişir. İnternet gerekir; çevrimdışında yalnız uyarı (local-first).
+let _kb = { q: '', sonuclar: [], secili: null, sira: 0, zaman: null, aktariliyor: false };
+function _kbYetkili() { return isAdmin() || isEditor(); }
+function _kbRpc(ad, govde) {
+  return fetch(SUPA_URL + '/rest/v1/rpc/' + ad, { method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(govde), signal: AbortSignal.timeout(15000) })
+    .then(async r => {
+      if (r.status === 401 || r.status === 403) throw Object.assign(new Error('yetki'), { yetki: true });
+      if (!r.ok) { const t = await r.text(); throw Object.assign(new Error('HTTP ' + r.status), { yetki: /42501|yetki yok/.test(t) }); }
+      return r.json();
+    });
+}
+function _kbHataMetni(e) {
+  if (!navigator.onLine) return _esCev('es.kbCevrimdisi', 'Kütüphane için internet bağlantısı gerekiyor.');
+  if (e && e.yetki) return _esCev('es.kbYetki', 'Bu özellik şimdilik yalnız editörlere açık.');
+  return _esCev('es.kbHata', 'Kütüphaneye ulaşılamadı. Biraz sonra yeniden dene.');
+}
+function kbAc() {
+  let m = document.getElementById('kbModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'kbModal';
+    m.className = 'defter-modal';
+    m.innerHTML = `<div class="df-kutu" role="dialog" aria-modal="true" aria-labelledby="kbBaslik">
+      <div class="df-bas"><div>
+          <div class="df-baslik" id="kbBaslik">${_esCev('es.kbBaslik','📚 Kütüphaneden Ekle')}</div>
+          <div class="df-alt-baslik">${_esCev('es.kbAciklama','Şarkı ya da sanatçı adını yaz, önizle, eserlerine ekle. Eklediğin eser yalnız sana görünür; sonra istediğin gibi düzenleyebilirsin.')}</div></div>
+        <button type="button" class="df-kapat" onclick="kbKapat()" aria-label="${_esCev('ortak.kapat','Kapat')}">×</button></div>
+      <div class="kb-ara"><input type="search" id="kb_q" autocomplete="off" enterkeyhint="search"
+        placeholder="${_esHtml(_esCev('es.kbAraYer','Şarkı ya da sanatçı adı'))}" oninput="kbAraGecikmeli(this.value)"></div>
+      <div id="kb_liste" class="df-liste"></div>
+      <div id="kb_durum" class="df-durum" aria-live="polite"></div>
+      <div class="df-ayak">
+        <button type="button" class="df-ekle df-sec" id="kb_geri" onclick="kbGeri()" style="display:none"><i class="ti ti-arrow-left"></i>${_esCev('es.kbGeri','Sonuçlar')}</button>
+        <button type="button" class="df-kaydet" id="kb_ekle" onclick="kbAktar()" disabled><i class="ti ti-plus"></i>${_esCev('es.kbEkle','Eserlerime ekle')}</button>
+      </div></div>`;
+    m.addEventListener('click', e => { if (e.target === m) kbKapat(); });
+    document.body.appendChild(m);
+  }
+  _kb.secili = null;
+  m.style.display = 'flex';
+  kbCiz();
+  const g = document.getElementById('kb_q');
+  if (g) { g.value = _kb.q; setTimeout(() => { try { g.focus(); } catch (e) {} }, 50); }
+}
+function kbKapat() {
+  if (_kb.aktariliyor) return;
+  clearTimeout(_kb.zaman);
+  const m = document.getElementById('kbModal'); if (m) m.style.display = 'none';
+}
+function kbAraGecikmeli(q) {
+  _kb.q = q;
+  clearTimeout(_kb.zaman);
+  _kb.zaman = setTimeout(kbAra, 300);
+}
+async function kbAra() {
+  const q = (_kb.q || '').trim();
+  const sira = ++_kb.sira;
+  _kb.secili = null;
+  const d = document.getElementById('kb_durum');
+  if (trNorm(q).length < 2) { _kb.sonuclar = []; kbCiz(); if (d) d.textContent = q ? _esCev('es.kbEnAz','Aramak için en az iki harf yaz.') : ''; return; }
+  if (!navigator.onLine) { if (d) d.textContent = _kbHataMetni(); return; }
+  if (d) d.textContent = _esCev('es.kbAraniyor','Aranıyor…');
+  try {
+    const r = await _kbRpc('kutuphane_ara', { q });
+    if (sira !== _kb.sira) return;             // bu arada yeni harf yazıldı; eski yanıtı çizme
+    _kb.sonuclar = Array.isArray(r) ? r : [];
+    kbCiz();
+    if (d) d.textContent = !_kb.sonuclar.length ? _esCev('es.kbSonucYok','Sonuç bulunamadı. Başka bir yazımla dene.')
+      : (_kb.sonuclar.length >= 30 ? _esCev('es.kbCok','İlk 30 sonuç gösteriliyor; aramayı daralt.')
+      : _esCev('es.kbSonucSayi','{n} sonuç').replace('{n}', _kb.sonuclar.length));
+  } catch (e) {
+    if (sira !== _kb.sira) return;
+    console.warn('[kütüphane] arama', e);
+    if (d) d.textContent = _kbHataMetni(e);
+  }
+}
+function kbCiz() {
+  const l = document.getElementById('kb_liste'); if (!l) return;
+  const geri = document.getElementById('kb_geri'), ekle = document.getElementById('kb_ekle'), ara = document.querySelector('#kbModal .kb-ara');
+  const k = _kb.secili;
+  if (geri) geri.style.display = k ? '' : 'none';
+  if (ara) ara.style.display = k ? 'none' : '';
+  if (ekle) { ekle.style.display = k ? '' : 'none'; ekle.disabled = !k || !k.yuklendi || _kb.aktariliyor; }   // listede değil, önizlemede
+  if (!k) {
+    l.innerHTML = _kb.sonuclar.map((s, i) => `<button type="button" class="kb-sonuc" onclick="kbSec(${i})">
+        <b>${_esHtml(s.ad)}</b>${s.bizde_eser_id ? `<span class="kb-rozet">${_esCev('es.kbKatalogda','katalogda var')}</span>` : ''}
+        <span class="kb-meta">${_esHtml([s.sanatci, s.karar ? _esCev('es.kbKarar','Karar') + ': ' + s.karar : ''].filter(Boolean).join(' · '))}</span>
+        ${s.ilk_dize ? `<span class="kb-dize">${_esHtml(s.ilk_dize)}</span>` : ''}</button>`).join('');
+    return;
+  }
+  const katalogda = k.bizde_eser_id && DATA.some(w => w.id === k.bizde_eser_id);
+  l.innerHTML = `<div class="kb-ust"><h3>${_esHtml(k.ad)}</h3>
+      <div class="kb-meta">${_esHtml([k.sanatci, k.karar ? _esCev('es.kbKarar','Karar') + ': ' + k.karar : ''].filter(Boolean).join(' · '))}${k.kaynak_url
+        ? ` · <a href="${_esHtml(k.kaynak_url)}" target="_blank" rel="noopener">${_esCev('es.kbKaynak','Kaynak')}: akorculuk.com</a>` : ''}</div>
+      ${katalogda ? `<div class="kb-katalog"><span>${_esCev('es.kbKatalogdaUzun','Bu şarkı ortak katalogda da var.')}</span>
+        <button type="button" onclick="kbKatalogdakiniAc(${Number(k.bizde_eser_id)})">${_esCev('es.kbKatalogdaAc','Katalogdakini aç')}</button></div>` : ''}</div>
+    ${k.yuklendi
+      ? `<div class="lyrics-box">${k.akor ? renderChords(k.akor) : (k.soz ? _esHtml(k.soz).replace(/\n/g, '<br>') : '')}</div>
+         ${k.akor ? '' : `<div class="df-durum" style="padding:8px 0 0">${_esCev('es.kbAkorYok','Bu şarkının akoru yok; yalnız sözü eklenecek.')}</div>`}`
+      : `<div class="df-durum" style="padding:12px 0">${_esCev('es.kbYukleniyor','Yükleniyor…')}</div>`}`;
+}
+async function kbSec(i) {
+  const s = _kb.sonuclar[i]; if (!s) return;
+  _kb.secili = { ...s, yuklendi: false };
+  kbCiz();
+  const l = document.getElementById('kb_liste'); if (l) l.scrollTop = 0;
+  const d = document.getElementById('kb_durum'); if (d) d.textContent = '';
+  try {
+    const r = await _kbRpc('kutuphane_getir', { p_id: s.id });
+    const tam = Array.isArray(r) && r[0];
+    if (!tam) throw new Error('bulunamadı');
+    if (!_kb.secili || _kb.secili.id !== s.id) return;
+    _kb.secili = { ...tam, yuklendi: true };
+    kbCiz();
+  } catch (e) {
+    console.warn('[kütüphane] önizleme', e);
+    if (d) d.textContent = _kbHataMetni(e);
+  }
+}
+function kbGeri() {
+  if (_kb.aktariliyor) return;
+  _kb.secili = null;
+  const d = document.getElementById('kb_durum'); if (d) d.textContent = '';
+  kbCiz();
+}
+function kbKatalogdakiniAc(id) {
+  kbKapat();
+  if (typeof selectWork === 'function') selectWork(id);
+}
+async function kbAktar() {
+  const k = _kb.secili;
+  if (!k || !k.yuklendi || _kb.aktariliyor) return;
+  const d = document.getElementById('kb_durum');
+  if (!navigator.onLine) { if (d) d.textContent = _kbHataMetni(); return; }
+  _kb.aktariliyor = true; kbCiz();
+  if (d) d.textContent = _esCev('es.kbEkleniyor','Ekleniyor…');
+  try {
+    const id = Number(await _kbRpc('kutuphane_aktar', { p_id: k.id }));
+    if (!id) throw new Error('id');
+    if (!DATA.some(w => w.id === id)) {
+      const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + id + '&select=*', { headers: authHeaders(), signal: AbortSignal.timeout(15000) });
+      const satir = r.ok ? ((await r.json()) || [])[0] : null;
+      if (satir) DATA.push(mapWorkRow(satir));
+      buildFilters(); applyFilters();
+    }
+    _kb.aktariliyor = false;
+    kbKapat();
+    toastMsg(_esCev('es.kbEklendi','“{ad}” eserlerine eklendi ✓ (yalnız sen görürsün)').replace('{ad}', k.ad));
+    if (DATA.some(w => w.id === id)) selectWork(id);
+  } catch (e) {
+    _kb.aktariliyor = false; kbCiz();
+    console.warn('[kütüphane] aktarma', e);
+    if (d) d.textContent = _kbHataMetni(e);
+  }
 }
 
 function defterAc() {
@@ -6980,6 +7166,7 @@ window.RGeri = function () {
   if (_rkCombo && _rkCombo.acik) { rkComboKapat(); return true; }
   if (sinif('eklemeSecim', 'acik')) { eklemeSecimKapat(); return true; }
   if (acik('defterModal')) { defterKapat(); return true; }
+  if (acik('kbModal')) { if (_kb.secili) kbGeri(); else kbKapat(); return true; }   // (2026-10-29) önizlemeden önce sonuçlara
   if (sinif('repAddSheet', 'open')) { closeRepAddSheet(); return true; }
   if (sinif('moreSheet', 'open')) { toggleMoreSheet(false); return true; }
   if (sinif('sidebar', 'open')) { toggleFilterSheet(false); return true; }
@@ -7118,7 +7305,7 @@ function neTurDegisti() {
 // buradan çıkarıldı.
 const FORM_LISTESI_THM = ['Türkü','Kırık Hava','Uzun Hava','Bozlak','Maya','Hoyrat',
   'Divan','Gurbet Havası','Barak Havası','Mugam','Ağıt','Deyiş','Nefes','Semah','Duvaz-ı İmam',
-  'Miraçlama','Zeybek','Halay','Horon','Karşılama','Bar','Oyun Havası','Koşma','Destan',
+  'Miraçlama','Zeybek','Halay','Horon','Karşılama','Bar','Oyun Havası','Roman Havası','Koşma','Destan',
   'Varsağı','Güzelleme','Taşlama','Rumeli Türküsü'];
 
 const FORM_LISTESI_TSM = ['Şarkı','Beste','Ağır Semai','Yürük Semai','Kâr','Kâr-ı Nâtık',

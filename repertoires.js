@@ -407,7 +407,7 @@ function _applyWorksRows(rows) {
   (rows||[]).forEach(w => {
     const id = String(w.id);
     // (2026-08-20) videoLink eklendi — 🎧 Repertuvarı Dinle bunu kullanıyor.
-    WL[id] = { name: w.name||'', composer: w.composer||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'', videoLink: w.video_link||'', olcu: w.measurement||'' };
+    WL[id] = { name: w.name||'', composer: w.composer||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'', videoLink: w.video_link||'', olcu: w.measurement||'', form: (w.form||'').trim() };
     WLIST.push({ id, name: w.name||'', composer: w.composer||'', makam: w.makam||'', sb: w.submitted_by||'' });
   });
   // customWorks patch (yerel override'lar)
@@ -1725,7 +1725,7 @@ function workProfile(it){
   const olcu=olcuAnahtari(w.olcu);
   return {name:w.name||('#'+it.workId), makamAd:mk?mk.ad:'', aile:mk?mk.aile:'',
           karar, bilinmiyor:!mk && (base===null||base===undefined), kararTxt:it.closingNote||w.closingNote||(mk?mk.kararPerde:''),
-          olcuTxt:olcu?olcu.txt:'', olcuSira:olcu?olcu.sira:null};
+          olcuTxt:olcu?olcu.txt:'', olcuSira:olcu?olcu.sira:null, formTxt:w.form||''};
 }
 
 // (2026-10-05) Ölçüye göre sıralama: "9/8", "Aksak 9/8", " 4/4 " → {txt:'9/8', sira}.
@@ -1798,16 +1798,21 @@ function optimizeAtoms(movable){
   return order;
 }
 
-// mode: 'akilli' | 'makam' | 'karar' | 'olcu'
+// mode: 'akilli' | 'makam' | 'karar' | 'olcu' | 'form'
 function proposeOrder(items, mode){
   const atoms=buildAtoms(items);
   const slots=[]; const movable=[];
   // Ölçü modunda sabit eser yok: makam bilgisi gerekmiyor, ölçüsü olmayanlar sona gider
-  atoms.forEach((a,i)=>{ if(a.fixed && mode!=='olcu') return; slots.push(i); movable.push(a); });
+  atoms.forEach((a,i)=>{ if(a.fixed && mode!=='olcu' && mode!=='form') return; slots.push(i); movable.push(a); });
   let sorted;
   if(mode==='olcu'){
     // Aynı ölçüdekiler art arda; grup içinde mevcut sıra korunur (sort kararlı). Ölçüsüz sona.
     sorted=movable.slice().sort((x,y)=> (x.inP.olcuSira??1e9)-(y.inP.olcuSira??1e9));
+  }else if(mode==='form'){
+    // (2026-10-29) Aynı formdakiler peş peşe (Roman havaları, oyun havaları, türküler…). Gruplar repertuvarda ilk
+    // göründükleri sırayla gelir, grup içinde mevcut sıra korunur; formu girilmemiş eserler sona.
+    const ilk=new Map(); movable.forEach((a,i)=>{ const f=a.inP.formTxt; if(f && !ilk.has(f)) ilk.set(f,i); });
+    sorted=movable.slice().sort((x,y)=> (x.inP.formTxt?ilk.get(x.inP.formTxt):1e9)-(y.inP.formTxt?ilk.get(y.inP.formTxt):1e9));
   }else if(mode==='makam'){
     sorted=movable.slice().sort((x,y)=> (x.inP.makamAd||'zzz').localeCompare(y.inP.makamAd||'zzz','tr'));
   }else if(mode==='karar'){
@@ -1846,6 +1851,7 @@ function openSortSheet(repId){
         <button class="sort-mode" data-mode="makam" onclick="runSort('makam')">${_r('rep.makamaGore','Makama göre')}</button>
         <button class="sort-mode" data-mode="karar" onclick="runSort('karar')">${_r('rep.kararaGore','Karar sesine göre')}</button>
         <button class="sort-mode" data-mode="olcu" onclick="runSort('olcu')">${_r('rep.olcuyeGore','Ölçüye göre')}</button>
+        <button class="sort-mode" data-mode="form" onclick="runSort('form')">${_r('rep.formaGore','Forma göre')}</button>
       </div>
       <div class="sort-body" id="sortBody"></div>
       <div class="sort-foot">
@@ -1878,6 +1884,9 @@ function runSort(mode){
       // Ölçü modunda makam geçiş notu yerine ölçü grubu başlığı (ölçü değişince)
       if(!linked && (i===0 || workProfile(after[i-1]).olcuTxt!==p.olcuTxt))
         html+=`<div class="sort-tr ok">${_rEsc(p.olcuTxt||_r('rep.olcuYok','ölçü ?'))}</div>`;
+    }else if(mode==='form'){
+      if(!linked && (i===0 || workProfile(after[i-1]).formTxt!==p.formTxt))
+        html+=`<div class="sort-tr ok">${_rEsc(p.formTxt||_r('rep.formYok','form ?'))}</div>`;
     }else if(i>0 && !linked){
       const t=transitionCost(workProfile(after[i-1]),p);
       html+=`<div class="sort-tr ${t.lvl}">${t.lvl==='bad'?'⚠':(t.lvl==='ok'?'✓':'·')} ${_rEsc(t.txt)}</div>`;
@@ -1885,7 +1894,7 @@ function runSort(mode){
     html+=`<div class="sort-row${linked?' chained':''}">
       <span class="sort-no">${linked?'↳':(i+1)}</span>
       <span class="sort-name">${linked?'🔗 ':''}${_rEsc(p.name)}</span>
-      <span class="sort-mk">${mode==='olcu' ? (p.olcuTxt?_rEsc(p.olcuTxt):'<i>'+_r('rep.olcuYok','ölçü ?')+'</i>')+(p.makamAd?' · '+_rEsc(p.makamAd):'') : (p.makamAd?_rEsc(p.makamAd):'<i>makam ?</i>')+(p.kararTxt?' · '+_rEsc(p.kararTxt):'')}</span>
+      <span class="sort-mk">${mode==='form' ? (p.formTxt?_rEsc(p.formTxt):'<i>'+_r('rep.formYok','form ?')+'</i>')+(p.olcuTxt?' · '+_rEsc(p.olcuTxt):'') : mode==='olcu' ? (p.olcuTxt?_rEsc(p.olcuTxt):'<i>'+_r('rep.olcuYok','ölçü ?')+'</i>')+(p.makamAd?' · '+_rEsc(p.makamAd):'') : (p.makamAd?_rEsc(p.makamAd):'<i>makam ?</i>')+(p.kararTxt?' · '+_rEsc(p.kararTxt):'')}</span>
     </div>`;
   });
   body.innerHTML=html;
