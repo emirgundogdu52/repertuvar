@@ -11,6 +11,7 @@
 <link rel="icon" href="Repertuvar_logo.png">
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
+<script src="biyometri.js"></script>   <!-- (2026-10-29) Face ID / parmak izi ile giriş; web'de etkisiz -->
 <script src="bildir.js"></script>
 <script src="onboarding.js"></script>
 <script src="verilerim.js"></script>
@@ -249,7 +250,8 @@ async function hesapSil() {
     return;
   }
 
-  // Başarılı: oturumu temizle ve çıkış
+  // Başarılı: oturumu temizle ve çıkış. (2026-10-29) Cihaz kasasındaki Face ID kaydı da silinir.
+  try { if (window.biyometri) await biyometri.sil(); } catch (e) {}
   localStorage.clear();
   window.location.href = 'login.html?msg=hesap-silindi';
 }
@@ -625,6 +627,17 @@ html, body { overflow-x: hidden; }
           <div class="setting-desc" data-i18n="ay.eposta_alt">Hesap e-posta adresini değiştir</div>
         </div>
         <button class="setting-btn" onclick="openEmailModal()" data-i18n="ay.degistir">Değiştir</button>
+      </div>
+      <!-- (2026-10-29) Face ID / parmak izi ile giriş — yalnız yerel uygulamada ve cihaz destekliyorsa görünür (biyoAyarKur) -->
+      <div class="setting-row" id="biyoSatir" style="display:none;">
+        <div style="flex:1;min-width:0;">
+          <div class="setting-label" id="biyoBaslik">Face ID ile giriş</div>
+          <div class="setting-desc" data-i18n="biyo.ayarAlt">Açıkken bu cihazda şifre yazmadan girersin. Şifren yalnız bu cihazın güvenli kasasında saklanır.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="biyoAcik" onchange="biyoAyarDegisti(this)">
+          <span class="toggle-slider"></span>
+        </label>
       </div>
       <!-- (2026-10-05) Apple ile açılmış hesap: başka cihazda/platformda da hesabına ulaşabilsin.
            Apple girişi iOS, Android ve web'de var; yedek olarak şifre belirleme / gerçek e-posta. -->
@@ -1023,6 +1036,19 @@ html, body { overflow-x: hidden; }
   </div>
 </div>
 
+<!-- (2026-10-29) Face ID / parmak izi ile girişi açma: şifre bir kez doğrulanır, sonra cihazın kasasına yazılır -->
+<div class="modal-overlay" id="biyoModal">
+  <div class="modal-card">
+    <div class="modal-title" id="biyoModalBaslik">Face ID ile giriş</div>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:14px;" data-i18n="biyo.sifreMetin">Açmak için şifreni bir kez gir.</p>
+    <div class="field"><label data-i18n="biyo.sifreEtiket">ŞİFRE</label><input type="password" id="biyoSifre" autocomplete="current-password" onkeydown="if(event.key==='Enter') biyoAc()"></div>
+    <div class="modal-actions">
+      <button class="setting-btn" onclick="biyoSifreKapat()" data-i18n="ay.iptal">İptal</button>
+      <button class="setting-btn primary" id="biyoAcBtn" onclick="biyoAc()" data-i18n="biyo.ac">Aç</button>
+    </div>
+  </div>
+</div>
+
 <!-- E-posta Değiştir Modal -->
 <div class="modal-overlay" id="emailModal">
   <div class="modal-card">
@@ -1365,6 +1391,7 @@ async function changePassword() {
     });
     if (r.ok) {
       closePasswordModal();
+      await biyoSifreGuncelle(p1);   // (2026-10-29) Face ID kaydı yeni şifreyle (olmazsa silinir)
       toast(_t('mod.sifre_ok','Şifre güncellendi. Çıkış yapılıyor...'));
       setTimeout(() => {
         localStorage.removeItem('sb_token');
@@ -1379,6 +1406,81 @@ async function changePassword() {
     }
   } catch(e) { toast(_t('mod.hata','Hata: ') + e.message, 'err'); }
 }
+
+// ---- (2026-10-29) Face ID / parmak izi ile giriş (biyometri.js) ----
+// Yalnız yerel uygulamada ve cihaz destekliyorsa görünür. Açarken şifre bir kez doğrulanır: geçici bir oturum
+// açılır ve hemen YALNIZ o oturum kapatılır (scope=local), bu cihazdaki asıl oturuma dokunulmaz. Sonra e-posta +
+// şifre cihazın kasasına yazılır. Kapatınca kasadaki kayıt silinir. Apple / Google ile açılmış şifresiz hesapta
+// kayıt yoksa satır gizli (Apple girişi zaten Face ID kullanır).
+let _biyoTur = 0;
+async function biyoAyarKur() {
+  const satir = document.getElementById('biyoSatir');
+  if (!satir || !window.biyometri) return;
+  try {
+    const d = await biyometri.durum();
+    if (!d.acik) { satir.style.display = 'none'; return; }
+    _biyoTur = d.tur;
+    const kayitli = await biyometri.kayitliMi();
+    const m = ((getUser() || {}).app_metadata) || {};
+    const sifreli = (m.providers || []).indexOf('email') !== -1 || m.provider === 'email';
+    if (!kayitli && !sifreli) { satir.style.display = 'none'; return; }
+    document.getElementById('biyoBaslik').textContent = biyometri.metin('biyo.ayarBaslik', '{yontem} ile giriş', d.tur, true);
+    document.getElementById('biyoAcik').checked = kayitli;
+    satir.style.display = '';
+  } catch (e) { satir.style.display = 'none'; }
+}
+async function biyoAyarDegisti(kutu) {
+  if (kutu.checked) { kutu.checked = false; biyoSifreAc(); return; }   // şifre doğrulanınca işaretlenir
+  await biyometri.sil();
+  toast(biyometri.metin('biyo.kapatildi', '{yontem} ile giriş kapatıldı.', _biyoTur, true));
+}
+function biyoSifreAc() {
+  document.getElementById('biyoSifre').value = '';
+  document.getElementById('biyoModalBaslik').textContent = biyometri.metin('biyo.ayarBaslik', '{yontem} ile giriş', _biyoTur, true);
+  document.getElementById('biyoModal').classList.add('open');
+  setTimeout(() => { const g = document.getElementById('biyoSifre'); if (g) g.focus(); }, 50);
+}
+function biyoSifreKapat() {
+  document.getElementById('biyoSifre').value = '';
+  document.getElementById('biyoModal').classList.remove('open');
+}
+async function biyoAc() {
+  const giris = document.getElementById('biyoSifre'), btn = document.getElementById('biyoAcBtn');
+  const sifre = giris.value, eposta = (getUser() || {}).email;
+  if (!sifre || !eposta || btn.disabled) return;
+  btn.disabled = true;
+  try {
+    let r;
+    try {
+      r = await fetch(SUPA_URL + '/auth/v1/token?grant_type=password', {
+        method: 'POST', headers: { apikey: SUPA_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: eposta, password: sifre })
+      });
+    } catch (e) { toast(_t('biyo.baglantiYok', 'Şifreyi doğrulamak için internet bağlantısı gerekiyor.'), 'err'); return; }
+    if (!r.ok) { toast(_t('biyo.sifreYanlis', 'Şifre doğrulanamadı.'), 'err'); return; }
+    const g = await r.json().catch(() => null);
+    if (g && g.access_token) fetch(SUPA_URL + '/auth/v1/logout?scope=local', {
+      method: 'POST', headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + g.access_token }
+    }).catch(() => {});
+    try { await biyometri.kaydet(eposta, sifre); }
+    catch (e) { toast(biyometri.metin('biyo.acilamadi', '{yontem} ile giriş açılamadı.', _biyoTur, true), 'err'); return; }
+    biyoSifreKapat();
+    document.getElementById('biyoAcik').checked = true;
+    toast(biyometri.metin('biyo.acildi', '{yontem} ile giriş açıldı.', _biyoTur, true));
+  } finally {
+    btn.disabled = false;
+    giris.value = '';
+  }
+}
+// Şifre değişince kasadaki kayıt yeni şifreyle güncellenir; olmazsa silinir (eski şifre zaten reddedilir)
+async function biyoSifreGuncelle(yeni) {
+  try {
+    if (!window.biyometri || !(await biyometri.kayitliMi())) return;
+    try { await biyometri.kaydet((getUser() || {}).email, yeni); } catch (e) { await biyometri.sil(); }
+  } catch (e) {}
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', biyoAyarKur); else biyoAyarKur();
+window.addEventListener('dil-degisti', biyoAyarKur);
 
 // ---- E-posta Değiştir ----
 let _pendingNewEmail = '';
@@ -1432,6 +1534,8 @@ async function verifyEmailChange() {
       if (data.access_token) localStorage.setItem('sb_token', data.access_token);
       if (data.refresh_token) localStorage.setItem('sb_refresh', data.refresh_token);
       closeEmailModal();
+      // (2026-10-29) Kasadaki Face ID kaydı eski e-postayla; şifre elde olmadığı için silinir, bir sonraki şifreli girişte yeniden sorulur
+      try { if (window.biyometri && await biyometri.kayitliMi()) { await biyometri.sil(); biyometri.sorulduSifirla(); } } catch (e) {}
       toast(_t('mod.eposta_ok','E-posta güncellendi ✓'));
       setTimeout(() => location.reload(), 1200);
     } else {

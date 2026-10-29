@@ -42,6 +42,8 @@ const PRECACHE = [
   '/abonelik.js', '/pro.html',
   // (2026-10-04) yeni tasarım anahtarı — her sayfanın <head>'inde yükleniyor
   '/tasarim.js', '/tasarim.css', '/onboarding.js',
+  // (2026-10-29) Face ID / parmak izi ile giriş (login.html, ayarlar.html)
+  '/biyometri.js',
   // görseller ve manifest
   '/manifest.json', '/Repertuvar_logo.png', '/logo_dark.png', '/logo_light.png',
   '/pwa-192.png', '/pwa-512.png', '/assets/pedal-foto.png',

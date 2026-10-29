@@ -53,6 +53,7 @@ body { overflow: hidden; }
 </style>
 <script src="i18n.js"></script>
 <script src="supabase-js-2.118.0.js"></script>   <!-- (2026-10-17) sürümü sabit, pakette (npm, sha512 doğrulandı) — eskiden CDN @2 -->
+<script src="biyometri.js"></script>   <!-- (2026-10-29) Face ID / parmak izi ile giriş; web'de etkisiz -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -109,6 +110,21 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 .kabul a{color:var(--accent);text-decoration:underline;}
 .msg.err{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--red);}
 .msg.ok{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--green);}
+
+/* (2026-10-29) Face ID / parmak izi ile giriş (biyometri.js) — yalnız yerel uygulamada, kasada kimlik varsa görünür */
+.btn-biyo{width:100%;padding:11px;border-radius:8px;border:1px solid var(--accent);background:rgba(255,200,61,.08);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin-bottom:18px;}
+.btn-biyo[hidden]{display:none;}
+.btn-biyo:disabled{opacity:.5;cursor:default;}
+.btn-biyo .bb-ust{display:flex;align-items:center;gap:8px;}
+.btn-biyo .bb-eposta{font-size:11px;font-weight:400;color:var(--text2);}
+.biyo-teklif{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:24px;}
+.biyo-teklif .bt-kart{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:360px;}
+.biyo-teklif h2{font-size:17px;font-weight:600;margin-bottom:10px;}
+.biyo-teklif p{font-size:13px;line-height:1.55;color:var(--text2);margin-bottom:20px;}
+.biyo-teklif .bt-dugmeler{display:flex;gap:10px;}
+.biyo-teklif .bt-dugmeler button{flex:1;padding:11px;border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;}
+.biyo-teklif .bt-hayir{border:1px solid var(--border);background:var(--surface2);color:var(--text);}
+.biyo-teklif .bt-evet{border:none;background:linear-gradient(135deg,var(--accent),#FFB300);color:#1a1200;}
 </style>
 <link rel="stylesheet" href="tasarim.css">
 </head>
@@ -161,6 +177,11 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 
   <!-- Login form -->
   <div id="loginForm">
+    <!-- (2026-10-29) Face ID / parmak izi ile giriş: metni ve görünürlüğü biyoDugmesi() kurar (web'de hep gizli) -->
+    <button class="btn-biyo" id="btnBiyo" type="button" hidden onclick="biyoIleGir()">
+      <span class="bb-ust"><svg id="btnBiyoIkon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg><span id="btnBiyoMetin"></span></span>
+      <span class="bb-eposta" id="btnBiyoEposta"></span>
+    </button>
     <div class="field">
       <label data-i18n="giris.eposta">E-posta</label>
       <input type="email" id="loginEmail" placeholder="ornek@mail.com" data-i18n-ph="giris.eposta_ph" autocomplete="email">
@@ -511,10 +532,126 @@ async function doLogin() {
   if(data.session) {
     localStorage.setItem('sb_token', data.session.access_token);
     localStorage.setItem('sb_refresh', data.session.refresh_token);
+    await biyoTeklif(email, pass);   // (2026-10-29) yerel uygulamada bir kez: "Bir dahaki girişte Face ID kullanılsın mı?"
     await handlePendingInvite(data.session.user.id);
     window.location.replace('index.html');
   }
 }
+
+// (2026-10-29) FACE ID / PARMAK İZİ İLE GİRİŞ (biyometri.js). Kullanıcı: "Şimdi yüz tanıma eklensin."
+//  - E-posta + şifreyle başarılı girişten sonra BİR KEZ sorulur. Apple / Google girişinde sorulmaz (şifre yok;
+//    Apple girişi zaten Face ID kullanır). Başka hesap için de Ayarlar'dan açılabilir.
+//  - Kasada kimlik varsa formun üstünde "Face ID ile gir" düğmesi; açılış perdesinden sonra bir kez kendiliğinden
+//    istenir. Çıkıştan hemen sonra, askıya alma / silme uyarısında ve adresle gelen oturum devrinde istenmez.
+//  - Vazgeçme ya da hata hiçbir şeyi kilitlemez: şifre formu hep kullanılabilir. Ağ hatasında kayıt silinmez;
+//    sunucu kayıtlı şifreyi reddederse (şifre değişmiş) kayıt silinir, bir sonraki şifreli girişte yeniden sorulur.
+const BIYO_IKON_YUZ = '<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9v1M15 9v1M12 9v4h-1M9.5 15.5a3.5 3.5 0 0 0 5 0"/>';
+const BIYO_IKON_PARMAK = '<path d="M12 11v3a8 8 0 0 1-1.5 4.7"/><path d="M8.5 13a3.5 3.5 0 1 1 7 0v1a12 12 0 0 1-.8 4.3"/><path d="M5.5 14.5V13a6.5 6.5 0 0 1 11.6-4"/><path d="M18.4 11.5c.1.5.1 1 .1 1.5v1a15 15 0 0 1-.6 4"/><path d="M7.8 5.4A8.5 8.5 0 0 1 20 9"/>';
+let _biyoSuruyor = false;
+let _biyoDurum = { acik: false, tur: 0 };
+
+// Düğmeyi kur: cihazda biyometri var ve kasada kimlik kayıtlıysa görünür. Döner: görünüyor mu
+async function biyoDugmesi() {
+  const btn = document.getElementById('btnBiyo');
+  if (!btn || !window.biyometri) return false;
+  try {
+    _biyoDurum = await biyometri.durum();
+    const goster = _biyoDurum.acik && await biyometri.kayitliMi();
+    if (goster) {
+      document.getElementById('btnBiyoMetin').textContent = biyometri.metin('biyo.ileGir', '{yontem} ile gir', _biyoDurum.tur, true);
+      document.getElementById('btnBiyoIkon').innerHTML = (_biyoDurum.tur === 2 || _biyoDurum.tur === 4) ? BIYO_IKON_YUZ : BIYO_IKON_PARMAK;
+      document.getElementById('btnBiyoEposta').textContent = biyometri.kayitliEposta();
+    }
+    btn.hidden = !goster;
+    return goster;
+  } catch (e) { btn.hidden = true; return false; }
+}
+
+async function biyoIleGir() {
+  if (_biyoSuruyor || !window.biyometri) return;
+  _biyoSuruyor = true;
+  const btn = document.getElementById('btnBiyo');
+  try {
+    const k = await biyometri.kimlikAl();
+    if (!k.eposta) {
+      if (k.hata === 'yok') await biyoDugmesi();   // kasada kayıt kalmadıysa düğme gizlenir
+      else if (k.hata === 'kullanilamiyor') showMsg('err', biyometri.metin('biyo.kullanilamiyor', '{yontem} şu an kullanılamıyor. Şifrenle giriş yap.', _biyoDurum.tur, true));
+      return;   // vazgeçti: form olduğu gibi kalır
+    }
+    showMsg('', '');
+    if (btn) btn.disabled = true;
+    const {data, error} = await sb.auth.signInWithPassword({ email: k.eposta, password: k.sifre });
+    if (error) {
+      document.getElementById('loginEmail').value = k.eposta;   // şifre ASLA forma yazılmaz
+      if (error.code === 'invalid_credentials' || (error.status === 400 && /invalid login credentials/i.test(error.message || ''))) {
+        await biyometri.sil();
+        biyometri.sorulduSifirla();
+        await biyoDugmesi();
+        showMsg('err', biyometri.metin('biyo.gecersiz', 'Kayıtlı şifre artık geçerli değil. Şifrenle giriş yap; {yontem} yeniden sorulur.', _biyoDurum.tur));
+      } else {
+        showMsg('err', error.message);   // ağ vb.: kayıt silinmez, sonra yeniden denenebilir
+      }
+      return;
+    }
+    if (data.session) {
+      localStorage.setItem('sb_token', data.session.access_token);
+      localStorage.setItem('sb_refresh', data.session.refresh_token);
+      await handlePendingInvite(data.session.user.id);
+      window.location.replace('index.html');
+    }
+  } catch (e) {
+    console.warn('[biyometri] giriş yapılamadı:', e);   // form kalır
+  } finally {
+    _biyoSuruyor = false;
+    if (btn) btn.disabled = false;
+  }
+}
+
+// Şifreli girişten sonra: cihazda biyometri var, kasada kayıt yok ve daha önce sorulmadıysa bir kez sor.
+async function biyoTeklif(email, pass) {
+  try {
+    if (!window.biyometri || biyometri.soruldu()) return;
+    const d = await biyometri.durum();
+    if (!d.acik || await biyometri.kayitliMi()) return;
+    const evet = await biyoSor(d.tur);
+    biyometri.sorulduIsaretle();
+    if (evet) { try { await biyometri.kaydet(email, pass); } catch (e) {} }   // Android'de parmak izi istemi; vazgeçerse giriş yine sürer
+  } catch (e) {}
+}
+
+function biyoSor(tur) {
+  return new Promise(function (bitir) {
+    const k = document.createElement('div');
+    k.className = 'biyo-teklif';
+    k.setAttribute('role', 'dialog');
+    k.setAttribute('aria-modal', 'true');
+    k.innerHTML = '<div class="bt-kart"><h2></h2><p></p><div class="bt-dugmeler"><button type="button" class="bt-hayir"></button><button type="button" class="bt-evet"></button></div></div>';
+    k.querySelector('h2').textContent = biyometri.metin('biyo.teklifBaslik', '{yontem} ile giriş', tur, true);
+    k.querySelector('p').textContent = biyometri.metin('biyo.teklifMetin', "Bir dahaki girişte {yontem} kullanılsın mı? Şifren yalnız bu cihazın güvenli kasasında saklanır; istediğin zaman Ayarlar'dan kapatabilirsin.", tur);
+    k.querySelector('.bt-hayir').textContent = _gCev('biyo.hayir', 'Hayır');
+    k.querySelector('.bt-evet').textContent = _gCev('biyo.evet', 'Evet');
+    const kapat = function (v) { k.remove(); bitir(v); };
+    k.querySelector('.bt-hayir').onclick = function () { kapat(false); };
+    k.querySelector('.bt-evet').onclick = function () { kapat(true); };
+    document.body.appendChild(k);
+  });
+}
+
+// Sayfa açılışı: düğmeyi kur, uygunsa açılış perdesinden sonra bir kez kendiliğinden iste
+(function biyoBaslat() {
+  if (!window.biyometri) return;
+  const kendiliginden = !/[?&](logout|suspended|deletion_requested|msg)=/.test(location.search)
+    && !window._hashOturum && !localStorage.getItem('sb_token');
+  biyoDugmesi().then(function (gorunur) {
+    if (!gorunur || !kendiliginden) return;
+    const iste = function () {
+      const form = document.getElementById('loginForm');
+      if (form && form.style.display !== 'none' && document.getElementById('btnBiyo')) biyoIleGir();
+    };
+    if (window._acilisBitti) iste(); else window.addEventListener('acilis-bitti', iste, { once: true });
+  });
+  window.addEventListener('dil-degisti', function () { biyoDugmesi(); });
+})();
 
 let _signupName = '';
 let _signupEmail = '';
@@ -995,6 +1132,8 @@ async function loginGoogle() {
   setTimeout(() => {
     overlay.remove();
     document.body.style.overflow = '';
+    window._acilisBitti = true;   // (2026-10-29) Face ID istemi açılış perdesinin üstüne çıkmasın (biyoBaslat)
+    window.dispatchEvent(new Event('acilis-bitti'));
   }, 500);
 })();
 </script>
