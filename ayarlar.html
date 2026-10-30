@@ -922,7 +922,7 @@ html, body { overflow-x: hidden; }
         <div class="setting-label" data-i18n="ay.davetgonder">E-posta ile Davet Gönder</div>
         <div style="display:flex;gap:8px;width:100%;">
           <input type="email" id="davetEmail" placeholder="arkadas@mail.com" data-i18n-ph="ay.davet_ph" 
-            style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:16px;font-family:var(--font);outline:none;"
+            style="flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:16px;font-family:var(--font);outline:none;"
             onkeydown="if(event.key==='Enter') davetGonder()">
           <button onclick="davetGonder()" id="davetBtn" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;padding:8px 16px;color:#1a1200;font-size:16px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap;" data-i18n="ay.gonder">Gönder</button>
         </div>

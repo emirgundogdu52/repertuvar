@@ -497,6 +497,15 @@ body.day-theme .vm-tab.active, body.day-theme .vm-tab.active .ti{color:#fff;}
 .vm-tab:disabled{opacity:.32;cursor:not-allowed;}
 /* (2026-10-18) Etiketler telefonda da görünür (eskiden ≤430px'te gizliydi). Çok dar ekranda
    yer açmak için yalnız "Karar:" öneki ve boşluklar küçülür. */
+/* (2026-10-30) Uzun dillerde (nl, de, fr…) etiketler sığmayınca üst üste biniyordu (Emir, Hollandaca ekran görüntüsü).
+   vmSigdir() taşma ölçer: önce yalnız karar öneki ("Grondtoon:"), sığmazsa seçili olmayan sekmelerin yazısı, yine sığmazsa
+   bütün yazılar gizlenir (simgeler kalır; yazı title/aria-label'da duruyor). */
+/* 1. adımda sekmeler eşit genişlik yerine yazılarına göre paylaşır (Türkçe/İngilizcede eşit genişlik bozulmaz). */
+.vm-tabs.vm-onek .vm-tab, .vm-tabs.vm-onek .stage-info-btn{flex:1 1 auto;}
+.vm-tabs.vm-onek .vm-karar-on,
+.vm-tabs.vm-dar .vm-tab:not(.active) .vm-lbl,
+.vm-tabs.vm-dar .stage-info-btn .vm-lbl,
+.vm-tabs.vm-cokdar .vm-lbl{display:none;}
 @media (max-width:380px){
   .vm-karar .vm-karar-on{display:none;}
   .vm-karar{padding:0 6px;}
@@ -2660,6 +2669,7 @@ function renderStage(){
     _vk.innerHTML = (_ak || _cn)
       ? `<span class="vm-karar-on">${_sCev('sh.kararKisa','Karar')}:&nbsp;</span>${htmlKac(_kl || _cn)}${(!_kl && _kt) ? _sCev('es.kaydirilmadi',' (kaydırılmadı)') : ''}${_kp ? ` · ${htmlKac(_sCev('es.kapo','Kapo'))} ${_kp}` : ''}`
       : '';
+    requestAnimationFrame(vmSigdir);   // (2026-10-30) karar metni eserden esere değişir; şerit yeniden ölçülür
   }
   const _head = document.getElementById('smHead');
   if (_head) _head.innerHTML = `
@@ -3275,6 +3285,23 @@ function setViewMode(mode) {
 function toggleViewModeMenu(e) { if (e && e.stopPropagation) e.stopPropagation(); }
 function closeViewModeMenu() {}
 
+// (2026-10-30) Şerit sığıyor mu? Sekme/karar/bilgi öğelerinden biri içeriğinden darsa (yazı taşıyorsa) sırayla .vm-onek,
+// .vm-dar, .vm-cokdar eklenir. Her çizimde, pencere boyu ve yazı tipi değişince yeniden ölçülür.
+function vmSigdir() {
+  const bar = document.getElementById('viewModeTabs');
+  if (!bar || bar.offsetParent === null) return;
+  const tasiyor = () => bar.scrollWidth > bar.clientWidth + 1 ||
+    [...bar.querySelectorAll('.vm-tab, .stage-info-btn, .vm-karar')].some(e => e.offsetParent !== null && e.scrollWidth > e.clientWidth + 1);
+  bar.classList.remove('vm-onek', 'vm-dar', 'vm-cokdar');
+  for (const sinif of ['vm-onek', 'vm-dar', 'vm-cokdar']) {
+    if (!tasiyor()) return;
+    bar.classList.add(sinif);
+  }
+}
+window.addEventListener('resize', () => requestAnimationFrame(vmSigdir));
+window.addEventListener('dil-degisti', () => requestAnimationFrame(vmSigdir));
+try { document.fonts && document.fonts.ready.then(() => vmSigdir()); } catch (e) {}
+
 function updateViewToggleUI(w) {
   const tabs = document.getElementById('viewModeTabs');
   if (!tabs) return;
@@ -3292,6 +3319,7 @@ function updateViewToggleUI(w) {
   // Veri yoksa Akor/Nota sekmesi pasif görünür ama şerit yerinde durur.
   tabs.style.display = 'flex';
   buildStageToolsRow(mode);
+  requestAnimationFrame(vmSigdir);
 }
 
 // Alt "Görünüm Ayarları" paneli, o an açık olan görünüme göre yeniden kurulur.

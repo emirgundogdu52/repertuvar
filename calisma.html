@@ -203,7 +203,8 @@
 .oy-soz.bos { color:var(--text3); font-style:italic; white-space:normal; }
 /* ── Sekmeler ve ritim paneli ── */
 .co-sekmeler { display:flex; gap:8px; margin-bottom:14px; }
-.co-sekme { flex:0 0 auto; min-height:40px; padding:9px 16px; border-radius:10px; font-size:13px; font-weight:600;
+/* (2026-10-30) flex-shrink + min-width:0: Almanca/Fransızcada üç sekme 375px'e sığmayıp taşıyordu; artık gerekirse daralır, yazı iki satıra iner. */
+.co-sekme { flex:0 1 auto; min-width:0; line-height:1.2; min-height:40px; padding:9px 16px; border-radius:10px; font-size:13px; font-weight:600;
   background:var(--surface2); color:var(--text2); border:1px solid var(--border);
   cursor:pointer; font-family:inherit; transition:all .12s; }
 .co-sekme.aktif { background:var(--yt-btn,var(--accent)); color:#111; border-color:var(--yt-btn,var(--accent)); }
