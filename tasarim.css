@@ -816,10 +816,13 @@ html[data-cam][data-theme="light"] {
   html[data-cam] .bottom-nav .bn-item.active .bn-label { font-weight: 700; }
   /* Klavye açıkken alt menü yazı alanını örtmesin (topnav.js, yalnız dokunmatik). */
   html[data-cam] body.klavye-acik .bottom-nav { display: none !important; }
-  /* Kullanıcı (2026-10-30): aşağı kaydırınca alt menü aşağı kayıp gizlenir, yukarı kaydırınca geri gelir (topnav.js). */
-  html[data-cam] .bottom-nav { transition: transform .25s ease, opacity .25s ease; }
+  /* Kullanıcı (2026-10-30): aşağı kaydırınca alt menü aşağı kayıp gizlenir, yukarı kaydırınca geri gelir (topnav.js).
+     "Pıt diye gidiyor, yumuşak olsun" → solma yok (menü kaymadan kayboluyordu); yalnız kayar: gelirken 0,4 sn, giderken 0,5 sn,
+     yumuşak eğri. +32 px: gölge de ekranın altında kalsın. */
+  html[data-cam] .bottom-nav { transition: transform .4s cubic-bezier(.2, .8, .2, 1); }
   html[data-cam] body.alt-menu-gizli .bottom-nav {
-    transform: translateY(calc(100% + var(--cam-alt) + 12px)); opacity: 0; pointer-events: none;
+    transform: translateY(calc(100% + var(--cam-alt) + 32px)); pointer-events: none;
+    transition: transform .5s cubic-bezier(.4, 0, .2, 1);
   }
 
   /* ── Doğal kaydırmalı sayfalar: içerik barların altından kayar; ilk/son öğe barların altında kalmaz ── */
