@@ -984,6 +984,32 @@ function _m(anahtar, tr) {
     }, 60));
   })();
 
+  // (2026-10-30) Kullanıcı: "alt menüyü gizleyelim, scroll yapınca gelsin, gerek olmayınca gizlensin" → aşağı kaydırınca
+  // alt menü gizlenir (body.alt-menu-gizli, tasarim.css), yukarı kaydırınca geri gelir; kabın başında ve sonunda hep görünür.
+  // Sayfalar farklı kaplarda kayıyor (pencere, Eserler #listCol/.detail, Repertuvarlar .lp/.dp, Sahne .pi) → kaydırma
+  // yakalama evresinde dinlenir; ekranın yarısından alçak kaplar (açılır liste, bildirim paneli) sayılmaz. Düğmeye ya da
+  // bağlantıya dokununca da menü geri gelir: kısa bir detay açılırsa kaydıracak yer kalmıyor, menü gizli kalmasın.
+  (function () {
+    if (!document.documentElement.hasAttribute('data-cam')) return;
+    if (!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)) return;
+    const sonY = new WeakMap();
+    const goster = () => document.body.classList.remove('alt-menu-gizli');
+    document.addEventListener('scroll', function (e) {
+      const kap = e.target === document ? document.scrollingElement : e.target;
+      if (!kap || kap.clientHeight < window.innerHeight / 2) return;
+      const y = kap.scrollTop;
+      if (y <= 40 || y + kap.clientHeight >= kap.scrollHeight - 4) { sonY.set(kap, y); goster(); return; }
+      if (!sonY.has(kap)) { sonY.set(kap, y); return; }
+      const fark = y - sonY.get(kap);
+      if (Math.abs(fark) < 8) return;
+      sonY.set(kap, y);
+      document.body.classList.toggle('alt-menu-gizli', fark > 0);
+    }, { capture: true, passive: true });
+    document.addEventListener('click', e => {
+      if (e.target.closest && e.target.closest('a, button, [onclick], [role="button"]')) goster();
+    }, true);
+  })();
+
   // Theme logic
   window._applyNavTheme = function(theme) { applyTheme(theme); };
   function applyTheme(theme) {

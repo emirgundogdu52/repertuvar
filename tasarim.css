@@ -816,6 +816,11 @@ html[data-cam][data-theme="light"] {
   html[data-cam] .bottom-nav .bn-item.active .bn-label { font-weight: 700; }
   /* Klavye açıkken alt menü yazı alanını örtmesin (topnav.js, yalnız dokunmatik). */
   html[data-cam] body.klavye-acik .bottom-nav { display: none !important; }
+  /* Kullanıcı (2026-10-30): aşağı kaydırınca alt menü aşağı kayıp gizlenir, yukarı kaydırınca geri gelir (topnav.js). */
+  html[data-cam] .bottom-nav { transition: transform .25s ease, opacity .25s ease; }
+  html[data-cam] body.alt-menu-gizli .bottom-nav {
+    transform: translateY(calc(100% + var(--cam-alt) + 12px)); opacity: 0; pointer-events: none;
+  }
 
   /* ── Doğal kaydırmalı sayfalar: içerik barların altından kayar; ilk/son öğe barların altında kalmaz ── */
   html[data-cam].r-natural-scroll-page body {
