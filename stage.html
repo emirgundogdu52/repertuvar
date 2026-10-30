@@ -1769,8 +1769,8 @@ function renderPicker(){
     </div>`;
     const editBg = `<div class="rs-edit-bg" onclick="event.stopPropagation();rsCloseOpenCard();window.location.href='repertoires.html?rep=${r.id}'"><i class="ti ti-edit"></i>${_sCev('sh.degistir','Değiştir')}</div>`;
     const rightBg = isOwner
-      ? `<div class="rs-delete-bg" onclick="event.stopPropagation();rsCloseOpenCard();rsDeleteRep('${r.id}')"><i class="ti ti-trash"></i>Sil</div>`
-      : `<div class="rs-delete-bg rs-hide-bg" onclick="event.stopPropagation();rsCloseOpenCard();rsHideRep('${r.id}')"><i class="ti ti-eye-off"></i>Gizle</div>`;
+      ? `<div class="rs-delete-bg" onclick="event.stopPropagation();rsCloseOpenCard();rsDeleteRep('${r.id}')"><i class="ti ti-trash"></i>${_sCev('ortak.sil','Sil')}</div>`
+      : `<div class="rs-delete-bg rs-hide-bg" onclick="event.stopPropagation();rsCloseOpenCard();rsHideRep('${r.id}')"><i class="ti ti-eye-off"></i>${_sCev('rep.gizle','Gizle')}</div>`;
     return `<div class="rs-wrap">${editBg}${rightBg}${cardHtml}</div>`;
   }).join('');
 }
@@ -2689,7 +2689,7 @@ function renderStage(){
   const ch = stageChainInfo(items, curIdx);
   const mb = document.getElementById('medleyBadge');
   if (mb) {
-    if (ch.inChain) { mb.textContent = '🔗 Potpuri ' + ch.pos + '/' + ch.len; mb.style.display = 'flex'; }
+    if (ch.inChain) { mb.textContent = _sCev('sh.potpuriSira', '🔗 Potpuri {a}/{b}').replace('{a}', ch.pos).replace('{b}', ch.len); mb.style.display = 'flex'; }
     else mb.style.display = 'none';
   }
   const next=items[curIdx+1];
@@ -2975,7 +2975,7 @@ function notaViewHtml(pages, i) {
   const pager = pages.length > 1 ? `
     <div class="nota-pager" id="notaPager">
       <button onclick="event.stopPropagation();notaGoPage(${i-1})" ${i===0?'disabled':''} aria-label="${_sCev('sh.oncekiSayfa','Önceki sayfa')}">‹</button>
-      <div class="nota-dots">${pages.map((_,k)=>`<button class="nota-dot${k===i?' cur':''}" onclick="event.stopPropagation();notaGoPage(${k})" aria-label="Sayfa ${k+1}"></button>`).join('')}</div>
+      <div class="nota-dots">${pages.map((_,k)=>`<button class="nota-dot${k===i?' cur':''}" onclick="event.stopPropagation();notaGoPage(${k})" aria-label="${_sCev('sh.sayfaN','Sayfa {n}').replace('{n}', k+1)}"></button>`).join('')}</div>
       <button onclick="event.stopPropagation();notaGoPage(${i+1})" ${i===pages.length-1?'disabled':''} aria-label="${_sCev('sh.sonrakiSayfa','Sonraki sayfa')}">›</button>
     </div>` : '';
   return counter + `<div class="wnota wnota-tek"><div class="nota-tek-kap">${body}</div>${pager}</div>`;
@@ -3424,7 +3424,7 @@ function showStageChangeBar() {
   bar.type = 'button';
   bar.onclick = async function () {
     bar.disabled = true;
-    bar.textContent = 'Yenileniyor...';
+    bar.textContent = _sCev('sh.yenileniyor', 'Yenileniyor...');
     try { if (typeof syncOfflineData === 'function') await syncOfflineData(); } catch (e) {}
     bar.remove();
     try { renderStage(); } catch (e) { location.reload(); }

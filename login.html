@@ -308,17 +308,17 @@ if(window.location.search.includes('msg=silme-talebi')) {
 }
 if(window.location.search.includes('suspended=1')) {
   setTimeout(() => showMsg('err', _gCev('giris.askiyaAlindi', 'Hesabınız askıya alınmıştır.') + '<br><br>' +
-    '<a href="mailto:info@repertuvar.app?subject=Hesap%20Ask%C4%B1ya%20Alma" style="color:var(--red);text-decoration:underline;">✉️ info@repertuvar.app</a>' +
+    '<a href="mailto:info@repertuvar.app?subject=' + encodeURIComponent(_gCev('giris.askiMailKonu', 'Hesap Askıya Alma')) + '" style="color:var(--red);text-decoration:underline;">✉️ info@repertuvar.app</a>' +
     '&nbsp;&nbsp;&nbsp;' +
-    '<a href="https://wa.me/31621301222?text=Merhaba%2C%20hesab%C4%B1m%20ask%C4%B1ya%20al%C4%B1nd%C4%B1." target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
+    '<a href="https://wa.me/31621301222?text=' + encodeURIComponent(_gCev('giris.askiWaMetin', 'Merhaba, hesabım askıya alındı.')) + '" target="_blank" style="color:#25D366;text-decoration:underline;">💬 WhatsApp</a>'
   ), 100);
 }
 if(window.location.search.includes('deletion_requested=1')) {
   setTimeout(() => {
     const emailParam = new URLSearchParams(window.location.search).get('email') || '';
-    const waText = encodeURIComponent('Merhaba, hesap silme talebimi geri almak istiyorum. E-posta: ' + emailParam);
-    const mailSubject = encodeURIComponent('Silme Talebi İptali');
-    const mailBody = encodeURIComponent('Merhaba,\n\nHesap silme talebimi geri almak istiyorum.\nE-posta: ' + emailParam);
+    const waText = encodeURIComponent(_gCev('giris.silmeIptalWa', 'Merhaba, hesap silme talebimi geri almak istiyorum. E-posta: ') + emailParam);
+    const mailSubject = encodeURIComponent(_gCev('giris.silmeIptalKonu', 'Silme Talebi İptali'));
+    const mailBody = encodeURIComponent(_gCev('giris.silmeIptalGovde', 'Merhaba,\n\nHesap silme talebimi geri almak istiyorum.\nE-posta: ') + emailParam);
     showMsg('err', _gCev('giris.silmeSurecinde', 'Hesabınız silme sürecindedir ve erişiminiz kısıtlanmıştır.') + '<br>' + _gCev('giris.silmeGeriAl', 'Talebinizi geri almak için:') + '<br><br>' +
       '<a href="mailto:info@repertuvar.app?subject=' + mailSubject + '&body=' + mailBody + '" style="color:var(--red);text-decoration:underline;">✉️ info@repertuvar.app</a>' +
       '&nbsp;&nbsp;&nbsp;' +

@@ -531,7 +531,7 @@ function _m(anahtar, tr) {
       <header class="r-topnav">
         <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
         <div class="r-tn-right">
-          <button class="r-tn-bell" id="rTnBell" onclick="toggleNotifPanel(event)" title="Bildirimler" aria-label="Bildirimler"><i class="ti ti-bell"></i><span id="rTnBellBadge"></span></button>
+          <button class="r-tn-bell" id="rTnBell" onclick="toggleNotifPanel(event)" title="${_m('menu.bildirimler','Bildirimler')}" aria-label="${_m('menu.bildirimler','Bildirimler')}"><i class="ti ti-bell"></i><span id="rTnBellBadge"></span></button>
           ${themeToggleMarkup('rThemeToggle', _theme)}
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser" role="button" tabindex="0" aria-label="${_m('menu.profil','Profil')}">
             <div class="r-tn-avatar" id="rTnAvatar"><i class="ti ti-user" style="font-size:16px;"></i></div>
@@ -786,6 +786,17 @@ function _m(anahtar, tr) {
     if (eski) { eski.remove(); renderSidebar(); }
     const alt = document.getElementById('r-bottom-nav');   // gerçek id (renderBottomNav :815)
     if (alt && typeof renderBottomNav === 'function') { alt.remove(); renderBottomNav(); }
+  });
+  // (2026-10-30) Dil sayfa açıkken değişince menü etiketleri eski dilde kalıyordu (Emir: Azerbaycanca seçince alt menü
+  // Türkçe). Çoğu durumda i18n.js sayfayı zaten yeniler; yenilenmeyen durumlarda (Sahne Modu, açılıştan sonra profilden
+  // gelen dil) yan menü ve alt menü yeni dilde yeniden kurulur.
+  window.addEventListener('dil-degisti', function () {
+    try {
+      const eski = document.getElementById('r-sidebar');
+      if (eski) { eski.remove(); renderSidebar(); }
+      const alt = document.getElementById('r-bottom-nav');
+      if (alt) { const gizli = alt.style.display; alt.remove(); renderBottomNav(); const yeni = document.getElementById('r-bottom-nav'); if (yeni) yeni.style.display = gizli; }
+    } catch (e) { console.warn('[topnav] dil değişince menü yeniden kurulamadı:', e); }
   });
 
   function renderSidebar() {

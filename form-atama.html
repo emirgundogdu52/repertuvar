@@ -271,7 +271,7 @@ function ciz() {
         <option>${tur ? _faCev('fa.buTurdeFormYok', 'bu türde form yok') : _faCev('fa.onceTurSecin', 'önce tür seçin')}</option></select>`;
     } else {
       const fl = formListesi(tur);
-      const secenekler = ['<option value="">— form —</option>']
+      const secenekler = ['<option value="">' + _faCev('fa.formSec', '— form —') + '</option>']
         .concat(fl.map(f => `<option value="${esc(f)}"${f === form ? ' selected' : ''}>${esc(f)}</option>`));
       if (form && !fl.includes(form)) {   // katalogdaki farklı bir değer kaybolmasın
         secenekler.splice(1, 0, `<option value="${esc(form)}" selected>${esc(form)}</option>`);

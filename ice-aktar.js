@@ -12,6 +12,11 @@
   var UZANTILAR = ['cho', 'chopro', 'chordpro', 'crd', 'pro', 'chord', 'onsong', 'txt', 'text'];
   var BELGE_UZANTI = ['docx', 'odt'];   // Word / LibreOffice belgesi → düz metin → tek şarkı (2026-10-25)
 
+  // Adı bulunamayan eserin varsayılan adı arayüz dilinde (i18n.js yoksa — node sınaması — Türkçe)
+  function adsizEser() {
+    try { return (g && g.i18n && g.i18n.t) ? g.i18n.t('es.iaAdsizEser', 'Adsız eser') : 'Adsız eser'; } catch (e) { return 'Adsız eser'; }
+  }
+
   // ── Metin çözme: UTF-8 (BOM'lu/BOM'suz), değilse eski Windows Türkçe (1254) ──
   function metinCoz(veri) {
     var b = veri instanceof Uint8Array ? veri : new Uint8Array(veri);
@@ -207,7 +212,7 @@
     parcalar.forEach(function (p) {
       if (!p.trim()) return;
       var e = chordpro ? chordproSarki(p) : metinSarki(p, dosyaAdi);
-      if (!e.ad) e.ad = dosyaAdindanBaslik(dosyaAdi) || 'Adsız eser';
+      if (!e.ad) e.ad = dosyaAdindanBaslik(dosyaAdi) || adsizEser();
       if (!e.karar && e.ton) e.karar = tondanKarar(e.ton);
       if (e.soz || e.akorlu || e.ad) cikti.push(e);
     });

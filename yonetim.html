@@ -416,7 +416,7 @@ async function trafikYukle() {
       box.innerHTML = '<div class="y-alt-baslik">' + _yoCev('yo.nereden','Nereden geldiler (30 gün)') + '</div>'
         + '<div class="y-rows">' + ks.map(function (k) {
             return '<div class="y-row"><span class="y-row-lbl" style="overflow:hidden;'
-              + 'text-overflow:ellipsis;white-space:nowrap;">' + String(k.kaynak).replace(/</g,'&lt;')
+              + 'text-overflow:ellipsis;white-space:nowrap;">' + String(k.kaynak === 'doğrudan' ? _yoCev('yo.kaynakDogrudan', 'doğrudan') : k.kaynak).replace(/</g,'&lt;')
               + '</span><span class="y-row-val">' + k.n + '</span></div>';
           }).join('') + '</div>';
     }

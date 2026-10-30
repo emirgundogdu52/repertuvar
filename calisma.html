@@ -382,13 +382,13 @@
           <span class="rt-etiket" data-i18n="ca.tempo">Tempo</span>
           <button class="rt-adim" data-rb-tut="-1" onclick="rbTempoKaydir(-1)" aria-label="−1">−</button>
           <input type="number" class="rb-tempo-gir" id="rbTempoGir" min="20" max="400" step="1" inputmode="numeric"
-                 onchange="rbTempoGir(this.value)" onkeydown="if(event.key==='Enter')this.blur()" aria-label="Tempo (BPM)">
+                 onchange="rbTempoGir(this.value)" onkeydown="if(event.key==='Enter')this.blur()" aria-label="Tempo (BPM)" data-i18n-aria="me.tempoBpm">
           <button class="rt-adim" data-rb-tut="1" onclick="rbTempoKaydir(1)" aria-label="+1">+</button>
           <span class="rb-birim">BPM</span>
           <span class="rb-kucuk-not" id="rbTempoNot"></span>
           <button class="rb-hiz-cip rb-hiz-sifir" id="rbTempoSifir" onclick="rbTempoSifirla()" data-i18n="ca.rbKayitTempo">Kayıt temposu</button>
         </div>
-        <input type="range" class="rb-kaydirici" id="rbTempoKaydirici" min="20" max="400" step="1" oninput="rbTempoGir(this.value)" aria-label="Tempo">
+        <input type="range" class="rb-kaydirici" id="rbTempoKaydirici" min="20" max="400" step="1" oninput="rbTempoGir(this.value)" aria-label="Tempo" data-i18n-aria="alan.tempo">
         <div class="rb-ayar">
           <span class="rt-etiket" data-i18n="ca.rbTon">Ton</span>
           <button class="rt-adim" onclick="rbTonKaydir(-1)">−</button>

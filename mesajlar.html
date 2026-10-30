@@ -319,6 +319,18 @@ function _msCev(anahtar, tr) {
   catch (e) { return tr; }
 }
 
+// (2026-10-30) Yönetici konuşma başlatınca ilk satıra "(Admin tarafından başlatılan konuşma)" YÖNETİCİNİN dilinde yazılıyor
+// (veri). Üye başka dildeyse Türkçe görüyordu → gösterirken bu bilinen metin okuyanın diline çevrilir; veri değişmez.
+function _msIcerik(c) {
+  try {
+    const sz = (window.i18n && i18n.sozluk) || {};
+    const bilinen = ['(Admin tarafından başlatılan konuşma)'];
+    Object.keys(sz).forEach(function (d) { if (sz[d] && sz[d]['ms.adminBaslatti']) bilinen.push(sz[d]['ms.adminBaslatti']); });
+    if (bilinen.indexOf(c) !== -1) return _msCev('ms.adminBaslatti', '(Admin tarafından başlatılan konuşma)');
+  } catch (e) {}
+  return c == null ? '' : c;
+}
+
 // (2026-08-03) Eskiden token yoksa anon anahtara SESSİZCE düşüyordu: istek yola
 // çıkıyor, RLS altında auth.uid() NULL olduğu için 0 satır dönüyor, kullanıcı
 // hata değil BOŞ LİSTE görüyordu. Artık auth.js'teki kanonik authHeaders()
@@ -420,7 +432,7 @@ async function loadMessages() {
             <div class="conv-avatar">${htmlKac(ini)}</div>
             <div class="conv-info">
               <div class="conv-email">${htmlKac(g.email)}</div>
-              <div class="conv-preview">${htmlKac(last.content.substring(0,60))}${last.content.length>60?'...':''}</div>
+              <div class="conv-preview">${htmlKac(_msIcerik(last.content).substring(0,60))}${_msIcerik(last.content).length>60?'...':''}</div>
             </div>
             <div class="conv-meta">
               <div class="conv-date">${timeAgo(last.created_at)}</div>
@@ -438,7 +450,7 @@ async function loadMessages() {
             <span class="thread-msg-from">${_msCev('ms.siz','Siz')}</span>
             <span class="thread-msg-date">${timeAgo(m.created_at)}</span>
           </div>
-          <div class="thread-msg-content">${htmlKac(m.content)}</div>
+          <div class="thread-msg-content">${htmlKac(_msIcerik(m.content))}</div>
           ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">${_msCev('ms.adminYaniti','Admin Yanıtı')} · ${timeAgo(m.replied_at)}</div>${htmlKac(m.admin_reply)}</div>` : ''}
           <div class="thread-actions">
             <button class="btn-delete-msg" onclick="deleteMessage('${m.id}')"><i class="ti ti-trash" style="font-size:14px;"></i> ${_msCev('ortak.sil','Sil')}</button>
@@ -498,7 +510,7 @@ function openThread(fromId, email) {
               <span class="thread-msg-from">${htmlKac(email.split('@')[0])}</span>
               <span class="thread-msg-date">${timeAgo(m.created_at)}</span>
             </div>
-            <div class="thread-msg-content">${htmlKac(m.content)}</div>
+            <div class="thread-msg-content">${htmlKac(_msIcerik(m.content))}</div>
             ${m.admin_reply ? `<div class="thread-reply-box"><div class="thread-reply-label">${_msCev('ms.adminYaniti','Admin Yanıtı')} · ${timeAgo(m.replied_at)}</div>${htmlKac(m.admin_reply)}</div>` : ''}
             <div class="thread-actions">
               ${!m.admin_reply ? `<button class="btn-reply" onclick="toggleReplyThread('${m.id}')"><i class="ti ti-reply"></i> ${_msCev('ms.yanitla','Yanıtla')}</button>` : ''}

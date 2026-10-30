@@ -167,7 +167,7 @@ async function loadMyGroups() {
     } catch(e) {}
     const list = active.map(m => ({
       id: m.group_id,
-      name: nameMap[m.group_id] || 'Grup',
+      name: nameMap[m.group_id] || _auCev('ortak.grup', 'Grup'),
       role: m.role || 'member'
     })).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr'));
     localStorage.setItem('user_groups', JSON.stringify(list));
@@ -415,7 +415,7 @@ function _isAnonAuthz(v) { return !!v && v === 'Bearer ' + SUPA_KEY; }
 // mevcut `if (!r.ok)` dallarıyla uyumlu.
 function _blockedResponse(reason) {
   return new Response(
-    JSON.stringify({ code: 'PGRST301', message: 'Oturum geçersiz — istek gönderilmedi.', reason: reason }),
+    JSON.stringify({ code: 'PGRST301', message: _auCev('ortak.oturumGecersizIstek', 'Oturum geçersiz — istek gönderilmedi.'), reason: reason }),
     { status: 401, statusText: 'Unauthorized', headers: { 'Content-Type': 'application/json' } }
   );
 }
@@ -699,11 +699,11 @@ async function supaTumSayfalar(url, headers, secenek) {
       toplam = m ? Number(m[1]) : -1;
     }
     const satirlar = await r.json();
-    if (!Array.isArray(satirlar)) { const e = new Error('beklenmeyen yanıt'); e.status = r.status; throw e; }
+    if (!Array.isArray(satirlar)) { const e = new Error(_auCev('ortak.beklenmeyenYanit', 'beklenmeyen yanıt')); e.status = r.status; throw e; }
     for (const s of satirlar) hepsi.push(s);
     if (!satirlar.length || (toplam >= 0 && hepsi.length >= toplam)) return hepsi;
   }
-  throw new Error('sayfa sınırı aşıldı: ' + url);
+  throw new Error(_auCev('ortak.sayfaSiniriAsildi', 'sayfa sınırı aşıldı') + ': ' + url);
 }
 window.supaTumSayfalar = supaTumSayfalar;
 
@@ -961,10 +961,13 @@ function _profilDiliniUzlastir(sunucuDili) {
   var secim = null;
   try { secim = localStorage.getItem('uiLangGiris'); } catch (e) {}
   if (secim && i18n.diller && i18n.diller[secim]) {
-    if (i18n.dil() !== secim) i18n.ayarla(secim);
+    var degisti = i18n.dil() !== secim;
+    if (degisti) i18n.ayarla(secim);
     var bitir = function () { try { localStorage.removeItem('uiLangGiris'); } catch (e) {} };
-    if (secim === sunucuDili) { try { localStorage.setItem('uiLangSunucu', secim); } catch (e) {} bitir(); return; }
-    profilDiliniYaz(secim).then(function (ok) { if (ok) bitir(); });
+    // (2026-10-30) Dil burada değiştiyse sayfa (JS'in çizdiği menü ve listeler) eski dilde kalmasın: yazma bitince yenile.
+    if (secim === sunucuDili) { try { localStorage.setItem('uiLangSunucu', secim); } catch (e) {} bitir(); if (degisti && i18n.yazincaYenile) i18n.yazincaYenile(null, secim); return; }
+    var yazma = profilDiliniYaz(secim).then(function (ok) { if (ok) bitir(); });
+    if (degisti && i18n.yazincaYenile) i18n.yazincaYenile(yazma, secim);
     return;
   }
   if (sunucuDili) i18n.sunucudanBenimse(sunucuDili);
@@ -1181,7 +1184,7 @@ function renderUserBadge(containerId) {
         background:none;color:var(--text3);font-size:11px;cursor:pointer;font-family:inherit;"
         onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
         onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">
-        Çıkış
+        ${htmlKac(_auCev('menu.cikis', 'Çıkış Yap'))}
       </button>
     </div>`;
 }

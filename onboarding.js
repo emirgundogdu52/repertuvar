@@ -72,9 +72,12 @@
 
   // Ayarlar'daki dilDegistir ile aynı: yerelde uygula, profile yaz, kendi yazdığını önbelleğe al.
   // (2026-10-08) auth.js'teki sıralı ortak yazıcı: hızlı Türkçe→English tıklamalarında profilde SON seçim kalır.
+  // (2026-10-30) Son dil yazımı: pencere kapanınca dil değiştiyse bu bitince sayfa yeni dilde yenilenir (arkadaki ana sayfa ve
+  // alt menü eski dilde kalıyordu).
+  var _dilYazimi = null;
   function dilYaz(k) {
     if (!window.i18n || !i18n.ayarla(k)) return;
-    if (typeof profilDiliniYaz === 'function') profilDiliniYaz(k);
+    if (typeof profilDiliniYaz === 'function') _dilYazimi = profilDiliniYaz(k);
   }
 
   /* Seçilebilir çipler — onboarding penceresi ve Ayarlar ortak kullanır. */
@@ -136,6 +139,7 @@
   function pencere() {
     stilEkle();
     var secili = temizle(yerelOku() || []);
+    var acilisDili = window.i18n ? i18n.dil() : 'tr';
     var arka = document.createElement('div'); arka.className = 'ob-arka';
     arka.innerHTML =
       '<div class="ob-kart" role="dialog" aria-modal="true" aria-labelledby="obBaslik" aria-describedby="obAcik" tabindex="-1">' +
@@ -180,8 +184,11 @@
         document.removeEventListener('keydown', tus);
         arka.remove();
         try { localStorage.setItem('obSoruldu:' + uid(), '1'); } catch (e) {}
-        kaydet(liste).catch(function () {});   // ağ yoksa BEKLEYEN'de kalır, sonra yazılır
+        var kayit = kaydet(liste).catch(function () {});   // ağ yoksa BEKLEYEN'de kalır, sonra yazılır
         bitti(liste);
+        if (window.i18n && i18n.yazincaYenile && i18n.dil() !== acilisDili) {
+          i18n.yazincaYenile(Promise.all([kayit, _dilYazimi]), i18n.dil());
+        }
       }
       function tus(e) { if (e.key === 'Escape') kapat([]); }
       devam.onclick = function () { if (secili.length) kapat(cip.secili()); };

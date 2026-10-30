@@ -1808,7 +1808,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
          sarı yuvarlak "+" yalnız masaüstünde (tasarim.css 30); telefon/tablette yüzen + aynen. -->
     <div class="es-bas">
       <h2><i class="ti ti-book" aria-hidden="true"></i><span data-i18n="menu.eserler">Eserler</span></h2>
-      <button type="button" class="es-arti" onclick="eklemeSecimAc(event)" title="Yeni Eser Ekle" aria-label="Yeni Eser Ekle" data-i18n-title="es.yenieserKisa"><i class="ti ti-plus" aria-hidden="true"></i></button>
+      <button type="button" class="es-arti" onclick="eklemeSecimAc(event)" title="Yeni Eser Ekle" aria-label="Yeni Eser Ekle" data-i18n-title="es.yenieserKisa" data-i18n-aria="es.yenieserKisa"><i class="ti ti-plus" aria-hidden="true"></i></button>
     </div>
     <div style="padding:6px 16px 0;background:var(--bg);">
       <div style="position:relative;">
@@ -1836,7 +1836,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     </div>
     <div class="toolbar">
       <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;"><i class="ti ti-adjustments-horizontal"></i> <span data-i18n="es.filtreler">Filtreler</span><span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
-      <button id="btnAdminNewEser" class="admin-only fab-new-eser" onclick="eklemeSecimAc(event)" title="Yeni Eser Ekle" aria-label="Yeni Eser Ekle" data-i18n-title="es.yenieserKisa" style="position:fixed;right:20px;bottom:24px;width:48px;height:48px;border-radius:50%;background:var(--yt-btn,var(--accent));border:none;box-shadow:0 8px 24px rgba(255,200,61,0.4);display:none;align-items:center;justify-content:center;font-size:22px;line-height:1;color:#111;font-weight:600;cursor:pointer;z-index:500;"><i class="ti ti-plus" aria-hidden="true"></i></button>
+      <button id="btnAdminNewEser" class="admin-only fab-new-eser" onclick="eklemeSecimAc(event)" title="Yeni Eser Ekle" aria-label="Yeni Eser Ekle" data-i18n-title="es.yenieserKisa" data-i18n-aria="es.yenieserKisa" style="position:fixed;right:20px;bottom:24px;width:48px;height:48px;border-radius:50%;background:var(--yt-btn,var(--accent));border:none;box-shadow:0 8px 24px rgba(255,200,61,0.4);display:none;align-items:center;justify-content:center;font-size:22px;line-height:1;color:#111;font-weight:600;cursor:pointer;z-index:500;"><i class="ti ti-plus" aria-hidden="true"></i></button>
       <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:none;align-items:center;gap:5px;background:rgba(249,160,74,.12);border:1px solid rgba(249,160,74,.3);border-radius:20px;padding:4px 10px 4px 8px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);"><span data-i18n="es.onayBekleyenBtn">⏳ Onay Bekleyen</span> <span id="pendingCountDesktop" style="background:#F9A04A;color:#1a1000;border-radius:10px;padding:1px 7px;font-size:10px;">0</span></button>
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;margin-left:auto;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);" data-i18n="es.oner">🎵 Öner</button>
       <button id="btnUserSuggest" onclick="openSuggestModal()" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);" data-i18n="es.eseroner">🎵 Eser Öner</button>
@@ -1844,7 +1844,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     </div>
     <div class="list-panel" id="listPanel"></div>
     <div id="bulkActionBar" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:600;background:var(--surface);border-top:1px solid var(--border);padding:10px 14px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(0,0,0,.28);align-items:center;gap:10px;">
-      <span id="bulkCountLabel" style="font-size:12px;color:var(--text2);font-weight:600;white-space:nowrap;">0 seçildi</span>
+      <span id="bulkCountLabel" style="font-size:12px;color:var(--text2);font-weight:600;white-space:nowrap;"></span>
       <div style="flex:1;"></div>
       <button onclick="exitBulkMode()" style="padding:8px 12px;border-radius:8px;background:none;border:1px solid var(--border);color:var(--text2);font-size:12px;cursor:pointer;" data-i18n="ortak.iptal">İptal</button>
       <button onclick="bulkAddToRepertoire()" style="padding:8px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;" data-i18n="es.varolana">Var Olana Ekle</button>
@@ -2950,7 +2950,7 @@ function renderList() {
         <div class="work-name"><span class="work-ad">${w.name?_esHtml(w.name):_esCev('es.isimsiz','(isimsiz)')}</span>${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="' + _esCev('es.yalnizcaSiz','Yalnızca siz görürsünüz') + '" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.taslakRozet','🔒 Taslak') + '</span>' : ''}${(w.visibility === 'group') ? ' <span title="' + _esCev('es.t_yalnizGrup','Yalnızca grup üyeleriniz görür') + '" style="font-size:10px;font-weight:700;color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.grupRozet','👥 Grup') + '</span>' : ''}</div>
         ${(turBadge || w.composer) ? `<div class="work-composer">${turBadge}${_esHtml(w.composer||'')}</div>` : ''}
         <div class="work-title-divider"></div>
-        <div class="work-rep-count"><span class="status-dot"></span> Offline</div>
+        <div class="work-rep-count"><span class="status-dot"></span> ${_esCev('es.offlineEtiket','Offline')}</div>
       </div>
       <div class="work-actions">
         ${_ytId(w.videoLink) ? `<button class="work-listen" onclick="dinleAc('${_ytId(w.videoLink)}', event)" title="${_esCev('es.t_dinle','YouTube\u2019da dinle')}" data-i18n-title="es.t_dinle" style="display:${bulkMode?'none':'flex'};">\u25B6</button>` : ''}
@@ -3385,7 +3385,7 @@ function selectWork(id, silent) {
   }
 
   const _vUrl = _esUrl(w.videoLink);
-  const videoBtn = _vUrl ? `<a href="${_esHtml(_vUrl)}" target="_blank" rel="noopener" class="video-btn">▶ Video</a>` : '';
+  const videoBtn = _vUrl ? `<a href="${_esHtml(_vUrl)}" target="_blank" rel="noopener" class="video-btn">${_esCev('es.videoBtn','▶ Video')}</a>` : '';
   const stageId = String(parseInt(w.id));
   const lastTab = 'gufte';  // Her eser açılışında güfteden başla
   const stageBtn = `<a href="stage.html?work=${stageId}" class="stage-open-btn" onclick="openStageFromDetail('${stageId}');return false;">${_esCev('es.sahneModundaAc','🎭 Sahne Modunda Aç')}</a>`;
@@ -5279,7 +5279,7 @@ function _esPdfKutuphane() {
     const s = document.createElement('script');
     s.src = 'pdf.min.js';
     s.onload = () => { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js'; coz(window.pdfjsLib); } catch (e) { red(e); } };
-    s.onerror = () => { _esPdfKutuphaneSoz = null; red(new Error('pdf.js yüklenemedi')); };
+    s.onerror = () => { _esPdfKutuphaneSoz = null; red(new Error(_esCev('es.pdfJsYuklenemedi', 'pdf.js yüklenemedi'))); };
     document.head.appendChild(s);
   });
   return _esPdfKutuphaneSoz;
@@ -5685,7 +5685,7 @@ const DEFTER_OKU_YALNIZ_BILGI = [['notaya_alan', 'Notaya alan'], ['repertuvar_no
 const DEFTER_OKU_HATALAR = {
   'yetki-yok': 'Bu deneme şimdilik yalnız yönetici ve editörlere açık.',
   'yapilandirma-eksik': 'Okuma servisi henüz kurulmadı (anahtar eksik).',
-  'cok-istek': 'Çok sık deneme yapıldı, biraz sonra yeniden deneyin.',
+  'cok-istek': 'Çok sık deneme yapıldı, biraz sonra yeniden dene.',
   'okuma-reddedildi': 'Bu sayfa okunamadı.',
   'gorsel-buyuk': 'Görsel çok büyük.',
   'cok-sayfa': 'Tek seferde en çok 6 sayfa okunabilir.',
@@ -5776,7 +5776,7 @@ async function _defterOkuIste(gorseller, dikkatli, mod) {
   try { j = await r.json(); } catch (e) {}
   if (!r.ok) {
     const kod = j.hata || String(r.status);
-    throw new Error(_esCev('es.defterOkuHata_' + kod, DEFTER_OKU_HATALAR[kod] || ('Okunamadı (' + kod + ').')));
+    throw new Error(_esCev('es.defterOkuHata_' + kod, DEFTER_OKU_HATALAR[kod] || _esCev('es.defterOkuHataKod', 'Okunamadı ({kod}).').replace('{kod}', kod)));
   }
   [j].concat(j.eserler || []).forEach(e => {
     // Türkçeye özgü harf varsa Türkçe kural (I→ı), yoksa İngilizce (I→i) — "I CAN SEE" "ı can see" olmasın
@@ -5851,7 +5851,7 @@ function _defterOkuOnizle() {
   kap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;display:flex;align-items:flex-start;justify-content:center;padding:5vh 12px;overflow-y:auto;';
   kap.innerHTML = `<div style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:12px;width:100%;max-width:640px;padding:18px;box-sizing:border-box;">
     <div style="font-size:16px;font-weight:700;margin-bottom:4px;">${e(n > 1 ? _esCev('es.doBaslikN', '📷 {n} sayfadan okunanlar').replace('{n}', n) : _esCev('es.doBaslik', '📷 Sayfadan okunanlar'))}</div>
-    <div style="font-size:12px;color:var(--text3);">${e(_esCev('es.doAciklama', 'Kontrol edip düzeltin; "Forma uygula" yalnız formu doldurur, kaydetmek için ardından Kaydet\'e basın.'))}</div>
+    <div style="font-size:12px;color:var(--text3);">${e(_esCev('es.doAciklama', 'Kontrol edip düzelt; "Forma uygula" yalnız formu doldurur, kaydetmek için ardından Kaydet\'e bas.'))}</div>
     ${s.model === 'claude-opus-5-5'
       ? `<div style="margin-top:8px;font-size:12px;color:var(--text3);">${e(_esCev('es.doDikkatliOkundu', '🔍 Dikkatli okuma ile okundu.'))}</div>`
       : `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;">
@@ -5909,7 +5909,7 @@ function defterOkuUygula() {
   defterOkuKapat();
   alanlariUygula();   // değeri olan alan gizli kalmasın
   switchNeTab(sekme);
-  toastMsg(_esCev('es.doUygulandi', 'Forma aktarıldı — kontrol edip Kaydet\'e basın'));
+  toastMsg(_esCev('es.doUygulandi', 'Forma aktarıldı — kontrol edip Kaydet\'e bas'));
 }
 
 // ── (2026-10-22) DEFTERDEN EKLE + YAPAY ZEKÂ OKUMASI ─────────────────────────────────────────────────
@@ -6028,7 +6028,7 @@ function defterOkunanHtml(k, i, kilit) {
   const satir = (o.soz || '').split('\n').filter(t => t.trim()).length;
   const akor = ((o.akorlu || '').match(/\[[^\]]+\]/g) || []).length;
   const ad = { yore: 'Yöre', kaynak_kisi: 'Kaynak kişi', derleyen: 'Derleyen', notaya_alan: 'Notaya alan', repertuvar_no: 'Repertuvar no',
-               makam: 'Makam', usul: 'Usul', sure: 'Süre', ton: 'Ton', soz_yazari: 'Söz yazarı', besteci: 'Besteci' };
+               makam: 'Makam', usul: 'Usul / ölçü', sure: 'Süre', ton: 'Ton', soz_yazari: 'Söz yazarı', besteci: 'Besteci' };
   const bilgi = Object.entries(o.bilgiler || {}).filter(([, v]) => v).map(([a, v]) => e(_esCev('es.do_' + a, ad[a] || a)) + ': ' + e(v)).join(' · ');
   const ozet = (satir || akor)
     ? _esCev('es.dfOkunanOzet', '✓ Okundu: {s} satır söz{a} — gör / düzelt').replace('{s}', satir)
@@ -6953,7 +6953,7 @@ async function notaDondur(file, derece, kirp) {
   try {
     const img = new Image();
     await new Promise((tamam, hata) => {
-      const sure = setTimeout(() => hata(new Error('zaman aşımı')), 20000);
+      const sure = setTimeout(() => hata(new Error(_esCev('es.zamanAsimi', 'zaman aşımı'))), 20000);
       img.onload = () => { clearTimeout(sure); tamam(); };
       img.onerror = () => { clearTimeout(sure); hata(new Error(_esCev('es.dondurCozulemedi','görsel açılamadı'))); };
       img.src = url;
@@ -9556,7 +9556,7 @@ function openSuggestModal() { openNewEserModal(); }
     if(isAdmin()||isEditor()){document.querySelectorAll('.admin-only').forEach(el=>el.classList.remove('admin-only'));}
     const roleEl=document.getElementById('sbUserRole');
     if(roleEl){
-      if(typeof isAdmin==='function'&&isAdmin()) roleEl.textContent='Admin';
+      if(typeof isAdmin==='function'&&isAdmin()) roleEl.textContent=_esCev('uye.rolAdmin','Admin');
       else if(typeof isEditor==='function'&&isEditor()) roleEl.textContent=_esCev('es.rolEditor','Editör');
       else roleEl.textContent=_esCev('es.rolUye','Üye');
     }

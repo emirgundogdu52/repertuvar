@@ -754,11 +754,7 @@ html, body { overflow-x: hidden; }
       </div>
 
       <div class="setting-row" style="display:block;">
-        <div class="setting-desc" id="alanAciklama" style="margin-bottom:12px;line-height:1.6;">
-          Kapattığınız alanlar <b>silinmez</b> — dolu olan bir alan her zaman görünür,
-          ve her eserde <b>“+ Müzik alanı ekle”</b> ile istediğinizi geri açabilirsiniz.
-          Bu ayar yalnızca <b>yeni</b> eserlerin başlangıç görünümünü belirler.
-        </div>
+        <div class="setting-desc" id="alanAciklama" style="margin-bottom:12px;line-height:1.6;" data-i18n-html="ay.alanAciklama">Kapattığınız alanlar <b>silinmez</b> — dolu olan bir alan her zaman görünür ve her eserde <b>“+ Müzik alanı ekle”</b> ile istediğinizi geri açabilirsiniz. Bu ayar yalnızca <b>yeni</b> eserlerin başlangıç görünümünü belirler.</div>
         <div id="alanKutulari" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
       </div>
 
@@ -1135,12 +1131,16 @@ function dilDegistir(yeni) {
   hukukBaglantilariniKur();   // bağlantılar da yeni dile geçsin
   // Tercih profilde de saklanıyor: başka cihazda aynı dil gelsin. (2026-10-08) Sıralı ortak
   // yazıcı (auth.js profilDiliniYaz): art arda seçimlerde profilde hep SON seçim kalır.
+  var yazma = null;
   try {
-    if (typeof profilDiliniYaz === 'function') profilDiliniYaz(yeni).then(function (ok) {
+    if (typeof profilDiliniYaz === 'function') yazma = profilDiliniYaz(yeni).then(function (ok) {
       if (ok === false) console.warn('[dil] profile yazilamadi — dil bu cihazda gecerli, diger cihazlara tasinmayacak.');
     });
   } catch (e) {}
   toast(_t('ay.dilDegisti','Dil değiştirildi ✓'));
+  // (2026-10-30) JS'in çizdiği metinler (alan düğmeleri, abonelik durumu, listeler, alt menü…) eski dilde kalıyordu
+  // (Emir Azerbaycanca seçince gördü) → profile yazma bitince sayfa yeni dilde yeniden yüklenir.
+  if (i18n.yazincaYenile) i18n.yazincaYenile(yazma, yeni);
 }
 
 document.addEventListener('DOMContentLoaded', dilKutusunuDoldur);
@@ -1155,17 +1155,18 @@ function _a(anahtar, tr) {
   try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
   catch (e) { return tr; }
 }
+// (2026-10-30) Ad her çizimde sözlükten okunur (eskiden yükleme anında donuyordu; dil değişince düğmeler eski dilde kalıyordu).
 const AYAR_ALANLAR = [
-  { k:'makam',       ad:_a('alan.makam','Makam') },
-  { k:'usul',        ad:_a('alan.usul','Usul') },
-  { k:'olcu',        ad:_a('alan.olcu','Ölçü') },
-  { k:'tempo',       ad:_a('alan.tempo','Tempo') },
-  { k:'akort',       ad:_a('alan.akort','Akort') },
-  { k:'karar',       ad:_a('alan.karar','Karar Sesi') },
-  { k:'enstruman',   ad:_a('alan.enstruman','Enstrüman') },
-  { k:'yore',        ad:_a('alan.yore','Yöre/Bölge') },
-  { k:'kaynak_kisi', ad:_a('alan.kaynak','Kaynak Kişi') },
-  { k:'derleyen',    ad:_a('alan.derleyen','Derleyen') },
+  { k:'makam',       get ad() { return _a('alan.makam','Makam'); } },
+  { k:'usul',        get ad() { return _a('alan.usul','Usul'); } },
+  { k:'olcu',        get ad() { return _a('alan.olcu','Ölçü'); } },
+  { k:'tempo',       get ad() { return _a('alan.tempo','Tempo'); } },
+  { k:'akort',       get ad() { return _a('alan.akort','Akort'); } },
+  { k:'karar',       get ad() { return _a('alan.karar','Karar Sesi'); } },
+  { k:'enstruman',   get ad() { return _a('alan.enstruman','Enstrüman'); } },
+  { k:'yore',        get ad() { return _a('alan.yore','Yöre/Bölge'); } },
+  { k:'kaynak_kisi', get ad() { return _a('alan.kaynak','Kaynak Kişi'); } },
+  { k:'derleyen',    get ad() { return _a('alan.derleyen','Derleyen'); } },
 ];
 let _ayarSecili = null;
 
@@ -1176,12 +1177,7 @@ function ayarAlanlariniYukle() {
   } catch (e) { _ayarSecili = AYAR_ALANLAR.map(a => a.k); }
   ayarAlanlariCiz();
   ayarAlanlariTazele();   // sunucudaki değer farklıysa düzeltir
-  var ac = document.getElementById('alanAciklama');
-  if (ac && window.i18n && i18n.dil() !== 'tr') {
-    ac.innerHTML = 'Fields you switch off are <b>not deleted</b> — a field that has a ' +
-      'value always stays visible, and you can bring any field back on a piece with ' +
-      '<b>"+ Add music field"</b>. This setting only affects how <b>new</b> pieces start out.';
-  }
+  // Açıklama metni (#alanAciklama) data-i18n-html="ay.alanAciklama" ile her dilde sözlükten gelir.
 }
 
 function ayarAlanlariCiz() {
@@ -1479,6 +1475,7 @@ async function biyoSifreGuncelle(yeni) {
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', biyoAyarKur); else biyoAyarKur();
 window.addEventListener('dil-degisti', biyoAyarKur);
+window.addEventListener('dil-degisti', function () { if (Array.isArray(_ayarSecili)) ayarAlanlariCiz(); });
 
 // ---- E-posta Değiştir ----
 let _pendingNewEmail = '';
@@ -1582,7 +1579,7 @@ async function verifyEmailChange() {
       setTimeout(async () => {
         if (typeof isAdmin === 'function' && isAdmin()) {
           document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
-          ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='Admin'; });
+          ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=_t('ortak.admin','Admin'); });
         } else if (typeof isEditor === 'function' && isEditor()) {
           document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
           ['sbUserRole','profileRole'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=_t('ortak.editor','Editör'); });

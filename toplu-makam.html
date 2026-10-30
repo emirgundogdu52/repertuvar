@@ -111,7 +111,7 @@ function satirYap(w){
   var panel = document.createElement('div'); panel.className='panel'; mk.appendChild(panel);
   row.appendChild(mk);
 
-  var kr = document.createElement('input'); kr.className='kr'; kr.placeholder='karar'; kr.value=w.closing_note||'';
+  var kr = document.createElement('input'); kr.className='kr'; kr.placeholder=_tmCev('tm.kararPh','karar'); kr.value=w.closing_note||'';
   row.appendChild(kr);
 
   var kaydet = document.createElement('button'); kaydet.className='btn btn-kaydet'; kaydet.textContent=_tmCev('ortak.kaydet','Kaydet'); kaydet.disabled=true;

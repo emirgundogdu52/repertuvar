@@ -5,7 +5,7 @@
 <link rel="icon" type="image/png" href="Repertuvar_logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script src="tasarim.js"></script>
-<title>Repertuvar — İçerik Bildirimleri</title>
+<title data-i18n="bd.sayfaBaslik">Repertuvar — İçerik Bildirimleri</title>
 <!-- bildirimler.html — 2026-10-09
      Kullanıcıların bildirdiği eser ve kullanıcılar (content_reports). Apple Guideline 1.2: bildirilen
      içeriğe ekip kısa sürede (24 saat) yanıt verir — içeriği kaldırır, gerekirse hesabı askıya alır.
@@ -56,19 +56,32 @@
 <div class="main-wrap">
 <div class="page-content">
   <div>
-    <div class="page-title">İçerik Bildirimleri</div>
-    <div class="page-sub">Kullanıcıların bildirdiği eser, repertuvar, ses kaydı, ritim ve kullanıcılar. Hedef: her bildirime 24 saat içinde yanıt.</div>
+    <div class="page-title" data-i18n="yo.icerikBildirimleri">İçerik Bildirimleri</div>
+    <div class="page-sub" data-i18n="bd.altBaslik">Kullanıcıların bildirdiği eser, repertuvar, ses kaydı, ritim ve kullanıcılar. Hedef: her bildirime 24 saat içinde yanıt.</div>
   </div>
   <div class="b-sekme">
-    <button type="button" class="on" data-durum="open" onclick="sekme('open')">Açık</button>
-    <button type="button" data-durum="closed" onclick="sekme('closed')">Kapanmış</button>
+    <button type="button" class="on" data-durum="open" onclick="sekme('open')" data-i18n="bd.sekmeAcik">Açık</button>
+    <button type="button" data-durum="closed" onclick="sekme('closed')" data-i18n="bd.sekmeKapanmis">Kapanmış</button>
   </div>
-  <div id="bListe"><div class="b-bos">Yükleniyor…</div></div>
+  <div id="bListe"><div class="b-bos" data-i18n="ortak.yukleniyor">Yükleniyor…</div></div>
 </div>
 </div>
 
 <script>
+// (2026-10-30) Arayüz metni çevirisi (i18n.js yoksa Türkçe kalır). Sebep / tür adları bd.s_<sebep> / bd.tur_<tür> anahtarlarından.
+function _bdCev(anahtar, tr) {
+  try { return (window.i18n && window.i18n.t) ? window.i18n.t(anahtar, tr) : tr; }
+  catch (e) { return tr; }
+}
+function _bdYerel() {
+  try { return (window.i18n && window.i18n.yerel) ? window.i18n.yerel() : 'tr-TR'; }
+  catch (e) { return 'tr-TR'; }
+}
 const SEBEP = { offensive: 'Uygunsuz / müstehcen', harassment: 'Taciz / hakaret / nefret', copyright: 'Telif ihlali', spam: 'Spam / yanıltıcı', other: 'Diğer' };
+function sebepAd(s) { return SEBEP[s] ? _bdCev('bd.s_' + s, SEBEP[s]) : s; }
+// Yönetici notu veritabanına Türkçe yazılır (veri değişmesin); bilinen notlar ekranda arayüz dilinde gösterilir.
+const NOT_ANAHTAR = { 'Paylaşımdan kaldırıldı': 'bd.notPaylasim', 'Eser kaldırıldı': 'bd.notEser', 'Hesap askıya alındı': 'bd.notAskiya' };
+function notAd(n) { return NOT_ANAHTAR[n] ? _bdCev(NOT_ANAHTAR[n], n) : n; }
 let DURUM = 'open';
 let KAYITLAR = [];
 let ADLAR = {};
@@ -86,7 +99,7 @@ function kisi(id) {
   return p ? (p.full_name || p.display_name || p.email || id) + (p.email && (p.full_name || p.display_name) ? ' (' + p.email + ')' : '') : id;
 }
 function tarih(t) {
-  try { return new Date(t).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }); } catch (e) { return t || ''; }
+  try { return new Date(t).toLocaleString(_bdYerel(), { dateStyle: 'short', timeStyle: 'short' }); } catch (e) { return t || ''; }
 }
 
 async function yukle() {
@@ -103,14 +116,14 @@ async function yukle() {
     }
     ciz();
   } catch (e) {
-    kutu.innerHTML = '<div class="b-bos">Bildirimler yüklenemedi: ' + esc(e.message) + '</div>';
+    kutu.innerHTML = '<div class="b-bos">' + esc(_bdCev('bd.yuklenemedi', 'Bildirimler yüklenemedi: ')) + esc(e.message) + '</div>';
   }
 }
 
 function ciz() {
   const kutu = document.getElementById('bListe');
   if (!KAYITLAR.length) {
-    kutu.innerHTML = '<div class="b-bos">' + (DURUM === 'open' ? 'Açık bildirim yok. 🎉' : 'Kapanmış bildirim yok.') + '</div>';
+    kutu.innerHTML = '<div class="b-bos">' + esc(DURUM === 'open' ? _bdCev('bd.acikYok', 'Açık bildirim yok. 🎉') : _bdCev('bd.kapaliYok', 'Kapanmış bildirim yok.')) + '</div>';
     return;
   }
   kutu.innerHTML = KAYITLAR.map(k => {
@@ -121,21 +134,22 @@ function ciz() {
     const tuslar = [];
     // (2026-10-24) iOS uygulamasında target=_blank iç bağlantı Safari'ye capacitor:// adresiyle gidip sessizce düşüyordu → yerelde aynı pencere.
     const yeniSekme = (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) ? '' : ' target="_blank" rel="noopener"';
-    if (eser) tuslar.push('<a href="eserler.html?id=' + encodeURIComponent(k.target_id) + '"' + yeniSekme + '><i class="ti ti-external-link"></i> Eseri aç</a>');
+    if (eser) tuslar.push('<a href="eserler.html?id=' + encodeURIComponent(k.target_id) + '"' + yeniSekme + '><i class="ti ti-external-link"></i> ' + esc(_bdCev('bd.eseriAc', 'Eseri aç')) + '</a>');
     if (DURUM === 'open') {
-      if (eser) tuslar.push('<button type="button" class="kirmizi" onclick="eseriKaldir(\'' + k.id + '\')"><i class="ti ti-trash"></i> Eseri kaldır</button>');
-      if (icerik) tuslar.push('<button type="button" class="kirmizi" onclick="paylasimdanKaldir(\'' + k.id + '\')"><i class="ti ti-eye-off"></i> Paylaşımdan kaldır</button>');
-      if (hedefKisi && !askida) tuslar.push('<button type="button" class="kirmizi" onclick="askiyaAl(\'' + k.id + '\')"><i class="ti ti-user-off"></i> Hesabı askıya al</button>');
-      tuslar.push('<button type="button" class="ana" onclick="kapat(\'' + k.id + '\',\'resolved\')"><i class="ti ti-check"></i> Çözüldü</button>');
-      tuslar.push('<button type="button" onclick="kapat(\'' + k.id + '\',\'dismissed\')">Yoksay</button>');
+      if (eser) tuslar.push('<button type="button" class="kirmizi" onclick="eseriKaldir(\'' + k.id + '\')"><i class="ti ti-trash"></i> ' + esc(_bdCev('bd.eseriKaldir', 'Eseri kaldır')) + '</button>');
+      if (icerik) tuslar.push('<button type="button" class="kirmizi" onclick="paylasimdanKaldir(\'' + k.id + '\')"><i class="ti ti-eye-off"></i> ' + esc(_bdCev('bd.paylasimdanKaldir', 'Paylaşımdan kaldır')) + '</button>');
+      if (hedefKisi && !askida) tuslar.push('<button type="button" class="kirmizi" onclick="askiyaAl(\'' + k.id + '\')"><i class="ti ti-user-off"></i> ' + esc(_bdCev('bd.askiyaAl', 'Hesabı askıya al')) + '</button>');
+      tuslar.push('<button type="button" class="ana" onclick="kapat(\'' + k.id + '\',\'resolved\')"><i class="ti ti-check"></i> ' + esc(_bdCev('bd.cozulduBtn', 'Çözüldü')) + '</button>');
+      tuslar.push('<button type="button" onclick="kapat(\'' + k.id + '\',\'dismissed\')">' + esc(_bdCev('bd.yoksay', 'Yok say')) + '</button>');
     }
+    const turAd = TUR_AD[k.target_type] ? _bdCev('bd.tur_' + k.target_type, TUR_AD[k.target_type]) : _bdCev('bd.tur_user', 'Kullanıcı');
     return '<div class="b-kart">' +
-      '<div class="b-ust"><span class="b-tur">' + esc(TUR_AD[k.target_type] || 'Kullanıcı') + '</span><span class="b-sebep">' + esc(SEBEP[k.reason] || k.reason) + '</span><span>' + esc(tarih(k.created_at)) + '</span></div>' +
+      '<div class="b-ust"><span class="b-tur">' + esc(turAd) + '</span><span class="b-sebep">' + esc(sebepAd(k.reason)) + '</span><span>' + esc(tarih(k.created_at)) + '</span></div>' +
       '<div class="b-etiket">' + esc(k.target_label || ((eser || icerik) ? '#' + k.target_id : kisi(hedefKisi))) + '</div>' +
       (k.note ? '<div class="b-not">“' + esc(k.note) + '”</div>' : '') +
-      '<div class="b-kisi">Bildiren: ' + esc(kisi(k.reporter_id)) + '</div>' +
-      (hedefKisi ? '<div class="b-kisi">' + (eser ? 'Eseri ekleyen: ' : icerik ? 'Sahibi: ' : 'Bildirilen: ') + esc(kisi(hedefKisi)) + (askida ? ' · <b>askıda</b>' : '') + '</div>' : '') +
-      (DURUM !== 'open' ? '<div class="b-durum">' + (k.status === 'resolved' ? 'Çözüldü' : 'Yoksayıldı') + ' · ' + esc(tarih(k.resolved_at)) + ' · ' + esc(kisi(k.resolved_by)) + (k.admin_note ? ' · ' + esc(k.admin_note) : '') + '</div>' : '') +
+      '<div class="b-kisi">' + esc(_bdCev('bd.bildiren', 'Bildiren: ')) + esc(kisi(k.reporter_id)) + '</div>' +
+      (hedefKisi ? '<div class="b-kisi">' + esc(eser ? _bdCev('bd.eseriEkleyen', 'Eseri ekleyen: ') : icerik ? _bdCev('bd.sahibi', 'Sahibi: ') : _bdCev('bd.bildirilen', 'Bildirilen: ')) + esc(kisi(hedefKisi)) + (askida ? ' · <b>' + esc(_bdCev('bd.askida', 'askıda')) + '</b>' : '') + '</div>' : '') +
+      (DURUM !== 'open' ? '<div class="b-durum">' + esc(k.status === 'resolved' ? _bdCev('bd.durumCozuldu', 'Çözüldü') : _bdCev('bd.durumYoksayildi', 'Yok sayıldı')) + ' · ' + esc(tarih(k.resolved_at)) + ' · ' + esc(kisi(k.resolved_by)) + (k.admin_note ? ' · ' + esc(notAd(k.admin_note)) : '') + '</div>' : '') +
       (tuslar.length ? '<div class="b-tus">' + tuslar.join('') + '</div>' : '') +
     '</div>';
   }).join('');
@@ -144,7 +158,7 @@ function ciz() {
 function sekme(d) {
   DURUM = d;
   document.querySelectorAll('.b-sekme button').forEach(b => b.classList.toggle('on', b.dataset.durum === d));
-  document.getElementById('bListe').innerHTML = '<div class="b-bos">Yükleniyor…</div>';
+  document.getElementById('bListe').innerHTML = '<div class="b-bos">' + esc(_bdCev('ortak.yukleniyor', 'Yükleniyor…')) + '</div>';
   yukle();
 }
 
@@ -155,9 +169,9 @@ async function kapat(id, durum, not) {
       body: JSON.stringify({ status: durum, resolved_at: new Date().toISOString(), resolved_by: getUserId(), admin_note: not || null })
     });
     if (!r.ok) throw new Error(await r.text());
-    toast(durum === 'resolved' ? 'Bildirim çözüldü olarak kapatıldı ✓' : 'Bildirim yoksayıldı');
+    toast(durum === 'resolved' ? _bdCev('bd.cozulduToast', 'Bildirim çözüldü olarak kapatıldı ✓') : _bdCev('bd.yoksayildiToast', 'Bildirim yok sayıldı'));
     yukle();
-  } catch (e) { toast('Hata: ' + e.message); }
+  } catch (e) { toast(_bdCev('mod.hata', 'Hata: ') + e.message); }
 }
 
 // (2026-10-17) Repertuvar / kayıt / ritim: silinmez, PAYLAŞIMDAN kaldırılır (sahibi görmeye devam eder).
@@ -166,34 +180,34 @@ const PAYLASIM = ['repertoire', 'audio', 'rhythm'];
 const TUR_AD = { work: 'Eser', user: 'Kullanıcı', repertoire: 'Repertuvar', audio: 'Ses kaydı', rhythm: 'Ritim' };
 async function paylasimdanKaldir(id) {
   const k = KAYITLAR.find(x => x.id === id);
-  if (!k || !confirm('“' + (k.target_label || k.target_id) + '” paylaşımdan kaldırılsın mı? Sahibi görmeye devam eder, başkaları göremez.')) return;
+  if (!k || !confirm(_bdCev('bd.paylasimOnay', '“{ad}” paylaşımdan kaldırılsın mı? Sahibi görmeye devam eder, başkaları göremez.').replace('{ad}', () => String(k.target_label || k.target_id)))) return;
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/rpc/admin_icerik_gizle', {
       method: 'POST', headers: authHeaders(),
       body: JSON.stringify({ p_tur: k.target_type, p_id: k.target_id })
     });
     if (!r.ok) throw new Error(await r.text());
-    await kapat(id, 'resolved', 'Paylaşımdan kaldırıldı');
-  } catch (e) { toast('Hata: ' + e.message); }
+    await kapat(id, 'resolved', 'Paylaşımdan kaldırıldı');   // veri: Türkçe yazılır, ekranda notAd() çevirir
+  } catch (e) { toast(_bdCev('mod.hata', 'Hata: ') + e.message); }
 }
 
 async function eseriKaldir(id) {
   const k = KAYITLAR.find(x => x.id === id);
-  if (!k || !confirm('“' + (k.target_label || k.target_id) + '” katalogdan kaldırılsın mı? (Silinen eserler arasından geri alınabilir.)')) return;
+  if (!k || !confirm(_bdCev('bd.eserKaldirOnay', '“{ad}” katalogdan kaldırılsın mı? (Silinen eserler arasından geri alınabilir.)').replace('{ad}', () => String(k.target_label || k.target_id)))) return;
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/works?id=eq.' + encodeURIComponent(k.target_id), {
       method: 'PATCH', headers: Object.assign(authHeaders(), { Prefer: 'return=minimal' }),
       body: JSON.stringify({ deleted_at: new Date().toISOString() })
     });
     if (!r.ok) throw new Error(await r.text());
-    await kapat(id, 'resolved', 'Eser kaldırıldı');
-  } catch (e) { toast('Hata: ' + e.message); }
+    await kapat(id, 'resolved', 'Eser kaldırıldı');   // veri: Türkçe yazılır, ekranda notAd() çevirir
+  } catch (e) { toast(_bdCev('mod.hata', 'Hata: ') + e.message); }
 }
 
 async function askiyaAl(id) {
   const k = KAYITLAR.find(x => x.id === id);
   if (!k || !k.target_user_id) return;
-  if (!confirm(kisi(k.target_user_id) + ' hesabı askıya alınsın mı? Giriş yapamayacak. (Üyeler sayfasından geri alınabilir.)')) return;
+  if (!confirm(_bdCev('bd.askiyaAlOnay', '{ad} hesabı askıya alınsın mı? Giriş yapamayacak. (Üyeler sayfasından geri alınabilir.)').replace('{ad}', () => String(kisi(k.target_user_id))))) return;
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + k.target_user_id, {
       method: 'PATCH', headers: Object.assign(authHeaders(), { Prefer: 'return=minimal' }),
@@ -201,8 +215,8 @@ async function askiyaAl(id) {
     });
     if (!r.ok) throw new Error(await r.text());
     if (ADLAR[k.target_user_id]) ADLAR[k.target_user_id].status = 'suspended';
-    await kapat(id, 'resolved', 'Hesap askıya alındı');
-  } catch (e) { toast('Hata: ' + e.message); }
+    await kapat(id, 'resolved', 'Hesap askıya alındı');   // veri: Türkçe yazılır, ekranda notAd() çevirir
+  } catch (e) { toast(_bdCev('mod.hata', 'Hata: ') + e.message); }
 }
 
 (async function () {
@@ -213,11 +227,11 @@ async function askiyaAl(id) {
   if (!rolTazelendi || !(isAdmin() || isEditor())) {
     document.querySelector('.page-content').innerHTML =
       '<div style="text-align:center;padding:60px 20px;color:var(--text3);"><div style="font-size:34px;margin-bottom:12px;">🔒</div>' +
-      '<div style="font-size:15px;font-weight:600;color:var(--text);">Bu sayfa yönetim içindir</div></div>';
+      '<div style="font-size:15px;font-weight:600;color:var(--text);">' + esc(_bdCev('yo.yetkiYokBaslik', 'Bu sayfa yönetim içindir')) + '</div></div>';
     return;
   }
   // Hesap askıya alma yalnız adminde (Üyeler sayfasıyla aynı kural)
-  if (!isAdmin()) window.askiyaAl = function () { toast('Hesap askıya alma yalnız yöneticilerde.'); };
+  if (!isAdmin()) window.askiyaAl = function () { toast(_bdCev('bd.askiyaYalnizAdmin', 'Hesap askıya alma yalnız yöneticilerde.')); };
   yukle();
 })();
 </script>

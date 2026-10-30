@@ -1213,7 +1213,7 @@ async function copyRep(repId){
       method:'POST',
       headers:{...H,'Prefer':'return=representation'},
       // Kopya her zaman KİŞİSEL doğar (yeni model: visibility='private').
-      body:JSON.stringify({name:rep.name+' (kopya)',status:'concept',user_id:uid,owner_id:uid,visibility:'private',is_public:false,group_id:null})
+      body:JSON.stringify({name:_r('rep.kopyaAdi','{ad} (kopya)').replace('{ad}',()=>rep.name),status:'concept',user_id:uid,owner_id:uid,visibility:'private',is_public:false,group_id:null})
     });
     if(!r.ok)throw new Error(await r.text());
     const [newRep]=await r.json();
@@ -1894,7 +1894,7 @@ function runSort(mode){
     html+=`<div class="sort-row${linked?' chained':''}">
       <span class="sort-no">${linked?'↳':(i+1)}</span>
       <span class="sort-name">${linked?'🔗 ':''}${_rEsc(p.name)}</span>
-      <span class="sort-mk">${mode==='form' ? (p.formTxt?_rEsc(p.formTxt):'<i>'+_r('rep.formYok','form ?')+'</i>')+(p.olcuTxt?' · '+_rEsc(p.olcuTxt):'') : mode==='olcu' ? (p.olcuTxt?_rEsc(p.olcuTxt):'<i>'+_r('rep.olcuYok','ölçü ?')+'</i>')+(p.makamAd?' · '+_rEsc(p.makamAd):'') : (p.makamAd?_rEsc(p.makamAd):'<i>makam ?</i>')+(p.kararTxt?' · '+_rEsc(p.kararTxt):'')}</span>
+      <span class="sort-mk">${mode==='form' ? (p.formTxt?_rEsc(p.formTxt):'<i>'+_r('rep.formYok','form ?')+'</i>')+(p.olcuTxt?' · '+_rEsc(p.olcuTxt):'') : mode==='olcu' ? (p.olcuTxt?_rEsc(p.olcuTxt):'<i>'+_r('rep.olcuYok','ölçü ?')+'</i>')+(p.makamAd?' · '+_rEsc(p.makamAd):'') : (p.makamAd?_rEsc(p.makamAd):'<i>'+_r('rep.makamYok','makam ?')+'</i>')+(p.kararTxt?' · '+_rEsc(p.kararTxt):'')}</span>
     </div>`;
   });
   body.innerHTML=html;
@@ -2330,7 +2330,8 @@ function printR(repId){
   const rows=items.map(it=>{const w=WL[String(it.workId)]||{};const cn=it.closingNote||w.closingNote||'';return`<tr><td style="width:40px;color:#888;text-align:center;">${it.seq}</td><td style="padding:9px 12px;"><div style="font-weight:500;color:#111;">${_rEsc(w.name||it.workId)}</div><div style="font-size:11px;color:#666;">${_rEsc([w.composer,w.makam].filter(Boolean).join(' · '))}</div></td><td style="width:80px;text-align:center;color:#444;">${_rEsc(cn)}</td><td style="width:120px;font-size:12px;color:#666;">${_rEsc(it.note||'')}</td></tr>`;}).join('');
 
   const printCSS = '*{margin:0;padding:0;box-sizing:border-box;}body{font-family:\'DM Sans\',sans-serif;font-size:14px;color:#111;padding:32px 40px;}h1{font-family:\'Playfair Display\',serif;font-size:28px;font-weight:400;margin-bottom:8px;}hr{border:none;border-top:2px solid #111;margin:16px 0;}table{width:100%;border-collapse:collapse;}th{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#888;text-align:left;padding:6px 12px;border-bottom:1px solid #ddd;}td{padding:9px 12px;border-bottom:1px solid #eee;vertical-align:middle;}';
-  const printHTML = '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>' + _rEsc(rep.name) + '</title><style>' + printCSS + '</style><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"></head><body>'
+  // (2026-10-30) Başlık satırı text-transform:uppercase; lang="tr" sabitken İngilizce "Setlist" → "SETLİST" basılıyordu. Arayüz dili.
+  const printHTML = '<!DOCTYPE html><html lang="' + _rEsc(document.documentElement.getAttribute('lang') || 'tr') + '"><head><meta charset="UTF-8"><title>' + _rEsc(rep.name) + '</title><style>' + printCSS + '</style><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"></head><body>'
     + '<div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:24px;">' + _r('rep.adsizRep','Repertuvar') + ' — ' + new Date().toLocaleDateString('tr-TR') + '</div>'
     + '<h1>' + _rEsc(rep.name) + '</h1>'
     + '<div style="display:flex;gap:16px;font-size:12px;color:#666;margin-bottom:16px;">' + (rep.date?'\uD83D\uDCC5 '+_rEsc(rep.date):'') + (rep.venue?' \uD83D\uDCCD '+_rEsc(rep.venue):'') + (rep.status?' \u25CF '+sl[rep.status]:'') + ' \uD83C\uDFBC ' + items.length + ' ' + _rBirim(items.length) + '</div>'

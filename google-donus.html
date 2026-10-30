@@ -28,18 +28,40 @@
 // (com.repertuvar.app://giris) aktarır. Belirteç tek başına işe yaramaz: Supabase
 // uygulamanın sakladığı nonce'u da ister (login.html → _googleIdTokenIle).
 (function () {
-  var tr = (navigator.language || '').toLowerCase().indexOf('tr') === 0;
+  // (2026-10-30) 10 dil. Bu sayfa i18n.js yüklemez (sistem tarayıcısında açılır); dil: kayıtlı tercih → tarayıcı dili →
+  // listede yoksa İngilizce (i18n.js ile aynı kural). Metinler sayfanın kendi sözlüğünde.
+  var DILLER = ['tr', 'en', 'de', 'nl', 'fr', 'es', 'it', 'pt', 'az', 'ar'];
+  var dil = 'en';
+  try {
+    var k = localStorage.getItem('uiLang') || localStorage.getItem('uiLangSunucu');
+    var n = (navigator.language || '').slice(0, 2).toLowerCase();
+    dil = DILLER.indexOf(k) !== -1 ? k : (DILLER.indexOf(n) !== -1 ? n : 'en');
+  } catch (e) {}
+  var METIN = {
+    tr: { gecersiz: 'Geçersiz bağlantı.', donuluyor: 'Repertuvar\'a dönülüyor…', don: 'Repertuvar\'a dön' },
+    en: { gecersiz: 'Invalid link.', donuluyor: 'Returning to Repertuvar…', don: 'Return to Repertuvar' },
+    de: { gecersiz: 'Ungültiger Link.', donuluyor: 'Zurück zu Repertuvar…', don: 'Zurück zu Repertuvar' },
+    nl: { gecersiz: 'Ongeldige link.', donuluyor: 'Terug naar Repertuvar…', don: 'Terug naar Repertuvar' },
+    fr: { gecersiz: 'Lien non valide.', donuluyor: 'Retour à Repertuvar…', don: 'Revenir à Repertuvar' },
+    es: { gecersiz: 'Enlace no válido.', donuluyor: 'Volviendo a Repertuvar…', don: 'Volver a Repertuvar' },
+    it: { gecersiz: 'Link non valido.', donuluyor: 'Ritorno a Repertuvar…', don: 'Torna a Repertuvar' },
+    pt: { gecersiz: 'Link inválido.', donuluyor: 'Voltando ao Repertuvar…', don: 'Voltar ao Repertuvar' },
+    az: { gecersiz: 'Keçid etibarsızdır.', donuluyor: 'Repertuvar tətbiqinə qayıdılır…', don: 'Repertuvar tətbiqinə qayıt' },
+    ar: { gecersiz: 'رابط غير صالح.', donuluyor: 'جارٍ الرجوع إلى Repertuvar…', don: 'الرجوع إلى Repertuvar' }
+  };
+  var T = METIN[dil];
+  try { document.documentElement.lang = dil; document.documentElement.dir = dil === 'ar' ? 'rtl' : 'ltr'; } catch (e) {}
   var mesaj = document.getElementById('mesaj'), don = document.getElementById('don');
   var h = location.hash || '';
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
   var p = new URLSearchParams(h.replace(/^#/, ''));
   if (!p.get('id_token') && !p.get('error')) {
-    mesaj.textContent = tr ? 'Geçersiz bağlantı.' : 'Invalid link.';
+    mesaj.textContent = T.gecersiz;
     return;
   }
   var hedef = 'com.repertuvar.app://giris' + h;
-  mesaj.textContent = tr ? 'Repertuvar\'a dönülüyor…' : 'Returning to Repertuvar…';
-  don.textContent = tr ? 'Repertuvar\'a dön' : 'Return to Repertuvar';
+  mesaj.textContent = T.donuluyor;
+  don.textContent = T.don;
   don.href = hedef;
   location.replace(hedef);
   // Android Chrome sekmesi kullanıcı dokunuşu olmadan uygulamayı açmayı reddedebilir
