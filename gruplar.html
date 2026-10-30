@@ -333,7 +333,7 @@ function _grCev(anahtar, tr) {
 }
 // Tarih bicimi arayuz diliyle ayni olsun (Ingilizce arayuzde Turkce ay adi cikmasin).
 function _grTarihDili() {
-  try { return (window.i18n && window.i18n.dil && window.i18n.dil() === 'en') ? 'en-GB' : 'tr-TR'; }
+  try { return (window.i18n && window.i18n.yerel) ? window.i18n.yerel() : 'tr-TR'; }
   catch (e) { return 'tr-TR'; }
 }
 

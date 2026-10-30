@@ -232,7 +232,7 @@ function _gCev(k, tr) { try { return (window.i18n && window.i18n.t) ? window.i18
 function kabulMetniCiz() {
   const el = document.getElementById('kabulMetni');
   if (!el) return;
-  const en = !!(window.i18n && i18n.dil && i18n.dil() === 'en');
+  const en = !!(window.i18n && i18n.dil && i18n.dil() !== 'tr');
   const a = (yol, ad) => '<a href="https://repertuvar.app/' + yol + (en ? '/en/' : '') + '" target="_blank" rel="noopener">' + ad + '</a>';
   el.innerHTML = _gCev('giris.kabul', 'Devam ederek ya da kayıt olarak {kosullar} ve {gizlilik} metinlerini kabul etmiş olursun.')
     .replace('{kosullar}', a('terms', _gCev('giris.kosullar', 'Kullanım Koşulları')))

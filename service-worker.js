@@ -33,7 +33,10 @@ const PRECACHE = [
   '/artiesten.html', '/onerilerim.html', '/login.html', '/reset-password.html',
   '/splash.html', '/acilis-logo.js', '/arama-temizle.js', '/supabase-js-2.118.0.js',
   // betikler ve stil (soundtouch.js calisma.html'de dinamik import ile yükleniyor)
-  '/auth.js', '/db.js', '/i18n.js', '/topnav.js', '/repertoires.js', '/secici.js', '/ice-aktar.js', '/verilerim.js',
+  '/auth.js', '/db.js', '/i18n.js',
+  // (2026-10-29) ek dil sözlükleri — çevrimdışı dil değiştirince de çalışsın
+  '/i18n/de.js', '/i18n/nl.js', '/i18n/fr.js', '/i18n/es.js', '/i18n/it.js', '/i18n/pt.js', '/i18n/az.js', '/i18n/ar.js',
+  '/topnav.js', '/repertoires.js', '/secici.js', '/ice-aktar.js', '/verilerim.js',
   '/metronom.js', '/ritimcalar.js', '/ses.js', '/dongu.js', '/zamanlayici.js',
   '/qrcode.min.js', '/soundtouch.js', '/style.css',
   // (2026-10-09) içerik bildirme / kullanıcı engelleme (Apple Guideline 1.2)

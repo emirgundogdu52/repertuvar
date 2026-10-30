@@ -1090,9 +1090,7 @@ function dilKutusunuDoldur() {
   ).join('');
   const not = document.getElementById('dilNot');
   if (not) {
-    not.textContent = i18n.dil() === 'tr'
-      ? _t('ay.ceviriSuruyor','Çeviri sürüyor — bazı ekranlar Türkçe kalabilir.')
-      : 'Translation in progress — some screens may remain in Turkish.';
+    not.textContent = _t('ay.ceviriSuruyor','Çeviri sürüyor — bazı ekranlar Türkçe kalabilir.');
   }
 }
 
@@ -1117,7 +1115,7 @@ function dilKutusunuDoldur() {
   }
 })();
 function hukukBaglantilariniKur() {
-  var en = (window.i18n && i18n.dil() === 'en');
+  var en = (window.i18n && i18n.dil() !== 'tr');   // (2026-10-29) Türkçe dışındaki dillerde İngilizce sayfa
   var g = document.getElementById('hukukGizlilik');
   var k = document.getElementById('hukukKosullar');
   if (g) g.href = 'https://repertuvar.app/privacy' + (en ? '/en/' : '');
@@ -1179,7 +1177,7 @@ function ayarAlanlariniYukle() {
   ayarAlanlariCiz();
   ayarAlanlariTazele();   // sunucudaki değer farklıysa düzeltir
   var ac = document.getElementById('alanAciklama');
-  if (ac && window.i18n && i18n.dil() === 'en') {
+  if (ac && window.i18n && i18n.dil() !== 'tr') {
     ac.innerHTML = 'Fields you switch off are <b>not deleted</b> — a field that has a ' +
       'value always stays visible, and you can bring any field back on a piece with ' +
       '<b>"+ Add music field"</b>. This setting only affects how <b>new</b> pieces start out.';
@@ -1668,7 +1666,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 // (2026-10-17) Ayarlar › Abonelik — metinler: _appstore/denetim-2026-10-14/uygulama-ici-metinler.md (D)
 function _abTarih(s) {
   if (!s) return '';
-  try { return new Date(s).toLocaleDateString((window.i18n && i18n.dil && i18n.dil() === 'en') ? 'en-GB' : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }); }
+  try { return new Date(s).toLocaleDateString((window.i18n && i18n.yerel) ? i18n.yerel() : 'tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }); }
   catch (e) { return s; }
 }
 function _abPlan(d) {
@@ -1737,7 +1735,7 @@ function abonelikCiz(d) {
 // Yıllığa geç satırının altındaki yenileme koşulu + Koşullar · Gizlilik bağlantıları (iOS'ta başka mağaza adı yok, 2.3.10)
 function _abYillikYasalCiz(plat) {
   const el = document.getElementById('abYillikYasal');
-  const en = (window.i18n && i18n.dil() === 'en');
+  const en = (window.i18n && i18n.dil() !== 'tr');
   el.textContent = plat === 'android'
     ? _t('ab.yillikYasalAnd', 'Yıllık abonelik iptal edilmedikçe her yıl otomatik yenilenir. Google Play › Abonelikler’den istediğin zaman iptal edebilirsin.')
     : _t('ab.yillikYasalIos', 'Yıllık abonelik, dönem bitmeden en az 24 saat önce iptal edilmezse her yıl otomatik yenilenir. Ayarlar › Abonelikler’den istediğin zaman iptal edebilirsin.');

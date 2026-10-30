@@ -81,6 +81,10 @@ function _m(anahtar, tr) {
       .sb-stage:hover { opacity: .9; }
       /* main-wrap'i sidebar genişliği kadar it */
       .main-wrap, .v2-main-wrap { margin-left: 252px; flex: 1; min-width: 0; }
+      /* (2026-10-30) Sağdan sola (Arapça; i18n.js html[dir=rtl] koyar): yan menü sağa, içerik sağdan itilir. */
+      html[dir="rtl"] .sidebar { left: auto; right: 0; border-right: 0; border-left: 1px solid var(--border, rgba(48,58,85,0.38)); }
+      html[dir="rtl"] .main-wrap, html[dir="rtl"] .v2-main-wrap { margin-left: 0; margin-right: 252px; }
+      html[dir="rtl"] .sb-item.active::before { left: auto; right: 0; border-radius: 3px 0 0 3px; }
     }
     @media (max-width: 1023px) {
       .sidebar { display: none !important; }

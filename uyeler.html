@@ -132,7 +132,7 @@ function _uCev(anahtar, tr) {
   catch (e) { return tr; }
 }
 function _uYerel() {
-  try { return (window.i18n && window.i18n.dil() === 'en') ? 'en-GB' : 'tr-TR'; }
+  try { return (window.i18n && window.i18n.yerel) ? window.i18n.yerel() : 'tr-TR'; }
   catch (e) { return 'tr-TR'; }
 }
 

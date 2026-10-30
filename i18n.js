@@ -37,7 +37,18 @@
 (function () {
   'use strict';
 
-  const DILLER = { tr: 'Türkçe', en: 'English' };
+  // (2026-10-29) 10 dil. tr ve en bu dosyada; diğerleri i18n/<dil>.js'te durur ve yalnız o dil seçilince yüklenir
+  // (web'de her sayfa 8 sözlüğü birden indirmesin). Kullanıcı: "İspanyolca, İtalyanca, Portekizce ve Fransızcayı da ekle".
+  const DILLER = { tr: 'Türkçe', en: 'English', de: 'Deutsch', nl: 'Nederlands', fr: 'Français', es: 'Español',
+                   it: 'Italiano', pt: 'Português', az: 'Azərbaycanca', ar: 'العربية' };
+  // Tarih/sayı biçimi için bölge kodu (i18n.yerel())
+  const YEREL = { tr: 'tr-TR', en: 'en-GB', de: 'de-DE', nl: 'nl-NL', fr: 'fr-FR', es: 'es-ES', it: 'it-IT',
+                  pt: 'pt-BR', az: 'az-Latn-AZ', ar: 'ar' };
+  // Ek sözlüklerin yolu i18n.js'in bulunduğu yere göre (alt klasördeki sayfalar da doğru dosyayı bulsun)
+  const KOK = (function () {
+    try { const s = document.currentScript && document.currentScript.src; return s ? s.replace(/i18n\.js(\?.*)?$/, '') : ''; }
+    catch (e) { return ''; }
+  })();
 
   const SOZLUK = {
     tr: {
@@ -3993,9 +4004,34 @@
 
   let DIL = dilBelirle();
 
+  // ── Ek dil sözlükleri (i18n/<dil>.js → window.I18N_EK[dil]) ─────────────
+  function ekSozluk(dil) {
+    const e = window.I18N_EK && window.I18N_EK[dil];
+    if (e && !SOZLUK[dil]) SOZLUK[dil] = e;
+    return SOZLUK[dil];
+  }
+  // Sayfa ayrıştırılırken eşzamanlı (document.write: sözlük DOMContentLoaded'dan önce hazır, metinler bir an Türkçe
+  // görünmez); sonradan dil değişirse script öğesiyle yüklenir. Dosya inmezse eksik metinler İngilizceye düşer.
+  function ekYukle(dil, bitince) {
+    if (SOZLUK[dil] || ekSozluk(dil)) { if (bitince) bitince(); return; }
+    const src = KOK + 'i18n/' + dil + '.js';
+    if (!bitince && document.readyState === 'loading') { document.write('<script src="' + src + '"><\/script>'); return; }
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = s.onerror = () => { ekSozluk(dil); if (bitince) bitince(); };
+    (document.head || document.documentElement).appendChild(s);
+  }
+  if (!SOZLUK[DIL]) ekYukle(DIL);
+
   function t(anahtar, varsayilan) {
-    const s = SOZLUK[DIL] && SOZLUK[DIL][anahtar];
+    const sz = SOZLUK[DIL] || ekSozluk(DIL);
+    const s = sz && sz[anahtar];
     if (s != null) return s;
+    // (2026-10-29) Yeni dillerde eksik metin önce İngilizceye düşer (Almanca kullanana Türkçe göstermek yardımcı olmaz).
+    if (DIL !== 'tr' && DIL !== 'en') {
+      const en = SOZLUK.en && SOZLUK.en[anahtar];
+      if (en != null) return en;
+    }
     const tr = SOZLUK.tr && SOZLUK.tr[anahtar];
     // Eksik çeviri: Türkçeye düş. Boş göstermekten iyidir.
     return (tr != null) ? tr : (varsayilan != null ? varsayilan : anahtar);
@@ -4035,10 +4071,13 @@
       if (v !== k) el.setAttribute('title', v);
     });
     try { document.documentElement.setAttribute('lang', DIL); } catch (e) {}
+    // (2026-10-29) Arapça sağdan sola
+    try { document.documentElement.setAttribute('dir', DIL === 'ar' ? 'rtl' : 'ltr'); } catch (e) {}
   }
 
   function dilAyarla(yeni) {
     if (!DILLER[yeni]) return false;
+    if (!SOZLUK[yeni] && !ekSozluk(yeni)) { ekYukle(yeni, () => dilAyarla(yeni)); return true; }
     DIL = yeni;
     try { localStorage.setItem('uiLang', yeni); } catch (e) {}
     uygula();
@@ -4067,6 +4106,7 @@
       if (localStorage.getItem('uiLang') !== gelen) localStorage.setItem('uiLang', gelen);
     } catch (e) {}
     if (gelen === DIL) return false;      // zaten o dildeyiz, yeniden çizme
+    if (!SOZLUK[gelen] && !ekSozluk(gelen)) { ekYukle(gelen, () => { DIL = gelen; uygula(); try { window.dispatchEvent(new CustomEvent('dil-degisti', { detail: { dil: DIL } })); } catch (e) {} }); return true; }
     DIL = gelen;
     uygula();
     try { window.dispatchEvent(new CustomEvent('dil-degisti', { detail: { dil: DIL } })); } catch (e) {}
@@ -4083,6 +4123,7 @@
   window.i18n = {
     t: t,
     dil: () => DIL,
+    yerel: () => YEREL[DIL] || 'tr-TR',
     diller: DILLER,
     ayarla: dilAyarla,
     sunucudanBenimse: sunucudanBenimse,

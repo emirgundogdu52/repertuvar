@@ -175,7 +175,8 @@ if ! $WEB_ONLY; then
   # Alt klasörler: yukarıdaki kopyalama yalnız KÖK seviyeyi alıyor.
   # Ritim örnekleri (sesler/bendir/*.wav) burada, klasör olarak taşınıyor.
   # npm run sync başarılı olsa bile çalışır — aynı içeriği yazar.
-  for d in sesler; do
+  # (2026-10-29) i18n/: ek dil sözlükleri (de, nl, fr, es, it, pt, az, ar)
+  for d in sesler i18n; do
     if [ -d "$d" ]; then
       rm -rf "www/$d"
       cp -R "$d" www/ && echo "   ✓ $d/ → www/ ($(find "$d" -type f | wc -l | tr -d ' ') dosya)"
