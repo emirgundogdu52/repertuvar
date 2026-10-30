@@ -795,9 +795,9 @@ async function eserleriYukle() {
   } catch (e) {}
   // Önbellek boşsa sunucudan çek
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/works?select=id,name&deleted_at=is.null&order=name.asc&limit=5000',
-      { headers: authHeaders() });
-    if (r.ok) ESERLER = await r.json();
+    // (2026-10-30) Sayfalı: sunucu tek istekte en çok 1000 satır veriyor (limit=5000 işe yaramıyordu).
+    ESERLER = await supaTumSayfalar(SUPA_URL + '/rest/v1/works?select=id,name&deleted_at=is.null&order=name.asc,id.asc',
+      authHeaders());
   } catch (e) {}
 }
 

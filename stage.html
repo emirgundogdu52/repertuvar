@@ -1407,19 +1407,21 @@ async function loadWL() {
       // bu mekanizmayı etkisiz kılıyordu (anon istek yamadan muaf geçiyor).
       // Anon yolu KALDIRILMADI, daraltıldı: oturumu OLMAYAN ziyaretçi
       // (paylaşım bağlantısıyla gelen) genel eserleri görmeye devam etsin.
-      const _worksUrl = SUPA_URL+'/rest/v1/works?select=*&deleted_at=is.null&order=id&limit=2000';
+      // (2026-10-30) limit=2000 kalktı: sunucu tek istekte en çok 1000 satır veriyor, fazlası sahnede eksik kalıyordu →
+      // auth.js supaTumSayfalar ile sayfalı (zaman aşımı sayfa başına); id tekil olduğu için sıralama zaten kaymaz.
+      const _worksUrl = SUPA_URL+'/rest/v1/works?select=*&deleted_at=is.null&order=id.asc';
       const _oturumVar = !!localStorage.getItem('sb_token');
-      let r = await fetch(_worksUrl, {
-        headers: _oturumVar ? H : {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY},
-        signal: AbortSignal.timeout(3500)
-      });
-      if (!r.ok && _oturumVar) {
-        // Eksik güfteyle sahneye çıkmaktansa dürüst ol: WL varsa önbellekten
-        // geleni kullanmaya devam ediyoruz, yalnız tazeleme atlanıyor.
-        console.warn('[stage] works alınamadı ('+r.status+') — anon\'a DÜŞÜLMÜYOR, oturum var');
+      let fetched;
+      try {
+        fetched = await supaTumSayfalar(_worksUrl, _oturumVar ? H : {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}, { zaman: 3500 });
+      } catch (e) {
+        if (e && e.status && _oturumVar) {
+          // Eksik güfteyle sahneye çıkmaktansa dürüst ol: WL varsa önbellekten
+          // geleni kullanmaya devam ediyoruz, yalnız tazeleme atlanıyor.
+          console.warn('[stage] works alınamadı ('+e.status+') — anon\'a DÜŞÜLMÜYOR, oturum var');
+        }
+        throw e;
       }
-      if (!r.ok) throw new Error('works '+r.status);
-      const fetched = await r.json();
       if (!Array.isArray(fetched) || !fetched.length) throw new Error('works bos/gecersiz yanit');
       rows = fetched;
       // Online'dan geldi — IndexedDB'yi güncelle
@@ -1709,9 +1711,11 @@ async function loadReps(){
 
 async function refreshRepsInBackground(){
   try {
+    // (2026-10-30) Sayfalı (sunucu tek istekte en çok 1000 satır): kesik liste aşağıda replaceAll'a gidip önbelleği
+    // silerdi. Bir sayfa düşerse hata fırlar, catch önbelleğe dokunmaz. Sıralamalar tekil (…, id).
     const [r, items] = await Promise.all([
-      fetch(SUPA_URL+'/rest/v1/repertoires?order=created_at'+(repVisibilityQuery() ? '&'+repVisibilityQuery() : ''),{headers:H, signal:AbortSignal.timeout(6000)}).then(r=>r.json()),
-      fetch(SUPA_URL+'/rest/v1/repertoire_items?order=seq',{headers:H, signal:AbortSignal.timeout(6000)}).then(r=>r.json())
+      supaTumSayfalar(SUPA_URL+'/rest/v1/repertoires?order=created_at.asc,id.asc'+(repVisibilityQuery() ? '&'+repVisibilityQuery() : ''), H, { zaman: 6000 }),
+      supaTumSayfalar(SUPA_URL+'/rest/v1/repertoire_items?order=seq.asc,id.asc', H, { zaman: 6000 })
     ]);
     if (window.db) {
       await db.repertoires.replaceAll(r||[]);

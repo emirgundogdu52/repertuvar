@@ -261,31 +261,43 @@ window.syncOfflineData = async function() {
     // (repertoire_shares) açılmış repertuvarları eliyordu: çevrimdışı önbellekte 13 / sunucuda 17 (cihaz konsolunda görüldü)
     // → paylaşılan repertuvarlar internetsiz (sahnede) görünmüyordu, iki kaynak da birbirinin önbelleğini eziyordu.
     // Görünürlüğün üst sınırı sunucudaki repertoires_read politikası; fazladan satır gelmez.
-    const repFilter = '/rest/v1/repertoires?select=*&order=created_at.desc';
-    const solFilter = gid ? '/rest/v1/solistler?select=*&order=name.asc&group_id=eq.' + gid : '/rest/v1/solistler?select=*&order=name.asc';
+    const repFilter = '/rest/v1/repertoires?select=*&order=created_at.desc,id.asc';
+    const solFilter = gid ? '/rest/v1/solistler?select=*&order=name.asc,id.asc&group_id=eq.' + gid : '/rest/v1/solistler?select=*&order=name.asc,id.asc';
 
     // (2026-08-23) Grup verisi de senkronlaniyor. RLS zaten kapsami daraltiyor:
     // group_members yalnizca kendi gruplarimi, profiles yalnizca grup
     // arkadaslarimi donduruyor — istemcide ayrica filtrelemeye gerek yok.
+    // (2026-10-30) SAYFALI: sunucu tek istekte en çok 1000 satır veriyor; eskiden limit=10000 yazılıp tek istek
+    // atılıyordu, 1000'i aşan tablo KESİK geliyor ve replaceAll önbellekteki geri kalanı SİLİYORDU. Artık her tablo
+    // auth.js supaTumSayfalar ile sonuna kadar çekilir; sıralamalar tekil (…,id.asc) ki sayfa sınırında satır kaymasın.
+    // Davranış eskisiyle aynı: HTTP hatası veren tablo atlanır (önbelleği kalır, ok=false); ağ hatası / zaman aşımı
+    // HERHANGİ bir sayfada olursa eşitlemenin tamamı düşer (eskiden Promise.all'daki fetch'in reddi gibi) — yarım
+    // inmiş tablo asla replaceAll'a gitmez.
+    const _al = (yol) => window.supaTumSayfalar(SUPA_URL + yol, headers).then(
+      (rows) => ({ ok: true, rows }),
+      (e) => {
+        if (e && e.status) { console.warn('[db] eşitleme: ' + yol.split('?')[0] + ' alınamadı (HTTP ' + e.status + ')'); return { ok: false }; }
+        throw e;
+      });
     const [worksRes, repsRes, solRes, itemsRes, grpRes, gmRes, profRes] = await Promise.all([
       // (2026-08-30) Silinmiş eserler ÖNBELLEĞE ALINMASIN: buraya girerse
       // çevrimdışı çalışan her sayfa onları gösterir ve sebebi bulunması zor olur.
-      fetch(SUPA_URL + '/rest/v1/works?select=*&deleted_at=is.null&order=name.asc&limit=10000', { headers }),
-      fetch(SUPA_URL + repFilter, { headers }),
-      fetch(SUPA_URL + solFilter, { headers }),
-      fetch(SUPA_URL + '/rest/v1/repertoire_items?select=*&order=seq.asc', { headers }),
-      fetch(SUPA_URL + '/rest/v1/groups?select=*', { headers }),
-      fetch(SUPA_URL + '/rest/v1/group_members?select=*', { headers }),
-      fetch(SUPA_URL + '/rest/v1/profiles?select=id,display_name,email,phone,instrument,instruments,group_id', { headers }),
+      _al('/rest/v1/works?select=*&deleted_at=is.null&order=name.asc,id.asc'),
+      _al(repFilter),
+      _al(solFilter),
+      _al('/rest/v1/repertoire_items?select=*&order=seq.asc,id.asc'),
+      _al('/rest/v1/groups?select=*&order=id.asc'),
+      _al('/rest/v1/group_members?select=*&order=id.asc'),
+      _al('/rest/v1/profiles?select=id,display_name,email,phone,instrument,instruments,group_id&order=id.asc'),
     ]);
 
-    if (worksRes.ok) await db.works.replaceAll(await worksRes.json());
-    if (repsRes.ok) await db.repertoires.replaceAll(await repsRes.json());
-    if (solRes.ok) await db.solistler.replaceAll(await solRes.json());
-    if (itemsRes.ok) await db.repertoire_items.replaceAll(await itemsRes.json());
-    if (grpRes.ok) await db.groups.replaceAll(await grpRes.json());
-    if (gmRes.ok) await db.group_members.replaceAll(await gmRes.json());
-    if (profRes.ok) await db.profiles.replaceAll(await profRes.json());
+    if (worksRes.ok) await db.works.replaceAll(worksRes.rows);
+    if (repsRes.ok) await db.repertoires.replaceAll(repsRes.rows);
+    if (solRes.ok) await db.solistler.replaceAll(solRes.rows);
+    if (itemsRes.ok) await db.repertoire_items.replaceAll(itemsRes.rows);
+    if (grpRes.ok) await db.groups.replaceAll(grpRes.rows);
+    if (gmRes.ok) await db.group_members.replaceAll(gmRes.rows);
+    if (profRes.ok) await db.profiles.replaceAll(profRes.rows);
     // (2026-09-27, Offline Düzeltme 3) Kişisel katman (akor, ton, not, sahne tercihi).
     // Ayrı try: buradaki bir hata ana eşitlemeyi ve lastSync/lastSyncOk'u bozmasın.
     // Önce çevrimdışı yapılmış kişisel değişiklikleri gönder, SONRA sunucudan çek.

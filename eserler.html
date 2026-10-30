@@ -1989,7 +1989,9 @@ async function syncWorksFromServer(hadLocalData) {
     const parts = [statusExpr].filter(Boolean);
     const filter = parts.length ? '&and=('+parts.join(',')+')' : '';
     // (2026-08-15) Silinmiş eserler listede yok — çöp kutusu ayrı bir konu.
-    const base = '/rest/v1/works?deleted_at=is.null&order=name&limit=10000'+filter;
+    // (2026-10-30) limit=10000 kalktı: sunucu tek istekte en çok 1000 satır veriyor, liste sessizce kesiliyordu →
+    // iki faz da auth.js supaTumSayfalar ile sayfalı; sıralama tekil (name, id) ki sayfa sınırında eser kaymasın.
+    const base = '/rest/v1/works?deleted_at=is.null&order=name.asc,id.asc'+filter;
     // [B] Sorgu tanım gereği kullanıcıya özel: groupExpr <gid>, statusExpr ise
     // submitted_by.eq.<uid> taşıyor; admin/editörde statusExpr hiç eklenmiyor.
     // Anon fallback altında admin/editör bekleyen eserleri, grup üyesi de grup
@@ -2001,13 +2003,8 @@ async function syncWorksFromServer(hadLocalData) {
     //    Liste ve filtreler bu alanlara ihtiyaç duymaz; ağır güfte/akor metnini
     //    ilk yükte çekmek soğuk açılışı yavaşlatan asıl sebepti. ──
     const lightSel = 'select=id,name,composer,lyric_writer,makam,tur,form,measurement,instrument,tuning,closing_note,region,source_person,collector,story,metronom,ritim,active_music_fields,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id,deleted_at,dil';
-    const r = await fetch(SUPA_URL+base+'&'+lightSel, {
-      headers: hdr,
-      signal: AbortSignal.timeout(hadLocalData ? 8000 : 5000)
-    });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const rows = await r.json();
-    if (!Array.isArray(rows)) throw new Error('Unexpected response');
+    // Zaman aşımı SAYFA BAŞINA; herhangi bir sayfa düşerse hata fırlar, aşağıdaki catch yerel listeyi korur.
+    const rows = await supaTumSayfalar(SUPA_URL+base+'&'+lightSel, hdr, { zaman: hadLocalData ? 8000 : 5000 });
     // 2026-07-30: BOŞ SUNUCU YANITI YEREL LİSTEYİ SİLMESİN.
     // iPad'de görülen hata: yerelden 414 eser çiziliyor, sonra bu senkron 200 OK
     // ile 0 KAYIT dönüyor (oturum/RLS/CORS sorunu — istek başarısız değil, boş),
@@ -2033,11 +2030,8 @@ async function syncWorksFromServer(hadLocalData) {
     // ── FAZ 2: AĞIR alanlar (güfte/akor/nota) ARKA PLANDA — listeyi bloklamaz.
     //    Geldiğinde DATA'ya işlenir, IndexedDB TAM veriyle güncellenir (sonraki
     //    soğuk açılış her şeyiyle gelir) ve açık bir detay varsa sessizce tazelenir. ──
-    fetch(SUPA_URL+base+'&select=id,lyrics,chords,nota_url,nota_pages', {
-      headers: hdr, signal: AbortSignal.timeout(12000)
-    })
-      .then(r2 => r2.ok ? r2.json() : Promise.reject(new Error('HTTP '+r2.status)))
-      .then(heavyRows => {
+    supaTumSayfalar(SUPA_URL+base+'&select=id,lyrics,chords,nota_url,nota_pages', hdr, { zaman: 12000 })
+      .then(async heavyRows => {
         if (!Array.isArray(heavyRows)) return;
         const hmap = {};
         heavyRows.forEach(h => { hmap[String(h.id)] = h; });
@@ -2051,16 +2045,14 @@ async function syncWorksFromServer(hadLocalData) {
         });
         // IndexedDB'ye TAM veriyi yaz (sonraki soğuk açılış güfte/akorla birlikte gelsin)
         if (typeof db !== 'undefined') {
-          const full = DATA.map(w => ({
-            id:w.id, name:w.name, composer:w.composer, lyric_writer:w.lyricWriter, makam:w.makam,
-            form:w.form, measurement:w.measurement, instrument:w.instrument, tuning:w.tuning,
-            closing_note:w.closingNote, region:w.region, source_person:w.sourcePerson, video_link:w.videoLink,
-            lyrics:w.lyrics, chords:w.chords, nota_url:w.notaUrl, nota_pages:w.notaPages||[], status:w.status,
-            submitted_by:w.submitted_by, submitter_email:w.submitter_email, submitted_at:w.submitted_at,
-            // Bunlar düşerse önbellekteki her eser 'public' + gruba aitsiz sayılır
-            // ve yerel-önce boyama gizliyi ayırt edemez.
-            visibility:w.visibility, group_id:w.group_id
-          }));
+          // (2026-10-30) KUSUR: kayıt eskiden DATA'dan elle seçilen alanlarla kuruluyordu; tur, dil, ritim, metronom,
+          // active_music_fields, collector, story, deleted_at… YOKTU. replaceAll db.js'in select=* ile yazdığı tam
+          // kaydı bununla değiştirdiği için Eserler açıldıktan sonra önbellekten çalışan her sayfada tür boş, dil
+          // herkeste 'tr' görünüyordu. Artık: önbellekteki kayıt + sunucunun hafif satırı (ham sütun adları) + ağır
+          // alanlar — hafif select'te olmayan sütunlar (ör. reviewed_*) önbellekteki kayıttan korunur.
+          const eski = {};
+          try { (await db.works.getAll()).forEach(x => { eski[String(x.id)] = x; }); } catch (e2) {}
+          const full = rows.map(r => Object.assign({}, eski[String(r.id)], r, hmap[String(r.id)] || {}));
           db.works.replaceAll(full).catch(()=>{});
         }
         // Açık bir detay varsa güfte/akor gelmiş haliyle sessizce tazele (titreşim yok)

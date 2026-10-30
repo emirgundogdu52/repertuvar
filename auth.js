@@ -669,6 +669,44 @@ function anonHeaders() {
   };
 }
 
+// ── SAYFALI ÇEKİM (2026-10-30) ─────────────────────────────────────────────
+// KUSUR: Supabase (PostgREST) tek istekte en çok 1000 satır döndürüyor (max-rows); adrese limit=10000 yazmak
+// işe yaramıyordu, fazlası SESSİZCE kesiliyordu. db.js eşitlemesi kesik listeyle replaceAll yapınca cihazdaki
+// önbellek de kesiliyordu (akorculuk kütüphanesinden 9.544 eser works'e eklenince görüldü; todo/ACIL-sayfali-esitleme.md).
+// Bu yardımcı sorguyu sayfa sayfa sonuna kadar çeker. Söz: TÜM sayfalar başarıyla gelmeden sonuç DÖNMEZ —
+// bir sayfa HTTP hatası verirse `status` alanlı Error, ağ hatası / zaman aşımında fetch'in kendi hatası fırlar;
+// çağıran yerel önbelleğe dokunmaz.
+// url: limit/offset İÇERMEYEN tam adres (süzgeç eklenebilir). Sıralama TEKİL olmalı (ör. order=name.asc,id.asc):
+// eşit değerli satırlar sayfa sınırında kayabilir, bir eser iki kez gelip bir başkası hiç gelmeyebilir.
+// Toplam satır ilk istekte Content-Range'den (Prefer: count=exact) okunur; okunamazsa boş sayfa gelene kadar sürer.
+// secenek.zaman: SAYFA BAŞINA zaman aşımı (ms). secenek.boy: sayfa boyu (varsayılan 1000 = sunucu üst sınırı).
+async function supaTumSayfalar(url, headers, secenek) {
+  const boy = (secenek && secenek.boy) || 1000;
+  const zaman = secenek && secenek.zaman;
+  const ayrac = url.indexOf('?') === -1 ? '?' : '&';
+  const hepsi = [];
+  let toplam = null;
+  for (let sayfa = 0; sayfa < 500; sayfa++) {
+    // Başlık her istekte KOPYA: fetch yaması (yukarıda) init.headers'a taze jetonu yazıyor.
+    const h = Object.assign({}, headers);
+    if (toplam === null) h['Prefer'] = 'count=exact';
+    const init = { headers: h };
+    if (zaman && typeof AbortSignal !== 'undefined' && AbortSignal.timeout) init.signal = AbortSignal.timeout(zaman);
+    const r = await fetch(url + ayrac + 'limit=' + boy + '&offset=' + hepsi.length, init);
+    if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; }
+    if (toplam === null) {
+      const m = /\/(\d+)\s*$/.exec(r.headers.get('content-range') || '');
+      toplam = m ? Number(m[1]) : -1;
+    }
+    const satirlar = await r.json();
+    if (!Array.isArray(satirlar)) { const e = new Error('beklenmeyen yanıt'); e.status = r.status; throw e; }
+    for (const s of satirlar) hepsi.push(s);
+    if (!satirlar.length || (toplam >= 0 && hepsi.length >= toplam)) return hepsi;
+  }
+  throw new Error('sayfa sınırı aşıldı: ' + url);
+}
+window.supaTumSayfalar = supaTumSayfalar;
+
 // ── BEKLEYEN DAVETİ TÜKET (2026-08-06) ─────────────────────────────────────
 // KUSUR: login.html davet token'ını `pending_invite`e yazıyor, ama ZATEN GİRİŞLİ
 // bir kullanıcı davet linkine tıklarsa sayfa hemen index.html'e yönlendiriyordu

@@ -187,11 +187,10 @@ async function yukle() {
     return;
   }
   try {
-    const r = await fetch(SUPA_URL +
+    // (2026-10-30) Sayfalı: sunucu tek istekte en çok 1000 satır veriyor (limit=5000 işe yaramıyordu).
+    ESERLER = await supaTumSayfalar(SUPA_URL +
       '/rest/v1/works?select=id,name,form,region,makam,tur&deleted_at=is.null' +
-      '&order=name.asc&limit=5000', { headers: authHeaders() });
-    if (!r.ok) throw new Error(await r.text());
-    ESERLER = await r.json();
+      '&order=name.asc,id.asc', authHeaders());
     document.getElementById('durum').style.display = 'none';
     ciz(); sayaclar();
   } catch (e) {

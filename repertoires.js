@@ -459,24 +459,24 @@ async function loadWorksData() {
     //
     // Anon yolu KALDIRILMADI, yalnız daraltıldı: oturumu OLMAYAN ziyaretçi
     // (paylaşım bağlantısıyla gelen) genel eserleri görmeye devam etsin.
-    const _worksUrl = SUPA_URL+'/rest/v1/works?deleted_at=is.null&order=name&limit=2000';
+    // (2026-10-30) limit=2000 kalktı: sunucu tek istekte en çok 1000 satır veriyor, fazlası "#<id>" olarak kalıyordu →
+    // auth.js supaTumSayfalar ile sayfalı (zaman aşımı sayfa başına); sıralama tekil (name, id).
+    const _worksUrl = SUPA_URL+'/rest/v1/works?deleted_at=is.null&order=name.asc,id.asc';
     const _oturumVar = !!localStorage.getItem('sb_token');
-    let r = await fetch(_worksUrl, {
-      headers: _oturumVar ? authHeaders() : anonHeaders(),
-      signal: AbortSignal.timeout(3500)
-    });
-    if (!r.ok) {
-      if (_oturumVar) {
+    let rows;
+    try {
+      rows = await supaTumSayfalar(_worksUrl, _oturumVar ? authHeaders() : anonHeaders(), { zaman: 3500 });
+    } catch (e) {
+      if (e && e.status && _oturumVar) {
         // Sessizce eksik veri göstermektense dürüst ol. WL zaten local'den
         // dolu olduğu için ekran boş kalmıyor; yalnız tazeleme atlanıyor.
-        console.warn('[repertoires] works alınamadı ('+r.status+') — anon\'a DÜŞÜLMÜYOR, oturum var');
+        console.warn('[repertoires] works alınamadı ('+e.status+') — anon\'a DÜŞÜLMÜYOR, oturum var');
         if (navigator.onLine) {
-          try { toast(_r('rep.listeTazelenmedi','Eser listesi tazelenemedi. Oturumun yenilenmemiş olabilir — çıkıp tekrar girmen gerekebilir.'), 'err'); } catch(e) {}
+          try { toast(_r('rep.listeTazelenmedi','Eser listesi tazelenemedi. Oturumun yenilenmemiş olabilir — çıkıp tekrar girmen gerekebilir.'), 'err'); } catch(e2) {}
         }
       }
-      throw new Error('works fetch '+r.status);
+      throw e;
     }
-    const rows = await r.json();
     if ((rows||[]).length) {
       if (window.db) { try { await db.works.saveAll(rows); } catch(e) {} }
       _applyWorksRows(rows);
