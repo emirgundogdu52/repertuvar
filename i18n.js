@@ -2143,6 +2143,9 @@
       'tm.kararPh': 'karar',
       // (2026-10-30) çeviri denetiminde eklenenler
       'yo.kaynakDogrudan': 'doğrudan',
+      // (2026-10-30) çeviri denetiminde eklenenler
+      'rep.tamSesAralik': 'tam ses aralık',
+      'rep.dortluAralik': 'dörtlü aralık',
     },
     en: {
       'ortak.kaydet': 'Save',
@@ -4225,6 +4228,9 @@
       'tm.kararPh': 'tonic',
       // (2026-10-30) çeviri denetiminde eklenenler
       'yo.kaynakDogrudan': 'direct',
+      // (2026-10-30) çeviri denetiminde eklenenler
+      'rep.tamSesAralik': 'whole-tone interval',
+      'rep.dortluAralik': 'fourth interval',
     }
   };
 

@@ -2669,7 +2669,7 @@ function renderStage(){
     _vk.innerHTML = (_ak || _cn)
       ? `<span class="vm-karar-on">${_sCev('sh.kararKisa','Karar')}:&nbsp;</span>${htmlKac(_kl || _cn)}${(!_kl && _kt) ? _sCev('es.kaydirilmadi',' (kaydırılmadı)') : ''}${_kp ? ` · ${htmlKac(_sCev('es.kapo','Kapo'))} ${_kp}` : ''}`
       : '';
-    requestAnimationFrame(vmSigdir);   // (2026-10-30) karar metni eserden esere değişir; şerit yeniden ölçülür
+    vmSigdirSonra();   // (2026-10-30) karar metni eserden esere değişir; şerit yeniden ölçülür
   }
   const _head = document.getElementById('smHead');
   if (_head) _head.innerHTML = `
@@ -3300,7 +3300,10 @@ function vmSigdir() {
 }
 window.addEventListener('resize', () => requestAnimationFrame(vmSigdir));
 window.addEventListener('dil-degisti', () => requestAnimationFrame(vmSigdir));
-try { document.fonts && document.fonts.ready.then(() => vmSigdir()); } catch (e) {}
+// Yazı tipi sonradan inince (ör. ilk açılış, Arapça yazı tipi) yazılar genişler: yeniden ölç. 10 dil ölçümünde Fransızca,
+// İspanyolca, İtalyanca, Portekizce, Azerbaycanca 375 px'te ilk ölçüm erken kalıp sekmeler 4–5 px taşıyordu.
+try { document.fonts && document.fonts.ready.then(() => vmSigdir()); document.fonts && document.fonts.addEventListener('loadingdone', () => requestAnimationFrame(vmSigdir)); } catch (e) {}
+function vmSigdirSonra() { requestAnimationFrame(vmSigdir); setTimeout(vmSigdir, 350); setTimeout(vmSigdir, 1200); }
 
 function updateViewToggleUI(w) {
   const tabs = document.getElementById('viewModeTabs');
@@ -3319,7 +3322,7 @@ function updateViewToggleUI(w) {
   // Veri yoksa Akor/Nota sekmesi pasif görünür ama şerit yerinde durur.
   tabs.style.display = 'flex';
   buildStageToolsRow(mode);
-  requestAnimationFrame(vmSigdir);
+  vmSigdirSonra();
 }
 
 // Alt "Görünüm Ayarları" paneli, o an açık olan görünüme göre yeniden kurulur.

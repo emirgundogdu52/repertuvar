@@ -119,11 +119,18 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 .msg.ok{background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--green);}
 
 /* (2026-10-29) Face ID / parmak izi ile giriş (biyometri.js) — yalnız yerel uygulamada, kasada kimlik varsa görünür */
-.btn-biyo{width:100%;padding:11px;border-radius:8px;border:1px solid var(--accent);background:rgba(255,200,61,.08);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin-bottom:18px;}
+.btn-biyo{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;margin-bottom:16px;border-radius:16px;text-align:start;
+  background:linear-gradient(135deg,rgba(255,200,61,.14),rgba(255,200,61,.04));border:1px solid rgba(255,200,61,.35);color:var(--text);
+  box-shadow:0 6px 18px rgba(255,200,61,.10);cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:transform .12s,opacity .15s;}
+.btn-biyo:active{transform:scale(.985);}
 .btn-biyo[hidden]{display:none;}
 .btn-biyo:disabled{opacity:.5;cursor:default;}
-.btn-biyo .bb-ust{display:flex;align-items:center;gap:8px;}
-.btn-biyo .bb-eposta{font-size:11px;font-weight:400;color:var(--text2);}
+.btn-biyo .bb-ikon{flex:0 0 42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--accent);color:#141000;}
+.btn-biyo .bb-metinler{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.btn-biyo .bb-baslik{font-size:15px;font-weight:700;line-height:1.25;overflow-wrap:anywhere;}
+.btn-biyo .bb-eposta{font-size:12px;font-weight:400;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+body.light .btn-biyo, html[data-theme="light"] .btn-biyo{background:linear-gradient(135deg,rgba(138,97,0,.10),rgba(138,97,0,.03));border-color:rgba(138,97,0,.35);box-shadow:none;}
+body.light .btn-biyo .bb-ikon, html[data-theme="light"] .btn-biyo .bb-ikon{color:#fff;}
 .biyo-teklif{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:24px;}
 .biyo-teklif .bt-kart{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:360px;}
 .biyo-teklif h2{font-size:17px;font-weight:600;margin-bottom:10px;}
@@ -168,6 +175,13 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
     <button class="tab" onclick="switchTab('register')" data-i18n="giris.kayitol">Kayıt Ol</button>
   </div>
 
+  <!-- (2026-10-30) Emir'in seçtiği A tasarımı: Face ID / parmak izi "hızlı giriş kartı" en üstte, yalnız Giriş sekmesinde.
+       Metni, simgesi ve görünürlüğü biyoDugmesi() kurar (web'de ve kasada kayıt yokken hep gizli). E-posta kısaltılarak gösterilir. -->
+  <button class="btn-biyo" id="btnBiyo" type="button" hidden onclick="biyoIleGir()">
+    <span class="bb-ikon"><svg id="btnBiyoIkon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg></span>
+    <span class="bb-metinler"><span class="bb-baslik" id="btnBiyoMetin"></span><span class="bb-eposta" id="btnBiyoEposta"></span></span>
+  </button>
+
   <!-- Google: web'de Google'ın resmi butonu (#gsi) çizilir, bu buton yalnızca native uygulamada / yedek olarak kalır -->
   <div id="gsi" style="display:none;justify-content:center;min-height:44px;margin-bottom:4px"></div>
   <!-- (2026-10-04) Apple ile Giriş: yalnız iOS uygulamasında, APPLE_GIRIS_AKTIF açıkken görünür -->
@@ -184,11 +198,6 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 
   <!-- Login form -->
   <div id="loginForm">
-    <!-- (2026-10-29) Face ID / parmak izi ile giriş: metni ve görünürlüğü biyoDugmesi() kurar (web'de hep gizli) -->
-    <button class="btn-biyo" id="btnBiyo" type="button" hidden onclick="biyoIleGir()">
-      <span class="bb-ust"><svg id="btnBiyoIkon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg><span id="btnBiyoMetin"></span></span>
-      <span class="bb-eposta" id="btnBiyoEposta"></span>
-    </button>
     <div class="field">
       <label data-i18n="giris.eposta">E-posta</label>
       <input type="email" id="loginEmail" placeholder="ornek@mail.com" data-i18n-ph="giris.eposta_ph" autocomplete="email">
@@ -518,6 +527,10 @@ function switchTab(t) {
   document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', (i===0&&t==='login')||(i===1&&t==='register')));
   document.getElementById('loginForm').style.display = t==='login' ? '' : 'none';
   document.getElementById('registerForm').style.display = t==='register' ? '' : 'none';
+  // (2026-10-30) Face ID kartı formun dışında (en üstte): yalnız Giriş sekmesinde
+  _biyoSekme = t;
+  if (t === 'register') { const bb = document.getElementById('btnBiyo'); if (bb) bb.hidden = true; }
+  else if (typeof biyoDugmesi === 'function') biyoDugmesi();
   showMsg('','');
 }
 
@@ -555,6 +568,14 @@ async function doLogin() {
 const BIYO_IKON_YUZ = '<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9v1M15 9v1M12 9v4h-1M9.5 15.5a3.5 3.5 0 0 0 5 0"/>';
 const BIYO_IKON_PARMAK = '<path d="M12 11v3a8 8 0 0 1-1.5 4.7"/><path d="M8.5 13a3.5 3.5 0 1 1 7 0v1a12 12 0 0 1-.8 4.3"/><path d="M5.5 14.5V13a6.5 6.5 0 0 1 11.6-4"/><path d="M18.4 11.5c.1.5.1 1 .1 1.5v1a15 15 0 0 1-.6 4"/><path d="M7.8 5.4A8.5 8.5 0 0 1 20 9"/>';
 let _biyoSuruyor = false;
+let _biyoSekme = 'login';
+// (2026-10-30) Kartta e-posta kısaltılır (omuz üstünden okunmasın): emirgundogdu@gmail.com → emir•••@gmail.com
+function _biyoEpostaKisa(e) {
+  const m = String(e || '').match(/^([^@]*)@(.*)$/);
+  if (!m) return e || '';
+  const bas = m[1].length > 4 ? m[1].slice(0, 4) : m[1].slice(0, 1);
+  return bas + '•••@' + m[2];
+}
 let _biyoDurum = { acik: false, tur: 0 };
 
 // Düğmeyi kur: cihazda biyometri var ve kasada kimlik kayıtlıysa görünür. Döner: görünüyor mu
@@ -567,9 +588,9 @@ async function biyoDugmesi() {
     if (goster) {
       document.getElementById('btnBiyoMetin').textContent = biyometri.metin('biyo.ileGir', '{yontem} ile gir', _biyoDurum.tur, true);
       document.getElementById('btnBiyoIkon').innerHTML = (_biyoDurum.tur === 2 || _biyoDurum.tur === 4) ? BIYO_IKON_YUZ : BIYO_IKON_PARMAK;
-      document.getElementById('btnBiyoEposta').textContent = biyometri.kayitliEposta();
+      document.getElementById('btnBiyoEposta').textContent = _biyoEpostaKisa(biyometri.kayitliEposta());
     }
-    btn.hidden = !goster;
+    btn.hidden = !goster || _biyoSekme === 'register';
     return goster;
   } catch (e) { btn.hidden = true; return false; }
 }

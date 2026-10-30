@@ -1914,3 +1914,8 @@ html[data-tasarim="v3"][data-sayfa="artiesten"] .panel-header h2 i { font-size: 
   html[data-tasarim="v3"][data-sayfa="artiesten"] .artist-item { padding-left: 33px; }
   html[data-tasarim="v3"][data-sayfa="artiesten"] .artist-item.active { padding-left: 30px; }   /* + 3 px sol şerit */
 }
+
+/* (2026-10-30) Arapça (sağdan sola): harf aralığı bitişik Arapça yazıyı koparır → sıfırlanır (büyük harfli başlıklar
+   .06em kullanıyor). "Listeye dön" düğmelerindeki sola ok sağdan sola düzende sağı göstermeli. */
+html[lang="ar"] body, html[lang="ar"] body *{letter-spacing:0 !important}
+[dir="rtl"] .back-btn .ti-chevron-left, [dir="rtl"] .mobile-back-btn .ti-chevron-left{display:inline-block;transform:scaleX(-1)}

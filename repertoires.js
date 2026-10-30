@@ -1748,7 +1748,7 @@ function transitionCost(a,b){
   const d=Math.min(d0,12-d0);
   if(d===0) return {c:1,txt:_r('rep.ayniKarar','aynı karar: {x}').replace('{x}',_PCNAME[a.karar]),lvl:'ok'};
   if(a.aile && a.aile===b.aile) return {c:1.5,txt:_r('rep.ayniAile','aynı aile: {x}').replace('{x}',a.aile),lvl:'ok'};
-  if(d===2||d===5) return {c:2,txt:(d===2?_r('rep.tamSes','tam ses'):_r('rep.dortlu','dörtlü'))+_r('rep.aralik',' aralık'),lvl:'mid'};
+  if(d===2||d===5) return {c:2,txt:(d===2?_r('rep.tamSesAralik','tam ses aralık'):_r('rep.dortluAralik','dörtlü aralık'))   /* (2026-10-30) tek anahtar: iki parçayı birleştirmek dillerde bozuk sonuç veriyordu ("Ganzton Intervall") */,lvl:'mid'};
   if(d===3||d===4) return {c:3,txt:_r('rep.ucluAralik','üçlü aralık'),lvl:'mid'};
   return {c:5,txt:(d===1?_r('rep.yarimSes','yarım ses'):_r('rep.artikDortlu','artık dörtlü'))+_r('rep.kulagiZorlar',' — kulağı zorlar'),lvl:'bad'};
 }
