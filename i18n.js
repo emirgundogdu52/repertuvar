@@ -4393,6 +4393,9 @@
       return true;
     } catch (e) { return false; }
   }
+  // (2026-10-30) Yasal sayfalar (privacy, terms, support) landing'de 10 dilde: /privacy/ (tr), /privacy/<dil>/ … Bağlantıya
+  // ?lang= eklenir: landing'deki kayıtlı seçim (siteLang) uygulamanın dilini ezmesin (landing assets/yasal-dil.js).
+  function yasalAdres(tur) { return 'https://repertuvar.app/' + tur + '/' + (DIL === 'tr' ? '' : DIL + '/') + '?lang=' + DIL; }
   // Kullanıcı dil seçince (Ayarlar, onboarding, giriş sonrası): profile yazma bitince — en geç 5 sn sonra — ve yeni dilin
   // sözlüğü yüklenmişse sayfayı yenile. Yazma bitmeden yenilemek isteği keser, dil başka cihazlara taşınmaz.
   // Arka arkaya seçimlerde yalnız son seçim yeniler (DIL artık başka dildeyse eski çağrı bir şey yapmaz).
@@ -4423,6 +4426,7 @@
     uygula: uygula,
     yenile: sayfayiYenile,  // dil değişip profile yazıldıktan sonra sayfanın her yerini yeni dilde çizmek için
     yazincaYenile: yazincaYenile,
+    yasalAdres: yasalAdres,
     sozluk: SOZLUK          // sayfalar kendi anahtarlarını ekleyebilsin
   };
   window.t = t;             // kısayol

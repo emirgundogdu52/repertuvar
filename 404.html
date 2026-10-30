@@ -116,8 +116,8 @@
   document.documentElement.dir = dil === 'ar' ? 'rtl' : 'ltr';
   document.title = M.sayfa;
   document.querySelectorAll('[data-t]').forEach(function (el) { var t = M[el.getAttribute('data-t')]; if (t) el.textContent = t; });
-  // Destek sayfası yalnız Türkçe ve İngilizce var (ayarlar.html hukukBaglantilariniKur ile aynı kural)
-  var d = document.querySelector('a[data-t="destek"]'); if (d) d.href = 'https://repertuvar.app/support/en/';
+  // (2026-10-30) Destek sayfası landing'de 10 dilde; ?lang= sitedeki kayıtlı seçimin bu dili ezmesini önler.
+  var d = document.querySelector('a[data-t="destek"]'); if (d) d.href = 'https://repertuvar.app/support/' + (dil === 'tr' ? '' : dil + '/') + '?lang=' + dil;
 })();
 </script>
 </body>

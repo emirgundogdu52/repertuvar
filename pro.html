@@ -206,8 +206,9 @@ h1 { margin:0; font-size:27px; line-height:1.15; font-weight:800; }
   $('kapatBtn').setAttribute('aria-label', M.kapat);
   yaz('yukleniyor', M.yukleniyor);
   yaz('geriYukleBtn', M.geriYukle); yaz('kosullar', M.kosullar); yaz('gizlilik', M.gizlilik);
-  $('kosullar').href = 'https://repertuvar.app/terms/' + (EN ? 'en/' : '');
-  $('gizlilik').href = 'https://repertuvar.app/privacy/' + (EN ? 'en/' : '');
+  // (2026-10-30) Yasal sayfalar 10 dilde (i18n.yasalAdres); i18n yoksa eski TR/EN kuralı.
+  $('kosullar').href = (window.i18n && i18n.yasalAdres) ? i18n.yasalAdres('terms') : 'https://repertuvar.app/terms/' + (EN ? 'en/' : '');
+  $('gizlilik').href = (window.i18n && i18n.yasalAdres) ? i18n.yasalAdres('privacy') : 'https://repertuvar.app/privacy/' + (EN ? 'en/' : '');
   yaz('proyaDonBtn', M.proyaGec); yaz('ayarlarBtn', M.ayarlar); yaz('cikisBtn', M.cikis);
   var SV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
   var SIMGE = [

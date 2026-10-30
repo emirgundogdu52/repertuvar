@@ -1111,13 +1111,14 @@ function dilKutusunuDoldur() {
   }
 })();
 function hukukBaglantilariniKur() {
-  var en = (window.i18n && i18n.dil() !== 'tr');   // (2026-10-29) Türkçe dışındaki dillerde İngilizce sayfa
+  // (2026-10-30) Yasal sayfalar 10 dilde: kullanıcının dilindeki sayfa (i18n.yasalAdres).
+  if (!window.i18n || !i18n.yasalAdres) return;
   var g = document.getElementById('hukukGizlilik');
   var k = document.getElementById('hukukKosullar');
-  if (g) g.href = 'https://repertuvar.app/privacy' + (en ? '/en/' : '');
-  if (k) k.href = 'https://repertuvar.app/terms'   + (en ? '/en/' : '');
+  if (g) g.href = i18n.yasalAdres('privacy');
+  if (k) k.href = i18n.yasalAdres('terms');
   var d = document.getElementById('hukukDestek');
-  if (d) d.href = 'https://repertuvar.app/support/' + (en ? 'en/' : '');
+  if (d) d.href = i18n.yasalAdres('support');
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', hukukBaglantilariniKur);
@@ -1732,7 +1733,6 @@ function abonelikCiz(d) {
 // Yıllığa geç satırının altındaki yenileme koşulu + Koşullar · Gizlilik bağlantıları (iOS'ta başka mağaza adı yok, 2.3.10)
 function _abYillikYasalCiz(plat) {
   const el = document.getElementById('abYillikYasal');
-  const en = (window.i18n && i18n.dil() !== 'tr');
   el.textContent = plat === 'android'
     ? _t('ab.yillikYasalAnd', 'Yıllık abonelik iptal edilmedikçe her yıl otomatik yenilenir. Google Play › Abonelikler’den istediğin zaman iptal edebilirsin.')
     : _t('ab.yillikYasalIos', 'Yıllık abonelik, dönem bitmeden en az 24 saat önce iptal edilmezse her yıl otomatik yenilenir. Ayarlar › Abonelikler’den istediğin zaman iptal edebilirsin.');
@@ -1743,9 +1743,9 @@ function _abYillikYasalCiz(plat) {
     return a;
   };
   el.appendChild(document.createElement('br'));
-  el.appendChild(baglanti(_t('giris.kosullar', 'Kullanım Koşulları'), 'https://repertuvar.app/terms/' + (en ? 'en/' : '')));
+  el.appendChild(baglanti(_t('giris.kosullar', 'Kullanım Koşulları'), i18n.yasalAdres('terms')));
   el.appendChild(document.createTextNode(' · '));
-  el.appendChild(baglanti(_t('giris.gizlilik', 'Gizlilik Politikası'), 'https://repertuvar.app/privacy/' + (en ? 'en/' : '')));
+  el.appendChild(baglanti(_t('giris.gizlilik', 'Gizlilik Politikası'), i18n.yasalAdres('privacy')));
 }
 async function abonelikYilligaGec() {
   if (!window.Pro) return;

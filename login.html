@@ -78,6 +78,13 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 .dil-sec button{border:0;background:none;color:var(--text2);font:600 12px/1 inherit;font-family:inherit;padding:6px 11px;
   border-radius:999px;cursor:pointer;letter-spacing:.04em;-webkit-tap-highlight-color:transparent;}
 .dil-sec button[aria-pressed="true"]{background:#FFC83D;color:#070B18;}
+.dil-sec select{border:0;background-color:transparent;color:var(--text);font:600 13px/1.2 inherit;font-family:inherit;
+  padding:6px 26px 6px 12px;border-radius:999px;cursor:pointer;-webkit-appearance:none;appearance:none;
+  background-repeat:no-repeat;background-position:right 10px center;background-size:10px 6px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23999' stroke-width='1.5'/%3E%3C/svg%3E");}
+.dil-sec select option{color:#111;}
+[dir=rtl] .dil-sec{right:auto;left:16px;}
+[dir=rtl] .dil-sec select{padding:6px 12px 6px 26px;background-position:left 10px center;}
 
 .tabs{display:flex;gap:4px;background:var(--surface2);border-radius:8px;padding:4px;margin-bottom:24px;}
 .tab{flex:1;padding:8px;border-radius:6px;border:none;background:none;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;}
@@ -129,9 +136,9 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 <link rel="stylesheet" href="tasarim.css">
 </head>
 <body>
+<!-- (2026-10-30) Emir: giriş ekranında 10 dil (eskiden yalnız TR/EN düğmesi) → açılır liste, seçenekler i18n.diller'den. -->
 <div class="dil-sec" role="group" aria-label="Dil / Language">
-  <button type="button" data-dil="tr" lang="tr" aria-label="Türkçe">TR</button>
-  <button type="button" data-dil="en" lang="en" aria-label="English">EN</button>
+  <select id="dilSec" aria-label="Dil / Language"></select>
 </div>
 
 <!-- Splash Overlay -->
@@ -232,8 +239,8 @@ function _gCev(k, tr) { try { return (window.i18n && window.i18n.t) ? window.i18
 function kabulMetniCiz() {
   const el = document.getElementById('kabulMetni');
   if (!el) return;
-  const en = !!(window.i18n && i18n.dil && i18n.dil() !== 'tr');
-  const a = (yol, ad) => '<a href="https://repertuvar.app/' + yol + (en ? '/en/' : '') + '" target="_blank" rel="noopener">' + ad + '</a>';
+  // (2026-10-30) Yasal sayfalar artık 10 dilde: kullanıcının dilindeki sayfa (i18n.yasalAdres).
+  const a = (yol, ad) => '<a href="' + ((window.i18n && i18n.yasalAdres) ? i18n.yasalAdres(yol) : 'https://repertuvar.app/' + yol + '/') + '" target="_blank" rel="noopener">' + ad + '</a>';
   el.innerHTML = _gCev('giris.kabul', 'Devam ederek ya da kayıt olarak {kosullar} ve {gizlilik} metinlerini kabul etmiş olursun.')
     .replace('{kosullar}', a('terms', _gCev('giris.kosullar', 'Kullanım Koşulları')))
     .replace('{gizlilik}', a('privacy', _gCev('giris.gizlilik', 'Gizlilik Politikası')));
@@ -1072,14 +1079,17 @@ async function loginGoogle() {
 (function dilSecici() {
   const kutu = document.querySelector('.dil-sec');
   if (!kutu || !window.i18n) { if (kutu) kutu.style.display = 'none'; return; }
-  const isaretle = () => kutu.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dil === i18n.dil())));
-  kutu.addEventListener('click', e => {
-    const b = e.target.closest('button[data-dil]');
-    if (!b) return;
+  const sec = document.getElementById('dilSec');
+  if (!sec) { kutu.style.display = 'none'; return; }
+  const diller = i18n.diller || { tr: 'Türkçe', en: 'English' };
+  Object.keys(diller).forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = diller[k]; o.lang = k; sec.appendChild(o); });
+  const isaretle = () => { sec.value = i18n.dil(); };
+  sec.addEventListener('change', () => {
+    const d = sec.value;
     // (2026-10-17) Burada AÇIKÇA seçilen dil girişten sonra profildeki eski dili ezmeli (auth.js
     // _profilDiliniUzlastir). Seçici hiç kullanılmazsa işaret yazılmaz ve profil dili geçerli kalır.
-    try { localStorage.setItem('uiLangGiris', b.dataset.dil); } catch (e) {}
-    if (b.dataset.dil !== i18n.dil()) i18n.ayarla(b.dataset.dil);   // sayfa metinleri + 'dil-degisti' olayı
+    try { localStorage.setItem('uiLangGiris', d); } catch (e) {}
+    if (d !== i18n.dil()) i18n.ayarla(d);   // sayfa metinleri + 'dil-degisti' olayı
   });
   window.addEventListener('dil-degisti', isaretle);
   isaretle();
