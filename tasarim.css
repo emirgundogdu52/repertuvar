@@ -844,7 +844,9 @@ html[data-cam][data-theme="light"] {
   html[data-cam][data-sayfa="eserler"] #listPanel { flex: none; overflow: visible; }
   /* Kullanıcı (2026-10-31): "Arama çubuğu sabit olup alt menü gibi gizlensin ve scroll yapınca geri gelsin." Arama kutusu
      listCol'da ilk yerinde yapışır; aşağı kaydırınca alt menüyle aynı anda (body.alt-menu-gizli, topnav.js) üst barın
-     arkasından yukarı kayıp gizlenir, yukarı kaydırınca geri gelir. Yazarken (odak kutudayken) gizlenmez. */
+     arkasından yukarı kayıp gizlenir, yukarı kaydırınca geri gelir. Yazarken (odak kutudayken) gizlenmez.
+     (2026-10-31) Kap artık süzgeç düğmelerini ve tür çiplerini de taşıyor ("filtre butonları da gizlensin"); -100% kabın
+     tamamını saklar. */
   html[data-cam][data-sayfa="eserler"] .es-arama {
     position: sticky; top: calc(var(--cam-icerik-ust) - 9px); z-index: 20;
     transition: transform .4s cubic-bezier(.2, .8, .2, 1);
