@@ -463,9 +463,12 @@ async function loadWorksData() {
     // auth.js supaTumSayfalar ile sayfalı (zaman aşımı sayfa başına); sıralama tekil (name, id).
     const _worksUrl = SUPA_URL+'/rest/v1/works?deleted_at=is.null&order=name.asc,id.asc';
     const _oturumVar = !!localStorage.getItem('sb_token');
-    let rows;
+    let rows, _artimli = null;
     try {
-      rows = await supaTumSayfalar(_worksUrl, _oturumVar ? authHeaders() : anonHeaders(), { zaman: 3500 });
+      // (2026-10-31) Oturum varsa artımlı: db.js eserleriEsitle yalnız değişenleri indirir ve IndexedDB'ye kendisi yazar;
+      // updated_at sütunu yoksa null → eski tam indirme. 8 sn'de bitmezse aşağıdaki catch yerelle devam eder.
+      if (_oturumVar && typeof window.eserleriEsitle === 'function') _artimli = await window.eserleriEsitle(8000);
+      rows = _artimli ? _artimli.rows : await supaTumSayfalar(_worksUrl, _oturumVar ? authHeaders() : anonHeaders(), { zaman: 3500 });
     } catch (e) {
       if (e && e.status && _oturumVar) {
         // Sessizce eksik veri göstermektense dürüst ol. WL zaten local'den
@@ -478,7 +481,7 @@ async function loadWorksData() {
       throw e;
     }
     if ((rows||[]).length) {
-      if (window.db) { try { await db.works.saveAll(rows); } catch(e) {} }
+      if (window.db && !_artimli) { try { await db.works.saveAll(rows); } catch(e) {} }
       _applyWorksRows(rows);
       try { renderList(); renderDetail(); } catch(e) {}
     }

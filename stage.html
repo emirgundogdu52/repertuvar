@@ -1420,9 +1420,12 @@ async function loadWL() {
       // auth.js supaTumSayfalar ile sayfalı (zaman aşımı sayfa başına); id tekil olduğu için sıralama zaten kaymaz.
       const _worksUrl = SUPA_URL+'/rest/v1/works?select=*&deleted_at=is.null&order=id.asc';
       const _oturumVar = !!localStorage.getItem('sb_token');
-      let fetched;
+      let fetched, _artimli = null;
       try {
-        fetched = await supaTumSayfalar(_worksUrl, _oturumVar ? H : {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}, { zaman: 3500 });
+        // (2026-10-31) Oturum varsa artımlı: db.js eserleriEsitle yalnız değişenleri indirir ve IndexedDB'ye kendisi yazar;
+        // updated_at sütunu yoksa null → eski tam indirme. 8 sn'de bitmezse aşağıdaki catch yerelden çizer.
+        if (_oturumVar && typeof window.eserleriEsitle === 'function') _artimli = await window.eserleriEsitle(8000);
+        fetched = _artimli ? _artimli.rows : await supaTumSayfalar(_worksUrl, _oturumVar ? H : {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}, { zaman: 3500 });
       } catch (e) {
         if (e && e.status && _oturumVar) {
           // Eksik güfteyle sahneye çıkmaktansa dürüst ol: WL varsa önbellekten
@@ -1433,8 +1436,8 @@ async function loadWL() {
       }
       if (!Array.isArray(fetched) || !fetched.length) throw new Error('works bos/gecersiz yanit');
       rows = fetched;
-      // Online'dan geldi — IndexedDB'yi güncelle
-      if (window.db) await db.works.saveAll(rows);
+      // Online'dan geldi — IndexedDB'yi güncelle (artımlıda eserleriEsitle zaten yazdı)
+      if (window.db && !_artimli) await db.works.saveAll(rows);
     } catch(fetchErr) {
       console.warn('[stage] Supabase ulaşılamadı, IndexedDB kullanılıyor');
       if (window.db) rows = await db.works.getAll();

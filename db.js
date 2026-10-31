@@ -232,6 +232,85 @@ window.clearOfflineData = function() {
     .catch((e) => { console.warn('[db] clearOfflineData hatası:', e); });
 };
 
+// ── ARTIMLI ESER EŞİTLEMESİ (2026-10-31) ──────────────────────────────────────
+// Emir: "Her sefer tüm eserleri indirmek yerine sadece değişiklikleri indirsin." Eskiden her eşitleme (açılış, ekrana
+// dönüş, her canlı bildirim) ve Eserler / Repertuvarlar / Sahne'nin kendi tazelemesi works'ün TAMAMINI select=* ile
+// indiriyordu (10.405 eserde ~22 MB). Artık önce yalnız id + updated_at listesi gelir (sunucuda veri/sql/
+// works_updated_at.sql: tetikleyici her UPDATE'te now() yazar), sonra yalnız yerelde olmayan ya da zamanı değişen
+// satırlar tam çekilir; listede olmayan (silinen, gizlenen, paylaşımı kalkan) satır yerelden silinir. Liste RLS'ten
+// geldiği için updated_at'e dokunmayan görünürlük değişiklikleri de yakalanır. Yerel sürüm haritası meta 'worksSurum'.
+// Döner: { rows } (yereldeki tam liste) ya da null — updated_at sütunu yoksa (HTTP 400), IndexedDB ya da oturum yoksa;
+// çağıran eski tam indirmeye döner. Ağ / HTTP hatası fırlar, yerel önbelleğe dokunulmaz. Aynı anda gelen çağrılar
+// (eşitleme + sayfa) tek işlemi paylaşır. ms verilirse o sürede bitmeyince çağırana hata döner (Sahne ve Repertuvarlar
+// beklemeden yerelden çizer); işlem arka planda sürer ve IndexedDB'yi yine tazeler.
+let _eserEsitleme = null;
+window.eserleriEsitle = function (ms) {
+  if (!_eserEsitleme) {
+    _eserEsitleme = _eserleriEsitle().finally(() => { _eserEsitleme = null; });
+    _eserEsitleme.catch(() => {});               // zaman aşımıyla bırakılan çağrıda yakalanmamış hata uyarısı çıkmasın
+  }
+  if (!ms) return _eserEsitleme;
+  return Promise.race([_eserEsitleme, new Promise((_, red) => setTimeout(() => red(new Error('eser eşitlemesi zaman aşımı')), ms))]);
+};
+async function _eserleriEsitle() {
+  if (!HAS_IDB || typeof window.supaTumSayfalar !== 'function') return null;
+  let token = localStorage.getItem('sb_token');
+  if (!token) return null;
+  if (typeof window.ensureValidToken === 'function') {
+    try { token = (await window.ensureValidToken()) || token; } catch (e) {}
+  }
+  const SUPA_URL = 'https://ehytkzxdhjyjuubizdnl.supabase.co';
+  const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
+  const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token };
+  const taban = SUPA_URL + '/rest/v1/works?deleted_at=is.null&order=id.asc';
+  let dizin;
+  try {
+    dizin = await window.supaTumSayfalar(taban + '&select=id,updated_at', headers);
+  } catch (e) {
+    if (e && e.status === 400) return null;      // updated_at sütunu henüz yok → tam indirme
+    throw e;
+  }
+  const anahtarlar = await storeOp('works', 'readonly', (s) => s.getAllKeys());
+  const tumu = () => storeOp('works', 'readonly', (s) => s.getAll());
+  // 0 kayıt koruması (eserler.html'deki gibi): sunucu boş döndü ama yerelde eser var → oturum/yetki sorunu olabilir.
+  if (!dizin.length && anahtarlar.length) {
+    console.warn('[db] eser listesi boş geldi, yerelde ' + anahtarlar.length + ' eser var — YEREL KORUNUYOR');
+    return { rows: await tumu() };
+  }
+  const surum = (await meta.get('worksSurum')) || {};
+  const yerelde = new Set(anahtarlar);
+  const gerekli = dizin.filter((d) => !yerelde.has(d.id) || surum[d.id] !== d.updated_at).map((d) => d.id);
+  const tam = gerekli.length > 2000;             // ilk eşitleme ya da büyük değişiklik: sayfalı tek sorgu daha az istek
+  let gelen = [];
+  if (tam) {
+    gelen = await window.supaTumSayfalar(taban + '&select=*', headers);
+  } else {
+    for (let i = 0; i < gerekli.length; i += 200) {
+      gelen = gelen.concat(await window.supaTumSayfalar(taban + '&select=*&id=in.(' + gerekli.slice(i, i + 200).join(',') + ')', headers));
+    }
+  }
+  const sunucuda = new Set((tam ? gelen : dizin).map((d) => d.id));
+  const silinecek = anahtarlar.filter((k) => !sunucuda.has(k));
+  if (gelen.length || silinecek.length) {
+    await openDB().then((idb) => new Promise((resolve, reject) => {
+      const tx = _izle(idb.transaction('works', 'readwrite'));
+      const store = tx.objectStore('works');
+      silinecek.forEach((k) => store.delete(k));
+      gelen.forEach((w) => store.put(w));
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error || new Error('işlem iptal edildi'));
+    }));
+  }
+  // Harita: değişmeyenler listedeki zamanla, gelenler kendi zamanıyla. Gerekli olup gelmeyen (arada silinen) yazılmaz.
+  const yeni = {};
+  if (!tam) { const istenen = new Set(gerekli); dizin.forEach((d) => { if (!istenen.has(d.id)) yeni[d.id] = d.updated_at; }); }
+  gelen.forEach((w) => { yeni[w.id] = w.updated_at; });
+  await meta.set('worksSurum', yeni);
+  console.log('[db] eserler: ' + gelen.length + ' indi, ' + silinecek.length + ' silindi, ' + dizin.length + ' eser' + (tam ? ' (tam)' : ''));
+  return { rows: await tumu() };
+}
+
 // Sync — sunucudan veri çekip IndexedDB'ye kaydet
 window.syncOfflineData = async function() {
   // Token dolmuş olabilir (1 saatlik ömür) — sync fetch'lerinden ÖNCE yenile.
@@ -279,10 +358,17 @@ window.syncOfflineData = async function() {
         if (e && e.status) { console.warn('[db] eşitleme: ' + yol.split('?')[0] + ' alınamadı (HTTP ' + e.status + ')'); return { ok: false }; }
         throw e;
       });
+    // (2026-10-31) Eserler artımlı (eserleriEsitle kendi yazar); updated_at sütunu yoksa eski tam indirme.
+    const _eserler = () => window.eserleriEsitle().then(
+      (d) => d ? { ok: true, artimli: true } : _al('/rest/v1/works?select=*&deleted_at=is.null&order=name.asc,id.asc'),
+      (e) => {
+        if (e && e.status) { console.warn('[db] eşitleme: works alınamadı (HTTP ' + e.status + ')'); return { ok: false }; }
+        throw e;
+      });
     const [worksRes, repsRes, solRes, itemsRes, grpRes, gmRes, profRes] = await Promise.all([
       // (2026-08-30) Silinmiş eserler ÖNBELLEĞE ALINMASIN: buraya girerse
       // çevrimdışı çalışan her sayfa onları gösterir ve sebebi bulunması zor olur.
-      _al('/rest/v1/works?select=*&deleted_at=is.null&order=name.asc,id.asc'),
+      _eserler(),
       _al(repFilter),
       _al(solFilter),
       _al('/rest/v1/repertoire_items?select=*&order=seq.asc,id.asc'),
@@ -291,7 +377,7 @@ window.syncOfflineData = async function() {
       _al('/rest/v1/profiles?select=id,display_name,email,phone,instrument,instruments,group_id&order=id.asc'),
     ]);
 
-    if (worksRes.ok) await db.works.replaceAll(worksRes.rows);
+    if (worksRes.ok && !worksRes.artimli) await db.works.replaceAll(worksRes.rows);
     if (repsRes.ok) await db.repertoires.replaceAll(repsRes.rows);
     if (solRes.ok) await db.solistler.replaceAll(solRes.rows);
     if (itemsRes.ok) await db.repertoire_items.replaceAll(itemsRes.rows);

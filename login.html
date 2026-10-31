@@ -61,7 +61,10 @@ body { overflow: hidden; }
   --border:#303A55;--text:#FFFFFF;--text2:#B8BFD2;--text3:#8A93AB;
   --accent:#FFC83D;--accent2:#4DA3FF;--green:#3FB950;--red:#F85149;
 }
-body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;
+  /* (2026-10-31) Emir'in iPhone ekran görüntüsü: dil seçici logonun ".app" kısmının üstüne biniyordu. Seçici akış dışında
+     (aşağıda .dil-sec); üstte onun bandı + güvenli alan kadar yer ayrılır: güvenli alan + 14 üst + ~38 seçici + 16 ara. */
+  padding-top:calc(env(safe-area-inset-top,0px) + 68px);}
 
 .logo-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:32px;}
 /* Yeni yazı logosu — splash ve üst çubuktakiyle aynı kimlik (eski logo_slogan_dark.png yerine) */
@@ -73,7 +76,8 @@ body{background:var(--bg);font-family:var(--font-ui, "Sora",sans-serif);color:va
 .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:400px;}
 /* (2026-10-17) Giriş/kayıt ekranında dil seçici (kullanıcı): telefonu Felemenkçe olan Türkçe konuşan biri kayıt ekranını
    İngilizce görüyor ve kayıt bitene kadar değiştiremiyordu. Seçim kalıcı (uiLang); açılış yazısı da sonraki açılışta o dilde. */
-.dil-sec{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;z-index:50;display:flex;gap:2px;padding:3px;
+/* (2026-10-31) fixed → absolute: sayfa kayınca seçici kartın alanlarının üstünde yüzmesin, sayfayla birlikte gitsin. */
+.dil-sec{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;z-index:50;display:flex;gap:2px;padding:3px;
   border:1px solid var(--border);border-radius:999px;background:var(--surface);}
 .dil-sec button{border:0;background:none;color:var(--text2);font:600 12px/1 inherit;font-family:inherit;padding:6px 11px;
   border-radius:999px;cursor:pointer;letter-spacing:.04em;-webkit-tap-highlight-color:transparent;}
