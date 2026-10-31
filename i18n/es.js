@@ -1129,6 +1129,8 @@
   "ay.muzikalan_alt": "Qué campos se muestran en las obras nuevas",
   "ay.sahne": "Modo Escenario",
   "ay.sahne_alt": "Ajustes predeterminados al salir al escenario",
+  "ay.anaSayfaKapat": "Ocultar Inicio",
+  "ay.anaSayfaKapat_alt": "La app se abre directamente en Obras; Inicio desaparece de los menús.",
   "ay.tema": "Tema predeterminado",
   "ay.tema_alt": "Tema con el que se abre el Modo Escenario",
   "ay.hiza": "Alineación de la letra",

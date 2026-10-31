@@ -799,6 +799,10 @@ function _m(anahtar, tr) {
     } catch (e) { console.warn('[topnav] dil değişince menü yeniden kurulamadı:', e); }
   });
 
+  // (2026-10-31) Emir: Ayarlar'da "Ana Sayfa'yı kapat" (uygulamayı iyi tanıyan için). Açıkken Ana Sayfa menülerden kalkar;
+  // index.html açılışta eserler.html'e yönlendirir. Ayar cihazda (localStorage anaSayfaKapali), ayarlar.html yazar.
+  function _anaSayfaKapali() { try { return localStorage.getItem('anaSayfaKapali') === '1'; } catch (e) { return false; } }
+
   function renderSidebar() {
     if (window.innerWidth < 1024) return;
     if (document.getElementById('r-sidebar')) return;
@@ -814,12 +818,13 @@ function _m(anahtar, tr) {
     const isAdminNow = savedUser?.id === ADMIN_ID || savedRole === 'admin';
     const isEditorNow = isAdminNow || savedRole === 'editor';
 
+    // (2026-10-31) Emir: sıra Grup / Koro, sonra Solistler (alt menüyle aynı).
     const navItems = [
-      { href: 'index.html',       icon: 'ti-home',        label: _m('menu.anasayfa','Ana Sayfa') },
+      ...(_anaSayfaKapali() ? [] : [{ href: 'index.html', icon: 'ti-home', label: _m('menu.anasayfa','Ana Sayfa') }]),
       { href: 'eserler.html',     icon: 'ti-book',        label: _m('menu.eserler','Eserler') },
       { href: 'repertoires.html', icon: 'ti-playlist',    label: _m('menu.repertuvarlar','Repertuvarlar') },
-      { href: 'artiesten.html',   icon: 'ti-microphone',  label: _m('menu.solistler','Solistler') },
       { href: 'gruplar.html',     icon: 'ti-users-group', label: _m('menu.grup','Grup / Koro') },
+      { href: 'artiesten.html',   icon: 'ti-microphone',  label: _m('menu.solistler','Solistler') },
       // 2026-08-05: Metronom — bağımsız çalışma aracı, eser/repertuvar kaydına bağlı değil.
       // YERLEŞİM: masaüstü/iPad'de sidebar (burası), TELEFONDA avatar menüsünde.
       // Sebep: alt gezinme çubuğu telefonda zaten dolu (Sahne Modu dahil 5 öğe) ve
@@ -900,19 +905,21 @@ function _m(anahtar, tr) {
     const savedRole = localStorage.getItem('user_role') || '';
     const isAdminNow = savedUser?.id === ADMIN_ID || savedRole === 'admin';
 
-    // Geniş ekranda (tablet dikey, ≥600px) sidebar'daki Solistler ve Grup/Koro'yu
-    // alt menüye de ekle — tablet dikeyde sidebar gizli olduğu için bu sayfalara
-    // erişim kalmıyordu. Telefonda 7 öğe sıkışacağı için orada 5'li liste kalır.
+    // Geniş ekranda (tablet dikey, ≥600px) sidebar'daki Solistler'i alt menüye de
+    // ekle — tablet dikeyde sidebar gizli olduğu için bu sayfaya erişim kalmıyordu.
+    // Telefonda 7 öğe sıkışacağı için Solistler orada yok (Grup / Koro 2026-10-31'den beri var).
     // (Üyeler ve Ayarlar bilerek dışarıda: Ayarlar zaten avatar menüsünde.)
     const roomyNav = window.innerWidth >= 600;
 
+    // (2026-10-31) Emir: Grup / Koro telefonda da alt menüde, Repertuvarlar'dan hemen sonra; tablette sıra Grup / Koro, sonra
+    // Solistler. Ana Sayfa kapalıysa (Ayarlar) Ana Sayfa düğmesi yok. Telefonda 6 düğmede yazı 9,5 px (tasarim.css data-adet).
     const bnItems = [
-      { href: 'index.html',       icon: 'ti-home',     label: _m('menu.anasayfa','Ana Sayfa') },
+      ...(_anaSayfaKapali() ? [] : [{ href: 'index.html', icon: 'ti-home', label: _m('menu.anasayfa','Ana Sayfa') }]),
       { href: 'eserler.html',     icon: 'ti-book',     label: _m('menu.eserler','Eserler') },
       { href: 'repertoires.html', icon: 'ti-playlist', label: _m('menu.repertuvarlar','Repertuvarlar') },
+      { href: 'gruplar.html',     icon: 'ti-users-group', label: _m('menu.grup','Grup / Koro') },
       ...(roomyNav ? [
         { href: 'artiesten.html', icon: 'ti-microphone',  label: _m('menu.solistler','Solistler') },
-        { href: 'gruplar.html',   icon: 'ti-users-group', label: _m('menu.grup','Grup / Koro') },
       ] : []),
       { href: 'stage.html',       icon: 'ti-music',    label: _m('menu.sahnemodu','Sahne Modu'), stage: true },
       { href: 'mesajlar.html',    icon: 'ti-message',  label: _m('menu.mesajlar','Mesajlar') },
@@ -931,6 +938,7 @@ function _m(anahtar, tr) {
     nav.id = 'r-bottom-nav';
     nav.className = 'bottom-nav';
     nav.dataset.roomy = roomyNav ? '1' : '0'; // eşik değişince yeniden kurulabilsin
+    nav.dataset.adet = String(bnItems.length);
     nav.innerHTML = `<div class="bn-items">${bnHtml}</div>`;
     document.body.appendChild(nav);
 

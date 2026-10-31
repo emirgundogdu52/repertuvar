@@ -1129,6 +1129,8 @@
   "ay.muzikalan_alt": "Les champs affichés sur les nouveaux morceaux",
   "ay.sahne": "Mode Scène",
   "ay.sahne_alt": "Réglages par défaut quand vous entrez en scène",
+  "ay.anaSayfaKapat": "Masquer l'accueil",
+  "ay.anaSayfaKapat_alt": "L'app s'ouvre directement sur Morceaux ; l'accueil disparaît des menus.",
   "ay.tema": "Thème par défaut",
   "ay.tema_alt": "Thème à l’ouverture du Mode Scène",
   "ay.hiza": "Alignement des paroles",

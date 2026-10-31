@@ -1129,6 +1129,8 @@
   "ay.muzikalan_alt": "Yeni əsərlərdə hansı sahələr açıq gəlsin",
   "ay.sahne": "Səhnə rejimi",
   "ay.sahne_alt": "Səhnəyə çıxarkən istifadə olunan standart ayarlar",
+  "ay.anaSayfaKapat": "Ana səhifəni bağla",
+  "ay.anaSayfaKapat_alt": "Tətbiq birbaşa Əsərlər ilə açılır; Ana səhifə menyulardan çıxır.",
   "ay.tema": "Standart mövzu",
   "ay.tema_alt": "Səhnə rejimi açılanda istifadə olunan mövzu",
   "ay.hiza": "Sözlərin düzləndirilməsi",

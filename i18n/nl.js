@@ -1129,6 +1129,8 @@
   "ay.muzikalan_alt": "Welke velden bij nieuwe stukken worden getoond",
   "ay.sahne": "Podiummodus",
   "ay.sahne_alt": "Standaardinstellingen als je het podium op gaat",
+  "ay.anaSayfaKapat": "Home uitschakelen",
+  "ay.anaSayfaKapat_alt": "De app opent direct in Stukken; Home verdwijnt uit de menu's.",
   "ay.tema": "Standaardthema",
   "ay.tema_alt": "Thema waarmee de Podiummodus opent",
   "ay.hiza": "Uitlijning van de tekst",

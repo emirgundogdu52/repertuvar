@@ -1129,6 +1129,8 @@
   "ay.muzikalan_alt": "Welche Felder bei neuen Stücken angezeigt werden",
   "ay.sahne": "Bühnenmodus",
   "ay.sahne_alt": "Standardeinstellungen für den Auftritt",
+  "ay.anaSayfaKapat": "Startseite ausblenden",
+  "ay.anaSayfaKapat_alt": "Die App startet direkt in „Stücke“; die Startseite verschwindet aus den Menüs.",
   "ay.tema": "Standard-Design",
   "ay.tema_alt": "Design beim Öffnen des Bühnenmodus",
   "ay.hiza": "Textausrichtung",

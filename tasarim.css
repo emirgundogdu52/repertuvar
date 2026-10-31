@@ -812,6 +812,12 @@ html[data-cam][data-theme="light"] {
      indi (440 px), yazı 74 px; tam yuvarlak hap zeminin alt kıvrımında yazı dışarıda görünüyordu → sekme zemini 18 px köşeli,
      yazı 10 px (iki yana nefes payı). */
   html[data-cam] .bottom-nav .bn-item .bn-label { font-size: 10px; font-weight: 600; color: inherit !important; }
+  /* (2026-10-31) Telefonda 6 düğme (Grup / Koro eklendi, Ana Sayfa açık): 10 px'te "Repertuvarlar" 17 Pro Max'te 0,3 px taşıyordu
+     (ölçüm: Inter Tight 600, düğme içi 60,7 px). 9,5 px'te Türkçe ve 8 dilin etiketleri sığıyor; fr/ar "Grup / Koro" ve 375 px'lik
+     telefonlarda uzun adlar üç noktayla kısalır. */
+  @media (max-width: 599px) {
+    html[data-cam] .bottom-nav[data-adet="6"] .bn-item .bn-label { font-size: 9.5px; }
+  }
   html[data-cam] .bottom-nav .bn-item.active { background: var(--cam-hap) !important; color: var(--cam-etkin) !important; }
   html[data-cam] .bottom-nav .bn-item.active .bn-label { font-weight: 700; }
   /* Klavye açıkken alt menü yazı alanını örtmesin (topnav.js, yalnız dokunmatik). */

@@ -1129,6 +1129,8 @@
   "ay.muzikalan_alt": "Quais campos aparecem nas novas músicas",
   "ay.sahne": "Modo Palco",
   "ay.sahne_alt": "Padrões usados quando você sobe ao palco",
+  "ay.anaSayfaKapat": "Ocultar Início",
+  "ay.anaSayfaKapat_alt": "O app abre direto em Músicas; Início sai dos menus.",
   "ay.tema": "Tema padrão",
   "ay.tema_alt": "Tema usado quando o Modo Palco abre",
   "ay.hiza": "Alinhamento da letra",

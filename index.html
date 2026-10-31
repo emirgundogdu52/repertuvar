@@ -13,6 +13,9 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<!-- (2026-10-31) Emir: Ayarlar'da "Ana Sayfa'yı kapat" açıksa uygulama Eserler ile açılır. Girişten, splash'ten ve yerel
+     uygulamanın ilk sayfasından gelen her yol buraya düştüğü için yönlendirme tek yerde, sayfa çizilmeden. -->
+<script>try { if (localStorage.getItem('anaSayfaKapali') === '1') location.replace('eserler.html'); } catch (e) {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script src="tasarim.js"></script>
 <title>Repertuvar — v2 Preview</title>

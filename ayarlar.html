@@ -695,6 +695,18 @@ html, body { overflow-x: hidden; }
                        border:1px solid var(--border);color:var(--text);font-size:14px;
                        font-family:inherit;"></select>
       </div>
+      <!-- (2026-10-31) Emir: uygulamayı yeterince tanıyan biri için Ana Sayfa'yı kapatma. Açıkken uygulama Eserler ile açılır
+           (index.html yönlendirir), Ana Sayfa düğmesi menülerden kalkar (topnav.js). Ayar cihazda: localStorage anaSayfaKapali. -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label" data-i18n="ay.anaSayfaKapat">Ana Sayfa'yı kapat</div>
+          <div class="setting-desc" data-i18n="ay.anaSayfaKapat_alt">Uygulama doğrudan Eserler'le açılır; Ana Sayfa menülerden kalkar.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="anaSayfaKapali" onchange="anaSayfaKapatDegisti(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
       <!-- (2026-10-04) Yeni tasarım anahtarı (tasarim.js). Native uygulamada URL
            parametresi verilemediği için uygulama içi geri dönüş yolu da budur. -->
       <div class="setting-row" id="tasarimSatir">
@@ -1358,6 +1370,14 @@ function loadSettings() {
   const el = document.getElementById('stageTheme'); if(el) el.value = theme;
   const el2 = document.getElementById('stageLyricsAlign'); if(el2) el2.value = align;
   const el3 = document.getElementById('stageShowChords'); if(el3) el3.checked = chords === '1';
+  const el4 = document.getElementById('anaSayfaKapali'); if(el4) el4.checked = localStorage.getItem('anaSayfaKapali') === '1';
+}
+
+// (2026-10-31) Ana Sayfa'yı kapat: menüler sayfa açılırken kurulduğu için sayfa yenilenir (Ana Sayfa düğmesi hemen gider/gelir).
+function anaSayfaKapatDegisti(kapali) {
+  try { if (kapali) localStorage.setItem('anaSayfaKapali', '1'); else localStorage.removeItem('anaSayfaKapali'); } catch (e) {}
+  toast(_t('ortak.kaydedildi','Kaydedildi ✓'));
+  setTimeout(() => location.reload(), 600);
 }
 
 function openPasswordModal() {

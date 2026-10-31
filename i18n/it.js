@@ -1129,6 +1129,8 @@
   "ay.muzikalan_alt": "Quali campi mostrare sui nuovi brani",
   "ay.sahne": "Modalità Palco",
   "ay.sahne_alt": "Impostazioni predefinite usate quando sali sul palco",
+  "ay.anaSayfaKapat": "Nascondi Home",
+  "ay.anaSayfaKapat_alt": "L'app si apre direttamente su Brani; Home scompare dai menu.",
   "ay.tema": "Tema predefinito",
   "ay.tema_alt": "Tema usato all'apertura della Modalità Palco",
   "ay.hiza": "Allineamento del testo",
