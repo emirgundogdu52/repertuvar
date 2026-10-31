@@ -836,9 +836,23 @@ html[data-cam][data-theme="light"] {
     overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; box-sizing: border-box;
     /* − 9 px: kullanıcı (2026-10-24) "Eser Ara kutusunu altındakilerle 1,5 mm yukarı al" (17 Pro Max'te 9 px ≈ 1,5 mm);
        kutu barın 18 px yerine 9 px altında (listCol'un ilk kabının kendi 6 px üst payı dahil). */
-    padding-top: calc(var(--cam-icerik-ust) - 9px); padding-bottom: var(--cam-icerik-alt);
+    padding-bottom: var(--cam-icerik-alt);
   }
+  /* (2026-10-31) Üst pay padding yerine boş öğe: WebKit yapışkan öğenin "top"una kabın üst padding'ini de ekliyor (iOS
+     simülatörü ölçümü: arama kutusu dinlenirken 111 yerine 222 px'te). Boş öğeyle iki motorda da aynı yer. */
+  html[data-cam][data-sayfa="eserler"] #listCol::before { content: ""; flex: none; height: calc(var(--cam-icerik-ust) - 9px); }
   html[data-cam][data-sayfa="eserler"] #listPanel { flex: none; overflow: visible; }
+  /* Kullanıcı (2026-10-31): "Arama çubuğu sabit olup alt menü gibi gizlensin ve scroll yapınca geri gelsin." Arama kutusu
+     listCol'da ilk yerinde yapışır; aşağı kaydırınca alt menüyle aynı anda (body.alt-menu-gizli, topnav.js) üst barın
+     arkasından yukarı kayıp gizlenir, yukarı kaydırınca geri gelir. Yazarken (odak kutudayken) gizlenmez. */
+  html[data-cam][data-sayfa="eserler"] .es-arama {
+    position: sticky; top: calc(var(--cam-icerik-ust) - 9px); z-index: 20;
+    transition: transform .4s cubic-bezier(.2, .8, .2, 1);
+  }
+  html[data-cam][data-sayfa="eserler"] body.alt-menu-gizli .es-arama:not(:focus-within) {
+    transform: translateY(calc(-100% - var(--cam-icerik-ust))); pointer-events: none;
+    transition: transform .5s cubic-bezier(.4, 0, .2, 1);
+  }
   /* − 9 px: kullanıcı (2026-10-24) "eser detayında da üstteki boşluğu 1,5 mm azalt" — liste ile aynı (bara 9 px). */
   html[data-cam][data-sayfa="eserler"] .detail { padding-top: calc(var(--cam-icerik-ust) - 9px); padding-bottom: var(--cam-icerik-alt); box-sizing: border-box; }
   /* Klavye açıkken yüzen + düğmeleri de gizli (iOS'ta sabit öğeler klavyenin üstüne zıplıyor). */

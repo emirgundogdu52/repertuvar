@@ -1810,14 +1810,19 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
       <h2><i class="ti ti-book" aria-hidden="true"></i><span data-i18n="menu.eserler">Eserler</span></h2>
       <button type="button" class="es-arti" onclick="eklemeSecimAc(event)" title="Yeni Eser Ekle" aria-label="Yeni Eser Ekle" data-i18n-title="es.yenieserKisa" data-i18n-aria="es.yenieserKisa"><i class="ti ti-plus" aria-hidden="true"></i></button>
     </div>
-    <div style="padding:6px 16px 0;background:var(--bg);">
+    <!-- (2026-10-31) Emir: "Arama çubuğu sabit olup alt menü gibi gizlensin, scroll yapınca geri gelsin" → arama kutusu kendi
+         kabında (es-arama): telefonda listenin üstüne yapışır, alt menüyle birlikte gizlenip gelir (tasarim.css). Kutunun
+         altındaki 8 px eskiden düğme satırının üst payıydı. -->
+    <div class="es-arama" style="padding:6px 16px 8px;background:var(--bg);">
       <div style="position:relative;">
         <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none;">&#9906;</span>
         <input type="text" id="searchInput" data-temizle placeholder="Eser adı veya söz ara..." data-i18n-ph="es.ph_ara" autocomplete="off"
           style="width:100%;height:42px;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0 12px 0 36px;color:var(--text);font-size:14px;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);outline:none;transition:border-color .2s;"
           oninput="applyFilters();">
       </div>
-      <div class="fav-toggle-wrap" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+    </div>
+    <div style="padding:0 16px;background:var(--bg);">
+      <div class="fav-toggle-wrap" style="display:flex;gap:6px;flex-wrap:wrap;">
         <button id="favToggleAll" class="fav-toggle-btn active" onclick="tumunuGoster()"
           style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;" data-i18n="es.tumu">Tümü</button>
         <button id="favToggleFav" class="fav-toggle-btn" onclick="setFavOnly(true)"
@@ -1999,6 +2004,25 @@ async function syncWorksFromServer(hadLocalData) {
     // değil: yukarıdaki 0-kayıt koruması yerel listeyi silinmekten koruyor.
     const hdr = authHeaders();
 
+    // (2026-10-31) ARTIMLI: db.js eserleriEsitle yalnız değişen satırları indirip IndexedDB'yi tazeler ve tam listeyi
+    // (güfte/akor dahil) döndürür; iki fazlı tam indirme gerekmez. updated_at sütunu yoksa null → aşağıdaki eski yol.
+    // db.js listesi süzgeçsiz: statusExpr'in karşılığı burada istemcide.
+    const artimli = (typeof window.eserleriEsitle === 'function') ? await window.eserleriEsitle() : null;
+    if (artimli) {
+      const aRows = statusExpr
+        ? artimli.rows.filter(r => r.status === 'approved' || (r.status === 'pending' && r.submitted_by === uid))
+        : artimli.rows;
+      if (aRows.length === 0 && (hadLocalData || DATA.length > 0)) return;   // aşağıdaki 0 kayıt korumasıyla aynı
+      parseWorksRows(aRows, !!(_weSwipe || _weOpenCard));
+      try {
+        const list = DATA.filter(w => w.name).map(w => ({id: String(w.id), name: w.name, composer: w.composer||'', makam: w.makam||''}));
+        localStorage.setItem('worksListCache', JSON.stringify(list));
+      } catch(e) {}
+      if (isAdmin() || isEditor()) updatePendingCount();
+      if (selectedId != null && typeof selectWork === 'function' && !(_weSwipe || _weOpenCard)) selectWork(selectedId, true);
+      return;
+    }
+
     // ── FAZ 1: HAFİF liste (güfte/akor/nota HARİÇ) — ilk boyama hızlı olsun.
     //    Liste ve filtreler bu alanlara ihtiyaç duymaz; ağır güfte/akor metnini
     //    ilk yükte çekmek soğuk açılışı yavaşlatan asıl sebepti. ──
@@ -2084,6 +2108,8 @@ let favOnly = false;               // "Tümü / Favoriler" toggle durumu
 let draftOnly = false;
 let bulkMode = false;               // Uzun-basma ile toplu seçim modu (2026-07-19: tüm filtrelerde)
 let bulkSelectedIds = new Set();    // Toplu seçimde işaretli eser id'leri
+const LISTE_PARCA = 200;            // (2026-10-31) parçalı çizim, bkz. renderList
+let _listeSinir = LISTE_PARCA, _listeImza = null, _listeKart = null, _listeGozlemci = null;
 let longPressTimer = null;
 let longPressFiredId = null;        // Long-press tetiklendiyse ardından gelen click'i yut
 let longPressFiredAt = 0;           // (2026-10-24) …ama yalnız hemen ardından: Android uzun basmadan sonra click GÖNDERMİYOR,
@@ -2460,6 +2486,44 @@ document.addEventListener('visibilitychange', function () { if (!document.hidden
 // ── Repertuvara Ekle sheet'i ──
 let repAddWorkId = null;
 
+// (2026-10-31) Emir'in ekran görüntüsü: "Repertuvara Ekle" listesinde başkasının grup repertuvarı ("Bestelerim") vardı;
+// seçince HTTP 403 (repertoire_items RLS). Liste görünen her repertuvarı gösteriyordu, ekleme ise yalnız sahibine ve
+// repertuvarın grubunda owner/admin olana açık (owner_items + items_group_manage). Liste artık aynı kuralla süzülüyor.
+async function _eklenebilirRepler(headers, uid) {
+  const [reps, yon] = await Promise.all([
+    fetch(SUPA_URL + '/rest/v1/repertoires?select=id,name,visibility,owner_id,group_id&order=created_at.desc', { headers }).then(r => r.json()),
+    fetch(SUPA_URL + '/rest/v1/group_members?select=group_id&role=in.(owner,admin)&user_id=eq.' + uid, { headers }).then(r => r.ok ? r.json() : [])
+  ]);
+  if (!Array.isArray(reps)) return reps;
+  const yonetici = new Set((Array.isArray(yon) ? yon : []).map(g => g.group_id));
+  return reps.filter(r => r.owner_id === uid || (r.group_id && yonetici.has(r.group_id)));
+}
+
+// (2026-10-31) Emir: "Bunları grup bazında sıralayalım, hangi gruplara üye isem kırılımlı." Önce Kişisel (grubu olmayan ya
+// da yalnız benim gördüğüm), sonra grup adına göre gruplar; bölüm içinde sıra aynı (yeniden eskiye). Ad: auth.js önbelleği,
+// yoksa groups tablosu.
+async function _repKirilimHtml(headers, reps, secFn) {
+  const ad = {};
+  (typeof getMyGroups === 'function' ? getMyGroups() : []).forEach(g => { ad[g.id] = g.name; });
+  const anahtar = r => (r.group_id && r.visibility !== 'private') ? r.group_id : '';
+  const eksik = [...new Set(reps.map(anahtar).filter(k => k && !ad[k]))];
+  if (eksik.length) {
+    try {
+      const gr = await fetch(SUPA_URL + '/rest/v1/groups?id=in.(' + eksik.join(',') + ')&select=id,name', { headers });
+      if (gr.ok) (await gr.json()).forEach(g => { ad[g.id] = g.name; });
+    } catch (e) {}
+  }
+  const bolum = new Map();
+  reps.forEach(r => { const k = anahtar(r); if (!bolum.has(k)) bolum.set(k, []); bolum.get(k).push(r); });
+  return [...bolum.entries()]
+    .map(([k, liste]) => ({ k, baslik: k ? (ad[k] || _esCev('ortak.grup', 'Grup')) : _esCev('rep.kisisel', 'Kişisel'), liste }))
+    .sort((a, b) => (a.k ? 1 : 0) - (b.k ? 1 : 0) || a.baslik.localeCompare(b.baslik, 'tr'))
+    .map(b => `<div class="kirilim-baslik" style="padding:14px 20px 4px;">${_esHtml(b.baslik)}</div>` + b.liste.map(r => `
+        <button class="more-sheet-item" data-ad="${_esHtml(r.name||'')}" onclick="${secFn}('${r.id}', this.dataset.ad)">
+          <i class="ti ti-playlist"></i> ${_esHtml(r.name || _esCev('es.isimsiz','(isimsiz)'))}
+        </button>`).join('')).join('');
+}
+
 function openRepAddSheet(workId) {
   repAddWorkId = workId;
   const overlay = document.getElementById('repAddSheetOverlay');
@@ -2484,19 +2548,14 @@ function openRepAddSheet(workId) {
   // (2026-08-20) YENİ MODEL: istemci süzgeci kaldırıldı, görünürlüğü
   // repertoires_read politikası belirliyor. Eski sorgu yalnız group_id/is_public'e
   // baktığı için grup-paylaşımlı ve kişisel paylaşımlı repertuvarları eliyordu.
-  const filter = '/rest/v1/repertoires?select=id,name,visibility&order=created_at.desc';
-
-  fetch(SUPA_URL + filter, { headers })
-    .then(r => r.json())
+  // (2026-10-31) Görünen her repertuvara eser eklenemez → listede yalnız eklenebilenler (_eklenebilirRepler).
+  _eklenebilirRepler(headers, uid)
     .then(reps => {
       if (!Array.isArray(reps) || !reps.length) {
         list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">' + _esCev('es.henuzRepYok','Henüz bir repertuvarın yok.') + '</div>';
         return;
       }
-      list.innerHTML = reps.map(r => `
-        <button class="more-sheet-item" data-ad="${_esHtml(r.name||'')}" onclick="pickRepertoireForAdd('${r.id}', this.dataset.ad)">
-          <i class="ti ti-playlist"></i> ${_esHtml(r.name || _esCev('es.isimsiz','(isimsiz)'))}
-        </button>`).join('');
+      return _repKirilimHtml(headers, reps, 'pickRepertoireForAdd').then(h => { list.innerHTML = h; });
     })
     .catch(() => {
       list.innerHTML = '<div style="padding:20px;text-align:center;color:#e07060;font-size:13px;">' + _esCev('es.repYuklenemedi','Repertuvarlar yüklenemedi.') + '</div>';
@@ -2897,8 +2956,61 @@ function sortData() {
   else if (sortMode === 'region') filteredData.sort((a,b) => (a.region||'zzz').localeCompare(b.region||'zzz','tr'));
 }
 
+// (2026-10-31) PARÇALI ÇİZİM. Emir'in listesi 10 bini aşınca (kenardaki eserler kişisel olarak geri geldi) iPhone tek
+// seferde çizilen listeyi kaldıramadı, kaydırınca alt yarı boş/siyah kaldı. Liste 200'lük parçalarla çiziliyor; sondaki
+// gözcü görünüme yaklaşınca sıradaki parça eklenir. Arama ve süzgeçler yine bütün listede (filteredData). Süzgeç, arama ya
+// da sıra değişince ilk parçaya dönülür; eşitleme, favori ya da toplu seçim gibi yeniden çizimlerde çizilmiş kısım korunur
+// (kaydırma yeri kaymasın). Seçili ya da kaydedilip gidilecek eser çizilmemiş bir parçadaysa ona kadar çizilir.
+// Durum değişkenleri (LISTE_PARCA, _listeSinir…) yukarıda, activeFilters'ın yanında.
+function _listeImzasi() {
+  const q = (document.getElementById('searchInput') || {}).value || '';
+  return [q.trim(), JSON.stringify(activeFilters), favOnly, draftOnly, sortMode].join('|');
+}
+// Listeyi kaydıran kap (telefonda #listCol, geniş ekranda başka olabilir); yoksa pencere (null).
+function _kaydirmaKabi(el) {
+  for (let e = el; e && e !== document.body; e = e.parentElement) {
+    const oy = getComputedStyle(e).overflowY;
+    if (oy === 'auto' || oy === 'scroll') return e;
+  }
+  return null;
+}
+function _listeGozcuKur(panel) {
+  if (_listeGozlemci) { _listeGozlemci.disconnect(); _listeGozlemci = null; }
+  const eski = document.getElementById('listeGozcu');
+  if (eski) eski.remove();
+  if (_listeSinir >= filteredData.length) return;
+  if (!('IntersectionObserver' in window)) { _listeDevam(filteredData.length); return; }   // eski tarayıcı: eski davranış
+  panel.insertAdjacentHTML('beforeend', '<div id="listeGozcu" style="height:1px;"></div>');
+  _listeGozlemci = new IntersectionObserver(g => { if (g.some(x => x.isIntersecting)) _listeDevam(); },
+    { root: _kaydirmaKabi(panel), rootMargin: '0px 0px 800px 0px' });
+  _listeGozlemci.observe(document.getElementById('listeGozcu'));
+}
+// Sıradaki parçayı (ya da hedef sıraya kadar) ekler.
+function _listeDevam(hedef) {
+  const panel = document.getElementById('listPanel');
+  if (!panel || !_listeKart) return;
+  const a = Math.min(_listeSinir, filteredData.length), b = Math.min(filteredData.length, Math.max(a + LISTE_PARCA, hedef || 0));
+  if (b <= a) return;
+  const eski = document.getElementById('listeGozcu');
+  if (eski) eski.remove();
+  panel.insertAdjacentHTML('beforeend', filteredData.slice(a, b).map((w, i) => _listeKart(w, a + i)).join(''));
+  _listeSinir = b;
+  _listeGozcuKur(panel);
+}
+// Eser kartını döndürür; listede olup henüz çizilmemişse ona kadar çizer.
+function _eserKartiCiz(id) {
+  let el = document.querySelector('[data-id="' + id + '"]');
+  if (el) return el;
+  const i = filteredData.findIndex(w => String(w.id) === String(id));
+  if (i >= _listeSinir) { _listeDevam(i + 1); el = document.querySelector('[data-id="' + id + '"]'); }
+  return el;
+}
+
 function renderList() {
   const panel = document.getElementById('listPanel');
+  if (_listeGozlemci) { _listeGozlemci.disconnect(); _listeGozlemci = null; }
+  const imza = _listeImzasi();
+  if (imza !== _listeImza) { _listeImza = imza; _listeSinir = LISTE_PARCA; }
   if (!filteredData.length) {
     // (2026-08-21) Acik tur cipi varsa sebebini SOYLE — sessiz bos liste
     // "eserlerim gitmis" panigi yaratiyor.
@@ -2919,7 +3031,7 @@ function renderList() {
   // sekmesinde de kapalıydı; uzun-basma her yerde açıldığı için o şart kalktı —
   // parmak kayınca pointermove uzun-basma sayacını zaten iptal ediyor, çakışmıyorlar.)
   const swipeAllowedContext = !bulkMode;
-  panel.innerHTML = filteredData.map((w, _zi) => {
+  _listeKart = (w, _zi) => {
     const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
     const countBadge = repCount > 0 ? `<span class="work-count-badge" title="${_esCev('es.nRepKullaniliyor','{n} repertuvarda kullanılıyor').replace('{n}', repCount)}">${repCount}</span>` : '';
     const isFav = favs.has(w.id);
@@ -2964,8 +3076,12 @@ function renderList() {
       <div class="we-delete-bg" onclick="event.stopPropagation();weCloseOpenCard();esSilOnay(${w.id});"><i class="ti ti-trash"></i>${_esCev('ortak.sil','Sil')}</div>
       ${cardHtml}
     </div>`;
-  }).join('');
+  };
+  const secili = selectedId != null ? filteredData.findIndex(w => w.id === selectedId) : -1;
+  _listeSinir = Math.max(LISTE_PARCA, _listeSinir, secili + 1);
+  panel.innerHTML = filteredData.slice(0, _listeSinir).map(_listeKart).join('');
   if (defterIpucuGoster()) panel.insertAdjacentHTML('afterbegin', defterIpucuHtml());
+  _listeGozcuKur(panel);
 }
 
 // ── İki yönlü kaydırma: sağa → Değiştir, sola → Sil ──
@@ -3295,19 +3411,14 @@ function bulkAddToRepertoire() {
   // (2026-08-20) YENİ MODEL: istemci süzgeci kaldırıldı, görünürlüğü
   // repertoires_read politikası belirliyor. Eski sorgu yalnız group_id/is_public'e
   // baktığı için grup-paylaşımlı ve kişisel paylaşımlı repertuvarları eliyordu.
-  const filter = '/rest/v1/repertoires?select=id,name,visibility&order=created_at.desc';
-
-  fetch(SUPA_URL + filter, { headers })
-    .then(r => r.json())
+  // (2026-10-31) Görünen her repertuvara eser eklenemez → listede yalnız eklenebilenler (_eklenebilirRepler).
+  _eklenebilirRepler(headers, uid)
     .then(reps => {
       if (!Array.isArray(reps) || !reps.length) {
         list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">' + _esCev('es.henuzRepYok','Henüz bir repertuvarın yok.') + '</div>';
         return;
       }
-      list.innerHTML = reps.map(r => `
-        <button class="more-sheet-item" data-ad="${_esHtml(r.name||'')}" onclick="pickRepertoireForBulkAdd('${r.id}', this.dataset.ad)">
-          <i class="ti ti-playlist"></i> ${_esHtml(r.name || _esCev('es.isimsiz','(isimsiz)'))}
-        </button>`).join('');
+      return _repKirilimHtml(headers, reps, 'pickRepertoireForBulkAdd').then(h => { list.innerHTML = h; });
     })
     .catch(() => {
       list.innerHTML = '<div style="padding:20px;text-align:center;color:#e07060;font-size:13px;">' + _esCev('es.repYuklenemedi','Repertuvarlar yüklenemedi.') + '</div>';
@@ -3357,6 +3468,7 @@ function selectWork(id, silent) {
   selectedId = id;
   if (!silent) { try { if (navigator.vibrate) navigator.vibrate(6); } catch(e) {} }
   const w = DATA.find(x => x.id === id);
+  _eserKartiCiz(id);   // (2026-10-31) parçalı çizim: kart henüz çizilmemişse çizilsin ki seçili görünsün
   document.querySelectorAll('.work-item').forEach(el => el.classList.toggle('selected', parseInt(el.dataset.id)===id));
   if (!w) return;
 
@@ -8638,7 +8750,7 @@ function saveNewEser() {
         applyFilters();
         if (patchFields.status === 'pending') updateMySuggestionsCount();
         setTimeout(() => {
-          const item = document.querySelector('[data-id="' + editingWorkId + '"]');
+          const item = _eserKartiCiz(editingWorkId);
           if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
         }, 100);
       } else {
@@ -8727,19 +8839,19 @@ function saveNewEser() {
       } else if (visChoice === 'group') {
         alert(_esCev('es.grupPaylasildi','Eser grubunuzla paylaşıldı — yalnızca grup üyeleriniz görebilir.'));
         setTimeout(() => {
-          const item = document.querySelector('[data-id="' + newWork.id + '"]');
+          const item = _eserKartiCiz(newWork.id);
           if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
         }, 100);
       } else if (!isPublic) {
         alert(_esCev('es.ozelKaydedildi','Eser özel olarak kaydedildi — yalnızca siz görebilirsiniz.'));
         setTimeout(() => {
-          const item = document.querySelector('[data-id="' + newWork.id + '"]');
+          const item = _eserKartiCiz(newWork.id);
           if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
         }, 100);
       } else {
         alert(_esCev('es.eserKaydedildi','Eser kaydedildi.'));
         setTimeout(() => {
-          const item = document.querySelector('[data-id="' + newWork.id + '"]');
+          const item = _eserKartiCiz(newWork.id);
           if (item) { item.click(); item.scrollIntoView({behavior:'smooth',block:'center'}); }
         }, 100);
       }
