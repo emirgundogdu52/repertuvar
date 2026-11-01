@@ -81,7 +81,7 @@ if (typeof AbortSignal !== 'undefined' && typeof AbortController !== 'undefined'
     // topnav.js 'defer' yükleniyor; büyük sayfalar (eserler) ondan önce boyanabiliyor.
     // Tema özniteliğini erken koy ki yeni renkler ilk karede doğru gelsin.
     // stage (performans ekranı data-theme'i kendisi yönetiyor) ve login hariç.
-    var TOPNAV_SAYFALARI = ' index eserler repertoires ayarlar gruplar mesajlar calisma ritim-kes istatistikler onerilerim uyeler yonetim artiesten ';
+    var TOPNAV_SAYFALARI = ' index eserler repertoires ayarlar gruplar mesajlar calisma ritim-kes istatistikler onerilerim uyeler yonetim artiesten yardim ';
     if (TOPNAV_SAYFALARI.indexOf(' ' + sayfa + ' ') !== -1 && !html.getAttribute('data-theme')) {
       var tema = 'dark';
       try { tema = localStorage.getItem('r_theme') || 'dark'; } catch (e) {}
