@@ -290,9 +290,9 @@ window.YARDIM_VERI = {
     "tab-leiste"
    ],
    "adimlar": [
-    "Wechsle auf dem Smartphone über das Menü unten auf dem Bildschirm zwischen den Bereichen: **Startseite**, **Stücke**, **Setlists**, **Gruppe / Chor**, **Bühne**, **Hilfe**.",
+    "Wechsle auf dem Smartphone über das Menü unten auf dem Bildschirm zwischen den Bereichen: **Startseite**, **Stücke**, **Setlists**, **Gruppe**, **Bühne**, **Hilfe**. Auf dem Tablet zeigen dieselben Schaltflächen ihren vollen Namen.",
     "Für **Übungsraum**, **Nachrichten**, **Hilfe**, **Einstellungen** und **Abmelden** tippe oben rechts auf das Profilsymbol.",
-    "Das Glockensymbol in der oberen Leiste öffnet die **Benachrichtigungen**; der Schalter mit Mond/Sonne daneben wechselt das Design.",
+    "Das Glockensymbol in der oberen Leiste öffnet die **Benachrichtigungen** (es erscheint mit deiner ersten Benachrichtigung); der Schalter mit Mond/Sonne daneben wechselt das Design.",
     "Das untere Menü verschwindet, wenn du nach unten scrollst. Um es zurückzuholen, scroll ein wenig nach oben; es kommt auch zurück, wenn du den Anfang oder das Ende der Seite erreichst oder auf eine Schaltfläche tippst."
    ],
    "ipuclari": [
@@ -362,8 +362,8 @@ window.YARDIM_VERI = {
     "mitteilungen"
    ],
    "adimlar": [
-    "Tippe oben rechts auf das Glockensymbol. Gibt es ungelesene Benachrichtigungen, steht eine Zahl darauf.",
-    "Im Bereich **Benachrichtigungen** liest du deine letzten Benachrichtigungen. Hast du keine, steht dort **Noch keine Benachrichtigungen.**",
+    "Tippe oben rechts auf das Glockensymbol. Gibt es ungelesene Benachrichtigungen, steht eine Zahl darauf. Die Glocke erscheint, sobald du deine erste Benachrichtigung bekommst; bis dahin gibt es in der oberen Leiste keine Glocke.",
+    "Im Bereich **Benachrichtigungen** liest du deine letzten Benachrichtigungen.",
     "Tippst du auf die Benachrichtigung zu einer Ankündigung oder einer Nachricht des Teams, öffnet sich die passende Seite (**Nachrichten** oder der Tab **Ankündigungen**).",
     "Sobald du den Bereich öffnest, gelten alle Benachrichtigungen als gelesen, und die Zahl verschwindet."
    ],

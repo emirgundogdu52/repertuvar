@@ -282,9 +282,9 @@ window.YARDIM_VERI = {
     "barre d’onglets"
    ],
    "adimlar": [
-    "Sur téléphone, passez d’une section à l’autre avec le menu en bas de l’écran : **Accueil**, **Morceaux**, **Setlists**, **Groupe / Chœur**, **Mode Scène**, **Aide**.",
+    "Sur téléphone, passez d’une section à l’autre avec le menu en bas de l’écran : **Accueil**, **Morceaux**, **Setlists**, **Groupe**, **Scène**, **Aide**. Sur tablette, les mêmes boutons affichent leur nom complet.",
     "Pour **Salle de répétition**, **Messages**, **Aide**, **Réglages** et **Se déconnecter**, touchez l’icône de profil en haut à droite.",
-    "L’icône cloche de la barre du haut ouvre **Notifications** ; l’interrupteur lune/soleil à côté change le thème.",
+    "L’icône cloche de la barre du haut ouvre **Notifications** (elle apparaît dès votre première notification) ; l’interrupteur lune/soleil à côté change le thème.",
     "Le menu du bas se masque quand vous faites défiler la page vers le bas. Pour le faire revenir, faites défiler un peu vers le haut ; il revient aussi quand vous atteignez le haut ou le bas de la page, ou quand vous touchez un bouton."
    ],
    "ipuclari": [
@@ -352,8 +352,8 @@ window.YARDIM_VERI = {
     "réglages des notifications"
    ],
    "adimlar": [
-    "Touchez l’icône cloche en haut à droite. Si vous avez des notifications non lues, un nombre s’affiche dessus.",
-    "Vos dernières notifications se trouvent dans le panneau **Notifications**. Si vous n’en avez aucune, **Aucune notification pour l’instant.** s’affiche.",
+    "Touchez l’icône cloche en haut à droite. Si vous avez des notifications non lues, un nombre s’affiche dessus. La cloche apparaît dès votre première notification ; avant cela, il n’y a pas de cloche dans la barre du haut.",
+    "Vos dernières notifications se trouvent dans le panneau **Notifications**.",
     "Toucher la notification d’une annonce ou d’un message de l’équipe ouvre la page correspondante (**Messages** ou l’onglet **Annonces**).",
     "Quand vous ouvrez le panneau, toutes vos notifications sont marquées comme lues et le nombre disparaît."
    ],

@@ -279,9 +279,9 @@ window.YARDIM_VERI = {
     "menu scomparso"
    ],
    "adimlar": [
-    "Su telefono passa da una sezione all'altra con il menu in fondo allo schermo: **Home**, **Brani**, **Scalette**, **Gruppo / Coro**, **Palco**, **Aiuto**.",
+    "Su telefono passa da una sezione all'altra con il menu in fondo allo schermo: **Home**, **Brani**, **Scalette**, **Gruppo**, **Palco**, **Aiuto**. Sul tablet gli stessi pulsanti mostrano il nome completo.",
     "Per **Sala Prove**, **Messaggi**, **Aiuto**, **Impostazioni** ed **Esci** tocca l'icona del profilo in alto a destra.",
-    "L'icona della campanella nella barra in alto apre **Notifiche**; l'interruttore con la luna e il sole accanto cambia il tema.",
+    "L'icona della campanella nella barra in alto apre **Notifiche** (compare con la prima notifica); l'interruttore con la luna e il sole accanto cambia il tema.",
     "Il menu in basso si nasconde quando scorri la pagina verso il basso. Per farlo ricomparire scorri un po' verso l'alto; ricompare anche quando arrivi all'inizio o alla fine della pagina e quando tocchi un pulsante."
    ],
    "ipuclari": [
@@ -351,8 +351,8 @@ window.YARDIM_VERI = {
     "non ricevo notifiche"
    ],
    "adimlar": [
-    "Tocca l'icona della campanella in alto a destra. Se ci sono notifiche non lette, sull'icona compare un numero.",
-    "Nel pannello **Notifiche** leggi le ultime notifiche. Se non hai notifiche, compare **Ancora nessuna notifica.**",
+    "Tocca l'icona della campanella in alto a destra. Se ci sono notifiche non lette, sull'icona compare un numero. La campanella compare quando ricevi la prima notifica; fino ad allora nella barra in alto non c'è.",
+    "Nel pannello **Notifiche** leggi le ultime notifiche.",
     "Toccando la notifica di un annuncio o di un messaggio del team si apre la pagina relativa (**Messaggi** o la scheda **Annunci**).",
     "Quando apri il pannello, tutte le notifiche vengono segnate come lette e il numero sparisce."
    ],

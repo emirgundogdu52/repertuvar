@@ -222,9 +222,9 @@ window.YARDIM_VERI = {
     "tab bar"
    ],
    "adimlar": [
-    "On a phone, use the menu at the bottom of the screen to move between sections: **Home**, **Pieces**, **Setlists**, **Group / Choir**, **Stage Mode**, **Help**.",
+    "On a phone, use the menu at the bottom of the screen to move between sections: **Home**, **Pieces**, **Setlists**, **Group**, **Stage**, **Help**. On a tablet the same buttons show their full names.",
     "For **Practice Room**, **Messages**, **Help**, **Settings** and **Sign Out**, tap the profile icon in the top-right corner.",
-    "The bell icon in the top bar opens **Notifications**; the moon/sun switch next to it changes the theme.",
+    "The bell icon in the top bar opens **Notifications** (it appears once you get your first notification); the moon/sun switch next to it changes the theme.",
     "The bottom menu hides when you scroll down. To bring it back, scroll up a little; it also comes back when you reach the top or bottom of the page or tap a button."
    ],
    "ipuclari": [
@@ -292,8 +292,8 @@ window.YARDIM_VERI = {
     "notification settings"
    ],
    "adimlar": [
-    "Tap the bell icon at the top right. If you have unread notifications, a number appears on it.",
-    "Your latest notifications are in the **Notifications** panel. If you have none, it says **No notifications yet.**",
+    "Tap the bell icon at the top right. If you have unread notifications, a number appears on it. The bell appears once you get your first notification; until then there is no bell in the top bar.",
+    "Your latest notifications are in the **Notifications** panel.",
     "Tapping an announcement or a team message notification opens the related page (**Messages** or the **Announcements** tab).",
     "When you open the panel, all your notifications are marked as read and the number disappears."
    ],

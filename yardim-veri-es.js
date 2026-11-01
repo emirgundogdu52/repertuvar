@@ -263,9 +263,9 @@ window.YARDIM_VERI = {
     "barra de pestañas"
    ],
    "adimlar": [
-    "En el teléfono, usa el menú de la parte inferior de la pantalla para pasar de una sección a otra: **Inicio**, **Obras**, **Repertorios**, **Grupo / Coro**, **Escenario**, **Ayuda**.",
+    "En el teléfono, usa el menú de la parte inferior de la pantalla para pasar de una sección a otra: **Inicio**, **Obras**, **Repertorio**, **Grupo**, **Escenario**, **Ayuda**. En la tableta, los mismos botones muestran su nombre completo.",
     "Para **Sala de Ensayo**, **Mensajes**, **Ayuda**, **Ajustes** y **Cerrar sesión**, toca el icono de perfil de arriba a la derecha.",
-    "El icono de la campana de la barra superior abre **Notificaciones**; el interruptor de luna/sol que hay al lado cambia el tema.",
+    "El icono de la campana de la barra superior abre **Notificaciones** (aparece con tu primera notificación); el interruptor de luna/sol que hay al lado cambia el tema.",
     "El menú inferior se oculta al desplazar la página hacia abajo. Para que vuelva, desplaza la página un poco hacia arriba; también vuelve al llegar al principio o al final de la página y al tocar un botón."
    ],
    "ipuclari": [
@@ -335,8 +335,8 @@ window.YARDIM_VERI = {
     "avisos nuevos"
    ],
    "adimlar": [
-    "Toca el icono de la campana de arriba a la derecha. Si tienes notificaciones sin leer, aparece un número sobre el icono.",
-    "En el panel **Notificaciones** lees tus últimas notificaciones. Si no tienes ninguna, aparece **Aún no hay notificaciones.**",
+    "Toca el icono de la campana de arriba a la derecha. Si tienes notificaciones sin leer, aparece un número sobre el icono. La campana aparece en cuanto recibes tu primera notificación; hasta entonces no hay campana en la barra superior.",
+    "En el panel **Notificaciones** lees tus últimas notificaciones.",
     "Al tocar la notificación de un aviso o de un mensaje del equipo, se abre la página correspondiente (**Mensajes** o la pestaña **Avisos**).",
     "Al abrir el panel, todas tus notificaciones se marcan como leídas y el número desaparece."
    ],

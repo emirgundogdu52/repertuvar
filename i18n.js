@@ -981,6 +981,8 @@
       'menu.repertuvarlar': 'Repertuvarlar',
       'menu.solistler': 'Solistler',
       'menu.grup': 'Grup / Koro',
+      // (2026-11-01) Telefonda alt menüde kısa ad (6 düğmede uzun adlar kesiliyordu); tabletle sayfa başlıklarında tam ad.
+      'menu.kisaRepertuvarlar': 'Repertuvar', 'menu.kisaGrup': 'Grup', 'menu.kisaSahne': 'Sahne',
       'menu.calismaodasi': 'Çalışma Odası',
       'menu.metronom': 'Metronom',
       'menu.mesajlar': 'Mesajlar',
@@ -3091,6 +3093,8 @@
       'menu.repertuvarlar': 'Setlists',
       'menu.solistler': 'Soloists',
       'menu.grup': 'Group / Choir',
+      // (2026-11-01) Telefonda alt menüde kısa ad (6 düğmede uzun adlar kesiliyordu); tabletle sayfa başlıklarında tam ad.
+      'menu.kisaRepertuvarlar': 'Setlists', 'menu.kisaGrup': 'Group', 'menu.kisaSahne': 'Stage',
       'menu.calismaodasi': 'Practice Room',
       'menu.metronom': 'Metronome',
       'menu.mesajlar': 'Messages',

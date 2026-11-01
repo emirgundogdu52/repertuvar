@@ -249,9 +249,9 @@ window.YARDIM_VERI = {
     "menubalk"
    ],
    "adimlar": [
-    "Ga op een telefoon met het menu onderaan het scherm naar de verschillende onderdelen: **Home**, **Stukken**, **Setlists**, **Groep / koor**, **Podium**, **Help**.",
+    "Ga op een telefoon met het menu onderaan het scherm naar de verschillende onderdelen: **Home**, **Stukken**, **Setlists**, **Groep**, **Podium**, **Help**. Op een tablet tonen dezelfde knoppen hun volledige naam.",
     "Tik rechtsboven op het profielpictogram voor **Oefenruimte**, **Berichten**, **Help**, **Instellingen** en **Uitloggen**.",
-    "Het belpictogram in de bovenste balk opent **Meldingen**; de schakelaar met de maan/zon ernaast wijzigt het thema.",
+    "Het belpictogram in de bovenste balk opent **Meldingen** (het verschijnt bij je eerste melding); de schakelaar met de maan/zon ernaast wijzigt het thema.",
     "Het menu onderaan verdwijnt als je naar beneden scrolt. Scrol een stukje omhoog om het terug te halen; het komt ook terug als je bovenaan of onderaan de pagina komt of op een knop tikt."
    ],
    "ipuclari": [
@@ -321,8 +321,8 @@ window.YARDIM_VERI = {
     "notificatie"
    ],
    "adimlar": [
-    "Tik rechtsboven op het belpictogram. Heb je ongelezen meldingen, dan staat er een getal op.",
-    "Je laatste meldingen staan in het paneel **Meldingen**. Heb je er geen, dan staat er **Nog geen meldingen.**",
+    "Tik rechtsboven op het belpictogram. Heb je ongelezen meldingen, dan staat er een getal op. De bel verschijnt zodra je je eerste melding krijgt; tot die tijd staat er geen bel in de bovenste balk.",
+    "Je laatste meldingen staan in het paneel **Meldingen**.",
     "Tik je op een melding over een mededeling of een bericht van het team, dan gaat de bijbehorende pagina open (**Berichten** of het tabblad **Mededelingen**).",
     "Als je het paneel opent, worden al je meldingen als gelezen gemarkeerd en verdwijnt het getal."
    ],

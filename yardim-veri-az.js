@@ -247,9 +247,9 @@ window.YARDIM_VERI = {
     "alt panel"
    ],
    "adimlar": [
-    "Telefonda ekranın altındakı menyudan bölmələr arasında keç: **Ana səhifə**, **Əsərlər**, **Repertuarlar**, **Qrup / Xor**, **Səhnə rejimi**, **Kömək**.",
+    "Telefonda ekranın altındakı menyudan bölmələr arasında keç: **Ana səhifə**, **Əsərlər**, **Repertuar**, **Qrup**, **Səhnə**, **Kömək**. Planşetdə eyni düymələr tam adları ilə görünür.",
     "**Məşq otağı**, **Mesajlar**, **Kömək**, **Ayarlar** və **Çıxış et** üçün sağ yuxarıdakı profil işarəsinə toxun.",
-    "Üst paneldəki zəng işarəsi **Bildirişlər** bölməsini açır; yanındakı ay/günəş açarı mövzunu dəyişir.",
+    "Üst paneldəki zəng işarəsi **Bildirişlər** bölməsini açır (ilk bildirişin gələndə görünür); yanındakı ay/günəş açarı mövzunu dəyişir.",
     "Alt menyu səhifəni aşağı sürüşdürəndə gizlənir. Onu geri gətirmək üçün səhifəni bir az yuxarı sürüşdür; səhifənin əvvəlinə və ya sonuna çatanda və hər hansı düyməyə toxunanda da geri gəlir."
    ],
    "ipuclari": [
@@ -318,8 +318,8 @@ window.YARDIM_VERI = {
     "notification"
    ],
    "adimlar": [
-    "Sağ yuxarıdakı zəng işarəsinə toxun. Oxunmamış bildiriş varsa, işarənin üstündə rəqəm görünür.",
-    "**Bildirişlər** panelində son bildirişlərini oxuyursan. Heç bir bildirişin yoxdursa, **Hələ bildiriş yoxdur.** yazılır.",
+    "Sağ yuxarıdakı zəng işarəsinə toxun. Oxunmamış bildiriş varsa, işarənin üstündə rəqəm görünür. Zəng ilk bildirişin gələndə görünür; o vaxta qədər üst paneldə zəng olmur.",
+    "**Bildirişlər** panelində son bildirişlərini oxuyursan.",
     "Elan və ya komanda mesajı bildirişinə toxunanda müvafiq səhifə açılır (**Mesajlar** və ya **Elanlar** bölməsi).",
     "Paneli açanda bütün bildirişlərin oxunmuş sayılır və rəqəm yox olur."
    ],

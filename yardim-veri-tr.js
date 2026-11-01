@@ -223,9 +223,9 @@ window.YARDIM_VERI = {
     "alt çubuk"
    ],
    "adimlar": [
-    "Telefonda ekranın altındaki menüden bölümler arasında geç: **Ana Sayfa**, **Eserler**, **Repertuvarlar**, **Grup / Koro**, **Sahne Modu**, **Yardım**.",
+    "Telefonda ekranın altındaki menüden bölümler arasında geç: **Ana Sayfa**, **Eserler**, **Repertuvar**, **Grup**, **Sahne**, **Yardım**. Tablette aynı düğmeler tam adlarıyla görünür.",
     "**Çalışma Odası**, **Mesajlar**, **Yardım**, **Ayarlar** ve **Çıkış Yap** için sağ üstteki profil simgesine bas.",
-    "Üst çubuktaki zil simgesi **Bildirimler**'i açar; yanındaki ay/güneş anahtarı temayı değiştirir.",
+    "Üst çubuktaki zil simgesi **Bildirimler**'i açar (zil, ilk bildirimin gelince görünür); yanındaki ay/güneş anahtarı temayı değiştirir.",
     "Alt menü sayfayı aşağı kaydırınca gizlenir. Geri getirmek için sayfayı biraz yukarı kaydır; sayfanın başına ya da sonuna gelince ve bir düğmeye basınca da geri gelir."
    ],
    "ipuclari": [
@@ -293,8 +293,8 @@ window.YARDIM_VERI = {
     "bildirim ayarı"
    ],
    "adimlar": [
-    "Sağ üstteki zil simgesine bas. Okunmamış bildirim varsa simgenin üstünde sayı görünür.",
-    "**Bildirimler** panelinde son bildirimlerini okursun. Hiç bildirimin yoksa **Henüz bildirim yok.** yazar.",
+    "Sağ üstteki zil simgesine bas. Okunmamış bildirim varsa simgenin üstünde sayı görünür. Zil, ilk bildirimin geldiğinde görünür; o zamana kadar üst çubukta zil olmaz.",
+    "**Bildirimler** panelinde son bildirimlerini okursun.",
     "Bir duyuru ya da ekip mesajı bildirimine basınca ilgili sayfa açılır (**Mesajlar** ya da **Duyurular** sekmesi).",
     "Paneli açtığında bütün bildirimlerin okundu sayılır ve sayı kaybolur."
    ],

@@ -268,9 +268,9 @@ window.YARDIM_VERI = {
     "onde fica a ajuda"
    ],
    "adimlar": [
-    "No celular, use o menu na parte de baixo da tela para passar de uma seção a outra: **Início**, **Músicas**, **Setlists**, **Grupo / Coral**, **Modo Palco**, **Ajuda**.",
+    "No celular, use o menu na parte de baixo da tela para passar de uma seção a outra: **Início**, **Músicas**, **Setlists**, **Grupo**, **Palco**, **Ajuda**. No tablet, os mesmos botões mostram o nome completo.",
     "Para **Sala de Estudo**, **Mensagens**, **Ajuda**, **Configurações** e **Sair**, toque no ícone de perfil no canto superior direito.",
-    "O ícone de sino na barra superior abre as **Notificações**; a chave de lua/sol ao lado muda o tema.",
+    "O ícone de sino na barra superior abre as **Notificações** (ele aparece com a primeira notificação); a chave de lua/sol ao lado muda o tema.",
     "O menu inferior se esconde quando você rola a página para baixo. Para trazê-lo de volta, role um pouco para cima; ele também volta quando você chega ao começo ou ao fim da página e quando toca num botão."
    ],
    "ipuclari": [
@@ -340,8 +340,8 @@ window.YARDIM_VERI = {
     "avisos"
    ],
    "adimlar": [
-    "Toque no ícone de sino no canto superior direito. Se houver notificações não lidas, aparece um número sobre o ícone.",
-    "No painel **Notificações**, você lê suas notificações mais recentes. Se não houver nenhuma, aparece **Ainda não há notificações.**",
+    "Toque no ícone de sino no canto superior direito. Se houver notificações não lidas, aparece um número sobre o ícone. O sino aparece quando você recebe a primeira notificação; até lá, não há sino na barra superior.",
+    "No painel **Notificações**, você lê suas notificações mais recentes.",
     "Ao tocar numa notificação de aviso ou de mensagem da equipe, abre-se a página correspondente (**Mensagens** ou a aba **Avisos**).",
     "Quando você abre o painel, todas as notificações são marcadas como lidas e o número some."
    ],

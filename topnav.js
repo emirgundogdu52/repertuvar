@@ -531,7 +531,7 @@ function _m(anahtar, tr) {
       <header class="r-topnav">
         <img src="${_logo}" alt="repertuvar.app" class="r-logo" id="rNavLogo">
         <div class="r-tn-right">
-          <button class="r-tn-bell" id="rTnBell" onclick="toggleNotifPanel(event)" title="${_m('menu.bildirimler','Bildirimler')}" aria-label="${_m('menu.bildirimler','Bildirimler')}"><i class="ti ti-bell"></i><span id="rTnBellBadge"></span></button>
+          <button class="r-tn-bell${_zilVar() ? '' : ' zil-yok'}" id="rTnBell" onclick="toggleNotifPanel(event)" title="${_m('menu.bildirimler','Bildirimler')}" aria-label="${_m('menu.bildirimler','Bildirimler')}"><i class="ti ti-bell"></i><span id="rTnBellBadge"></span></button>
           ${themeToggleMarkup('rThemeToggle', _theme)}
           <div class="r-tn-user" onclick="toggleTnDropdown(event)" id="rTnUser" role="button" tabindex="0" aria-label="${_m('menu.profil','Profil')}">
             <div class="r-tn-avatar" id="rTnAvatar"><i class="ti ti-user" style="font-size:16px;"></i></div>
@@ -935,12 +935,14 @@ function _m(anahtar, tr) {
     const bnItems = [
       ...(_anaSayfaKapali() ? [] : [{ href: 'index.html', icon: 'ti-home', label: _m('menu.anasayfa','Ana Sayfa') }]),
       { href: 'eserler.html',     icon: 'ti-book',     label: _m('menu.eserler','Eserler') },
-      { href: 'repertoires.html', icon: 'ti-playlist', label: _m('menu.repertuvarlar','Repertuvarlar') },
-      { href: 'gruplar.html',     icon: 'ti-users-group', label: _m('menu.grup','Grup / Koro') },
+      // (2026-11-01) Emir "5-A": telefonda 6 düğmede uzun adlar kesiliyordu (360 px'te yazıya 50 px; Repertuvarlar 59, Sahne Modu 54)
+      // → telefonda kısa ad (menu.kisa…); geniş alt menüde (tablet, yatay) tam ad.
+      { href: 'repertoires.html', icon: 'ti-playlist', label: roomyNav ? _m('menu.repertuvarlar','Repertuvarlar') : _m('menu.kisaRepertuvarlar','Repertuvar') },
+      { href: 'gruplar.html',     icon: 'ti-users-group', label: roomyNav ? _m('menu.grup','Grup / Koro') : _m('menu.kisaGrup','Grup') },
       ...(roomyNav ? [
         { href: 'artiesten.html', icon: 'ti-microphone',  label: _m('menu.solistler','Solistler') },
       ] : []),
-      { href: 'stage.html',       icon: 'ti-music',    label: _m('menu.sahnemodu','Sahne Modu'), stage: true },
+      { href: 'stage.html',       icon: 'ti-music',    label: roomyNav ? _m('menu.sahnemodu','Sahne Modu') : _m('menu.kisaSahne','Sahne'), stage: true },
       // (2026-11-01) Emir: telefonda Mesajlar yerine Yardım daha faydalı; Mesajlar profil menüsünde. Geniş alt menüde
       // (yatay telefon, tablet) Mesajlar yerinde kalır.
       roomyNav ? { href: 'mesajlar.html', icon: 'ti-message', label: _m('menu.mesajlar','Mesajlar') }
@@ -1198,6 +1200,16 @@ function _m(anahtar, tr) {
     const uid = localStorage.getItem('sb_user') ? JSON.parse(localStorage.getItem('sb_user')).id : null;
     return (token && uid) ? { token: token, uid: uid } : null;
   }
+  // (2026-11-01) Emir "6-B": normal kullanıcıya şimdilik yalnız "grubuna katıldı" bildirimi gidiyor; grubu olmayan zile basınca
+  // hep boş liste görüyordu → hiç bildirimi olmayana zil gizli. İlk bildirim gelince görünür ve bu cihazda görünür kalır.
+  function _zilVar() {
+    try { const a = _notifAuth(); return !!(a && localStorage.getItem('r_zilVar') === a.uid); } catch (e) { return false; }
+  }
+  function _zilGoster() {
+    const z = document.getElementById('rTnBell');
+    if (z) z.classList.remove('zil-yok');
+    try { const a = _notifAuth(); if (a) localStorage.setItem('r_zilVar', a.uid); } catch (e) {}
+  }
   function _notifEsc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function _notifTime(iso){
     try {
@@ -1217,6 +1229,11 @@ function _m(anahtar, tr) {
       if (!r.ok) return;
       const rows = await r.json();
       applyNotifBadge(rows.length);
+      if (rows.length) _zilGoster();
+      else if (!_zilVar()) {
+        const r2 = await fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&select=id&limit=1', { headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token } });
+        if (r2.ok && (await r2.json()).length) _zilGoster();
+      }
     } catch(e) {}
   }
   function applyNotifBadge(count) {
@@ -1296,6 +1313,7 @@ function _m(anahtar, tr) {
     st.id = 'r-notif-style';
     st.textContent = `
       .r-tn-bell { position:relative; background:none; border:none; cursor:pointer; color:inherit; display:flex; align-items:center; justify-content:center; padding:6px; }
+      .r-tn-bell.zil-yok { display:none !important; }
       .r-tn-bell i { font-size:20px; color:#e6e2ff; }
       [data-theme="light"] .r-tn-bell i { color:#3a3a5a; }
       #rTnBellBadge { position:absolute; top:-2px; right:-2px; min-width:16px; height:16px; padding:0 4px; border-radius:8px; background:#FFC83D; color:#1a1200; font-size:9px; font-weight:800; align-items:center; justify-content:center; display:none; }
@@ -1560,8 +1578,7 @@ function _m(anahtar, tr) {
     '#sync-halka.var{display:flex;}' +
     '#sync-halka.serbest{position:fixed;right:16px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:2147483647;}' +
     '#sync-halka.on{opacity:1;}' +
-    // Kap 16 px, noktalar ortasında: zil simgesinin altı ile barın alt kenarı arasında ortalı (zıplarken simgeye ~2,5 px kalır).
-    '#sync-halka.zil-alti{right:auto;top:calc(100% - 10px);}' +
+    '#sync-halka.zil-alti{right:auto;}' +   // left/top halkaGoster'de ölçülür
     // (2026-10-24) Sahne ekranında üst menü yok: üç nokta sağ üstte serbest (güvenli alanın 12 px altı) "biraz aşağıda sağda"
     // kalıyordu (kullanıcı) → sahnenin üst şeridinin (sayfa noktaları + 1/15) sağ ucunda, sayaçla aynı yükseklikte.
     '#stageScreen .stb-r2{position:relative;}' +
@@ -1620,13 +1637,20 @@ function _m(anahtar, tr) {
       if (halka.parentNode !== sag) sag.insertBefore(halka, sag.firstChild); halka.classList.remove('serbest', 'sahnede');
       // (2026-11-01) Telefonda logo sağ gruba kadar uzanıyor (arada ~8 px); noktalar logonun ".app"ının üstüne biniyordu
       // (arkadaşın Android'i, 320-412 px; taramada 10 dilde). Yer yoksa zilin altına, barın içine (sağdan sola dilde de).
-      var lr = tn.querySelector('.r-logo'), zil = sag.querySelector('.r-tn-bell');
+      // Zil gizliyse (bildirimi olmayan kullanıcı) ilk görünür öğe tema düğmesidir; noktalar onun altına.
+      var lr = tn.querySelector('.r-logo');
+      var hedef = Array.prototype.find.call(sag.children, function (e) { return e !== halka && e.offsetWidth > 0; });
       lr = lr ? lr.getBoundingClientRect() : null;
       var sr = sag.getBoundingClientRect();
       var aralik = lr ? Math.max(sr.left - lr.right, lr.left - sr.right) : 99;
-      var alti = !!(zil && aralik < 10 + 21 + 4);   // 10 px boşluk + üç nokta (21 px) + nefes payı
+      var alti = !!(hedef && aralik < 10 + 21 + 4);   // 10 px boşluk + üç nokta (21 px) + nefes payı
       halka.classList.toggle('zil-alti', alti);
-      halka.style.left = alti ? (zil.offsetLeft + zil.offsetWidth / 2 - 10.5) + 'px' : '';
+      if (alti) {
+        var gorsel = (hedef.classList.contains('r-tn-bell') && hedef.querySelector('i')) || hedef;   // zilde simgenin kendisi
+        var gb = gorsel.getBoundingClientRect().bottom, bb = tn.getBoundingClientRect().bottom;
+        halka.style.left = (hedef.offsetLeft + hedef.offsetWidth / 2 - 10.5) + 'px';
+        halka.style.top = ((gb + bb) / 2 - 8 - sr.top) + 'px';   // kap 16 px; noktalar öğe ile bar kenarının ortasında
+      } else { halka.style.left = ''; halka.style.top = ''; }
     }
     else if (sahne) {
       if (halka.parentNode !== sahne) sahne.appendChild(halka);
