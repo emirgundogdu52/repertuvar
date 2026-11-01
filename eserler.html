@@ -2133,7 +2133,8 @@ let favOnly = false;               // "Tümü / Favoriler" toggle durumu
 let draftOnly = false;
 let bulkMode = false;               // Uzun-basma ile toplu seçim modu (2026-07-19: tüm filtrelerde)
 let bulkSelectedIds = new Set();    // Toplu seçimde işaretli eser id'leri
-const LISTE_PARCA = 200;            // (2026-10-31) parçalı çizim, bkz. renderList
+const LISTE_PARCA = 60;             // (2026-10-31) parçalı çizim, bkz. renderList. (2026-11-01) 200 → 60: yavaş Android'de (6x) ilk harfte
+                                    // 200 kartın çizimi + yerleşimi ~715 ms tutuyordu; ekranda 8-10 kart görünüyor, sonrası kaydırdıkça (800 px önden) gelir.
 let _listeSinir = LISTE_PARCA, _listeImza = null, _listeKart = null, _listeGozlemci = null;
 let longPressTimer = null;
 let longPressFiredId = null;        // Long-press tetiklendiyse ardından gelen click'i yut
