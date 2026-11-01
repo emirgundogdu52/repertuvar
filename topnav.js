@@ -1560,6 +1560,8 @@ function _m(anahtar, tr) {
     '#sync-halka.var{display:flex;}' +
     '#sync-halka.serbest{position:fixed;right:16px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:2147483647;}' +
     '#sync-halka.on{opacity:1;}' +
+    // Kap 16 px, noktalar ortasında: zil simgesinin altı ile barın alt kenarı arasında ortalı (zıplarken simgeye ~2,5 px kalır).
+    '#sync-halka.zil-alti{right:auto;top:calc(100% - 10px);}' +
     // (2026-10-24) Sahne ekranında üst menü yok: üç nokta sağ üstte serbest (güvenli alanın 12 px altı) "biraz aşağıda sağda"
     // kalıyordu (kullanıcı) → sahnenin üst şeridinin (sayfa noktaları + 1/15) sağ ucunda, sayaçla aynı yükseklikte.
     '#stageScreen .stb-r2{position:relative;}' +
@@ -1614,7 +1616,18 @@ function _m(anahtar, tr) {
       var srr = sr ? sr.getBoundingClientRect() : null;
       if (srr && srr.width > 0 && srr.height > 0) sahne = sr;   // nota odak kipinde şerit gizli → serbest konum
     }
-    if (sag) { if (halka.parentNode !== sag) sag.insertBefore(halka, sag.firstChild); halka.classList.remove('serbest', 'sahnede'); }
+    if (sag) {
+      if (halka.parentNode !== sag) sag.insertBefore(halka, sag.firstChild); halka.classList.remove('serbest', 'sahnede');
+      // (2026-11-01) Telefonda logo sağ gruba kadar uzanıyor (arada ~8 px); noktalar logonun ".app"ının üstüne biniyordu
+      // (arkadaşın Android'i, 320-412 px; taramada 10 dilde). Yer yoksa zilin altına, barın içine (sağdan sola dilde de).
+      var lr = tn.querySelector('.r-logo'), zil = sag.querySelector('.r-tn-bell');
+      lr = lr ? lr.getBoundingClientRect() : null;
+      var sr = sag.getBoundingClientRect();
+      var aralik = lr ? Math.max(sr.left - lr.right, lr.left - sr.right) : 99;
+      var alti = !!(zil && aralik < 10 + 21 + 4);   // 10 px boşluk + üç nokta (21 px) + nefes payı
+      halka.classList.toggle('zil-alti', alti);
+      halka.style.left = alti ? (zil.offsetLeft + zil.offsetWidth / 2 - 10.5) + 'px' : '';
+    }
     else if (sahne) {
       if (halka.parentNode !== sahne) sahne.appendChild(halka);
       halka.classList.remove('serbest', 'sahne-alt'); halka.classList.add('sahnede', 'var');

@@ -965,9 +965,11 @@
   /* (2026-10-17) Telefonda satır 16px çizgisinden başlar ve dolar (kullanıcı): .clear-btn'in margin-left:auto'su Filtreler'i
      sağa itip solda ~30px boşluk bırakıyordu. Filtreler + Eserlerim (+ üyede Öner) kalan alanı paylaşır, Onay Bekleyen doğal. */
   @media (max-width: 768px) {
-    .toolbar { padding:4px 16px; }
+    .toolbar { padding:4px 16px; gap:6px; }   /* gap: üstteki Tümü / Favoriler satırıyla aynı → düğme kenarları hizalı */
+    /* (2026-11-01) 1 1 auto: genişlik yazıdan başlıyordu, "Eserlerim 3" Filtreler'den geniş çıkıyordu (Android'de 196/227 px).
+       1 1 0: sığdıkça eşit; yazı sığmazsa kendi genişliğinin altına inmez. */
     .toolbar > #filterSheetBtn, .toolbar > #btnOnerilerim, .toolbar > #btnMobileUserSuggest {
-      flex:1 1 auto; justify-content:center; margin-left:0 !important; }
+      flex:1 1 0; justify-content:center; margin-left:0 !important; padding-left:12px !important; padding-right:12px !important; }
   }
   .sort-dropdown-wrap { position:relative; }
   .sort-main-btn { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:5px 10px; color:var(--text2); font-size:12px; font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif); cursor:pointer; transition:all .15s; }
@@ -1446,8 +1448,9 @@
          yatay kaydırıyor; mobilde yazı biraz küçültüldü ki satır sığsın. */
   @media (max-width: 560px) {
     .fav-toggle-wrap { gap:6px; }
-    .fav-toggle-wrap #favToggleAll, .fav-toggle-wrap #favToggleFav { flex:1 1 calc(50% - 3px); }
-    .fav-toggle-wrap #draftToggle { flex:1 1 100%; }
+    /* (2026-11-01) !important: düğmelerin satır içi flex:1'i bu kuralı eziyordu, üçü tek satırda eşitsiz kalıyordu (320 px'te 82/82/97). */
+    .fav-toggle-wrap #favToggleAll, .fav-toggle-wrap #favToggleFav { flex:1 1 calc(50% - 3px) !important; }
+    .fav-toggle-wrap #draftToggle { flex:1 1 100% !important; }
     .work-name { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
     /* (2026-10-25) Ad ayrı kapta: sarmalı satırda çıplak metin üç noktayla kısalamıyor, uzun ad kesik kalıyordu */
     .work-name .work-ad { min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
