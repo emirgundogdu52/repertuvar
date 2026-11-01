@@ -179,6 +179,7 @@
                    background:var(--surface2); border:1px solid var(--border);
                    color:var(--text2); font-size:12px; font-weight:600; font-family:inherit; }
 .oy-hizli button:hover { border-color:color-mix(in srgb, var(--accent) 50%, transparent); }
+.oy-hizli-alti { display:grid; grid-template-columns:repeat(3, 1fr); }
 
 /* Geniş ekranda kontroller solda, sözler sağda — ikisi de aynı anda görünür. */
 /* (2026-10-24) Dikey tablette (601–899) yükleme/oynatıcı gövdesi 680 px ortalı kalıyordu, sayfa tam genişlikte. */
@@ -562,6 +563,24 @@
         </div>
       </div>
 
+      <!-- (2026-11-01) İNCE AYAR (Emir): "akort düzgün ama ses çeyrek ses, yarım ses kaçık olabiliyor". Sent biriminde,
+           TON'a eklenir (100 sent = yarım ses; ±50 yeter, fazlası TON ile). Kaçıklık kaydın özelliği olduğu için
+           bu cihazda kayıt başına hatırlanır (TON ve TEMPO her açılışta sıfırlanmaya devam eder). -->
+      <div class="oy-kutu">
+        <div class="oy-kutu-ust">
+          <span data-i18n="ca.inceAyar">İNCE AYAR</span>
+          <span class="oy-deger" id="oyInceDeger">0</span>
+        </div>
+        <input type="range" id="oyInce" min="-50" max="50" value="0" step="1"
+               oninput="oyInceAyar(this.value)">
+        <div class="oy-alt" id="oyInceAlt"></div>
+        <div class="oy-hizli">
+          <button onclick="oyInceKaydir(-5)">−5</button>
+          <button onclick="oyInceAyar(0)" data-i18n="ca.sifirla">Sıfırla</button>
+          <button onclick="oyInceKaydir(5)">+5</button>
+        </div>
+      </div>
+
       <!-- TEMPO: perdeden BAĞIMSIZ. Ağır çalışmak isteyen ton değiştirmeden
            yavaşlatabilsin diye ayrı kutu. -->
       <div class="oy-kutu">
@@ -571,9 +590,13 @@
         </div>
         <input type="range" id="oyTempo" min="50" max="150" value="100" step="5"
                oninput="oyTempoAyar(this.value)">
-        <div class="oy-hizli">
+        <!-- (2026-11-01) Emir: %50, %70, %90 da olsun → altı düğme, iki satırda üçer -->
+        <div class="oy-hizli oy-hizli-alti">
+          <button onclick="oyTempoSet(50)">%50</button>
           <button onclick="oyTempoSet(60)">%60</button>
+          <button onclick="oyTempoSet(70)">%70</button>
           <button onclick="oyTempoSet(80)">%80</button>
+          <button onclick="oyTempoSet(90)">%90</button>
           <button onclick="oyTempoSet(100)">%100</button>
         </div>
       </div>
@@ -1052,6 +1075,7 @@ let oyKayit = null;      // work_audio satırı
 let oyCaliyor = false;
 let oyYuzde = 0;         // 0..1
 let oyTonDeg = 0;
+let oyInceSent = 0;      // (2026-11-01) ince ayar, sent (−50..+50); perde = oyTonDeg + oyInceSent/100
 let oyTempoDeg = 1;
 
 const NOTALAR = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -1079,6 +1103,9 @@ async function ac(id) {
   document.getElementById('oyTon').value = 0;
   document.getElementById('oyTempo').value = 100;
   oyTonEtiket(); oyTempoEtiket();
+  let _ince = 0;
+  try { _ince = parseInt(localStorage.getItem('caInce:' + id), 10) || 0; } catch (e) {}
+  oyInceAyar(_ince);
 
   try {
     if (!_ST) _ST = await import('./soundtouch.js');
@@ -1117,7 +1144,7 @@ function oyKapat() {
 function _shifterKur() {
   if (!_ST || !oyBuffer || !oyCtx) return null;
   const sh = new _ST.PitchShifter(oyCtx, oyBuffer, 16384);
-  sh.pitchSemitones = oyTonDeg;
+  sh.pitchSemitones = oyTonDeg + oyInceSent / 100;
   sh.tempo = oyTempoDeg;
   sh.percentagePlayed = oyYuzde;
   sh.on('play', d => {
@@ -1182,8 +1209,26 @@ function _oynatIkonu(caliyor) {
 // ediyor, yeniden kurmak gereksiz kesinti yaratırdı.
 function oyTonAyar(v) {
   oyTonDeg = parseInt(v, 10) || 0;
-  if (oyShifter) oyShifter.pitchSemitones = oyTonDeg;
+  if (oyShifter) oyShifter.pitchSemitones = oyTonDeg + oyInceSent / 100;
   oyTonEtiket();
+}
+function oyInceAyar(v) {
+  oyInceSent = Math.max(-50, Math.min(50, parseInt(v, 10) || 0));
+  document.getElementById('oyInce').value = oyInceSent;
+  if (oyShifter) oyShifter.pitchSemitones = oyTonDeg + oyInceSent / 100;
+  try {
+    if (oyKayit) oyInceSent ? localStorage.setItem('caInce:' + oyKayit.id, oyInceSent) : localStorage.removeItem('caInce:' + oyKayit.id);
+  } catch (e) {}
+  // Emir: sent yanında koma karşılığı da görünsün (Türk müziği kuramında 1 koma = 1200/53 ≈ 22,64 sent)
+  const _koma = (Math.abs(oyInceSent) / (1200 / 53)).toLocaleString(document.documentElement.lang || 'tr', { maximumFractionDigits: 1 });
+  document.getElementById('oyInceDeger').textContent = (oyInceSent > 0 ? '+' : '') + oyInceSent + ' ' + _caCev('ca.sent', 'sent')
+    + (oyInceSent ? ' (≈ ' + _koma + ' ' + _caCev('ca.koma', 'koma') + ')' : '');
+  document.getElementById('oyInceAlt').textContent = oyInceSent
+    ? _caCev('ca.inceKayik', '{n} sent {yon} · bu kayıt için hatırlanır').replace('{n}', Math.abs(oyInceSent)).replace('{yon}', oyInceSent > 0 ? _caCev('ca.tiz','tiz') : _caCev('ca.pes','pes'))
+    : _caCev('ca.inceAciklama', 'Kayıt akorttan biraz kaçıksa buradan düzelt (100 sent = yarım ses).');
+}
+function oyInceKaydir(d) {
+  oyInceAyar(oyInceSent + d);
 }
 function oyTonKaydir(d) {
   const el = document.getElementById('oyTon');

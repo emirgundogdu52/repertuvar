@@ -2512,8 +2512,10 @@ function randomToken(){
   return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
+// Android'de Capacitor kökü https://localhost: http ile başlıyor ama dışarıda açılmaz (2026-11-01).
 function shareBaseUrl(){
-  return window.location.origin.startsWith('http')
+  const isLocal = /^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(window.location.hostname || '');
+  return window.location.origin.startsWith('http') && !isLocal
     ? window.location.origin + window.location.pathname.replace(/repertoires\.html.*$/,'')
     : 'https://app.repertuvar.app/';
 }

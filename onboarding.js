@@ -111,20 +111,18 @@
       '.mt-cip:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--border))}' +
       '.mt-cip.on{background:var(--yt-btn,#FFC83D);border-color:var(--yt-btn,#FFC83D);color:#1a1200}' +
       '.mt-cip.on::before{content:"✓";font-weight:800}' +
-      '.mt-cip:focus-visible,.ob-btn:focus-visible,.ob-seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}' +
+      '.mt-cip:focus-visible,.ob-btn:focus-visible,.ob-sec:focus-visible{outline:2px solid var(--accent);outline-offset:2px}' +
       '.mt-cipler{display:flex;flex-wrap:wrap;gap:8px}' +
       '.ob-arka{position:fixed;inset:0;z-index:10000;background:rgba(4,7,15,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);' +
-      'display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));overflow-y:auto}' +
+      'display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));overflow-y:auto;overflow-x:hidden}' +
       '.ob-kart:focus{outline:none}.ob-kart{width:100%;max-width:560px;margin:auto;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:20px;' +
       'padding:28px 24px 20px;box-shadow:0 30px 70px rgba(0,0,0,.35)}' +
       '.ob-ust{margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent)}' +
       '.ob-kart h2{margin:0 0 8px;font-size:22px;line-height:1.3;font-weight:700}' +
       '.ob-acik{margin:0 0 18px;font-size:14px;line-height:1.55;color:var(--text2)}' +
       '.ob-dil{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:20px 0 0;padding-top:16px;border-top:1px solid var(--border)}' +
-      '.ob-dil span{font-size:13px;font-weight:600;color:var(--text2)}' +
-      '.ob-seg{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--surface2);border:1px solid var(--border)}' +
-      '.ob-seg button{border:0;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--text2);padding:6px 12px;border-radius:8px;cursor:pointer}' +
-      '.ob-seg button[aria-pressed="true"]{background:var(--yt-btn,#FFC83D);color:#1a1200}' +
+      '.ob-dil label{font-size:13px;font-weight:600;color:var(--text2)}' +
+      '.ob-sec{font:inherit;font-size:14px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;max-width:100%;cursor:pointer}' +
       '.ob-btn{display:flex;width:100%;align-items:center;justify-content:center;min-height:48px;margin-top:20px;border:0;border-radius:12px;' +
       'background:var(--yt-btn,#FFC83D);color:#1a1200;font:inherit;font-size:15px;font-weight:700;cursor:pointer}' +
       '.ob-btn:disabled{opacity:.45;cursor:default}' +
@@ -147,7 +145,7 @@
         '<h2 id="obBaslik" data-ob="onboarding.musicQuestion"></h2>' +
         '<p class="ob-acik" id="obAcik" data-ob="onboarding.musicDescription"></p>' +
         '<div class="mt-cipler" role="group" aria-labelledby="obBaslik"></div>' +
-        '<div class="ob-dil"><span id="obDilEt" data-ob="onboarding.languageLabel"></span><div class="ob-seg" role="group" aria-labelledby="obDilEt"></div></div>' +
+        '<div class="ob-dil"><label for="obDilSec" data-ob="onboarding.languageLabel"></label><select id="obDilSec" class="ob-sec"></select></div>' +
         '<button type="button" class="ob-btn" data-ob="onboarding.continue"></button>' +
         '<button type="button" class="ob-gec" data-ob="onboarding.skip"></button>' +
         '<p class="ob-not" data-ob="onboarding.laterHint"></p>' +
@@ -161,17 +159,17 @@
       'onboarding.skip': 'Şimdilik geç',
       'onboarding.laterHint': 'Bunu daha sonra Ayarlar\'dan değiştirebilirsin.'
     };
-    var devam = arka.querySelector('.ob-btn'), seg = arka.querySelector('.ob-seg');
+    var devam = arka.querySelector('.ob-btn'), sec = arka.querySelector('.ob-sec');
     function metinler() {
       arka.querySelectorAll('[data-ob]').forEach(function (el) { var k = el.getAttribute('data-ob'); el.textContent = t(k, METIN[k]); });
-      seg.innerHTML = '';
+      // (2026-11-01) 10 dil düğmesi satır kırmadan pencereden taşıyor, Android'de pencere yana kayıyordu → açılır liste.
+      sec.innerHTML = '';
       var diller = (window.i18n && i18n.diller) || { tr: 'Türkçe', en: 'English' }, simdi = window.i18n ? i18n.dil() : 'tr';
       Object.keys(diller).forEach(function (k) {
-        var b = document.createElement('button'); b.type = 'button'; b.textContent = diller[k]; b.lang = k;
-        b.setAttribute('aria-pressed', k === simdi ? 'true' : 'false');
-        b.onclick = function () { if (k !== (window.i18n && i18n.dil())) dilYaz(k); };
-        seg.appendChild(b);
+        var o = document.createElement('option'); o.value = k; o.textContent = diller[k]; o.lang = k; sec.appendChild(o);
       });
+      sec.value = simdi;
+      sec.onchange = function () { if (sec.value !== (window.i18n && i18n.dil())) dilYaz(sec.value); };
       devam.disabled = !secili.length;
     }
     var cip = cipler(arka.querySelector('.mt-cipler'), secili, function (s) { secili = s; devam.disabled = !secili.length; });

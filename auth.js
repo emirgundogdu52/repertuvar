@@ -1194,7 +1194,7 @@ function renderUserBadge(containerId) {
 (function () {
   if (window.Pro || document.querySelector('script[data-abonelik]')) return;
   // Kilit gerektirmeyen sayfalar (abonelik.js de buradan okur — tek liste).
-  window.PRO_MUAF = ['pro.html', 'ayarlar.html', 'login.html', 'reset-password.html', 'google-donus.html',
+  window.PRO_MUAF = ['pro.html', 'ayarlar.html', 'yardim.html', 'login.html', 'reset-password.html', 'google-donus.html',
                      'splash.html', '404.html', 'paylas.html'];
   // (2026-10-17) PERDE: iOS/Android'de bu hesabın Pro olduğu bu cihazda henüz bilinmiyorsa (ilk giriş, süresi
   // bitmiş önbellek) sayfa içeriği kilit kararına dek gizlenir — önce ana ekran görünüp sonra satın alma

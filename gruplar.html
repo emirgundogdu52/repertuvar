@@ -817,7 +817,9 @@ async function generateInvite() {
     // olur ve o link paylaşılamaz. Web origin'i http ise onu kullan, değilse
     // (native app) canlı web adresine düş.
     const origin = window.location.origin;
-    const shareBase = origin.startsWith('http') ? origin : 'https://app.repertuvar.app';
+    // Android'de origin https://localhost: http ile başlıyor ama dışarıda açılmaz (2026-11-01).
+    const yerel = /^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(window.location.hostname || '');
+    const shareBase = origin.startsWith('http') && !yerel ? origin : 'https://app.repertuvar.app';
     const link = shareBase + '/login.html?invite=' + invite.token;
     currentInviteLink = link;
     document.getElementById('inviteLinkText').textContent = link;
@@ -854,7 +856,8 @@ async function aktifDavetiYukle() {
     if (!inv) return;
 
     var origin = window.location.origin;
-    var shareBase = origin.startsWith('http') ? origin : 'https://app.repertuvar.app';
+    var yerel = /^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(window.location.hostname || '');
+    var shareBase = origin.startsWith('http') && !yerel ? origin : 'https://app.repertuvar.app';
     var link = shareBase + '/login.html?invite=' + inv.token;
     currentInviteLink = link;
 

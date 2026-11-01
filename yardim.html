@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+  YARDIM — "Nasıl yapılır?" (2026-11-01, Emir: profil menüsü + Ayarlar'dan, uygulamanın içinde, internetsiz de).
+  Sitedeki yardım merkeziyle (landing/help/) aynı içerik ve arama: yardim.js ve yardim-veri-*.js
+  pazarlama/yardim/olustur.py ile üretilir, elle düzenleme. İçerik yalnız TR + EN; diğer arayüz dillerinde EN gösterilir.
+  Pro gerektirmez (auth.js PRO_MUAF).
+-->
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<script src="tasarim.js"></script>
+<title data-i18n="menu.yardim">Yardım</title>
+<link rel="icon" type="image/png" href="Repertuvar_logo.png">
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+<link rel="manifest" href="manifest.json">
+<script src="i18n.js"></script>
+<script src="auth.js"></script>
+<script src="topnav.js" defer></script>
+<style>
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+@media (max-width: 768px) { input { font-size: 16px; } }
+.yardim { max-width: 1100px; margin: 0 auto; padding: 9px 16px 32px; }
+.yardim h1 { font-size: 26px; font-weight: 800; margin: 6px 0 4px; color: var(--text); }
+.y-alt { margin: 0 0 14px; color: var(--text2); font-size: 14px; }
+.arama { position: relative; }
+.arama input { width: 100%; box-sizing: border-box; height: 46px; padding-inline: 14px 44px; border-radius: 12px;
+  border: 1.5px solid var(--border); background: var(--surface2); color: var(--text); font-family: inherit; font-size: 16px;
+  -webkit-appearance: none; appearance: none; }
+.arama input:focus { outline: none; border-color: var(--accent); }
+.arama input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.arama .temizle { position: absolute; inset-inline-end: 6px; top: 50%; transform: translateY(-50%); border: 0; background: none;
+  color: var(--text2); font-size: 22px; line-height: 1; padding: 8px; cursor: pointer; }
+.arama .temizle[hidden] { display: none; }
+.sik { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; margin: 10px 0 0; font-size: 13px; color: var(--text3); }
+.sik button { font: inherit; font-size: 13px; color: var(--text); background: var(--surface); border: 1px solid var(--border);
+  border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+.govde { display: grid; grid-template-columns: minmax(260px, 360px) 1fr; gap: 22px; align-items: start; margin-top: 18px;
+  scroll-margin-top: calc(var(--topnav-h, 66px) + 8px); }
+.durum { font-size: 12px; color: var(--text3); margin: 0 0 8px; min-height: 1.3em; }
+.liste h2 { font-size: 13px; font-weight: 700; color: var(--text2); margin: 18px 0 4px; }
+.liste h2:first-child { margin-top: 0; }
+.liste ul { list-style: none; margin: 0; padding: 0; }
+.liste li button { display: block; width: 100%; text-align: start; font: inherit; background: none; border: 0;
+  border-inline-start: 3px solid transparent; padding: 9px 10px; border-start-end-radius: 10px; border-end-end-radius: 10px; color: var(--text); cursor: pointer; }
+.liste li button[aria-current="true"] { background: var(--surface); border-inline-start-color: var(--accent); font-weight: 600; }
+.liste .soru { display: block; font-size: 15px; line-height: 1.35; }
+.liste .ozet { display: block; font-size: 13px; color: var(--text2); margin-top: 2px; font-weight: 400; }
+.liste .kat { display: block; font-size: 12px; color: var(--accent); margin-top: 2px; }
+.bos { border: 1px dashed var(--border); border-radius: 12px; padding: 14px; font-size: 14px; color: var(--text2); }
+.bos a, .sahne .yaz a { color: var(--accent); }
+.sahne { position: sticky; top: calc(var(--topnav-h, 66px) + 12px); background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; padding: 22px 22px 18px; min-height: 240px; color: var(--text); }
+.sahne .bekle { color: var(--text3); text-align: center; margin: 60px 0; }
+.sahne .geri { display: none; font: inherit; font-size: 15px; background: none; border: 0; color: var(--accent); padding: 0; margin: 0 0 12px; cursor: pointer; }
+.sahne .yer { font-size: 12px; color: var(--text3); margin: 0 0 4px; }
+.sahne h2 { font-size: 22px; line-height: 1.25; margin: 0 0 8px; }
+.sahne h2:focus { outline: none; }
+.sahne .cevap-ozet { color: var(--text2); margin: 0 0 16px; font-size: 15px; }
+.adimlar { list-style: none; margin: 0; padding: 0; counter-reset: adim; border-top: 1px solid var(--border); }
+.adimlar li { counter-increment: adim; display: grid; grid-template-columns: 40px 1fr; gap: 4px; align-items: baseline;
+  padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 16px; line-height: 1.5; }
+.adimlar li::before { content: counter(adim); font-size: 22px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1; }
+.sahne h3 { font-size: 14px; margin: 20px 0 6px; }
+.sahne .not { background: var(--surface2); border-radius: 10px; padding: 10px 14px; margin: 0; font-size: 14px; color: var(--text2); }
+.sahne .ipucu { margin: 0; padding-inline-start: 18px; font-size: 14px; color: var(--text2); }
+.sahne .ipucu li { margin: 4px 0; }
+.ilgili { display: flex; flex-wrap: wrap; gap: 8px; }
+.ilgili button { font: inherit; font-size: 14px; text-align: start; color: var(--accent); background: none;
+  border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.sahne .yaz { margin: 22px 0 0; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text3); }
+@media (max-width: 820px) {
+  .govde { grid-template-columns: 1fr; gap: 0; }
+  .sahne { position: static; padding: 18px 16px; }
+  .sahne .geri { display: inline-block; }
+  .govde.acik .liste, .govde.acik .durum { display: none; }
+  .govde:not(.acik) .sahne { display: none; }
+}
+</style>
+<link rel="stylesheet" href="tasarim.css">
+</head>
+<body>
+<div id="r-topnav-container"></div>
+<div class="main-wrap">
+<div class="yardim">
+  <h1 id="yBaslik"></h1>
+  <p class="y-alt" id="yAlt"></p>
+  <div class="arama" role="search">
+    <input id="ara" type="search" autocomplete="off" spellcheck="false" aria-describedby="durum" aria-controls="liste">
+    <button id="temizle" class="temizle" type="button" hidden>×</button>
+  </div>
+  <div class="sik" id="ySik"></div>
+  <main id="govde" class="govde">
+    <div><p id="durum" class="durum" aria-live="polite"></p><nav id="liste" class="liste"></nav></div>
+    <article id="sahne" class="sahne" aria-labelledby="cevap-baslik"></article>
+  </main>
+</div>
+</div><!-- /main-wrap -->
+<script src="yardim-diller.js"></script>
+<script>
+(function () {
+  // İçerik hazır olan dilde (yardim-diller.js); değilse İngilizce. Arayüz metinleri ve "Sık arananlar" veri dosyasında.
+  var ui = (window.i18n && i18n.dil && i18n.dil()) || 'tr';
+  var hazir = window.YARDIM_DILLER || ['tr', 'en'];
+  var dil = hazir.indexOf(ui) !== -1 ? ui : 'en';
+  ['yardim-veri-' + dil + '.js', 'yardim.js'].forEach(function (src) {
+    var e = document.createElement('script'); e.src = src; e.async = false; document.body.appendChild(e);
+  });
+})();
+(async function () { try { if (typeof requireAuth === 'function') await requireAuth(); } catch (e) {} })();
+</script>
+</body>
+</html>

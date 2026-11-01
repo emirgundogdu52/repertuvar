@@ -713,6 +713,12 @@ function _m(anahtar, tr) {
         <a href="calisma.html" class="r-tn-dd-item">
           <i class="ti ti-headphones" style="font-size:15px;"></i> ${_m('menu.calismaodasi','Çalışma Odası')}
         </a>
+        <a href="mesajlar.html" class="r-tn-dd-item">
+          <i class="ti ti-message" style="font-size:15px;"></i> ${_m('menu.mesajlar','Mesajlar')}
+        </a>
+        <a href="yardim.html" class="r-tn-dd-item">
+          <i class="ti ti-help-circle" style="font-size:15px;"></i> ${_m('menu.yardim','Yardım')}
+        </a>
         <a href="ayarlar.html" class="r-tn-dd-item">
           <i class="ti ti-settings" style="font-size:15px;"></i> ${_m('menu.ayarlar','Ayarlar')}
         </a>
@@ -722,6 +728,18 @@ function _m(anahtar, tr) {
       document.body.appendChild(dd);
       // Dışarı tıklayınca kapat
       document.addEventListener('click', function() { dd.classList.remove('open'); });
+      // (2026-11-01) Emir: başka yere dokununca ya da kaydırınca kapanmıyordu, avatara yeniden basmak gerekiyordu.
+      // iOS WebKit'te tıklanamaz bir öğeye dokunmak document'a 'click' göndermez → dokunuşun başı (pointerdown) ve
+      // herhangi bir kaptaki kaydırma (scroll yakalama evresinde) da kapatır. Menünün ve avatarın kendisi hariç.
+      document.addEventListener('pointerdown', function(ev) {
+        if (!dd.classList.contains('open') || dd.contains(ev.target)) return;
+        const av = document.getElementById('rTnUser');
+        if (av && av.contains(ev.target)) return;   // avatar kendi aç-kapa işini yapar
+        dd.classList.remove('open');
+      }, true);
+      document.addEventListener('scroll', function(ev) {
+        if (dd.classList.contains('open') && !(ev.target && ev.target.nodeType === 1 && dd.contains(ev.target))) dd.classList.remove('open');
+      }, { capture: true, passive: true });
     }
     // Pozisyonu avatar'a göre ayarla
     const user = document.getElementById('rTnUser');
@@ -873,6 +891,7 @@ function _m(anahtar, tr) {
         <i class="ti ti-chevron-up" style="font-size:14px;color:var(--text3,#5e5c8a);" aria-hidden="true"></i>
         <div class="sb-user-dropdown" id="sbUserDropdown">
           <div id="sbGroups"></div>
+          <a href="yardim.html" class="sb-dd-item"><i class="ti ti-help-circle" style="font-size:15px;" aria-hidden="true"></i> ${_m('menu.yardim','Yardım')}</a>
           <a href="ayarlar.html" class="sb-dd-item"><i class="ti ti-settings" style="font-size:15px;" aria-hidden="true"></i> ${_m('menu.ayarlar','Ayarlar')}</a>
           <button class="sb-dd-item danger" onclick="logout()"><i class="ti ti-logout" style="font-size:15px;" aria-hidden="true"></i> ${_m('menu.oturumKapat','Oturumu Kapat')}</button>
         </div>
@@ -922,7 +941,10 @@ function _m(anahtar, tr) {
         { href: 'artiesten.html', icon: 'ti-microphone',  label: _m('menu.solistler','Solistler') },
       ] : []),
       { href: 'stage.html',       icon: 'ti-music',    label: _m('menu.sahnemodu','Sahne Modu'), stage: true },
-      { href: 'mesajlar.html',    icon: 'ti-message',  label: _m('menu.mesajlar','Mesajlar') },
+      // (2026-11-01) Emir: telefonda Mesajlar yerine Yardım daha faydalı; Mesajlar profil menüsünde. Geniş alt menüde
+      // (yatay telefon, tablet) Mesajlar yerinde kalır.
+      roomyNav ? { href: 'mesajlar.html', icon: 'ti-message', label: _m('menu.mesajlar','Mesajlar') }
+               : { href: 'yardim.html', icon: 'ti-help-circle', label: _m('menu.yardim','Yardım') },
     ];
 
     const bnHtml = bnItems.map(item => {

@@ -711,6 +711,10 @@
   /* (2026-10-08) dil çipleri: tür çipleriyle aynı görünüm + küre ikonu; iki grup arasında ince ayraç */
   .dil-chip .ti { font-size:13px; }
   .chip-ayrac { flex:0 0 1px; align-self:stretch; margin:3px 4px; background:var(--border); }
+  /* (2026-11-01) Hatırlanan dil süzgecinin notu: eserler "kayboldu" sanılmasın diye listenin üstünde hep görünür */
+  .dil-notu { margin-top:6px; font-size:12px; color:var(--text2); }
+  .dil-notu[hidden] { display:none; }
+  .dil-notu button { font:inherit; font-weight:600; color:var(--accent); background:none; border:0; padding:2px 0; cursor:pointer; text-decoration:underline; }
   .work-tur-badge { display:inline-block; font-size:10px; font-weight:700; letter-spacing:.02em; color:var(--text3); background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:0 6px; margin-right:6px; vertical-align:middle; white-space:nowrap; }
 
   /* WORK LIST */
@@ -1842,6 +1846,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
         <button type="button" class="tur-ok tur-ok-sol" tabindex="-1" aria-label="‹" onclick="turKaydir(-1)"><span class="tur-ok-yuz"><i class="ti ti-chevron-left" aria-hidden="true"></i></span></button>
         <button type="button" class="tur-ok tur-ok-sag" tabindex="-1" aria-label="›" onclick="turKaydir(1)"><span class="tur-ok-yuz"><i class="ti ti-chevron-right" aria-hidden="true"></i></span></button>
       </div>
+      <div id="dilNotu" class="dil-notu" role="status" hidden></div>
     </div>
     <div class="toolbar">
       <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;"><i class="ti ti-adjustments-horizontal"></i> <span data-i18n="es.filtreler">Filtreler</span><span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
@@ -2105,6 +2110,15 @@ let filteredData = [...DATA];
 let selectedId = null;
 let sortMode = 'name';
 let activeFilters = { form: null, tuning: null, region: null, makam: null, tur: null, dil: null };
+// (2026-11-01) Dil çipi seçimi bu cihazda hatırlanır (Emir: yalnız Türkçe çalan, her açılışta İngilizce eserleri
+// süzmek zorunda kalmasın). Tümü ve Filtreleri Temizle dili SIFIRLAMAZ: buildTurChips activeFilters.dil'i hep buradan
+// kurar. Dil, aynı çipe yeniden dokununca ya da listenin üstündeki nottaki düğmeyle kalkar. Yalnız Eserler listesi ve
+// aramayı etkiler; repertuvar, grup ve Sahne Modu içeriğine dokunmaz.
+let _dilSecimi = (function () { try { return localStorage.getItem('esDilSuzgeci') || null; } catch (e) { return null; } })();
+function dilSecimiYaz(kod) {
+  _dilSecimi = kod || null;
+  try { _dilSecimi ? localStorage.setItem('esDilSuzgeci', _dilSecimi) : localStorage.removeItem('esDilSuzgeci'); } catch (e) {}
+}
 let favOnly = false;               // "Tümü / Favoriler" toggle durumu
 // (2026-08-15) "🔒 Taslaklarım" görünümü. Gerekçe (Emir): "Private eserlerin
 // sıralandığı bir başlık açalım, bestecilere veya eserlerini yayınlamak
@@ -2209,7 +2223,8 @@ function dilSayilari() {   // görünürlük kuralları turSayilari ile aynı; t
   return Object.entries(c).sort(function (a, b) { return b[1] - a[1]; });
 }
 function setDilFilter(kod) {
-  activeFilters.dil = (activeFilters.dil === kod) ? null : kod;
+  dilSecimiYaz(activeFilters.dil === kod ? null : kod);
+  activeFilters.dil = _dilSecimi;
   // Seçili tür yeni dilde yoksa kaldır (görünmeyen bir çip listeyi sessizce boşaltmasın)
   if (activeFilters.tur) {
     const r = turSayilari();
@@ -2223,8 +2238,18 @@ function setDilFilter(kod) {
 function buildTurChips() {
   const el = document.getElementById('turChipRow');
   if (!el) return;
-  const r = turSayilari();
   const diller = dilSayilari();
+  // Hatırlanan dil katalogda (hâlâ birden çok dil varken) yoksa süzgeç uygulanmaz; kayıt silinmez, dil dönünce yine gelir.
+  activeFilters.dil = (_dilSecimi && diller.length > 1 && diller.some(function (e) { return e[0] === _dilSecimi; })) ? _dilSecimi : null;
+  const not = document.getElementById('dilNotu');
+  if (not) {
+    not.hidden = !activeFilters.dil;
+    if (activeFilters.dil) {
+      not.innerHTML = _esHtml(_esCev('es.dilNotu', 'Yalnız {dil} eserler gösteriliyor.').replace('{dil}', dilAdi(activeFilters.dil)))
+        + ' <button type="button" onclick="setDilFilter(activeFilters.dil)">' + _esHtml(_esCev('es.dilNotuTumu', 'Tüm dilleri göster')) + '</button>';
+    }
+  }
+  const r = turSayilari();
   if (!r.liste.length && !r.bos && diller.length < 2) { el.innerHTML = ''; el.style.display = 'none'; turOklariGuncelle(); return; }
   let dilHtml = '';
   if (diller.length > 1) {
@@ -2388,7 +2413,8 @@ function tumunuGoster() {
 function tumuDurumunuYaz() {
   const allBtn = document.getElementById('favToggleAll');
   if (!allBtn) return;
-  const hepsi = !favOnly && !draftOnly && !Object.keys(activeFilters).some(function (k) { return activeFilters[k]; });
+  // Hatırlanan dil sayılmaz: onu listenin üstündeki not gösteriyor (Tümü = seçili dildeki bütün eserler).
+  const hepsi = !favOnly && !draftOnly && !Object.keys(activeFilters).some(function (k) { return k !== 'dil' && activeFilters[k]; });
   allBtn.classList.toggle('active', hepsi);
   allBtn.style.background = hepsi ? 'var(--surface2)' : 'none';
   allBtn.style.color = hepsi ? 'var(--text)' : 'var(--text2)';

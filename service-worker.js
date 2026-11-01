@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
-const CACHE_NAME = 'repertuvar-v711';
+const CACHE_NAME = 'repertuvar-v712';
 
 // (2026-09-27, Offline Düzeltme 2) DEPLOY SONRASI OFFLINE KAYBI KAPATILDI.
 // Eskiden burada yalnız '/' ve '/index.html' vardı ve activate eski önbelleği
@@ -31,6 +31,10 @@ const PRECACHE = [
   '/stage.html', '/repertoires.html', '/eserler.html', '/calisma.html',
   '/ritim-kes.html', '/gruplar.html', '/mesajlar.html', '/ayarlar.html',
   '/artiesten.html', '/onerilerim.html', '/login.html', '/reset-password.html',
+  // (2026-11-01) Yardım — Nasıl yapılır? (veri dosyaları pazarlama/yardim/olustur.py üretir)
+  '/yardim.html', '/yardim.js', '/yardim-diller.js',
+  '/yardim-veri-tr.js', '/yardim-veri-en.js', '/yardim-veri-de.js', '/yardim-veri-nl.js', '/yardim-veri-fr.js',
+  '/yardim-veri-es.js', '/yardim-veri-it.js', '/yardim-veri-pt.js', '/yardim-veri-ar.js', '/yardim-veri-az.js',
   '/splash.html', '/acilis-logo.js', '/arama-temizle.js', '/supabase-js-2.118.0.js',
   // betikler ve stil (soundtouch.js calisma.html'de dinamik import ile yükleniyor)
   '/auth.js', '/db.js', '/i18n.js',
