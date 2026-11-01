@@ -1732,3 +1732,67 @@ function _m(anahtar, tr) {
     };
   }
 })();
+
+/* (2026-11-01) GÜNCELLEME UYARISI — Emir: "bir sonraki sürüm için uyarı mesajını plana al" → 1.2 / 20 ile.
+   Yalnız iOS/Android uygulamasında (web kendiliğinden güncellenir). Mağazada yayında olan son sürüm web'deki surum.json'da
+   (yeni sürüm iki mağazada YAYINA GİRİNCE güncellenir; önce değil, yoksa olmayan sürüme yönlendiririz). Yarım günde bir bakılır;
+   "Sonra" → aynı sürüm için 3 gün sorulmaz. iOS sürüm adıyla (1.2), Android derleme numarasıyla (versionCode) karşılaştırır. */
+(function () {
+  var c = window.Capacitor;
+  if (!(c && c.isNativePlatform && c.isNativePlatform() && c.Plugins && c.Plugins.App)) return;
+  var ios = c.getPlatform && c.getPlatform() === 'ios';
+  var SAAT = 3600 * 1000;
+  function oku(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function yaz(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function yeniMi(mevcut, magaza) {   // '1.2' < '1.10' doğru sırada
+    var a = String(mevcut).split('.').map(Number), b = String(magaza).split('.').map(Number);
+    for (var i = 0; i < Math.max(a.length, b.length); i++) { var x = a[i] || 0, y = b[i] || 0; if (y !== x) return y > x; }
+    return false;
+  }
+  function goster(hedef) {
+    if (document.getElementById('gncKart')) return;
+    var st = document.createElement('style');
+    st.textContent =
+      '#gncKart{position:fixed;left:16px;right:16px;top:calc(env(safe-area-inset-top,0px) + 84px);z-index:100000;max-width:440px;margin:0 auto;' +
+      'background:var(--surface,#111722);color:var(--text,#fff);border:1px solid var(--border,rgba(255,255,255,.08));border-radius:16px;' +
+      'padding:16px;box-shadow:0 12px 32px rgba(0,0,0,.45);font-family:inherit}' +
+      '#gncKart b{display:block;font-size:15px;margin-bottom:4px}#gncKart p{margin:0 0 12px;font-size:13.5px;line-height:1.45;color:var(--text2,#b8bfd2)}' +
+      '#gncKart .gnc-d{display:flex;gap:8px}#gncKart button{flex:1 1 0;min-height:40px;border-radius:10px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}' +
+      '#gncKart .gnc-evet{background:var(--accent,#FFC83D);color:#1a1200;border:0}#gncKart .gnc-sonra{background:none;color:var(--text,#fff);border:1px solid var(--border,rgba(255,255,255,.15))}';
+    document.head.appendChild(st);
+    var k = document.createElement('div'); k.id = 'gncKart'; k.setAttribute('role', 'dialog'); k.setAttribute('aria-labelledby', 'gncBaslik');
+    k.innerHTML = '<b id="gncBaslik"></b><p></p><div class="gnc-d"><button type="button" class="gnc-sonra"></button><button type="button" class="gnc-evet"></button></div>';
+    k.querySelector('b').textContent = _m('gnc.baslik', 'Yeni sürüm var');
+    k.querySelector('p').textContent = _m('gnc.metin', 'Repertuvar\'ın yeni sürümü mağazada. Yeni özellikler ve düzeltmeler için güncelle.');
+    k.querySelector('.gnc-sonra').textContent = _m('gnc.sonra', 'Sonra');
+    k.querySelector('.gnc-evet').textContent = _m('gnc.guncelle', 'Güncelle');
+    k.querySelector('.gnc-sonra').onclick = function () { yaz('gncSonra', hedef + '|' + Date.now()); k.remove(); };
+    k.querySelector('.gnc-evet').onclick = function () {
+      k.remove();
+      // Android'de market:// her cihazda çözülmüyor (emülatörde -91); https Play uygulamasında, yoksa tarayıcıda açılır.
+      location.href = ios ? 'itms-apps://apps.apple.com/app/id6820565687' : 'https://play.google.com/store/apps/details?id=app.repertuvar';
+    };
+    document.body.appendChild(k);
+  }
+  function denetle() {
+    var son = +oku('gncBakis') || 0;
+    if (Date.now() - son < 12 * SAAT) return;
+    c.Plugins.App.getInfo().then(function (bilgi) {
+      return fetch('https://app.repertuvar.app/surum.json?t=' + Math.floor(Date.now() / SAAT), { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (s) {
+          if (!s) return;
+          yaz('gncBakis', String(Date.now()));
+          var hedef = ios ? s.ios : s.android, mevcut = ios ? bilgi.version : bilgi.build;
+          if (hedef == null || mevcut == null) return;
+          var yeni = ios ? yeniMi(mevcut, hedef) : (+hedef > +mevcut);
+          if (!yeni) return;
+          var sonra = (oku('gncSonra') || '').split('|');
+          if (sonra[0] === String(hedef) && Date.now() - (+sonra[1] || 0) < 72 * SAAT) return;
+          goster(hedef);
+        });
+    }).catch(function () {});   // çevrim dışı / ağ hatası: sessizce geç, sonraki açılışta yine bakılır
+  }
+  if (document.readyState === 'complete') setTimeout(denetle, 2500);
+  else window.addEventListener('load', function () { setTimeout(denetle, 2500); });
+})();

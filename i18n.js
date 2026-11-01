@@ -983,6 +983,8 @@
       'menu.grup': 'Grup / Koro',
       // (2026-11-01) Telefonda alt menüde kısa ad (6 düğmede uzun adlar kesiliyordu); tabletle sayfa başlıklarında tam ad.
       'menu.kisaRepertuvarlar': 'Repertuvar', 'menu.kisaGrup': 'Grup', 'menu.kisaSahne': 'Sahne',
+      // (2026-11-01) Güncelleme uyarısı kartı (topnav.js; yalnız iOS/Android uygulaması)
+      'gnc.baslik': "Yeni sürüm var", 'gnc.metin': "Repertuvar'ın yeni sürümü mağazada. Yeni özellikler ve düzeltmeler için güncelle.", 'gnc.guncelle': "Güncelle", 'gnc.sonra': "Sonra",
       'menu.calismaodasi': 'Çalışma Odası',
       'menu.metronom': 'Metronom',
       'menu.mesajlar': 'Mesajlar',
@@ -3095,6 +3097,8 @@
       'menu.grup': 'Group / Choir',
       // (2026-11-01) Telefonda alt menüde kısa ad (6 düğmede uzun adlar kesiliyordu); tabletle sayfa başlıklarında tam ad.
       'menu.kisaRepertuvarlar': 'Setlists', 'menu.kisaGrup': 'Group', 'menu.kisaSahne': 'Stage',
+      // (2026-11-01) Güncelleme uyarısı kartı (topnav.js; yalnız iOS/Android uygulaması)
+      'gnc.baslik': "A new version is available", 'gnc.metin': "A new version of Repertuvar is in the store. Update to get the new features and fixes.", 'gnc.guncelle': "Update", 'gnc.sonra': "Later",
       'menu.calismaodasi': 'Practice Room',
       'menu.metronom': 'Metronome',
       'menu.mesajlar': 'Messages',
