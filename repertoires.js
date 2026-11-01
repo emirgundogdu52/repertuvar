@@ -1516,7 +1516,7 @@ function closeWM(){
 function _rbEserGorunur(w){
   if(!window.RB||!w) return true;
   if(RB.gizliEserMi(w.id)) return false;
-  return !(w.sb && w.sb!==(getUserId()||'') && RB.engelliMi(w.sb));
+  return !(w.sb && RB.engelliMi(w.sb) && w.sb!==(getUserId()||''));   // (2026-11-01) kimlik yalnız engelli eserde okunur
 }
 function filterW(){
   const q=document.getElementById('ws').value.trim();

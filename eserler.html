@@ -1826,7 +1826,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
         <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none;">&#9906;</span>
         <input type="text" id="searchInput" data-temizle placeholder="Eser adı veya söz ara..." data-i18n-ph="es.ph_ara" autocomplete="off"
           style="width:100%;height:42px;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0 12px 0 36px;color:var(--text);font-size:14px;font-family:var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);outline:none;transition:border-color .2s;"
-          oninput="applyFilters();">
+          oninput="aramaGirdi();">
       </div>
     </div>
     <div style="padding:0 16px;background:var(--bg);">
@@ -1952,6 +1952,7 @@ function mapWorkRow(w) {
 
 function parseWorksRows(rows, skipRender) {
   DATA = rows.map(mapWorkRow);
+  _araOnbellegiIsit();
   filteredData = [...DATA];
   buildFilters();
   if (skipRender) return; // veri güncellendi ama görünüm bir sonraki fırsatta tazelenecek (aktif swipe'ı bozmamak için)
@@ -2326,22 +2327,61 @@ function clearFilters() {
   applyFilters();
 }
 
+// (2026-11-01) 9544 eser açılınca katalog 10 bine çıktı; her harfte bütün eserlerin adı + SÖZLERİ baştan trNorm'dan
+// geçiyordu (Mac'te harf başına ~250 ms, Android'de 2-4 sn kasma). Normalleştirilmiş metin eser başına bir kez
+// hesaplanır; alanlardan biri değişirse (düzenleme) yeniden hesaplanır. WeakMap: eser nesnesine alan eklenmez (IndexedDB'ye gitmez).
+const _araOnbellek = new WeakMap();
+function _araMetni(w) {
+  const alanlar = [w.name,w.composer,w.lyricWriter,w.makam,w.region,w.sourcePerson,w.lyrics];
+  const c = _araOnbellek.get(w);
+  if (c && c.alanlar.every((v, i) => v === alanlar[i])) return c.metin;
+  const metin = trNorm(alanlar.filter(Boolean).join(' '));
+  _araOnbellek.set(w, { alanlar, metin });
+  return metin;
+}
+
+// Yazarken: tarama sürerken basılan harfler birikir; hepsi bir sonraki karede TEK taramayla işlenir
+// (yavaş telefonda her harf ayrı tam tarama başlatıp kuyruğa giriyordu). Gecikme eklemez.
+let _araKare = 0;
+function aramaGirdi() {
+  if (_araKare) return;
+  _araKare = requestAnimationFrame(() => { _araKare = 0; applyFilters(); });
+}
+
+// İlk harfte bütün eserlerin metni hazırlanıyordu (Mac'te ~220 ms, telefonda saniyeler); eserler yüklenince
+// boşta, 8 ms'lik parçalarla önceden hazırlanır. Yeni yükleme eskisini durdurur.
+let _isitmeNo = 0;
+function _araOnbellegiIsit() {
+  const no = ++_isitmeNo;
+  let i = 0;
+  const sonraki = window.requestIdleCallback || (f => setTimeout(f, 50));
+  const parca = () => {
+    if (no !== _isitmeNo) return;
+    const bitis = performance.now() + 8;
+    while (i < DATA.length && performance.now() < bitis) _araMetni(DATA[i++]);
+    if (i < DATA.length) sonraki(parca);
+  };
+  sonraki(parca);
+}
+
 function applyFilters() {
-  // (2026-08-05) Ham sorgu — küçültme/aksan katlama trMatch'te (auth.js).
+  // (2026-08-05) Ham sorgu — küçültme/aksan katlama trNorm'da (auth.js).
   const q = document.getElementById('searchInput').value.trim();
+  const qn = trNorm(q);
+  const uid = getUserId();
   const favs = favOnly ? getFavs() : null;
   filteredData = DATA.filter(w => {
-    if (w.status === 'pending' && w.submitted_by !== getUserId()) return false; // Sadece kendi pending eserlerini göster
+    if (w.status === 'pending' && w.submitted_by !== uid) return false; // Sadece kendi pending eserlerini göster
     // Gizli eser yalnızca sahibine görünür. Kayıt IndexedDB'de KALIR, sadece
     // listede gösterilmez — repertuvar kalemleri eser adını kaybetmesin
     // (2026-07-17 "ad yerine #37" regresyonu).
-    if (w.visibility === 'private' && w.submitted_by !== getUserId()) return false;
+    if (w.visibility === 'private' && w.submitted_by !== uid) return false;
     // Yerel önbellekte kalmış silinmiş kayıt listeye sızmasın
     if (w.deleted_at) return false;
     if (_rbGizli(w)) return false;   // (2026-10-09) bildirdiğim eser / engellediğim kişinin eseri
     if (favOnly && !favs.has(w.id)) return false;
     // Taslaklarım: yalnızca KENDİ gizli eserlerim (başkasınınki zaten yukarıda elendi)
-    if (draftOnly && !(w.visibility === 'private' && w.submitted_by === getUserId())) return false;
+    if (draftOnly && !(w.visibility === 'private' && w.submitted_by === uid)) return false;
     if (activeFilters.form && w.form !== activeFilters.form) return false;
     if (activeFilters.tuning && w.tuning !== activeFilters.tuning) return false;
     if (activeFilters.region && w.region !== activeFilters.region) return false;
@@ -2353,10 +2393,7 @@ function applyFilters() {
       if (activeFilters.tur === '__yok__') { if (_t) return false; }
       else if (_t !== activeFilters.tur) return false;
     }
-    if (q) {
-      const search = [w.name,w.composer,w.lyricWriter,w.makam,w.region,w.sourcePerson,w.lyrics].filter(Boolean).join(' ');
-      if (!trMatch(search, q)) return false;
-    }
+    if (qn && !_araMetni(w).includes(qn)) return false;
     return true;
   });
   sortData();
@@ -7331,9 +7368,9 @@ function _detayKapat() {
 // Kayıt IndexedDB'de kalır; repertuvardaki kalemler eser adını kaybetmez.
 function _rbGizli(w) {
   if (!window.RB || !w) return false;
-  if (w.submitted_by && w.submitted_by === getUserId()) return false;
-  if (RB.gizliEserMi(w.id)) return true;
-  return !!(w.submitted_by && RB.engelliMi(w.submitted_by));
+  // (2026-11-01) Önce ucuz liste denetimi; kimlik yalnız bildirilmiş/engelli eserde okunur (her harfte 10 bin getUserId).
+  if (!RB.gizliEserMi(w.id) && !(w.submitted_by && RB.engelliMi(w.submitted_by))) return false;
+  return !(w.submitted_by && w.submitted_by === getUserId());
 }
 function _rbEserBildir(id) {
   const w = DATA.find(x => x.id === id);
@@ -8949,8 +8986,8 @@ async function deleteWork(id) {
 // buraya değil. Karar (Emir): Kaydet veya İptal'e basılana kadar kapanmasın.
 // Escape de aynı kurala tabi — kaza ihtimali aynı.
 document.addEventListener('DOMContentLoaded', function() {
-  const searchEl = document.getElementById('searchInput');
-  if (searchEl) searchEl.addEventListener('input', applyFilters);
+  // (2026-11-01) Burada arama kutusuna ikinci bir 'input' dinleyicisi bağlanıyordu; satır içi oninput ile birlikte
+  // her harfte tarama İKİ KEZ yapılıyordu. Kaldırıldı — tek çağrı satır içi aramaGirdi().
   // Zemine tıklama artık KAPATMIYOR; yalnızca kısa bir hatırlatma gösteriyor,
   // yoksa kullanıcı "tıkladım ama bir şey olmadı" diye tekrar tekrar dener.
   const overlay = document.getElementById('newEserModal');

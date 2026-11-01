@@ -637,10 +637,19 @@ if (typeof document !== 'undefined' && !window._tokenVisListener) {
 const _TR_FOLD = {'Â':'A','Î':'I','Û':'U','â':'a','î':'i','û':'u','İ':'I','ı':'i',
                   'Ş':'S','ş':'s','Ğ':'G','ğ':'g','Ü':'U','ü':'u','Ö':'O','ö':'o',
                   'Ç':'C','ç':'c'};
+// (2026-11-01) Katalog 10 bine çıkınca seçicilerde her harfte aynı 10 bin ad yeniden normalleşiyordu (telefonda kasma).
+// Sonuç bellekte tutulur; sınırsız büyümesin diye 50 binde boşaltılır.
+const _trNormBellek = new Map();
 function trNorm(t){
-  return (t||'').split('').map(c => _TR_FOLD[c] || c).join('')
+  t = t || '';
+  let v = _trNormBellek.get(t);
+  if (v !== undefined) return v;
+  v = t.split('').map(c => _TR_FOLD[c] || c).join('')
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .toLowerCase().replace(/[^a-z0-9]/g,'');
+  if (_trNormBellek.size >= 50000) _trNormBellek.clear();
+  _trNormBellek.set(t, v);
+  return v;
 }
 // Aranan metin boşsa her kayıt eşleşir (süzgeç yok demektir).
 function trMatch(haystack, query){
