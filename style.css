@@ -60,6 +60,17 @@ html {
   overflow-x: hidden;
 }
 
+/* (2026-11-02) ÇİFT DOKUNMA YAKINLAŞTIRMASI DOKUNULAN ÖĞELERDE KAPALI.
+   Emir (iPhone): Eserler'de "Tümü / All" düğmesine iki kez dokununca sayfa yakınlaşıyor.
+   SEBEP: viewport iki parmakla yakınlaştırmaya bilerek açık (maximum-scale yok); iOS aynı
+   öğeye arka arkaya iki dokunuşu çift dokunma sayıp yakınlaştırıyor. stage.html (2026-08-13),
+   metronom.js (2026-08-26), gruplar.html ve mesajlar.html bunu sayfa sayfa çözmüştü; bu kural
+   style.css'i yükleyen her sayfada aynısını yapar. İki parmakla yakınlaştırma sürer. Metin
+   kutularına (kelime seçimi) ve nota/söz alanına uygulanmaz. Sınıflı touch-action kuralları
+   (sürükleme tutamacı none, kaydırılan satır pan-y) özgüllükle kazanır. */
+button, a, [role="button"], label, select,
+input[type="checkbox"], input[type="radio"], input[type="range"] { touch-action: manipulation; }
+
 body {
   background: var(--bg);
   font-family: var(--font-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif);
