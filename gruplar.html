@@ -909,28 +909,31 @@ async function saveGroupEdit() {
   } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
 }
 async function deleteGroup() {
-  if (!confirm(_grCev('gr.silOnay','Grubu / Koroyu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.'))) return;
+  // (2026-11-02) ESKİ HÂLİ: önce group_members toplu siliniyor, sonra groups. Grupta repertuvar/solist/eser
+  // varsa ikinci adım FK ile 409 alıyor, birinci adım geri alınmıyordu → grup kalıyor, BÜTÜN ÜYELER gidiyordu
+  // (Ezgi Harmanı, 2026-11-02 07:14). YENİ: sunucuda tek işlem (grup_sil RPC) — ya hepsi ya hiçbiri.
+  // Önce grup_sil_ozet ile neyin gideceği sayılıp TEK onayda gösteriliyor; kullanıcı tek tek temizlik yapmaz.
+  const g = currentGroup;
+  if (!g) return;
   try {
-    // (2026-08-01) Üç istek de yanıtsız gidiyordu: ilk ikisi RLS'te düşse bile
-    // profiller boşalıyor, ekranda "Koro silindi" yazıyordu. Artık her adım
-    // kontrol ediliyor ve önceki adım başarısızsa sonraki HİÇ çalışmıyor.
-    // NOT: profiles PATCH'inde satır sayısı KONTROL EDİLMİYOR — profiles.group_id
-    // üzerinde ON DELETE SET NULL varsa grup silinince alan zaten boşalmış olur,
-    // 0 satır dönmesi hata değildir.
-    const dm = await fetch(SUPA_URL + '/rest/v1/group_members?group_id=eq.' + currentGroup.id, {
-      method: 'DELETE', headers: authHeaders()
+    const oz = await fetch(SUPA_URL + '/rest/v1/rpc/grup_sil_ozet', {
+      method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_group_id: g.id })
     });
-    if (!dm.ok) throw new Error(_grCev('gr.uyelikSilinemedi','Üyelikler silinemedi: ') + (await dm.text()));
-    const dg = await fetch(SUPA_URL + '/rest/v1/groups?id=eq.' + currentGroup.id, {
-      method: 'DELETE', headers: authHeaders()
+    if (!oz.ok) throw new Error(hataMetni(await oz.text()));
+    const o = await oz.json();
+    const metin = _grCev('gr.silOnayDetay',
+      '"{ad}" grubu silinecek.\n\nBirlikte silinecekler: {rep} repertuvar, {sol} solist kaydı, {uye} üyelik.\nGruba bağlı {eser} eser silinmez, sahiplerinde kalır.\n\nBu işlem geri alınamaz.')
+      .replace('{ad}', o.ad || g.name || '')
+      .replace('{rep}', o.repertuvar || 0).replace('{sol}', o.solist || 0)
+      .replace('{uye}', o.uye || 0).replace('{eser}', o.eser || 0);
+    if (!confirm(metin)) return;
+    const r = await fetch(SUPA_URL + '/rest/v1/rpc/grup_sil', {
+      method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_group_id: g.id })
     });
-    if (!dg.ok) throw new Error(_grCev('gr.grupSilinemedi','Grup / Koro silinemedi: ') + (await dg.text()));
-    const pp = await fetch(SUPA_URL + '/rest/v1/profiles?group_id=eq.' + currentGroup.id, {
-      method: 'PATCH', headers: { ...authHeaders(), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ group_id: null })
-    });
-    if (!pp.ok) throw new Error(_grCev('gr.profilGuncellenemedi','Grup / Koro silindi ama profiller güncellenemedi: ') + (await pp.text()));
-    localStorage.removeItem('user_group_id');
+    if (!r.ok) throw new Error(_grCev('gr.grupSilinemedi','Grup / Koro silinemedi: ') + hataMetni(await r.text()));
+    if (localStorage.getItem('user_group_id') === g.id) localStorage.removeItem('user_group_id');
     toast(_grCev('gr.silindi','Grup / Koro silindi'));
     await loadPage();
   } catch(e) { toast(_grCev('mod.hata','Hata: ') + e.message, 'err'); }
