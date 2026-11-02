@@ -17,6 +17,9 @@
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
 <style>
+/* (2026-11-02) Çift dokunma yakınlaştırması kapalı: style.css'teki kuralın aynısı (bu sayfa style.css yüklemiyor). */
+button, a, [role="button"], label, select,
+input[type="checkbox"], input[type="radio"], input[type="range"] { touch-action: manipulation; }
 :root { --bg:#070B18; --kart:#10172C; --kart2:#19233F; --cizgi:rgba(48,58,85,.75); --yazi:#FFFFFF; --soluk:#B8BFD2;
         --sari:#FFC83D; --mavi:#8CC5FF; --hata:#fca5a5; }
 html { -webkit-text-size-adjust:100%; text-size-adjust:100%; background:var(--bg); }

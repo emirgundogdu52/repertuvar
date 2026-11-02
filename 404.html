@@ -37,6 +37,9 @@
 })();
 </script>
 <style>
+/* (2026-11-02) Çift dokunma yakınlaştırması kapalı: style.css'teki kuralın aynısı (bu sayfa style.css yüklemiyor). */
+button, a, [role="button"], label, select,
+input[type="checkbox"], input[type="radio"], input[type="range"] { touch-action: manipulation; }
   :root{--bg:#070B18;--bg2:#10172C;--border:rgba(48,58,85,.6);--accent:#FFC83D;--text:#fff;--text2:#B8BFD2;--text3:#78829A}
   *{box-sizing:border-box}
   html,body{height:100%}

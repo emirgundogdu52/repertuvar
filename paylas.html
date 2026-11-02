@@ -15,6 +15,9 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Repertuvar</title>
 <style>
+/* (2026-11-02) Çift dokunma yakınlaştırması kapalı: style.css'teki kuralın aynısı (bu sayfa style.css yüklemiyor). */
+button, a, [role="button"], label, select,
+input[type="checkbox"], input[type="radio"], input[type="range"] { touch-action: manipulation; }
   :root{ --bg:#0F1629; --surface:#19233F; --surface2:#1F2A4A; --border:rgba(140,120,255,.22);
          --text:#fff; --text2:#9d9bc4; --text3:#5e5c8a; --accent:#FFC83D; --accent2:#4DA3FF; }
   *{box-sizing:border-box;}

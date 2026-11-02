@@ -25,6 +25,9 @@
 <script src="db.js"></script>
 <script src="topnav.js" defer></script>
 <style>
+/* (2026-11-02) Çift dokunma yakınlaştırması kapalı: style.css'teki kuralın aynısı (bu sayfa style.css yüklemiyor). */
+button, a, [role="button"], label, select,
+input[type="checkbox"], input[type="radio"], input[type="range"] { touch-action: manipulation; }
   
   *{margin:0;padding:0;box-sizing:border-box;}
 html{background:var(--bg);}

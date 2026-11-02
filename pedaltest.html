@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pedal Testi</title>
 <style>
+/* (2026-11-02) Çift dokunma yakınlaştırması kapalı: style.css'teki kuralın aynısı (bu sayfa style.css yüklemiyor). */
+button, a, [role="button"], label, select,
+input[type="checkbox"], input[type="radio"], input[type="range"] { touch-action: manipulation; }
   body{margin:0;background:#0b0f18;color:#dfe6f2;font:15px/1.5 -apple-system,system-ui,sans-serif;padding:16px}
   h1{font-size:17px;margin:0 0 10px}
   p{color:#93a0b5;font-size:13px;margin:0 0 12px}
