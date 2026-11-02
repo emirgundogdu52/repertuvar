@@ -1229,7 +1229,7 @@ body.day-theme{--bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;--border:#d8d4cc;-
   <button onclick="openStageNav()" title="Menü" data-i18n-title="sh.menu" style="position:fixed;bottom:20px;right:16px;z-index:500;width:44px;height:44px;border-radius:50%;background:rgba(124,111,255,0.15);border:1px solid rgba(124,111,255,0.35);color:#7c6fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);display:none;"><i class="ti ti-layout-navbar" style="font-size:20px;"></i></button>
   <div class="pi">
     <div class="pi-fixed-top">
-      <h1 class="ptitle" data-i18n="sh.hosgeldin">Sahne Moduna Hoş Geldiniz</h1>
+      <h1 class="ptitle" data-i18n="sh.hosgeldin">Sahne Modu'na Hoş Geldiniz</h1>
       <p class="psub" data-i18n="sh.repSec">Sahne performansınız için bir repertuvar seçiniz</p>
       <input type="text" id="stageSearchInput" data-temizle placeholder="Repertuvar veya eser adı ara..." data-i18n-ph="sh.araPh" oninput="onStageSearchInput(this.value)"
         style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--text);font-family:inherit;outline:none;margin-bottom:16px;transition:border-color .15s;box-sizing:border-box;"
@@ -2556,6 +2556,8 @@ function _temaDugmeleri(t){
   });
 }
 async function startStage(){
+  // (2026-11-02) Puan isteme koşulu için: sahneye çıkış sayısı (topnav.js "PUAN İSTEME").
+  try { localStorage.setItem('puanSahne', String((parseInt(localStorage.getItem('puanSahne'), 10) || 0) + 1)); } catch (e) {}
   curRep=reps.find(r=>r.id===selId);
   if(!curRep||(curRep.items||[]).length===0)return;
   const startButton = document.getElementById('bstart');
@@ -3266,7 +3268,8 @@ function viewModeStorageKey(){
   return 'stageViewMode_' + repId;
 }
 function getStageViewMode(w) {
-  let mode = localStorage.getItem(viewModeStorageKey()) || 'lyrics';
+  // (2026-11-02) Ayarlar > Sahne Modu > "Akor Görünümü" kaydediliyor ama hiç okunmuyordu → seçim yapılmamış repertuvarda varsayılan.
+  let mode = localStorage.getItem(viewModeStorageKey()) || (localStorage.getItem('stageShowChords') === '1' ? 'chords' : 'lyrics');
   // Eserde o modun verisi yoksa güvenli şekilde söze düş
   if (mode === 'chords' && !w.chords) mode = 'lyrics';
   if (mode === 'nota' && !stageNotaPages(w).length) mode = 'lyrics';
@@ -3356,7 +3359,7 @@ function buildStageToolsRow(mode) {
   const _tekEser = !!(curRep && curRep.id === 'single');
   const sahneBtns = `
       ${(!_paylasim && !_tekEser) ? `<button onclick="event.stopPropagation();exitStage(event)" class="st-act" title="${_sCev('sh.repDegistirT','Sahneye başka bir repertuvar çıkar')}"><i class="ti ti-list"></i>${_sCev('sh.repDegistir','Repertuvar Değiştir')}</button>` : ''}
-      <button onclick="event.stopPropagation();closeStageMode(event)" class="st-act st-act-exit" title="${_sCev('sh.sahneModunuKapatT','Sahne modunu kapat, girdiğin sayfaya dön')}"><i class="ti ti-door-exit"></i>${_sCev('sh.sahneModunuKapat','Sahne Modunu Kapat')}</button>`;
+      <button onclick="event.stopPropagation();closeStageMode(event)" class="st-act st-act-exit" title="${_sCev('sh.sahneModunuKapatT','Sahne modunu kapat, girdiğin sayfaya dön')}"><i class="ti ti-door-exit"></i>${_sCev('sh.sahneModunuKapat','Sahne Modu\'nu Kapat')}</button>`;
   // Akor modunda ton kaydırma (± yarım ton) — eser başına saklanır
   const item = (curRep && (curRep.items||[])[curIdx]) || null;
   const tVal = item ? getTranspose(item.workId) : 0;

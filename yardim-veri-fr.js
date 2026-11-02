@@ -153,7 +153,7 @@ window.YARDIM_VERI = {
     "Pour vos prochaines connexions, utilisez la méthode choisie à l’inscription (e-mail et mot de passe, Google ou Apple). Si vous vous connectez avec une autre adresse e-mail, un compte distinct est créé.",
     "Vous pouvez changer votre nom plus tard dans **Réglages** > **Compte** > **Nom complet**."
    ],
-   "platform": "Le bouton **Continuer avec Apple** n’apparaît que dans l’appli installée depuis l’App Store (iPhone, iPad et Mac équipé d’une puce Apple) ; il n’existe ni dans l’appli Android ni dans le navigateur. Dans l’appli iPhone, iPad et Android, l’écran Repertuvar Pro s’affiche une fois votre compte créé ; toute l’appli se débloque avec Repertuvar Pro.",
+   "platform": "Le bouton **Continuer avec Apple** apparaît dans l’appli installée depuis l’App Store (iPhone, iPad et Mac équipé d’une puce Apple), dans l’appli Android (à partir de la version 1.2) et dans le navigateur. Dans l’appli iPhone, iPad et Android, l’écran Repertuvar Pro s’affiche une fois votre compte créé ; toute l’appli se débloque avec Repertuvar Pro.",
    "ilgili": [
     "giris-yapamiyorum",
     "muzik-tercihleri",
@@ -408,7 +408,7 @@ window.YARDIM_VERI = {
    "id": "eserleri-suz-ve-sirala",
    "kategori": "Morceaux",
    "baslik": "Comment filtrer et trier les morceaux par genre, langue ou makam ?",
-   "ozet": "Touchez les puces de langue et de genre sous la zone de recherche ; les filtres de makam, de région, d’accordage et de forme ainsi que le tri se trouvent dans Filtres.",
+   "ozet": "Touchez les puces de langue et de genre sous la zone de recherche ; les filtres de makam, de région, d’accordage et de forme ainsi que le tri se trouvent dans Filtres. La langue choisie est mémorisée sur cet appareil.",
    "anahtar": [
     "filtrer",
     "trier",
@@ -421,21 +421,26 @@ window.YARDIM_VERI = {
     "ordre alphabétique",
     "par compositeur",
     "puce de genre",
-    "tri des morceaux"
+    "tri des morceaux",
+    "mémoriser la langue",
+    "seulement en turc",
+    "afficher toutes les langues"
    ],
    "adimlar": [
     "Allez dans **Morceaux**.",
     "Touchez une langue ou un genre dans la rangée de puces sous la zone de recherche. Le nombre sur une puce indique combien de morceaux elle contient. Si la rangée ne tient pas à l’écran, faites-la défiler sur le côté ou touchez les flèches à ses extrémités.",
     "Touchez de nouveau la même puce pour retirer le filtre. Une langue et un genre peuvent être sélectionnés en même temps.",
+    "Si vous choisissez une langue (p. ex. uniquement les morceaux en turc), ce choix est mémorisé sur cet appareil ; quand vous rouvrez **Morceaux**, la liste affiche toujours cette langue. Tant que le choix est actif, une note sous la rangée de puces indique « Langue : Turc – seuls les morceaux dans cette langue sont affichés. » Pour revenir à toutes les langues, touchez **Afficher toutes les langues** dans cette note.",
     "Pour plus d’options, touchez **Filtres**.",
     "Dans le panneau **Filtrer et trier** qui s’ouvre, choisissez **Par titre**, **Par compositeur**, **Par makam**, **Par forme** ou **Par région** sous **Trier**.",
     "Touchez la valeur voulue dans les sections **Genre / Forme**, **Accordage**, **Région** et **Makam** ; chaque valeur indique le nombre de morceaux. Touchez de nouveau la même valeur pour retirer ce filtre.",
-    "Pour tout réinitialiser, touchez **Effacer les filtres** ; ce bouton vide aussi la zone de recherche. Pour garder votre texte de recherche, touchez plutôt **Tout** au-dessus de la liste."
+    "Pour réinitialiser les filtres, touchez **Effacer les filtres** ; ce bouton vide aussi la zone de recherche. Pour garder votre texte de recherche, touchez plutôt **Tout** au-dessus de la liste. Aucun de ces deux boutons ne retire la langue choisie."
    ],
    "ipuclari": [
     "La puce **Sans genre** affiche les morceaux dont le genre n’a pas encore été saisi.",
     "Les puces de langue n’apparaissent que si votre liste contient des morceaux dans plusieurs langues.",
-    "Les filtres et le tri ne sont pas conservés : quand vous rouvrez la page, tous les morceaux s’affichent triés par titre."
+    "Le choix de la langue ne concerne que la liste des morceaux et la recherche ; vos setlists ne changent pas. Si vous ne trouvez pas un morceau alors qu’une langue est choisie, touchez d’abord **Afficher toutes les langues**.",
+    "À part la langue, les filtres et le tri ne sont pas conservés : quand vous rouvrez la page, ils sont effacés et les morceaux sont triés par titre."
    ],
    "platform": "",
    "ilgili": [
@@ -2884,7 +2889,7 @@ window.YARDIM_VERI = {
    "id": "kayit-ton-tempo",
    "kategori": "Salle de répétition",
    "baslik": "Comment changer la tonalité ou le tempo d’un enregistrement ?",
-   "ozet": "Ouvrez l’enregistrement dans Mes enregistrements ; réglez la tonalité jusqu’à 6 demi-tons avec le curseur TONALITÉ et la vitesse entre 50 % et 150 % avec le curseur TEMPO, indépendamment l’un de l’autre.",
+   "ozet": "Ouvrez l’enregistrement dans Mes enregistrements ; réglez la tonalité jusqu’à 6 demi-tons avec le curseur TONALITÉ et la vitesse entre 50 % et 150 % avec le curseur TEMPO, indépendamment l’un de l’autre. Si un enregistrement est un peu désaccordé, corrigez-le jusqu’à 50 cents avec ACCORD FIN.",
    "anahtar": [
     "changer de tonalité",
     "transposer un enregistrement",
@@ -2895,19 +2900,24 @@ window.YARDIM_VERI = {
     "demi-ton",
     "travailler lentement",
     "vitesse de lecture",
-    "ralentir"
+    "ralentir",
+    "accord fin",
+    "cents",
+    "désaccordé"
    ],
    "adimlar": [
     "Dans la **Salle de répétition**, onglet **Mes enregistrements**, touchez un enregistrement. Le lecteur s’ouvre.",
     "Touchez le bouton de lecture au centre. Les boutons de chaque côté reculent ou avancent de 10 secondes ; faites glisser la barre de temps pour aller à l’endroit voulu.",
     "Dans la zone **TONALITÉ**, faites glisser le curseur ou touchez les boutons **−1** / **+1**. Vous pouvez décaler la tonalité de 6 demi-tons au plus, vers le bas ou vers le haut ; **D’origine** revient à la tonalité propre de l’enregistrement.",
-    "Dans la zone **TEMPO**, réglez la vitesse entre 50 % et 150 % avec le curseur, ou touchez l’un des boutons **%60**, **%80**, **%100**.",
+    "Si l’enregistrement est un peu désaccordé (un peu trop haut ou trop bas), faites glisser le curseur de la zone **ACCORD FIN** ou touchez **−5** / **+5** (5 cents par toucher). Vous pouvez décaler la hauteur de 50 cents au plus, vers le bas ou vers le haut ; à côté de la valeur s’affiche aussi son équivalent en commas (p. ex. « +23 cents (≈ 1 comma) »). **D’origine** annule l’accord fin.",
+    "Dans la zone **TEMPO**, réglez la vitesse entre 50 % et 150 % avec le curseur, ou touchez l’un des boutons **%50**, **%60**, **%70**, **%80**, **%90**, **%100** situés en dessous.",
     "Pour travailler en suivant les paroles, touchez **Paroles** ; elles s’ouvrent sous les commandes, ou à côté sur grand écran."
    ],
    "ipuclari": [
     "La tonalité et le tempo sont indépendants : changer la tonalité ne modifie pas la vitesse, et changer le tempo ne modifie pas la hauteur.",
     "Si vous avez indiqué la tonalité de l’enregistrement à l’importation, la note cible s’affiche sous la zone de tonalité (p. ex. « La → Si ») ; sinon, vous voyez de combien de demi-tons vous êtes plus haut ou plus bas.",
-    "Les réglages de tonalité et de tempo ne modifient pas le fichier ; quand vous rouvrez l’enregistrement, les deux sont réinitialisés (tonalité 0, tempo 100 %).",
+    "100 cents font un demi-ton, et 1 comma vaut environ 23 cents (22,6). Si l’enregistrement s’écarte de plus de 50 cents, décalez-le d’abord d’un demi-ton avec **TONALITÉ**, puis corrigez le reste avec **ACCORD FIN**.",
+    "La tonalité, l’accord fin et le tempo ne modifient pas le fichier. Quand vous rouvrez l’enregistrement, la tonalité et le tempo sont réinitialisés (tonalité 0, tempo 100 %) ; l’accord fin, lui, est mémorisé pour cet enregistrement sur cet appareil, et la zone affiche « mémorisé pour cet enregistrement ».",
     "Un enregistrement ne peut pas être lu pendant qu’un rythme ou le métronome joue ; arrêtez-les d’abord."
    ],
    "platform": "",
@@ -3516,10 +3526,10 @@ window.YARDIM_VERI = {
    "ipuclari": [
     "Si vous voyez l’avertissement **Vous avez été déconnecté : votre compte a peut-être été utilisé pour se connecter sur un autre appareil, ou votre session a expiré. Veuillez vous reconnecter.**, il suffit de vous reconnecter.",
     "Si vous voyez **Votre compte a été suspendu.**, écrivez-nous à l’adresse info@repertuvar.app indiquée dans le message.",
-    "Si vous avez créé votre compte avec Apple sur iPhone et voulez vous connecter sur Android ou dans un navigateur, allez d’abord sur l’iPhone dans **Réglages** > **Compte** : si Apple masque votre adresse e-mail, ajoutez votre véritable adresse sur la ligne **Adresse e-mail**, puis définissez un mot de passe sur la ligne **Mot de passe**. Connectez-vous ensuite avec cette adresse et ce mot de passe.",
+    "Si vous avez créé votre compte avec Apple sur iPhone, vous vous connectez aussi sur Android (à partir de la version 1.2) et dans un navigateur avec **Continuer avec Apple** et le même compte Apple. Pour pouvoir aussi vous connecter avec une adresse e-mail et un mot de passe, en solution de secours, allez dans **Réglages** > **Compte** : si Apple masque votre adresse e-mail, ajoutez votre véritable adresse sur la ligne **Adresse e-mail**, puis définissez un mot de passe sur la ligne **Mot de passe**.",
     "Si la connexion par Face ID ou par empreinte digitale ne fonctionne pas, le formulaire de connexion reste disponible : vous pouvez vous connecter avec votre e-mail et votre mot de passe."
    ],
-   "platform": "Le bouton **Continuer avec Apple** n’apparaît que dans l’appli installée depuis l’App Store (iPhone, iPad et Mac équipé d’une puce Apple) ; il n’existe ni dans l’appli Android ni dans le navigateur.",
+   "platform": "Le bouton **Continuer avec Apple** apparaît dans l’appli installée depuis l’App Store (iPhone, iPad et Mac équipé d’une puce Apple), dans l’appli Android (à partir de la version 1.2) et dans le navigateur.",
    "ilgili": [
     "sifremi-unuttum",
     "kayit-ol",

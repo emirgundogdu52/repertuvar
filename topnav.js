@@ -713,6 +713,10 @@ function _m(anahtar, tr) {
         <a href="calisma.html" class="r-tn-dd-item">
           <i class="ti ti-headphones" style="font-size:15px;"></i> ${_m('menu.calismaodasi','Çalışma Odası')}
         </a>
+        <!-- (2026-11-02) Telefonda Solistler'e başka yol yoktu (alt menüde yalnız ≥600 px, yan menüde ≥1024 px) → yalnız dar ekranda burada. -->
+        <a href="artiesten.html" class="r-tn-dd-item r-tn-dd-dar">
+          <i class="ti ti-microphone" style="font-size:15px;"></i> ${_m('menu.solistler','Solistler')}
+        </a>
         <a href="mesajlar.html" class="r-tn-dd-item">
           <i class="ti ti-message" style="font-size:15px;"></i> ${_m('menu.mesajlar','Mesajlar')}
         </a>
@@ -1314,6 +1318,7 @@ function _m(anahtar, tr) {
     st.textContent = `
       .r-tn-bell { position:relative; background:none; border:none; cursor:pointer; color:inherit; display:flex; align-items:center; justify-content:center; padding:6px; }
       .r-tn-bell.zil-yok { display:none !important; }
+      @media (min-width: 600px) { .r-tn-dd-dar { display:none !important; } }
       .r-tn-bell i { font-size:20px; color:#e6e2ff; }
       [data-theme="light"] .r-tn-bell i { color:#3a3a5a; }
       #rTnBellBadge { position:absolute; top:-2px; right:-2px; min-width:16px; height:16px; padding:0 4px; border-radius:8px; background:#FFC83D; color:#1a1200; font-size:9px; font-weight:800; align-items:center; justify-content:center; display:none; }
@@ -1795,4 +1800,27 @@ function _m(anahtar, tr) {
   }
   if (document.readyState === 'complete') setTimeout(denetle, 2500);
   else window.addEventListener('load', function () { setTimeout(denetle, 2500); });
+})();
+
+/* (2026-11-02) PUAN İSTEME — 31.10 ASO kararı, iOS 1.2 / Android 21. Apple/Google'ın kendi penceresi (@capawesome/capacitor-app-review,
+   requestReview); ödül yok. Koşul: en az 3 farklı günde açılmış + en az bir kez sahneye çıkılmış (stage.html puanSahne) + ilk açılıştan
+   en az 3 gün geçmiş; 90 günde en fazla bir istek. Pencereyi gösterip göstermemeye Apple/Google karar verir (Apple yılda en çok 3). */
+(function () {
+  var c = window.Capacitor;
+  if (!(c && c.isNativePlatform && c.isNativePlatform() && c.Plugins && c.Plugins.AppReview)) return;
+  if (/stage\.html$/.test(location.pathname)) return;   // sahnedeyken asla
+  function oku(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function yaz(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  var GUN = 86400000, bugun = new Date().toISOString().slice(0, 10);
+  var gunler = []; try { gunler = JSON.parse(oku('puanGunler') || '[]'); } catch (e) {}
+  if (gunler.indexOf(bugun) === -1) { gunler.push(bugun); gunler = gunler.slice(-10); yaz('puanGunler', JSON.stringify(gunler)); }
+  if (!oku('puanIlk')) yaz('puanIlk', String(Date.now()));
+  var sahne = parseInt(oku('puanSahne'), 10) || 0;
+  var ilk = +oku('puanIlk') || Date.now(), son = +oku('puanSon') || 0;
+  if (gunler.length < 3 || sahne < 1 || Date.now() - ilk < 3 * GUN || Date.now() - son < 90 * GUN) return;
+  setTimeout(function () {
+    if (document.hidden) return;
+    yaz('puanSon', String(Date.now()));
+    c.Plugins.AppReview.requestReview().catch(function () {});
+  }, 4000);
 })();

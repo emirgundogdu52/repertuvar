@@ -289,7 +289,7 @@ window._hashOturum = false;
           const guvenilir = /^https:\/\/(repertuvar\.app|app\.repertuvar\.app|accounts\.google\.com|ehytkzxdhjyjuubizdnl\.supabase\.co)\//.test(document.referrer || '');
           if (!guvenilir && !confirm(_gCev('giris.hesapDegistir', 'Bu bağlantı oturumu başka bir hesaba geçiriyor: {eposta}. Devam edilsin mi?').replace('{eposta}', data.session.user.email || '?'))) {
             await sb.auth.signOut({ scope: 'local' }).catch(function () {});
-            if (localStorage.getItem('sb_token')) window.location.replace('index.html');
+            if (localStorage.getItem('sb_token')) window.location.replace(girisSonrasiAdres());
             return;
           }
           ['sb_token','sb_refresh','sb_user','user_role','user_status','user_group_id','user_groups','myGroupRole','uiLangSunucu']
@@ -310,12 +310,12 @@ window._hashOturum = false;
           return;
         }
         showMsg('ok', _gCev('giris.epostaDogrulandi', 'E-posta doğrulandı! Yönlendiriliyorsunuz...'));
-        setTimeout(() => window.location.replace('index.html'), 1500);
+        setTimeout(() => window.location.replace(girisSonrasiAdres()), 1500);
         return;
       }
       showMsg('err', _gCev('giris.dogrulamaBasarisiz', 'Doğrulama başarısız. Lütfen tekrar deneyin.'));
       // devir başarısız ama cihazda zaten bir oturum varsa onunla devam et
-      if (localStorage.getItem('sb_token')) setTimeout(() => window.location.replace('index.html'), 2500);
+      if (localStorage.getItem('sb_token')) setTimeout(() => window.location.replace(girisSonrasiAdres()), 2500);
     }
   }
 })();
@@ -352,6 +352,16 @@ if(window.location.search.includes('expired=1')) {
   setTimeout(() => showMsg('err', _gCev('giris.oturumDoldu', 'Oturumunuz kapandı: hesabınızla başka bir cihazda giriş yapılmış ya da oturumun süresi dolmuş olabilir. Lütfen tekrar giriş yapın.')), 100);
 }
 // Davet token'ını sakla
+// (2026-11-02) Girişten sonra nereye: paylaşılan eser bağlantısıyla gelindiyse o eser (auth.js requireAuth kaydeder), yoksa ana sayfa.
+// Yalnız "eserler.html?id=<sayı>" kabul edilir (başka adrese yönlendirme açığı olmasın); 30 dk sonra geçersiz.
+function girisSonrasiAdres() {
+  try {
+    const k = JSON.parse(localStorage.getItem('girisSonrasi') || 'null');
+    localStorage.removeItem('girisSonrasi');
+    if (k && Date.now() - k.t < 30 * 60 * 1000 && /^eserler\.html\?id=\d+$/.test(k.u)) return k.u;
+  } catch (e) {}
+  return 'index.html';
+}
 const _inviteToken = new URLSearchParams(window.location.search).get('invite');
 if (_inviteToken) localStorage.setItem('pending_invite', _inviteToken);
 
@@ -376,7 +386,7 @@ if(!window.location.search.includes('logout=1') && !window.location.hash.include
       // kullanılacağını kullanıcı görüp onaylamalı.
       showInviteConfirm(_inviteToken);
     } else {
-      window.location.replace('index.html');
+      window.location.replace(girisSonrasiAdres());
     }
   }
 }
@@ -482,7 +492,7 @@ async function showInviteConfirm(token) {
   const kapat = document.getElementById('invClose');
   if (kapat) kapat.onclick = function () {
     try { localStorage.removeItem('pending_invite'); } catch (e) {}
-    window.location.replace('index.html');
+    window.location.replace(girisSonrasiAdres());
   };
 }
 
@@ -558,7 +568,7 @@ async function doLogin() {
     localStorage.setItem('sb_refresh', data.session.refresh_token);
     await biyoTeklif(email, pass);   // (2026-10-29) yerel uygulamada bir kez: "Bir dahaki girişte Face ID kullanılsın mı?"
     await handlePendingInvite(data.session.user.id);
-    window.location.replace('index.html');
+    window.location.replace(girisSonrasiAdres());
   }
 }
 
@@ -629,7 +639,7 @@ async function biyoIleGir() {
       localStorage.setItem('sb_token', data.session.access_token);
       localStorage.setItem('sb_refresh', data.session.refresh_token);
       await handlePendingInvite(data.session.user.id);
-      window.location.replace('index.html');
+      window.location.replace(girisSonrasiAdres());
     }
   } catch (e) {
     console.warn('[biyometri] giriş yapılamadı:', e);   // form kalır
@@ -719,7 +729,7 @@ async function doRegister() {
     localStorage.setItem('sb_refresh', data.session.refresh_token);
     await writeSignupProfile(data.session.user.id);
     await handlePendingInvite(data.session.user.id);
-    window.location.replace('index.html');
+    window.location.replace(girisSonrasiAdres());
     return;
   }
 
@@ -751,7 +761,7 @@ async function verifySignup() {
     localStorage.setItem('sb_refresh', data.session.refresh_token);
     await writeSignupProfile(data.session.user.id);
     await handlePendingInvite(data.session.user.id);
-    window.location.replace('index.html');
+    window.location.replace(girisSonrasiAdres());
   }
 }
 
@@ -914,7 +924,7 @@ async function _oturumuKaydet(session, ad) {
     } catch (e) {}
   }
   await handlePendingInvite(session.user.id);
-  window.location.replace('index.html');
+  window.location.replace(girisSonrasiAdres());
 }
 
 // (2026-10-04) APPLE İLE GİRİŞ — App Store kuralı 4.8 (Google girişi olduğu için gerekli).
@@ -943,10 +953,11 @@ const APPLE_GIRIS_AKTIF = true;   // (2026-10-08) açıldı: üyelik + Supabase 
 // (iPhone yerel girişi için com.repertuvar.app listede KALIR); Apple Developer'da app.repertuvar.web dönüş adreslerinde
 // https://ehytkzxdhjyjuubizdnl.supabase.co/auth/v1/callback olduğu kontrol edilir.
 // Sonra iki bayrak true. Kod yolu hazır: Android _appleTarayiciIle, web _appleWebIle.
-const APPLE_ANDROID_AKTIF = false;   // Services ID kurulunca true (aşağıdaki not)
+// (2026-11-02) Supabase Client IDs sırası değişti; Apple yetki sayfası client_id=app.repertuvar.web ile hatasız açılıyor → AÇIK.
+const APPLE_ANDROID_AKTIF = true;
 // Tarayıcı: Supabase OAuth (Google'ın tarayıcı yedeğiyle aynı yol); dönüş app.repertuvar.app/login.html#access_token=…
 // (sayfanın üstündeki hash işleyicisi oturumu kurar).
-const APPLE_WEB_AKTIF = false;       // Services ID kurulunca true
+const APPLE_WEB_AKTIF = true;        // 2026-11-02 açıldı
 function _appleKullanilabilir() {
   if (!APPLE_GIRIS_AKTIF) return false;
   if (!_nativeMi()) return APPLE_WEB_AKTIF;
@@ -1087,7 +1098,7 @@ async function loginGoogle() {
           localStorage.setItem('sb_refresh', data.session.refresh_token);
           localStorage.setItem('sb_user', JSON.stringify(data.session.user));
           await handlePendingInvite(data.session.user.id);
-          window.location.replace('index.html');
+          window.location.replace(girisSonrasiAdres());
         }
       });
       kutu.innerHTML = '';

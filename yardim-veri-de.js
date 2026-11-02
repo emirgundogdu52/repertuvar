@@ -159,7 +159,7 @@ window.YARDIM_VERI = {
     "Melde dich künftig auf demselben Weg an, auf dem du dich registriert hast (E-Mail und Passwort, Google oder Apple). Meldest du dich mit einer anderen E-Mail-Adresse an, wird ein separates Konto erstellt.",
     "Deinen Namen kannst du später unter **Einstellungen** > **Konto** > **Vor- und Nachname** ändern."
    ],
-   "platform": "**Mit Apple fortfahren** erscheint nur in der App aus dem App Store (iPhone, iPad und Mac mit Apple-Chip); in der Android-App und im Browser gibt es diese Option nicht. In der App für iPhone, iPad und Android erscheint nach dem Erstellen deines Kontos der Bildschirm von Repertuvar Pro; die gesamte App wird mit Repertuvar Pro freigeschaltet.",
+   "platform": "**Mit Apple fortfahren** erscheint in der App aus dem App Store (iPhone, iPad und Mac mit Apple-Chip), in der Android-App (ab Version 1.2) und im Browser. In der App für iPhone, iPad und Android erscheint nach dem Erstellen deines Kontos der Bildschirm von Repertuvar Pro; die gesamte App wird mit Repertuvar Pro freigeschaltet.",
    "ilgili": [
     "giris-yapamiyorum",
     "muzik-tercihleri",
@@ -420,7 +420,7 @@ window.YARDIM_VERI = {
    "id": "eserleri-suz-ve-sirala",
    "kategori": "Stücke",
    "baslik": "Wie filtere und sortiere ich Stücke nach Genre, Sprache oder Makam?",
-   "ozet": "Tippe auf die Sprach- und Genre-Chips unter dem Suchfeld; die Filter für Makam, Region, Stimmung und Form sowie die Sortierung findest du unter Filter.",
+   "ozet": "Tippe auf die Sprach- und Genre-Chips unter dem Suchfeld; die Filter für Makam, Region, Stimmung und Form sowie die Sortierung findest du unter Filter. Die gewählte Sprache wird auf diesem Gerät gespeichert.",
    "anahtar": [
     "filtern",
     "filter",
@@ -433,21 +433,26 @@ window.YARDIM_VERI = {
     "alphabetisch",
     "nach komponist",
     "genre chip",
-    "reihenfolge der stücke"
+    "reihenfolge der stücke",
+    "sprache merken",
+    "nur türkisch",
+    "alle sprachen zeigen"
    ],
    "adimlar": [
     "Öffne **Stücke**.",
     "Tippe in der Chip-Leiste unter dem Suchfeld auf eine Sprache oder ein Genre. Die Zahl auf einem Chip gibt an, wie viele Stücke dazugehören. Passt die Leiste nicht auf den Bildschirm, wische sie zur Seite oder tippe auf die Pfeile an ihren Rändern.",
     "Tippe noch einmal auf denselben Chip, um den Filter zu entfernen. Eine Sprache und ein Genre können gleichzeitig ausgewählt sein.",
+    "Wählst du eine Sprache (z. B. nur türkische Stücke), wird deine Auswahl auf diesem Gerät gespeichert; öffnest du **Stücke** erneut, zeigt die Liste wieder diese Sprache. Solange die Auswahl aktiv ist, steht unter der Chip-Leiste der Hinweis „Sprache: Türkisch – nur Stücke in dieser Sprache werden angezeigt.“ Um wieder alle Sprachen zu sehen, tippe im Hinweis auf **Alle Sprachen zeigen**.",
     "Für weitere Optionen tippe auf **Filter**.",
     "Wähle im Fenster **Filtern & Sortieren** unter **Sortieren** die Option **Nach Titel**, **Nach Komponist**, **Nach Makam**, **Nach Form** oder **Nach Region**.",
     "Tippe in den Bereichen **Genre / Form**, **Stimmung**, **Region** und **Makam** auf den gewünschten Wert; neben jedem Wert steht, wie viele Stücke dazugehören. Tippst du noch einmal auf denselben Wert, wird der Filter entfernt.",
-    "Um alles zurückzusetzen, tippe auf **Filter zurücksetzen**; diese Schaltfläche leert auch das Suchfeld. Soll dein Suchtext erhalten bleiben, tippe stattdessen oben in der Liste auf **Alle**."
+    "Um die Filter zurückzusetzen, tippe auf **Filter zurücksetzen**; diese Schaltfläche leert auch das Suchfeld. Soll dein Suchtext erhalten bleiben, tippe stattdessen oben in der Liste auf **Alle**. Keine der beiden Schaltflächen hebt die gewählte Sprache auf."
    ],
    "ipuclari": [
     "Der Chip **Kein Genre** zeigt Stücke, für die noch kein Genre eingetragen ist.",
     "Sprach-Chips erscheinen nur, wenn deine Liste Stücke in mehr als einer Sprache enthält.",
-    "Filter und Sortierung werden nicht gespeichert: Wenn du die Seite erneut öffnest, werden alle Stücke nach Titel sortiert angezeigt."
+    "Die Sprachauswahl gilt nur für die Stückliste und die Suche; deine Setlists bleiben unverändert. Findest du ein Stück nicht, während eine Sprache gewählt ist, tippe zuerst auf **Alle Sprachen zeigen**.",
+    "Außer der Sprache werden Filter und Sortierung nicht gespeichert: Wenn du die Seite erneut öffnest, sind sie aufgehoben und die Stücke nach Titel sortiert."
    ],
    "platform": "",
    "ilgili": [
@@ -2925,7 +2930,7 @@ window.YARDIM_VERI = {
    "id": "kayit-ton-tempo",
    "kategori": "Übungsraum",
    "baslik": "Wie ändere ich Tonart oder Tempo einer Aufnahme?",
-   "ozet": "Öffne die Aufnahme unter Meine Aufnahmen; mit dem Schieberegler TONART verschiebst du die Tonart um bis zu 6 Halbtöne, mit dem Schieberegler TEMPO stellst du die Geschwindigkeit zwischen 50 % und 150 % ein – beides unabhängig voneinander.",
+   "ozet": "Öffne die Aufnahme unter Meine Aufnahmen; mit dem Schieberegler TONART verschiebst du die Tonart um bis zu 6 Halbtöne, mit dem Schieberegler TEMPO stellst du die Geschwindigkeit zwischen 50 % und 150 % ein – beides unabhängig voneinander. Ist eine Aufnahme leicht verstimmt, korrigierst du sie mit FEINSTIMMUNG um bis zu 50 Cent.",
    "anahtar": [
     "tonart ändern",
     "aufnahme transponieren",
@@ -2936,19 +2941,24 @@ window.YARDIM_VERI = {
     "halbton",
     "langsam üben",
     "wiedergabegeschwindigkeit",
-    "langsamer"
+    "langsamer",
+    "feinstimmung",
+    "cent",
+    "verstimmt"
    ],
    "adimlar": [
     "Tippe im **Übungsraum** im Tab **Meine Aufnahmen** auf eine Aufnahme. Der Player öffnet sich.",
     "Tippe in der Mitte auf die Wiedergabe-Schaltfläche. Mit den Schaltflächen links und rechts springst du 10 Sekunden zurück oder vor; über die Zeitleiste springst du an jede beliebige Stelle.",
     "Zieh im Feld **TONART** den Schieberegler oder tippe auf **−1** / **+1**. Du kannst die Tonart um höchstens 6 Halbtöne nach unten oder oben verschieben; **Zurücksetzen** stellt die Originaltonart der Aufnahme wieder her.",
-    "Stell im Feld **TEMPO** die Geschwindigkeit mit dem Schieberegler zwischen 50 % und 150 % ein oder tippe auf eine der Schaltflächen **%60**, **%80**, **%100**.",
+    "Ist die Aufnahme leicht verstimmt (etwas zu hoch oder zu tief), zieh im Feld **FEINSTIMMUNG** den Schieberegler oder tippe auf **−5** / **+5** (5 Cent pro Tippen). Du kannst die Tonhöhe um höchstens 50 Cent nach unten oder oben verschieben; neben dem Wert steht auch die Entsprechung in Koma (z. B. „+23 Cent (≈ 1 Koma)“). **Zurücksetzen** hebt die Feinstimmung auf.",
+    "Stell im Feld **TEMPO** die Geschwindigkeit mit dem Schieberegler zwischen 50 % und 150 % ein oder tippe darunter auf eine der Schaltflächen **%50**, **%60**, **%70**, **%80**, **%90**, **%100**.",
     "Um mit dem Liedtext zu üben, tippe auf **Text**; der Text öffnet sich unter den Bedienelementen, auf breiten Bildschirmen daneben."
    ],
    "ipuclari": [
     "Tonart und Tempo sind unabhängig voneinander: Änderst du die Tonart, bleibt die Geschwindigkeit gleich, und änderst du das Tempo, bleibt die Tonhöhe gleich.",
     "Hast du beim Hochladen die Tonart der Aufnahme angegeben, steht unter dem Tonartfeld der Zielton (z. B. „La → Si“); sonst siehst du, um wie viele Halbtöne höher oder tiefer es ist.",
-    "Tonart- und Tempo-Einstellungen verändern die Datei nicht; öffnest du die Aufnahme erneut, werden beide zurückgesetzt (Tonart 0, Tempo 100 %).",
+    "100 Cent sind ein Halbton, 1 Koma entspricht etwa 23 Cent (22,6). Liegt die Aufnahme mehr als 50 Cent daneben, verschiebe sie zuerst mit **TONART** um einen Halbton und korrigiere den Rest mit **FEINSTIMMUNG**.",
+    "Tonart, Feinstimmung und Tempo verändern die Datei nicht. Öffnest du die Aufnahme erneut, werden Tonart und Tempo zurückgesetzt (Tonart 0, Tempo 100 %); die Feinstimmung bleibt für diese Aufnahme auf diesem Gerät gespeichert, und unter dem Feld steht „für diese Aufnahme gespeichert“.",
     "Während ein Rhythmus oder das Metronom läuft, wird keine Aufnahme abgespielt; stoppe sie zuerst."
    ],
    "platform": "",
@@ -3560,10 +3570,10 @@ window.YARDIM_VERI = {
    "ipuclari": [
     "Siehst du die Meldung **Du wurdest abgemeldet: Dein Konto wurde möglicherweise auf einem anderen Gerät angemeldet, oder deine Sitzung ist abgelaufen. Bitte melde dich erneut an.**, melde dich einfach erneut an.",
     "Siehst du **Dein Konto wurde gesperrt.**, schreib uns an die in der Meldung genannte Adresse info@repertuvar.app.",
-    "Hast du dein Konto auf dem iPhone mit Apple erstellt und willst dich unter Android oder im Browser anmelden, öffne zuerst auf dem iPhone **Einstellungen** > **Konto**: Verbirgt Apple deine E-Mail-Adresse, trag in der Zeile **E-Mail-Adresse** deine echte E-Mail-Adresse ein und lege dann in der Zeile **Passwort** ein Passwort fest. Danach meldest du dich mit dieser E-Mail-Adresse und diesem Passwort an.",
+    "Hast du dein Konto auf dem iPhone mit Apple erstellt, meldest du dich auch unter Android (ab Version 1.2) und im Browser mit **Mit Apple fortfahren** und demselben Apple Account an. Damit du dich zur Sicherheit auch mit E-Mail-Adresse und Passwort anmelden kannst, öffne **Einstellungen** > **Konto**: Verbirgt Apple deine E-Mail-Adresse, trag in der Zeile **E-Mail-Adresse** deine echte E-Mail-Adresse ein und lege dann in der Zeile **Passwort** ein Passwort fest.",
     "Funktioniert die Anmeldung mit Face ID oder Fingerabdruck nicht, bleibt das Anmeldeformular verfügbar; du kannst dich mit E-Mail und Passwort anmelden."
    ],
-   "platform": "**Mit Apple fortfahren** erscheint nur in der App aus dem App Store (iPhone, iPad und Mac mit Apple-Chip); in der Android-App und im Browser gibt es diese Option nicht.",
+   "platform": "**Mit Apple fortfahren** erscheint in der App aus dem App Store (iPhone, iPad und Mac mit Apple-Chip), in der Android-App (ab Version 1.2) und im Browser.",
    "ilgili": [
     "sifremi-unuttum",
     "kayit-ol",

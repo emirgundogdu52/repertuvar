@@ -825,7 +825,15 @@ function profilDiliniYaz(yeni) {
 
 async function requireAuth() {
   const token = getToken();
-  if (!token) { window.location.href = 'login.html'; return false; }
+  if (!token) {
+    // (2026-11-02) Paylaşılan eser bağlantısıyla (eserler.html?id=N) gelen girişsiz kişi, girişten sonra o esere döner
+    // (login.html girisSonrasiAdres; 30 dk geçerli). Önceden ?id kayboluyor, kişi ana sayfaya düşüyordu.
+    try {
+      const u = location.pathname.split('/').pop() + location.search;
+      if (/^eserler\.html\?id=\d+$/.test(u)) localStorage.setItem('girisSonrasi', JSON.stringify({ u: u, t: Date.now() }));
+    } catch (e) {}
+    window.location.href = 'login.html'; return false;
+  }
   // Cached user varsa hemen authReady — UI beklemez
   if (getUser()) window.dispatchEvent(new CustomEvent('authReady'));
   // Bekleyen davet varsa arka planda tüket (anahtar boşsa hiç istek gitmez).
@@ -1095,6 +1103,9 @@ function logout() {
     ));
     if (!devam) return;
   }
+  // (2026-11-02) Çıkış sunucuda oturumu kapatırken yoldaki bir istek 401 alınca endDeadSession "Oturumunuz kapandı"
+  // sayfasına (expired=1) yönlendiriyordu (+apple2 çıkışında görüldü). Bilerek çıkılıyor: o yönlendirme olmasın.
+  _sessionEndHandled = true;
   logoutSilent().then(function() {
     window.location.href = 'login.html?logout=1';
   });

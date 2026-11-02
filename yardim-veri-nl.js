@@ -118,7 +118,7 @@ window.YARDIM_VERI = {
     "Log de volgende keer op dezelfde manier in als waarmee je je hebt geregistreerd (e-mail en wachtwoord, Google of Apple). Log je in met een ander e-mailadres, dan wordt er een apart account aangemaakt.",
     "Je naam kun je later wijzigen in **Instellingen** > **Account** > **Volledige naam**."
    ],
-   "platform": "**Doorgaan met Apple** verschijnt alleen in de app die je uit de App Store installeert (iPhone, iPad en Mac met Apple-chip); in de Android-app en in de browser is deze knop er niet. In de apps voor iPhone, iPad en Android verschijnt na het aanmaken van je account het scherm van Repertuvar Pro; de hele app wordt ontgrendeld met Repertuvar Pro.",
+   "platform": "**Doorgaan met Apple** verschijnt in de app die je uit de App Store installeert (iPhone, iPad en Mac met Apple-chip), in de Android-app (vanaf versie 1.2) en in de browser. In de apps voor iPhone, iPad en Android verschijnt na het aanmaken van je account het scherm van Repertuvar Pro; de hele app wordt ontgrendeld met Repertuvar Pro.",
    "ilgili": [
     "giris-yapamiyorum",
     "muzik-tercihleri",
@@ -377,7 +377,7 @@ window.YARDIM_VERI = {
    "id": "eserleri-suz-ve-sirala",
    "kategori": "Stukken",
    "baslik": "Hoe filter en sorteer ik stukken op genre, taal of makam?",
-   "ozet": "Tik op de taal- en genrechips onder het zoekvak; de filters voor makam, regio, stemming en vorm en de sorteeropties vind je onder Filters.",
+   "ozet": "Tik op de taal- en genrechips onder het zoekvak; de filters voor makam, regio, stemming en vorm en de sorteeropties vind je onder Filters. De gekozen taal wordt op dit apparaat onthouden.",
    "anahtar": [
     "filteren",
     "filter",
@@ -390,21 +390,26 @@ window.YARDIM_VERI = {
     "alfabetisch",
     "op componist",
     "genrechip",
-    "volgorde"
+    "volgorde",
+    "taal onthouden",
+    "alleen turks",
+    "alle talen tonen"
    ],
    "adimlar": [
     "Ga naar **Stukken**.",
     "Tik in de rij chips onder het zoekvak op een taal of een genre. Het getal op een chip geeft aan hoeveel stukken erbij horen. Past de rij niet op het scherm, veeg dan opzij of tik op de pijlen aan de rand.",
     "Tik nog een keer op dezelfde chip om het filter weg te halen. Je kunt tegelijk één taal en één genre kiezen.",
+    "Kies je een taal (bijv. alleen Turkse stukken), dan wordt je keuze op dit apparaat onthouden; open je **Stukken** opnieuw, dan toont de lijst weer die taal. Zolang de keuze aan staat, staat onder de rij chips de melding “Taal: Turks – alleen stukken in deze taal worden getoond.” Tik in die melding op **Alle talen tonen** om weer alle talen te zien.",
     "Tik op **Filters** voor meer opties.",
     "Kies in het venster **Filteren en sorteren** onder **Sorteren** voor **Op titel**, **Op componist**, **Op makam**, **Op vorm** of **Op regio**.",
     "Tik op een waarde onder **Genre / vorm**, **Stemming**, **Regio** of **Makam**; bij elke waarde staat hoeveel stukken erbij horen. Tik er nog een keer op om dat filter weg te halen.",
-    "Tik op **Filters wissen** om alles terug te zetten; deze knop maakt ook het zoekvak leeg. Wil je je zoektekst houden, tik dan boven de lijst op **Alles**."
+    "Tik op **Filters wissen** om de filters terug te zetten; deze knop maakt ook het zoekvak leeg. Wil je je zoektekst houden, tik dan boven de lijst op **Alles**. Geen van beide knoppen haalt de gekozen taal weg."
    ],
    "ipuclari": [
     "De chip **Geen genre** toont stukken waarvoor nog geen genre is ingevuld.",
     "Taalchips verschijnen alleen als er in je lijst stukken in meer dan één taal staan.",
-    "Filters en sortering worden niet onthouden: open je de pagina opnieuw, dan staan alle stukken weer op titel."
+    "De taalkeuze geldt alleen voor de lijst met stukken en het zoeken; je setlists veranderen niet. Vind je een stuk niet terwijl er een taal gekozen is, tik dan eerst op **Alle talen tonen**.",
+    "Behalve de taal worden filters en sortering niet onthouden: open je de pagina opnieuw, dan zijn ze weg en staan de stukken op titel."
    ],
    "platform": "",
    "ilgili": [
@@ -2863,7 +2868,7 @@ window.YARDIM_VERI = {
    "id": "kayit-ton-tempo",
    "kategori": "Oefenruimte",
    "baslik": "Hoe verander ik de toonsoort of het tempo van een opname?",
-   "ozet": "Open de opname in Mijn opnames; met de schuifregelaar TOONSOORT verschuif je tot 6 halve tonen, en met de schuifregelaar TEMPO stel je de snelheid in tussen 50% en 150%, los van elkaar.",
+   "ozet": "Open de opname in Mijn opnames; met de schuifregelaar TOONSOORT verschuif je tot 6 halve tonen, en met de schuifregelaar TEMPO stel je de snelheid in tussen 50% en 150%, los van elkaar. Is een opname iets ontstemd, dan corrigeer je die met FIJNSTEMMING tot 50 cent.",
    "anahtar": [
     "toonsoort wijzigen",
     "opname transponeren",
@@ -2874,19 +2879,24 @@ window.YARDIM_VERI = {
     "halve toon",
     "langzaam oefenen",
     "afspeelsnelheid",
-    "pitch"
+    "pitch",
+    "fijnstemming",
+    "cent",
+    "ontstemd"
    ],
    "adimlar": [
     "Tik in de **Oefenruimte** op het tabblad **Mijn opnames** op een opname. De speler gaat open.",
     "Tik op de afspeelknop in het midden. Met de knoppen ernaast ga je 10 seconden terug of vooruit, en met de tijdbalk spring je naar een andere plek.",
     "Sleep in het vak **TOONSOORT** de schuifregelaar of tik op **−1** / **+1**. Je kunt de toonsoort maximaal 6 halve tonen omlaag of omhoog zetten; **Herstellen** zet de opname terug in haar eigen toonsoort.",
-    "Stel in het vak **TEMPO** met de schuifregelaar de snelheid in tussen 50% en 150%, of tik op een van de knoppen **%60**, **%80**, **%100**.",
+    "Is de opname iets ontstemd (net te hoog of te laag), sleep dan in het vak **FIJNSTEMMING** de schuifregelaar of tik op **−5** / **+5** (5 cent per tik). Je kunt de toonhoogte maximaal 50 cent omlaag of omhoog zetten; naast de waarde staat ook hoeveel komma dat is (bijv. “+23 cent (≈ 1 komma)”). **Herstellen** haalt de fijnstemming weg.",
+    "Stel in het vak **TEMPO** met de schuifregelaar de snelheid in tussen 50% en 150%, of tik op een van de knoppen **%50**, **%60**, **%70**, **%80**, **%90**, **%100** eronder.",
     "Wil je met de tekst oefenen, tik dan op **Tekst**; de tekst gaat open onder de bedieningsknoppen, of ernaast op brede schermen."
    ],
    "ipuclari": [
     "Toonsoort en tempo staan los van elkaar: verander je de toonsoort, dan blijft de snelheid gelijk, en verander je het tempo, dan blijft de toonhoogte gelijk.",
     "Heb je bij het uploaden de toonsoort van de opname ingevuld, dan staat onder het toonsoortvak de doelnoot (bijv. “La → Si”); anders zie je hoeveel halve tonen hoger of lager je zit.",
-    "Instellingen voor toonsoort en tempo veranderen het bestand niet; open je de opname opnieuw, dan staan beide weer op de beginwaarde (toonsoort 0, tempo 100%).",
+    "100 cent is een halve toon, 1 komma is ongeveer 23 cent (22,6). Zit de opname er meer dan 50 cent naast, verschuif haar dan eerst een halve toon met **TOONSOORT** en corrigeer de rest met **FIJNSTEMMING**.",
+    "Toonsoort, fijnstemming en tempo veranderen het bestand niet. Open je de opname opnieuw, dan staan toonsoort en tempo weer op de beginwaarde (toonsoort 0, tempo 100%); de fijnstemming wordt voor die opname op dit apparaat onthouden, en onder het vak staat “onthouden voor deze opname”.",
     "Een opname kan niet spelen terwijl er een ritme of de metronoom loopt; stop die eerst."
    ],
    "platform": "",
@@ -3493,10 +3503,10 @@ window.YARDIM_VERI = {
    "ipuclari": [
     "Zie je **Je bent uitgelogd: misschien is er met je account op een ander apparaat ingelogd, of je sessie is verlopen. Log opnieuw in.**, log dan gewoon opnieuw in.",
     "Zie je **Je account is opgeschort.**, schrijf ons dan op info@repertuvar.app, het adres in de melding.",
-    "Heb je je account op een iPhone met Apple aangemaakt en wil je op Android of in een browser inloggen, ga dan eerst op de iPhone naar **Instellingen** > **Account**: verbergt Apple je e-mailadres, voeg dan in de rij **E-mailadres** je echte e-mailadres toe en stel daarna in de rij **Wachtwoord** een wachtwoord in. Log daarna in met dat e-mailadres en wachtwoord.",
+    "Heb je je account op een iPhone met Apple aangemaakt, dan log je ook op Android (vanaf versie 1.2) en in een browser in met **Doorgaan met Apple** en hetzelfde Apple-account. Wil je voor de zekerheid ook met e-mailadres en wachtwoord kunnen inloggen, ga dan naar **Instellingen** > **Account**: verbergt Apple je e-mailadres, voeg dan in de rij **E-mailadres** je echte e-mailadres toe en stel daarna in de rij **Wachtwoord** een wachtwoord in.",
     "Werkt inloggen met Face ID of vingerafdruk niet, dan blijft het inlogformulier beschikbaar en kun je inloggen met je e-mailadres en wachtwoord."
    ],
-   "platform": "**Doorgaan met Apple** verschijnt alleen in de app die je uit de App Store installeert (iPhone, iPad en Mac met Apple-chip); in de Android-app en in de browser is deze knop er niet.",
+   "platform": "**Doorgaan met Apple** verschijnt in de app die je uit de App Store installeert (iPhone, iPad en Mac met Apple-chip), in de Android-app (vanaf versie 1.2) en in de browser.",
    "ilgili": [
     "sifremi-unuttum",
     "kayit-ol",

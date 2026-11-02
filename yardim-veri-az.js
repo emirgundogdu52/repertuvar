@@ -117,7 +117,7 @@ window.YARDIM_VERI = {
     "Sonrakı girişlərdə qeydiyyatdan keçdiyin yoldan istifadə et (e-poçt və şifrə, Google və ya Apple). Başqa e-poçtla daxil olsan, ayrıca hesab yaradılır.",
     "Adını sonradan **Ayarlar** > **Hesab** > **Ad, soyad** sahəsindən dəyişə bilərsən."
    ],
-   "platform": "**Apple ilə davam et** düyməsi yalnız App Store-dan quraşdırılan tətbiqdə (iPhone, iPad və Apple çipli Mac) görünür; Android tətbiqində və brauzerdə yoxdur. iPhone, iPad və Android tətbiqində hesabını yaradanda Repertuvar Pro ekranı açılır; tətbiqin bütün imkanları Repertuvar Pro ilə açılır.",
+   "platform": "**Apple ilə davam et** düyməsi App Store-dan quraşdırılan tətbiqdə (iPhone, iPad və Apple çipli Mac), Android tətbiqində (1.2 versiyasından başlayaraq) və brauzerdə görünür. iPhone, iPad və Android tətbiqində hesabını yaradanda Repertuvar Pro ekranı açılır; tətbiqin bütün imkanları Repertuvar Pro ilə açılır.",
    "ilgili": [
     "giris-yapamiyorum",
     "muzik-tercihleri",
@@ -375,7 +375,7 @@ window.YARDIM_VERI = {
    "id": "eserleri-suz-ve-sirala",
    "kategori": "Əsərlər",
    "baslik": "Əsərləri janra, dilə və ya məqama görə necə filtrləyim və sıralayım?",
-   "ozet": "Axtarış xanasının altındakı dil və janr çiplərinə toxun; məqam, bölgə, kökləmə və forma filtrlərini, həmçinin sıralamanı Filtrlər düyməsindən seç.",
+   "ozet": "Axtarış xanasının altındakı dil və janr çiplərinə toxun; məqam, bölgə, kökləmə və forma filtrlərini, həmçinin sıralamanı Filtrlər düyməsindən seç. Seçdiyin dil bu cihazda yadda saxlanılır.",
    "anahtar": [
     "filtr",
     "filtrlə",
@@ -388,21 +388,26 @@ window.YARDIM_VERI = {
     "əlifba sırası",
     "bəstəkara görə",
     "janr çipi",
-    "süz"
+    "süz",
+    "dili yadda saxla",
+    "yalnız türkcə",
+    "bütün dilləri göstər"
    ],
    "adimlar": [
     "**Əsərlər** bölməsinə keç.",
     "Axtarış xanasının altındakı çip sırasında bir dilə və ya janra toxun. Çipdəki rəqəm o qrupdakı əsərlərin sayıdır. Sıra ekrana sığmırsa, onu yana sürüşdür və ya kənarlardakı oxlara toxun.",
     "Filtri götürmək üçün həmin çipə yenidən toxun. Eyni anda bir dil və bir janr seçilə bilər.",
+    "Bir dil seçsən (məs. yalnız türkcə əsərlər), seçimin bu cihazda yadda saxlanılır; **Əsərlər** bölməsini yenidən açanda siyahı yenə həmin dildə gəlir. Seçim aktiv olduqca çip sırasının altında \"Dil: Türk – yalnız bu dildə olan əsərlər göstərilir.\" qeydi görünür. Bütün dillərə qayıtmaq üçün qeyddəki **Bütün dilləri göstər** düyməsinə toxun.",
     "Daha çox seçim üçün **Filtrlər** düyməsinə toxun.",
     "Açılan **Filtr və sıralama** pəncərəsində **Sırala** altından **Ada görə**, **Bəstəkara görə**, **Məqama görə**, **Formaya görə** və ya **Bölgəyə görə** seç.",
     "**Janr / forma**, **Kökləmə**, **Bölgə** və **Məqam** bölmələrində istədiyin dəyərə toxun; hər dəyərin yanında neçə əsər olduğu yazılır. Eyni dəyərə yenidən toxunsan, filtr götürülür.",
-    "Hamısını sıfırlamaq üçün **Filtrləri təmizlə** düyməsinə toxun; bu düymə axtarış xanasını da boşaldır. Axtarış yazısı qalsın istəyirsənsə, siyahının üstündəki **Hamısı** düyməsinə toxun."
+    "Filtrləri sıfırlamaq üçün **Filtrləri təmizlə** düyməsinə toxun; bu düymə axtarış xanasını da boşaldır. Axtarış yazısı qalsın istəyirsənsə, siyahının üstündəki **Hamısı** düyməsinə toxun. Bu düymələrin heç biri seçdiyin dili götürmür."
    ],
    "ipuclari": [
     "**Janr təyin edilməyib** çipi janrı hələ daxil edilməmiş əsərləri göstərir.",
     "Dil çipləri yalnız siyahında birdən çox dildə əsər olanda görünür.",
-    "Filtrlər və sıralama yadda qalmır: səhifəni yenidən açanda bütün əsərlər ada görə sıralanmış gəlir."
+    "Dil seçimi yalnız Əsərlər siyahısına və axtarışa təsir edir; repertuarların dəyişmir. Dil seçili olanda axtardığın əsəri tapmasan, əvvəlcə **Bütün dilləri göstər** düyməsinə toxun.",
+    "Dildən başqa filtrlər və sıralama yadda qalmır: səhifəni yenidən açanda onlar götürülür və əsərlər ada görə sıralanır."
    ],
    "platform": "",
    "ilgili": [
@@ -2861,7 +2866,7 @@ window.YARDIM_VERI = {
    "id": "kayit-ton-tempo",
    "kategori": "Məşq otağı",
    "baslik": "Səs yazısının tonunu və ya tempini necə dəyişim?",
-   "ozet": "Səs yazılarım bölməsində yazını açırsan; TON sürgüsü ilə tonu 6 yarımtona qədər, TEMP sürgüsü ilə sürəti 50% ilə 150% arasında bir-birindən asılı olmadan tənzimləyirsən.",
+   "ozet": "Səs yazılarım bölməsində yazını açırsan; TON sürgüsü ilə tonu 6 yarımtona qədər, TEMP sürgüsü ilə sürəti 50% ilə 150% arasında bir-birindən asılı olmadan tənzimləyirsən. Səs yazısı bir az kökdən çıxıbsa, İNCƏ AYAR ilə 50 sentə qədər düzəldirsən.",
    "anahtar": [
     "ton dəyiş",
     "yazını transpoz et",
@@ -2873,19 +2878,24 @@ window.YARDIM_VERI = {
     "yavaş məşq",
     "sürət ayarı",
     "pitch",
-    "temp"
+    "temp",
+    "incə ayar",
+    "koma",
+    "kökdən çıxıb"
    ],
    "adimlar": [
     "**Məşq otağı** bölməsində **Səs yazılarım** siyahısında səs yazısına toxun. Pleyer açılır.",
     "Ortadakı oxutma düyməsinə toxun. Yanlardakı düymələrlə 10 saniyə geri və ya irəli get, zaman zolağı ilə istədiyin yerə keç.",
     "**TON** xanasında sürgünü sürüşdür və ya **−1** / **+1** düymələrinə toxun. Tonu ən çox 6 yarımton aşağı və ya yuxarı sürüşdürə bilərsən; **Sıfırla** yazının öz tonuna qaytarır.",
-    "**TEMP** xanasında sürgü ilə sürəti 50% ilə 150% arasında tənzimlə və ya **%60**, **%80**, **%100** düymələrindən birinə toxun.",
+    "Səs yazısı bir az kökdən çıxıbsa (bir az zil və ya bir az bəm), **İNCƏ AYAR** xanasında sürgünü sürüşdür və ya **−5** / **+5** düymələrinə toxun (hər toxunuş 5 sent). Səs yüksəkliyini ən çox 50 sent aşağı və ya yuxarı sürüşdürə bilərsən; dəyərin yanında koma qarşılığı da yazılır (məs. \"+23 sent (≈ 1 koma)\"). **Sıfırla** incə ayarı götürür.",
+    "**TEMP** xanasında sürgü ilə sürəti 50% ilə 150% arasında tənzimlə və ya altındakı **%50**, **%60**, **%70**, **%80**, **%90**, **%100** düymələrindən birinə toxun.",
     "Sözlərə baxaraq məşq etmək üçün **Sözlər** düyməsinə toxun; sözlər idarəetmə düymələrinin altında, geniş ekranda isə yanında açılır."
    ],
    "ipuclari": [
     "Ton və temp bir-birindən asılı deyil: tonu dəyişəndə sürət, tempi dəyişəndə səs yüksəkliyi pozulmur.",
     "Səs yazısının tonunu yükləyərkən daxil etmisənsə, ton xanasının altında hədəf not yazılır (məs. \"La → Si\"); daxil etməmisənsə, neçə yarımton yuxarı və ya aşağı olduğunu görürsən.",
-    "Ton və temp ayarı faylı dəyişmir; yazını yenidən açanda hər ikisi sıfırlanır (ton 0, temp 100%).",
+    "100 sent yarımtondur, 1 koma isə təxminən 23 sentdir (22,6). Səs yazısı 50 sentdən çox kənara çıxıbsa, əvvəlcə **TON** ilə yarımton sürüşdür, qalanını **İNCƏ AYAR** ilə düzəlt.",
+    "Ton, incə ayar və temp faylı dəyişmir. Yazını yenidən açanda ton və temp sıfırlanır (ton 0, temp 100%); incə ayar isə həmin səs yazısı üçün bu cihazda yadda saxlanılır və xananın altında \"bu səs yazısı üçün yadda saxlanılır\" yazılır.",
     "Ritm və ya metronom çalarkən səs yazısı oxudulmur; əvvəlcə onları dayandır."
    ],
    "platform": "",
@@ -3494,10 +3504,10 @@ window.YARDIM_VERI = {
    "ipuclari": [
     "**Sessiyan bağlandı: hesabınla başqa cihazda daxil olunmuş və ya sessiyanın vaxtı bitmiş ola bilər. Yenidən daxil ol.** xəbərdarlığını görsən, sadəcə yenidən daxil ol.",
     "**Hesabın dondurulub.** xəbərdarlığını görsən, xəbərdarlıqda göstərilən info@repertuvar.app ünvanına bizə yaz.",
-    "Hesabını iPhone-da Apple ilə yaratmısansa, Android-dən və ya brauzerdən daxil olmaq üçün əvvəlcə iPhone-da **Ayarlar** > **Hesab** bölməsinə keç: Apple e-poçtunu gizlədirsə, **E-poçt ünvanı** sətrindən əsl e-poçtunu əlavə et, sonra **Şifrə** sətrindən şifrə təyin et. Ardından həmin e-poçt və şifrə ilə daxil ol.",
+    "Hesabını iPhone-da Apple ilə yaratmısansa, Android-də (1.2 versiyasından başlayaraq) və brauzerdə də **Apple ilə davam et** düyməsinə toxunub eyni Apple hesabı ilə daxil olursan. Ehtiyat yol kimi e-poçt və şifrə ilə də daxil olmaq üçün **Ayarlar** > **Hesab** bölməsinə keç: Apple e-poçtunu gizlədirsə, **E-poçt ünvanı** sətrindən əsl e-poçtunu əlavə et, sonra **Şifrə** sətrindən şifrə təyin et.",
     "Face ID və ya barmaq izi ilə giriş işləməsə, giriş forması açıq qalır; e-poçt və şifrənlə daxil ola bilərsən."
    ],
-   "platform": "**Apple ilə davam et** düyməsi yalnız App Store-dan quraşdırılan tətbiqdə (iPhone, iPad və Apple çipli Mac) görünür; Android tətbiqində və brauzerdə yoxdur.",
+   "platform": "**Apple ilə davam et** düyməsi App Store-dan quraşdırılan tətbiqdə (iPhone, iPad və Apple çipli Mac), Android tətbiqində (1.2 versiyasından başlayaraq) və brauzerdə görünür.",
    "ilgili": [
     "sifremi-unuttum",
     "kayit-ol",

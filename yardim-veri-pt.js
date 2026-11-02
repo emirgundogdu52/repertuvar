@@ -135,7 +135,7 @@ window.YARDIM_VERI = {
     "Nas próximas vezes, entre do mesmo jeito que você se cadastrou (e-mail e senha, Google ou Apple). Se entrar com outro e-mail, é criada uma conta separada.",
     "Você pode mudar seu nome depois em **Configurações** > **Conta** > **Nome completo**."
    ],
-   "platform": "O botão **Continuar com a Apple** só aparece no app instalado pela App Store (iPhone, iPad e Mac com chip Apple); ele não existe no app para Android nem no navegador. No app para iPhone, iPad e Android, depois que você cria a conta, aparece a tela do Repertuvar Pro; o app inteiro é liberado com o Repertuvar Pro.",
+   "platform": "O botão **Continuar com a Apple** aparece no app instalado pela App Store (iPhone, iPad e Mac com chip Apple), no app para Android (a partir da versão 1.2) e no navegador. No app para iPhone, iPad e Android, depois que você cria a conta, aparece a tela do Repertuvar Pro; o app inteiro é liberado com o Repertuvar Pro.",
    "ilgili": [
     "giris-yapamiyorum",
     "muzik-tercihleri",
@@ -397,7 +397,7 @@ window.YARDIM_VERI = {
    "id": "eserleri-suz-ve-sirala",
    "kategori": "Músicas",
    "baslik": "Como filtro e ordeno as músicas por gênero, idioma ou makam?",
-   "ozet": "Toque nos botões de idioma e de gênero abaixo da caixa de busca; os filtros de makam, região, afinação e forma e a ordenação ficam em Filtros.",
+   "ozet": "Toque nos botões de idioma e de gênero abaixo da caixa de busca; os filtros de makam, região, afinação e forma e a ordenação ficam em Filtros. O idioma escolhido fica salvo neste aparelho.",
    "anahtar": [
     "filtrar",
     "filtro",
@@ -410,21 +410,26 @@ window.YARDIM_VERI = {
     "escolher idioma",
     "ordem alfabética",
     "por compositor",
-    "chip de gênero"
+    "chip de gênero",
+    "lembrar idioma",
+    "só turco",
+    "mostrar todos os idiomas"
    ],
    "adimlar": [
     "Vá para **Músicas**.",
     "Na fileira de botões abaixo da caixa de busca, toque em um idioma ou em um gênero. O número no botão é a quantidade de músicas daquele grupo. Se a fileira não couber na tela, deslize-a para o lado ou toque nas setas das pontas.",
     "Para tirar o filtro, toque de novo no mesmo botão. Você pode ter um idioma e um gênero selecionados ao mesmo tempo.",
+    "Se você escolher um idioma (ex.: só músicas em turco), a escolha fica salva neste aparelho; quando você abre **Músicas** de novo, a lista continua mostrando esse idioma. Enquanto a escolha estiver ativa, embaixo da fileira de botões aparece o aviso \"Idioma: Turco – só são exibidas músicas neste idioma.\" Para voltar a ver todos os idiomas, toque em **Mostrar todos os idiomas** nesse aviso.",
     "Para mais opções, toque em **Filtros**.",
     "Na janela **Filtrar e ordenar** que se abre, em **Ordenar**, escolha **Por título**, **Por compositor**, **Por makam**, **Por forma** ou **Por região**.",
     "Em **Gênero / Forma**, **Afinação**, **Região** e **Makam**, toque no valor que quiser; ao lado de cada valor aparece quantas músicas ele tem. Se você tocar de novo no mesmo valor, o filtro sai.",
-    "Para zerar tudo, toque em **Limpar filtros**; esse botão também esvazia a caixa de busca. Se quiser manter o texto da busca, toque em **Todas** acima da lista."
+    "Para zerar os filtros, toque em **Limpar filtros**; esse botão também esvazia a caixa de busca. Se quiser manter o texto da busca, toque em **Todas** acima da lista. Nenhum dos dois botões tira o idioma escolhido."
    ],
    "ipuclari": [
     "O botão **Sem gênero** mostra as músicas que ainda não têm gênero.",
     "Os botões de idioma só aparecem se a sua lista tiver músicas em mais de um idioma.",
-    "Os filtros e a ordenação não ficam salvos: quando a página é aberta de novo, todas as músicas aparecem ordenadas por título."
+    "A escolha do idioma vale só para a lista de músicas e para a busca; seus setlists não mudam. Se não encontrar uma música enquanto um idioma estiver escolhido, toque primeiro em **Mostrar todos os idiomas**.",
+    "Fora o idioma, os filtros e a ordenação não ficam salvos: quando a página é aberta de novo, eles saem e as músicas aparecem ordenadas por título."
    ],
    "platform": "",
    "ilgili": [
@@ -2907,7 +2912,7 @@ window.YARDIM_VERI = {
    "id": "kayit-ton-tempo",
    "kategori": "Sala de Estudo",
    "baslik": "Como mudo o tom ou o andamento de uma gravação?",
-   "ozet": "Abra a gravação em Minhas gravações; com o controle TOM, mude o tom em até 6 semitons e, com o controle ANDAMENTO, ajuste a velocidade entre 50% e 150%, um independente do outro.",
+   "ozet": "Abra a gravação em Minhas gravações; com o controle TOM, mude o tom em até 6 semitons e, com o controle ANDAMENTO, ajuste a velocidade entre 50% e 150%, um independente do outro. Se uma gravação estiver um pouco desafinada, corrija em até 50 cents com o AJUSTE FINO.",
    "anahtar": [
     "mudar tom",
     "transpor gravação",
@@ -2919,19 +2924,24 @@ window.YARDIM_VERI = {
     "estudar devagar",
     "velocidade",
     "pitch",
-    "tempo"
+    "tempo",
+    "ajuste fino",
+    "cents",
+    "desafinada"
    ],
    "adimlar": [
     "Na **Sala de Estudo**, na aba **Minhas gravações**, toque numa gravação. O player se abre.",
     "Toque no botão de reproduzir, no meio. Use os botões dos lados para voltar ou avançar 10 segundos, ou a barra de tempo para pular para onde quiser.",
     "Na caixa **TOM**, arraste o controle ou toque em **−1** / **+1**. Você pode mudar o tom em até 6 semitons para baixo ou para cima; **Redefinir** volta ao tom original da gravação.",
-    "Na caixa **ANDAMENTO**, ajuste a velocidade entre 50% e 150% com o controle ou toque num dos botões **%60**, **%80**, **%100**.",
+    "Se a gravação estiver um pouco desafinada (um pouco alta ou baixa), na caixa **AJUSTE FINO**, arraste o controle ou toque em **−5** / **+5** (5 cents por toque). Você pode mudar a afinação em até 50 cents para baixo ou para cima; ao lado do valor aparece também o equivalente em comas (ex.: \"+23 cents (≈ 1 coma)\"). **Redefinir** tira o ajuste fino.",
+    "Na caixa **ANDAMENTO**, ajuste a velocidade entre 50% e 150% com o controle ou toque num dos botões embaixo dele: **%50**, **%60**, **%70**, **%80**, **%90**, **%100**.",
     "Para estudar acompanhando a letra, toque em **Letra**; ela abre embaixo dos controles ou, em telas largas, ao lado deles."
    ],
    "ipuclari": [
     "Tom e andamento são independentes: mudar o tom não altera a velocidade, e mudar o andamento não altera a altura do som.",
     "Se você informou o tom da gravação ao enviá-la, a nota de destino aparece embaixo da caixa de tom (ex.: \"La → Si\"); se não informou, você vê quantos semitons está acima ou abaixo.",
-    "Os ajustes de tom e andamento não mudam o arquivo da gravação; quando você abre a gravação de novo, os dois voltam ao início (tom 0, andamento 100%).",
+    "100 cents equivalem a um semitom, e 1 coma, a cerca de 23 cents (22,6). Se a gravação estiver desviada mais de 50 cents, mude primeiro um semitom com **TOM** e corrija o resto com **AJUSTE FINO**.",
+    "Tom, ajuste fino e andamento não mudam o arquivo da gravação. Quando você abre a gravação de novo, tom e andamento voltam ao início (tom 0, andamento 100%); já o ajuste fino fica guardado para essa gravação neste aparelho, e embaixo da caixa aparece \"lembrado para esta gravação\".",
     "A gravação não toca enquanto um ritmo ou o metrônomo estão tocando; pare-os primeiro."
    ],
    "platform": "",
@@ -3545,10 +3555,10 @@ window.YARDIM_VERI = {
    "ipuclari": [
     "Se aparecer o aviso **Sua sessão foi encerrada: talvez sua conta tenha sido acessada em outro dispositivo ou a sessão tenha expirado. Entre novamente.**, basta entrar de novo.",
     "Se aparecer o aviso **Sua conta foi suspensa.**, escreva para nós no endereço info@repertuvar.app, que aparece no aviso.",
-    "Se você criou a conta com a Apple no iPhone e quer entrar no Android ou no navegador, primeiro vá no iPhone a **Configurações** > **Conta**: se a Apple estiver ocultando seu e-mail, adicione seu e-mail real na linha **Endereço de e-mail** e depois defina uma senha na linha **Senha**. Em seguida, entre com esse e-mail e essa senha.",
+    "Se você criou a conta com a Apple no iPhone, também entra no Android (a partir da versão 1.2) e no navegador com **Continuar com a Apple** e a mesma Conta Apple. Para poder entrar também com e-mail e senha, como alternativa, vá a **Configurações** > **Conta**: se a Apple estiver ocultando seu e-mail, adicione seu e-mail real na linha **Endereço de e-mail** e depois defina uma senha na linha **Senha**.",
     "Se o login com Face ID ou impressão digital não funcionar, o formulário de login continua disponível; você pode entrar com seu e-mail e sua senha."
    ],
-   "platform": "O botão **Continuar com a Apple** só aparece no app instalado pela App Store (iPhone, iPad e Mac com chip Apple); ele não existe no app para Android nem no navegador.",
+   "platform": "O botão **Continuar com a Apple** aparece no app instalado pela App Store (iPhone, iPad e Mac com chip Apple), no app para Android (a partir da versão 1.2) e no navegador.",
    "ilgili": [
     "sifremi-unuttum",
     "kayit-ol",

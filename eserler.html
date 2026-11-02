@@ -3136,7 +3136,7 @@ function renderList() {
         <div class="work-name"><span class="work-ad">${w.name?_esHtml(w.name):_esCev('es.isimsiz','(isimsiz)')}</span>${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="' + _esCev('es.yalnizcaSiz','Yalnızca siz görürsünüz') + '" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.taslakRozet','🔒 Taslak') + '</span>' : ''}${(w.visibility === 'group') ? ' <span title="' + _esCev('es.t_yalnizGrup','Yalnızca grup üyeleriniz görür') + '" style="font-size:10px;font-weight:700;color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.grupRozet','👥 Grup') + '</span>' : ''}</div>
         ${(turBadge || w.composer) ? `<div class="work-composer">${turBadge}${_esHtml(w.composer||'')}</div>` : ''}
         <div class="work-title-divider"></div>
-        <div class="work-rep-count"><span class="status-dot"></span> ${_esCev('es.offlineEtiket','Offline')}</div>
+        <div class="work-rep-count"><span class="status-dot"></span> ${_esCev('es.offlineEtiket','Çevrim dışı')}</div>
       </div>
       <div class="work-actions">
         ${_ytId(w.videoLink) ? `<button class="work-listen" onclick="dinleAc('${_ytId(w.videoLink)}', event)" title="${_esCev('es.t_dinle','YouTube\u2019da dinle')}" data-i18n-title="es.t_dinle" style="display:${bulkMode?'none':'flex'};">\u25B6</button>` : ''}
@@ -3684,7 +3684,7 @@ function selectWork(id, silent) {
         <div id="scope_help_${w.id}" style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;"></div>
         <div class="akor-cubuk" id="akor_cubuk_${w.id}"></div>
         <textarea id="inline_chords_${w.id}" data-scope="${_defaultScope}" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" oninput="_cpGrow(this);updateChordsPreview(${w.id})" style="width:100%;min-height:min(46vh,608px);padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:monospace;line-height:1.9;resize:vertical;box-sizing:border-box;"
-          placeholder="${_esCev('es.ph_akorOrnek','[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm\n[C]Telim örülürken [F]ağladı gözüm')}" data-i18n-ph="es.ph_akorOrnek"></textarea>
+          placeholder="${_esCev('es.ph_akorOrnek','[Am]Gece yolunda [Dm]yürürüm\n[G]Ay ışığı [C]yanımda')}" data-i18n-ph="es.ph_akorOrnek"></textarea>
         <div class="rbtn-row" style="margin-top:10px;">
           <button onclick="saveChords(${w.id})" class="rbtn rbtn-primary" data-i18n="ortak.kaydet">${_esCev('ortak.kaydet','Kaydet')}</button>
           <button onclick="cpModu(${w.id},'gorunum')" class="rbtn">${_esCev('es.bitti','Bitti')}</button>
@@ -6785,7 +6785,7 @@ function defterCiz() {
           ? `<span data-i18n="es.dfBosMasaustu">${_esCev('es.dfBosMasaustu', 'Henüz sayfa yok.')}</span>`
           : `<span data-i18n="es.dfBos">${_esCev('es.dfBos','Henüz sayfa yok. Aşağıdan defterinin sayfalarını tara ya da fotoğraflarını seç.')}</span>`}
         <div class="df-ipucu">${_masaustu() ? '💻' : '📸'} ${_esHtml(taramaIpucu())}</div></div>`
-    : `<details class="df-ipucu-ac"><summary>${_masaustu() ? '💻' : '📸'} ${_esHtml(_esCev('es.dfIpucuBaslik', 'Tarama ipuçları'))}</summary><div>${_esHtml(taramaIpucu())}</div></details>`
+    : `<details class="df-ipucu-ac"><summary>${_masaustu() ? '💻' : '📸'} ${_esHtml(_esCev('es.dfTaramaIpucuBaslik', 'Tarama ipuçları'))}</summary><div>${_esHtml(taramaIpucu())}</div></details>`
       + _defter.map((k, i) => `<div class="df-kart">
         <div class="df-kart-ust"><span class="df-no">${i + 1}</span>
           <div class="df-ad-kap">
@@ -9627,7 +9627,7 @@ function openSuggestModal() { openNewEserModal(); }
         <!-- Hiza sürgüsü / kaydırma paneli buraya çizilir (neOpenConvScale, neOpenNudgeOnly) -->
         <div id="ne_chordScale" style="display:none;margin:0 0 10px;padding:12px;border:1px solid var(--accent);border-radius:8px;"></div>
         <div class="akor-cubuk" id="ne_akor_cubuk"></div>
-        <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="[Dm]Sabahtan [G]kalktım yıkadım [Am]yüzüm&#10;[C]Telim örülürken [F]ağladı gözüm" data-i18n-ph="es.ph_akorOrnek" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:430px;resize:vertical;"></textarea>
+        <textarea id="ne_chords" autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="[Am]Gece yolunda [Dm]yürürüm&#10;[G]Ay ışığı [C]yanımda" data-i18n-ph="es.ph_akorOrnek" style="width:100%;margin-top:4px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:monospace;min-height:430px;resize:vertical;"></textarea>
       </div>
     </div>
 

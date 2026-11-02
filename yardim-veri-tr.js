@@ -96,7 +96,7 @@ window.YARDIM_VERI = {
     "Sonraki girişlerde kayıt olduğun yolu kullan (e-posta ve şifre, Google ya da Apple). Başka bir e-postayla girersen ayrı bir hesap açılır.",
     "Adını sonradan **Ayarlar** > **Hesap** > **Ad Soyad** alanından değiştirebilirsin."
    ],
-   "platform": "**Apple ile devam et** düğmesi yalnız App Store'dan kurulan uygulamada (iPhone, iPad ve Apple çipli Mac) görünür; Android uygulamasında ve tarayıcıda yoktur. iPhone, iPad ve Android uygulamasında hesabını açınca Repertuvar Pro ekranı gelir; uygulamanın tamamı Repertuvar Pro ile açılır.",
+   "platform": "**Apple ile devam et** düğmesi App Store'dan kurulan uygulamada (iPhone, iPad ve Apple çipli Mac), Android uygulamasında (1.2 sürümünden itibaren) ve tarayıcıda görünür. iPhone, iPad ve Android uygulamasında hesabını açınca Repertuvar Pro ekranı gelir; uygulamanın tamamı Repertuvar Pro ile açılır.",
    "ilgili": [
     "giris-yapamiyorum",
     "muzik-tercihleri",
@@ -348,7 +348,7 @@ window.YARDIM_VERI = {
    "id": "eserleri-suz-ve-sirala",
    "kategori": "Eserler",
    "baslik": "Eserleri türe, dile ya da makama göre nasıl süzer ve sıralarım?",
-   "ozet": "Arama kutusunun altındaki dil ve tür çiplerine bas; makam, yöre, akort ve form süzgeçlerini ve sıralamayı Filtreler'den seç.",
+   "ozet": "Arama kutusunun altındaki dil ve tür çiplerine bas; makam, yöre, akort ve form süzgeçlerini ve sıralamayı Filtreler'den seç. Seçtiğin dil bu cihazda hatırlanır.",
    "anahtar": [
     "filtre",
     "süzgeç",
@@ -360,21 +360,26 @@ window.YARDIM_VERI = {
     "dil seç",
     "alfabetik",
     "besteciye göre",
-    "tür çipi"
+    "tür çipi",
+    "dil hatırla",
+    "yalnız Türkçe",
+    "tüm dilleri göster"
    ],
    "adimlar": [
     "**Eserler**'e git.",
     "Arama kutusunun altındaki çip satırından bir dile ya da türe bas. Çipteki sayı o gruptaki eser sayısıdır. Satır ekrana sığmıyorsa yana kaydır ya da kenardaki oklara bas.",
     "Süzgeci kaldırmak için aynı çipe yeniden bas. Aynı anda bir dil ve bir tür seçili olabilir.",
+    "Bir dil seçersen (ör. yalnız Türkçe eserler) seçimin bu cihazda hatırlanır; **Eserler**'i yeniden açtığında liste yine o dilde gelir. Seçim açıkken çip satırının altında \"Yalnız Türkçe eserler gösteriliyor.\" notu durur. Bütün dillere dönmek için nottaki **Tüm dilleri göster**'e bas.",
     "Daha fazla seçenek için **Filtreler**'e bas.",
     "Açılan **Filtre & Sıralama** penceresinde **Sırala** altından **Ada Göre**, **Besteciye Göre**, **Makama Göre**, **Forma Göre** ya da **Yöreye Göre**'yi seç.",
     "**Tür / Form**, **Akort**, **Bölge** ve **Makam** bölümlerinde istediğin değere bas; her değerin yanında kaç eser olduğu yazar. Aynı değere yeniden basarsan süzgeç kalkar.",
-    "Hepsini sıfırlamak için **Filtreleri Temizle**'ye bas; bu düğme arama kutusunu da boşaltır. Arama yazısı kalsın istiyorsan listenin üstündeki **Tümü**'ne bas."
+    "Süzgeçleri sıfırlamak için **Filtreleri Temizle**'ye bas; bu düğme arama kutusunu da boşaltır. Arama yazısı kalsın istiyorsan listenin üstündeki **Tümü**'ne bas. İki düğme de seçtiğin dili kaldırmaz."
    ],
    "ipuclari": [
     "**Türü belirlenmemiş** çipi, türü henüz girilmemiş eserleri gösterir.",
     "Dil çipleri yalnız listende birden çok dilde eser varsa görünür.",
-    "Süzgeçler ve sıralama kalıcı değildir: sayfa yeniden açılınca bütün eserler ada göre sıralı gelir."
+    "Dil seçimi yalnız Eserler listesini ve aramayı etkiler; repertuvarların değişmez. Bir dil seçiliyken aradığın eseri bulamazsan önce **Tüm dilleri göster**'e bas.",
+    "Dil dışındaki süzgeçler ve sıralama hatırlanmaz: sayfayı yeniden açınca bu süzgeçler kalkar, eserler ada göre sıralanır."
    ],
    "platform": "",
    "ilgili": [
@@ -2789,7 +2794,7 @@ window.YARDIM_VERI = {
    "id": "kayit-ton-tempo",
    "kategori": "Çalışma Odası",
    "baslik": "Kaydın tonunu ya da temposunu nasıl değiştiririm?",
-   "ozet": "Kayıtlarım'da kaydı açarsın; TON kaydırıcısıyla tonu 6 yarım sese kadar, TEMPO kaydırıcısıyla hızı %50 ile %150 arasında birbirinden bağımsız ayarlarsın.",
+   "ozet": "Kayıtlarım'da kaydı açarsın; TON kaydırıcısıyla tonu 6 yarım sese kadar, TEMPO kaydırıcısıyla hızı %50 ile %150 arasında birbirinden bağımsız ayarlarsın. Akorttan biraz kaçık bir kaydı İNCE AYAR ile 50 sente kadar düzeltirsin.",
    "anahtar": [
     "ton değiştir",
     "kaydı transpoze et",
@@ -2800,19 +2805,24 @@ window.YARDIM_VERI = {
     "yarım ses",
     "ağır çalış",
     "hız ayarı",
-    "pitch"
+    "pitch",
+    "ince ayar",
+    "koma",
+    "akort kaçık"
    ],
    "adimlar": [
     "**Çalışma Odası**'nda **Kayıtlarım** sekmesinde kayda bas. Oynatıcı açılır.",
     "Ortadaki oynat düğmesine bas. Yanlardaki düğmelerle 10 saniye geri ya da ileri git, zaman çubuğuyla istediğin yere atla.",
     "**TON** kutusunda kaydırıcıyı sürükle ya da **−1** / **+1** düğmelerine bas. Tonu en fazla 6 yarım ses aşağı ya da yukarı kaydırabilirsin; **Sıfırla** kaydın kendi tonuna döndürür.",
-    "**TEMPO** kutusunda kaydırıcıyla hızı %50 ile %150 arasında ayarla ya da **%60**, **%80**, **%100** düğmelerinden birine bas.",
+    "Kayıt akorttan biraz kaçıksa (biraz tiz ya da biraz pes), **İNCE AYAR** kutusunda kaydırıcıyı sürükle ya da **−5** / **+5** düğmelerine bas (her basış 5 sent). Perdeyi en fazla 50 sent aşağı ya da yukarı kaydırabilirsin; değerin yanında koma karşılığı da yazar (ör. \"+23 sent (≈ 1 koma)\"). **Sıfırla** ince ayarı kaldırır.",
+    "**TEMPO** kutusunda kaydırıcıyla hızı %50 ile %150 arasında ayarla ya da altındaki **%50**, **%60**, **%70**, **%80**, **%90**, **%100** düğmelerinden birine bas.",
     "Sözlere bakarak çalışmak için **Sözler**'e bas; sözler kontrollerin altında, geniş ekranda yanında açılır."
    ],
    "ipuclari": [
     "Ton ve tempo birbirinden bağımsızdır: tonu değiştirince hız, tempoyu değiştirince perde bozulmaz.",
     "Kaydın tonunu yüklerken girdiysen ton kutusunun altında hedef nota yazar (ör. \"La → Si\"); girmediysen kaç yarım ses tiz ya da pes olduğunu görürsün.",
-    "Ton ve tempo ayarı kayıt dosyasını değiştirmez; kaydı yeniden açtığında ikisi de sıfırlanır (ton 0, tempo %100).",
+    "100 sent yarım sese, 1 koma yaklaşık 23 sente (22,6) denk gelir. Kayıt 50 sentten fazla kaçıksa önce **TON** ile yarım ses kaydır, kalanını **İNCE AYAR** ile düzelt.",
+    "Ton, ince ayar ve tempo kayıt dosyasını değiştirmez. Kaydı yeniden açtığında ton ve tempo sıfırlanır (ton 0, tempo %100); ince ayar ise o kayıt için bu cihazda hatırlanır ve kutunun altında \"bu kayıt için hatırlanır\" yazar.",
     "Ritim ya da metronom çalarken kayıt oynatılmaz; önce onları durdur."
    ],
    "platform": "",
@@ -3408,10 +3418,10 @@ window.YARDIM_VERI = {
    "ipuclari": [
     "**Oturumunuz kapandı: hesabınızla başka bir cihazda giriş yapılmış ya da oturumun süresi dolmuş olabilir. Lütfen tekrar giriş yapın.** uyarısını görürsen yeniden giriş yapman yeterli.",
     "**Hesabınız askıya alınmıştır.** uyarısını görürsen uyarıdaki info@repertuvar.app adresinden bize yaz.",
-    "Hesabını iPhone'da Apple ile açtıysan Android'den ya da tarayıcıdan girmek için önce iPhone'da **Ayarlar** > **Hesap** bölümüne git: Apple e-postanı gizliyorsa **E-posta Adresi** satırından gerçek e-postanı ekle, sonra **Şifre** satırından bir şifre belirle. Ardından o e-posta ve şifreyle gir.",
+    "Hesabını iPhone'da Apple ile açtıysan Android'de (1.2 sürümünden itibaren) ve tarayıcıda da **Apple ile devam et** düğmesine basıp aynı Apple hesabıyla girersin. Yedek olarak e-posta ve şifreyle de girebilmek için **Ayarlar** > **Hesap** bölümüne git: Apple e-postanı gizliyorsa **E-posta Adresi** satırından gerçek e-postanı ekle, sonra **Şifre** satırından bir şifre belirle.",
     "Face ID ya da parmak iziyle giriş çalışmazsa giriş formu açık kalır; e-posta ve şifrenle girebilirsin."
    ],
-   "platform": "**Apple ile devam et** düğmesi yalnız App Store'dan kurulan uygulamada (iPhone, iPad ve Apple çipli Mac) görünür; Android uygulamasında ve tarayıcıda yoktur.",
+   "platform": "**Apple ile devam et** düğmesi App Store'dan kurulan uygulamada (iPhone, iPad ve Apple çipli Mac), Android uygulamasında (1.2 sürümünden itibaren) ve tarayıcıda görünür.",
    "ilgili": [
     "sifremi-unuttum",
     "kayit-ol",

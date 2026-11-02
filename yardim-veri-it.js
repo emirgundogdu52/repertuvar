@@ -149,7 +149,7 @@ window.YARDIM_VERI = {
     "Negli accessi successivi usa lo stesso metodo con cui ti sei registrato (email e password, Google o Apple). Se accedi con un'altra email viene creato un account separato.",
     "Puoi cambiare il tuo nome in seguito in **Impostazioni** > **Account** > **Nome e cognome**."
    ],
-   "platform": "Il pulsante **Continua con Apple** compare solo nell'app installata dall'App Store (iPhone, iPad e Mac con chip Apple); non c'è nell'app Android né nel browser. Nell'app per iPhone, iPad e Android, dopo aver creato l'account compare la schermata di Repertuvar Pro; l'app completa si sblocca con Repertuvar Pro.",
+   "platform": "Il pulsante **Continua con Apple** compare nell'app installata dall'App Store (iPhone, iPad e Mac con chip Apple), nell'app Android (dalla versione 1.2) e nel browser. Nell'app per iPhone, iPad e Android, dopo aver creato l'account compare la schermata di Repertuvar Pro; l'app completa si sblocca con Repertuvar Pro.",
    "ilgili": [
     "giris-yapamiyorum",
     "muzik-tercihleri",
@@ -407,7 +407,7 @@ window.YARDIM_VERI = {
    "id": "eserleri-suz-ve-sirala",
    "kategori": "Brani",
    "baslik": "Come filtro e ordino i brani per genere, lingua o makam?",
-   "ozet": "Tocca i chip della lingua e del genere sotto la casella di ricerca; i filtri per makam, regione, accordatura e forma e l'ordinamento si trovano in Filtri.",
+   "ozet": "Tocca i chip della lingua e del genere sotto la casella di ricerca; i filtri per makam, regione, accordatura e forma e l'ordinamento si trovano in Filtri. La lingua scelta viene memorizzata su questo dispositivo.",
    "anahtar": [
     "filtrare",
     "filtro",
@@ -420,21 +420,26 @@ window.YARDIM_VERI = {
     "per lingua",
     "ordine alfabetico",
     "per compositore",
-    "chip genere"
+    "chip genere",
+    "ricorda lingua",
+    "solo turco",
+    "mostra tutte le lingue"
    ],
    "adimlar": [
     "Vai in **Brani**.",
     "Tocca una lingua o un genere nella riga di chip sotto la casella di ricerca. Il numero sul chip indica quanti brani ci sono in quel gruppo. Se la riga non entra nello schermo, scorrila di lato o tocca le frecce ai bordi.",
     "Per togliere il filtro tocca di nuovo lo stesso chip. Puoi selezionare contemporaneamente una lingua e un genere.",
+    "Se scegli una lingua (es. solo brani in turco), la scelta viene memorizzata su questo dispositivo; quando riapri **Brani**, l'elenco mostra ancora quella lingua. Finché la scelta è attiva, sotto la riga di chip compare la nota “Lingua: Turco – vengono mostrati solo i brani in questa lingua.” Per tornare a tutte le lingue, tocca **Mostra tutte le lingue** nella nota.",
     "Per altre opzioni tocca **Filtri**.",
     "Nel pannello **Filtri e ordinamento** che si apre, sotto **Ordina** scegli **Per titolo**, **Per compositore**, **Per makam**, **Per forma** o **Per regione**.",
     "Nelle sezioni **Genere / Forma**, **Accordatura**, **Regione** e **Makam** tocca il valore che vuoi; accanto a ogni valore è indicato quanti brani ci sono. Se tocchi di nuovo lo stesso valore, il filtro si toglie.",
-    "Per azzerare tutto tocca **Azzera filtri**; questo pulsante svuota anche la casella di ricerca. Se vuoi mantenere il testo della ricerca, tocca invece **Tutti** sopra l'elenco."
+    "Per azzerare i filtri tocca **Azzera filtri**; questo pulsante svuota anche la casella di ricerca. Se vuoi mantenere il testo della ricerca, tocca invece **Tutti** sopra l'elenco. Nessuno dei due pulsanti toglie la lingua scelta."
    ],
    "ipuclari": [
     "Il chip **Nessun genere** mostra i brani a cui non è ancora stato assegnato un genere.",
     "I chip della lingua compaiono solo se nel tuo elenco ci sono brani in più di una lingua.",
-    "Filtri e ordinamento non vengono memorizzati: quando riapri la pagina, tutti i brani compaiono ordinati per titolo."
+    "La scelta della lingua vale solo per l'elenco dei brani e per la ricerca; le tue scalette non cambiano. Se non trovi un brano mentre è scelta una lingua, tocca prima **Mostra tutte le lingue**.",
+    "A parte la lingua, filtri e ordinamento non vengono memorizzati: quando riapri la pagina vengono tolti e i brani compaiono ordinati per titolo."
    ],
    "platform": "",
    "ilgili": [
@@ -2888,7 +2893,7 @@ window.YARDIM_VERI = {
    "id": "kayit-ton-tempo",
    "kategori": "Sala Prove",
    "baslik": "Come cambio la tonalità o il tempo di una registrazione?",
-   "ozet": "Apri la registrazione in Le mie registrazioni; con il cursore TONALITÀ sposti la tonalità fino a 6 semitoni e con il cursore TEMPO imposti la velocità tra il 50% e il 150%, in modo indipendente.",
+   "ozet": "Apri la registrazione in Le mie registrazioni; con il cursore TONALITÀ sposti la tonalità fino a 6 semitoni e con il cursore TEMPO imposti la velocità tra il 50% e il 150%, in modo indipendente. Se una registrazione è un po' scordata, la correggi fino a 50 cent con ACCORDATURA FINE.",
    "anahtar": [
     "cambiare tonalità",
     "trasporre registrazione",
@@ -2899,19 +2904,24 @@ window.YARDIM_VERI = {
     "semitono",
     "esercitarsi lentamente",
     "velocità di riproduzione",
-    "pitch"
+    "pitch",
+    "accordatura fine",
+    "cent",
+    "scordata"
    ],
    "adimlar": [
     "In **Sala Prove**, nella scheda **Le mie registrazioni**, tocca una registrazione. Si apre il lettore.",
     "Tocca il pulsante di riproduzione al centro. Con i pulsanti ai lati torni indietro o vai avanti di 10 secondi; con la barra del tempo salti al punto che vuoi.",
     "Nel riquadro **TONALITÀ** trascina il cursore o tocca i pulsanti **−1** / **+1**. Puoi spostare la tonalità al massimo di 6 semitoni verso il basso o verso l'alto; **Ripristina** riporta alla tonalità originale della registrazione.",
-    "Nel riquadro **TEMPO** imposta la velocità tra il 50% e il 150% con il cursore oppure tocca uno dei pulsanti **%60**, **%80**, **%100**.",
+    "Se la registrazione è un po' scordata (leggermente crescente o calante), nel riquadro **ACCORDATURA FINE** trascina il cursore o tocca **−5** / **+5** (5 cent a ogni tocco). Puoi spostare l'intonazione al massimo di 50 cent verso il basso o verso l'alto; accanto al valore compare anche l'equivalente in comma (es. “+23 cent (≈ 1 comma)”). **Ripristina** toglie l'accordatura fine.",
+    "Nel riquadro **TEMPO** imposta la velocità tra il 50% e il 150% con il cursore oppure tocca uno dei pulsanti sottostanti **%50**, **%60**, **%70**, **%80**, **%90**, **%100**.",
     "Per esercitarti guardando il testo tocca **Testo**; il testo si apre sotto i controlli o, sugli schermi larghi, accanto."
    ],
    "ipuclari": [
     "Tonalità e tempo sono indipendenti: se cambi la tonalità la velocità non cambia, e se cambi il tempo l'intonazione non cambia.",
     "Se hai indicato la tonalità della registrazione durante il caricamento, sotto il riquadro della tonalità compare la nota di arrivo (es. “La → Si”); altrimenti vedi di quanti semitoni sei sopra o sotto.",
-    "Le impostazioni di tonalità e tempo non modificano il file della registrazione; quando riapri la registrazione si azzerano entrambe (tonalità 0, tempo 100%).",
+    "100 cent sono un semitono e 1 comma corrisponde a circa 23 cent (22,6). Se lo scarto supera i 50 cent, sposta prima la registrazione di un semitono con **TONALITÀ** e correggi il resto con **ACCORDATURA FINE**.",
+    "Tonalità, accordatura fine e tempo non modificano il file della registrazione. Quando riapri la registrazione, tonalità e tempo si azzerano (tonalità 0, tempo 100%); l'accordatura fine invece viene memorizzata per quella registrazione su questo dispositivo, e sotto il riquadro compare “memorizzato per questa registrazione”.",
     "Mentre suona un ritmo o il metronomo la registrazione non parte; prima fermali."
    ],
    "platform": "",
@@ -3520,10 +3530,10 @@ window.YARDIM_VERI = {
    "ipuclari": [
     "Se vedi l'avviso **La sessione è stata chiusa: è possibile che sia stato effettuato l'accesso al tuo account da un altro dispositivo o che la sessione sia scaduta. Accedi di nuovo.**, basta accedere di nuovo.",
     "Se vedi l'avviso **Il tuo account è stato sospeso.**, scrivici all'indirizzo info@repertuvar.app indicato nell'avviso.",
-    "Se hai creato l'account con Apple su iPhone e vuoi accedere da Android o dal browser, vai prima sull'iPhone in **Impostazioni** > **Account**: se Apple nasconde la tua email, aggiungi la tua email reale nella riga **Indirizzo email**, poi imposta una password nella riga **Password**. Dopo accedi con quell'email e quella password.",
+    "Se hai creato l'account con Apple su iPhone, accedi anche da Android (dalla versione 1.2) e dal browser con **Continua con Apple** e lo stesso Account Apple. Per poter accedere anche con email e password, come riserva, vai in **Impostazioni** > **Account**: se Apple nasconde la tua email, aggiungi la tua email reale nella riga **Indirizzo email**, poi imposta una password nella riga **Password**.",
     "Se l'accesso con Face ID o con l'impronta digitale non funziona, il modulo di accesso resta disponibile: puoi accedere con email e password."
    ],
-   "platform": "Il pulsante **Continua con Apple** compare solo nell'app installata dall'App Store (iPhone, iPad e Mac con chip Apple); non c'è nell'app Android né nel browser.",
+   "platform": "Il pulsante **Continua con Apple** compare nell'app installata dall'App Store (iPhone, iPad e Mac con chip Apple), nell'app Android (dalla versione 1.2) e nel browser.",
    "ilgili": [
     "sifremi-unuttum",
     "kayit-ol",

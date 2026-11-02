@@ -132,7 +132,7 @@ window.YARDIM_VERI = {
     "Las próximas veces, inicia sesión del mismo modo en que te registraste (correo y contraseña, Google o Apple). Si inicias sesión con otro correo, se crea una cuenta distinta.",
     "Más adelante puedes cambiar tu nombre en **Ajustes** > **Cuenta** > **Nombre completo**."
    ],
-   "platform": "El botón **Continuar con Apple** solo aparece en la app instalada desde el App Store (iPhone, iPad y Mac con chip de Apple); no está en la app de Android ni en el navegador. En la app de iPhone, iPad y Android, al crear tu cuenta aparece la pantalla de Repertuvar Pro; toda la app se desbloquea con Repertuvar Pro.",
+   "platform": "El botón **Continuar con Apple** aparece en la app instalada desde el App Store (iPhone, iPad y Mac con chip de Apple), en la app de Android (a partir de la versión 1.2) y en el navegador. En la app de iPhone, iPad y Android, al crear tu cuenta aparece la pantalla de Repertuvar Pro; toda la app se desbloquea con Repertuvar Pro.",
    "ilgili": [
     "giris-yapamiyorum",
     "muzik-tercihleri",
@@ -391,7 +391,7 @@ window.YARDIM_VERI = {
    "id": "eserleri-suz-ve-sirala",
    "kategori": "Obras",
    "baslik": "¿Cómo filtro y ordeno las obras por género, idioma o makam?",
-   "ozet": "Toca los botones de idioma y de género que hay debajo del cuadro de búsqueda; los filtros de makam, región, afinación y forma, y el orden, se eligen en Filtros.",
+   "ozet": "Toca los botones de idioma y de género que hay debajo del cuadro de búsqueda; los filtros de makam, región, afinación y forma, y el orden, se eligen en Filtros. El idioma que elijas se recuerda en este dispositivo.",
    "anahtar": [
     "filtrar",
     "filtro",
@@ -404,21 +404,26 @@ window.YARDIM_VERI = {
     "orden alfabético",
     "por compositor",
     "clasificar obras",
-    "botón de género"
+    "botón de género",
+    "recordar idioma",
+    "solo turco",
+    "mostrar todos los idiomas"
    ],
    "adimlar": [
     "Ve a **Obras**.",
     "En la fila de botones que hay debajo del cuadro de búsqueda, toca un idioma o un género. El número de cada botón indica cuántas obras hay en ese grupo. Si la fila no cabe en la pantalla, deslízala hacia un lado o toca las flechas de los extremos.",
     "Para quitar el filtro, vuelve a tocar el mismo botón. Puedes tener seleccionados a la vez un idioma y un género.",
+    "Si eliges un idioma (p. ej., solo obras en turco), tu elección se recuerda en este dispositivo; cuando vuelves a abrir **Obras**, la lista sigue mostrando ese idioma. Mientras esté activo, debajo de la fila de botones aparece el aviso «Idioma: Turco – solo se muestran obras en este idioma». Para volver a ver todos los idiomas, toca **Mostrar todos los idiomas** en ese aviso.",
     "Para ver más opciones, toca **Filtros**.",
     "En la ventana **Filtrar y ordenar** que se abre, en **Ordenar**, elige **Por título**, **Por compositor**, **Por makam**, **Por forma** o **Por región**.",
     "En las secciones **Género / Forma**, **Afinación**, **Región** y **Makam**, toca el valor que quieras; junto a cada valor aparece cuántas obras tiene. Si vuelves a tocar el mismo valor, el filtro se quita.",
-    "Para restablecerlo todo, toca **Borrar filtros**; este botón también vacía el cuadro de búsqueda. Si quieres conservar el texto de la búsqueda, toca **Todas** encima de la lista."
+    "Para restablecer los filtros, toca **Borrar filtros**; este botón también vacía el cuadro de búsqueda. Si quieres conservar el texto de la búsqueda, toca **Todas** encima de la lista. Ninguno de los dos botones quita el idioma elegido."
    ],
    "ipuclari": [
     "El botón **Sin género** muestra las obras a las que aún no se les ha asignado un género.",
     "Los botones de idioma solo aparecen si tu lista tiene obras en más de un idioma.",
-    "Los filtros y el orden no se guardan: cuando vuelves a abrir la página, todas las obras aparecen ordenadas por título."
+    "La elección de idioma solo afecta a la lista de obras y a la búsqueda; tus repertorios no cambian. Si no encuentras una obra mientras hay un idioma elegido, toca primero **Mostrar todos los idiomas**.",
+    "Salvo el idioma, los filtros y el orden no se guardan: cuando vuelves a abrir la página, se quitan y las obras aparecen ordenadas por título."
    ],
    "platform": "",
    "ilgili": [
@@ -2899,7 +2904,7 @@ window.YARDIM_VERI = {
    "id": "kayit-ton-tempo",
    "kategori": "Sala de Ensayo",
    "baslik": "¿Cómo cambio el tono o el tempo de una grabación?",
-   "ozet": "Abre la grabación en Mis grabaciones; con el control TONO desplazas el tono hasta 6 semitonos y con el control TEMPO ajustas la velocidad entre el 50 % y el 150 %, de forma independiente.",
+   "ozet": "Abre la grabación en Mis grabaciones; con el control TONO desplazas el tono hasta 6 semitonos y con el control TEMPO ajustas la velocidad entre el 50 % y el 150 %, de forma independiente. Si una grabación está un poco desafinada, corrígela hasta 50 cents con AJUSTE FINO.",
    "anahtar": [
     "cambiar tono",
     "transportar grabación",
@@ -2911,19 +2916,24 @@ window.YARDIM_VERI = {
     "semitono",
     "ensayar despacio",
     "velocidad de reproducción",
-    "pitch"
+    "pitch",
+    "ajuste fino",
+    "cents",
+    "desafinada"
    ],
    "adimlar": [
     "En la **Sala de Ensayo**, en la pestaña **Mis grabaciones**, toca una grabación. Se abre el reproductor.",
     "Toca el botón de reproducir del centro. Con los botones de los lados retrocedes o avanzas 10 segundos, y con la barra de tiempo saltas al punto que quieras.",
     "En el cuadro **TONO**, arrastra el control deslizante o toca los botones **−1** / **+1**. Puedes desplazar el tono hasta 6 semitonos hacia abajo o hacia arriba; **Restablecer** vuelve al tono original de la grabación.",
-    "En el cuadro **TEMPO**, ajusta la velocidad entre el 50 % y el 150 % con el control deslizante, o toca uno de los botones **%60**, **%80** o **%100**.",
+    "Si la grabación está un poco desafinada (algo alta o algo baja), arrastra el control deslizante del cuadro **AJUSTE FINO** o toca **−5** / **+5** (5 cents por toque). Puedes desplazar la afinación hasta 50 cents hacia abajo o hacia arriba; junto al valor aparece también su equivalencia en comas (p. ej., «+23 cents (≈ 1 coma)»). **Restablecer** quita el ajuste fino.",
+    "En el cuadro **TEMPO**, ajusta la velocidad entre el 50 % y el 150 % con el control deslizante, o toca uno de los botones de debajo: **%50**, **%60**, **%70**, **%80**, **%90** o **%100**.",
     "Para ensayar mirando la letra, toca **Letra**; la letra se abre debajo de los controles y, en pantallas anchas, a su lado."
    ],
    "ipuclari": [
     "El tono y el tempo son independientes: si cambias el tono, la velocidad no se altera, y si cambias el tempo, la afinación no se altera.",
     "Si indicaste el tono de la grabación al subirla, debajo del cuadro de tono aparece la nota de destino (p. ej., «La → Si»); si no, ves cuántos semitonos más aguda o más grave está.",
-    "Los ajustes de tono y tempo no modifican el archivo de la grabación; cuando vuelves a abrirla, ambos se restablecen (tono 0, tempo 100 %).",
+    "100 cents equivalen a un semitono, y 1 coma, a unos 23 cents (22,6). Si la grabación se desvía más de 50 cents, desplázala primero un semitono con **TONO** y corrige el resto con **AJUSTE FINO**.",
+    "El tono, el ajuste fino y el tempo no modifican el archivo de la grabación. Cuando vuelves a abrirla, el tono y el tempo se restablecen (tono 0, tempo 100 %); el ajuste fino, en cambio, se recuerda para esa grabación en este dispositivo, y debajo del cuadro aparece «se recuerda para esta grabación».",
     "Mientras suena un ritmo o el metrónomo, la grabación no se reproduce; detenlos primero."
    ],
    "platform": "",
@@ -3535,10 +3545,10 @@ window.YARDIM_VERI = {
    "ipuclari": [
     "Si ves el aviso **Se cerró tu sesión: puede que se haya iniciado sesión con tu cuenta en otro dispositivo o que tu sesión haya caducado. Vuelve a iniciar sesión.**, basta con que vuelvas a iniciar sesión.",
     "Si ves el aviso **Tu cuenta ha sido suspendida.**, escríbenos a info@repertuvar.app, la dirección que aparece en el aviso.",
-    "Si creaste tu cuenta con Apple en un iPhone y quieres entrar desde Android o desde un navegador, primero ve a **Ajustes** > **Cuenta** en el iPhone: si Apple oculta tu correo, añade tu correo real en la fila **Correo electrónico** y luego establece una contraseña en la fila **Contraseña**. Después, inicia sesión con ese correo y esa contraseña.",
+    "Si creaste tu cuenta con Apple en un iPhone, también puedes entrar en Android (a partir de la versión 1.2) y en un navegador con **Continuar con Apple** y la misma cuenta de Apple. Para poder entrar además con correo y contraseña, como alternativa, ve a **Ajustes** > **Cuenta**: si Apple oculta tu correo, añade tu correo real en la fila **Correo electrónico** y luego establece una contraseña en la fila **Contraseña**.",
     "Si el inicio de sesión con Face ID o con huella digital no funciona, el formulario de inicio de sesión sigue disponible; puedes entrar con tu correo y tu contraseña."
    ],
-   "platform": "El botón **Continuar con Apple** solo aparece en la app instalada desde el App Store (iPhone, iPad y Mac con chip de Apple); no está en la app de Android ni en el navegador.",
+   "platform": "El botón **Continuar con Apple** aparece en la app instalada desde el App Store (iPhone, iPad y Mac con chip de Apple), en la app de Android (a partir de la versión 1.2) y en el navegador.",
    "ilgili": [
     "sifremi-unuttum",
     "kayit-ol",

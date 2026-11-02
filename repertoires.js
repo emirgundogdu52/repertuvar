@@ -831,6 +831,15 @@ function getHiddenRepIds() {
   try { return JSON.parse(localStorage.getItem('hiddenRepIds') || '[]'); }
   catch (e) { return []; }
 }
+// (2026-11-02) Gizlenen repertuvar geri getirilemiyordu (gizleme bu cihazda localStorage'da, geri alma yoktu) →
+// listenin sonunda "Gizlediğin N repertuvar var — Göster" ve her birinde "Geri getir".
+let _gizlileriGoster = false;
+function gizlileriAcKapa() { _gizlileriGoster = !_gizlileriGoster; renderList(); }
+function unhideRep(id) {
+  localStorage.setItem('hiddenRepIds', JSON.stringify(getHiddenRepIds().filter(x => x !== id)));
+  toast(_r('rep.geriGetirildi', 'Repertuvar geri getirildi'));
+  renderList();
+}
 function hideRepFromView(id) {
   const hidden = getHiddenRepIds();
   if (!hidden.includes(id)) hidden.push(id);
@@ -957,6 +966,23 @@ function renderList(){
          +  '<i class="ti ti-users-group" style="font-size:14px;vertical-align:-2px;" aria-hidden="true"></i> '
          +  _r('rep.baskaGrup1','Diğer gruplarında') + ' <b>' + baskaGrup.length + '</b> '
          +  _r('rep.baskaGrup2','repertuvar daha var. Grubunu değiştirdiğinde görünürler.') + '</div>';
+  }
+  const gizli = filtered.filter(r => !r.isOwner && hiddenIds.includes(r.id));
+  if (gizli.length) {
+    html += '<div style="margin:12px 0 16px;padding:12px 13px;font-size:12.5px;color:var(--text3);line-height:1.6;'
+         +  'background:var(--surface2);border:1px solid var(--border);border-radius:10px;">'
+         +  '<i class="ti ti-eye-off" style="font-size:14px;vertical-align:-2px;" aria-hidden="true"></i> '
+         +  _r('rep.gizliVar', 'Gizlediğin {n} repertuvar var.').replace('{n}', '<b>' + gizli.length + '</b>') + ' '
+         +  '<button type="button" onclick="gizlileriAcKapa()" style="background:none;border:0;padding:0;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;">'
+         +  (_gizlileriGoster ? _r('rep.gizliSakla', 'Sakla') : _r('rep.gizliGoster', 'Göster')) + '</button>';
+    if (_gizlileriGoster) {
+      html += gizli.map(r => '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;">'
+           +  '<span style="color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + _rEsc(r.name || '') + '</span>'
+           +  '<button type="button" onclick="unhideRep(\'' + String(r.id).replace(/[^\w-]/g, '') + '\')" style="flex:none;padding:6px 12px;border-radius:8px;'
+           +  'border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;">'
+           +  _r('rep.geriGetir', 'Geri getir') + '</button></div>').join('');
+    }
+    html += '</div>';
   }
   el.innerHTML = html;
 }

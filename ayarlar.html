@@ -1379,7 +1379,7 @@ function sahneTemasiKaydet(v) {
 }
 function loadSettings() {
   const theme = localStorage.getItem('stageTemaVarsayilan') || 'oto';
-  const align = localStorage.getItem('stageLyricsAlign') || 'center';
+  const align = localStorage.getItem('stageLyricsAlign') || 'left';   // (2026-11-02) sahnenin gerçek varsayılanı sol (stage.html); burada "Orta" görünüyordu
   const chords = localStorage.getItem('stageShowChords') || '0';
   const el = document.getElementById('stageTheme'); if(el) el.value = theme;
   const el2 = document.getElementById('stageLyricsAlign'); if(el2) el2.value = align;

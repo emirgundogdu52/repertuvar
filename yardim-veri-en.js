@@ -95,7 +95,7 @@ window.YARDIM_VERI = {
     "Next time, sign in the same way you signed up (email and password, Google or Apple). Signing in with a different email creates a separate account.",
     "You can change your name later in **Settings** > **Account** > **Full Name**."
    ],
-   "platform": "**Continue with Apple** only appears in the app installed from the App Store (iPhone, iPad and Mac with Apple silicon); it isn't available in the Android app or in the browser. In the iPhone, iPad and Android apps, the Repertuvar Pro screen opens after you create your account; the whole app is unlocked with Repertuvar Pro.",
+   "platform": "**Continue with Apple** appears in the app installed from the App Store (iPhone, iPad and Mac with Apple silicon), in the Android app (from version 1.2) and in the browser. In the iPhone, iPad and Android apps, the Repertuvar Pro screen opens after you create your account; the whole app is unlocked with Repertuvar Pro.",
    "ilgili": [
     "giris-yapamiyorum",
     "muzik-tercihleri",
@@ -346,7 +346,7 @@ window.YARDIM_VERI = {
    "id": "eserleri-suz-ve-sirala",
    "kategori": "Pieces",
    "baslik": "How do I filter and sort pieces by genre, language or makam?",
-   "ozet": "Tap the language and genre chips under the search box; the makam, region, tuning and form filters and the sort options are under Filters.",
+   "ozet": "Tap the language and genre chips under the search box; the makam, region, tuning and form filters and the sort options are under Filters. The language you pick is remembered on this device.",
    "anahtar": [
     "filter",
     "sort",
@@ -357,21 +357,26 @@ window.YARDIM_VERI = {
     "by language",
     "alphabetical",
     "by composer",
-    "genre chip"
+    "genre chip",
+    "remember language",
+    "only Turkish",
+    "show all languages"
    ],
    "adimlar": [
     "Go to **Pieces**.",
     "Tap a language or a genre in the row of chips under the search box. The number on a chip is how many pieces it contains. If the row does not fit on screen, swipe it sideways or tap the arrows at its edges.",
     "Tap the same chip again to remove the filter. One language and one genre can be selected at the same time.",
+    "If you pick a language (e.g. only Turkish pieces), your choice is remembered on this device; when you open **Pieces** again, the list still shows that language. While it is on, a note under the row of chips says \"Showing only Turkish pieces.\" To go back to all languages, tap **Show all languages** in the note.",
     "For more options, tap **Filters**.",
     "In the **Filter & Sort** panel, choose **By Title**, **By Composer**, **By Makam**, **By Form** or **By Region** under **Sort**.",
     "Tap a value under **Genre / Form**, **Tuning**, **Region** or **Makam**; each value shows how many pieces it has. Tap it again to remove that filter.",
-    "To reset everything, tap **Clear Filters**; this also empties the search box. If you want to keep your search text, tap **All** above the list instead."
+    "To reset the filters, tap **Clear Filters**; this also empties the search box. If you want to keep your search text, tap **All** above the list instead. Neither button removes the language you picked."
    ],
    "ipuclari": [
     "The **No genre** chip shows pieces that have no genre yet.",
     "Language chips only appear when your list contains pieces in more than one language.",
-    "Filters and sorting are not remembered: when you open the page again, all pieces are shown sorted by title."
+    "The language choice only affects the Pieces list and search; your setlists don't change. If you can't find a piece while a language is selected, tap **Show all languages** first.",
+    "Apart from the language, filters and sorting are not remembered: when you open the page again, they are cleared and pieces are sorted by title."
    ],
    "platform": "",
    "ilgili": [
@@ -2760,7 +2765,7 @@ window.YARDIM_VERI = {
    "id": "kayit-ton-tempo",
    "kategori": "Practice Room",
    "baslik": "How do I change the key or tempo of a recording?",
-   "ozet": "Open the recording in My recordings; use the KEY slider to shift up to 6 semitones and the TEMPO slider to set the speed between 50% and 150%, independently of each other.",
+   "ozet": "Open the recording in My recordings; use the KEY slider to shift up to 6 semitones and the TEMPO slider to set the speed between 50% and 150%, independently of each other. If a recording is slightly out of tune, correct it by up to 50 cents with FINE TUNE.",
    "anahtar": [
     "change key",
     "transpose recording",
@@ -2770,19 +2775,24 @@ window.YARDIM_VERI = {
     "change pitch",
     "semitone",
     "practise slowly",
-    "playback speed"
+    "playback speed",
+    "fine tune",
+    "cents",
+    "out of tune"
    ],
    "adimlar": [
     "In the **Practice Room**, on the **My recordings** tab, tap a recording. The player opens.",
     "Tap the play button in the middle. Use the buttons on either side to go back or forward 10 seconds, or drag the time bar to jump.",
     "In the **KEY** box, drag the slider or tap **−1** / **+1**. You can shift the key up to 6 semitones down or up; **Reset** returns to the recording's own key.",
-    "In the **TEMPO** box, set the speed between 50% and 150% with the slider, or tap one of the **%60**, **%80**, **%100** buttons.",
+    "If the recording is slightly out of tune (a little sharp or flat), drag the slider in the **FINE TUNE** box or tap **−5** / **+5** (5 cents per tap). You can shift the pitch up to 50 cents down or up; next to the value you also see its equivalent in commas (koma), e.g. \"+23 cents (≈ 1 comma)\". **Reset** removes the fine tuning.",
+    "In the **TEMPO** box, set the speed between 50% and 150% with the slider, or tap one of the **%50**, **%60**, **%70**, **%80**, **%90**, **%100** buttons below it.",
     "To practise with the lyrics, tap **Lyrics**; they open below the controls, or beside them on wide screens."
    ],
    "ipuclari": [
     "Key and tempo are independent: changing the key does not change the speed, and changing the tempo does not change the pitch.",
     "If you entered the recording's key when uploading, the target note is shown under the key box (e.g. \"La → Si\"); otherwise you see how many semitones up or down you are.",
-    "Key and tempo settings don't change the file; when you reopen the recording, both are reset (key 0, tempo 100%).",
+    "100 cents make a semitone, and 1 comma (koma) is about 23 cents (22.6). If the recording is off by more than 50 cents, first shift it a semitone with **KEY**, then correct the rest with **FINE TUNE**.",
+    "Key, fine tune and tempo don't change the file. When you reopen the recording, key and tempo are reset (key 0, tempo 100%); fine tune is remembered for that recording on this device, and the box shows \"remembered for this recording\".",
     "A recording can't play while a rhythm or the metronome is running; stop them first."
    ],
    "platform": "",
@@ -3376,10 +3386,10 @@ window.YARDIM_VERI = {
    "ipuclari": [
     "If you see **You have been signed out: your account may have been signed in on another device, or your session expired. Please sign in again.**, simply sign in again.",
     "If you see **Your account has been suspended.**, write to us at info@repertuvar.app, the address shown in the message.",
-    "If you created your account with Apple on an iPhone and want to sign in on Android or in a browser, first go to **Settings** > **Account** on the iPhone: if Apple hides your email, add your real email on the **Email Address** row, then set a password on the **Password** row. After that, sign in with that email and password.",
+    "If you created your account with Apple on an iPhone, you can also sign in on Android (from version 1.2) and in a browser: tap **Continue with Apple** and use the same Apple Account. As a backup, so you can also sign in with email and password, go to **Settings** > **Account**: if Apple hides your email, add your real email on the **Email Address** row, then set a password on the **Password** row.",
     "If Face ID or fingerprint sign-in doesn't work, the sign-in form stays available, so you can sign in with your email and password."
    ],
-   "platform": "**Continue with Apple** only appears in the app installed from the App Store (iPhone, iPad and Mac with Apple silicon); it isn't available in the Android app or in the browser.",
+   "platform": "**Continue with Apple** appears in the app installed from the App Store (iPhone, iPad and Mac with Apple silicon), in the Android app (from version 1.2) and in the browser.",
    "ilgili": [
     "sifremi-unuttum",
     "kayit-ol",
