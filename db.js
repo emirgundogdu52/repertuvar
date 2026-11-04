@@ -243,6 +243,26 @@ window.clearOfflineData = function() {
 // çağıran eski tam indirmeye döner. Ağ / HTTP hatası fırlar, yerel önbelleğe dokunulmaz. Aynı anda gelen çağrılar
 // (eşitleme + sayfa) tek işlemi paylaşır. ms verilirse o sürede bitmeyince çağırana hata döner (Sahne ve Repertuvarlar
 // beklemeden yerelden çizer); işlem arka planda sürer ve IndexedDB'yi yine tazeler.
+// (2026-11-04) İlk eşitleme göstergesi: alt kenarda, dokunmayı engellemez. Metin i18n 'db.indiriliyor' (10 dil).
+function _indirmeGoster(n, t) {
+  try {
+    let el = document.getElementById('eserIndirme');
+    if (!el) {
+      el = document.createElement('div'); el.id = 'eserIndirme'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
+      el.style.cssText = 'position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:99990;max-width:460px;' +
+        'margin:0 auto;padding:12px 16px;border-radius:14px;background:var(--surface,#111722);color:var(--text,#fff);' +
+        'border:1px solid var(--border,rgba(255,255,255,.12));box-shadow:0 10px 28px rgba(0,0,0,.35);font:600 13.5px/1.45 inherit;' +
+        'pointer-events:none;text-align:center';
+      (document.body || document.documentElement).appendChild(el);
+    }
+    const yerel = (window.i18n && window.i18n.yerel) ? window.i18n.yerel() : 'tr-TR';
+    const sablon = (window.i18n && window.i18n.t) ? window.i18n.t('db.indiriliyor', 'Eserlerin indiriliyor: {n} / {t}. Bitene kadar uygulamayı açık tut.')
+      : 'Eserlerin indiriliyor: {n} / {t}. Bitene kadar uygulamayı açık tut.';
+    el.textContent = sablon.replace('{n}', Number(n).toLocaleString(yerel)).replace('{t}', Number(t).toLocaleString(yerel));
+  } catch (e) {}
+}
+function _indirmeGizle() { try { const el = document.getElementById('eserIndirme'); if (el) el.remove(); } catch (e) {} }
+
 let _eserEsitleme = null;
 window.eserleriEsitle = function (ms) {
   if (!_eserEsitleme) {
@@ -280,34 +300,43 @@ async function _eserleriEsitle() {
   const surum = (await meta.get('worksSurum')) || {};
   const yerelde = new Set(anahtarlar);
   const gerekli = dizin.filter((d) => !yerelde.has(d.id) || surum[d.id] !== d.updated_at).map((d) => d.id);
-  const tam = gerekli.length > 2000;             // ilk eşitleme ya da büyük değişiklik: sayfalı tek sorgu daha az istek
-  let gelen = [];
-  if (tam) {
-    gelen = await window.supaTumSayfalar(taban + '&select=*', headers);
-  } else {
-    for (let i = 0; i < gerekli.length; i += 200) {
-      gelen = gelen.concat(await window.supaTumSayfalar(taban + '&select=*&id=in.(' + gerekli.slice(i, i + 200).join(',') + ')', headers));
-    }
-  }
-  const sunucuda = new Set((tam ? gelen : dizin).map((d) => d.id));
+  // (2026-11-04) PARÇALI + KALDIĞI YERDEN: eskiden ilk eşitlemede (>2000) tüm tablo tek seferde çekilip EN SONDA yazılıyordu;
+  // uygulama arka plana geçip kesilince hiçbir şey yazılmıyor, liste boş kalıyordu (Emir iPhone, 04.11 12:37, 5000/10411).
+  // Artık eksik/değişen eserler 500'lük parçalarla çekilir, her parça hemen IndexedDB'ye ve sürüm haritasına yazılır;
+  // kesilirse sonraki açılışta yalnız kalanlar iner. Silinenler sunucudaki kimlik listesinden (dizin) bulunur.
+  const sunucuda = new Set(dizin.map((d) => d.id));
   const silinecek = anahtarlar.filter((k) => !sunucuda.has(k));
-  if (gelen.length || silinecek.length) {
-    await openDB().then((idb) => new Promise((resolve, reject) => {
-      const tx = _izle(idb.transaction('works', 'readwrite'));
-      const store = tx.objectStore('works');
-      silinecek.forEach((k) => store.delete(k));
-      gelen.forEach((w) => store.put(w));
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error || new Error('işlem iptal edildi'));
-    }));
-  }
-  // Harita: değişmeyenler listedeki zamanla, gelenler kendi zamanıyla. Gerekli olup gelmeyen (arada silinen) yazılmaz.
+  const yaz = (koy, sil) => openDB().then((idb) => new Promise((resolve, reject) => {
+    const tx = _izle(idb.transaction('works', 'readwrite'));
+    const store = tx.objectStore('works');
+    sil.forEach((k) => store.delete(k));
+    koy.forEach((w) => store.put(w));
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error || new Error('işlem iptal edildi'));
+  }));
+  if (silinecek.length) await yaz([], silinecek);
+  // Harita: değişmeyenler listedeki zamanla; inenler geldikçe eklenir (gerekli olup gelmeyen yazılmaz → sonra yine istenir).
   const yeni = {};
-  if (!tam) { const istenen = new Set(gerekli); dizin.forEach((d) => { if (!istenen.has(d.id)) yeni[d.id] = d.updated_at; }); }
-  gelen.forEach((w) => { yeni[w.id] = w.updated_at; });
+  const istenen = new Set(gerekli);
+  dizin.forEach((d) => { if (!istenen.has(d.id)) yeni[d.id] = d.updated_at; });
+  const gorunur = gerekli.length > 2000;
+  let inen = 0;
+  if (gorunur) _indirmeGoster(0, gerekli.length);
+  try {
+    for (let i = 0; i < gerekli.length; i += 500) {
+      const parca = await window.supaTumSayfalar(taban + '&select=*&id=in.(' + gerekli.slice(i, i + 500).join(',') + ')', headers);
+      if (parca.length) await yaz(parca, []);
+      parca.forEach((w) => { yeni[w.id] = w.updated_at; });
+      await meta.set('worksSurum', yeni);
+      inen += parca.length;
+      if (gorunur) _indirmeGoster(inen, gerekli.length);
+    }
+  } finally {
+    if (gorunur) _indirmeGizle();
+  }
   await meta.set('worksSurum', yeni);
-  console.log('[db] eserler: ' + gelen.length + ' indi, ' + silinecek.length + ' silindi, ' + dizin.length + ' eser' + (tam ? ' (tam)' : ''));
+  console.log('[db] eserler: ' + inen + ' indi, ' + silinecek.length + ' silindi, ' + dizin.length + ' eser' + (gorunur ? ' (parçalı ilk eşitleme)' : ''));
   return { rows: await tumu() };
 }
 
@@ -361,10 +390,9 @@ window.syncOfflineData = async function() {
     // (2026-10-31) Eserler artımlı (eserleriEsitle kendi yazar); updated_at sütunu yoksa eski tam indirme.
     const _eserler = () => window.eserleriEsitle().then(
       (d) => d ? { ok: true, artimli: true } : _al('/rest/v1/works?select=*&deleted_at=is.null&order=name.asc,id.asc'),
-      (e) => {
-        if (e && e.status) { console.warn('[db] eşitleme: works alınamadı (HTTP ' + e.status + ')'); return { ok: false }; }
-        throw e;
-      });
+      // (2026-11-04) Ağ hatası / kesinti de { ok:false }: eserler yarıda kalsa da (parçalar zaten yazıldı) repertuvar,
+      // solist ve grup tabloları kaydedilsin — eskiden Promise.all hepsini düşürüyor, ilk girişte repertuvarlar da boş kalıyordu.
+      (e) => { console.warn('[db] eşitleme: works alınamadı', e && (e.status ? 'HTTP ' + e.status : e.message)); return { ok: false }; });
     const [worksRes, repsRes, solRes, itemsRes, grpRes, gmRes, profRes] = await Promise.all([
       // (2026-08-30) Silinmiş eserler ÖNBELLEĞE ALINMASIN: buraya girerse
       // çevrimdışı çalışan her sayfa onları gösterir ve sebebi bulunması zor olur.

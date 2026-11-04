@@ -407,8 +407,8 @@ function _applyWorksRows(rows) {
   (rows||[]).forEach(w => {
     const id = String(w.id);
     // (2026-08-20) videoLink eklendi — 🎧 Repertuvarı Dinle bunu kullanıyor.
-    WL[id] = { name: w.name||'', composer: w.composer||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'', videoLink: w.video_link||'', olcu: w.measurement||'', form: (w.form||'').trim() };
-    WLIST.push({ id, name: w.name||'', composer: w.composer||'', makam: w.makam||'', sb: w.submitted_by||'' });
+    WL[id] = { name: w.name||'', composer: w.composer||w.seslendiren||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'', videoLink: w.video_link||'', olcu: w.measurement||'', form: (w.form||'').trim() };
+    WLIST.push({ id, name: w.name||'', composer: w.composer||w.seslendiren||'', makam: w.makam||'', sb: w.submitted_by||'' });
   });
   // customWorks patch (yerel override'lar)
   try {
@@ -912,7 +912,7 @@ function renderList(){
     const medleyChip = mc ? `<span class="rep-medley" title="${mc===1?_r('rep.birPotpuriVar','Bu repertuvarda bir potpuri var'):_r('rep.nPotpuriVar','Bu repertuvarda {n} potpuri var').replace('{n}',mc)}">🔗${mc>1?' '+mc:''}</span>` : '';
     const touchAttrs = `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)" ontouchcancel="riTouchEnd(event)"`;
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
-      <div><div class="rn">${_rEsc(r.name)}${repVis(r)==='public'&&r.isOwner?' <i class="ti ti-world" style="font-size:12px;color:#4ade80;vertical-align:-1px;" title="'+_r('yo.herkeseAcik','Herkese açık')+'" aria-hidden="true"></i>':''}</div>
+      <div><div class="rn">${_rEsc(r.name)}${window.gorunurlukCipi ? gorunurlukCipi(repVis(r)) : ''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||_r('rep.taslak','Taslak')}</span>${medleyChip}${r.date?'<span>'+_rEsc(r.date)+'</span>':''}</div></div>
       <div class="rc">${(r.items||[]).length} ${_rBirim((r.items||[]).length)}</div>
     </div>`;
@@ -1223,9 +1223,10 @@ function visChip(rep){
   // İkonlar Tabler setinden (projenin standardı) — emoji KULLANILMIYOR.
   // ti-users-group, sol menüdeki "Grup / Koro" öğesiyle AYNI ikon (topnav.js:651).
   const map = {
-    public:  ['pub',  'ti-world', _r('rep.genel','Genel'),   _r('rep.genelT','Herkese açık — değiştirmek için tıkla')],
-    group:   ['grp',  'ti-users-group', _r('rep.grupKisa','Grup'),    _r('rep.grupT','Grup üyeleri görebilir — değiştirmek için tıkla')],
-    private: ['priv', 'ti-lock',  _r('rep.kisisel','Kişisel'), _r('rep.kisiselT','Yalnızca sen görebilirsin — değiştirmek için tıkla')]
+    // (2026-11-04) Emir karar B: kişi / grup / dünya; etiketler ortak çiple aynı (vis.*). Kilit KULLANILMAZ.
+    public:  ['pub',  'ti-world', _r('vis.acik','Herkese açık'),   _r('rep.genelT','Herkese açık — değiştirmek için tıkla')],
+    group:   ['grp',  'ti-users-group', _r('vis.grup','Grup'),    _r('rep.grupT','Grup üyeleri görebilir — değiştirmek için tıkla')],
+    private: ['priv', 'ti-user',  _r('vis.ben','Sadece ben'), _r('rep.kisiselT','Yalnızca sen görebilirsin — değiştirmek için tıkla')]
   };
   const [cls,icon,label,title] = map[v];
   return `<span class="chip-vis ${cls}" onclick="openEdit('${rep.id}')" title="${title}"><i class="ti ${icon}" style="font-size:13px;" aria-hidden="true"></i> ${label}</span>`;
@@ -2882,7 +2883,7 @@ function openRepMoveSheet(workId, fromRepId) {
 
   const satirlar = aday.length ? aday.map(r => {
     const varMi = (r.items || []).some(it => String(it.workId) === String(workId));
-    const ikon = { public:'ti-world', group:'ti-users-group', private:'ti-lock' }[repVis(r)];
+    const ikon = { public:'ti-world', group:'ti-users-group', private:'ti-user' }[repVis(r)];
     return `<button class="rlp-item" ${varMi ? 'disabled' : ''}
         onclick="rlpAddToRep('${r.id}')">
         <i class="ti ${ikon}" aria-hidden="true"></i>
@@ -3215,7 +3216,7 @@ function openDinleSheet(repId) {
   // hangileri olduğu dokununca açılıyor (başlıkta uzun liste yer kaplamasın).
   const uyari = eksik.length ? `
       <div class="dnl-warn" onclick="this.classList.toggle('acik')">
-        ⚠️ ${_r('rep.ytEksik','{n} eserde YouTube bağlantısı yok — listeye alınmadı.').replace('{n}',eksik.length)} <u>${_r('rep.hangileri','Hangileri?')}</u>
+        ⚠️ ${_r((window._tekA||String)('rep.ytEksik', eksik.length),'{n} eserde YouTube bağlantısı yok — listeye alınmadı.').replace('{n}',eksik.length)} <u>${_r('rep.hangileri','Hangileri?')}</u>
         <div class="dnl-warn-list">${eksik.map(x => _dnlEsc(x.name)).join(' · ')}</div>
       </div>` : '';
 

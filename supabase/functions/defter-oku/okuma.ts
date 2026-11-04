@@ -6,7 +6,10 @@
 // notanın altında hece hece) sayfada Haiku sözcük birleştirmede hata yaptı, Opus yapmadı → kullanıcı: "Test süresince Opus'a geç;
 // 100 kullanıcı 500 sayfayı geçerse Haiku'yu ya da ücretlendirmeyi yeniden değerlendiririz" (izleme: defter_okuma_kayit).
 // Opus ~5 ¢/sayfa, Haiku ~0,2 ¢. Varsayılan Opus iken "Daha dikkatli oku" düğmesi görünmez.
-export const MODEL = 'claude-opus-5-5';
+// (2026-11-02) Emir: "öyle yapalım" — aynı 14 sayfalık karşılaştırmada (Paylasim/Giden/haiku-opus-2026-11-02) güncel talimatla
+// Haiku TRT/Türkçe sayfalarda Opus'la birebir, batı lead sheet ve karışık düzende birkaç hata; ~28 kat ucuz (0,11 ¢ / 3,2 ¢ sayfa).
+// Varsayılan Haiku, "Daha dikkatli oku" Opus. Okuma Pro/Edu abonelerine açılır (index.ts yetkili()).
+export const MODEL = 'claude-haiku-5-5';
 export const DIKKATLI_MODEL = 'claude-opus-5-5';
 // Sunucudan (servis anahtarıyla) karşılaştırma için açıkça seçilebilen modeller.
 // Haiku 5.5'te sunucu tarafı yedek model (fallbacks) yok → o istekte gönderilmez.

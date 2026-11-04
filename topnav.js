@@ -1779,16 +1779,43 @@ function _m(anahtar, tr) {
     };
     document.body.appendChild(k);
   }
+  // (2026-11-04) ZORUNLU GÜNCELLEME — surum.json "en_dusuk" (ios: sürüm adı, android: versionCode). Altındaysa kapatılamayan ekran.
+  // Sahne Modunda ASLA (sahnedeki müzisyeni durdurmayız; sahneden çıkınca başka sayfada çıkar). Çevrim dışı / hata → engel yok.
+  function zorunlu() {
+    if (/stage\.html$/.test(location.pathname) || document.getElementById('gncZorunlu')) return;
+    var st = document.createElement('style');
+    st.textContent =
+      '#gncZorunlu{position:fixed;inset:0;z-index:2147483000;background:var(--bg,#070A0F);color:var(--text,#fff);display:flex;align-items:center;' +
+      'justify-content:center;padding:24px;font-family:inherit}#gncZorunlu .gz-k{max-width:420px;text-align:center}' +
+      '#gncZorunlu .gz-i{font-size:44px;margin-bottom:10px}#gncZorunlu b{display:block;font-size:20px;margin-bottom:8px}' +
+      '#gncZorunlu p{margin:0 0 20px;font-size:15px;line-height:1.5;color:var(--text2,#b8bfd2)}' +
+      '#gncZorunlu button{min-height:48px;padding:0 32px;border-radius:999px;border:0;background:var(--accent,#FFC83D);color:#1a1200;font:inherit;font-size:16px;font-weight:700;cursor:pointer}';
+    document.head.appendChild(st);
+    var k = document.createElement('div'); k.id = 'gncZorunlu'; k.setAttribute('role', 'alertdialog'); k.setAttribute('aria-modal', 'true');
+    k.innerHTML = '<div class="gz-k"><div class="gz-i"><i class="ti ti-download" aria-hidden="true"></i></div><b></b><p></p><button type="button"></button></div>';
+    k.querySelector('b').textContent = _m('gnc.zorunluBaslik', 'Güncelleme gerekli');
+    k.querySelector('p').textContent = _m('gnc.zorunluMetin', 'Bu Repertuvar sürümü artık desteklenmiyor. Devam etmek için uygulamayı güncelle. Eserlerin ve repertuvarların hesabında güvende.');
+    k.querySelector('button').textContent = _m('gnc.guncelle', 'Güncelle');
+    k.querySelector('button').onclick = function () {
+      location.href = ios ? 'itms-apps://apps.apple.com/app/id6820565687' : 'https://play.google.com/store/apps/details?id=app.repertuvar';
+    };
+    document.body.appendChild(k);
+  }
+  function altinda(mevcut, sinir) { return ios ? yeniMi(mevcut, sinir) : (+sinir > +mevcut); }
   function denetle() {
     var son = +oku('gncBakis') || 0;
-    if (Date.now() - son < 12 * SAAT) return;
+    var yakinda = Date.now() - son < 12 * SAAT;   // "yeni sürüm" kartı yarım günde bir; zorunlu sınır HER açılışta
     c.Plugins.App.getInfo().then(function (bilgi) {
-      return fetch('https://app.repertuvar.app/surum.json?t=' + Math.floor(Date.now() / SAAT), { cache: 'no-store' })
+      return fetch('https://app.repertuvar.app/surum.json?t=' + Math.floor(Date.now() / 60000), { cache: 'no-store' })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (s) {
           if (!s) return;
+          var mevcut = ios ? bilgi.version : bilgi.build;
+          var sinir = s.en_dusuk && (ios ? s.en_dusuk.ios : s.en_dusuk.android);
+          if (sinir != null && mevcut != null && altinda(mevcut, sinir)) { zorunlu(); return; }
+          if (yakinda) return;
           yaz('gncBakis', String(Date.now()));
-          var hedef = ios ? s.ios : s.android, mevcut = ios ? bilgi.version : bilgi.build;
+          var hedef = ios ? s.ios : s.android;
           if (hedef == null || mevcut == null) return;
           var yeni = ios ? yeniMi(mevcut, hedef) : (+hedef > +mevcut);
           if (!yeni) return;

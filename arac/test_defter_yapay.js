@@ -12,15 +12,19 @@ function fonk(kaynak, ad){
 }
 const es=oku('eserler.html'), au=oku('auth.js');
 const kod=[
-  au.match(/const _TR_FOLD = \{[\s\S]*?\};/)[0], fonk(au,'trNorm'),
+  au.match(/const _TR_FOLD = \{[\s\S]*?\};/)[0], 'const _trNormBellek = new Map();', fonk(au,'trNorm'),   // a3db296'dan beri trNorm önbellek kullanıyor
   es.match(/const _defterOkuTempo = [^\n]*/)[0], es.match(/function _esHtml\(s\)\{[^\n]*\}/)[0],
-  ...['_defterGrupla','_defterOkunanBirlestir','defterYapayOku','defterEserOlustur','defterKaydet','defterBirlestir',
+  ...['defterOkumaAcik','defterOkumaAcikTazele','_defterGrupla','_defterOkunanBirlestir','defterYapayOku','defterEserOlustur','defterKaydet','defterBirlestir',
       '_defterAyniEser','defterAyniAdBirlestir','defterOkunanHtml','defterPdfMi','defterTekrarGeriEkle','defterEkle','_defterTekIstekte'].map(a=>fonk(es,a)),
 ].join('\n');
 
-function ortam({ rol='editor', kartlar=[], cevaplar=[] }={}){
+// pro: undefined → abonelik.js yok; 'pro'/'free' → önbellekteki plan; 'tazele' → önbellek boş, durumTazele 'pro' döner
+function ortam({ rol='editor', kartlar=[], cevaplar=[], pro }={}){
   const olan={ istekler:[], kenarlar:[], kilitliIken:[], olusan:[], govdeler:[], durum:'', cizim:0 };
-  const g={ _defter:kartlar, _defterKaydediliyor:false, _defterOkunuyor:0, DATA:[], DEFTER_OKU_EN_COK:6, olan };
+  let onb = pro==='tazele' ? null : (pro ? { plan:pro } : null);
+  const Pro = pro===undefined ? undefined : { proMu:d=>!!d&&(d.plan==='pro'||d.plan==='edu'), onbellek:()=>onb,
+    durumTazele:async()=>{ olan.tazele=(olan.tazele||0)+1; onb={ plan:'pro' }; return onb; } };
+  const g={ _defter:kartlar, _defterKaydediliyor:false, _defterOkunuyor:0, DATA:[], DEFTER_OKU_EN_COK:6, olan, window:{ Pro }, _defterKaynak:'dosya' };   // _defterKaynak: 9900c82 izleme
   Object.assign(g,{
     _esCev:(k,t)=>t, isAdmin:()=>rol==='admin', isEditor:()=>rol==='admin'||rol==='editor', getUserId:()=>'u1', getUser:()=>({email:'e@x'}),
     defterCiz:()=>{olan.cizim++;}, defterDurum:t=>{olan.durum=t;}, confirm:()=>false, defterDuzenleyebilir:()=>true,
@@ -92,6 +96,19 @@ const eser=(sayfalar,baslik,soz='',akorlu='',b={},tekrarlar=[])=>({ sayfalar, te
     const o=ortam({ rol:'user', kartlar:[tekSayfa('a')] });
     await o.yapayOku(0);
     yaz('yönetici/editör değilse okuma yok', o.olan.istekler.length===0);
+    // (2026-11-02) Pro/Edu abonesi (deneme dahil) okur; free okumaz; önbellek yoksa bir kez tazelenir
+    const ab=ortam({ rol:'user', pro:'pro', kartlar:[tekSayfa('a')], cevaplar:[{ model:'claude-haiku-5-5', donuslar:[0], eserler:[eser([1],'A','a')] }] });
+    await ab.yapayOku(0);
+    yaz('Pro abonesi okur', ab.olan.istekler.length===1 && ab.kartlar()[0].ad==='A');
+    const ed=ortam({ rol:'user', pro:'edu', kartlar:[tekSayfa('a')], cevaplar:[{ model:'m', donuslar:[0], eserler:[eser([1],'E','e')] }] });
+    await ed.yapayOku(0);
+    yaz('Edu abonesi okur', ed.olan.istekler.length===1);
+    const fr=ortam({ rol:'user', pro:'free', kartlar:[tekSayfa('a')] });
+    await fr.yapayOku(0);
+    yaz('abone olmayan (free) okumaz, tazeleme de yok', fr.olan.istekler.length===0 && !fr.olan.tazele);
+    const tz=ortam({ rol:'user', pro:'tazele', kartlar:[tekSayfa('a')], cevaplar:[{ model:'m', donuslar:[0], eserler:[eser([1],'T','t')] }] });
+    await tz.yapayOku(0);
+    yaz('önbellek boşsa bir kez tazelenir, abonese okur', tz.olan.tazele===1 && tz.olan.istekler.length===1);
     const pdf={ ad:'', sayfalar:[{ dosya:{name:'p.pdf', type:'application/pdf'}, url:'x' }] }, bagli={...tekSayfa('m'), eser:7};
     const o2=ortam({ kartlar:[pdf, bagli, tekSayfa('z')], cevaplar:[{ model:'m', donuslar:[], eserler:[eser([1],'Z','z')] }] });
     await o2.yapayOku(0);

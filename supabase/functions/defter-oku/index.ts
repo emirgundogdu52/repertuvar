@@ -9,9 +9,9 @@
 // mod:'defter' ("📒 Defterden ekle"): sayfalar eserlere ayrılır → { eserler:[{sayfalar, baslik, soz, akorlu, bilgiler, notlar}], donuslar }.
 // Hiçbir şey kaydedilmez: kullanıcı önizlemede bakıp formu kendisi doldurur ve kaydeder.
 //
-// Kimlik ("Verify JWT" KAPALI, burada denetlenir): kullanıcının Supabase oturumu. Deneme süresince yalnız
-// admin/editör rolü ya da DEFTER_OKU_IZINLI (virgülle uid) listesindekiler; ayrıca servis anahtarı
-// (sunucudan deneme). Herkese açmak ürün kararı (ücret, kota, gizlilik beyanı).
+// Kimlik ("Verify JWT" KAPALI, burada denetlenir): kullanıcının Supabase oturumu. admin/editör rolü,
+// DEFTER_OKU_IZINLI (virgülle uid) listesi ya da (2026-11-02, Emir) Pro/Edu abonesi — plan_of(): abonelikler
+// tablosundaki deneme/aktif/iptal_edildi/odeme_sorunu ve süresi geçmemiş kayıt; ayrıca servis anahtarı (sunucudan deneme).
 //
 // Supabase Secrets: ANTHROPIC_API_KEY (zorunlu), DEFTER_OKU_IZINLI (isteğe bağlı).
 // SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY ortamda kendiliğinden gelir.
@@ -75,7 +75,16 @@ async function yetkili(yetki: string, ortam: Ortam, f: typeof fetch): Promise<st
   });
   if (!pr.ok) return null;
   const satir = (await pr.json())[0];
-  return satir && (satir.role === 'admin' || satir.role === 'editor') ? uid : null;
+  if (satir && (satir.role === 'admin' || satir.role === 'editor')) return uid;
+  // (2026-11-02) Pro/Edu abonesi (1 aylık deneme dahil) — uygulamadaki abonelik_durumu() ile aynı kaynak: plan_of()
+  const pl = await f(ortam('SUPABASE_URL') + '/rest/v1/rpc/plan_of', {
+    method: 'POST',
+    headers: { apikey: servis, Authorization: 'Bearer ' + servis, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ uid }),
+  });
+  if (!pl.ok) return null;
+  const plan = await pl.json();
+  return plan === 'pro' || plan === 'edu' ? uid : null;
 }
 
 // Okuma kaydı; düşmezse okuma yine döner

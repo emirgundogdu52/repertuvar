@@ -1916,7 +1916,9 @@ function displayUserName(userId, email){
 // eser tek-kayıt çekimi aynı eşlemeyi kullansın diye ayrıldı).
 function mapWorkRow(w) {
   return {
-    id: w.id, name: w.name || '', composer: w.composer || '',
+    // (2026-11-04) seslendiren ayrı alan; geçişte besteci alanında aynı isim duruyorsa besteci BOŞ sayılır
+    id: w.id, name: w.name || '', composer: (w.composer && w.composer !== w.seslendiren) ? w.composer : '',
+    seslendiren: w.seslendiren || '',
     lyricWriter: w.lyric_writer || '', makam: w.makam || '',
     form: w.form || '', measurement: w.measurement || '',
     // (2026-08-20) Üst katman: THM/TSM/Türk Pop… Form bunun ALTINDA kalır ve
@@ -2042,7 +2044,7 @@ async function syncWorksFromServer(hadLocalData) {
     // ── FAZ 1: HAFİF liste (güfte/akor/nota HARİÇ) — ilk boyama hızlı olsun.
     //    Liste ve filtreler bu alanlara ihtiyaç duymaz; ağır güfte/akor metnini
     //    ilk yükte çekmek soğuk açılışı yavaşlatan asıl sebepti. ──
-    const lightSel = 'select=id,name,composer,lyric_writer,makam,tur,form,measurement,instrument,tuning,closing_note,region,source_person,collector,story,metronom,ritim,active_music_fields,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id,deleted_at,dil';
+    const lightSel = 'select=id,name,composer,seslendiren,lyric_writer,makam,tur,form,measurement,instrument,tuning,closing_note,region,source_person,collector,story,metronom,ritim,active_music_fields,video_link,status,submitted_by,submitter_email,submitted_at,visibility,group_id,deleted_at,dil';
     // Zaman aşımı SAYFA BAŞINA; herhangi bir sayfa düşerse hata fırlar, aşağıdaki catch yerel listeyi korur.
     const rows = await supaTumSayfalar(SUPA_URL+base+'&'+lightSel, hdr, { zaman: hadLocalData ? 8000 : 5000 });
     // 2026-07-30: BOŞ SUNUCU YANITI YEREL LİSTEYİ SİLMESİN.
@@ -2336,7 +2338,7 @@ function clearFilters() {
 // hesaplanır; alanlardan biri değişirse (düzenleme) yeniden hesaplanır. WeakMap: eser nesnesine alan eklenmez (IndexedDB'ye gitmez).
 const _araOnbellek = new WeakMap();
 function _araMetni(w) {
-  const alanlar = [w.name,w.composer,w.lyricWriter,w.makam,w.region,w.sourcePerson,w.lyrics];
+  const alanlar = [w.name,w.composer,w.seslendiren,w.lyricWriter,w.makam,w.region,w.sourcePerson,w.lyrics];
   const c = _araOnbellek.get(w);
   if (c && c.alanlar.every((v, i) => v === alanlar[i])) return c.metin;
   const metin = trNorm(alanlar.filter(Boolean).join(' '));
@@ -3024,7 +3026,7 @@ function setSort(mode) {
 
 function sortData() {
   if (sortMode === 'name') filteredData.sort((a,b) => (a.name||'').localeCompare(b.name||'','tr'));
-  else if (sortMode === 'composer') filteredData.sort((a,b) => (a.composer||'zzz').localeCompare(b.composer||'zzz','tr'));
+  else if (sortMode === 'composer') filteredData.sort((a,b) => (a.composer||a.seslendiren||'zzz').localeCompare(b.composer||b.seslendiren||'zzz','tr'));
   else if (sortMode === 'makam') filteredData.sort((a,b) => (a.makam||'zzz').localeCompare(b.makam||'zzz','tr'));
   else if (sortMode === 'form') filteredData.sort((a,b) => (a.form||'zzz').localeCompare(b.form||'zzz','tr'));
   else if (sortMode === 'region') filteredData.sort((a,b) => (a.region||'zzz').localeCompare(b.region||'zzz','tr'));
@@ -3107,7 +3109,7 @@ function renderList() {
   const swipeAllowedContext = !bulkMode;
   _listeKart = (w, _zi) => {
     const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
-    const countBadge = repCount > 0 ? `<span class="work-count-badge" title="${_esCev('es.nRepKullaniliyor','{n} repertuvarda kullanılıyor').replace('{n}', repCount)}">${repCount}</span>` : '';
+    const countBadge = repCount > 0 ? `<span class="work-count-badge" title="${_esCev((window._tekA||String)('es.nRepKullaniliyor', repCount),'{n} repertuvarda kullanılıyor').replace('{n}', repCount)}">${repCount}</span>` : '';
     const isFav = favs.has(w.id);
     // (2026-08-21) Tur rozeti — cip ile suzunce "bu neden cikti/cikmadi"
     // sorusunun kart uzerindeki cevabi.
@@ -3133,8 +3135,10 @@ function renderList() {
       <div class="work-icon">🎵</div>
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
-        <div class="work-name"><span class="work-ad">${w.name?_esHtml(w.name):_esCev('es.isimsiz','(isimsiz)')}</span>${(w.visibility === 'private' && w.submitted_by === uidNow) ? ' <span title="' + _esCev('es.yalnizcaSiz','Yalnızca siz görürsünüz') + '" style="font-size:10px;font-weight:700;color:#58A6FF;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.taslakRozet','🔒 Taslak') + '</span>' : ''}${(w.visibility === 'group') ? ' <span title="' + _esCev('es.t_yalnizGrup','Yalnızca grup üyeleriniz görür') + '" style="font-size:10px;font-weight:700;color:#c4b5fd;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:1px 6px;vertical-align:middle;white-space:nowrap;">' + _esCev('es.grupRozet','👥 Grup') + '</span>' : ''}</div>
-        ${(turBadge || w.composer) ? `<div class="work-composer">${turBadge}${_esHtml(w.composer||'')}</div>` : ''}
+        <div class="work-name"><span class="work-ad">${w.name?_esHtml(w.name):_esCev('es.isimsiz','(isimsiz)')}</span>${window.gorunurlukCipi ? ' ' + gorunurlukCipi(  /* (2026-11-04) görünürlük çipi: kendi özel/açık eserin + grup eseri; katalogdaki başkalarının eserinde yok */
+          (w.visibility === 'private' && w.submitted_by === uidNow) ? 'private' : (w.visibility === 'group') ? 'group'
+          : ((w.visibility || 'public') === 'public' && w.submitted_by && w.submitted_by === uidNow) ? 'public' : '') : ''}</div>
+        ${(turBadge || w.composer || w.seslendiren) ? `<div class="work-composer">${turBadge}${_esHtml(w.composer||w.seslendiren||'')}</div>` : ''}
         <div class="work-title-divider"></div>
         <div class="work-rep-count"><span class="status-dot"></span> ${_esCev('es.offlineEtiket','Çevrim dışı')}</div>
       </div>
@@ -3453,7 +3457,7 @@ async function bulkCreateRepertoire() {
     const insRes = await fetch(SUPA_URL + '/rest/v1/repertoire_items', { method: 'POST', headers, body: JSON.stringify(items) });
     if (!insRes.ok) throw new Error('items insert failed');
     if (typeof loadRepertoireCounts === 'function') loadRepertoireCounts();
-    alert(_esCev('es.repOlusturuldu','✓ "{ad}" repertuvarı {n} eserle oluşturuldu.').replace('{ad}', name.trim()).replace('{n}', ids.length));
+    alert(_esCev((window._tekA||String)('es.repOlusturuldu', ids.length),'✓ "{ad}" repertuvarı {n} eserle oluşturuldu.').replace('{ad}', name.trim()).replace('{n}', ids.length));
     exitBulkMode();
   } catch (e) {
     alert(_esCev('es.repOlusturHata','Repertuvar oluşturulurken bir hata oluştu.'));
@@ -3467,7 +3471,7 @@ function bulkAddToRepertoire() {
   if (!overlay || !sheet) return;
   const count = bulkSelectedIds.size;
   sheet.innerHTML = `
-    <div class="more-sheet-title">${_esCev('es.nEseriRepEkle','{n} Eseri Repertuvara Ekle').replace('{n}', count)}</div>
+    <div class="more-sheet-title">${_esCev((window._tekA||String)('es.nEseriRepEkle', count),'{n} Eseri Repertuvara Ekle').replace('{n}', count)}</div>
     <div id="repAddList" style="max-height:50vh;overflow-y:auto;">
       <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">${_esCev('rep.yukleniyor','Yükleniyor...')}</div>
     </div>
@@ -3522,7 +3526,7 @@ async function pickRepertoireForBulkAdd(repId, repName) {
       if (!insRes.ok) throw new Error('HTTP ' + insRes.status + ' — ' + (await insRes.text()).slice(0, 300));
     }
     msg.style.color = 'var(--ready-color,#34C759)';
-    msg.textContent = _esCev('es.topluEklendi','✓ {n} eser "{rep}" içine eklendi.').replace('{n}',toAdd.length).replace('{rep}',repName) + (skipped ? _esCev('es.zatenVardi',' ({n} zaten vardı)').replace('{n}',skipped) : '');
+    msg.textContent = _esCev((window._tekA||String)('es.topluEklendi', toAdd.length),'✓ {n} eser "{rep}" içine eklendi.').replace('{n}',toAdd.length).replace('{rep}',repName) + (skipped ? _esCev((window._tekA||String)('es.zatenVardi', skipped),' ({n} zaten vardı)').replace('{n}',skipped) : '');
     if (typeof loadRepertoireCounts === 'function') loadRepertoireCounts();
     setTimeout(() => { closeRepAddSheet(); exitBulkMode(); }, 1100);
   } catch (e) {
@@ -3608,7 +3612,7 @@ function selectWork(id, silent) {
     <button type="button" class="back-btn" onclick="backFromDetail()"><i class="ti ti-chevron-left" aria-hidden="true"></i><span>${_esCev('es.listeyeDon','← Listeye Dön').replace(/^[←‹<]\s*/, '')}</span></button>
     <div class="detail-header">
       <div class="detail-title">${_esHtml(w.name||_esCev('es.isimsiz','(isimsiz)'))}</div>
-      ${(w.region || w.sourcePerson || w.composer) ? `<div class="detail-subtitle">${[w.region ? `📍 ${_esHtml(w.region)}` : '', (w.sourcePerson||w.composer) ? `👤 ${_esHtml(w.sourcePerson||w.composer)}` : ''].filter(Boolean).join(' &nbsp;•&nbsp; ')}</div>` : ''}
+      ${(w.region || w.sourcePerson || w.composer || w.seslendiren) ? `<div class="detail-subtitle">${[w.region ? `📍 ${_esHtml(w.region)}` : '', (w.sourcePerson||w.composer||w.seslendiren) ? `👤 ${_esHtml(w.sourcePerson||w.composer||w.seslendiren)}` : ''].filter(Boolean).join(' &nbsp;•&nbsp; ')}</div>` : ''}
       <div class="detail-chips">${chips}</div>
       <div class="detail-stage-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px;width:100%;">
         ${stageBtn}
@@ -3637,8 +3641,8 @@ function selectWork(id, silent) {
         const repCount = (window.WORK_REP_COUNTS && window.WORK_REP_COUNTS[w.id]) || 0;
         const groupCount = (window.WORK_GROUP_COUNTS && window.WORK_GROUP_COUNTS[w.id]) || 0;
         const bits = [
-          repCount > 0 ? _esCev('es.repSayaci','📂 {n} Repertuvar').replace('{n}',repCount) : '',
-          groupCount > 0 ? _esCev('es.grupSayaci','👥 {n} Grup').replace('{n}',groupCount) : '',
+          repCount > 0 ? _esCev((window._tekA||String)('es.repSayaci', repCount),'📂 {n} Repertuvar').replace('{n}',repCount) : '',
+          groupCount > 0 ? _esCev((window._tekA||String)('es.grupSayaci', groupCount),'👥 {n} Grup').replace('{n}',groupCount) : '',
         ].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
         // (2026-09-27) "Offline Hazır" artık SABİT DEĞİL: yer tutucu çizilir,
         // IndexedDB kontrolü (db.js checkWorkOfflineReady) bitince dolar.
@@ -3717,6 +3721,7 @@ function selectWork(id, silent) {
     <div id="tab-bilgiler" class="detail-tab-content detail-body${lastTab==='bilgiler'?' active':''}">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
         ${row2(_esCev('es.bestecialan','Besteci'), w.composer)}
+        ${row2(_esCev('es.seslendiren','Seslendiren'), w.seslendiren)}
         ${row2(_esCev('es.sozyazari','Söz Yazarı'), w.lyricWriter)}
         ${row2(_esCev('es.form','Form'), w.form)}
         ${row2(_esCev('alan.enstruman','Enstrüman'), w.instrument)}
@@ -5602,7 +5607,7 @@ function renderNotaPagesBlock(w) {
   // (2026-10-18) Kendi eserinin sahibi de sıralar/döndürür/siler (yükleme alanıyla aynı kural).
   const canEdit = (isAdmin() || isEditor() || (!!w.submitted_by && w.submitted_by === getUserId()));
   if (!pages.length) return `<div style="color:var(--text3);font-size:13px;padding:12px 0 4px;">${_esCev('es.notaYok','Bu eser için nota eklenmemiş.')}</div>`;
-  let html = `<div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">${_esCev('es.nSayfa','{n} sayfa').replace('{n}', pages.length)}</div>`;
+  let html = `<div style="font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">${_esCev((window._tekA||String)('es.nSayfa', pages.length),'{n} sayfa').replace('{n}', pages.length)}</div>`;
   pages.forEach((hamU, i) => {
     // (2026-10-17) XSS: nota adresi öznitelikte kaçışsızdı (`x.png" onerror=…`, `javascript:`). Yalnız http(s) / blob: /
     // data:image (çevrimdışı) / göreli; türü ham adresten anla, çıktıya kaçışlısını yaz.
@@ -5834,7 +5839,7 @@ async function notaTaraDosyalar(durum) {
   }
   const adresler = (r && r.sayfalar) || [];
   if (!adresler.length) return [];
-  durum({ text: _esCev('es.taramaHazir','⏳ {n} sayfa hazırlanıyor...').replace('{n}', adresler.length) });
+  durum({ text: _esCev((window._tekA||String)('es.taramaHazir', adresler.length),'⏳ {n} sayfa hazırlanıyor...').replace('{n}', adresler.length) });
   const files = [];
   for (let i = 0; i < adresler.length; i++) {
     try {
@@ -5851,7 +5856,7 @@ async function notaTaraDosyalar(durum) {
 // ── (2026-10-22) DEFTERDEN OKU (DENEME) ───────────────────────────────────────────────────────────
 // Kullanıcı: defter sayfasındaki söz ve akorları metne çevirmek (19:40 devir notu 4c–4e). Cihaz içi okuma (Apple
 // Vision) el yazısında ve akorda başarısızdı (Paylasim/Giden/metin-tanima-karsilastirma: akor 6/15 ve 0/48) → okuma
-// sunucuda Claude ile (supabase/functions/defter-oku). Deneme süresince yalnız yönetici/editör (sunucu da denetler).
+// sunucuda Claude ile (supabase/functions/defter-oku). 2026-11-02'den: yönetici/editör + Pro/Edu abonesi (defterOkumaAcik; sunucu da denetler).
 // Sonuç önizlemede düzenlenir; "Forma uygula" yalnız formu doldurur, kaydetmek yine Kaydet ile. Sayfa yatık
 // çekilmişse sunucu dönüş açısını da verir: kayıtlı eserde fotoğraf düzeltilmiş olarak nota sayfası yapılabilir.
 // Model (kullanıcı kararı "3"): önce Haiku 5.5 (~0,2 ¢); önizlemedeki "Daha dikkatli oku" aynı görseli Opus 5.5 ile
@@ -5860,6 +5865,18 @@ async function notaTaraDosyalar(durum) {
 // düğme belge tarayıcıyı açar (kenar/eğiklik düzeltilir, art arda çok sayfa; iOS tarayıcısı galeriden almadığı için
 // yanında "Fotoğraflardan seç"); web'de kamera/dosya (çoklu). Sayfalar tek istekte gider, sunucu tek eser olarak
 // birleştirir (en çok DEFTER_OKU_EN_COK); her sayfanın dönüş açısı ayrı gelir (donuslar).
+// (2026-11-02) Emir "öyle yapalım": okuma yönetici/editör + Pro/Edu abonesine (1 aylık deneme dahil) açık; varsayılan model
+// Haiku 5.5, "Daha dikkatli oku" Opus 5.5. Abonelik durumu abonelik.js önbelleğinden (rpc/abonelik_durumu); sunucu da plan_of() ile denetler.
+function defterOkumaAcik() {
+  if (isAdmin() || isEditor()) return true;
+  try { const P = window.Pro; return !!(P && P.proMu(P.onbellek())); } catch (e) { return false; }
+}
+// Önbellek yoksa (ilk açılış, ağ gecikmesi) bir kez sunucudan tazeler; çevrimdışında sessizce kapalı kalır (local-first)
+async function defterOkumaAcikTazele() {
+  if (defterOkumaAcik()) return true;
+  try { const P = window.Pro; if (P && !P.onbellek()) await P.durumTazele(); } catch (e) {}
+  return defterOkumaAcik();
+}
 const DEFTER_OKU_ALANLAR = [
   ['baslik', 'ne_name', 'Eser adı'], ['yore', 'ne_region', 'Yöre'], ['kaynak_kisi', 'ne_sourcePerson', 'Kaynak kişi'],
   ['derleyen', 'ne_collector', 'Derleyen'], ['makam', 'ne_makam', 'Makam'], ['usul', 'ne_measurement', 'Usul / ölçü'],
@@ -5869,7 +5886,7 @@ const DEFTER_OKU_ALANLAR = [
 const _defterOkuTempo = sure => { const m = String(sure || '').match(/=\s*(\d{2,3})\b/); return m ? m[1] : ''; };
 const DEFTER_OKU_YALNIZ_BILGI = [['notaya_alan', 'Notaya alan'], ['repertuvar_no', 'Repertuvar no'], ['sure', 'Süre'], ['ton', 'Ton']];
 const DEFTER_OKU_HATALAR = {
-  'yetki-yok': 'Bu deneme şimdilik yalnız yönetici ve editörlere açık.',
+  'yetki-yok': 'Sayfadan söz ve akor okuma Repertuvar Pro ile kullanılabilir.',
   'yapilandirma-eksik': 'Okuma servisi henüz kurulmadı (anahtar eksik).',
   'cok-istek': 'Çok sık deneme yapıldı, biraz sonra yeniden dene.',
   'okuma-reddedildi': 'Bu sayfa okunamadı.',
@@ -5881,7 +5898,7 @@ let _defterOku = null;   // { sonuc, dosyalar, gorseller (base64[]), deger: { al
 
 function _defterOkuGoster() {
   const s = document.getElementById('ne_defterOkuSatir');
-  if (s) s.style.display = (isAdmin() || isEditor()) ? 'flex' : 'none';
+  if (s) s.style.display = defterOkumaAcik() ? 'flex' : 'none';
   const ip = document.getElementById('ne_defterOkuIpucu');
   if (ip) ip.textContent = '📸 ' + taramaIpucu(true);
   const sec = document.getElementById('ne_defterOkuSecBtn');
@@ -6103,11 +6120,11 @@ function defterOkuUygula() {
 // 6'şarlı defter-oku'ya gider (mod 'defter'); model sayfaları eserlere ayırır (başlıksız sayfa öncekinin devamı) ve
 // ad, söz, akor, bilgiler döner. Kartlar buna göre yeniden kurulur (kartta görülüp düzeltilir), Kaydet bunları yeni
 // esere yazar (mevcut esere bağlı kartta yalnız nota eklenir). Okuma sürerken kartlar ve Kaydet kilitli.
-// Deneme süresince yalnız yönetici/editör (sunucu da denetler); PDF sayfalar okunmaz, kendi kartında kalır.
+// Yönetici/editör + Pro/Edu abonesi (defterOkumaAcik; sunucu da denetler); PDF sayfalar okunmaz, kendi kartında kalır.
 let _defterOkunuyor = 0;
 
 async function defterYapayOku(bas) {
-  if (!(isAdmin() || isEditor())) return;
+  if (!(await defterOkumaAcikTazele())) return;
   const okunacak = _defter.slice(bas).filter(k => !k.okunan && !k.eser && !k.id && k.sayfalar.length === 1 && !defterPdfMi(k.sayfalar[0].dosya));
   if (!okunacak.length) return;
   const parcalar = [];
@@ -6217,8 +6234,8 @@ function defterOkunanHtml(k, i, kilit) {
                makam: 'Makam', usul: 'Usul / ölçü', sure: 'Süre', ton: 'Ton', soz_yazari: 'Söz yazarı', besteci: 'Besteci' };
   const bilgi = Object.entries(o.bilgiler || {}).filter(([, v]) => v).map(([a, v]) => e(_esCev('es.do_' + a, ad[a] || a)) + ': ' + e(v)).join(' · ');
   const ozet = (satir || akor)
-    ? _esCev('es.dfOkunanOzet', '✓ Okundu: {s} satır söz{a} — gör / düzelt').replace('{s}', satir)
-        .replace('{a}', akor ? _esCev('es.dfOkunanAkor', ', {n} akor').replace('{n}', akor) : '')
+    ? _esCev((window._tekA||String)('es.dfOkunanOzet', satir), '✓ Okundu: {s} satır söz{a} — gör / düzelt').replace('{s}', satir)
+        .replace('{a}', akor ? _esCev((window._tekA||String)('es.dfOkunanAkor', akor), ', {n} akor').replace('{n}', akor) : '')
     : _esCev('es.dfOkunanBos', 'Bu sayfalarda söz ya da akor bulunamadı');
   return `<details class="df-okunan"${k._acik ? ' open' : ''} ontoggle="_defter[${i}]._acik=this.open"><summary>${e(ozet)}</summary>
     <div class="df-ok-ic">
@@ -6684,7 +6701,7 @@ function defterAc() {
   // Açıklama: okuma (yapay zekâ) açık olan hesapta sayfalar kendiliğinden eserlere ayrılır — eski "her sayfa bir kart" metni yanıltır
   const alt = m.querySelector('.df-alt-baslik');
   if (alt) {
-    const okuma = isAdmin() || isEditor();
+    const okuma = defterOkumaAcik();
     alt.setAttribute('data-i18n', okuma ? 'es.dfAciklamaOkuma' : 'es.dfAciklama');
     alt.textContent = okuma
       ? _esCev('es.dfAciklamaOkuma', 'Sayfalar okunur, eserlere ayrılır; adları, sözleri ve akorları yazılır (yalnız sen görürsün). Kartları kontrol edip Kaydet’e bas. Listeden mevcut bir eser seçersen sayfalar o eserin notasına eklenir.')
@@ -7272,7 +7289,7 @@ async function uploadNotaFiles(id, fileList) {
   if (!added) { notaStatus(id, '❌ ' + (errors[0] || _esCev('es.yuklenemedi','Yüklenemedi.')), 'var(--red)'); return; }
   try { await saveNotaPages(id, pages); }
   catch(e) { notaStatus(id, _esCev('es.kayitHatasi','❌ Kayıt hatası: ') + e.message, 'var(--red)'); return; }
-  notaStatus(id, _esCev('es.sayfaEklendi','✓ {n} sayfa eklendi — toplam {t}.').replace('{n}',added).replace('{t}',pages.length) + (errors.length ? _esCev('es.dosyaAtlandi',' ({n} dosya atlandı)').replace('{n}',errors.length) : ''), 'var(--green)');
+  notaStatus(id, _esCev((window._tekA||String)('es.sayfaEklendi', added),'✓ {n} sayfa eklendi — toplam {t}.').replace('{n}',added).replace('{t}',pages.length) + (errors.length ? _esCev((window._tekA||String)('es.dosyaAtlandi', errors.length),' ({n} dosya atlandı)').replace('{n}',errors.length) : ''), 'var(--green)');
   setTimeout(() => { selectWork(id, true); switchDetailTab('nota'); }, 600);
 }
 
@@ -7999,7 +8016,7 @@ function renderNeNotaList(msg) {
 function openNewEserModal() {
   editingWorkId = null;
   document.getElementById('modalTitle').textContent = _esCev('es.yenieser','+ Yeni Eser Ekle');
-  ['ne_name','ne_composer','ne_lyricWriter','ne_makam','ne_measurement','ne_form',
+  ['ne_name','ne_composer','ne_seslendiren','ne_lyricWriter','ne_makam','ne_measurement','ne_form',
    'ne_tuning','ne_instrument','ne_region','ne_sourcePerson','ne_collector','ne_story','ne_ritim','ne_metronom',
    'ne_videoLink','ne_lyrics','ne_chords','ne_closingNote']
     .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
@@ -8073,7 +8090,7 @@ async function openEditEserModal(id) {
   editingWorkId = id;
   document.getElementById('modalTitle').textContent = _esCev('es.eseriDuzenle','✏️ Eseri Düzenle');
   const fields = {
-    ne_name: w.name, ne_composer: w.composer, ne_lyricWriter: w.lyricWriter,
+    ne_name: w.name, ne_composer: w.composer, ne_seslendiren: w.seslendiren, ne_lyricWriter: w.lyricWriter,
     ne_makam: w.makam, ne_measurement: w.measurement, ne_form: w.form,
     ne_tuning: w.tuning, ne_instrument: w.instrument, ne_region: w.region,
     ne_sourcePerson: w.sourcePerson, ne_videoLink: w.videoLink, ne_lyrics: w.lyrics,
@@ -8702,11 +8719,11 @@ function saveNewEser() {
     const _benzer = benzerEserler(name);
     if (_benzer.length) {
       const _liste = _benzer.slice(0, 4).map(w => {
-        const d = [w.composer, w.region, w.makam].filter(Boolean).join(' · ');
+        const d = [w.composer || w.seslendiren, w.region, w.makam].filter(Boolean).join(' · ');
         return '  • ' + w.name + (d ? '  (' + d + ')' : '');
       }).join('\n');
       const _fazla = _benzer.length > 4 ? _esCev('es.veTaneDaha','\n  • … ve {n} tane daha').replace('{n}', _benzer.length - 4) : '';
-      if (!confirm(_esCev('es.benzerVar','Benzer adla {n} eser zaten kayıtlı:\n\n').replace('{n}', _benzer.length) + _liste + _fazla
+      if (!confirm(_esCev((window._tekA||String)('es.benzerVar', _benzer.length),'Benzer adla {n} eser zaten kayıtlı:\n\n').replace('{n}', _benzer.length) + _liste + _fazla
         + _esCev('es.benzerYineDe','\n\nYine de yeni bir kayıt oluşturulsun mu?')
         + _esCev('es.benzerIpucu','\n\nMevcut esere ekleme yapacaksanız İptal deyin, listeden o eseri açıp Düzenle deyin.'))) {
         return;
@@ -8736,6 +8753,7 @@ function saveNewEser() {
   const fields = {
     name,
     composer:     document.getElementById('ne_composer').value.trim(),
+    seslendiren:  (document.getElementById('ne_seslendiren')?.value || '').trim(),
     lyricWriter:  document.getElementById('ne_lyricWriter').value.trim(),
     makam:        document.getElementById('ne_makam').value.trim(),
     measurement:  document.getElementById('ne_measurement').value.trim(),
@@ -8771,6 +8789,7 @@ function saveNewEser() {
     const patchFields = {
       name: fields.name,
       composer: fields.composer,
+      seslendiren: fields.seslendiren || null,
       lyric_writer: fields.lyricWriter,
       makam: fields.makam,
       measurement: fields.measurement,
@@ -8845,6 +8864,7 @@ function saveNewEser() {
     const saveFields = {
       name: fields.name,
       composer: fields.composer,
+      seslendiren: fields.seslendiren || null,
       lyric_writer: fields.lyricWriter,
       makam: fields.makam,
       measurement: fields.measurement,
@@ -9661,6 +9681,7 @@ function openSuggestModal() { openNewEserModal(); }
            Akort-Karar Sesi / Enstrüman-Yöre / Tempo-Ölçü / Youtube -->
       <div><label class="ne-lbl" data-i18n="es.sozyazari">Söz Yazarı</label><input id="ne_lyricWriter" class="ne-inp" placeholder="Söz yazarı..." data-i18n-ph="es.ph_sozyaz"></div>
       <div><label class="ne-lbl" data-i18n="es.bestecialan">Besteci</label><input id="ne_composer" class="ne-inp" placeholder="Besteci..." data-i18n-ph="es.ph_besteci"></div>
+      <div><label class="ne-lbl" data-i18n="es.seslendiren">Seslendiren</label><input id="ne_seslendiren" class="ne-inp" placeholder="Seslendiren..." data-i18n-ph="es.ph_seslendiren"></div>
 
       <div data-alan="kaynak_kisi"><label class="ne-lbl" data-i18n="es.kaynak">Kaynak Kişi</label><input id="ne_sourcePerson" class="ne-inp" placeholder="Kaynak kişi..." data-i18n-ph="es.ph_kaynak"></div>
       <div data-alan="derleyen"><label class="ne-lbl" data-i18n="es.derleyen">Derleyen</label><input id="ne_collector" class="ne-inp" placeholder="Derleyen..." data-i18n-ph="es.ph_derleyen"></div>

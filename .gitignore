@@ -23,3 +23,11 @@ client_secret*.json
 **/.DS_Store
 _not.md
 client_secret_*.json
+# (2026-11-04 claude.ai) deploy.sh "git add -A" yapıyor; depo HERKESE AÇIK → bunlar girmesin
+ChatGPT-afbeelding*
+_not-yedek-*
+arac/model_karsilastir.mjs
+images/Detay Afi*
+todo/
+images/Notalar/C*o*kermedem*Halilim.jpg
+images/Notalar/Hekimog*lu.jpg

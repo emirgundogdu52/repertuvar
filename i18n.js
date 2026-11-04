@@ -429,6 +429,12 @@
       'rep.sahneModunda': ' — Sahne modunda görüntüle:\n',
       'rep.sahneModuKonu': ' - Sahne Modu',
       'rep.grupKisa': 'Grup',
+      'vis.ben': 'Sadece ben',
+      'vis.grup': 'Grup',
+      'vis.acik': 'Herkese açık',
+      'vis.benT': 'Yalnızca sen görürsün',
+      'vis.grupT': 'Grup üyelerin görür',
+      'vis.acikT': 'Herkes görebilir',
       'rep.eserEklendiKisa': 'Eser eklendi ✓',
       'ay.davetMesaj': 'Merhaba! Türk müziği repertuvar yönetimi için harika bir uygulama keşfettim. Sahne modunda eserler arası geçiş çok kolay. Bir bak: ',
       'ay.kopyalandi': '✓ Kopyalandı',
@@ -881,6 +887,7 @@
       'gr.linkKopyalandi': 'Link kopyalandı ✓',
       'gr.guncellendi': 'Grup / Koro güncellendi ✓',
       'gr.silOnay': 'Grubu / Koroyu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+      'gr.silOnayDetay': '"{ad}" grubu silinecek.\n\nBirlikte silinecekler: grubun {rep} repertuvarı ve {sol} solist kaydı.\nGruptaki {uye} kişi gruptan çıkar; hesapları silinmez.\nGruba bağlı {eser} eser silinmez, sahiplerinde kalır.\n\nBu işlem geri alınamaz.',
       'gr.uyelikSilinemedi': 'Üyelikler silinemedi: ',
       'gr.grupSilinemedi': 'Grup / Koro silinemedi: ',
       'gr.profilGuncellenemedi': 'Grup / Koro silindi ama profiller güncellenemedi: ',
@@ -985,6 +992,8 @@
       'menu.kisaRepertuvarlar': 'Repertuvar', 'menu.kisaGrup': 'Grup', 'menu.kisaSahne': 'Sahne',
       // (2026-11-01) Güncelleme uyarısı kartı (topnav.js; yalnız iOS/Android uygulaması)
       'gnc.baslik': "Yeni sürüm var", 'gnc.metin': "Repertuvar'ın yeni sürümü mağazada. Yeni özellikler ve düzeltmeler için güncelle.", 'gnc.guncelle': "Güncelle", 'gnc.sonra': "Sonra",
+      'gnc.zorunluBaslik': "Güncelleme gerekli", 'gnc.zorunluMetin': "Bu Repertuvar sürümü artık desteklenmiyor. Devam etmek için uygulamayı güncelle. Eserlerin ve repertuvarların hesabında güvende.",
+      'db.indiriliyor': "Eserlerin indiriliyor: {n} / {t}. Bitene kadar uygulamayı açık tut.",
       'menu.calismaodasi': 'Çalışma Odası',
       'menu.metronom': 'Metronom',
       'menu.mesajlar': 'Mesajlar',
@@ -1361,6 +1370,7 @@
       'es.ph_eserAdi': 'Eser adı...',
       'es.ph_sozyaz': 'Söz yazarı...',
       'es.ph_besteci': 'Besteci...',
+      'es.seslendiren': 'Seslendiren', 'es.ph_seslendiren': 'Seslendiren...',
       'es.ph_kaynak': 'Kaynak kişi...',
       'es.ph_derleyen': 'Derleyen...',
       'es.ph_makam': 'Makam...',
@@ -1546,7 +1556,7 @@
       'rep.lstYeniEser': "Yeni eser olarak aç",
       'es.dfBaslik': '📒 Defterden Ekle',
       'es.dfAciklama': 'Her sayfa bir kart olur. Ad yazarken listeden mevcut bir eseri seçersen sayfa o eserin notasına eklenir; seçmezsen yeni eser açılır (yalnız sen görürsün). Çok sayfalık şarkıda sayfalara aynı adı yaz ya da “Öncekiyle birleştir”e dokun.',
-      'es.dfAciklamaOkuma': 'Sayfalar okunur, eserlere ayrılır; adları, sözleri ve akorları yazılır (yalnız sen görürsün). Kartları kontrol edip Kaydet’e bas. Listeden mevcut bir eser seçersen sayfalar o eserin notasına eklenir.',
+      'es.dfAciklamaOkuma': 'Sayfalar okunur, eserlere ayrılır; sayfada yazılıysa adları, sözleri ve akorları yazılır (yalnız sen görürsün). Kartları kontrol edip Kaydet’e bas. Listeden mevcut bir eser seçersen sayfalar o eserin notasına eklenir.',
       'es.dfBosMasaustu': 'Henüz sayfa yok.',
       'es.dfTaramaIpucuBaslik': 'Tarama ipuçları',
       'es.ipMasaustu': 'Defterini tarayıcıyla (scanner) ya da telefonundaki bir tarama uygulamasıyla taradıysan dosyaları bu pencereye sürükle ya da “Sayfa ekle” ile seç: JPG/PNG sayfalar ya da bütün defterin tek PDF’i (en çok 200 sayfa). Her görüntüde tek sayfa olsun — iki sayfa yan yana taranmasın; sayfa düz ve okunaklı olsun.',
@@ -2044,7 +2054,7 @@
       'es.defterOkuIlk6': 'Yalnız ilk {n} sayfa okundu.',
       'es.defterOkuZaman': 'Okuma zaman aşımına uğradı.',
       'es.defterOkuHataKod': 'Okunamadı ({kod}).',
-      'es.defterOkuHata_yetki-yok': 'Bu deneme şimdilik yalnız yönetici ve editörlere açık.',
+      'es.defterOkuHata_yetki-yok': 'Sayfadan söz ve akor okuma Repertuvar Pro ile kullanılabilir.',
       'es.defterOkuHata_yapilandirma-eksik': 'Okuma servisi henüz kurulmadı (anahtar eksik).',
       'es.defterOkuHata_cok-istek': 'Çok sık deneme yapıldı, biraz sonra yeniden dene.',
       'es.defterOkuHata_okuma-reddedildi': 'Bu sayfa okunamadı.',
@@ -2247,6 +2257,7 @@
       'es.sortYore': 'By Region',
       'es.yeniRepAdi': 'Name for the new setlist:',
       'es.repOlusturuldu': '✓ Setlist "{ad}" created with {n} pieces.',
+      'es.repOlusturulduTek': '✓ Setlist "{ad}" created with {n} piece.',
       'es.hizaKilitlendi': 'Alignment locked — tap a chord in the preview, then nudge it with ◀ ▶',
       'es.kulaginaGore': ' — if it does not sound right, adjust it with the slider',
       'es.zatenChordPro': 'This text already looks like ChordPro ([Am]).',
@@ -2277,6 +2288,7 @@
       'es.sunucuHatasi': 'Server error: ',
       'es.eserAdiZorunlu': 'A title is required.',
       'es.benzerVar': '{n} pieces with a similar title already exist:\n\n',
+      'es.benzerVarTek': 'A piece with a similar title already exists:\n\n',
       'es.benzerYineDe': '\n\nCreate a new record anyway?',
       'es.benzerIpucu': '\n\nTo add to an existing piece, choose Cancel, open that piece from the list and choose Edit.',
       'es.ozelKaydedildi': 'The piece was saved privately — only you can see it.',
@@ -2424,6 +2436,7 @@
       'sh.eserSayisi': '{n} pieces',
       'sh.eserSayisiSifir': '0 pieces',
       'sh.eserSeslendirdiniz': 'You performed {n} pieces',
+      'sh.eserSeslendirdinizTek': 'You performed {n} piece',
       'sh.pedaliBagla': 'Connect pedal',
       // (2026-09-27) Türk müziği terimleri ÇEVRİLMİYOR; yanına kısa açıklama.
       'sh.kararKisa': 'Tonic',
@@ -2433,6 +2446,7 @@
       'sh.repOlusturun': 'Create one on the {link}.',
       'sh.repSayfasi': 'Setlists page',
       'sh.nEser': '{n} pieces',
+      'sh.nEserTek': '{n} piece',
       'sh.degistir': 'Edit',
       'sh.notaSayfa': 'Sheet music page {n}',
       'sh.pdfNota': '📄 PDF sheet music — to turn pages here, upload each page as a separate image.',
@@ -2536,6 +2550,12 @@
       'rep.sahneModunda': ' — open in stage mode:\n',
       'rep.sahneModuKonu': ' - Stage Mode',
       'rep.grupKisa': 'Group',
+      'vis.ben': 'Only me',
+      'vis.grup': 'Group',
+      'vis.acik': 'Public',
+      'vis.benT': 'Only you can see it',
+      'vis.grupT': 'Your group members can see it',
+      'vis.acikT': 'Everyone can see it',
       'rep.eserEklendiKisa': 'Piece added ✓',
       'ay.davetMesaj': 'I found a great app for managing setlists and running the show — you can even change pieces with a foot pedal: ',
       'ay.kopyalandi': '✓ Copied',
@@ -2568,13 +2588,17 @@
       'es.isimsiz': '(untitled)',
       'es.yalnizcaSiz': 'Only you can see it',
       'es.topluEklendi': '✓ {n} pieces added to "{rep}".',
+      'es.topluEklendiTek': '✓ {n} piece added to "{rep}".',
       'es.zatenVardi': ' ({n} were already there)',
+      'es.zatenVardiTek': ' ({n} was already there)',
       'es.repertuvaraEkle': 'Add to Setlist',
       'es.ekleKisa': 'Add',
       'es.heicAcilamadi': 'This device cannot open HEIC photos. Save the photo as JPEG and select it again.',
       'es.paylasBtn': 'Share',
       'es.repSayaci': '📂 {n} setlists',
+      'es.repSayaciTek': '📂 {n} setlist',
       'es.grupSayaci': '👥 {n} groups',
+      'es.grupSayaciTek': '👥 {n} group',
       'es.offlineHazir': '🟢 Offline ready',
       'es.pdfYukleniyor': '📄 Loading PDF…',
       'es.pdfSayfa': 'PDF page {i} / {n}',
@@ -2598,7 +2622,9 @@
       'es.sayfaSirasi': '⏳ Uploading... ({i}/{n})',
       'es.yuklenemedi': 'Upload failed.',
       'es.sayfaEklendi': '✓ {n} pages added — {t} in total.',
+      'es.sayfaEklendiTek': '✓ {n} page added — {t} in total.',
       'es.dosyaAtlandi': ' ({n} files skipped)',
+      'es.dosyaAtlandiTek': ' ({n} file skipped)',
       'es.tumSayfalarSil': 'ALL {n} sheet music pages will be deleted. Are you sure?',
       'es.eserKaydedildi': 'The piece has been saved.',
       'es.silindiToast': '🗑 "{ad}" deleted',
@@ -2978,6 +3004,7 @@
       'gr.grupDegistiriliyor': 'Switching group...',
       'gr.grupDegistirilemedi': 'Could not switch group — please try again',
       'gr.uyeSayisi': '{n} members',
+      'gr.uyeSayisiTek': '{n} member',
       'gr.uye': 'Member',
       'gr.phEnstruman': 'Type an instrument and press Enter...',
       'gr.solistlereEkle': 'Add to the soloist list',
@@ -2988,6 +3015,7 @@
       'gr.linkKopyalandi': 'Link copied ✓',
       'gr.guncellendi': 'Group / Choir updated ✓',
       'gr.silOnay': 'Delete this group / choir? This cannot be undone.',
+      'gr.silOnayDetay': 'The group "{ad}" will be deleted.\n\nAlso deleted — setlists: {rep} · soloist records: {sol}.\nPeople in the group ({uye}) are removed from it; their accounts are not deleted.\nPieces linked to the group ({eser}) are not deleted; they stay with their owners.\n\nThis cannot be undone.',
       'gr.uyelikSilinemedi': 'Memberships could not be deleted: ',
       'gr.grupSilinemedi': 'The group / choir could not be deleted: ',
       'gr.profilGuncellenemedi': 'The group / choir was deleted but the profiles could not be updated: ',
@@ -3103,6 +3131,8 @@
       // (2026-11-01) Telefonda alt menüde kısa ad (6 düğmede uzun adlar kesiliyordu); tabletle sayfa başlıklarında tam ad.
       'menu.kisaRepertuvarlar': 'Setlists', 'menu.kisaGrup': 'Group', 'menu.kisaSahne': 'Stage',
       // (2026-11-01) Güncelleme uyarısı kartı (topnav.js; yalnız iOS/Android uygulaması)
+      'gnc.zorunluBaslik': "Update required", 'gnc.zorunluMetin': "This version of Repertuvar is no longer supported. Update the app to continue. Your pieces and setlists are safe in your account.",
+      'db.indiriliyor': "Downloading your pieces: {n} / {t}. Keep the app open until it finishes.",
       'gnc.baslik': "A new version is available", 'gnc.metin': "A new version of Repertuvar is in the store. Update to get the new features and fixes.", 'gnc.guncelle': "Update", 'gnc.sonra': "Later",
       'menu.calismaodasi': 'Practice Room',
       'menu.metronom': 'Metronome',
@@ -3464,6 +3494,7 @@
       'es.ph_eserAdi': 'Title...',
       'es.ph_sozyaz': 'Lyricist...',
       'es.ph_besteci': 'Composer...',
+      'es.seslendiren': 'Performer', 'es.ph_seslendiren': 'Performer...',
       'es.ph_kaynak': 'Source person...',
       'es.ph_derleyen': 'Collector...',
       'es.ph_makam': 'Makam...',
@@ -3649,7 +3680,7 @@
       'rep.lstYeniEser': "Create as a new piece",
       'es.dfBaslik': '📒 Add from Notebook',
       'es.dfAciklama': 'Each page becomes a card. While typing the title, pick an existing piece from the list to add the page to its sheet music; otherwise a new piece is created (only you can see it). For a song with several pages, give the pages the same title or tap “Merge with previous”.',
-      'es.dfAciklamaOkuma': 'Pages are read and split into pieces; titles, lyrics and chords are filled in (only you can see them). Check the cards, then tap Save. Pick an existing piece from the list to add the pages to its sheet music.',
+      'es.dfAciklamaOkuma': 'Pages are read and split into pieces; titles, lyrics and chords written on the page (if any) are filled in (only you can see them). Check the cards, then tap Save. Pick an existing piece from the list to add the pages to its sheet music.',
       'es.dfBosMasaustu': 'No pages yet.',
       'es.dfTaramaIpucuBaslik': 'Scanning tips',
       'es.ipMasaustu': 'If you scanned your notebook with a scanner or a scanning app on your phone, drag the files into this window or choose them with “Add page”: JPG/PNG pages or a single PDF of the whole notebook (up to 200 pages). Keep one page per image — do not scan two pages side by side — and make sure the page is straight and legible.',
@@ -3685,6 +3716,7 @@
       'es.notaTaraIpucu': 'Edges are found and straightened automatically. Scan several pages in a row; they are added in order.',
       'es.tarayiciYok': 'The document scanner is not available on this device. Tap the button again to open the camera.',
       'es.taramaHazir': '⏳ Preparing {n} pages...',
+      'es.taramaHazirTek': '⏳ Preparing {n} page...',
       'es.taramaHata': 'Scanning failed.',
       'es.fotoCekIpucu': 'Lay the page flat, use good light and fill the frame. Each photo is added as a new page.',
       'es.notaAlt': 'New files are added AFTER the existing pages',
@@ -3880,6 +3912,7 @@
       'rep.ytYok1': 'None of the pieces in this setlist has a YouTube link.',
       'rep.ytYok2': 'Open a piece, tap <b>Edit</b> and add one in the <b>Video Link</b> field.',
       'rep.ytEksik': '{n} pieces have no YouTube link — left out of the list.',
+      'rep.ytEksikTek': '{n} piece has no YouTube link — left out of the list.',
       'rep.hangileri': 'Which ones?',
       'rep.ytHataIpucu': 'Check your connection or use “Open in YouTube”.',
       'rep.kisiselNotum': 'My personal note',
@@ -3906,11 +3939,13 @@
       'es.cipeDokunKaldir': ' — tap the chip again to remove it.',
       'es.eserBulunamadi': 'No pieces found',
       'es.nRepKullaniliyor': 'Used in {n} setlists',
+      'es.nRepKullaniliyorTek': 'Used in {n} setlist',
       'es.taslakRozet': '🔒 Draft',
       'es.t_yalnizGrup': 'Only your group members can see this',
       'es.grupRozet': '👥 Group',
       'es.degistir': 'Edit',
       'es.nEseriRepEkle': 'Add {n} pieces to setlist',
+      'es.nEseriRepEkleTek': 'Add {n} piece to setlist',
       'es.favoride': 'Favorited',
       'es.sahneModundaAc': '🎭 Open in Stage Mode',
       'es.listeyeDon': '← Back to list',
@@ -3966,6 +4001,7 @@
       'es.surguAcikOnay': 'THE CHORD ALIGNMENT SLIDER IS STILL OPEN\n\nSaving closes the slider: you won’t be able to change the scale for this piece again. To change it later you would have to paste the source text again and reconvert.\n\nManual shifting (↔ Shift chords) is always possible after saving.\n\nOK: save with this alignment\nCANCEL: back to the slider',
       'es.notaYok': 'No sheet music has been added for this piece.',
       'es.nSayfa': '{n} pages',
+      'es.nSayfaTek': '{n} page',
       'es.sayfaXY': 'Page {i} / {n}',
       'es.a_notaSayfa': 'Sheet music page {n}',
       'es.notaDosyasiPdf': 'Sheet music file (PDF)',
@@ -4150,7 +4186,7 @@
       'es.defterOkuIlk6': 'Only the first {n} pages were read.',
       'es.defterOkuZaman': 'Reading timed out.',
       'es.defterOkuHataKod': 'Reading failed ({kod}).',
-      'es.defterOkuHata_yetki-yok': 'This beta feature is currently available only to admins and editors.',
+      'es.defterOkuHata_yetki-yok': 'Reading lyrics and chords from a page is available with Repertuvar Pro.',
       'es.defterOkuHata_yapilandirma-eksik': 'The reading service isn’t set up yet (missing key).',
       'es.defterOkuHata_cok-istek': 'Too many attempts. Please try again in a moment.',
       'es.defterOkuHata_okuma-reddedildi': 'This page couldn’t be read.',
@@ -4192,7 +4228,9 @@
       'es.dfOkumaHataEk': 'The pages can still be saved as sheet music.',
       'es.dfOkundu': '✓ Pieces read: {n}. Check the titles and lyrics, then tap Save.',
       'es.dfOkunanOzet': '✓ Read: {s} lines of lyrics{a} — view / edit',
+      'es.dfOkunanOzetTek': '✓ Read: {s} line of lyrics{a} — view / edit',
       'es.dfOkunanAkor': ', {n} chords',
+      'es.dfOkunanAkorTek': ', {n} chord',
       'es.dfOkunanBos': 'No lyrics or chords found on these pages',
       'es.dfBirlikteOku': '🔄 Re-read the pages together',
       'es.adSoyadKisa': 'Title',
@@ -4345,6 +4383,14 @@
     return (tr != null) ? tr : (varsayilan != null ? varsayilan : anahtar);
   }
 
+  // (2026-11-04) Sayıya göre tekil metin: n === 1 ise ve o dilde "<anahtar>Tek" varsa onu döndürür.
+  // Türkçe/Azerbaycanca'da sayıdan sonra çoğul yok → Tek anahtarı tanımlanmaz, temel anahtar kalır.
+  // Kullanım: _esCev((window._tekA||String)('es.nSayfa', n), '{n} sayfa').replace('{n}', n)
+  function tek(anahtar, n) {
+    const sz = SOZLUK[DIL] || ekSozluk(DIL);
+    return (Number(n) === 1 && sz && sz[anahtar + 'Tek'] != null) ? anahtar + 'Tek' : anahtar;
+  }
+
   function uygula(kok) {
     const alan = kok || document;
     alan.querySelectorAll('[data-i18n]').forEach(el => {
@@ -4466,6 +4512,7 @@
 
   window.i18n = {
     t: t,
+    tek: tek,
     dil: () => DIL,
     yerel: () => YEREL[DIL] || 'tr-TR',
     diller: DILLER,
@@ -4478,4 +4525,15 @@
     sozluk: SOZLUK          // sayfalar kendi anahtarlarını ekleyebilsin
   };
   window.t = t;             // kısayol
+  window._tekA = tek;       // (2026-11-04) tekil anahtar seçici
+  // (2026-11-04) Ortak GÖRÜNÜRLÜK ÇİPİ (Emir karar B): kişi = Sadece ben (mavi), grup = Grup (mor), dünya = Herkese açık (yeşil).
+  // Kilit simgesi görünürlükte KULLANILMAZ ("düzenlenemez" diye okunabilir). Stil: style.css .gcip
+  window.gorunurlukCipi = function (v) {
+    const m = { private: ['ben', 'ti-user', 'vis.ben', 'vis.benT'], group: ['grup', 'ti-users-group', 'vis.grup', 'vis.grupT'],
+                public: ['acik', 'ti-world', 'vis.acik', 'vis.acikT'] }[v];
+    if (!m) return '';
+    const yazi = t(m[2]), ipucu = t(m[3]);
+    return '<span class="gcip ' + m[0] + '" title="' + ipucu + '" aria-label="' + yazi + ' — ' + ipucu + '"><i class="ti ' + m[1] +
+           '" aria-hidden="true"></i><span class="gcip-y">' + yazi + '</span></span>';
+  };
 })();

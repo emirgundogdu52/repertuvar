@@ -591,7 +591,7 @@ function renderGroup() {
   const initial = g.name.charAt(0).toUpperCase();
   document.getElementById('groupAvatarEl').textContent = initial;
   document.getElementById('groupNameEl').textContent = g.name;
-  document.getElementById('groupMetaEl').textContent = _grCev('gr.uyeSayisi','{n} üye').replace('{n}', currentMembers.length);
+  document.getElementById('groupMetaEl').textContent = _grCev((window._tekA||String)('gr.uyeSayisi', currentMembers.length),'{n} üye').replace('{n}', currentMembers.length);
   if (g.description) document.getElementById('groupDescEl').textContent = g.description;
 
   // Davet bölümü sadece owner/admin'e
@@ -923,7 +923,7 @@ async function deleteGroup() {
     if (!oz.ok) throw new Error(hataMetni(await oz.text()));
     const o = await oz.json();
     const metin = _grCev('gr.silOnayDetay',
-      '"{ad}" grubu silinecek.\n\nBirlikte silinecekler: {rep} repertuvar, {sol} solist kaydı, {uye} üyelik.\nGruba bağlı {eser} eser silinmez, sahiplerinde kalır.\n\nBu işlem geri alınamaz.')
+      '"{ad}" grubu silinecek.\n\nBirlikte silinecekler: grubun {rep} repertuvarı ve {sol} solist kaydı.\nGruptaki {uye} kişi gruptan çıkar; hesapları silinmez.\nGruba bağlı {eser} eser silinmez, sahiplerinde kalır.\n\nBu işlem geri alınamaz.')
       .replace('{ad}', o.ad || g.name || '')
       .replace('{rep}', o.repertuvar || 0).replace('{sol}', o.solist || 0)
       .replace('{uye}', o.uye || 0).replace('{eser}', o.eser || 0);

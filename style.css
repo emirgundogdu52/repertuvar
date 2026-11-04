@@ -545,3 +545,13 @@ body {
   .v2-desktop-topbar { display:none; }
   .v2-main-wrap { display:contents; }
 }
+
+/* (2026-11-04) Ortak GÖRÜNÜRLÜK ÇİPİ — i18n.js window.gorunurlukCipi(). Tek çizgili Tabler simgesi + kısa yazı, hap. */
+.gcip{display:inline-flex;align-items:center;gap:4px;padding:1px 8px 1px 6px;border-radius:999px;font-size:11px;font-weight:600;line-height:1.55;white-space:nowrap;vertical-align:middle;border:1px solid transparent;letter-spacing:0;}
+.gcip .ti{font-size:13px;line-height:1;}
+.gcip.ben{color:#4DA3FF;background:rgba(77,163,255,.14);border-color:rgba(77,163,255,.28);}
+.gcip.grup{color:#B794FF;background:rgba(183,148,255,.15);border-color:rgba(183,148,255,.3);}
+.gcip.acik{color:#4ADE80;background:rgba(74,222,128,.13);border-color:rgba(74,222,128,.28);}
+[data-theme="light"] .gcip.ben{color:#0A5BC2;background:#E3EEFC;border-color:#C7DBF7;}
+[data-theme="light"] .gcip.grup{color:#6B3FC9;background:#EEE7FB;border-color:#DCCEF6;}
+[data-theme="light"] .gcip.acik{color:#1A7F3C;background:#E1F3E7;border-color:#C2E5CD;}
