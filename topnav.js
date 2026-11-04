@@ -1233,8 +1233,11 @@ function _m(anahtar, tr) {
       if (!r.ok) return;
       const rows = await r.json();
       applyNotifBadge(rows.length);
-      if (rows.length) _zilGoster();
-      else if (!_zilVar()) {
+      // (2026-11-04) Bu cihazda daha önce bildirim görülmüşse zili HER durumda aç: çizim anında oturum bilgisi henüz
+      // yazılmamışsa (_notifAuth boş) zil 'zil-yok' ile çiziliyor, sonra _zilVar() doğru döndüğü için hiç açılmıyordu
+      // (Emir iPhone 1.2, 04.11: 95 bildirimi var, zil yok; loglarda ikinci sorgu hiç gitmemiş).
+      if (rows.length || _zilVar()) _zilGoster();
+      else {
         const r2 = await fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&select=id&limit=1', { headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token } });
         if (r2.ok && (await r2.json()).length) _zilGoster();
       }
