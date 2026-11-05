@@ -1208,9 +1208,19 @@ function _m(anahtar, tr) {
   // görünür — çizim anı yarışı yüzünden tutarsız çalışıyordu: bazen kalıyor, bazen kayboluyordu.) Artık her kontrol zili
   // İKİ YÖNDE de ayarlar. Çizimde titreme olmasın diye son okunmamış sayısı cihazda tutulur (r_zilSayi = "uid:sayı");
   // yanlışsa ilk kontrol düzeltir. Okuma kaçmasın: oturum tazelenince (authReady) de kontrol edilir; açık panel kapanmaz.
+  // (2026-11-05 21.30, Emir: "Zil adminde hep görünsün") Yönetim bildirimleri (yeni üye, içerik bildirimi, gruba katılım)
+  // yalnız zilde görülüyor; okunmamış yokken gizlenirse admin eski bildirimlere hiç ulaşamıyordu. Admin'de zil HEP görünür,
+  // rozet yalnız okunmamış varken. Diğer herkeste yukarıdaki kural. Admin ölçütü menüdekiyle aynı (kimlik ya da rol).
+  function _zilHepAcik() {
+    try {
+      const a = _notifAuth(); if (!a) return false;
+      return a.uid === '4f965624-e524-4cb0-a351-3368f1297d28' || localStorage.getItem('user_role') === 'admin';
+    } catch (e) { return false; }
+  }
   function _zilVar() {
     try {
       const a = _notifAuth(); if (!a) return false;
+      if (_zilHepAcik()) return true;
       const k = String(localStorage.getItem('r_zilSayi') || '').split(':');
       return k[0] === a.uid && Number(k[1]) > 0;
     } catch (e) { return false; }
@@ -1218,7 +1228,7 @@ function _m(anahtar, tr) {
   function _zilAyarla(sayi) {
     const z = document.getElementById('rTnBell');
     const panelAcik = !!document.querySelector('.r-notif-panel.open');
-    if (z) z.classList.toggle('zil-yok', !(sayi > 0) && !panelAcik);
+    if (z) z.classList.toggle('zil-yok', !(sayi > 0) && !panelAcik && !_zilHepAcik());
     try { const a = _notifAuth(); if (a) localStorage.setItem('r_zilSayi', a.uid + ':' + (sayi > 0 ? sayi : 0)); } catch (e) {}
   }
   function _notifEsc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
