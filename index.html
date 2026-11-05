@@ -664,7 +664,8 @@ function _c(k, tr) {
 // theme chips removed from index, handled in stage.html
 
 (async function() {
-  const ok = await requireAuth(); if (!ok) return;
+  // (2026-11-05) Önbellekte oturum varsa doğrulama beklenmez (auth.js requireAuthBeklemeden).
+  const ok = await requireAuthBeklemeden(); if (!ok) return;
   syncOfflineData(); // Arka planda offline veri güncelle
   const u = getUser();
   const name = u?.user_metadata?.full_name || u?.email?.split('@')[0] || '—';
@@ -696,6 +697,51 @@ function _c(k, tr) {
   // repertuvarlarını da okutuyor; hiç repertuvarı olmayan yeni hesap "4 Repertuvar" görüyordu.
   const _sUid = getUserId(), _sGid = getGroupId();
   const _repBenim = r => !!r && (r.owner_id === _sUid || r.user_id === _sUid || (!!_sGid && r.group_id === _sGid));
+  // (2026-11-05) Son eklenen eserleri çizer — cihazdaki ve sunucudaki liste aynı süzgeçten geçer (gövde eski satır içi kod).
+  function sonEserleriCiz(data) {
+    // (2026-10-17) Apple Guideline 1.2: engellediğim kişinin eseri ve bildirdiğim eser burada da görünmez
+    // (eserler.html / repertoires.js ile aynı kural). Süzgeç için fazladan çekilir, 6'ya kısaltılır.
+    if (Array.isArray(data)) {
+      const _ben = (typeof getUserId === 'function' && getUserId()) || '';
+      data = data.filter(w => {
+        if (!window.RB) return true;
+        const sb = w.submitted_by || w.sb;
+        if (RB.gizliEserMi(w.id)) return false;
+        return !(sb && sb !== _ben && RB.engelliMi(sb));
+      }).slice(0, 6);
+    }
+    const container = document.getElementById('recentWorks');
+    if (container && Array.isArray(data) && data.length) {
+      container.innerHTML = data.map((w,i) => `
+        <a href="eserler.html?id=${w.id}" class="work-row${i%2===1?' zebra':''}">
+          <div class="work-num">${i+1}</div>
+          <div class="work-info">
+            <div class="work-name">${w.name ? String(w.name).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) : '—'}</div>
+          </div>
+          <div class="wc-play">▶</div>
+        </a>`).join('');
+    } else if (container) {
+      container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">' + _c('ana.henuzEserYok', 'Henüz eser yok.') + '</div>';
+    }
+  }
+
+  // (2026-11-05) ÖNCE CİHAZDAKİ VERİ: sayaçlar ve son eklenen eserler IndexedDB'den hemen çizilir, sunucu yanıtı gelince
+  // üzerine yazılır. Eskiden 5 ardışık sunucu isteği bekleniyor, cihazdaki veriye yalnız bağlantı koparsa bakılıyordu.
+  // Eser sayacı sunucudakiyle aynı ölçüt: onaylı ve silinmemiş (yerelde silinmiş satır zaten tutulmuyor).
+  let _yerelEserVar = false;
+  try {
+    const ws = (await db.works.getAll()).filter(w => !w.deleted_at);
+    if (ws.length) {
+      const onayli = ws.filter(w => (w.status || 'approved') === 'approved').length;
+      ['sbWorkCount', 'activeListCount', 'heroStatWorks'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = onayli; });
+      sonEserleriCiz(ws.slice(-12).reverse());
+      _yerelEserVar = true;
+    }
+  } catch (e) {}
+  try {
+    const rs = (await db.repertoires.getAll()).filter(_repBenim);
+    const hr = document.getElementById('heroStatReps'); if (hr && rs.length) hr.textContent = rs.length;
+  } catch (e) {}
   try {
     const testR = await fetch(SUPA_URL+'/rest/v1/works?select=id&limit=1', {headers:H, signal: AbortSignal.timeout(3000)});
     if (!testR.ok) throw new Error('offline');
@@ -721,26 +767,13 @@ function _c(k, tr) {
     const hg=document.getElementById('heroStatGroups'); if(hg && grpCnt) hg.textContent=grpCnt;
   } catch(e) {
     onlineFailed = true;
-    try {
-      const ws = await db.works.getAll();
-      const sb=document.getElementById('sbWorkCount'); if(sb) sb.textContent=ws.length||'—';
-      const ac=document.getElementById('activeListCount'); if(ac) ac.textContent=ws.length||'—';
-      const hs=document.getElementById('heroStatWorks'); if(hs) hs.textContent=ws.length||'—';
-    } catch(e2) {}
-    // ── 2026-08-23: cevrimdisi repertuvar sayaci ──────────────────────────
-    // Eser sayisi onbellekten geliyordu ama repertuvar satiri tire kaliyordu;
-    // oysa `repertoires` store'u IndexedDB'de MEVCUT. Ayri try blogu: works
-    // okumasi patlarsa repertuvar sayaci yine de dolsun.
-    try {
-      const rs = (await db.repertoires.getAll()).filter(_repBenim);
-      const hr=document.getElementById('heroStatReps'); if(hr) hr.textContent=rs.length||'—';
-    } catch(e3) {}
+    // (2026-11-05) Çevrimdışı eser ve repertuvar sayaçları yukarıda cihazdaki veriyle zaten yazıldı (veri yoksa '—' kalır).
     // Grup sayisi BILEREK bos birakiliyor: `groups` tablosu IndexedDB
     // semasinda yok, cevrimdisi dogru sayiyi bilmenin yolu yok. Yanlis sayi
     // gostermektense tire birakiyoruz.
   }
 
-  // Son eklenen eserler — önce Supabase, hata alınca IndexedDB
+  // Son eklenen eserler — cihazdaki liste yukarıda çizildi; çevrimiçiyse sunucudaki üzerine yazılır
   try {
     let data = [];
     // (2026-08-25) SİLİNMİŞ ESERLER ARTIK ELENİYOR.
@@ -753,39 +786,13 @@ function _c(k, tr) {
       const r = await fetch(SUPA_URL+'/rest/v1/works?select=id,name,composer,makam,tuning,deleted_at,submitted_by'
         + '&deleted_at=is.null&order=id.desc&limit=12', {headers:H});
       data = await r.json();
-    } else {
-      // Çevrimdışı yol da aynı süzgeçten geçmeli — önbellekte silinmiş
-      // satırlar da duruyor.
-      const all = (await db.works.getAll()).filter(w => !w.deleted_at);
-      data = all.slice(-12).reverse();
-    }
-    // (2026-10-17) Apple Guideline 1.2: engellediğim kişinin eseri ve bildirdiğim eser burada da görünmez
-    // (eserler.html / repertoires.js ile aynı kural). Süzgeç için fazladan çekilir, 6'ya kısaltılır.
-    if (Array.isArray(data)) {
-      const _ben = (typeof getUserId === 'function' && getUserId()) || '';
-      data = data.filter(w => {
-        if (!window.RB) return true;
-        const sb = w.submitted_by || w.sb;
-        if (RB.gizliEserMi(w.id)) return false;
-        return !(sb && sb !== _ben && RB.engelliMi(sb));
-      }).slice(0, 6);
-    }
-    const container = document.getElementById('recentWorks');
-    if (container && Array.isArray(data) && data.length) {
-      container.innerHTML = data.map((w,i) => `
-        <a href="eserler.html?id=${w.id}" class="work-row${i%2===1?' zebra':''}">
-          <div class="work-num">${i+1}</div>
-          <div class="work-info">
-            <div class="work-name">${w.name ? String(w.name).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) : '—'}</div>
-          </div>
-          <div class="wc-play">▶</div>
-        </a>`).join('');
-    } else if (container) {
-      container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">' + _c('ana.henuzEserYok', 'Henüz eser yok.') + '</div>';
+      sonEserleriCiz(data);
+    } else if (!_yerelEserVar) {
+      sonEserleriCiz([]);
     }
   } catch(e) {
     const container = document.getElementById('recentWorks');
-    if (container) container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">' + _c('ana.yuklenemedi', 'Yüklenemedi.') + '</div>';
+    if (container && !_yerelEserVar) container.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px;">' + _c('ana.yuklenemedi', 'Yüklenemedi.') + '</div>';
   }
 
 

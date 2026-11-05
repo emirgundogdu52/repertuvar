@@ -895,12 +895,17 @@ async function requireAuth() {
 
     // Hesap askıya alınmış veya silinme talep edilmişse engelle (cache'deki son bilinen durum)
     const status = localStorage.getItem('user_status');
+    // (2026-11-05) Sayfa doğrulamayı artık beklemeyebiliyor (requireAuthBeklemeden): arkada süren bir istek, oturum
+    // temizlendikten sonra endDeadSession'a düşüp "oturum kapandı" (expired=1) sayfasına yönlendiriyor ve bu mesajı
+    // eziyordu (test: 10 denemenin 7'si). Çıkış yap'taki gibi bayrak: o yönlendirme olmasın.
     if (status === 'suspended') {
+      _sessionEndHandled = true;
       logoutSilent();
       window.location.href = 'login.html?suspended=1';
       return false;
     }
     if (status === 'deletion_requested') {
+      _sessionEndHandled = true;
       logoutSilent();
       window.location.href = 'login.html?deletion_requested=1&email=' + encodeURIComponent(user.email || '');
       return false;
@@ -915,6 +920,20 @@ async function requireAuth() {
     window.dispatchEvent(new CustomEvent('authReady'));
     return true;
   }
+}
+
+// (2026-11-05) ÖNBELLEKTE OTURUM VARSA SAYFA DOĞRULAMAYI BEKLEMEZ (Sahne Modu, ana sayfa). requireAuth() sunucuya 3-4
+// ardışık istek atıyor (kullanıcı, rol, gruplar; her biri 6 sn'ye kadar); sayfa bitmesini bekleyince cihazdaki veri
+// mobilde 1-3 sn, zayıf sinyalde daha uzun görünmüyordu. Jeton, kullanıcı ve rol bu cihazda kayıtlıysa (rol en az bir kez
+// sunucudan alınmış demek) requireAuth arkada sürer: askıya alınmış / silinmiş hesapta ve kalıcı ölmüş oturumda kendisi
+// girişe yollar, rol ve grup değiştiyse localStorage'ı tazeler. Önbellek yoksa (ilk giriş) eskisi gibi beklenir.
+function requireAuthBeklemeden() {
+  const dogrulama = requireAuth();
+  if (getToken() && getUser() && localStorage.getItem('user_role')) {
+    dogrulama.catch(() => {});
+    return Promise.resolve(true);
+  }
+  return dogrulama;
 }
 
 const ADMIN_USER_ID = '4f965624-e524-4cb0-a351-3368f1297d28';

@@ -239,7 +239,8 @@ window.clearOfflineData = function() {
 // works_updated_at.sql: tetikleyici her UPDATE'te now() yazar), sonra yalnız yerelde olmayan ya da zamanı değişen
 // satırlar tam çekilir; listede olmayan (silinen, gizlenen, paylaşımı kalkan) satır yerelden silinir. Liste RLS'ten
 // geldiği için updated_at'e dokunmayan görünürlük değişiklikleri de yakalanır. Yerel sürüm haritası meta 'worksSurum'.
-// Döner: { rows } (yereldeki tam liste) ya da null — updated_at sütunu yoksa (HTTP 400), IndexedDB ya da oturum yoksa;
+// Döner: { degisti, rows } — rows yereldeki tam liste, yalnız degisti true ise dolu (2026-11-05: değişiklik yoksa null;
+// çağıran yerelden çizdiğiyle kalır). null — updated_at sütunu yoksa (HTTP 400), IndexedDB ya da oturum yoksa;
 // çağıran eski tam indirmeye döner. Ağ / HTTP hatası fırlar, yerel önbelleğe dokunulmaz. Aynı anda gelen çağrılar
 // (eşitleme + sayfa) tek işlemi paylaşır. ms verilirse o sürede bitmeyince çağırana hata döner (Sahne ve Repertuvarlar
 // beklemeden yerelden çizer); işlem arka planda sürer ve IndexedDB'yi yine tazeler.
@@ -250,8 +251,10 @@ function _indirmeGoster(n, t) {
     if (!el) {
       el = document.createElement('div'); el.id = 'eserIndirme'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
       el.style.cssText = 'position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:99990;max-width:460px;' +
-        'margin:0 auto;padding:12px 16px;border-radius:14px;background:var(--surface,#111722);color:var(--text,#fff);' +
-        'border:1px solid var(--border,rgba(255,255,255,.12));box-shadow:0 10px 28px rgba(0,0,0,.35);font:600 13.5px/1.45 inherit;' +
+        // (2026-11-05, Emir: "beyaz, diğer metinlerle karışıyor") Marka sarısı zemin + koyu yazı (sağ alttaki + düğmesiyle aynı dil),
+        // iki temada da SABİT renk: açık temada --accent yazı için koyu hardala (#8A6100) dönüyor, zemin olarak okunmuyordu. Kontrast ~12:1.
+        'margin:0 auto;padding:12px 16px;border-radius:14px;background:#FFC83D;color:#070A0F;' +
+        'border:none;box-shadow:0 10px 28px rgba(0,0,0,.35);font:700 13.5px/1.45 inherit;' +
         'pointer-events:none;text-align:center';
       (document.body || document.documentElement).appendChild(el);
     }
@@ -283,29 +286,74 @@ async function _eserleriEsitle() {
   const SUPA_KEY = 'sb_publishable_f_WsYxzN06B5dGROrkGyPQ_UDxKSbtO';
   const headers = { apikey: SUPA_KEY, Authorization: 'Bearer ' + token };
   const taban = SUPA_URL + '/rest/v1/works?deleted_at=is.null&order=id.asc';
-  let dizin;
-  try {
-    dizin = await window.supaTumSayfalar(taban + '&select=id,updated_at', headers);
-  } catch (e) {
-    if (e && e.status === 400) return null;      // updated_at sütunu henüz yok → tam indirme
-    throw e;
-  }
   const anahtarlar = await storeOp('works', 'readonly', (s) => s.getAllKeys());
   const tumu = () => storeOp('works', 'readonly', (s) => s.getAll());
-  // 0 kayıt koruması (eserler.html'deki gibi): sunucu boş döndü ama yerelde eser var → oturum/yetki sorunu olabilir.
-  if (!dizin.length && anahtarlar.length) {
-    console.warn('[db] eser listesi boş geldi, yerelde ' + anahtarlar.length + ' eser var — YEREL KORUNUYOR');
-    return { rows: await tumu() };
-  }
-  const surum = (await meta.get('worksSurum')) || {};
   const yerelde = new Set(anahtarlar);
-  const gerekli = dizin.filter((d) => !yerelde.has(d.id) || surum[d.id] !== d.updated_at).map((d) => d.id);
+  const surum = (await meta.get('worksSurum')) || {};
+  // (2026-11-05) HIZLI DEĞİŞİKLİK KONTROLÜ (Emir: "her defasında yeniden yüklüyor, localden çalışmıyor gibi").
+  // Eskiden HER sayfa açılışında (Eserler, Repertuvarlar, Sahne, ana sayfa ayrı sayfalar) 10.412 eserin id + updated_at
+  // listesi 11 ardışık istekle (~650 KB) iniyordu: mobilde 4-6 sn ağ meşgul, sonra liste baştan yeniden çiziliyordu.
+  // Artık önce TEK küçük istek: sunucudaki eser sayısı + en son değişiklik zamanı, meta 'worksOzet' ile karşılaştırılır.
+  // Aynıysa hiçbir şey inmez ve { degisti:false, rows:null } döner (çağıran yerelden çizdiğiyle kalır). Farklıysa yalnız
+  // son bilinen zamandan (10 dk payla: aynı anda süren yazmalar) sonra değişenlerin kimliği iner; sayı yine tutmazsa
+  // (silinen ya da görünürlüğü değişen eser) ve en az günde bir kez eski tam karşılaştırma (dizin) yapılır.
+  // updated_at INSERT'te now() (varsayılan), her UPDATE'te tetikleyiciyle (trg_works_updated_at) yazılıyor.
+  const sayac = await fetch(SUPA_URL + '/rest/v1/works?deleted_at=is.null&select=updated_at&order=updated_at.desc&limit=1',
+    { headers: Object.assign({}, headers, { Prefer: 'count=exact' }) });
+  if (!sayac.ok) {
+    if (sayac.status === 400) return null;       // updated_at sütunu henüz yok → tam indirme
+    const e = new Error('HTTP ' + sayac.status); e.status = sayac.status; throw e;
+  }
+  const sayacSatir = await sayac.json();
+  const sayacEslesme = /\/(\d+)\s*$/.exec(sayac.headers.get('content-range') || '');
+  const ust = (sayacEslesme && Array.isArray(sayacSatir))
+    ? { sayi: Number(sayacEslesme[1]), enSon: sayacSatir.length ? sayacSatir[0].updated_at : null } : null;
+  const ozet = await meta.get('worksOzet');
+  // Kesir 3 haneye kısaltılır: PostgREST mikrosaniye yazıyor ("…06.28907+00:00"), her motor Date.parse'ta bunu kabul etmeyebilir.
+  const sonMs = (ozet && ozet.enSon) ? Date.parse(String(ozet.enSon).replace(/(\.\d{3})\d+/, '$1')) : NaN;
+  const hizliOlur = !!(ust && ozet && isFinite(sonMs) && anahtarlar.length === ozet.sayi && Date.now() - (ozet.tamAt || 0) < 86400000);
+  let gerekli = null, silinecek = null, yeni = null, tamAt = null, yol = 'tam karşılaştırma';
+  if (hizliOlur) {
+    if (ust.sayi === ozet.sayi && ust.enSon === ozet.enSon) return { degisti: false, rows: null };
+    const esik = new Date(sonMs - 600000).toISOString();
+    // deleted_at süzgeci YOK: silinen eser (sahibi/editörü görür) yerelden de silinsin.
+    const fark = await window.supaTumSayfalar(SUPA_URL + '/rest/v1/works?select=id,updated_at,deleted_at&updated_at=gte.' +
+      encodeURIComponent(esik) + '&order=id.asc', headers);
+    const canli = fark.filter((d) => !d.deleted_at);
+    const silinen = fark.filter((d) => d.deleted_at && yerelde.has(d.id)).map((d) => d.id);
+    const sonra = new Set(anahtarlar);
+    canli.forEach((d) => sonra.add(d.id));
+    silinen.forEach((k) => sonra.delete(k));
+    if (sonra.size === ust.sayi) {
+      gerekli = canli.filter((d) => !yerelde.has(d.id) || surum[d.id] !== d.updated_at).map((d) => d.id);
+      silinecek = silinen;
+      yeni = Object.assign({}, surum);
+      silinen.forEach((k) => { delete yeni[k]; });
+      tamAt = ozet.tamAt;
+      yol = 'hızlı kontrol';
+    }
+  }
+  if (!gerekli) {
+    // Tam karşılaştırma: ilk eşitleme, sayı tutmadı ya da son tam karşılaştırmanın üstünden bir gün geçti.
+    const dizin = await window.supaTumSayfalar(taban + '&select=id,updated_at', headers);
+    // 0 kayıt koruması (eserler.html'deki gibi): sunucu boş döndü ama yerelde eser var → oturum/yetki sorunu olabilir.
+    if (!dizin.length && anahtarlar.length) {
+      console.warn('[db] eser listesi boş geldi, yerelde ' + anahtarlar.length + ' eser var — YEREL KORUNUYOR');
+      return { degisti: false, rows: null };
+    }
+    gerekli = dizin.filter((d) => !yerelde.has(d.id) || surum[d.id] !== d.updated_at).map((d) => d.id);
+    const sunucuda = new Set(dizin.map((d) => d.id));
+    silinecek = anahtarlar.filter((k) => !sunucuda.has(k));
+    // Harita: değişmeyenler listedeki zamanla; inenler geldikçe eklenir (gerekli olup gelmeyen yazılmaz → sonra yine istenir).
+    yeni = {};
+    const istenen = new Set(gerekli);
+    dizin.forEach((d) => { if (!istenen.has(d.id)) yeni[d.id] = d.updated_at; });
+    tamAt = Date.now();
+  }
   // (2026-11-04) PARÇALI + KALDIĞI YERDEN: eskiden ilk eşitlemede (>2000) tüm tablo tek seferde çekilip EN SONDA yazılıyordu;
   // uygulama arka plana geçip kesilince hiçbir şey yazılmıyor, liste boş kalıyordu (Emir iPhone, 04.11 12:37, 5000/10411).
   // Artık eksik/değişen eserler 500'lük parçalarla çekilir, her parça hemen IndexedDB'ye ve sürüm haritasına yazılır;
   // kesilirse sonraki açılışta yalnız kalanlar iner. Silinenler sunucudaki kimlik listesinden (dizin) bulunur.
-  const sunucuda = new Set(dizin.map((d) => d.id));
-  const silinecek = anahtarlar.filter((k) => !sunucuda.has(k));
   const yaz = (koy, sil) => openDB().then((idb) => new Promise((resolve, reject) => {
     const tx = _izle(idb.transaction('works', 'readwrite'));
     const store = tx.objectStore('works');
@@ -316,10 +364,6 @@ async function _eserleriEsitle() {
     tx.onabort = () => reject(tx.error || new Error('işlem iptal edildi'));
   }));
   if (silinecek.length) await yaz([], silinecek);
-  // Harita: değişmeyenler listedeki zamanla; inenler geldikçe eklenir (gerekli olup gelmeyen yazılmaz → sonra yine istenir).
-  const yeni = {};
-  const istenen = new Set(gerekli);
-  dizin.forEach((d) => { if (!istenen.has(d.id)) yeni[d.id] = d.updated_at; });
   const gorunur = gerekli.length > 2000;
   let inen = 0;
   if (gorunur) _indirmeGoster(0, gerekli.length);
@@ -331,17 +375,37 @@ async function _eserleriEsitle() {
       await meta.set('worksSurum', yeni);
       inen += parca.length;
       if (gorunur) _indirmeGoster(inen, gerekli.length);
+      // (2026-11-05) İlk eşitlemede Eserler listesi parça parça dolsun (eskiden 10.412 eser bitene kadar boş kalıyordu).
+      try { window.dispatchEvent(new CustomEvent('eser-parca', { detail: { inen: inen, toplam: gerekli.length } })); } catch (e) {}
     }
   } finally {
     if (gorunur) _indirmeGizle();
   }
   await meta.set('worksSurum', yeni);
-  console.log('[db] eserler: ' + inen + ' indi, ' + silinecek.length + ' silindi, ' + dizin.length + ' eser' + (gorunur ? ' (parçalı ilk eşitleme)' : ''));
-  return { rows: await tumu() };
+  // Özet yalnız eşitleme TAMAMLANINCA yazılır: yarıda kalırsa bir sonraki kontrol yine eksikleri arar.
+  if (ust) await meta.set('worksOzet', { sayi: ust.sayi, enSon: ust.enSon, tamAt: tamAt });
+  console.log('[db] eserler: ' + inen + ' indi, ' + silinecek.length + ' silindi (' + yol + ')' + (gorunur ? ' (parçalı ilk eşitleme)' : ''));
+  const degisti = inen > 0 || silinecek.length > 0;
+  return { degisti: degisti, rows: degisti ? await tumu() : null };
 }
 
+// (2026-11-05) TEK SEFERDE TEK EŞİTLEME. Sayfa açılışı (800 ms), focus, visibilitychange, online ve canlı bildirim aynı
+// anda eşitleme başlatabiliyordu; her biri bütün tabloları ayrı ayrı çekip aynı depolara replaceAll yazıyor, yazmalar
+// sayfanın yerel okumasını (3 sn kalkanlı getAll) kilitliyordu. Artık sürerken gelen çağrılar bekler ve iş bitince
+// BİR kez daha çalışır (arada olan değişiklik kaçmasın); bekleyen bütün çağrılar o tek turu paylaşır.
+let _esitlemeSuruyor = null, _esitlemeTekrar = null;
+window.syncOfflineData = function () {
+  if (!_esitlemeSuruyor) {
+    _esitlemeSuruyor = _syncOfflineData().finally(() => { _esitlemeSuruyor = null; });
+    return _esitlemeSuruyor;
+  }
+  if (!_esitlemeTekrar) {
+    _esitlemeTekrar = _esitlemeSuruyor.catch(() => {}).then(() => { _esitlemeTekrar = null; return window.syncOfflineData(); });
+  }
+  return _esitlemeTekrar;
+};
 // Sync — sunucudan veri çekip IndexedDB'ye kaydet
-window.syncOfflineData = async function() {
+async function _syncOfflineData() {
   // Token dolmuş olabilir (1 saatlik ömür) — sync fetch'lerinden ÖNCE yenile.
   let token = localStorage.getItem('sb_token');
   if (!token) return;
@@ -434,7 +498,7 @@ window.syncOfflineData = async function() {
   } finally {
     _offSyncBitir();
   }
-};
+}
 
 // ── GERÇEK "OFFLINE HAZIR" KONTROLÜ (2026-09-27, Offline Düzeltme 1) ─────────
 // Eskiden eserler.html'de "🟢 Offline Hazır" koşulsuz basılan sabit bir metindi.

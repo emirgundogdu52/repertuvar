@@ -1963,20 +1963,23 @@ function parseWorksRows(rows, skipRender) {
   if (skipRender) return; // veri güncellendi ama görünüm bir sonraki fırsatta tazelenecek (aktif swipe'ı bozmamak için)
   applyFilters();
 }
-async function loadWorksFromSupabase() {
-  let localHadData = false;
-
-  // ── 1) ÖNCELİKLE LOCAL'DEN ANINDA GÖSTER (sinyal zayıf/yokken bile beklemeden) ──
+// ── 1) ÖNCELİKLE LOCAL'DEN ANINDA GÖSTER (sinyal zayıf/yokken bile beklemeden) ──
+async function yereldenGoster() {
   try {
     if (typeof db !== 'undefined') {
       const cached = await db.works.getAll();
       if (cached && cached.length > 0) {
         parseWorksRows(cached); // DATA + filteredData + buildFilters + applyFilters hepsini yapar
-        localHadData = true;
         console.log('[eserler] local\'den anında gösterildi:', cached.length, 'eser');
+        return true;
       }
     }
   } catch(e) { console.warn('[eserler] IndexedDB okuma hatası:', e); }
+  return false;
+}
+// yerelOnce: init'in requireAuth'tan ÖNCE başlattığı yerel okuma (bkz. init). Yerel liste zaten çizildiyse ikinci kez okunmaz.
+async function loadWorksFromSupabase(yerelOnce) {
+  const localHadData = (await yerelOnce) || await yereldenGoster();
 
   // ── 2) ARKA PLANDA SUNUCUYLA SENKRONİZE ET — init() akışını bloklamaz ──
   syncWorksFromServer(localHadData);
@@ -2025,11 +2028,32 @@ async function syncWorksFromServer(hadLocalData) {
     // (2026-10-31) ARTIMLI: db.js eserleriEsitle yalnız değişen satırları indirip IndexedDB'yi tazeler ve tam listeyi
     // (güfte/akor dahil) döndürür; iki fazlı tam indirme gerekmez. updated_at sütunu yoksa null → aşağıdaki eski yol.
     // db.js listesi süzgeçsiz: statusExpr'in karşılığı burada istemcide.
-    const artimli = (typeof window.eserleriEsitle === 'function') ? await window.eserleriEsitle() : null;
+    const durumSuz = (satirlar) => statusExpr
+      ? satirlar.filter(r => r.status === 'approved' || (r.status === 'pending' && r.submitted_by === uid))
+      : satirlar;
+    // (2026-11-05) İLK EŞİTLEMEDE LİSTE PARÇA PARÇA DOLAR: yerel boşken 10 bin eser (~23 MB) bitene kadar liste boş
+    // kalıyordu (ölçüm: mobil gecikmeyle ~32 sn). İnen her parçadan sonra, en çok 3 sn'de bir, yerelden yeniden çizilir.
+    let parcaDinle = null;
+    if (!hadLocalData && typeof db !== 'undefined') {
+      let sonCizim = 0;
+      parcaDinle = async () => {
+        if (Date.now() - sonCizim < 3000 || _weSwipe || _weOpenCard) return;
+        sonCizim = Date.now();
+        try { const r = await db.works.getAll(); if (r.length) parseWorksRows(durumSuz(r)); } catch (e) {}
+      };
+      window.addEventListener('eser-parca', parcaDinle);
+    }
+    let artimli;
+    try {
+      artimli = (typeof window.eserleriEsitle === 'function') ? await window.eserleriEsitle() : null;
+    } finally {
+      if (parcaDinle) window.removeEventListener('eser-parca', parcaDinle);
+    }
     if (artimli) {
-      const aRows = statusExpr
-        ? artimli.rows.filter(r => r.status === 'approved' || (r.status === 'pending' && r.submitted_by === uid))
-        : artimli.rows;
+      // (2026-11-05) Sunucuda değişiklik yoksa liste YENİDEN ÇİZİLMEZ: eskiden her açılışta birkaç saniye sonra 10 bin
+      // eserlik liste baştan kuruluyordu ("her defasında yeniden yüklüyor").
+      if (!artimli.degisti && (hadLocalData || DATA.length > 0)) return;
+      const aRows = durumSuz(artimli.rows || (typeof db !== 'undefined' ? await db.works.getAll() : []));
       if (aRows.length === 0 && (hadLocalData || DATA.length > 0)) return;   // aşağıdaki 0 kayıt korumasıyla aynı
       parseWorksRows(aRows, !!(_weSwipe || _weOpenCard));
       try {
@@ -3024,12 +3048,15 @@ function setSort(mode) {
   renderList();
 }
 
+// (2026-11-05) TEK SIRALAYICI. localeCompare(…, 'tr') her karşılaştırmada dil kurallarını yeniden kuruyordu: 10.412 eserde
+// ~140 bin çağrı, Emir'in iPad'inde (7. nesil) liste açılışının ~1,2 sn'si (cihaz ölçümü); Mac WebKit'te 240 ms → 4 ms. Aynı sıra.
+const _trSira = new Intl.Collator('tr').compare;
 function sortData() {
-  if (sortMode === 'name') filteredData.sort((a,b) => (a.name||'').localeCompare(b.name||'','tr'));
-  else if (sortMode === 'composer') filteredData.sort((a,b) => (a.composer||a.seslendiren||'zzz').localeCompare(b.composer||b.seslendiren||'zzz','tr'));
-  else if (sortMode === 'makam') filteredData.sort((a,b) => (a.makam||'zzz').localeCompare(b.makam||'zzz','tr'));
-  else if (sortMode === 'form') filteredData.sort((a,b) => (a.form||'zzz').localeCompare(b.form||'zzz','tr'));
-  else if (sortMode === 'region') filteredData.sort((a,b) => (a.region||'zzz').localeCompare(b.region||'zzz','tr'));
+  if (sortMode === 'name') filteredData.sort((a,b) => _trSira(a.name||'', b.name||''));
+  else if (sortMode === 'composer') filteredData.sort((a,b) => _trSira(a.composer||a.seslendiren||'zzz', b.composer||b.seslendiren||'zzz'));
+  else if (sortMode === 'makam') filteredData.sort((a,b) => _trSira(a.makam||'zzz', b.makam||'zzz'));
+  else if (sortMode === 'form') filteredData.sort((a,b) => _trSira(a.form||'zzz', b.form||'zzz'));
+  else if (sortMode === 'region') filteredData.sort((a,b) => _trSira(a.region||'zzz', b.region||'zzz'));
 }
 
 // (2026-10-31) PARÇALI ÇİZİM. Emir'in listesi 10 bini aşınca (kenardaki eserler kişisel olarak geri geldi) iPhone tek
@@ -9048,6 +9075,11 @@ document.addEventListener('keydown', function(e) {
 
 // Supabase'den yükle, sonra başlat
 (async function init() {
+  // (2026-11-05) YEREL LİSTE AĞI BEKLEMEZ. requireAuth() oturumu sunucuda doğrulayıp rolü ve grupları çekene kadar
+  // (3-4 ardışık istek; mobilde 1-3 sn, zayıf sinyalde 6 sn'ye kadar) cihazdaki eserler hiç okunmuyor, ekranda
+  // "Eserler yükleniyor…" kalıyordu. Jeton varsa yerel liste hemen çizilir; doğrulama ve sunucu eşitlemesi arkadan gelir.
+  // Jeton yoksa okuma yapılmaz, requireAuth girişe yollar.
+  const _yerelOnce = localStorage.getItem('sb_token') ? yereldenGoster() : Promise.resolve(false);
   const ok = await requireAuth(); if(!ok) return;
   
   if (isAdmin()) {
@@ -9102,10 +9134,10 @@ document.addEventListener('keydown', function(e) {
     if (onerilerimBtn) onerilerimBtn.style.display = 'inline-flex';
     updateMySuggestionsCount();
   }
-  // Yükleniyor göstergesi
-  const _lp = document.getElementById('listPanel'); if(_lp) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">' + _esCev('es.eserlerYukleniyor','Eserler yükleniyor...') + '</div>';
+  // Yükleniyor göstergesi (yerel liste çizildiyse onu silmesin)
+  const _lp = document.getElementById('listPanel'); if(_lp && !DATA.length) _lp.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);">' + _esCev('es.eserlerYukleniyor','Eserler yükleniyor...') + '</div>';
   
-  await loadWorksFromSupabase();
+  await loadWorksFromSupabase(_yerelOnce);
   loadPersonalChords(); // kişisel akorları arka planda yükle (listeyi bloklamaz)
   loadPersonalNotes();  // kişisel eser notları — aynı şekilde arka planda
   loadUserNames();      // "Ekleyen" alanında e-posta yerine Ad Soyad göstermek için

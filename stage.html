@@ -1425,7 +1425,9 @@ async function loadWL() {
         // (2026-10-31) Oturum varsa artımlı: db.js eserleriEsitle yalnız değişenleri indirir ve IndexedDB'ye kendisi yazar;
         // updated_at sütunu yoksa null → eski tam indirme. 8 sn'de bitmezse aşağıdaki catch yerelden çizer.
         if (_oturumVar && typeof window.eserleriEsitle === 'function') _artimli = await window.eserleriEsitle(8000);
-        fetched = _artimli ? _artimli.rows : await supaTumSayfalar(_worksUrl, _oturumVar ? H : {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}, { zaman: 3500 });
+        // (2026-11-05) Değişiklik yoksa rows null → yereldeki tam liste (eskiden eserleriEsitle her seferinde onu okuyup veriyordu).
+        fetched = _artimli ? (_artimli.rows || (window.db ? await db.works.getAll() : []))
+          : await supaTumSayfalar(_worksUrl, _oturumVar ? H : {'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY}, { zaman: 3500 });
       } catch (e) {
         if (e && e.status && _oturumVar) {
           // Eksik güfteyle sahneye çıkmaktansa dürüst ol: WL varsa önbellekten
@@ -4246,7 +4248,8 @@ function loadSideWork(id) {
   // Paylaşım modu: login gerekmez
   if (!_shareToken) {
     if (typeof requireAuth === 'function') {
-      const ok = await requireAuth();
+      // (2026-11-05) Önbellekte oturum varsa doğrulama beklenmez: repertuvar listesi cihazdan hemen gelir (auth.js).
+      const ok = await requireAuthBeklemeden();
       if (!ok) return;
     }
   }

@@ -422,7 +422,9 @@ function _applyWorksRows(rows) {
 async function loadWorksData() {
   // ── 1) ÖNCE LOCAL (IndexedDB): WL'i anında doldur, beklemeden çiz ──
   //     Böylece eser adları/güftesi ağ beklemeden gelir; "#37" görünmez.
-  if (window.db) {
+  // (2026-11-05) Ön çizim (yereldenOnCiz) WL'i doldurduysa 10 bin eser ikinci kez okunmaz.
+  if (_onCizim) await _onCizim;
+  if (window.db && !WLIST.length) {
     try {
       const localRows = await db.works.getAll();
       if ((localRows||[]).length) {
@@ -468,7 +470,9 @@ async function loadWorksData() {
       // (2026-10-31) Oturum varsa artımlı: db.js eserleriEsitle yalnız değişenleri indirir ve IndexedDB'ye kendisi yazar;
       // updated_at sütunu yoksa null → eski tam indirme. 8 sn'de bitmezse aşağıdaki catch yerelle devam eder.
       if (_oturumVar && typeof window.eserleriEsitle === 'function') _artimli = await window.eserleriEsitle(8000);
-      rows = _artimli ? _artimli.rows : await supaTumSayfalar(_worksUrl, _oturumVar ? authHeaders() : anonHeaders(), { zaman: 3500 });
+      // (2026-11-05) Değişiklik yoksa rows null: yerelden doldurulan WL yeterli, yeniden çizilmez.
+      rows = _artimli ? (_artimli.rows || (WLIST.length || !window.db ? [] : await db.works.getAll()))
+        : await supaTumSayfalar(_worksUrl, _oturumVar ? authHeaders() : anonHeaders(), { zaman: 3500 });
     } catch (e) {
       if (e && e.status && _oturumVar) {
         // Sessizce eksik veri göstermektense dürüst ol. WL zaten local'den
@@ -2688,7 +2692,25 @@ function shareViaWhatsApp() {
   window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
 }
 
+// (2026-11-05) YEREL ÖNCE, AĞ SONRA. requireAuth() oturumu sunucuda doğrulayıp rolü ve grupları çekene kadar (3-4 ardışık
+// istek; mobilde 1-3 sn, zayıf sinyalde 6 sn'ye kadar) cihazdaki repertuvarlar hiç okunmuyordu. Jeton varsa önbellekteki
+// rol/grupla hemen çizilir; load() doğrulamadan sonra her zamanki gibi yeniden çizer (yetkiler ve sunucu verisi).
+let _onCizim = null;
+async function yereldenOnCiz() {
+  if (!window.db) return;
+  try {
+    const [r, i, s, w] = await Promise.all([db.repertoires.getAll(), db.repertoire_items.getAll(), db.solistler.getAll(), db.works.getAll()]);
+    if ((w || []).length && !WLIST.length) _applyWorksRows(w);
+    if ((r || []).length && !reps.length) {
+      applyRepsData(r, i, s);
+      selectUrlRepIfPresent();
+      renderList(); renderDetail();
+      setTimeout(fixMobileHeight, 100);
+    }
+  } catch (e) { console.warn('[repertoires] yerel ön çizim:', e); }
+}
 (async function() {
+  if (localStorage.getItem('sb_token')) _onCizim = yereldenOnCiz();
   const ok = await requireAuth();
   if(!ok) return;
   // Önce local'den oku ve çiz (load), SONRA sync'i gecikmeyle başlat —
