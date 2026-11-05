@@ -251,8 +251,10 @@ function _indirmeGoster(n, t) {
     if (!el) {
       el = document.createElement('div'); el.id = 'eserIndirme'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
       el.style.cssText = 'position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:99990;max-width:460px;' +
-        'margin:0 auto;padding:12px 16px;border-radius:14px;background:var(--surface,#111722);color:var(--text,#fff);' +
-        'border:1px solid var(--border,rgba(255,255,255,.12));box-shadow:0 10px 28px rgba(0,0,0,.35);font:600 13.5px/1.45 inherit;' +
+        // (2026-11-05, Emir: "beyaz, diğer metinlerle karışıyor") Marka sarısı zemin + koyu yazı (sağ alttaki + düğmesiyle aynı dil),
+        // iki temada da SABİT renk: açık temada --accent yazı için koyu hardala (#8A6100) dönüyor, zemin olarak okunmuyordu. Kontrast ~12:1.
+        'margin:0 auto;padding:12px 16px;border-radius:14px;background:#FFC83D;color:#070A0F;' +
+        'border:none;box-shadow:0 10px 28px rgba(0,0,0,.35);font:700 13.5px/1.45 inherit;' +
         'pointer-events:none;text-align:center';
       (document.body || document.documentElement).appendChild(el);
     }
