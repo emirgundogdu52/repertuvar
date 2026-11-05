@@ -1204,15 +1204,32 @@ function _m(anahtar, tr) {
     const uid = localStorage.getItem('sb_user') ? JSON.parse(localStorage.getItem('sb_user')).id : null;
     return (token && uid) ? { token: token, uid: uid } : null;
   }
-  // (2026-11-01) Emir "6-B": normal kullanıcıya şimdilik yalnız "grubuna katıldı" bildirimi gidiyor; grubu olmayan zile basınca
-  // hep boş liste görüyordu → hiç bildirimi olmayana zil gizli. İlk bildirim gelince görünür ve bu cihazda görünür kalır.
-  function _zilVar() {
-    try { const a = _notifAuth(); return !!(a && localStorage.getItem('r_zilVar') === a.uid); } catch (e) { return false; }
+  // (2026-11-05, Emir) ZİL YALNIZ OKUNMAMIŞ BİLDİRİM VARKEN GÖRÜNÜR. (01.11 "6-B" kuralı — bir kez bildirim gelince hep
+  // görünür — çizim anı yarışı yüzünden tutarsız çalışıyordu: bazen kalıyor, bazen kayboluyordu.) Artık her kontrol zili
+  // İKİ YÖNDE de ayarlar. Çizimde titreme olmasın diye son okunmamış sayısı cihazda tutulur (r_zilSayi = "uid:sayı");
+  // yanlışsa ilk kontrol düzeltir. Okuma kaçmasın: oturum tazelenince (authReady) de kontrol edilir; açık panel kapanmaz.
+  // (2026-11-05 21.30, Emir: "Zil adminde hep görünsün") Yönetim bildirimleri (yeni üye, içerik bildirimi, gruba katılım)
+  // yalnız zilde görülüyor; okunmamış yokken gizlenirse admin eski bildirimlere hiç ulaşamıyordu. Admin'de zil HEP görünür,
+  // rozet yalnız okunmamış varken. Diğer herkeste yukarıdaki kural. Admin ölçütü menüdekiyle aynı (kimlik ya da rol).
+  function _zilHepAcik() {
+    try {
+      const a = _notifAuth(); if (!a) return false;
+      return a.uid === '4f965624-e524-4cb0-a351-3368f1297d28' || localStorage.getItem('user_role') === 'admin';
+    } catch (e) { return false; }
   }
-  function _zilGoster() {
+  function _zilVar() {
+    try {
+      const a = _notifAuth(); if (!a) return false;
+      if (_zilHepAcik()) return true;
+      const k = String(localStorage.getItem('r_zilSayi') || '').split(':');
+      return k[0] === a.uid && Number(k[1]) > 0;
+    } catch (e) { return false; }
+  }
+  function _zilAyarla(sayi) {
     const z = document.getElementById('rTnBell');
-    if (z) z.classList.remove('zil-yok');
-    try { const a = _notifAuth(); if (a) localStorage.setItem('r_zilVar', a.uid); } catch (e) {}
+    const panelAcik = !!document.querySelector('.r-notif-panel.open');
+    if (z) z.classList.toggle('zil-yok', !(sayi > 0) && !panelAcik && !_zilHepAcik());
+    try { const a = _notifAuth(); if (a) localStorage.setItem('r_zilSayi', a.uid + ':' + (sayi > 0 ? sayi : 0)); } catch (e) {}
   }
   function _notifEsc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function _notifTime(iso){
@@ -1233,11 +1250,7 @@ function _m(anahtar, tr) {
       if (!r.ok) return;
       const rows = await r.json();
       applyNotifBadge(rows.length);
-      if (rows.length) _zilGoster();
-      else if (!_zilVar()) {
-        const r2 = await fetch(NOTIF_SUPA_URL + '/rest/v1/notifications?user_id=eq.' + a.uid + '&select=id&limit=1', { headers: { 'apikey': NOTIF_SUPA_KEY, 'Authorization': 'Bearer ' + a.token } });
-        if (r2.ok && (await r2.json()).length) _zilGoster();
-      }
+      _zilAyarla(rows.length);
     } catch(e) {}
   }
   function applyNotifBadge(count) {
@@ -1394,6 +1407,8 @@ function _m(anahtar, tr) {
   setInterval(loadMsgBadge, 60000);
   setInterval(loadDeletionBadge, 60000);
   window.addEventListener('load', () => setTimeout(loadNotifBadge, 900));
+  // (2026-11-05) Açılışta jeton bayatsa ilk sorgu 401 alır; oturum tazelenince hemen yeniden sor (60 sn bekleme).
+  window.addEventListener('authReady', () => setTimeout(loadNotifBadge, 300));
   setInterval(loadNotifBadge, 60000);
   // Uygulama/sekme öne gelince ANINDA kontrol et (60sn turunu bekleme, pil yakmaz)
   document.addEventListener('visibilitychange', function(){
