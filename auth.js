@@ -917,6 +917,20 @@ async function requireAuth() {
   }
 }
 
+// (2026-11-05) ÖNBELLEKTE OTURUM VARSA SAYFA DOĞRULAMAYI BEKLEMEZ (Sahne Modu, ana sayfa). requireAuth() sunucuya 3-4
+// ardışık istek atıyor (kullanıcı, rol, gruplar; her biri 6 sn'ye kadar); sayfa bitmesini bekleyince cihazdaki veri
+// mobilde 1-3 sn, zayıf sinyalde daha uzun görünmüyordu. Jeton, kullanıcı ve rol bu cihazda kayıtlıysa (rol en az bir kez
+// sunucudan alınmış demek) requireAuth arkada sürer: askıya alınmış / silinmiş hesapta ve kalıcı ölmüş oturumda kendisi
+// girişe yollar, rol ve grup değiştiyse localStorage'ı tazeler. Önbellek yoksa (ilk giriş) eskisi gibi beklenir.
+function requireAuthBeklemeden() {
+  const dogrulama = requireAuth();
+  if (getToken() && getUser() && localStorage.getItem('user_role')) {
+    dogrulama.catch(() => {});
+    return Promise.resolve(true);
+  }
+  return dogrulama;
+}
+
 const ADMIN_USER_ID = '4f965624-e524-4cb0-a351-3368f1297d28';
 function isAdmin() {
   return getUserId() === ADMIN_USER_ID;

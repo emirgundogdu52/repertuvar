@@ -4248,7 +4248,8 @@ function loadSideWork(id) {
   // Paylaşım modu: login gerekmez
   if (!_shareToken) {
     if (typeof requireAuth === 'function') {
-      const ok = await requireAuth();
+      // (2026-11-05) Önbellekte oturum varsa doğrulama beklenmez: repertuvar listesi cihazdan hemen gelir (auth.js).
+      const ok = await requireAuthBeklemeden();
       if (!ok) return;
     }
   }
