@@ -3048,12 +3048,15 @@ function setSort(mode) {
   renderList();
 }
 
+// (2026-11-05) TEK SIRALAYICI. localeCompare(…, 'tr') her karşılaştırmada dil kurallarını yeniden kuruyordu: 10.412 eserde
+// ~140 bin çağrı, Emir'in iPad'inde (7. nesil) liste açılışının ~1,2 sn'si (cihaz ölçümü); Mac WebKit'te 240 ms → 4 ms. Aynı sıra.
+const _trSira = new Intl.Collator('tr').compare;
 function sortData() {
-  if (sortMode === 'name') filteredData.sort((a,b) => (a.name||'').localeCompare(b.name||'','tr'));
-  else if (sortMode === 'composer') filteredData.sort((a,b) => (a.composer||a.seslendiren||'zzz').localeCompare(b.composer||b.seslendiren||'zzz','tr'));
-  else if (sortMode === 'makam') filteredData.sort((a,b) => (a.makam||'zzz').localeCompare(b.makam||'zzz','tr'));
-  else if (sortMode === 'form') filteredData.sort((a,b) => (a.form||'zzz').localeCompare(b.form||'zzz','tr'));
-  else if (sortMode === 'region') filteredData.sort((a,b) => (a.region||'zzz').localeCompare(b.region||'zzz','tr'));
+  if (sortMode === 'name') filteredData.sort((a,b) => _trSira(a.name||'', b.name||''));
+  else if (sortMode === 'composer') filteredData.sort((a,b) => _trSira(a.composer||a.seslendiren||'zzz', b.composer||b.seslendiren||'zzz'));
+  else if (sortMode === 'makam') filteredData.sort((a,b) => _trSira(a.makam||'zzz', b.makam||'zzz'));
+  else if (sortMode === 'form') filteredData.sort((a,b) => _trSira(a.form||'zzz', b.form||'zzz'));
+  else if (sortMode === 'region') filteredData.sort((a,b) => _trSira(a.region||'zzz', b.region||'zzz'));
 }
 
 // (2026-10-31) PARÇALI ÇİZİM. Emir'in listesi 10 bini aşınca (kenardaki eserler kişisel olarak geri geldi) iPhone tek
