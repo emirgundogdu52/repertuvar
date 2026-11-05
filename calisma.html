@@ -268,6 +268,7 @@
 .rb-kes { margin-top:0; text-decoration:none; min-height:40px; padding:0 14px; font-size:13px; }
 /* (2026-10-25) Dinleme hızı + hızlı tempo düğmeleri */
 .rb-hiz { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:0 0 12px; }
+.rb-hiz.arada { margin:8px 0; padding:10px 12px; border-radius:11px; background:var(--surface2); }
 .rb-hiz-etiket { font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:.04em; margin-right:4px; }
 .rb-hiz-cip { min-height:36px; min-width:52px; padding:0 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface2);
   color:var(--text2); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; font-variant-numeric:tabular-nums; }
@@ -406,8 +407,9 @@
       <span class="rb-kota" id="rbKota"></span>
       <a class="co-btn ikincil rb-kes" href="ritim-kes.html"><i class="ti ti-scissors"></i><span data-i18n="ca.rbYeniKes">Yeni ritim kes</span></a>
     </div>
-    <div class="rb-hiz" id="rbHiz"></div>
     <div class="co-liste" id="rbBanka"></div>
+    <div class="rb-hiz" id="rbHiz"></div>
+    <div class="co-liste" id="rbBankaAlt"></div>
     <div class="rb-bos" id="rbBankaBos" hidden data-i18n="ca.rbBankaBos">Bankan boş. Elindeki bir ritim kaydından döngü kesmek için "Yeni ritim kes"e dokun.</div>
   </div>
 
@@ -1481,7 +1483,8 @@ function rbBankaCiz() {
   document.getElementById('rbBankaBos').hidden = RB_BANKA.length > 0;
   const bagliIdler = new Set(rbBagli.map(b => b.ritim.id));
   const ben = uid();
-  el.innerHTML = RB_BANKA.filter(r => rbGoster('rhythm', r.id, r.owner_id)).map(r => {
+  const gorunen = RB_BANKA.filter(r => rbGoster('rhythm', r.id, r.owner_id));
+  const satirlar = gorunen.map(r => {
     const dinliyor = rbOnizleme && rbOnizleme.id === r.id;
     const ekle = rbEser && !bagliIdler.has(r.id)
       ? `<button class="rb-ikon rb-ekle" onclick="rbBagla('${r.id}')">${_caCev('ca.rbEsereEkle', 'Esere ekle')}</button>` : '';
@@ -1525,7 +1528,13 @@ function rbBankaCiz() {
       <div class="rb-ad"><b>${rbKacis(r.ad)}</b><small>${rbOzet(r)}${grup}</small></div>
       ${ekle}${duzenle}${sil}
     </div>`;
-  }).join('');
+  });
+  // (2026-11-05) Emir: "Bir ritmi çalıştırınca Dinleme temposu çubuğu o ritmin altına gelsin; liste uzun olunca aşağı yukarı kaydırıyoruz."
+  // Çubuk (#rbHiz) DOM'da yerinden oynamaz (sürüklerken yeniden kurulmasın); satırlar çalan ritme kadar üst kaba, sonrası alt kaba yazılır.
+  const k = gorunen.findIndex(r => r.id === rbOnizSecili);
+  el.innerHTML = satirlar.slice(0, k + 1).join('');
+  document.getElementById('rbBankaAlt').innerHTML = satirlar.slice(k + 1).join('');
+  document.getElementById('rbHiz').classList.toggle('arada', k >= 0);
 }
 
 // Döngüyü indir ve çöz — oturum boyunca bellekte tutulur.
