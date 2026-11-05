@@ -1874,6 +1874,7 @@
   "ca.kayitSilOnay": "هل تريد حذف التسجيل «{ad}»؟",
   "ca.sn": "ث",
   "ca.grupPaylasiliyor": "مشترك مع مجموعتك",
+  "ca.rbHazir": "إيقاع جاهز",
   "ca.dinle": "استماع",
   "ca.bildir": "إبلاغ",
   "ca.bunaGec": "التبديل إلى هذا",

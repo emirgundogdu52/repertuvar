@@ -1874,6 +1874,7 @@
   "ca.kayitSilOnay": "\"{ad}\" səs yazısı silinsin?",
   "ca.sn": "san",
   "ca.grupPaylasiliyor": "Qrupla paylaşılır",
+  "ca.rbHazir": "Hazır ritm",
   "ca.dinle": "Dinlə",
   "ca.bildir": "Şikayət et",
   "ca.bunaGec": "Buna keç",

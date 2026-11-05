@@ -1890,6 +1890,7 @@
   "ca.kayitSilOnay": "Die Aufnahme „{ad}“ löschen?",
   "ca.sn": "s",
   "ca.grupPaylasiliyor": "Mit deiner Gruppe geteilt",
+  "ca.rbHazir": "Fertiger Rhythmus",
   "ca.dinle": "Anhören",
   "ca.bildir": "Melden",
   "ca.bunaGec": "Zu dieser wechseln",

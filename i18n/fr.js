@@ -1890,6 +1890,7 @@
   "ca.kayitSilOnay": "Supprimer l’enregistrement «\u00a0{ad}\u00a0»\u00a0?",
   "ca.sn": "s",
   "ca.grupPaylasiliyor": "Partagé avec votre groupe",
+  "ca.rbHazir": "Rythme prêt à l'emploi",
   "ca.dinle": "Écouter",
   "ca.bildir": "Signaler",
   "ca.bunaGec": "Passer à celui-ci",

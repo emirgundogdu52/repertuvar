@@ -1890,6 +1890,7 @@
   "ca.kayitSilOnay": "De opname \"{ad}\" verwijderen?",
   "ca.sn": "s",
   "ca.grupPaylasiliyor": "Gedeeld met je groep",
+  "ca.rbHazir": "Kant-en-klaar ritme",
   "ca.dinle": "Luisteren",
   "ca.bildir": "Melden",
   "ca.bunaGec": "Hierop overschakelen",

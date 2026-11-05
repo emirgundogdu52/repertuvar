@@ -1516,7 +1516,10 @@ function rbBankaCiz() {
     const sil = r.owner_id === ben
       ? `<button class="rb-ikon" onclick="rbRitimSil('${r.id}')" aria-label="${_caCev('ortak.sil', 'Sil')}"><i class="ti ti-trash"></i></button>`
       : `<button class="rb-ikon" onclick="rbBildirMenu(event,'rhythm','${r.id}')" aria-label="${_caCev('ca.bildir', 'Bildir')}" title="${_caCev('ca.bildir', 'Bildir')}"><i class="ti ti-flag"></i></button>`;
-    const grup = r.group_id ? ' · <i class="ti ti-users" title="' + _caCev('ca.grupPaylasiliyor', 'Grupla paylaşılıyor') + '"></i>' : '';
+    // (2026-11-05) Emir: "Benim yüklediğim hazır ritim kalıplarını herkes görebilsin" — ritimler.herkese_acik (yalnız yönetici açar);
+    // herkese açık ritim grup simgesi yerine "Hazır ritim" etiketiyle görünür.
+    const grup = r.herkese_acik ? ' · ' + _caCev('ca.rbHazir', 'Hazır ritim')
+      : r.group_id ? ' · <i class="ti ti-users" title="' + _caCev('ca.grupPaylasiliyor', 'Grupla paylaşılıyor') + '"></i>' : '';
     return `<div class="rb-satir">
       <button class="rb-ikon rb-oynat" onclick="rbOnizle('${r.id}')" aria-label="${_caCev('ca.dinle', 'Dinle')}"><i class="ti ${dinliyor ? 'ti-player-stop' : 'ti-player-play'}"></i></button>
       <div class="rb-ad"><b>${rbKacis(r.ad)}</b><small>${rbOzet(r)}${grup}</small></div>

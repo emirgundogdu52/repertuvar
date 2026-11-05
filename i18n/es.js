@@ -1890,6 +1890,7 @@
   "ca.kayitSilOnay": "¿Eliminar la grabación \"{ad}\"?",
   "ca.sn": "s",
   "ca.grupPaylasiliyor": "Compartida con tu grupo",
+  "ca.rbHazir": "Ritmo listo",
   "ca.dinle": "Escuchar",
   "ca.bildir": "Denunciar",
   "ca.bunaGec": "Cambiar a esta",

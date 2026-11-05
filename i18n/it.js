@@ -1890,6 +1890,7 @@
   "ca.kayitSilOnay": "Eliminare la registrazione \"{ad}\"?",
   "ca.sn": "s",
   "ca.grupPaylasiliyor": "Condivisa con il tuo gruppo",
+  "ca.rbHazir": "Ritmo pronto",
   "ca.dinle": "Ascolta",
   "ca.bildir": "Segnala",
   "ca.bunaGec": "Passa a questa",

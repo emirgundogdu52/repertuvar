@@ -1890,6 +1890,7 @@
   "ca.kayitSilOnay": "Excluir a gravação \"{ad}\"?",
   "ca.sn": "s",
   "ca.grupPaylasiliyor": "Compartilhada com seu grupo",
+  "ca.rbHazir": "Ritmo pronto",
   "ca.dinle": "Ouvir",
   "ca.bildir": "Denunciar",
   "ca.bunaGec": "Mudar para esta",
