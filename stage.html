@@ -863,7 +863,8 @@ body.day-theme{--marker-color:#3F3BC0;}  /* açık: koyu indigo */
 /* (2026-08-06) Düğme "Sıradaki" kartıyla ORANTILI: aynı yükseklikte
    (align-self:stretch), aynı köşe yarıçapı (10px) ve aynı sarı çerçeve —
    yan yana durdukları için ikisi tek bir şeritmiş gibi görünüyor. */
-.sb-menu-btn{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;width:46px;min-height:100%;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s,border-color .15s;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.sb-menu-btn{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;width:46px;min-height:max(44px, 100%);display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s,border-color .15s;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+/* (2026-11-06) Emir: "alttaki butonlar çok küçük, tıklamak zor" — "Sıradaki" kartı yokken (son eser) düğme 22 px'e iniyordu; en az 44 px. */
 .sb-menu-btn .ti{font-size:20px;}
 .sb-menu-btn:hover{color:var(--text);border-color:var(--accent);}
 .sb-menu-btn i{font-size:18px;}
@@ -874,7 +875,8 @@ body.day-theme{--marker-color:#3F3BC0;}  /* açık: koyu indigo */
    üstünde; 3 sn dokunulmazsa soluklaşır (yazının önünde durmasın). */
 .ak-kap{position:relative;order:2;align-self:stretch;display:flex;margin-left:auto;}
 .ak-kap[hidden]{display:none;}
-.ak-kap + .sb-menu{margin-left:0;}
+/* (2026-11-06) Yalnız görünürken: gizli .ak-kap'ın kardeşi olan ⚙ de sola kayıyordu (1/1, "Sıradaki" kartı yokken; Emir iPad). */
+.ak-kap:not([hidden]) + .sb-menu{margin-left:0;}
 .ak-btn.on{background:var(--accent);color:#1c1c1e;border-color:var(--accent);}
 body.day-theme .ak-btn.on{color:#fff;}
 .ak-hiz{position:absolute;right:0;bottom:calc(100% + 8px);display:flex;align-items:center;gap:8px;padding:6px;width:250px;max-width:calc(100vw - 32px);
