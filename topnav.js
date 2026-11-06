@@ -1044,6 +1044,19 @@ function _m(anahtar, tr) {
     document.addEventListener('click', e => {
       if (e.target.closest && e.target.closest('a, button, [onclick], [role="button"]')) goster();
     }, true);
+    // (2026-11-06) Emir (iPad, 1.3): menü gizlendikten sonra geri çağrılamadı, sayfada kalakaldı — kaydırılan kap kapanınca ya da
+    // kısalınca kalan liste zaten en üstteydi; yukarı kaydırma olayı gelmiyor, düğme olmayan yere dokunmak da işe yaramıyordu.
+    // Artık parmağı aşağı çekmek (yukarı kaydırma hareketi, hiçbir şey kaymasa da) ya da herhangi bir yere dokunmak menüyü getirir.
+    let dokX = null, dokY = null;
+    document.addEventListener('touchstart', e => { const t = e.touches[0]; dokX = t.clientX; dokY = t.clientY; }, { capture: true, passive: true });
+    document.addEventListener('touchmove', e => {
+      if (dokY !== null && e.touches[0].clientY - dokY > 24) goster();
+    }, { capture: true, passive: true });
+    document.addEventListener('touchend', e => {
+      const t = e.changedTouches[0];
+      if (dokY !== null && t && Math.abs(t.clientX - dokX) < 10 && Math.abs(t.clientY - dokY) < 10) goster();
+      dokY = null;
+    }, { capture: true, passive: true });
   })();
 
   // Theme logic
