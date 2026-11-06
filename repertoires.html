@@ -59,6 +59,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 .ri-edit-bg,.ri-delete-bg{visibility:hidden;bottom:1px;}
 .ri-wrap.ri-acik > .ri-edit-bg,
 .ri-wrap.ri-acik > .ri-delete-bg{visibility:visible;}
+/* (2026-11-07) Eser satırında kaydırma (repertoires.js skBasla): solda Değiştir, sağda Sil; panel kenardan açılır. Dokunmatik
+   ekranda satırdaki ✎ ve 🗑 kalkar (Emir: "iki düğmelik yer kazanırız"); fareyle kaydırma olmadığı için masaüstünde yerinde. */
+#dc tbody td.sq,#dc tbody td.sk-son{position:relative;}
+.sk-pnl{position:absolute;top:0;bottom:0;width:0;overflow:hidden;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap;cursor:pointer;}
+.sk-pnl i{font-size:18px;}
+.sk-deg{left:0;background:var(--accent2);}
+.sk-sil{right:0;background:#FF5A5F;}
+@media (hover:none) and (pointer:coarse){.ra > .br.be,.ra > .br.dl{display:none !important;}}
 /* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
 .ri-wrap::before {
   content:''; position:absolute; inset:0; border-radius:10px; padding:2.5px;

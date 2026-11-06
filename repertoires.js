@@ -363,6 +363,59 @@ function riTouchEnd(e) {
   _riSwipe = null;
 }
 
+// ── (2026-11-07) Repertuvardaki ESER SATIRINDA kaydırma (Emir: "Eserler listesindeki gibi; sola kaydırınca Sil, sağa kaydırınca
+// Değiştir; iki düğmelik yer kazanırız"). Satır tablo satırı olduğu için kart gibi kaymıyor: panel parmağı izleyerek kenardan
+// açılır (sağda .sk-sil, solda .sk-deg). Dokunmatik ekranda satırdaki ✎ ve 🗑 kalkar (repertoires.html); fareyle yerinde.
+const SK_MAX = 94, SK_ESIK = 44;
+let _sk = null, _skAcik = null;
+function _skCiz(tr, v, anim) {
+  const sil = tr.querySelector('.sk-sil'), deg = tr.querySelector('.sk-deg');
+  [sil, deg].forEach(p => { if (p) p.style.transition = anim ? 'width .2s ease' : 'none'; });
+  if (sil) sil.style.width = Math.max(0, -v) + 'px';
+  if (deg) deg.style.width = Math.max(0, v) + 'px';
+}
+function skKapat() {
+  if (!_skAcik) return;
+  _skCiz(_skAcik, 0, true);
+  delete _skAcik.dataset.skTaraf;
+  _skAcik = null;
+}
+function skBasla(e) {
+  _sk = null;
+  if (e.target.closest('.drag-handle, .sk-pnl')) return;
+  const tr = e.currentTarget;
+  if (_skAcik && _skAcik !== tr) skKapat();
+  const t = e.touches[0];
+  const taban = tr.dataset.skTaraf === 'sil' ? -SK_MAX : (tr.dataset.skTaraf === 'deg' ? SK_MAX : 0);
+  _sk = { tr, x: t.clientX, y: t.clientY, dx: taban, taban, yon: null };
+}
+function skHareket(e) {
+  if (!_sk || _sk.tr !== e.currentTarget) return;
+  const t = e.touches[0], dx = t.clientX - _sk.x, dy = t.clientY - _sk.y;
+  if (_sk.yon === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) _sk.yon = Math.abs(dx) > Math.abs(dy) ? 'yatay' : 'dikey';
+  if (_sk.yon === 'dikey') { _sk = null; return; }
+  if (_sk.yon !== 'yatay') return;
+  e.preventDefault();
+  _sk.dx = Math.max(-SK_MAX, Math.min(SK_MAX, _sk.taban + dx));
+  _skCiz(_sk.tr, _sk.dx, false);
+}
+function skBitir() {
+  if (!_sk || _sk.yon !== 'yatay') { _sk = null; return; }
+  const tr = _sk.tr, v = _sk.dx;
+  // Kaydırmanın ardından gelebilecek hayalet tıklama satırı (sözler penceresi) açmasın — kartlardaki gibi 400 ms.
+  tr.dataset.skKaydi = '1'; setTimeout(() => { delete tr.dataset.skKaydi; }, 400);
+  if (v <= -SK_ESIK) { _skCiz(tr, -SK_MAX, true); tr.dataset.skTaraf = 'sil'; _skAcik = tr; }
+  else if (v >= SK_ESIK) { _skCiz(tr, SK_MAX, true); tr.dataset.skTaraf = 'deg'; _skAcik = tr; }
+  else { _skCiz(tr, 0, true); delete tr.dataset.skTaraf; if (_skAcik === tr) _skAcik = null; }
+  _sk = null;
+}
+// Panel açıkken satırlara dokunmak önce paneli kapatır (kartlardaki gibi); kaydırma sonrası hayalet tıklama yutulur.
+document.addEventListener('click', e => {
+  const tr = e.target.closest && e.target.closest('tr[data-sk]');
+  if (!tr || e.target.closest('.sk-pnl')) { if (_skAcik && !(e.target.closest && e.target.closest('.sk-pnl'))) skKapat(); return; }
+  if (tr.dataset.skKaydi || _skAcik) { e.stopPropagation(); e.preventDefault(); skKapat(); }
+}, true);
+
 function riCardClick(e, id) {
   const card = e.currentTarget;
   if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) {
@@ -1103,8 +1156,10 @@ function renderDetail(){
     const rowClasses=[idx%2===1?'zebra-tr':'',isActive?'item-active':'',inChain?'medley-row':'',chainCls.trim()].filter(Boolean).join(' ');
     // (2026-08-12) HTML5 drag öznitelikleri KALDIRILDI — sürükleme artık
     // yalnızca ⠿ tutamacından, tek bir pointer tabanlı kodla yapılıyor.
-    return `<tr data-idx="${idx}" data-rep="${rep.id}" style="touch-action:pan-y;"${rowClasses?' class="'+rowClasses+'"':''}>
+    const skAttrs = _canM ? ` data-sk="1" ontouchstart="skBasla(event)" ontouchmove="skHareket(event)" ontouchend="skBitir(event)" ontouchcancel="skBitir(event)"` : '';
+    return `<tr data-idx="${idx}" data-rep="${rep.id}" style="touch-action:pan-y;"${skAttrs}${rowClasses?' class="'+rowClasses+'"':''}>
       <td class="sq" style="text-align:center;user-select:none;padding:0 2px;vertical-align:middle;width:48px;">
+        ${_canM?`<div class="sk-pnl sk-deg" onclick="event.stopPropagation();skKapat();openItemEdit('${rep.id}','${it.id}')"><i class="ti ti-edit" aria-hidden="true"></i>${_r('rep.degistir','Değiştir')}</div>`:''}
         <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
           <!-- (2026-08-06) Aktif satırdaki ▶ işareti KALDIRILDI: potpuri zincirinin
                sarı köşeli çizgisiyle aynı dar hücreye binince okunmayan bir şekil
@@ -1121,7 +1176,7 @@ function renderDetail(){
       </td>
       <td class="col-kapanis">${cn?'<span class="cn">'+_rEsc(cn)+'</span>':''}</td>
       <td class="col-not" style="color:var(--text3);font-size:12px;">${_rEsc(it.note||'')}</td>
-      <td><div class="ra">
+      <td class="sk-son">${_canM?`<div class="sk-pnl sk-sil" data-ad="${_rEsc(w.name||_r('rep.buEser','Bu eser'))}" onclick="event.stopPropagation();skKapat();rmItem('${rep.id}','${it.id}',this.dataset.ad)"><i class="ti ti-trash" aria-hidden="true"></i>${_r('ortak.sil','Sil')}</div>`:''}<div class="ra">
         ${_dinleDugme(it.workId)}
         ${_knotDugme(it.workId)}
         ${_canM?`
