@@ -3171,9 +3171,10 @@ function renderList() {
     // (dokununca açıklama). "Çevrim dışı" satırı kalktı: her kartta aynıydı (bütün liste cihazda), bilgi vermiyordu.
     const _ozan = _esHtml(w.composer || w.seslendiren || ''), _tur = w.tur ? _esHtml(w.tur) : '';
     const wcYazi = _ozan + (_ozan && _tur ? '<span class="wc-ayr"> · </span>' : '') + _tur;
+    // (2026-11-07) Emir: dünya simgesi kalktı — herkese açık varsayılan; simge yalnız istisnada. Eskiden yalnız ekleyene çıkıyordu:
+    // Emir'in adına kayıtlı 9.696 eserde vardı, ekleyeni boş 673 katalog eserinde yoktu ("Abum Abum Kız Abum"), aynı tür eser iki türlü görünüyordu.
     const _gv = (w.status === 'pending' && w.submitted_by === uidNow) ? 'pending'
-      : (w.visibility === 'private' && w.submitted_by === uidNow) ? 'private' : (w.visibility === 'group') ? 'group'
-      : ((w.visibility || 'public') === 'public' && w.submitted_by && w.submitted_by === uidNow) ? 'public' : '';
+      : (w.visibility === 'private' && w.submitted_by === uidNow) ? 'private' : (w.visibility === 'group') ? 'group' : '';
     const simge = window.gorunurlukSimge ? gorunurlukSimge(_gv) : '';
     const isChecked = bulkMode && bulkSelectedIds.has(w.id);
     // Sol renk şeridi — yeşil: bir repertuvarda kullanılıyor
