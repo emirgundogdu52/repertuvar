@@ -427,6 +427,7 @@
   "es.pdfAcilamadi": "📄 Impossibile aprire il PDF qui — se sei offline, questo spartito potrebbe non essere ancora salvato su questo dispositivo. Puoi provare con il link qui sotto.",
   "es.offlineHazirlaniyor": "🟡 Preparazione…",
   "es.offlineHazirDegil": "⚪ Non pronto offline",
+  "es.offlineNotaYok": "Lo spartito non è ancora sul dispositivo. Apri il brano una volta con internet per scaricarlo.",
   "rep.offlineEksik": "{p}/{n} brani su questo dispositivo",
   "es.yariTonPes": "Giù di un semitono",
   "es.yariTonTiz": "Su di un semitono",

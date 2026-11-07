@@ -3106,7 +3106,42 @@ function _kaydirmaKabi(el) {
   }
   return null;
 }
+// (2026-11-07) Emir: listede GERÇEK çevrim dışı durumu — yalnız istisnada (hazır olmayan esere soluk kırmızı bulut, dokununca
+// açıklama). db.js eserListeDurumu yalnız okur, nota indirmez. Yeni çizilen kartlar sırayla denetlenir; liste yeniden çizilirse eski tur durur.
+let _offListeTur = 0;
+async function _listeOfflineIsaretle() {
+  if (typeof window.eserListeDurumu !== 'function') return;
+  const tur = ++_offListeTur;
+  const harita = new Map((DATA || []).map(w => [String(w.id), w]));
+  const baslik = _esCev('es.offlineHazirDegil', 'Çevrim dışı hazır değil').replace(/^[^\p{L}]+/u, '');
+  for (const k of [...document.querySelectorAll('#listPanel .work-item:not([data-off])')]) {
+    const w = harita.get(String(k.dataset.id));
+    if (!w) continue;
+    let d; try { d = await window.eserListeDurumu(w); } catch (e) { continue; }
+    if (tur !== _offListeTur) return;          // yeni tur başladı; bu kartı o işler
+    if (d === 'metin' && window._offlineSyncing) continue;   // ilk eşitleme sürüyor: işaretleme, bitince yeniden denetlenir
+    k.dataset.off = '1';
+    if (d === 'hazir' || !k.isConnected) continue;
+    const ayrinti = d === 'nota' ? _esCev('es.offlineNotaYok', 'Notası cihazda değil. İnternete bağlıyken eseri bir kez açınca indirilir.') : '';
+    const e = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    const dugme = '<button type="button" class="gsim off yok" data-b="' + e(baslik) + '" data-a="' + e(ayrinti) + '" aria-label="' + e(baslik + (ayrinti ? ' — ' + ayrinti : '')) +
+      '" onclick="gsimAc(event, this)"><i class="ti ti-cloud-off" aria-hidden="true"></i></button>';
+    let c = k.querySelector('.work-composer');
+    if (!c) { k.querySelector('.work-name').insertAdjacentHTML('afterend', '<div class="work-composer"><span class="wc-yazi"></span></div>'); c = k.querySelector('.work-composer'); }
+    c.insertAdjacentHTML('beforeend', dugme);
+  }
+}
+// Eşitleme ya da nota indirme bitince yeniden denetle (bulutlar kalkar ya da çıkar).
+let _offListeZaman = null;
+['data-synced', 'offline-sync-state'].forEach(ev => window.addEventListener(ev, () => {
+  clearTimeout(_offListeZaman);
+  _offListeZaman = setTimeout(() => {
+    document.querySelectorAll('#listPanel .work-item[data-off]').forEach(k => { k.removeAttribute('data-off'); k.querySelectorAll('.gsim.off').forEach(g => g.remove()); });
+    _listeOfflineIsaretle();
+  }, 600);
+}));
 function _listeGozcuKur(panel) {
+  _listeOfflineIsaretle();
   if (_listeGozlemci) { _listeGozlemci.disconnect(); _listeGozlemci = null; }
   const eski = document.getElementById('listeGozcu');
   if (eski) eski.remove();

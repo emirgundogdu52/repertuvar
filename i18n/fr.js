@@ -427,6 +427,7 @@
   "es.pdfAcilamadi": "📄 Impossible d’ouvrir le PDF ici — si vous êtes hors ligne, cette partition n’a peut-être pas encore été enregistrée sur cet appareil. Vous pouvez essayer le lien ci-dessous.",
   "es.offlineHazirlaniyor": "🟡 Préparation…",
   "es.offlineHazirDegil": "⚪ Pas prêt hors ligne",
+  "es.offlineNotaYok": "La partition n'est pas encore sur l'appareil. Ouvrez le morceau une fois en ligne pour la télécharger.",
   "rep.offlineEksik": "{p}/{n} morceaux sur cet appareil",
   "es.yariTonPes": "Un demi-ton plus bas",
   "es.yariTonTiz": "Un demi-ton plus haut",

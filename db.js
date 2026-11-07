@@ -848,6 +848,15 @@ async function _notaEksikler(urls) {
   for (const u of urls) { if (!(await c.match(u))) eksik.push(u); }
   return eksik;
 }
+// (2026-11-07) Eser LİSTESİ için hafif durum (Emir: listede gerçek çevrim dışı durumu). Yalnız okur, nota İNDİRMEZ —
+// checkWorkOfflineReady eksik notayı indirmeye başlattığı için listede her kart için çağrılamaz. Kişisel veri (genel)
+// burada sayılmaz: her kartı aynı anda kırmızı yapardı. Döner: 'hazir' | 'nota' (notası cihazda değil) | 'metin' (metin eksik).
+window.eserListeDurumu = async function (w) {
+  if (!_eserMetniTamMi(w)) return 'metin';
+  const urls = _notaUrlleri(w);
+  if (!urls.length) return 'hazir';
+  return (await _notaEksikler(urls)).length ? 'nota' : 'hazir';
+};
 const _notaIndirme = {};     // anahtar → Promise (aynı anda ikinci kez başlatma)
 const _notaSonHata = {};     // anahtar → zaman (başarısızsa 60 sn tekrar deneme yok)
 let _notaKalicilikIstendi = false;

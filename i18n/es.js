@@ -427,6 +427,7 @@
   "es.pdfAcilamadi": "📄 No se pudo abrir el PDF aquí — si no tienes conexión, puede que esta partitura aún no se haya guardado en este dispositivo. Puedes probar con el enlace de abajo.",
   "es.offlineHazirlaniyor": "🟡 Preparando…",
   "es.offlineHazirDegil": "⚪ No disponible sin conexión",
+  "es.offlineNotaYok": "La partitura aún no está en el dispositivo. Abre la obra una vez con conexión a internet para descargarla.",
   "rep.offlineEksik": "{p}/{n} obras en este dispositivo",
   "es.yariTonPes": "Bajar un semitono",
   "es.yariTonTiz": "Subir un semitono",

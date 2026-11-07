@@ -427,6 +427,7 @@
   "es.pdfAcilamadi": "📄 De PDF kon hier niet worden geopend — ben je offline, dan is deze bladmuziek misschien nog niet op dit apparaat opgeslagen. Je kunt de link hieronder proberen.",
   "es.offlineHazirlaniyor": "🟡 Voorbereiden…",
   "es.offlineHazirDegil": "⚪ Niet offline klaar",
+  "es.offlineNotaYok": "De noten staan nog niet op dit apparaat. Open het stuk één keer terwijl je online bent om ze te downloaden.",
   "rep.offlineEksik": "{p}/{n} stukken op dit apparaat",
   "es.yariTonPes": "Halve toon omlaag",
   "es.yariTonTiz": "Halve toon omhoog",

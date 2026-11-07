@@ -427,6 +427,7 @@
   "es.pdfAcilamadi": "📄 Das PDF konnte hier nicht geöffnet werden — wenn du offline bist, wurden diese Noten auf diesem Gerät vielleicht noch nicht gespeichert. Du kannst es über den Link unten versuchen.",
   "es.offlineHazirlaniyor": "🟡 Wird vorbereitet…",
   "es.offlineHazirDegil": "⚪ Nicht offline bereit",
+  "es.offlineNotaYok": "Die Noten sind noch nicht auf dem Gerät. Öffne das Stück einmal mit Internetverbindung, dann werden sie geladen.",
   "rep.offlineEksik": "{p}/{n} Stücke auf diesem Gerät",
   "es.yariTonPes": "Einen Halbton tiefer",
   "es.yariTonTiz": "Einen Halbton höher",

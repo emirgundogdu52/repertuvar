@@ -427,6 +427,7 @@
   "es.pdfAcilamadi": "📄 Não foi possível abrir o PDF aqui — se você estiver offline, esta partitura talvez ainda não tenha sido salva neste dispositivo. Você pode tentar o link abaixo.",
   "es.offlineHazirlaniyor": "🟡 Preparando…",
   "es.offlineHazirDegil": "⚪ Offline indisponível",
+  "es.offlineNotaYok": "A partitura ainda não está no aparelho. Abra a obra uma vez com internet para baixá-la.",
   "rep.offlineEksik": "{p}/{n} músicas neste dispositivo",
   "es.yariTonPes": "Meio tom abaixo",
   "es.yariTonTiz": "Meio tom acima",

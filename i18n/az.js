@@ -419,6 +419,7 @@
   "es.pdfAcilamadi": "📄 PDF burada açılmadı — internet yoxdursa, bu not hələ cihaza endirilməmiş ola bilər. Aşağıdakı keçidlə açmağa cəhd edə bilərsən.",
   "es.offlineHazirlaniyor": "🟡 Hazırlanır…",
   "es.offlineHazirDegil": "⚪ Oflayn hazır deyil",
+  "es.offlineNotaYok": "Notlar hələ cihazda deyil. Əsəri internetə qoşulu ikən bir dəfə aç, endiriləcək.",
   "rep.offlineEksik": "{p}/{n} əsər cihazdadır",
   "es.yariTonPes": "Yarımton aşağı",
   "es.yariTonTiz": "Yarımton yuxarı",
