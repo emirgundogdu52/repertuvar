@@ -857,11 +857,13 @@
   .detail-chips { display:flex; gap:8px; flex-wrap:wrap; max-width:100%; }
   .chip { padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:5px; }
   .chip i { font-size:13px; }
-  .chip.makam { background:#5D4AA5; color:#FFFFFF; border:none; font-size:14.8px; padding:8px 18px; font-weight:700; }
+  /* (2026-11-07) Emir: "çok parlıyorlar" → dolu parlak zemin yerine yumuşak ton (liste simgeleriyle aynı aile): soluk zemin, açık renk yazı,
+     ince çerçeve. Açık tema tasarim.css'te. Eski: makam #5D4AA5, form #2E8B57, akort #D68A00, ölçü/usul #3478F6 (beyaz yazı). */
+  .chip.makam { background:rgba(169,155,214,.18); color:#CFC5F0; border:1px solid rgba(169,155,214,.32); font-size:14.8px; padding:8px 18px; font-weight:700; }
   .chip.makam i { font-size:14.8px; }
-  .chip.form  { background:#2E8B57; color:#FFFFFF; border:none; }
-  .chip.tuning{ background:#D68A00; color:#FFFFFF; border:none; }
-  .chip.meas  { background:#3478F6; color:#FFFFFF; border:none; }
+  .chip.form  { background:rgba(127,184,154,.16); color:#A9D6BD; border:1px solid rgba(127,184,154,.30); }
+  .chip.tuning{ background:rgba(217,184,102,.16); color:#E6CD8E; border:1px solid rgba(217,184,102,.30); }
+  .chip.meas  { background:rgba(126,156,196,.18); color:#B7CBE6; border:1px solid rgba(126,156,196,.32); }
   .detail-body { padding:16px 20px; }
   .detail-row { margin-bottom:14px; }
   .detail-row-label { font-size:10px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:4px; }

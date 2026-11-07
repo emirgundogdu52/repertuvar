@@ -406,10 +406,12 @@ html[data-tasarim="v3"][data-theme="light"] .we-wrap::before,
 html[data-tasarim="v3"][data-theme="light"] .ri-wrap::before,
 html[data-tasarim="v3"][data-theme="light"] .rs-wrap::before { background: linear-gradient(90deg, rgba(88, 166, 255, .45), #F2B600); }
 
-/* Eser detayı çipleri (beyaz yazı) */
-html[data-tasarim="v3"][data-theme="light"] .chip.meas { background: #2563C9; }
-html[data-tasarim="v3"][data-theme="light"] .chip.form { background: #1F7A4A; }
-html[data-tasarim="v3"][data-theme="light"] .chip.tuning { background: var(--yt-btn); color: #1A1305; }   /* kahve #9A5B00 → sarı dolgu (2026-10-25) */
+/* Eser detayı çipleri — (2026-11-07) Emir "çok parlıyorlar": yumuşak ton (soluk zemin, koyu renk yazı, ince çerçeve).
+   Eski: ölçü #2563C9, form #1F7A4A, akort sarı dolgu (beyaz/koyu yazı). */
+html[data-tasarim="v3"][data-theme="light"] .chip.makam { background: #ECE8F7; color: #55459A; border-color: #DCD4F0; }
+html[data-tasarim="v3"][data-theme="light"] .chip.meas { background: #E5ECF6; color: #3A5E8C; border-color: #D2DEEE; }
+html[data-tasarim="v3"][data-theme="light"] .chip.form { background: #E3F1E9; color: #2F6B4C; border-color: #CBE5D6; }
+html[data-tasarim="v3"][data-theme="light"] .chip.tuning { background: #F5EDD6; color: #7A5B14; border-color: #EADDB5; }
 
 /* Rozet ve etiketler (açık renkli zemin üstünde renkli yazı) */
 html[data-tasarim="v3"][data-theme="light"] span[style*="58A6FF" i] { color: #0A5BC2 !important; }          /* 🔒 Taslak */
