@@ -2443,11 +2443,11 @@ function renderChordPro(text) {
 
 
 let _stageToolsAutoHide = null;
-// Telefonda şerit güfteyi kapattığı için kapanır (8sn), masaüstü/tablette yer sorunu
-// yok — hiç kapanmaz, kullanıcı ☰'ye ya da dışarı basana kadar açık kalır.
+// (2026-11-07) Emir: "bir süre sonra kendiliğinden kapanıyordu, kapanmıyor" → HER ekranda 8 sn dokunulmazsa kapanır.
+// Eskiden (2026-07-18) ≥768 px'te (tablet, masaüstü) hiç kapanmıyordu; telefonda da kaydırıcı sürüklenince sayaç duruyor,
+// parmak kalkınca yeniden başlamıyordu (yalnız tıklama başlatıyordu). Parmak/fare panelin üstündeyken kapanmaz.
 function scheduleStageToolsHide() {
   clearTimeout(_stageToolsAutoHide);
-  if (window.matchMedia('(min-width:768px)').matches) return; // geniş ekran: açık kalsın
   _stageToolsAutoHide = setTimeout(() => {
     const panel = document.getElementById('stageToolsPanel');
     if (panel) panel.style.display = 'none';
@@ -2471,6 +2471,10 @@ function toggleStageTools(e) {
       panel.addEventListener('mouseenter', stay);
       panel.addEventListener('touchstart', stay, {passive:true});
       panel.addEventListener('mouseleave', scheduleStageToolsHide);
+      // Parmak kalkınca (sürükleme dahil) ve kaydırıcı değişince sayaç yeniden başlar
+      panel.addEventListener('touchend', scheduleStageToolsHide, {passive:true});
+      panel.addEventListener('touchcancel', scheduleStageToolsHide, {passive:true});
+      panel.addEventListener('change', scheduleStageToolsHide);
     }
   }
   panel.style.display = isOpen ? 'none' : 'flex';
