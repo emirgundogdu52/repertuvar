@@ -444,13 +444,23 @@ tr.item-active{box-shadow:inset 3px 0 0 var(--accent);}
 /* ══ (2026-10-24) RENK UYUMU — kullanıcı: "Repertuvar detay sayfası renkleri farklı, bir uyumsuzluk var". Eski paletten
    kalan sabit renkler Eserler / Eser detayı diliyle eşlendi (tema değişkenleri zaten aynıydı). ══ */
 /* Durum çipleri koyu temaya sabitti (#1a2d1a…): açık temada siyaha yakın hap. Eserler etiketleri gibi saydam zemin + renkli yazı. */
-.sp{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid transparent;}
-.sc{background:rgba(255,200,61,.12);color:#FFC83D;border-color:rgba(255,200,61,.35);}
-.sf{background:rgba(52,199,89,.12);color:#6FD98A;border-color:rgba(52,199,89,.35);}
-.sa{background:rgba(77,163,255,.12);color:#8CC5FF;border-color:rgba(77,163,255,.35);}
-[data-theme="light"] .sc{background:rgba(229,169,0,.12);color:#8A5A00;border-color:rgba(229,169,0,.35);}
-[data-theme="light"] .sf{background:rgba(26,127,60,.10);color:#1A7F3C;border-color:rgba(26,127,60,.30);}
-[data-theme="light"] .sa{background:rgba(11,111,222,.08);color:#0B5FC0;border-color:rgba(11,111,222,.28);}
+.sp{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;border:0;}
+/* (2026-11-07) Emir, sade Repertuvarlar: durum hapları yumuşak ton (Eserler simgeleriyle aynı aile), çerçevesiz, soluk zemin.
+   Eski: parlak yazı + renkli çerçeve (Taslak #FFC83D, Onaylandı #6FD98A, Arşiv #8CC5FF). */
+.sc{background:rgba(217,184,102,.10);color:#D9B866;}
+.sf{background:rgba(127,184,154,.10);color:#8CC4A6;}
+.sa{background:rgba(126,156,196,.10);color:#9DB4D6;}
+[data-theme="light"] .sc{background:rgba(154,111,30,.08);color:#7A5B14;}
+[data-theme="light"] .sf{background:rgba(47,107,76,.08);color:#2F6B4C;}
+[data-theme="light"] .sa{background:rgba(58,94,140,.08);color:#3A5E8C;}
+/* Potpuri rozeti ve görünürlük çipi de yumuşak: çerçevesiz; görünürlük çipi zeminsiz gri yazı + soluk renkli simge (hâlâ tıklanır). */
+.rep-medley{background:rgba(169,155,214,.12) !important;border:0 !important;color:#BDB2E6 !important;}
+[data-theme="light"] .rep-medley{background:rgba(85,69,154,.08) !important;color:#55459A !important;}
+.chip-vis.pub,.chip-vis.grp,.chip-vis.priv{background:none;border-color:transparent;color:var(--text2);}
+.chip-vis.priv i{color:#7E9CC4;} .chip-vis.grp i{color:#A99BD6;} .chip-vis.pub i{color:#7FB89A;}
+@media (hover:hover){.chip-vis.pub:hover,.chip-vis.grp:hover,.chip-vis.priv:hover{background:rgba(255,255,255,.05);}}
+[data-theme="light"] .chip-vis.pub,[data-theme="light"] .chip-vis.grp,[data-theme="light"] .chip-vis.priv{background:none;border-color:transparent;color:var(--text2);}
+[data-theme="light"] .chip-vis.priv i{color:#4A6E9E;} [data-theme="light"] .chip-vis.grp i{color:#7462AE;} [data-theme="light"] .chip-vis.pub i{color:#3D8660;}
 /* Eser tablosu: satırlar sayfa zemini / beyaz bant diye dönüşüyordu → Eserler kartları gibi tek kart, zebra iki yüzey tonu.
    Eski mor vurgular (124,111,255) marka sarısına. */
 #dc table{border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}

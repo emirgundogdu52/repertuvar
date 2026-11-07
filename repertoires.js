@@ -964,12 +964,14 @@ function renderList(){
     for(let i=1;i<its.length;i++){ if(its[i].linkedPrev && !its[i-1].linkedPrev) n++; }
     return n;
   }
+  // (2026-11-07) Emir, sade Repertuvarlar: kartta görünürlük YAZISI yok. Bölüm başlığı (Repertuvarlarım / Grubun Repertuvarları / …)
+  // zaten söylüyor; "Sadece ben" varsayılan. Simge yalnız istisnada: kendi herkese açık repertuvarın (dokununca açıklama, gsimAc).
   function repCard(r, _zi){
     const mc = medleyCount(r);
     const medleyChip = mc ? `<span class="rep-medley" title="${mc===1?_r('rep.birPotpuriVar','Bu repertuvarda bir potpuri var'):_r('rep.nPotpuriVar','Bu repertuvarda {n} potpuri var').replace('{n}',mc)}">🔗${mc>1?' '+mc:''}</span>` : '';
     const touchAttrs = `ontouchstart="riTouchStart(event)" ontouchmove="riTouchMove(event)" ontouchend="riTouchEnd(event)" ontouchcancel="riTouchEnd(event)"`;
     const cardHtml = `<div class="ri${selId===r.id?' active':''}" onclick="riCardClick(event,'${r.id}')" ${touchAttrs}>
-      <div><div class="rn">${_rEsc(r.name)}${window.gorunurlukCipi ? gorunurlukCipi(repVis(r)) : ''}</div>
+      <div><div class="rn">${_rEsc(r.name)}${(r.isOwner && repVis(r) === 'public' && !repAktifGruptaMi(r) && window.gorunurlukSimge) ? gorunurlukSimge('public') : ''}</div>
       <div class="rm"><span class="sp ${sc[r.status]||'sc'}">${sl[r.status]||_r('rep.taslak','Taslak')}</span>${medleyChip}${r.date?'<span>'+_rEsc(r.date)+'</span>':''}</div></div>
       <div class="rc">${(r.items||[]).length} ${_rBirim((r.items||[]).length)}</div>
     </div>`;
@@ -1252,11 +1254,14 @@ async function _offRepRozet(repId){
   const el = document.getElementById('offRep_'+repId);   // beklerken başka repertuvar seçilmiş olabilir
   if (!el) return;
   const metin = window.offlineRozetMetni ? window.offlineRozetMetni(r.status) : '';
-  el.textContent = metin;
-  el.style.display = metin ? '' : 'none';
-  el.title = (r.status !== 'ready' && r.required)
-    ? _r('rep.offlineEksik','{p}/{n} eser cihazda').replace('{p}', r.present).replace('{n}', r.required)
-    : '';
+  // (2026-11-07) Emir, sade Repertuvarlar: yazı yerine yumuşak renkli bulut simgesi; dokununca durum + kaç eserin cihazda olduğu.
+  const baslik = metin.replace(/^[^\p{L}]+/u, '');
+  const ayrinti = (r.status !== 'ready' && r.required)
+    ? _r('rep.offlineEksik','{p}/{n} eser cihazda').replace('{p}', r.present).replace('{n}', r.required) : '';
+  const tur = r.status === 'ready' ? ['hazir', 'ti-cloud-check'] : r.status === 'syncing' ? ['iniyor', 'ti-cloud-download'] : ['yok', 'ti-cloud-off'];
+  el.innerHTML = baslik ? `<button type="button" class="gsim off ${tur[0]}" data-b="${_rEsc(baslik)}" data-a="${_rEsc(ayrinti)}" aria-label="${_rEsc(baslik + (ayrinti ? ' — ' + ayrinti : ''))}" onclick="gsimAc(event, this)"><i class="ti ${tur[1]}" aria-hidden="true"></i></button>` : '';
+  el.style.display = baslik ? '' : 'none';
+  el.title = '';
 }
 window.addEventListener('offline-sync-state', () => { if (typeof selId !== 'undefined' && selId) _offRepRozet(selId); });
 
