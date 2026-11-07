@@ -1886,7 +1886,7 @@ function _m(anahtar, tr) {
 // Kişi bir kez kendisi kaydırınca (kaydirIpucuOgrendi) ya da 3 gösterimden sonra bir daha çıkmaz. Sayfa başına en çok bir kez.
 // Sayfalar: kaydirIpucu(satir, oynat) — oynat(satir) satırı kendi kaydırma düzeniyle biraz açıp kapatır.
 (function () {
-  const ANAHTAR = 'kaydirIpucu';
+  const ANAHTAR = 'kaydirIpucu2';   // (07.11) ilk deneme sürümünün kaydı sayılmasın: Emir'in cihazlarında yeni not yeniden görünsün
   const oku = () => { try { return JSON.parse(localStorage.getItem(ANAHTAR) || '{}') || {}; } catch (e) { return {}; } };
   const yaz = (d) => { try { localStorage.setItem(ANAHTAR, JSON.stringify(d)); } catch (e) {} };
   let gosterildi = false;
