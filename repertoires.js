@@ -1063,7 +1063,7 @@ function _riIpucuOynat(wrap) {
       if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) return;
       card.style.transition = ''; card.style.transform = ''; wrap.classList.remove('ri-acik');
     }, 420);
-  });
+  }, wrap);
 }
 
 function sel(id){
@@ -1267,7 +1267,7 @@ function renderDetail(){
   if (window.kaydirIpucu) kaydirIpucu(document.querySelector('#dc tr[data-sk]'), function (tr) {
     if (tr.dataset.skTaraf || _sk || _skAcik || !window.kaydirGosterim) return;   // kişi bir satırı kaydırıyor ya da açmış: araya girme
     kaydirGosterim(function (v) { if (!tr.dataset.skTaraf) _skCiz(tr, v * SK_MAX, true); },
-                   function () { if (!tr.dataset.skTaraf) _skCiz(tr, 0, true); });
+                   function () { if (!tr.dataset.skTaraf) _skCiz(tr, 0, true); }, tr);
   }, 'satir');
 }
 

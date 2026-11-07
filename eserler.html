@@ -3172,7 +3172,7 @@ function _weIpucuOynat(wrap) {
       if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) return;
       card.style.transition = ''; card.style.transform = ''; wrap.classList.remove('we-acik');
     }, 420);
-  });
+  }, wrap);
 }
 function _listeGozcuKur(panel) {
   _listeOfflineIsaretle();

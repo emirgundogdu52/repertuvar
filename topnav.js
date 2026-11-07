@@ -1895,15 +1895,20 @@ function _m(anahtar, tr) {
   let sonDokunma = 0;   // kişi az önce dokunduysa (kaydırıyor olabilir) animasyon oynatılmaz, sayılmaz
   document.addEventListener('touchstart', function () { sonDokunma = Date.now(); }, { capture: true, passive: true });
   // (07.11, Emir: "Bir kez Sil butonu görünüp gitmesin, sanki bir hata varmış gibi oldu; sürgü kapanıp açılsın") Gösterim:
-  // sola tam aç (Sil) → kapat → sağa tam aç (Değiştir) → kapat. ciz(v): v = -1 sola açık, 0 kapalı, 1 sağa açık. Kişi bu sırada
-  // ekrana dokunursa gösterim durur; bitir() satırı, kişi kendisi açmadıysa kapatır.
-  window.kaydirGosterim = function (ciz, bitir) {
+  // sola tam aç (Sil) → kapat → sağa tam aç (Değiştir) → kapat. ciz(v): v = -1 sola açık, 0 kapalı, 1 sağa açık.
+  // (07.11, Emir: "Öğretmek amaçlı bu sağa sola kaydırma ekrana dokunana kadar devam etsin") Gösterim DÖNGÜDE sürer; ekrana
+  // dokunulunca (ya da satır sayfadan kalkınca) durur, bitir() satırı — kişi kendisi açmadıysa — kapatır.
+  window.kaydirGosterim = function (ciz, bitir, el) {
     const bas = Date.now(); let bitti = false;
     const son = function () { if (bitti) return; bitti = true; try { bitir(); } catch (e) {} };
-    [[-1, 0], [0, 1300], [1, 1900], [0, 3200]].forEach(function (a) {
-      setTimeout(function () { if (bitti) return; if (sonDokunma > bas) { son(); return; } try { ciz(a[0]); } catch (e) {} }, a[1]);
-    });
-    setTimeout(son, 3700);
+    const durmali = function () { return sonDokunma > bas || (el && !el.isConnected); };
+    (function tur() {
+      if (bitti) return;
+      [[-1, 0], [0, 1300], [1, 1900], [0, 3200]].forEach(function (a) {
+        setTimeout(function () { if (bitti) return; if (durmali()) { son(); return; } try { ciz(a[0]); } catch (e) {} }, a[1]);
+      });
+      setTimeout(function () { if (bitti) return; if (durmali()) { son(); return; } tur(); }, 4200);
+    })();
   };
   window.kaydirIpucuOgrendi = function (liste) {
     liste = liste || 'eser';
