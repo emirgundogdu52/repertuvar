@@ -555,3 +555,20 @@ body {
 [data-theme="light"] .gcip.ben{color:#0A5BC2;background:#E3EEFC;border-color:#C7DBF7;}
 [data-theme="light"] .gcip.grup{color:#6B3FC9;background:#EEE7FB;border-color:#DCCEF6;}
 [data-theme="light"] .gcip.acik{color:#1A7F3C;background:#E1F3E7;border-color:#C2E5CD;}
+/* (2026-11-07) Sade liste simgesi — i18n.js window.gorunurlukSimge(): yazısız, yumuşak renk (Emir "yumuşak"); dokununca #gsimBalon. */
+.gsim{display:inline-flex;align-items:center;justify-content:center;width:28px;height:24px;margin:-4px 0 -4px 2px;padding:0;border:0;background:none;cursor:pointer;vertical-align:middle;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.gsim .ti{font-size:16px;line-height:1;}
+/* Telefondaki genel "button min-height:36px" kuralı satırı uzatmasın; dokunma alanı görünmez kenarla büyür (yerleşim değişmez). */
+.gsim{min-height:0 !important;position:relative;}
+.gsim::after{content:'';position:absolute;inset:-10px -6px;}
+.gsim.ben{color:#7E9CC4;} .gsim.grup{color:#A99BD6;} .gsim.acik{color:#7FB89A;} .gsim.bekliyor{color:#C9A27E;}
+[data-theme="light"] .gsim.ben{color:#4A6E9E;} [data-theme="light"] .gsim.grup{color:#7462AE;}
+[data-theme="light"] .gsim.acik{color:#3D8660;} [data-theme="light"] .gsim.bekliyor{color:#94683A;}
+#gsimBalon{position:fixed;z-index:3000;max-width:min(280px, calc(100vw - 16px));padding:9px 12px;border-radius:12px;background:#E9EDF4;color:#111722;font-size:13px;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.45);pointer-events:none;}
+#gsimBalon[hidden]{display:none;}
+#gsimBalon b{display:block;font-size:13.5px;font-weight:700;margin-bottom:2px;}
+#gsimBalon::before{content:'';position:absolute;left:var(--ok,24px);top:-6px;margin-left:-6px;border:6px solid transparent;border-top:0;border-bottom-color:#E9EDF4;}
+#gsimBalon.ust::before{top:auto;bottom:-6px;border:6px solid transparent;border-bottom:0;border-top-color:#E9EDF4;}
+[data-theme="light"] #gsimBalon{background:#1A2130;color:#FFFFFF;box-shadow:0 8px 24px rgba(0,0,0,.25);}
+[data-theme="light"] #gsimBalon::before{border-bottom-color:#1A2130;}
+[data-theme="light"] #gsimBalon.ust::before{border-top-color:#1A2130;border-bottom-color:transparent;}

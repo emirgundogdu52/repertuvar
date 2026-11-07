@@ -947,10 +947,9 @@ function _m(anahtar, tr) {
         { href: 'artiesten.html', icon: 'ti-microphone',  label: _m('menu.solistler','Solistler') },
       ] : []),
       { href: 'stage.html',       icon: 'ti-music',    label: roomyNav ? _m('menu.sahnemodu','Sahne Modu') : _m('menu.kisaSahne','Sahne'), stage: true },
-      // (2026-11-01) Emir: telefonda Mesajlar yerine Yardım daha faydalı; Mesajlar profil menüsünde. Geniş alt menüde
-      // (yatay telefon, tablet) Mesajlar yerinde kalır.
-      roomyNav ? { href: 'mesajlar.html', icon: 'ti-message', label: _m('menu.mesajlar','Mesajlar') }
-               : { href: 'yardim.html', icon: 'ti-help-circle', label: _m('menu.yardim','Yardım') },
+      // (2026-11-01) Emir: telefonda Mesajlar yerine Yardım daha faydalı; Mesajlar profil menüsünde.
+      // (2026-11-07) Emir: geniş alt menüde (tablet, yatay telefon) de Yardım; Mesajlar her boyutta profil menüsünde zaten var.
+      { href: 'yardim.html', icon: 'ti-help-circle', label: _m('menu.yardim','Yardım') },
     ];
 
     const bnHtml = bnItems.map(item => {

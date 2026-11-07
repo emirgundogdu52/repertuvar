@@ -435,6 +435,8 @@
       'vis.benT': 'Yalnızca sen görürsün',
       'vis.grupT': 'Grup üyelerin görür',
       'vis.acikT': 'Herkes görebilir',
+      'vis.bekliyor': 'Onay bekliyor',
+      'vis.bekliyorT': 'Herkese açılması için yönetici onayı bekleniyor',
       'rep.eserEklendiKisa': 'Eser eklendi ✓',
       'ay.davetMesaj': 'Merhaba! Türk müziği repertuvar yönetimi için harika bir uygulama keşfettim. Sahne modunda eserler arası geçiş çok kolay. Bir bak: ',
       'ay.kopyalandi': '✓ Kopyalandı',
@@ -1806,6 +1808,8 @@
       'es.acikDilSuzgeci': 'Açık dil süzgeci:',
       'es.dilNotu': 'Yalnız {dil} eserler gösteriliyor.',
       'es.dilNotuTumu': 'Tüm dilleri göster',
+      'es.dilVeTur': 'Dil ve tür',
+      'es.goster': 'Göster',
       'es.t_eserDili': 'Eserin dili',
       'es.cipeDokunKaldir': ' — çipe tekrar dokunarak kaldırabilirsiniz.',
       'es.eserBulunamadi': 'Eser bulunamadı',
@@ -2557,6 +2561,8 @@
       'vis.benT': 'Only you can see it',
       'vis.grupT': 'Your group members can see it',
       'vis.acikT': 'Everyone can see it',
+      'vis.bekliyor': 'Awaiting approval',
+      'vis.bekliyorT': 'It becomes public once an admin approves it',
       'rep.eserEklendiKisa': 'Piece added ✓',
       'ay.davetMesaj': 'I found a great app for managing setlists and running the show — you can even change pieces with a foot pedal: ',
       'ay.kopyalandi': '✓ Copied',
@@ -3936,6 +3942,8 @@
       'es.acikDilSuzgeci': 'Active language filter:',
       'es.dilNotu': 'Showing only {dil} pieces.',
       'es.dilNotuTumu': 'Show all languages',
+      'es.dilVeTur': 'Language and genre',
+      'es.goster': 'Show',
       'es.t_eserDili': 'Language of the piece',
       'es.cipeDokunKaldir': ' — tap the chip again to remove it.',
       'es.eserBulunamadi': 'No pieces found',
@@ -4537,5 +4545,38 @@
     const yazi = t(m[2]), ipucu = t(m[3]);
     return '<span class="gcip ' + m[0] + '" title="' + ipucu + '" aria-label="' + yazi + ' — ' + ipucu + '"><i class="ti ' + m[1] +
            '" aria-hidden="true"></i><span class="gcip-y">' + yazi + '</span></span>';
+  };
+  // (2026-11-07) Emir (sade Eserler, "yumuşak"): listede görünürlük YAZISIZ simge; dokununca ne olduğunu kısa balon söyler
+  // (gsimAc). pending = kendi eserin herkese açılmak için yönetici onayında (yoksa dünya simgesi "açık" sanılırdı).
+  // Simgeler gorunurlukCipi ile aynı (kilit yok, karar B). Stil: style.css .gsim / #gsimBalon
+  window.gorunurlukSimge = function (v) {
+    const m = { private: ['ben', 'ti-user', 'vis.ben', 'vis.benT'], group: ['grup', 'ti-users-group', 'vis.grup', 'vis.grupT'],
+                public: ['acik', 'ti-world', 'vis.acik', 'vis.acikT'], pending: ['bekliyor', 'ti-hourglass', 'vis.bekliyor', 'vis.bekliyorT'] }[v];
+    if (!m) return '';
+    const k = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    const yazi = k(t(m[2])), ipucu = k(t(m[3]));
+    return '<button type="button" class="gsim ' + m[0] + '" data-b="' + yazi + '" data-a="' + ipucu + '" aria-label="' + yazi + ' — ' + ipucu +
+           '" onclick="gsimAc(event, this)"><i class="ti ' + m[1] + '" aria-hidden="true"></i></button>';
+  };
+  window.gsimAc = function (e, el) {
+    if (e) { e.stopPropagation(); e.preventDefault(); }
+    let b = document.getElementById('gsimBalon');
+    if (b && !b.hidden && b._kaynak === el) { b.hidden = true; return; }   // aynı simgeye yine dokununca kapanır
+    if (!b) {
+      b = document.createElement('div'); b.id = 'gsimBalon'; b.setAttribute('role', 'tooltip'); b.hidden = true;
+      document.body.appendChild(b);
+      const kapat = () => { b.hidden = true; };
+      document.addEventListener('pointerdown', ev => { if (!(ev.target.closest && ev.target.closest('.gsim'))) kapat(); }, true);
+      window.addEventListener('scroll', kapat, true); window.addEventListener('resize', kapat);
+    }
+    b.innerHTML = '<b></b><span></span>';
+    b.firstChild.textContent = el.getAttribute('data-b'); b.lastChild.textContent = el.getAttribute('data-a');
+    b._kaynak = el; b.hidden = false;
+    const r = el.getBoundingClientRect(), w = b.offsetWidth, h = b.offsetHeight;
+    const x = Math.min(Math.max(8, r.left + r.width / 2 - 24), window.innerWidth - w - 8);
+    const ustte = r.bottom + 8 + h > window.innerHeight - 8;
+    b.style.left = x + 'px'; b.style.top = (ustte ? r.top - h - 8 : r.bottom + 8) + 'px';
+    b.style.setProperty('--ok', Math.max(14, Math.min(w - 14, r.left + r.width / 2 - x)) + 'px');
+    b.classList.toggle('ust', ustte);
   };
 })();

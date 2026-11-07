@@ -713,6 +713,13 @@
   .chip-ayrac { flex:0 0 1px; align-self:stretch; margin:3px 4px; background:var(--border); }
   /* (2026-11-01) Hatırlanan dil süzgecinin notu: eserler "kayboldu" sanılmasın diye listenin üstünde hep görünür */
   .dil-notu { margin-top:6px; font-size:12px; color:var(--text2); }
+  /* (2026-11-07) Sade Eserler: çipler ve Göster düğmeleri Filtre sayfasında. Çipler sarar, yana kaydırma okları gizli. */
+  #sidebar .fs-dil-tur #turChipRow { flex-wrap:wrap; overflow:visible; margin-top:0; }
+  #sidebar .fs-dil-tur .tur-ok { display:none !important; }
+  #sidebar .fs-goster-satir { display:flex; flex-wrap:wrap; gap:8px; }
+  #sidebar .fs-goster-satir > button { flex:1 1 auto; min-height:40px; justify-content:center; border-radius:8px !important; padding:0 14px !important; font-size:13px !important; }
+  .filtre-sayi { min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:#E3C26E; color:#111722; font-size:11px; font-weight:700; line-height:18px; text-align:center; }
+  .filtre-sayi[hidden] { display:none; }
   .dil-notu[hidden] { display:none; }
   .dil-notu button { font:inherit; font-weight:600; color:var(--accent); background:none; border:0; padding:2px 0; cursor:pointer; text-decoration:underline; }
   .work-tur-badge { display:inline-block; font-size:10px; font-weight:700; letter-spacing:.02em; color:var(--text3); background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:0 6px; margin-right:6px; vertical-align:middle; white-space:nowrap; }
@@ -783,6 +790,10 @@
   .work-info { flex:1; min-width:0; }
   .work-name { font-size:18px; font-weight:700; color:var(--text); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-.01em; }
   .work-composer { font-size:13px; font-weight:400; color:var(--text2); }
+  /* (2026-11-07) Sade kart: ikinci satır "ozan · tür" gri, uzunsa kesilir; görünürlük simgesi (.gsim, style.css) sonda kalır. */
+  #listPanel .work-composer { display:flex; align-items:center; min-width:0; color:var(--text3); }
+  #listPanel .work-composer .wc-yazi { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #listPanel .work-composer .wc-ayr { opacity:.7; white-space:pre; }
   .work-title-divider { height:1px; background:var(--border); margin:8px 0; }
   .work-sub { font-size:12px; color:var(--text2); display:flex; gap:8px; flex-wrap:wrap; }
   .work-sub span { display:flex; align-items:center; gap:3px; }
@@ -1449,8 +1460,10 @@
   @media (max-width: 560px) {
     .fav-toggle-wrap { gap:6px; }
     /* (2026-11-01) !important: düğmelerin satır içi flex:1'i bu kuralı eziyordu, üçü tek satırda eşitsiz kalıyordu (320 px'te 82/82/97). */
-    .fav-toggle-wrap #favToggleAll, .fav-toggle-wrap #favToggleFav { flex:1 1 calc(50% - 3px) !important; }
-    .fav-toggle-wrap #draftToggle { flex:1 1 100% !important; }
+    /* (2026-11-07) Sade Eserler: Tümü / Favoriler / Filtreler tek satırda; genişlik yazıdan başlar, kalan paylaşılır.
+       Taslaklarım artık Filtre sayfasında (eski "Taslaklarım tam satır" ve "%50" kuralları kalktı). */
+    .fav-toggle-wrap { flex-wrap:nowrap !important; }
+    .fav-toggle-wrap > button { flex:1 1 auto !important; min-width:0; }
     .work-name { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
     /* (2026-10-25) Ad ayrı kapta: sarmalı satırda çıplak metin üç noktayla kısalamıyor, uzun ad kesik kalıyordu */
     .work-name .work-ad { min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -1781,6 +1794,27 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
       <h3 data-i18n="es.filtre">⚙️ Filtre &amp; Sıralama</h3>
       <button class="filter-sheet-close" onclick="toggleFilterSheet(false)">✕</button>
     </div>
+    <!-- (2026-11-07) Emir, sade Eserler: üstteki satırlardan taşındı. Çipler burada alt alta sarar (oklar gizli). -->
+    <div class="filter-section fs-dil-tur">
+      <span class="filter-label" data-i18n="es.dilVeTur">Dil ve tür</span>
+        <!-- (2026-08-21) Tur cipleri — JS ile kuruluyor (buildTurChips). Bos kalirsa gizlenir. -->
+        <!-- (2026-10-17) Satır yana kayıyor ama belli değildi (kullanıcı): sağda/solda daha fazla çip varsa solma + ok. -->
+        <div id="turChipKap" class="tur-kap">
+          <div id="turChipRow" style="display:none;"></div>
+          <button type="button" class="tur-ok tur-ok-sol" tabindex="-1" aria-label="‹" onclick="turKaydir(-1)"><span class="tur-ok-yuz"><i class="ti ti-chevron-left" aria-hidden="true"></i></span></button>
+          <button type="button" class="tur-ok tur-ok-sag" tabindex="-1" aria-label="›" onclick="turKaydir(1)"><span class="tur-ok-yuz"><i class="ti ti-chevron-right" aria-hidden="true"></i></span></button>
+        </div>
+        <div id="dilNotu" class="dil-notu" role="status" hidden></div>
+    </div>
+    <div class="filter-section fs-goster">
+      <span class="filter-label" data-i18n="es.goster">Göster</span>
+      <div class="fs-goster-satir">
+        <button id="draftToggle" class="fav-toggle-btn" onclick="setDraftOnly(!draftOnly)"
+          style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:none;align-items:center;justify-content:center;gap:5px;"><span data-i18n="es.taslaklarim">🔒 Taslaklarım</span> <span id="draftCount" style="background:rgba(88,166,255,.2);color:#58A6FF;border-radius:10px;padding:0 6px;font-size:10px;">0</span></button>
+        <button id="btnOnerilerim" onclick="window.location.href='onerilerim.html'" style="display:none;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);"><span data-i18n="es.eserlerim">📋 Eserlerim</span> <span id="onerilerimCount" style="display:none;background:var(--yt-btn,var(--accent));color:#111;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;">0</span></button>
+        <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:none;align-items:center;gap:5px;background:rgba(249,160,74,.12);border:1px solid rgba(249,160,74,.3);border-radius:20px;padding:4px 10px 4px 8px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);"><span data-i18n="es.onayBekleyenBtn">⏳ Onay Bekleyen</span> <span id="pendingCountDesktop" style="background:#F9A04A;color:#1a1000;border-radius:10px;padding:1px 7px;font-size:10px;">0</span></button>
+      </div>
+    </div>
     <div class="filter-section">
       <span class="filter-label" data-i18n="es.sirala">Sırala</span>
       <div class="sort-dropdown" id="sortDropdown" style="position:static;display:flex;flex-wrap:wrap;gap:6px;box-shadow:none;border:none;padding:0;background:none;">
@@ -1832,31 +1866,21 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
           oninput="aramaGirdi();">
       </div>
     </div>
-    <div style="padding:0 16px;background:var(--bg);">
+    <div style="padding:0 16px 10px;background:var(--bg);">
       <div class="fav-toggle-wrap" style="display:flex;gap:6px;flex-wrap:wrap;">
         <button id="favToggleAll" class="fav-toggle-btn active" onclick="tumunuGoster()"
           style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;" data-i18n="es.tumu">Tümü</button>
         <button id="favToggleFav" class="fav-toggle-btn" onclick="setFavOnly(true)"
           style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;" data-i18n="es.favoriler">★ Favoriler</button>
-        <!-- (2026-08-15) Taslaklarım — gizli eseri olmayan kullanıcıda hiç görünmez. -->
-        <button id="draftToggle" class="fav-toggle-btn" onclick="setDraftOnly(!draftOnly)"
-          style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:none;align-items:center;justify-content:center;gap:5px;"><span data-i18n="es.taslaklarim">🔒 Taslaklarım</span> <span id="draftCount" style="background:rgba(88,166,255,.2);color:#58A6FF;border-radius:10px;padding:0 6px;font-size:10px;">0</span></button>
+        <!-- (2026-11-07) Emir, sade Eserler: üstte yalnız Tümü / Favoriler / Filtreler. Taslaklarım, dil ve tür çipleri, Eserlerim ve
+             Onay Bekleyen Filtre sayfasına taşındı; açık süzgeç sayısı düğmede (#filtreSayi, tumuDurumunuYaz). -->
+        <button id="filterSheetBtn" class="fav-toggle-btn filtre-btn" onclick="toggleFilterSheet(true)"
+          style="flex:1;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;"><i class="ti ti-adjustments-horizontal" aria-hidden="true"></i><span data-i18n="es.filtreler">Filtreler</span><span id="filtreSayi" class="filtre-sayi" hidden></span></button>
       </div>
-      <!-- (2026-08-21) Tur cipleri — JS ile kuruluyor (buildTurChips). Bos kalirsa gizlenir. -->
-      <!-- (2026-10-17) Satır yana kayıyor ama belli değildi (kullanıcı): sağda/solda daha fazla çip varsa solma + ok. -->
-      <div id="turChipKap" class="tur-kap">
-        <div id="turChipRow" style="display:none;"></div>
-        <button type="button" class="tur-ok tur-ok-sol" tabindex="-1" aria-label="‹" onclick="turKaydir(-1)"><span class="tur-ok-yuz"><i class="ti ti-chevron-left" aria-hidden="true"></i></span></button>
-        <button type="button" class="tur-ok tur-ok-sag" tabindex="-1" aria-label="›" onclick="turKaydir(1)"><span class="tur-ok-yuz"><i class="ti ti-chevron-right" aria-hidden="true"></i></span></button>
-      </div>
-      <div id="dilNotu" class="dil-notu" role="status" hidden></div>
     </div>
-    <div class="toolbar">
-      <button class="clear-btn" id="filterSheetBtn" onclick="toggleFilterSheet(true)" style="display:flex;align-items:center;gap:6px;"><i class="ti ti-adjustments-horizontal"></i> <span data-i18n="es.filtreler">Filtreler</span><span id="filterActiveDot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);"></span></button>
-      <button id="btnPendingReviewDesktop" class="admin-only" onclick="showPendingWorks()" style="display:none;align-items:center;gap:5px;background:rgba(249,160,74,.12);border:1px solid rgba(249,160,74,.3);border-radius:20px;padding:4px 10px 4px 8px;font-size:11px;color:#F9A04A;font-weight:600;cursor:pointer;font-family:var(--font);"><span data-i18n="es.onayBekleyenBtn">⏳ Onay Bekleyen</span> <span id="pendingCountDesktop" style="background:#F9A04A;color:#1a1000;border-radius:10px;padding:1px 7px;font-size:10px;">0</span></button>
+    <div class="toolbar" style="display:none;"><!-- (2026-11-07) içerik Filtre sayfasına taşındı; Öner düğmeleri zaten hep gizli -->
       <button id="btnMobileUserSuggest" onclick="openSuggestModal()" style="display:none;margin-left:auto;align-items:center;gap:5px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);border-radius:7px;padding:6px 13px;font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--font);" data-i18n="es.oner">🎵 Öner</button>
       <button id="btnUserSuggest" onclick="openSuggestModal()" style="display:none;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);" data-i18n="es.eseroner">🎵 Eser Öner</button>
-      <button id="btnOnerilerim" onclick="window.location.href='onerilerim.html'" style="display:none;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.35);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);"><span data-i18n="es.eserlerim">📋 Eserlerim</span> <span id="onerilerimCount" style="display:none;background:var(--yt-btn,var(--accent));color:#111;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;">0</span></button>
     </div>
     </div><!-- /es-arama -->
     <!-- (2026-10-31) Yüzen + düğmesi yapışkan kabın DIŞINDA: kap gizlenirken transform alıyor, içindeki position:fixed öğe
@@ -2482,6 +2506,9 @@ function tumuDurumunuYaz() {
   if (!allBtn) return;
   // Hatırlanan dil sayılmaz: onu listenin üstündeki not gösteriyor (Tümü = seçili dildeki bütün eserler).
   const hepsi = !favOnly && !draftOnly && !Object.keys(activeFilters).some(function (k) { return k !== 'dil' && activeFilters[k]; });
+  // (2026-11-07) Filtreler düğmesindeki sayı: açık süzgeçler (hatırlanan dil dahil: dil notu artık Filtre sayfasında) + Taslaklarım.
+  const _fs = document.getElementById('filtreSayi');
+  if (_fs) { const _n = Object.keys(activeFilters).filter(function (k) { return activeFilters[k]; }).length + (draftOnly ? 1 : 0); _fs.textContent = _n; _fs.hidden = !_n; }
   allBtn.classList.toggle('active', hepsi);
   allBtn.style.background = hepsi ? 'var(--surface2)' : 'none';
   allBtn.style.color = hepsi ? 'var(--text)' : 'var(--text2)';
@@ -3140,7 +3167,14 @@ function renderList() {
     const isFav = favs.has(w.id);
     // (2026-08-21) Tur rozeti — cip ile suzunce "bu neden cikti/cikmadi"
     // sorusunun kart uzerindeki cevabi.
-    const turBadge = w.tur ? '<span class="work-tur-badge">' + _esHtml(w.tur) + '</span>' : '';
+    // (2026-11-07) Emir, sade liste ("yumuşak"): tür artık çerçevesiz, ikinci satırda "ozan · tür"; görünürlük yazısız simge
+    // (dokununca açıklama). "Çevrim dışı" satırı kalktı: her kartta aynıydı (bütün liste cihazda), bilgi vermiyordu.
+    const _ozan = _esHtml(w.composer || w.seslendiren || ''), _tur = w.tur ? _esHtml(w.tur) : '';
+    const wcYazi = _ozan + (_ozan && _tur ? '<span class="wc-ayr"> · </span>' : '') + _tur;
+    const _gv = (w.status === 'pending' && w.submitted_by === uidNow) ? 'pending'
+      : (w.visibility === 'private' && w.submitted_by === uidNow) ? 'private' : (w.visibility === 'group') ? 'group'
+      : ((w.visibility || 'public') === 'public' && w.submitted_by && w.submitted_by === uidNow) ? 'public' : '';
+    const simge = window.gorunurlukSimge ? gorunurlukSimge(_gv) : '';
     const isChecked = bulkMode && bulkSelectedIds.has(w.id);
     // Sol renk şeridi — yeşil: bir repertuvarda kullanılıyor
     const stripeClass = repCount > 0 ? ' has-stripe stripe-green' : '';
@@ -3162,12 +3196,8 @@ function renderList() {
       <div class="work-icon">🎵</div>
       <div class="work-num">${w.id||'—'}</div>
       <div class="work-info">
-        <div class="work-name"><span class="work-ad">${w.name?_esHtml(w.name):_esCev('es.isimsiz','(isimsiz)')}</span>${window.gorunurlukCipi ? ' ' + gorunurlukCipi(  /* (2026-11-04) görünürlük çipi: kendi özel/açık eserin + grup eseri; katalogdaki başkalarının eserinde yok */
-          (w.visibility === 'private' && w.submitted_by === uidNow) ? 'private' : (w.visibility === 'group') ? 'group'
-          : ((w.visibility || 'public') === 'public' && w.submitted_by && w.submitted_by === uidNow) ? 'public' : '') : ''}</div>
-        ${(turBadge || w.composer || w.seslendiren) ? `<div class="work-composer">${turBadge}${_esHtml(w.composer||w.seslendiren||'')}</div>` : ''}
-        <div class="work-title-divider"></div>
-        <div class="work-rep-count"><span class="status-dot"></span> ${_esCev('es.offlineEtiket','Çevrim dışı')}</div>
+        <div class="work-name"><span class="work-ad">${w.name?_esHtml(w.name):_esCev('es.isimsiz','(isimsiz)')}</span></div>
+        ${(wcYazi || simge) ? `<div class="work-composer"><span class="wc-yazi">${wcYazi}</span>${simge}</div>` : ''}
       </div>
       <div class="work-actions">
         ${_ytId(w.videoLink) ? `<button class="work-listen" onclick="dinleAc('${_ytId(w.videoLink)}', event)" title="${_esCev('es.t_dinle','YouTube\u2019da dinle')}" data-i18n-title="es.t_dinle" style="display:${bulkMode?'none':'flex'};">\u25B6</button>` : ''}
