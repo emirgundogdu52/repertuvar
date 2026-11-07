@@ -2164,8 +2164,24 @@ async function syncWorksFromServer(hadLocalData) {
 }
 let filteredData = [...DATA];
 let selectedId = null;
-let sortMode = 'name';
-let activeFilters = { form: null, tuning: null, region: null, makam: null, tur: null, dil: null };
+let sortMode = (function () { try { const m = localStorage.getItem('esSiralama'); return ['name', 'composer', 'makam', 'form', 'region'].indexOf(m) >= 0 ? m : 'name'; } catch (e) { return 'name'; } })();   // (2026-11-07) hatırlanır
+// (2026-11-07) Emir: "Seçtiğim filtreler ben değiştirene kadar aklında kalsın! THM icracısı her seferinde filtreleri THM'ye
+// getirmek zorunda kalmasın." → tür, form, akort, bölge, makam süzgeçleri ve sıralama bu cihazda hatırlanır ('esSuzgecler',
+// 'esSiralama'); dil zaten ayrı hatırlanıyordu ('esDilSuzgeci'). Eskiden (2026-08-21) bilerek hatırlanmıyordu ("gizli süzgeç
+// tuzağı": eserlerim kayboldu sanılmasın); artık Filtreler düğmesinde açık süzgeç sayısı görünüyor, tuzak kalmadı.
+const _SUZGEC_ALANLARI = ['form', 'tuning', 'region', 'makam', 'tur'];
+let activeFilters = (function () {
+  const v = { form: null, tuning: null, region: null, makam: null, tur: null, dil: null };
+  try { const k = JSON.parse(localStorage.getItem('esSuzgecler') || '{}') || {}; _SUZGEC_ALANLARI.forEach(function (a) { if (typeof k[a] === 'string' && k[a]) v[a] = k[a]; }); } catch (e) {}
+  return v;
+})();
+function _suzgecleriSakla() {
+  try {
+    const k = {}; _SUZGEC_ALANLARI.forEach(function (a) { if (activeFilters[a]) k[a] = activeFilters[a]; });
+    Object.keys(k).length ? localStorage.setItem('esSuzgecler', JSON.stringify(k)) : localStorage.removeItem('esSuzgecler');
+    localStorage.setItem('esSiralama', sortMode);
+  } catch (e) {}
+}
 // (2026-11-01) Dil çipi seçimi bu cihazda hatırlanır (Emir: yalnız Türkçe çalan, her açılışta İngilizce eserleri
 // süzmek zorunda kalmasın). Tümü ve Filtreleri Temizle dili SIFIRLAMAZ: buildTurChips activeFilters.dil'i hep buradan
 // kurar. Dil, aynı çipe yeniden dokununca ya da listenin üstündeki nottaki düğmeyle kalkar. Yalnız Eserler listesi ve
@@ -2219,6 +2235,8 @@ function buildFilters() {
   makeSection('tuningFilters', 'tuning');
   makeSection('regionFilters', 'region');
   makeSection('makamFilters', 'makam');
+  updateFilterButtons();   // (2026-11-07) hatırlanan süzgeçler düğmelerde seçili görünsün
+  document.querySelectorAll('.sort-dd-item').forEach(function (b) { b.classList.toggle('active', (b.getAttribute('onclick') || '').indexOf("'" + sortMode + "'") >= 0); });
   buildTurChips();
 }
 
@@ -2508,6 +2526,7 @@ function tumuDurumunuYaz() {
   if (!allBtn) return;
   // Hatırlanan dil sayılmaz: onu listenin üstündeki not gösteriyor (Tümü = seçili dildeki bütün eserler).
   const hepsi = !favOnly && !draftOnly && !Object.keys(activeFilters).some(function (k) { return k !== 'dil' && activeFilters[k]; });
+  _suzgecleriSakla();   // (2026-11-07) her süzme sonunda: seçimler bu cihazda hatırlanır
   // (2026-11-07) Filtreler düğmesindeki sayı: açık süzgeçler (hatırlanan dil dahil: dil notu artık Filtre sayfasında) + Taslaklarım.
   const _fs = document.getElementById('filtreSayi');
   if (_fs) { const _n = Object.keys(activeFilters).filter(function (k) { return activeFilters[k]; }).length + (draftOnly ? 1 : 0); _fs.textContent = _n; _fs.hidden = !_n; }
@@ -3067,6 +3086,7 @@ const SORT_LABELS = { name:_esCev('es.sortAd','Ada Göre'), composer:_esCev('es.
 
 function setSort(mode) {
   sortMode = mode;
+  _suzgecleriSakla();   // (2026-11-07) sıralama da hatırlanır
   document.querySelectorAll('.sort-dd-item').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.sort-dd-item').forEach(b => { if(b.textContent.trim() === SORT_LABELS[mode]) b.classList.add('active'); });
   const btn = document.getElementById('sortMainBtn');
