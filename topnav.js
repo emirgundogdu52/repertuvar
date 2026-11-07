@@ -1888,7 +1888,7 @@ function _m(anahtar, tr) {
 // o listede 3 gösterimden sonra o listenin ipucu bir daha çıkmaz; sayfa başına liste başına en çok bir kez; ekranda tek not.
 // Sayfalar: kaydirIpucu(satir, oynat, liste) — oynat(satir) satırı kendi kaydırma düzeniyle biraz açıp kapatır.
 (function () {
-  const ANAHTAR = 'kaydirIpucu3';   // { eser:{n,ok}, repertuvar:{n,ok}, satir:{n,ok} } (2/1 deneme sürümleri yalnız Emir'in cihazındaydı)
+  const ANAHTAR = 'kaydirIpucu4';   // (07.11 13.1x) Eserler'de döngü kesilen sürüm sayılmasın; Emir yeniden denesin   // { eser:{n,ok}, repertuvar:{n,ok}, satir:{n,ok} } (2/1 deneme sürümleri yalnız Emir'in cihazındaydı)
   const oku = () => { try { return JSON.parse(localStorage.getItem(ANAHTAR) || '{}') || {}; } catch (e) { return {}; } };
   const yaz = (d) => { try { localStorage.setItem(ANAHTAR, JSON.stringify(d)); } catch (e) {} };
   const gosterildi = {};
@@ -1900,16 +1900,24 @@ function _m(anahtar, tr) {
   // dokunulunca durur, bitir() satırı — kişi kendisi açmadıysa — kapatır. (07.11, Emir: "tablette bir kez geldi durdu") Liste
   // yeniden çizilince kart öğesi değişiyordu ve gösterim duruyordu; sayfalar artık ciz/bitir içinde O ANKİ ilk satırı bulur,
   // devamMi() yalnız listede kaydırılabilir satır kalmadıysa false döner.
+  // (07.11, Emir: "Eserlerde kalmıyor") Eserler açılışta/eşitlemede listeyi bir an boşaltıp dolduruyor; satır yokken gösterim
+  // DURMAZ, bekler (ciz/bitir satır yoksa bir şey yapmaz). Yalnız 5 tur (~21 sn) üst üste satır yoksa biter; dokununca hemen biter.
   window.kaydirGosterim = function (ciz, bitir, devamMi) {
-    const bas = Date.now(); let bitti = false;
+    const bas = Date.now(); let bitti = false, bosTur = 0;
     const son = function () { if (bitti) return; bitti = true; try { bitir(); } catch (e) {} };
-    const durmali = function () { return sonDokunma > bas || (typeof devamMi === 'function' && !devamMi()); };
+    const dokunuldu = function () { return sonDokunma > bas; };
     (function tur() {
       if (bitti) return;
       [[-1, 0], [0, 1300], [1, 1900], [0, 3200]].forEach(function (a) {
-        setTimeout(function () { if (bitti) return; if (durmali()) { son(); return; } try { ciz(a[0]); } catch (e) {} }, a[1]);
+        setTimeout(function () { if (bitti) return; if (dokunuldu()) { son(); return; } try { ciz(a[0]); } catch (e) {} }, a[1]);
       });
-      setTimeout(function () { if (bitti) return; if (durmali()) { son(); return; } tur(); }, 4200);
+      setTimeout(function () {
+        if (bitti) return;
+        if (dokunuldu()) { son(); return; }
+        bosTur = (typeof devamMi === 'function' && !devamMi()) ? bosTur + 1 : 0;
+        if (bosTur >= 5) { son(); return; }
+        tur();
+      }, 4200);
     })();
   };
   window.kaydirIpucuOgrendi = function (liste) {
@@ -1923,12 +1931,18 @@ function _m(anahtar, tr) {
     if (!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)) return;
     const d = oku(); const l = d[liste] || {}; if (l.ok || (l.n || 0) >= 3) return;
     gosterildi[liste] = true;
-    setTimeout(function () {
+    // (07.11, Emir: "Repertuvarların içindeki eserler listesinde de olmalı") Repertuvar ona DOKUNARAK açıldığı için ipucu "az önce
+    // dokunuldu" deyip vazgeçiyordu ve satır ipucu hiç çıkmıyordu. Artık vazgeçmez: dokunuş bitip 1,5 sn geçene ve ekrandaki
+    // öteki not kapanana kadar bekler (en çok ~20 sn). Satır sayfadan kalkarsa bırakır; sonraki çizim yeniden dener.
+    let deneme = 0;
+    const baslat = function () {
       if (!satir.isConnected) { gosterildi[liste] = false; return; }
-      if (document.getElementById('kaydirIpucuNot')) { gosterildi[liste] = false; return; }   // ekranda başka not var: sonra
+      if (document.getElementById('kaydirIpucuNot') || Date.now() - sonDokunma < 1500) {
+        if (++deneme > 22) { gosterildi[liste] = false; return; }
+        setTimeout(baslat, 900); return;
+      }
       const r = satir.getBoundingClientRect();
       if (r.bottom < 0 || r.top > window.innerHeight - 80 || r.height === 0) { gosterildi[liste] = false; return; }   // görünmüyor: sayma
-      if (Date.now() - sonDokunma < 1500) { gosterildi[liste] = false; return; }   // kişi şu an dokunuyor: araya girme
       const d2 = oku(); const l2 = d2[liste] || {}; l2.n = (l2.n || 0) + 1; d2[liste] = l2; yaz(d2);
       try { oynat(satir); } catch (e) {}
       const not = document.createElement('div');
@@ -1954,6 +1968,7 @@ function _m(anahtar, tr) {
       const dis = function (e) { if (!kapat.contains(e.target)) git(); };
       const git = function () { not.remove(); document.removeEventListener('pointerdown', dis, true); };
       document.addEventListener('pointerdown', dis, true);
-    }, 700);
+    };
+    setTimeout(baslat, 700);
   };
 })();
