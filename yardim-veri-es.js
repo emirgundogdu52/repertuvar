@@ -2108,6 +2108,7 @@ window.YARDIM_VERI = {
    ],
    "ipuclari": [
     "Un repertorio sin obras no se abre en el escenario; primero añade obras.",
+    "Para empezar por una obra concreta, toca su nombre en el repertorio; el Modo Escenario se abre en esa obra y sigue con las siguientes. Para leer la letra, toca **Mostrar la letra** en el menú **⋯** de la fila.",
     "Para abrir una sola obra en el escenario, toca el botón **🎭 Abrir en el Modo Escenario** de los detalles de la obra, en Obras.",
     "En el escenario, el menú inferior se oculta; para salir, usa **Ajustes de visualización** › **Cerrar el Modo Escenario**.",
     "Si los datos de las obras no están en el dispositivo y tampoco hay internet, aparece el aviso «No se pudieron cargar algunos detalles de las obras. El Modo Escenario no se inició. Comprueba tu conexión e inténtalo de nuevo.»; vuelve a intentarlo cuando haya conexión."

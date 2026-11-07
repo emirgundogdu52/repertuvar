@@ -2078,6 +2078,7 @@ window.YARDIM_VERI = {
    ],
    "ipuclari": [
     "Een lege setlist gaat niet open op het podium; voeg eerst stukken toe.",
+    "Wil je bij een bepaald stuk beginnen, tik dan in de setlist op de naam ervan; de Podiummodus gaat open bij dat stuk en gaat daarna verder met de volgende. De tekst zie je via **Toon de tekst** in het **⋯**-menu van de regel.",
     "Wil je één stuk op het podium openen, tik dan bij Stukken in de gegevens van het stuk op **🎭 Openen in de Podiummodus**.",
     "Op het podium is het menu onderaan verborgen; je verlaat het podium via **Weergave-instellingen** › **Podiummodus sluiten**.",
     "Staan de gegevens van de stukken niet op je apparaat en is er geen internet, dan zie je “Sommige gegevens van stukken konden niet worden geladen. De Podiummodus is niet gestart. Controleer je verbinding en probeer het opnieuw.” Probeer het opnieuw zodra je verbinding hebt."

@@ -2115,6 +2115,7 @@ window.YARDIM_VERI = {
    ],
    "ipuclari": [
     "Um setlist sem músicas não abre no palco; adicione músicas antes.",
+    "Para começar por uma música específica, toque no nome dela no setlist; o Modo Palco abre nessa música e segue com as próximas. Para ler a letra, toque em **Mostrar a letra** no menu **⋯** da linha.",
     "Para abrir uma música só no palco, toque no botão **🎭 Abrir no Modo Palco** nos detalhes da música, em Músicas.",
     "No palco, o menu inferior fica escondido; para sair, use **Configurações de exibição** › **Fechar o Modo Palco**.",
     "Se os detalhes das músicas não estiverem no dispositivo e também não houver internet, aparece o aviso “Não foi possível carregar alguns detalhes das músicas. O Modo Palco não foi iniciado. Verifique sua conexão e tente novamente.”; tente de novo quando a conexão voltar."

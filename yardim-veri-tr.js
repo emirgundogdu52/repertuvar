@@ -2003,7 +2003,8 @@ window.YARDIM_VERI = {
     "performans",
     "stage mode",
     "repertuvarı sahnede aç",
-    "canlı çalma"
+    "canlı çalma",
+    "eserden başla"
    ],
    "adimlar": [
     "**Repertuvarlar**'da repertuvarı aç ve **Sahne Modunda Aç** düğmesine bas; ilk eser doğrudan açılır.",
@@ -2014,6 +2015,7 @@ window.YARDIM_VERI = {
    ],
    "ipuclari": [
     "İçinde eser olmayan repertuvar sahneye çıkmaz; önce eser ekle.",
+    "Belli bir eserden başlamak için repertuvarda o eserin adına dokun; Sahne Modu o eserden açılır ve sıradakilerle devam eder. Sözlere bakmak için satırdaki **⋯** menüsünde **Sözleri göster**'e bas.",
     "Tek bir eseri sahnede açmak için Eserler'de eserin detayındaki **🎭 Sahne Modunda Aç** düğmesine bas.",
     "Sahnedeyken alt menü gizlenir; çıkmak için **Görünüm Ayarları** › **Sahne Modunu Kapat** yolunu kullan.",
     "Eser bilgileri cihazda yoksa ve internet de yoksa “Bazı eser bilgileri yüklenemedi. Sahne açılmadı. Bağlantıyı kontrol edip tekrar deneyin.” uyarısı çıkar; bağlantı gelince yeniden dene."

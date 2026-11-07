@@ -765,6 +765,14 @@ html[data-cam][data-theme="light"] {
     -webkit-backdrop-filter: blur(var(--cam-blur)) saturate(180%); backdrop-filter: blur(var(--cam-blur)) saturate(180%);
     box-shadow: var(--cam-golge);
   }
+  /* (2026-11-07) Emir (iPad 06.11): "liste durum çubuğunun arkasına kayıyor" — üst bar güvenli alanın ALTINDAN başlıyor; saat/pil
+     şeridini örten bir şey yoktu, kayan kartların yazısı saatle üst üste biniyordu. Şerit (yalnız güvenli alan yüksekliği; Android/
+     masaüstünde 0) sayfa zemin rengiyle buzlu örtülür, dokunuşları geçirir. Sahne Modu'nun kendi üst şeridi var. */
+  html[data-cam]:not([data-sayfa="stage"]) body::after {
+    content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); z-index: 199; pointer-events: none;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    -webkit-backdrop-filter: blur(var(--cam-blur)); backdrop-filter: blur(var(--cam-blur));
+  }
   html[data-cam] .r-topnav img.r-logo {
     width: min(172px, 42vw) !important; height: auto !important;
     margin-left: calc(min(172px, 42vw) * -10 / 664) !important;   /* görselin soldaki saydam payı */
@@ -1868,7 +1876,8 @@ html[data-tasarim="v3"][data-sayfa="eserler"] .work-item > .work-icon { display:
    görünmesi gereken sadece varsa potpuri ikonu" + "yatay çevirince çıkabilir, dikey konum için uygulayalım"). Dikey telefonda (≤768,
    portrait) satırda yalnız ⋯ ve bağlıysa 🔗 (bağı çözme düğmesi); dinle / kişisel not / potpuri / düzenle / çıkar menüde (satirMenuAc).
    Yatay telefon, iPad ve masaüstünde düğmeler eskisi gibi; ⋯ gizli. */
-html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .ra-menu { display: none; }
+/* (2026-11-07) Eser adı Sahne Modu'nu açtığı için "Sözleri göster" ⋯ menüsünde; ⋯ artık her boyutta görünür (masaüstünde başka yolu yok). */
+html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .ra-menu { display: inline-flex; align-items: center; justify-content: center; }
 @media (max-width: 768px) and (orientation: portrait) {
   html[data-tasarim="v3"][data-sayfa="repertoires"] .ra { width: auto !important; min-width: 0 !important; flex-wrap: nowrap !important; opacity: 1; }
   html[data-tasarim="v3"][data-sayfa="repertoires"] .ra > :not(.ra-menu):not(.bl.linked) { display: none !important; }

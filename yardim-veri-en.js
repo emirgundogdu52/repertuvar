@@ -1984,7 +1984,8 @@ window.YARDIM_VERI = {
     "use on stage",
     "live",
     "open setlist on stage",
-    "concert"
+    "concert",
+    "start from a piece"
    ],
    "adimlar": [
     "In **Setlists**, open the setlist and tap **Open in Stage Mode**; the first piece opens straight away.",
@@ -1995,6 +1996,7 @@ window.YARDIM_VERI = {
    ],
    "ipuclari": [
     "An empty setlist won't open on stage; add pieces first.",
+    "To start from a particular piece, tap its name in the setlist; Stage Mode opens at that piece and carries on with the next ones. To read the lyrics, tap **Show the lyrics** in the row's **⋯** menu.",
     "To open a single piece on stage, tap **🎭 Open in Stage Mode** in its detail view in Pieces.",
     "The bottom menu is hidden on stage; to leave, use **Display Settings** › **Close Stage Mode**.",
     "If the piece details aren't on your device and there's no internet, you'll see “Some piece details could not be loaded. Stage Mode was not started. Check your connection and try again.” Try again once you're connected."

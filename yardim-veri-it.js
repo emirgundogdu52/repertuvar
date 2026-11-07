@@ -2105,6 +2105,7 @@ window.YARDIM_VERI = {
    ],
    "ipuclari": [
     "Una scaletta senza brani non si apre sul palco; prima aggiungi dei brani.",
+    "Per iniziare da un brano preciso, tocca il suo nome nella scaletta; la Modalità Palco si apre su quel brano e prosegue con i successivi. Per leggere il testo, tocca **Mostra il testo** nel menu **⋯** della riga.",
     "Per aprire sul palco un solo brano, tocca il pulsante **🎭 Apri in Modalità Palco** nei dettagli del brano in Brani.",
     "Sul palco il menu in basso è nascosto; per uscire usa **Impostazioni di visualizzazione** › **Chiudi Modalità Palco**.",
     "Se i dettagli dei brani non sono sul dispositivo e non c'è internet, compare l'avviso “Non è stato possibile caricare alcuni dettagli dei brani. La Modalità Palco non è partita. Controlla la connessione e riprova.”; riprova quando torna la connessione."

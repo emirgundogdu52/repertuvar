@@ -867,6 +867,8 @@ body.day-theme{--marker-color:#3F3BC0;}  /* açık: koyu indigo */
    yan yana durdukları için ikisi tek bir şeritmiş gibi görünüyor. */
 .sb-menu-btn{background:var(--surface);border:1px solid #FFC83D;border-radius:10px;width:46px;min-height:max(44px, 100%);display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;transition:color .15s,border-color .15s;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.25);}
 /* (2026-11-06) Emir: "alttaki butonlar çok küçük, tıklamak zor" — "Sıradaki" kartı yokken (son eser) düğme 22 px'e iniyordu; en az 44 px. */
+/* (2026-11-07) Emir: iPhone'da da 44 px. ≤768 px genel `button:not(.r-theme-toggle){min-height:36px}` kuralı yukarıdakini eziyordu; .sb ile öne geçer. */
+.sb .sb-menu-btn{min-height:max(44px, 100%);}
 .sb-menu-btn .ti{font-size:20px;}
 .sb-menu-btn:hover{color:var(--text);border-color:var(--accent);}
 .sb-menu-btn i{font-size:18px;}
@@ -2566,7 +2568,7 @@ function _temaDugmeleri(t){
     el.style.background=s.background; el.style.borderColor=s.borderColor; el.style.color=s.color;
   });
 }
-async function startStage(){
+async function startStage(baslaItemId){
   // (2026-11-02) Puan isteme koşulu için: sahneye çıkış sayısı (topnav.js "PUAN İSTEME").
   try { localStorage.setItem('puanSahne', String((parseInt(localStorage.getItem('puanSahne'), 10) || 0) + 1)); } catch (e) {}
   curRep=reps.find(r=>r.id===selId);
@@ -2584,6 +2586,8 @@ async function startStage(){
   }
   if (startButton) startButton.disabled = false;
   curIdx=0;
+  // (2026-11-07) Emir: repertuvarda eser adına dokununca Sahne Modu o eserden başlar, sonra sıradakiler (repertoires.js sahnedeAc).
+  if (baslaItemId) { const _bi = curRep.items.findIndex(it => String(it.id) === String(baslaItemId)); if (_bi > 0) curIdx = _bi; }
   window._stageActive = true;
   window.dispatchEvent(new Event('stageEnter'));
   // (2026-09-27, Offline Düzeltme 4) Bağlantı varken repertuvarın notalarını
@@ -4361,11 +4365,13 @@ function loadSideWork(id) {
   const autoId = localStorage.getItem('stageRepId');
   const _hedef = autoId ? reps.find(r => r.id === autoId) : null;
   if (autoId) localStorage.removeItem('stageRepId');
+  const _baslaItem = localStorage.getItem('stageStartItem');   // (2026-11-07) hangi eserden başlanacak (yoksa ilk eser)
+  localStorage.removeItem('stageStartItem');
 
   if (_hedef) {
     renderPicker();          // seçim mantığı listeye dayandığı için çizilmeli
     pickRep(autoId);         // ama ekran gösterilmiyor — doğrudan sahneye
-    startStage();
+    startStage(_baslaItem);
     initBackBtn();
     return;
   }

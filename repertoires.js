@@ -1195,7 +1195,7 @@ function renderDetail(){
           ${_canM?`<span class="drag-handle" onpointerdown="dragPointerStart(event)" title="${_r('rep.surukleT','Sürükleyerek taşı')}">⠿</span>`:''}
         </div>
       </td>
-      <td style="padding-left:16px;cursor:pointer;" onclick="openLyricsSheet('${it.workId}','${rep.id}','${it.id}')" title="${_r('rep.sozleriGoster','Sözleri göster — düzenlemek için pencerede Düzenle')}">
+      <td style="padding-left:16px;cursor:pointer;" onclick="sahnedeAc(event,'${rep.id}','${it.id}')" title="${_r('rep.sahnedeBuEserden',"Sahne Modu'nda bu eserden başla")}">
         <div class="wn">${linked?'<span class="medley-chip" title="'+_r('rep.potpuriDevami','Potpuri devamı')+'">🔗</span> ':''}${_rEsc((w.name||'#'+it.workId).replace(/\u00a0/g,' '))}</div>
         <div class="ws">${_rEsc([w.makam,w.composer].filter(Boolean).join(' · '))}</div>
         ${pf ? '<div style="font-size:11px;color:var(--accent);margin-top:2px;">🎤 '+_rEsc(pf)+'</div>' : ''}
@@ -1289,7 +1289,10 @@ async function _offRepRozet(repId){
   // (2026-11-07) Emir, sade Repertuvarlar: yazı yerine yumuşak renkli bulut simgesi; dokununca durum + kaç eserin cihazda olduğu.
   const baslik = metin.replace(/^[^\p{L}]+/u, '');
   // (2026-11-07) Nota hazır olmayı etkilemiyor (eser bilgileri cihazdaysa yeşil); notası eksik eser varsa sayısı ayrıca söylenir.
-  const ayrinti = (r.status !== 'ready' && r.required)
+  // (2026-11-07) Eserler tamken kişisel katman (akor/ton/not) inmemişse bulut kırmızıydı ama açıklama "3/3 eser cihazda" diyordu.
+  const ayrinti = (r.status !== 'ready' && r.reason === 'kisisel_yok')
+    ? _r('rep.kisiselEksik','Kişisel akorların ve notların henüz cihazda değil.')
+    : (r.status !== 'ready' && r.required)
     ? _r('rep.offlineEksik','{p}/{n} eser cihazda').replace('{p}', r.present).replace('{n}', r.required)
     : (r.notaEksikEser ? _r('rep.notaEksik','{n} eserin notası cihazda değil').replace('{n}', r.notaEksikEser) : '');
   const tur = r.status === 'ready' ? ['hazir', 'ti-cloud-check'] : r.status === 'syncing' ? ['iniyor', 'ti-cloud-download'] : ['yok', 'ti-cloud-off'];
@@ -3502,6 +3505,9 @@ function satirMenuAc(repId, itemId){
   const esc = _rEsc;
   let h = '<div class="sm-bas"><b>' + esc(w.name || ('#' + it.workId)) + '</b>' +
           ((w.makam || w.composer) ? '<span>' + esc([w.makam, w.composer].filter(Boolean).join(' · ')) + '</span>' : '') + '</div>';
+  // (2026-11-07) Emir: eser adı artık Sahne Modu'nu açıyor; sözler penceresi buraya taşındı (ilk satır).
+  h += '<button class="sm-item" onclick="satirMenuKapat();openLyricsSheet(\'' + it.workId + '\',\'' + repId + '\',\'' + it.id + '\')">' +
+       '<i class="ti ti-align-left" aria-hidden="true"></i>' + _r('rep.sozleriGosterKisa', 'Sözleri göster') + '</button>';
   if (vid) h += '<a class="sm-item" href="https://www.youtube.com/watch?v=' + vid + '" target="_blank" rel="noopener" onclick="satirMenuKapat()">' +
                 '<i class="ti ti-player-play" aria-hidden="true"></i>' + _r('rep.tekDinleT', 'Bu eseri YouTube’da dinle') + '</a>';
   h += '<button class="sm-item' + (notVar ? ' dolu' : '') + '" onclick="satirMenuKapat();openKnotSheet(\'' + it.workId + '\')">' +
@@ -3518,6 +3524,17 @@ function satirMenuAc(repId, itemId){
   const ov = document.createElement('div'); ov.className = 'sm-ov'; ov.id = 'smOv'; ov.onclick = satirMenuKapat;
   const sh = document.createElement('div'); sh.className = 'sm-sheet'; sh.id = 'smSheet'; sh.setAttribute('role', 'dialog'); sh.innerHTML = h;
   document.body.appendChild(ov); document.body.appendChild(sh);
+}
+// (2026-11-07) Emir: repertuvarda eser adına dokununca Sahne Modu O ESERDEN başlar, sonra sıradakiler (stage.html stageStartItem).
+// Kaydırma ipucu satırı oynatırken panel açık görünebilir (_skAcik işaretlenmez): o an dokunuş Sahne'yi açmaz, paneli kapatır.
+function sahnedeAc(e, repId, itemId){
+  const tr = e && e.currentTarget && e.currentTarget.closest('tr');
+  if (tr && [...tr.querySelectorAll('.sk-pnl')].some(p => parseFloat(p.style.width) > 0)) { _skCiz(tr, 0, true); return; }
+  try {
+    localStorage.setItem('stageRepId', repId); localStorage.setItem('stageSource', 'repertoires');
+    localStorage.setItem('stageShowChords', '0'); localStorage.setItem('stageStartItem', itemId);
+  } catch (err) {}
+  location.href = 'stage.html';
 }
 function satirMenuKapat(){
   document.getElementById('smOv')?.remove();

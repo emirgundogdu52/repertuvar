@@ -2100,6 +2100,7 @@ window.YARDIM_VERI = {
    ],
    "ipuclari": [
     "Une setlist vide ne s’ouvre pas en Mode Scène ; ajoutez d’abord des morceaux.",
+    "Pour commencer par un morceau précis, touchez son nom dans la setlist ; le Mode Scène s’ouvre sur ce morceau puis continue avec les suivants. Pour lire les paroles, touchez **Afficher les paroles** dans le menu **⋯** de la ligne.",
     "Pour ouvrir un seul morceau sur scène, touchez le bouton **🎭 Ouvrir en Mode Scène** dans son détail dans Morceaux.",
     "Sur scène, le menu du bas est masqué ; pour sortir, passez par **Réglages d’affichage** › **Fermer le Mode Scène**.",
     "Si les infos des morceaux ne sont pas sur votre appareil et qu’il n’y a pas d’Internet, l’avertissement « Certaines infos de morceaux n’ont pas pu être chargées. Le Mode Scène n’a pas été lancé. Vérifiez votre connexion et réessayez. » s’affiche ; réessayez au retour de la connexion."

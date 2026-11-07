@@ -2135,6 +2135,7 @@ window.YARDIM_VERI = {
    ],
    "ipuclari": [
     "Eine Setlist ohne Stücke lässt sich nicht auf der Bühne öffnen; füge zuerst Stücke hinzu.",
+    "Um bei einem bestimmten Stück zu beginnen, tippe in der Setlist auf seinen Namen; der Bühnenmodus öffnet sich bei diesem Stück und macht mit den nächsten weiter. Den Text siehst du im **⋯**-Menü der Zeile unter **Text anzeigen**.",
     "Um ein einzelnes Stück auf der Bühne zu öffnen, tippe unter Stücke in den Details des Stücks auf **🎭 Im Bühnenmodus öffnen**.",
     "Auf der Bühne ist das untere Menü ausgeblendet; zum Verlassen nutze **Anzeigeeinstellungen** › **Bühnenmodus schließen**.",
     "Sind die Details der Stücke nicht auf dem Gerät gespeichert und gibt es kein Internet, erscheint „Einige Details zu Stücken konnten nicht geladen werden. Der Bühnenmodus wurde nicht gestartet. Prüfe deine Verbindung und versuche es noch einmal.“ Versuch es erneut, sobald du online bist."

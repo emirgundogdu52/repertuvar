@@ -2075,6 +2075,7 @@ window.YARDIM_VERI = {
    ],
    "ipuclari": [
     "İçində əsər olmayan repertuar səhnədə açılmır; əvvəlcə əsər əlavə et.",
+    "Müəyyən bir əsərdən başlamaq üçün repertuarda həmin əsərin adına toxun; Səhnə rejimi o əsərdən açılır və növbətilərlə davam edir. Sözlərə baxmaq üçün sətirdəki **⋯** menyusunda **Sözləri göstər** düyməsinə toxun.",
     "Tək bir əsəri səhnədə açmaq üçün Əsərlər bölməsində əsərin təfərrüatlarındakı **🎭 Səhnə rejimində aç** düyməsinə toxun.",
     "Səhnədə alt menyu gizlənir; çıxmaq üçün **Görünüş ayarları** › **Səhnə rejimini bağla** yolundan istifadə et.",
     "Əsər məlumatları cihazda yoxdursa və internet də yoxdursa, “Bəzi əsər məlumatlarını yükləmək olmadı. Səhnə rejimi açılmadı. Bağlantını yoxlayıb yenidən cəhd et.” xəbərdarlığı çıxır; bağlantı gələndə yenidən cəhd et."
