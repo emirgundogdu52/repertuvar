@@ -67,6 +67,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-ui, -apple-sy
 .sk-deg{left:0;background:var(--accent2);}
 .sk-sil{right:0;background:#FF5A5F;}
 @media (hover:none) and (pointer:coarse){.ra > .br.be,.ra > .br.dl{display:none !important;}}
+/* (2026-11-07) ✎/🗑 kalkınca iPad'de ve yatay telefonda eseri değiştirmenin/çıkarmanın tek yolu kaydırma kalıyordu (⋯ yalnız dikey
+   telefondaydı). Dokunmatikte ⋯ (satirMenuAc: Değiştir, Çıkar…) her boyutta görünsün; kaydırma kısayol olarak kalır. Masaüstü değişmez. */
+@media (hover:none) and (pointer:coarse){html[data-tasarim="v3"][data-sayfa="repertoires"] .ra .ra-menu{display:inline-flex !important;align-items:center;justify-content:center;}}
 /* Swipe sırasında mavi→kırmızı gradient çerçeve — parmak ne kadar kayarsa o kadar belirginleşir */
 .ri-wrap::before {
   content:''; position:absolute; inset:0; border-radius:10px; padding:2.5px;
