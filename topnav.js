@@ -1611,6 +1611,10 @@ function _m(anahtar, tr) {
     '#sync-halka.serbest{position:fixed;right:16px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:2147483647;}' +
     '#sync-halka.on{opacity:1;}' +
     '#sync-halka.zil-alti{right:auto;}' +   // left/top halkaGoster'de ölçülür
+    // (2026-11-07) Yatay iPad'de üst menü yok, yan menü var (Emir: "iPad'de sarı şerit yukarıda doluyor"): noktalar yan menü
+    // logosunun altında, sağ ucunda ("app"ın altı); left/top halkaGoster'de ölçülür.
+    '#r-sidebar .sb-brand{position:relative;}' +
+    '#sync-halka.yanda{right:auto;}' +
     // (2026-10-24) Sahne ekranında üst menü yok: üç nokta sağ üstte serbest (güvenli alanın 12 px altı) "biraz aşağıda sağda"
     // kalıyordu (kullanıcı) → sahnenin üst şeridinin (sayfa noktaları + 1/15) sağ ucunda, sayaçla aynı yükseklikte.
     '#stageScreen .stb-r2{position:relative;}' +
@@ -1653,7 +1657,8 @@ function _m(anahtar, tr) {
     var tn = document.querySelector('.r-topnav');
     var r = tn ? tn.getBoundingClientRect() : null;   // offsetParent DEĞİL: sabit (fixed) menüde hep null döner
     var menuVar = !!(r && r.width > 0 && r.height > 0);
-    if (!menuVar && window.innerWidth >= 1024) return false;
+    // Çubuk yalnız dokunmatik OLMAYAN geniş ekranda (masaüstü). Yatay iPad de ≥1024 px ama tablet: noktalar.
+    if (!menuVar && window.innerWidth >= 1024 && !(navigator.maxTouchPoints > 0)) return false;
     if (!halka) {
       halka = document.createElement('div'); halka.id = 'sync-halka'; halka.setAttribute('aria-hidden', 'true');
       halka.innerHTML = '<i></i><i></i><i></i>';
@@ -1665,8 +1670,14 @@ function _m(anahtar, tr) {
       var srr = sr ? sr.getBoundingClientRect() : null;
       if (srr && srr.width > 0 && srr.height > 0) sahne = sr;   // nota odak kipinde şerit gizli → serbest konum
     }
+    var yan = null;
+    if (!sag && !sahne) {
+      var yb = document.querySelector('#r-sidebar .sb-brand');
+      var ybr = yb ? yb.getBoundingClientRect() : null;
+      if (ybr && ybr.width > 0 && ybr.height > 0) yan = yb;
+    }
     if (sag) {
-      if (halka.parentNode !== sag) sag.insertBefore(halka, sag.firstChild); halka.classList.remove('serbest', 'sahnede');
+      if (halka.parentNode !== sag) sag.insertBefore(halka, sag.firstChild); halka.classList.remove('serbest', 'sahnede', 'yanda');
       // (2026-11-01) Telefonda logo sağ gruba kadar uzanıyor (arada ~8 px); noktalar logonun ".app"ının üstüne biniyordu
       // (arkadaşın Android'i, 320-412 px; taramada 10 dilde). Yer yoksa zilin altına, barın içine (sağdan sola dilde de).
       // Zil gizliyse (bildirimi olmayan kullanıcı) ilk görünür öğe tema düğmesidir; noktalar onun altına.
@@ -1686,9 +1697,18 @@ function _m(anahtar, tr) {
     }
     else if (sahne) {
       if (halka.parentNode !== sahne) sahne.appendChild(halka);
-      halka.classList.remove('serbest', 'sahne-alt'); halka.classList.add('sahnede', 'var');
+      halka.style.left = ''; halka.style.top = '';
+      halka.classList.remove('serbest', 'sahne-alt', 'yanda'); halka.classList.add('sahnede', 'var');
       var stp = sahne.querySelector('.stp'), pr = stp ? stp.getBoundingClientRect() : null, hr = halka.getBoundingClientRect();
       if (pr && pr.width > 0 && pr.right > hr.left - 6) halka.classList.add('sahne-alt');
+    }
+    else if (yan) {
+      if (halka.parentNode !== yan) yan.appendChild(halka);
+      halka.classList.remove('serbest', 'sahnede', 'zil-alti'); halka.classList.add('yanda');
+      var yl = yan.querySelector('img[data-logo]'), ylr = yl ? yl.getBoundingClientRect() : null, yr = yan.getBoundingClientRect();
+      var ysag = ylr && ylr.width > 0 ? ylr.right : yr.right - 16, yalt = ylr && ylr.height > 0 ? ylr.bottom : yr.top + yr.height / 2;
+      halka.style.left = (ysag - yr.left - 21) + 'px';                 // üç nokta 21 px; sağ ucu logonun sağ ucunda
+      halka.style.top = ((yalt + yr.bottom) / 2 - 8 - yr.top) + 'px';  // kap 16 px; logo ile şeridin alt kenarı arasında
     }
     else if (document.getElementById('r-topnav-container')) {
       // (2026-10-24) Sayfa üst menü kullanıyor ama menü henüz kurulmadı (ör. alt menüden Sahne Modu'na geçişte ilk eşitleme):
@@ -1699,7 +1719,7 @@ function _m(anahtar, tr) {
       if (halkaBekle < 20) { halkaBekle++; setTimeout(function () { if (count > 0) halkaGoster(); }, 150); }
       return true;   // dar ekranda çubuk da açılmasın
     }
-    else { if (halka.parentNode !== document.body) (document.body || document.documentElement).appendChild(halka); halka.classList.remove('sahnede'); halka.classList.add('serbest'); }
+    else { if (halka.parentNode !== document.body) (document.body || document.documentElement).appendChild(halka); halka.classList.remove('sahnede', 'yanda'); halka.style.left = ''; halka.style.top = ''; halka.classList.add('serbest'); }
     halkaBekle = 0;
     halka.classList.add('var');
     void halka.offsetWidth;
