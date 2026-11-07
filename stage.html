@@ -859,7 +859,9 @@ body.day-theme{--marker-color:#3F3BC0;}  /* açık: koyu indigo */
    "Sıradaki" kartıyla (.np) kendiliğinden aynı seviyede — her ekran boyutunda,
    safe-area dahil. Eskiden bottom:calc(100% + 6px) ile kartın üstünde duruyordu.
    Panel position:fixed olduğu için bu değişiklikten etkilenmiyor. */
-.sb-menu{position:relative;order:2;margin-left:auto;z-index:11;align-self:stretch;display:flex;}
+/* (2026-11-07) z-index 11 → 13: panel (#stageToolsPanel) bu kabın katmanında kalıyor; otomatik kaydırmanın hız hapı (.ak-hiz, 12)
+   açık paneli örtüp "Sahne Modu'nu Kapat"a dokunmayı engelliyordu (Emir, cihaz). Panel artık hapın üstünde. */
+.sb-menu{position:relative;order:2;margin-left:auto;z-index:13;align-self:stretch;display:flex;}
 /* (2026-08-06) Düğme "Sıradaki" kartıyla ORANTILI: aynı yükseklikte
    (align-self:stretch), aynı köşe yarıçapı (10px) ve aynı sarı çerçeve —
    yan yana durdukları için ikisi tek bir şeritmiş gibi görünüyor. */
