@@ -147,6 +147,18 @@ html{background:var(--bg);}
 #r-sidebar .sb-item { justify-content: flex-start !important; text-align: left !important; }
 </style>
 <link rel="stylesheet" href="tasarim.css">
+<style>
+/* (2026-11-07) Emir: "Grup/Koro ve Solistler sayfalarını da elden geçir yumuşak görüntü için" — baş harfler ve e-posta soluk altın,
+   Sil soluk kırmızı (Eserler/Repertuvarlar ile aynı yumuşak aile). "+" ve asıl eylemler marka sarısı kalır. */
+html[data-tasarim="v3"] .artist-avatar, html[data-tasarim="v3"] .detail-avatar { color: #D9B866 !important; }
+html[data-tasarim="v3"] .info-card-value a { color: #D9B866 !important; }
+html[data-tasarim="v3"][data-sayfa="artiesten"] .btn-danger, html[data-tasarim="v3"][data-sayfa="artiesten"] .detail-actions .btn-danger {
+  border-color: rgba(217,123,123,.28) !important; color: #D97B7B !important; }
+html[data-tasarim="v3"][data-theme="light"] .artist-avatar, html[data-tasarim="v3"][data-theme="light"] .detail-avatar { color: #7A5B14 !important; }
+html[data-tasarim="v3"][data-theme="light"] .info-card-value a { color: #7A5B14 !important; }
+html[data-tasarim="v3"][data-theme="light"][data-sayfa="artiesten"] .btn-danger, html[data-tasarim="v3"][data-theme="light"][data-sayfa="artiesten"] .detail-actions .btn-danger {
+  border-color: rgba(176,74,74,.25) !important; color: #B04A4A !important; }
+</style>
 </head>
 <body>
 <div id="r-topnav-container"></div>

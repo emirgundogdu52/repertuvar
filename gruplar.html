@@ -168,6 +168,30 @@ html { -webkit-text-size-adjust: 100%; }
 }
 </style>
 <link rel="stylesheet" href="tasarim.css">
+<style>
+/* (2026-11-07) Emir: "Grup/Koro ve Solistler sayfalarını da elden geçir yumuşak görüntü için" — Eserler/Repertuvarlar ile aynı yumuşak aile:
+   rozetler çerçevesiz soluk ton, enstrüman gri, grup simgesi ve baş harfler soluk altın, silme soluk kırmızı. Asıl eylem düğmeleri (davet, +)
+   marka sarısı kalır. Açık temada tasarim.css !important kuralları olduğu için burada da !important. */
+html[data-tasarim="v3"] .role-badge.role-owner { background: rgba(217,184,102,.10) !important; color: #D9B866 !important; border-color: transparent !important; border-width: 0 !important; }
+html[data-tasarim="v3"] .role-badge.role-admin { background: rgba(127,184,154,.10) !important; color: #8CC4A6 !important; border-color: transparent !important; border-width: 0 !important; }
+html[data-tasarim="v3"] .role-badge.role-member { background: rgba(255,255,255,.05) !important; color: var(--text2) !important; border-color: transparent !important; border-width: 0 !important; }
+html[data-tasarim="v3"] .role-badge.role-engelli { background: rgba(217,123,123,.10) !important; color: #D97B7B !important; border-color: transparent !important; border-width: 0 !important; }
+html[data-tasarim="v3"] .grp-chip .grp-role-owner { color: #D9B866; } html[data-tasarim="v3"] .grp-chip .grp-role-admin { color: #8CC4A6; }
+html[data-tasarim="v3"] .member-instrument { color: var(--text2) !important; }
+html[data-tasarim="v3"] .member-instrument .ti { color: #7E9CC4; }
+html[data-tasarim="v3"] .group-avatar { background: rgba(217,184,102,.12) !important; color: #D9B866 !important; border: 1px solid rgba(217,184,102,.22); }
+html[data-tasarim="v3"] .member-avatar { color: #D9B866 !important; }
+html[data-tasarim="v3"][data-sayfa="gruplar"] .btn-danger { background: rgba(217,123,123,.08) !important; border-color: rgba(217,123,123,.28) !important; color: #D97B7B !important; }
+html[data-tasarim="v3"][data-theme="light"] .role-badge.role-owner { background: rgba(154,111,30,.08) !important; color: #7A5B14 !important; }
+html[data-tasarim="v3"][data-theme="light"] .role-badge.role-admin { background: rgba(47,107,76,.08) !important; color: #2F6B4C !important; }
+html[data-tasarim="v3"][data-theme="light"] .role-badge.role-member { background: #F1F3F7 !important; color: #4A5468 !important; }
+html[data-tasarim="v3"][data-theme="light"] .role-badge.role-engelli { background: rgba(176,74,74,.08) !important; color: #B04A4A !important; }
+html[data-tasarim="v3"][data-theme="light"] .grp-chip .grp-role-owner { color: #7A5B14; } html[data-tasarim="v3"][data-theme="light"] .grp-chip .grp-role-admin { color: #2F6B4C; }
+html[data-tasarim="v3"][data-theme="light"] .member-instrument .ti { color: #4A6E9E; }
+html[data-tasarim="v3"][data-theme="light"] .group-avatar { background: rgba(154,111,30,.10) !important; color: #7A5B14 !important; border-color: rgba(154,111,30,.22); }
+html[data-tasarim="v3"][data-theme="light"] .member-avatar { color: #7A5B14 !important; }
+html[data-tasarim="v3"][data-theme="light"][data-sayfa="gruplar"] .btn-danger { background: rgba(176,74,74,.06) !important; border-color: rgba(176,74,74,.25) !important; color: #B04A4A !important; }
+</style>
 </head>
 <body>
 
