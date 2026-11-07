@@ -1883,33 +1883,50 @@ function _m(anahtar, tr) {
 // Eserler, Repertuvarlar ve repertuvar eser satırlarında sola kaydırınca Sil, sağa kaydırınca Değiştir var. Dokunmatik ekranda
 // liste ilk açıldığında ilk kaydırılabilir satır BİR KEZ biraz kayıp geri döner, altına bir satırlık not çıkar; not sayfaya
 // dokunulana kadar kalır (Emir 07.11: "sayfaya dokunana kadar kalsın, yazı rengi sarı olsun").
-// Kişi bir kez kendisi kaydırınca (kaydirIpucuOgrendi) ya da 3 gösterimden sonra bir daha çıkmaz. Sayfa başına en çok bir kez.
-// Sayfalar: kaydirIpucu(satir, oynat) — oynat(satir) satırı kendi kaydırma düzeniyle biraz açıp kapatır.
+// (07.11, Emir: "Repertuvar ve repertuvar eser listesinde de çıksın") HER LİSTE AYRI: 'eser' (Eserler kartı), 'repertuvar'
+// (Repertuvarlar kartı), 'satir' (repertuvar eser satırı). Bir listede kişi kendisi kaydırınca (kaydirIpucuOgrendi(liste)) ya da
+// o listede 3 gösterimden sonra o listenin ipucu bir daha çıkmaz; sayfa başına liste başına en çok bir kez; ekranda tek not.
+// Sayfalar: kaydirIpucu(satir, oynat, liste) — oynat(satir) satırı kendi kaydırma düzeniyle biraz açıp kapatır.
 (function () {
-  const ANAHTAR = 'kaydirIpucu2';   // (07.11) ilk deneme sürümünün kaydı sayılmasın: Emir'in cihazlarında yeni not yeniden görünsün
+  const ANAHTAR = 'kaydirIpucu3';   // { eser:{n,ok}, repertuvar:{n,ok}, satir:{n,ok} } (2/1 deneme sürümleri yalnız Emir'in cihazındaydı)
   const oku = () => { try { return JSON.parse(localStorage.getItem(ANAHTAR) || '{}') || {}; } catch (e) { return {}; } };
   const yaz = (d) => { try { localStorage.setItem(ANAHTAR, JSON.stringify(d)); } catch (e) {} };
-  let gosterildi = false;
+  const gosterildi = {};
   let sonDokunma = 0;   // kişi az önce dokunduysa (kaydırıyor olabilir) animasyon oynatılmaz, sayılmaz
   document.addEventListener('touchstart', function () { sonDokunma = Date.now(); }, { capture: true, passive: true });
-  window.kaydirIpucuOgrendi = function () {
-    const d = oku(); if (d.ok) return; d.ok = 1; yaz(d);
-    const n = document.getElementById('kaydirIpucuNot'); if (n) n.remove();
+  // (07.11, Emir: "Bir kez Sil butonu görünüp gitmesin, sanki bir hata varmış gibi oldu; sürgü kapanıp açılsın") Gösterim:
+  // sola tam aç (Sil) → kapat → sağa tam aç (Değiştir) → kapat. ciz(v): v = -1 sola açık, 0 kapalı, 1 sağa açık. Kişi bu sırada
+  // ekrana dokunursa gösterim durur; bitir() satırı, kişi kendisi açmadıysa kapatır.
+  window.kaydirGosterim = function (ciz, bitir) {
+    const bas = Date.now(); let bitti = false;
+    const son = function () { if (bitti) return; bitti = true; try { bitir(); } catch (e) {} };
+    [[-1, 0], [0, 1300], [1, 1900], [0, 3200]].forEach(function (a) {
+      setTimeout(function () { if (bitti) return; if (sonDokunma > bas) { son(); return; } try { ciz(a[0]); } catch (e) {} }, a[1]);
+    });
+    setTimeout(son, 3700);
   };
-  window.kaydirIpucu = function (satir, oynat) {
-    if (gosterildi || !satir || typeof oynat !== 'function') return;
+  window.kaydirIpucuOgrendi = function (liste) {
+    liste = liste || 'eser';
+    const d = oku(); const l = d[liste] || {}; if (l.ok) return; l.ok = 1; d[liste] = l; yaz(d);
+    const n = document.getElementById('kaydirIpucuNot'); if (n && n.dataset.liste === liste) n.remove();
+  };
+  window.kaydirIpucu = function (satir, oynat, liste) {
+    liste = liste || 'eser';
+    if (gosterildi[liste] || !satir || typeof oynat !== 'function') return;
     if (!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)) return;
-    const d = oku(); if (d.ok || (d.n || 0) >= 3) return;
-    gosterildi = true;
+    const d = oku(); const l = d[liste] || {}; if (l.ok || (l.n || 0) >= 3) return;
+    gosterildi[liste] = true;
     setTimeout(function () {
-      if (!satir.isConnected) { gosterildi = false; return; }
+      if (!satir.isConnected) { gosterildi[liste] = false; return; }
+      if (document.getElementById('kaydirIpucuNot')) { gosterildi[liste] = false; return; }   // ekranda başka not var: sonra
       const r = satir.getBoundingClientRect();
-      if (r.bottom < 0 || r.top > window.innerHeight - 80 || r.height === 0) { gosterildi = false; return; }   // görünmüyor: sayma
-      if (Date.now() - sonDokunma < 1500) { gosterildi = false; return; }   // kişi şu an dokunuyor: araya girme
-      const d2 = oku(); d2.n = (d2.n || 0) + 1; yaz(d2);
+      if (r.bottom < 0 || r.top > window.innerHeight - 80 || r.height === 0) { gosterildi[liste] = false; return; }   // görünmüyor: sayma
+      if (Date.now() - sonDokunma < 1500) { gosterildi[liste] = false; return; }   // kişi şu an dokunuyor: araya girme
+      const d2 = oku(); const l2 = d2[liste] || {}; l2.n = (l2.n || 0) + 1; d2[liste] = l2; yaz(d2);
       try { oynat(satir); } catch (e) {}
       const not = document.createElement('div');
       not.id = 'kaydirIpucuNot';
+      not.dataset.liste = liste;
       not.setAttribute('role', 'status');
       not.innerHTML = '<i class="ti ti-arrows-horizontal" aria-hidden="true"></i><span></span>' +
         '<button type="button" aria-label=""><i class="ti ti-x" aria-hidden="true"></i></button>';

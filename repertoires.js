@@ -349,13 +349,13 @@ function riTouchEnd(e) {
     card.classList.add('swiped-open-right'); // sağdaki (Sil/Gizle) panel açık
     if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _riOpenCard = card;
-    if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi();   // (2026-11-07) kendisi kaydırdı: ipucu bir daha çıkmaz
+    if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi('repertuvar');   // (2026-11-07) kendisi kaydırdı: ipucu bir daha çıkmaz
   } else if (_riSwipe.dx >= RI_SWIPE_THRESHOLD) {
     card.style.transform = `translateX(${RI_SWIPE_MAX}px)`;
     card.classList.add('swiped-open-left'); // soldaki (Değiştir) panel açık
     if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _riOpenCard = card;
-    if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi();
+    if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi('repertuvar');
   } else {
     card.style.transform = 'translateX(0)';
     _riYerineOturt(card);
@@ -406,8 +406,8 @@ function skBitir() {
   const tr = _sk.tr, v = _sk.dx;
   // Kaydırmanın ardından gelebilecek hayalet tıklama satırı (sözler penceresi) açmasın — kartlardaki gibi 400 ms.
   tr.dataset.skKaydi = '1'; setTimeout(() => { delete tr.dataset.skKaydi; }, 400);
-  if (v <= -SK_ESIK) { _skCiz(tr, -SK_MAX, true); tr.dataset.skTaraf = 'sil'; _skAcik = tr; if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi(); }
-  else if (v >= SK_ESIK) { _skCiz(tr, SK_MAX, true); tr.dataset.skTaraf = 'deg'; _skAcik = tr; if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi(); }
+  if (v <= -SK_ESIK) { _skCiz(tr, -SK_MAX, true); tr.dataset.skTaraf = 'sil'; _skAcik = tr; if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi('satir'); }
+  else if (v >= SK_ESIK) { _skCiz(tr, SK_MAX, true); tr.dataset.skTaraf = 'deg'; _skAcik = tr; if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi('satir'); }
   else { _skCiz(tr, 0, true); delete tr.dataset.skTaraf; if (_skAcik === tr) _skAcik = null; }
   _sk = null;
 }
@@ -1047,17 +1047,22 @@ function renderList(){
   }
   el.innerHTML = html;
   // (2026-11-07) Kaydırma ipucu (topnav.js kaydirIpucu): ilk kaydırılabilir kart biraz sola kayıp Sil'i gösterir, geri döner.
-  if (window.kaydirIpucu) kaydirIpucu(el.querySelector('.ri-wrap'), function (wrap) {
-    const card = wrap.querySelector('.ri'); if (!card || _riSwipe || _riOpenCard) return;   // kişi kaydırıyor/açmış: araya girme
-    wrap.classList.add('ri-acik');
-    card.style.transition = 'transform .35s ease'; card.style.transform = 'translateX(-56px)';
+  if (window.kaydirIpucu) kaydirIpucu(el.querySelector('.ri-wrap'), _riIpucuOynat, 'repertuvar');
+}
+// (2026-11-07) Kaydırma ipucu — Repertuvarlar kartı: sola tam açılıp (Sil/Gizle) kapanır, sonra sağa (Değiştir) açılıp kapanır.
+function _riIpucuOynat(wrap) {
+  const card = wrap.querySelector('.ri'); if (!card || _riSwipe || _riOpenCard || !window.kaydirGosterim) return;   // kişi kaydırıyor/açmış: araya girme
+  wrap.classList.add('ri-acik');
+  kaydirGosterim(function (v) {
+    card.style.transition = 'transform .4s ease';
+    card.style.transform = 'translateX(' + (v * RI_SWIPE_MAX) + 'px)';
+  }, function () {
+    if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right') || (_riSwipe && _riSwipe.card === card)) return;
+    card.style.transform = 'translateX(0)';
     setTimeout(function () {
-      card.style.transform = 'translateX(0)';
-      setTimeout(function () {
-        if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) return;
-        card.style.transition = ''; card.style.transform = ''; wrap.classList.remove('ri-acik');
-      }, 400);
-    }, 1100);
+      if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) return;
+      card.style.transition = ''; card.style.transform = ''; wrap.classList.remove('ri-acik');
+    }, 420);
   });
 }
 
@@ -1258,12 +1263,12 @@ function renderDetail(){
       <table><thead><tr><th class="sq" style="text-align:center;">${_r('rep.thSira','Sıra')}</th><th>${_r('rep.thEserAdi','Eser Adı')}</th><th class="col-kapanis">${_r('rep.thKapanis','Kapanış')}</th><th class="col-not">${_r('rep.thNot','Not')}</th><th></th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
   _offRepRozet(rep.id);
-  // (2026-11-07) Kaydırma ipucu: ilk eser satırının Sil paneli biraz açılıp kapanır (yalnız düzenleme yetkisi varsa satır kayar).
+  // (2026-11-07) Kaydırma ipucu: ilk eser satırında Sil paneli tam açılıp kapanır, sonra Değiştir paneli (yalnız düzenleme yetkisi varsa).
   if (window.kaydirIpucu) kaydirIpucu(document.querySelector('#dc tr[data-sk]'), function (tr) {
-    if (tr.dataset.skTaraf || _sk || _skAcik) return;   // kişi bir satırı kaydırıyor ya da açmış: araya girme
-    _skCiz(tr, -56, true);
-    setTimeout(function () { if (!tr.dataset.skTaraf) _skCiz(tr, 0, true); }, 1100);
-  });
+    if (tr.dataset.skTaraf || _sk || _skAcik || !window.kaydirGosterim) return;   // kişi bir satırı kaydırıyor ya da açmış: araya girme
+    kaydirGosterim(function (v) { if (!tr.dataset.skTaraf) _skCiz(tr, v * SK_MAX, true); },
+                   function () { if (!tr.dataset.skTaraf) _skCiz(tr, 0, true); });
+  }, 'satir');
 }
 
 // (2026-09-27) Repertuvarın GERÇEK offline durumu (db.js checkRepertoireOfflineReady).
