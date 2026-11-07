@@ -850,8 +850,12 @@ async function _notaEksikler(urls) {
 }
 // (2026-11-07) Eser LİSTESİ için hafif durum (Emir: listede gerçek çevrim dışı durumu). Yalnız okur, nota İNDİRMEZ —
 // checkWorkOfflineReady eksik notayı indirmeye başlattığı için listede her kart için çağrılamaz. Kişisel veri (genel)
-// burada sayılmaz: her kartı aynı anda kırmızı yapardı. Döner: 'hazir' | 'nota' (notası cihazda değil) | 'metin' (metin eksik).
-window.eserListeDurumu = async function (w) {
+// burada sayılmaz: her kartı aynı anda kırmızı yapardı. Döner: 'hazir' | 'nota' (notası cihazda değil) | 'metin' (metin eksik) | 'bilinmiyor'.
+// (07.11 düzeltme) Kimlikle CİHAZDAKİ ham kaydı okur — Eserler listesinin DATA nesneleri başka adlar kullanıyor (closingNote…),
+// onlara bakınca her eser "metin eksik" çıkıyor, Emir'in cihazında her kartta bulut görünüyordu.
+window.eserListeDurumu = async function (id) {
+  if (!HAS_IDB) return 'bilinmiyor';
+  const w = await _offGet(db.works, id);
   if (!_eserMetniTamMi(w)) return 'metin';
   const urls = _notaUrlleri(w);
   if (!urls.length) return 'hazir';

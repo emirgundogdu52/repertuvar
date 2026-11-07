@@ -3132,16 +3132,13 @@ let _offListeTur = 0;
 async function _listeOfflineIsaretle() {
   if (typeof window.eserListeDurumu !== 'function') return;
   const tur = ++_offListeTur;
-  const harita = new Map((DATA || []).map(w => [String(w.id), w]));
   const baslik = _esCev('es.offlineHazirDegil', 'Çevrim dışı hazır değil').replace(/^[^\p{L}]+/u, '');
   for (const k of [...document.querySelectorAll('#listPanel .work-item:not([data-off])')]) {
-    const w = harita.get(String(k.dataset.id));
-    if (!w) continue;
-    let d; try { d = await window.eserListeDurumu(w); } catch (e) { continue; }
+    let d; try { d = await window.eserListeDurumu(k.dataset.id); } catch (e) { continue; }   // cihazdaki ham kayıt (kimlikle)
     if (tur !== _offListeTur) return;          // yeni tur başladı; bu kartı o işler
     if (d === 'metin' && window._offlineSyncing) continue;   // ilk eşitleme sürüyor: işaretleme, bitince yeniden denetlenir
     k.dataset.off = '1';
-    if (d === 'hazir' || !k.isConnected) continue;
+    if (d === 'hazir' || d === 'bilinmiyor' || !k.isConnected) continue;
     const ayrinti = d === 'nota' ? _esCev('es.offlineNotaYok', 'Notası cihazda değil. İnternete bağlıyken eseri bir kez açınca indirilir.') : '';
     const e = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     const dugme = '<button type="button" class="gsim off yok" data-b="' + e(baslik) + '" data-a="' + e(ayrinti) + '" aria-label="' + e(baslik + (ayrinti ? ' — ' + ayrinti : '')) +
@@ -3160,23 +3157,26 @@ let _offListeZaman = null;
     _listeOfflineIsaretle();
   }, 600);
 }));
-// (2026-11-07) Kaydırma ipucu (topnav.js kaydirIpucu): ilk kaydırılabilir kart biraz sola kayıp Sil'i gösterir, geri döner.
+// (2026-11-07) Kaydırma ipucu (topnav.js kaydirIpucu + kaydirGosterim): ilk kaydırılabilir kart sola tam açılıp (Sil) kapanır,
+// sonra sağa tam açılıp (Değiştir) kapanır.
 function _weIpucuOynat(wrap) {
-  const card = wrap.querySelector('.work-item'); if (!card || _weSwipe || _weOpenCard) return;   // kişi kaydırıyor/açmış: araya girme
+  const card = wrap.querySelector('.work-item'); if (!card || _weSwipe || _weOpenCard || !window.kaydirGosterim) return;   // kişi kaydırıyor/açmış: araya girme
   wrap.classList.add('we-acik');
-  card.style.transition = 'transform .35s ease';
-  card.style.transform = 'translateX(-56px)';
-  setTimeout(function () {
+  kaydirGosterim(function (v) {
+    card.style.transition = 'transform .4s ease';
+    card.style.transform = 'translateX(' + (v * WE_SWIPE_MAX) + 'px)';
+  }, function () {
+    if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right') || (_weSwipe && _weSwipe.card === card)) return;
     card.style.transform = 'translateX(0)';
     setTimeout(function () {
       if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) return;
       card.style.transition = ''; card.style.transform = ''; wrap.classList.remove('we-acik');
-    }, 400);
-  }, 1100);
+    }, 420);
+  });
 }
 function _listeGozcuKur(panel) {
   _listeOfflineIsaretle();
-  if (window.kaydirIpucu) kaydirIpucu(panel.querySelector('.we-wrap'), _weIpucuOynat);
+  if (window.kaydirIpucu) kaydirIpucu(panel.querySelector('.we-wrap'), _weIpucuOynat, 'eser');
   if (_listeGozlemci) { _listeGozlemci.disconnect(); _listeGozlemci = null; }
   const eski = document.getElementById('listeGozcu');
   if (eski) eski.remove();
@@ -3384,13 +3384,13 @@ function _weEnd() {
     card.classList.add('swiped-open-right'); // sağdaki (Sil) panel açık
     if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _weOpenCard = card;
-    if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi();   // (2026-11-07) kendisi kaydırdı: ipucu bir daha çıkmaz
+    if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi('eser');   // (2026-11-07) kendisi kaydırdı: ipucu bir daha çıkmaz
   } else if (_weSwipe.dx >= WE_SWIPE_THRESHOLD) {
     card.style.transform = `translateX(${WE_SWIPE_MAX}px)`;
     card.classList.add('swiped-open-left'); // soldaki (Değiştir) panel açık
     if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _weOpenCard = card;
-    if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi();
+    if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi('eser');
   } else {
     card.style.transform = 'translateX(0)';
     _weYerineOturt(card);
