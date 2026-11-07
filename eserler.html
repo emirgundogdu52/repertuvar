@@ -3139,10 +3139,15 @@ async function _listeOfflineIsaretle() {
     if (d === 'metin' && window._offlineSyncing) continue;   // ilk eşitleme sürüyor: işaretleme, bitince yeniden denetlenir
     k.dataset.off = '1';
     if (d === 'hazir' || d === 'bilinmiyor' || !k.isConnected) continue;
-    const ayrinti = d === 'nota' ? _esCev('es.offlineNotaYok', 'Notası cihazda değil. İnternete bağlıyken eseri bir kez açınca indirilir.') : '';
+    // (2026-11-07) Emir: "üstü çizik bulut 'indirilmedi' demek; sadece nota için yaparsan eser hiç indirilmedi gibi anlaşılır".
+    // Eser bilgileri cihazdaysa eser hazır (simge yok, listede yeşil de yok). Notası inmemişse altın renkli NOTA simgesi;
+    // kırmızı çizik bulut yalnız eser bilgileri cihazda değilse.
+    const nota = d === 'nota';
+    const b = nota ? _esCev('es.notaCihazdaDegil', 'Nota cihazda değil') : baslik;
+    const ayrinti = nota ? _esCev('es.offlineNotaYok', 'İnternete bağlıyken eseri bir kez açınca indirilir.') : '';
     const e = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-    const dugme = '<button type="button" class="gsim off yok" data-b="' + e(baslik) + '" data-a="' + e(ayrinti) + '" aria-label="' + e(baslik + (ayrinti ? ' — ' + ayrinti : '')) +
-      '" onclick="gsimAc(event, this)"><i class="ti ti-cloud-off" aria-hidden="true"></i></button>';
+    const dugme = '<button type="button" class="gsim ' + (nota ? 'nota' : 'off yok') + '" data-b="' + e(b) + '" data-a="' + e(ayrinti) + '" aria-label="' + e(b + (ayrinti ? ' — ' + ayrinti : '')) +
+      '" onclick="gsimAc(event, this)"><i class="ti ' + (nota ? 'ti-file-music' : 'ti-cloud-off') + '" aria-hidden="true"></i></button>';
     let c = k.querySelector('.work-composer');
     if (!c) { k.querySelector('.work-name').insertAdjacentHTML('afterend', '<div class="work-composer"><span class="wc-yazi"></span></div>'); c = k.querySelector('.work-composer'); }
     c.insertAdjacentHTML('beforeend', dugme);
@@ -3153,7 +3158,7 @@ let _offListeZaman = null;
 ['data-synced', 'offline-sync-state'].forEach(ev => window.addEventListener(ev, () => {
   clearTimeout(_offListeZaman);
   _offListeZaman = setTimeout(() => {
-    document.querySelectorAll('#listPanel .work-item[data-off]').forEach(k => { k.removeAttribute('data-off'); k.querySelectorAll('.gsim.off').forEach(g => g.remove()); });
+    document.querySelectorAll('#listPanel .work-item[data-off]').forEach(k => { k.removeAttribute('data-off'); k.querySelectorAll('.gsim.off, .gsim.nota').forEach(g => g.remove()); });
     _listeOfflineIsaretle();
   }, 600);
 }));
@@ -8307,7 +8312,9 @@ window._offEserRozet = async function (id) {
   try { r = await window.checkWorkOfflineReady(id); } catch (e) { r = { status: 'not_ready' }; }
   const el = document.getElementById('offb_' + id);   // beklerken detay değişmiş olabilir
   if (!el) return;
-  const metin = window.offlineRozetMetni ? window.offlineRozetMetni(r.status) : '';
+  let metin = window.offlineRozetMetni ? window.offlineRozetMetni(r.status) : '';
+  // (2026-11-07) Nota hazır olmayı etkilemiyor; notası cihazda değilse ayrıca söylenir.
+  if (metin && r.notaEksik) metin += '&nbsp;&nbsp;·&nbsp;&nbsp;' + _esHtml(_esCev('es.notaCihazdaDegil', 'Nota cihazda değil'));
   el.innerHTML = metin ? (el.dataset.sep === '1' ? '&nbsp;&nbsp;·&nbsp;&nbsp;' : '') + metin : '';
 };
 ['data-synced', 'offline-sync-state'].forEach((ev) => window.addEventListener(ev, () => {

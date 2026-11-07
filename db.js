@@ -551,9 +551,11 @@ window.checkWorkOfflineReady = async function (workId) {
   // (2026-09-27, Offline Düzeltme 4) Notası varsa cihazda olmalı; yoksa indir.
   const notaEksik = w ? await _notaEksikler(_notaUrlleri(w)) : [];
   if (notaEksik.length) window.notaIndir('w:' + w.id, notaEksik);
-  if (_eserMetniTamMi(w) && kisiselTamam && !notaEksik.length) return { status: 'ready' };
-  return { status: window._offlineSyncing ? 'syncing' : 'not_ready',
-           reason: !w ? 'eser_yok' : (!_eserMetniTamMi(w) ? 'eksik_alan' : (!kisiselTamam ? 'kisisel_yok' : 'nota_eksik')) };
+  // (2026-11-07) Emir: "Eser bilgileri indirildiyse bu yeşil olmalı" → nota hazır olmayı ETKİLEMEZ; eksikse ayrıca bildirilir
+  // (notaEksik: eksik sayfa sayısı) ve yukarıda arka planda indirilir. Eskiden notası inmemiş eser "hazır değil"di.
+  if (_eserMetniTamMi(w) && kisiselTamam) return { status: 'ready', notaEksik: notaEksik.length };
+  return { status: window._offlineSyncing ? 'syncing' : 'not_ready', notaEksik: notaEksik.length,
+           reason: !w ? 'eser_yok' : (!_eserMetniTamMi(w) ? 'eksik_alan' : 'kisisel_yok') };
 };
 
 window.checkRepertoireOfflineReady = async function (repId) {
@@ -606,9 +608,16 @@ window.checkRepertoireOfflineReady = async function (repId) {
     const eksik = await _notaEksikler(urls);
     sonuc.notaGerekli = urls.length;
     sonuc.notaVar = urls.length - eksik.length;
+    // (2026-11-07) Emir: nota hazır olmayı ETKİLEMEZ (eser bilgileri cihazdaysa repertuvar hazır); notası eksik ESER sayısı ayrıca.
+    sonuc.notaEksikEser = 0;
     if (eksik.length) {
       window.notaIndir('r:' + repId, eksik);
-      if (sonuc.status === 'ready') { sonuc.status = 'not_ready'; sonuc.reason = 'nota_eksik'; }
+      const eksikKume = new Set(eksik), sayilan = new Set();
+      for (const t of tumSatirlar.filter((x) => String(x.repertoire_id) === String(repId))) {
+        if (t.work_id == null || sayilan.has(String(t.work_id))) continue;
+        sayilan.add(String(t.work_id));
+        if (_notaUrlleri(await _offGet(db.works, t.work_id)).some((u) => eksikKume.has(u))) sonuc.notaEksikEser++;
+      }
     }
   }
   // Eksik varken eşitleme sürüyorsa "hazırlanıyor"; bitmişse "hazır değil".

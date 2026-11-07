@@ -1282,8 +1282,10 @@ async function _offRepRozet(repId){
   const metin = window.offlineRozetMetni ? window.offlineRozetMetni(r.status) : '';
   // (2026-11-07) Emir, sade Repertuvarlar: yazı yerine yumuşak renkli bulut simgesi; dokununca durum + kaç eserin cihazda olduğu.
   const baslik = metin.replace(/^[^\p{L}]+/u, '');
+  // (2026-11-07) Nota hazır olmayı etkilemiyor (eser bilgileri cihazdaysa yeşil); notası eksik eser varsa sayısı ayrıca söylenir.
   const ayrinti = (r.status !== 'ready' && r.required)
-    ? _r('rep.offlineEksik','{p}/{n} eser cihazda').replace('{p}', r.present).replace('{n}', r.required) : '';
+    ? _r('rep.offlineEksik','{p}/{n} eser cihazda').replace('{p}', r.present).replace('{n}', r.required)
+    : (r.notaEksikEser ? _r('rep.notaEksik','{n} eserin notası cihazda değil').replace('{n}', r.notaEksikEser) : '');
   const tur = r.status === 'ready' ? ['hazir', 'ti-cloud-check'] : r.status === 'syncing' ? ['iniyor', 'ti-cloud-download'] : ['yok', 'ti-cloud-off'];
   el.innerHTML = baslik ? `<button type="button" class="gsim off ${tur[0]}" data-b="${_rEsc(baslik)}" data-a="${_rEsc(ayrinti)}" aria-label="${_rEsc(baslik + (ayrinti ? ' — ' + ayrinti : ''))}" onclick="gsimAc(event, this)"><i class="ti ${tur[1]}" aria-hidden="true"></i></button>` : '';
   el.style.display = baslik ? '' : 'none';
