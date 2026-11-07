@@ -3,6 +3,7 @@
   "ortak.kaydet": "Enregistrer",
   "ortak.iptal": "Annuler",
   "ortak.sil": "Supprimer",
+  "ortak.kaydirIpucu": "Balayez une ligne vers la gauche pour Supprimer, vers la droite pour Modifier.",
   "ortak.duzenle": "Modifier",
   "ortak.kapat": "Fermer",
   "ortak.ara": "Rechercher…",

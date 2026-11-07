@@ -3,6 +3,7 @@
   "ortak.kaydet": "حفظ",
   "ortak.iptal": "إلغاء",
   "ortak.sil": "حذف",
+  "ortak.kaydirIpucu": "اسحب الصف إلى اليسار لـ«حذف» وإلى اليمين لـ«تعديل».",
   "ortak.duzenle": "تعديل",
   "ortak.kapat": "إغلاق",
   "ortak.ara": "بحث…",

@@ -1878,3 +1878,58 @@ function _m(anahtar, tr) {
     c.Plugins.AppReview.requestReview().catch(function () {});
   }, 4000);
 })();
+
+// ── KAYDIRMA İPUCU (2026-11-07, Emir: "sağa sola kaydırma gizli kaldı, denemeden bilinmiyor") ──────────────────────────────
+// Eserler, Repertuvarlar ve repertuvar eser satırlarında sola kaydırınca Sil, sağa kaydırınca Değiştir var. Dokunmatik ekranda
+// liste ilk açıldığında ilk kaydırılabilir satır BİR KEZ biraz kayıp geri döner, altına bir satırlık not çıkar (kapatılabilir).
+// Kişi bir kez kendisi kaydırınca (kaydirIpucuOgrendi) ya da 3 gösterimden sonra bir daha çıkmaz. Sayfa başına en çok bir kez.
+// Sayfalar: kaydirIpucu(satir, oynat) — oynat(satir) satırı kendi kaydırma düzeniyle biraz açıp kapatır.
+(function () {
+  const ANAHTAR = 'kaydirIpucu';
+  const oku = () => { try { return JSON.parse(localStorage.getItem(ANAHTAR) || '{}') || {}; } catch (e) { return {}; } };
+  const yaz = (d) => { try { localStorage.setItem(ANAHTAR, JSON.stringify(d)); } catch (e) {} };
+  let gosterildi = false;
+  let sonDokunma = 0;   // kişi az önce dokunduysa (kaydırıyor olabilir) animasyon oynatılmaz, sayılmaz
+  document.addEventListener('touchstart', function () { sonDokunma = Date.now(); }, { capture: true, passive: true });
+  window.kaydirIpucuOgrendi = function () {
+    const d = oku(); if (d.ok) return; d.ok = 1; yaz(d);
+    const n = document.getElementById('kaydirIpucuNot'); if (n) n.remove();
+  };
+  window.kaydirIpucu = function (satir, oynat) {
+    if (gosterildi || !satir || typeof oynat !== 'function') return;
+    if (!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)) return;
+    const d = oku(); if (d.ok || (d.n || 0) >= 3) return;
+    gosterildi = true;
+    setTimeout(function () {
+      if (!satir.isConnected) { gosterildi = false; return; }
+      const r = satir.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight - 80 || r.height === 0) { gosterildi = false; return; }   // görünmüyor: sayma
+      if (Date.now() - sonDokunma < 1500) { gosterildi = false; return; }   // kişi şu an dokunuyor: araya girme
+      const d2 = oku(); d2.n = (d2.n || 0) + 1; yaz(d2);
+      try { oynat(satir); } catch (e) {}
+      const not = document.createElement('div');
+      not.id = 'kaydirIpucuNot';
+      not.setAttribute('role', 'status');
+      not.innerHTML = '<i class="ti ti-arrows-horizontal" aria-hidden="true"></i><span></span>' +
+        '<button type="button" aria-label=""><i class="ti ti-x" aria-hidden="true"></i></button>';
+      not.querySelector('span').textContent = _m('ortak.kaydirIpucu', 'Satırı sola kaydırırsan Sil, sağa kaydırırsan Değiştir çıkar.');
+      const kapat = not.querySelector('button');
+      kapat.setAttribute('aria-label', _m('ortak.kapat', 'Kapat'));
+      kapat.onclick = function (e) { e.stopPropagation(); not.remove(); };
+      // Not dokunuşları GEÇİRİR (altındaki satır kaydırılabilsin); yalnız kapatma düğmesi tıklanır. İlk dokunuşta kaybolur.
+      not.style.cssText = 'pointer-events:none;position:fixed;z-index:3000;display:flex;align-items:center;gap:8px;max-width:min(420px, calc(100vw - 24px));' +
+        'box-sizing:border-box;padding:9px 8px 9px 12px;border-radius:12px;background:#E9EDF4;color:#111722;font-size:13px;line-height:1.35;' +
+        'box-shadow:0 8px 24px rgba(0,0,0,.45);';
+      kapat.style.cssText = 'pointer-events:auto;flex:none;width:30px;height:30px;min-height:0;border:0;border-radius:8px;background:none;color:#4A5466;font-size:16px;cursor:pointer;';
+      document.body.appendChild(not);
+      const w = not.offsetWidth;
+      not.style.left = Math.max(12, Math.min(window.innerWidth - w - 12, r.left + 12)) + 'px';
+      not.style.top = Math.min(window.innerHeight - not.offsetHeight - 12, r.bottom + 8) + 'px';
+      const dis = function (e) { if (!kapat.contains(e.target)) git(); };
+      const git = function () { not.remove(); window.removeEventListener('scroll', git, true); document.removeEventListener('pointerdown', dis, true); };
+      window.addEventListener('scroll', git, true);
+      document.addEventListener('pointerdown', dis, true);
+      setTimeout(git, 8000);
+    }, 700);
+  };
+})();

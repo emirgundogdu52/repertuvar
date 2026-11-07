@@ -3,6 +3,7 @@
   "ortak.kaydet": "Yadda saxla",
   "ortak.iptal": "Ləğv et",
   "ortak.sil": "Sil",
+  "ortak.kaydirIpucu": "Sətri sola sürüşdürsən Sil, sağa sürüşdürsən Dəyiş çıxar.",
   "ortak.duzenle": "Redaktə et",
   "ortak.kapat": "Bağla",
   "ortak.ara": "Axtar…",

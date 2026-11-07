@@ -3,6 +3,7 @@
   "ortak.kaydet": "Guardar",
   "ortak.iptal": "Cancelar",
   "ortak.sil": "Eliminar",
+  "ortak.kaydirIpucu": "Desliza una fila a la izquierda para Eliminar y a la derecha para Editar.",
   "ortak.duzenle": "Editar",
   "ortak.kapat": "Cerrar",
   "ortak.ara": "Buscar…",

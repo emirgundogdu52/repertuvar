@@ -3140,8 +3140,23 @@ let _offListeZaman = null;
     _listeOfflineIsaretle();
   }, 600);
 }));
+// (2026-11-07) Kaydırma ipucu (topnav.js kaydirIpucu): ilk kaydırılabilir kart biraz sola kayıp Sil'i gösterir, geri döner.
+function _weIpucuOynat(wrap) {
+  const card = wrap.querySelector('.work-item'); if (!card || _weSwipe || _weOpenCard) return;   // kişi kaydırıyor/açmış: araya girme
+  wrap.classList.add('we-acik');
+  card.style.transition = 'transform .35s ease';
+  card.style.transform = 'translateX(-56px)';
+  setTimeout(function () {
+    card.style.transform = 'translateX(0)';
+    setTimeout(function () {
+      if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) return;
+      card.style.transition = ''; card.style.transform = ''; wrap.classList.remove('we-acik');
+    }, 400);
+  }, 1100);
+}
 function _listeGozcuKur(panel) {
   _listeOfflineIsaretle();
+  if (window.kaydirIpucu) kaydirIpucu(panel.querySelector('.we-wrap'), _weIpucuOynat);
   if (_listeGozlemci) { _listeGozlemci.disconnect(); _listeGozlemci = null; }
   const eski = document.getElementById('listeGozcu');
   if (eski) eski.remove();
@@ -3349,11 +3364,13 @@ function _weEnd() {
     card.classList.add('swiped-open-right'); // sağdaki (Sil) panel açık
     if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _weOpenCard = card;
+    if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi();   // (2026-11-07) kendisi kaydırdı: ipucu bir daha çıkmaz
   } else if (_weSwipe.dx >= WE_SWIPE_THRESHOLD) {
     card.style.transform = `translateX(${WE_SWIPE_MAX}px)`;
     card.classList.add('swiped-open-left'); // soldaki (Değiştir) panel açık
     if (wrap) wrap.style.setProperty('--swipe-glow', 1);
     _weOpenCard = card;
+    if (window.kaydirIpucuOgrendi) kaydirIpucuOgrendi();
   } else {
     card.style.transform = 'translateX(0)';
     _weYerineOturt(card);

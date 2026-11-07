@@ -3,6 +3,7 @@
   "ortak.kaydet": "Opslaan",
   "ortak.iptal": "Annuleren",
   "ortak.sil": "Verwijderen",
+  "ortak.kaydirIpucu": "Veeg een rij naar links voor Verwijderen, naar rechts voor Bewerken.",
   "ortak.duzenle": "Bewerken",
   "ortak.kapat": "Sluiten",
   "ortak.ara": "Zoeken…",

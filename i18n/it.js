@@ -3,6 +3,7 @@
   "ortak.kaydet": "Salva",
   "ortak.iptal": "Annulla",
   "ortak.sil": "Elimina",
+  "ortak.kaydirIpucu": "Scorri una riga a sinistra per Elimina, a destra per Modifica.",
   "ortak.duzenle": "Modifica",
   "ortak.kapat": "Chiudi",
   "ortak.ara": "Cerca…",

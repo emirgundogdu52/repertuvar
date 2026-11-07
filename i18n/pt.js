@@ -3,6 +3,7 @@
   "ortak.kaydet": "Salvar",
   "ortak.iptal": "Cancelar",
   "ortak.sil": "Excluir",
+  "ortak.kaydirIpucu": "Deslize uma linha para a esquerda para Excluir e para a direita para Editar.",
   "ortak.duzenle": "Editar",
   "ortak.kapat": "Fechar",
   "ortak.ara": "Buscar…",

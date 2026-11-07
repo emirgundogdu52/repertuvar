@@ -3,6 +3,7 @@
   "ortak.kaydet": "Speichern",
   "ortak.iptal": "Abbrechen",
   "ortak.sil": "Löschen",
+  "ortak.kaydirIpucu": "Zeile nach links wischen: Löschen, nach rechts: Bearbeiten.",
   "ortak.duzenle": "Bearbeiten",
   "ortak.kapat": "Schließen",
   "ortak.ara": "Suchen…",
