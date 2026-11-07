@@ -1897,11 +1897,13 @@ function _m(anahtar, tr) {
   // (07.11, Emir: "Bir kez Sil butonu görünüp gitmesin, sanki bir hata varmış gibi oldu; sürgü kapanıp açılsın") Gösterim:
   // sola tam aç (Sil) → kapat → sağa tam aç (Değiştir) → kapat. ciz(v): v = -1 sola açık, 0 kapalı, 1 sağa açık.
   // (07.11, Emir: "Öğretmek amaçlı bu sağa sola kaydırma ekrana dokunana kadar devam etsin") Gösterim DÖNGÜDE sürer; ekrana
-  // dokunulunca (ya da satır sayfadan kalkınca) durur, bitir() satırı — kişi kendisi açmadıysa — kapatır.
-  window.kaydirGosterim = function (ciz, bitir, el) {
+  // dokunulunca durur, bitir() satırı — kişi kendisi açmadıysa — kapatır. (07.11, Emir: "tablette bir kez geldi durdu") Liste
+  // yeniden çizilince kart öğesi değişiyordu ve gösterim duruyordu; sayfalar artık ciz/bitir içinde O ANKİ ilk satırı bulur,
+  // devamMi() yalnız listede kaydırılabilir satır kalmadıysa false döner.
+  window.kaydirGosterim = function (ciz, bitir, devamMi) {
     const bas = Date.now(); let bitti = false;
     const son = function () { if (bitti) return; bitti = true; try { bitir(); } catch (e) {} };
-    const durmali = function () { return sonDokunma > bas || (el && !el.isConnected); };
+    const durmali = function () { return sonDokunma > bas || (typeof devamMi === 'function' && !devamMi()); };
     (function tur() {
       if (bitti) return;
       [[-1, 0], [0, 1300], [1, 1900], [0, 3200]].forEach(function (a) {

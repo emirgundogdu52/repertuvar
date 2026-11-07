@@ -1049,21 +1049,25 @@ function renderList(){
   // (2026-11-07) Kaydırma ipucu (topnav.js kaydirIpucu): ilk kaydırılabilir kart biraz sola kayıp Sil'i gösterir, geri döner.
   if (window.kaydirIpucu) kaydirIpucu(el.querySelector('.ri-wrap'), _riIpucuOynat, 'repertuvar');
 }
-// (2026-11-07) Kaydırma ipucu — Repertuvarlar kartı: sola tam açılıp (Sil/Gizle) kapanır, sonra sağa (Değiştir) açılıp kapanır.
-function _riIpucuOynat(wrap) {
-  const card = wrap.querySelector('.ri'); if (!card || _riSwipe || _riOpenCard || !window.kaydirGosterim) return;   // kişi kaydırıyor/açmış: araya girme
-  wrap.classList.add('ri-acik');
+// (2026-11-07) Kaydırma ipucu — Repertuvarlar kartı: sola tam açılıp (Sil/Gizle) kapanır, sonra sağa (Değiştir) açılıp kapanır;
+// dokunulana kadar döngüde. Her adımda O ANKİ ilk kart bulunur (liste yeniden çizilince öğe değişiyor).
+function _riIpucuKart() { const w = document.querySelector('.ri-wrap'); return w ? { wrap: w, card: w.querySelector('.ri') } : null; }
+function _riIpucuOynat() {
+  if (_riSwipe || _riOpenCard || !window.kaydirGosterim) return;   // kişi kaydırıyor/açmış: araya girme
+  const elle = c => c.classList.contains('swiped-open-left') || c.classList.contains('swiped-open-right') || (_riSwipe && _riSwipe.card === c);
   kaydirGosterim(function (v) {
-    card.style.transition = 'transform .4s ease';
-    card.style.transform = 'translateX(' + (v * RI_SWIPE_MAX) + 'px)';
+    const k = _riIpucuKart(); if (!k || !k.card || elle(k.card)) return;
+    k.wrap.classList.add('ri-acik');
+    k.card.style.transition = 'transform .4s ease';
+    k.card.style.transform = 'translateX(' + (v * RI_SWIPE_MAX) + 'px)';
   }, function () {
-    if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right') || (_riSwipe && _riSwipe.card === card)) return;
-    card.style.transform = 'translateX(0)';
+    const k = _riIpucuKart(); if (!k || !k.card || elle(k.card)) return;
+    k.card.style.transform = 'translateX(0)';
     setTimeout(function () {
-      if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) return;
-      card.style.transition = ''; card.style.transform = ''; wrap.classList.remove('ri-acik');
+      if (elle(k.card)) return;
+      k.card.style.transition = ''; k.card.style.transform = ''; k.wrap.classList.remove('ri-acik');
     }, 420);
-  }, wrap);
+  }, function () { return !!_riIpucuKart(); });
 }
 
 function sel(id){
@@ -1264,10 +1268,12 @@ function renderDetail(){
     </div>`;
   _offRepRozet(rep.id);
   // (2026-11-07) Kaydırma ipucu: ilk eser satırında Sil paneli tam açılıp kapanır, sonra Değiştir paneli (yalnız düzenleme yetkisi varsa).
-  if (window.kaydirIpucu) kaydirIpucu(document.querySelector('#dc tr[data-sk]'), function (tr) {
-    if (tr.dataset.skTaraf || _sk || _skAcik || !window.kaydirGosterim) return;   // kişi bir satırı kaydırıyor ya da açmış: araya girme
-    kaydirGosterim(function (v) { if (!tr.dataset.skTaraf) _skCiz(tr, v * SK_MAX, true); },
-                   function () { if (!tr.dataset.skTaraf) _skCiz(tr, 0, true); }, tr);
+  if (window.kaydirIpucu) kaydirIpucu(document.querySelector('#dc tr[data-sk]'), function () {
+    if (_sk || _skAcik || !window.kaydirGosterim) return;   // kişi bir satırı kaydırıyor ya da açmış: araya girme
+    const al = () => document.querySelector('#dc tr[data-sk]');   // her adımda O ANKİ ilk satır (tablo yeniden çizilebilir)
+    kaydirGosterim(function (v) { const tr = al(); if (tr && !tr.dataset.skTaraf && !_skAcik) _skCiz(tr, v * SK_MAX, true); },
+                   function () { const tr = al(); if (tr && !tr.dataset.skTaraf) _skCiz(tr, 0, true); },
+                   function () { return !!al(); });
   }, 'satir');
 }
 

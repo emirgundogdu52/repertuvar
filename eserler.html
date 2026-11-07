@@ -3163,21 +3163,25 @@ let _offListeZaman = null;
   }, 600);
 }));
 // (2026-11-07) Kaydırma ipucu (topnav.js kaydirIpucu + kaydirGosterim): ilk kaydırılabilir kart sola tam açılıp (Sil) kapanır,
-// sonra sağa tam açılıp (Değiştir) kapanır.
-function _weIpucuOynat(wrap) {
-  const card = wrap.querySelector('.work-item'); if (!card || _weSwipe || _weOpenCard || !window.kaydirGosterim) return;   // kişi kaydırıyor/açmış: araya girme
-  wrap.classList.add('we-acik');
+// sonra sağa tam açılıp (Değiştir) kapanır; ekrana dokunulana kadar döngüde. Her adımda O ANKİ ilk kart bulunur (liste yeniden
+// çizilince öğe değişiyor — tablette gösterim bir turda duruyordu).
+function _weIpucuKart() { const w = document.querySelector('#listPanel .we-wrap'); return w ? { wrap: w, card: w.querySelector('.work-item') } : null; }
+function _weIpucuOynat() {
+  if (_weSwipe || _weOpenCard || !window.kaydirGosterim) return;   // kişi kaydırıyor/açmış: araya girme
+  const elle = c => c.classList.contains('swiped-open-left') || c.classList.contains('swiped-open-right') || (_weSwipe && _weSwipe.card === c);
   kaydirGosterim(function (v) {
-    card.style.transition = 'transform .4s ease';
-    card.style.transform = 'translateX(' + (v * WE_SWIPE_MAX) + 'px)';
+    const k = _weIpucuKart(); if (!k || !k.card || elle(k.card)) return;
+    k.wrap.classList.add('we-acik');
+    k.card.style.transition = 'transform .4s ease';
+    k.card.style.transform = 'translateX(' + (v * WE_SWIPE_MAX) + 'px)';
   }, function () {
-    if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right') || (_weSwipe && _weSwipe.card === card)) return;
-    card.style.transform = 'translateX(0)';
+    const k = _weIpucuKart(); if (!k || !k.card || elle(k.card)) return;
+    k.card.style.transform = 'translateX(0)';
     setTimeout(function () {
-      if (card.classList.contains('swiped-open-left') || card.classList.contains('swiped-open-right')) return;
-      card.style.transition = ''; card.style.transform = ''; wrap.classList.remove('we-acik');
+      if (elle(k.card)) return;
+      k.card.style.transition = ''; k.card.style.transform = ''; k.wrap.classList.remove('we-acik');
     }, 420);
-  }, wrap);
+  }, function () { return !!_weIpucuKart(); });
 }
 function _listeGozcuKur(panel) {
   _listeOfflineIsaretle();
