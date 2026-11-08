@@ -9,3 +9,5 @@ alter table public.pano_dis_veri enable row level security;
 -- onceki7_hesap, aktif_deneme, ucretli, site_28g, site_7g, site_sosyal_28g, dis{anahtar:{deger,donem,guncellendi}}.
 -- Tam tanım: select pg_get_functiondef('public.pano_ozet(text)'::regprocedure);
 -- grant execute ... to anon, authenticated; revoke ... from public.
+-- 2026-11-08 18.2x UYGULANDI (apply_migration "pano_ozet_site_suzgec", Emir "Çalıştır"): site_28g/site_7g/site_sosyal_28g artık
+-- landing_stats gibi public.istatistik_sayilmaz(ref) olanları saymıyor (28 günde 355 → 352).
