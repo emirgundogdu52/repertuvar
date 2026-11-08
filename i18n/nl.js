@@ -843,7 +843,7 @@
   "gr.lisansKoltukSayisi": "Aantal plaatsen",
   "gr.lisansFiyat": "{f} per plaats per jaar · totaal {t}",
   "gr.lisansNotGrup": "Ook de beheerder gebruikt een plaats. Minimaal 5 plaatsen; alleen jaarlijks.",
-  "gr.lisansNotEdu": "Docenten (groepsbeheerders) tellen niet als plaats. Minimaal 5 plaatsen; alleen jaarlijks.",
+  "gr.lisansNotEdu": "Per 20 plaatsen telt 1 docent (groepsbeheerder) niet als plaats; andere beheerders wel. Minimaal 5 plaatsen; alleen jaarlijks.",
   "gr.lisansSatinAl": "Licentie kopen",
   "gr.lisansOdemeNotu": "De betaling loopt via Paddle; btw en valuta zie je bij het afrekenen. Als alle plaatsen bezet zijn, kunnen er geen nieuwe leden bij.",
   "gr.lisansTamam": "Betaling ontvangen. De licentie is binnen enkele seconden actief.",

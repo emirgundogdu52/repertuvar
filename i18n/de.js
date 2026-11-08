@@ -843,7 +843,7 @@
   "gr.lisansKoltukSayisi": "Anzahl der Plätze",
   "gr.lisansFiyat": "{f} pro Platz und Jahr · gesamt {t}",
   "gr.lisansNotGrup": "Auch die Leitung belegt einen Platz. Mindestens 5 Plätze; nur jährlich.",
-  "gr.lisansNotEdu": "Lehrkräfte (Gruppenleitung) belegen keinen Platz. Mindestens 5 Plätze; nur jährlich.",
+  "gr.lisansNotEdu": "Je 20 Plätze belegt 1 Lehrkraft (Gruppenleitung) keinen Platz; weitere Admins schon. Mindestens 5 Plätze; nur jährlich.",
   "gr.lisansSatinAl": "Lizenz kaufen",
   "gr.lisansOdemeNotu": "Die Zahlung wickelt Paddle ab; Steuern und Währung siehst du an der Kasse. Sind alle Plätze belegt, können keine neuen Mitglieder beitreten.",
   "gr.lisansTamam": "Zahlung erhalten. Die Lizenz ist in wenigen Sekunden aktiv.",

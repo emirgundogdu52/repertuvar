@@ -843,7 +843,7 @@
   "gr.lisansKoltukSayisi": "Número de vagas",
   "gr.lisansFiyat": "{f} por vaga por ano · total {t}",
   "gr.lisansNotGrup": "O administrador também ocupa uma vaga. Mínimo de 5 vagas; somente anual.",
-  "gr.lisansNotEdu": "Professores (administradores do grupo) não ocupam vaga. Mínimo de 5 vagas; somente anual.",
+  "gr.lisansNotEdu": "1 professor (administrador do grupo) a cada 20 vagas não ocupa vaga; os demais administradores ocupam. Mínimo de 5 vagas; somente anual.",
   "gr.lisansSatinAl": "Comprar licença",
   "gr.lisansOdemeNotu": "O pagamento é feito pela Paddle; impostos e moeda aparecem no checkout. Quando todas as vagas estão ocupadas, novos membros não podem entrar.",
   "gr.lisansTamam": "Pagamento recebido. A licença fica ativa em alguns segundos.",

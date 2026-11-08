@@ -843,7 +843,7 @@
   "gr.lisansKoltukSayisi": "Numero di posti",
   "gr.lisansFiyat": "{f} per posto all’anno · totale {t}",
   "gr.lisansNotGrup": "Anche l’amministratore occupa un posto. Minimo 5 posti; solo annuale.",
-  "gr.lisansNotEdu": "Gli insegnanti (amministratori del gruppo) non occupano posti. Minimo 5 posti; solo annuale.",
+  "gr.lisansNotEdu": "1 insegnante (amministratore del gruppo) ogni 20 posti non occupa un posto; gli altri amministratori sì. Minimo 5 posti; solo annuale.",
   "gr.lisansSatinAl": "Acquista la licenza",
   "gr.lisansOdemeNotu": "Il pagamento è gestito da Paddle; tasse e valuta compaiono alla cassa. Quando tutti i posti sono occupati, non possono entrare nuovi membri.",
   "gr.lisansTamam": "Pagamento ricevuto. La licenza si attiva in pochi secondi.",

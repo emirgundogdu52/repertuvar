@@ -843,7 +843,7 @@
   "gr.lisansKoltukSayisi": "Nombre de places",
   "gr.lisansFiyat": "{f} par place et par an · total {t}",
   "gr.lisansNotGrup": "L’administrateur occupe aussi une place. 5 places minimum ; annuel uniquement.",
-  "gr.lisansNotEdu": "Les enseignants (administrateurs du groupe) n’occupent pas de place. 5 places minimum ; annuel uniquement.",
+  "gr.lisansNotEdu": "1 enseignant (administrateur du groupe) par tranche de 20 places n’occupe pas de place ; les autres administrateurs, si. 5 places minimum ; annuel uniquement.",
   "gr.lisansSatinAl": "Acheter la licence",
   "gr.lisansOdemeNotu": "Le paiement est géré par Paddle ; taxes et devise s’affichent à la caisse. Quand toutes les places sont prises, aucun nouveau membre ne peut rejoindre le groupe.",
   "gr.lisansTamam": "Paiement reçu. La licence sera active dans quelques secondes.",

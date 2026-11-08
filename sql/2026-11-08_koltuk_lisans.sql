@@ -3,7 +3,8 @@
 -- Kurallar:
 --  * Lisans gruba aittir (Paddle aboneliği; webhook `paddle-webhook` service role ile `grup_lisans_yaz` çağırır).
 --  * Grup/Koro (plan 'pro'): gruptaki TÜM etkin üyeler koltuk sayar (yönetici dahil).
---  * Edu (plan 'edu'): yönetici/kurucu (= öğretmen) koltuk saymaz ve Edu'dan yararlanır; yalnız 'member' rolü koltuk sayar.
+--  * Edu (plan 'edu'): her 20 koltuğa 1 öğretmen ücretsiz (Emir 08.11): ücretsiz öğretmen sayısı = en az 1, koltuk/20 yukarı
+--    yuvarlanır. Öğretmen = yönetici rolü (önce kurucu, sonra katılım sırası); kotayı aşan yöneticiler koltuk sayar.
 --  * Koltuklar katılım sırasıyla dolar (joined_at, eşitlikte id). Koltuk sayısı düşerse SON katılanlar lisanstan
 --    yararlanamaz (gruptan çıkarılmaz). Ayrılanın koltuğu kendiliğinden boşalır.
 --  * Koltuk doluysa davetle yeni üye katılamaz: redeem_invite → {ok:false, reason:'koltuk-dolu'}.
@@ -53,6 +54,10 @@ revoke select on public.edu_onaylari   from anon;
 grant select on public.grup_lisanslari to authenticated;
 grant select on public.edu_onaylari   to authenticated;
 
+-- Edu'da ücretsiz öğretmen kotası: her 20 koltuğa 1 (en az 1).
+create or replace function public.edu_ucretsiz_ogretmen(p_koltuk int)
+returns int language sql immutable set search_path = public, pg_temp as $$ select greatest(1, ceil(p_koltuk / 20.0))::int $$;
+
 -- Kişinin grup lisansından gelen planı (koltuğu içindeyse). En iyi plan (pro > edu) tek satır.
 create or replace function public.lisans_plani(uid uuid)
 returns table (plan text, group_id uuid, bitis timestamptz)
@@ -68,18 +73,24 @@ as $$
        and (gl.bitis is null or gl.bitis > now())
        and gl.group_id in (select gm.group_id from public.group_members gm
                             where gm.user_id = uid and coalesce(gm.status,'active') = 'active')),
-  m as (
-    select gm.group_id, gm.user_id, (gm.role in ('owner','admin')) as yonetici,
-           row_number() over (partition by gm.group_id order by gm.joined_at nulls first, gm.id) as sira_hepsi,
+  m0 as (
+    select gm.group_id, gm.user_id, gm.joined_at, gm.id, (gm.role in ('owner','admin')) as yonetici,
            row_number() over (partition by gm.group_id, (gm.role in ('owner','admin'))
-                              order by gm.joined_at nulls first, gm.id) as sira_rolde
+                              order by (gm.role = 'owner') desc, gm.joined_at nulls first, gm.id) as yon_sira
       from public.group_members gm
-     where gm.group_id in (select l.group_id from l) and coalesce(gm.status,'active') = 'active')
-  select l.plan, l.group_id, l.bitis
-    from l join m on m.group_id = l.group_id and m.user_id = uid
-   where (l.plan = 'pro' and m.sira_hepsi <= l.koltuk)
-      or (l.plan = 'edu' and (m.yonetici or m.sira_rolde <= l.koltuk))
-   order by case l.plan when 'pro' then 1 else 2 end, l.bitis desc nulls first
+     where gm.group_id in (select l.group_id from l) and coalesce(gm.status,'active') = 'active'),
+  m as (
+    select m0.*, l.plan, l.koltuk, l.bitis,
+           (l.plan = 'edu' and m0.yonetici and m0.yon_sira <= public.edu_ucretsiz_ogretmen(l.koltuk)) as ucretsiz
+      from m0 join l on l.group_id = m0.group_id),
+  s as (
+    select m.*, row_number() over (partition by m.group_id, m.plan, m.ucretsiz
+                                   order by m.joined_at nulls first, m.id) as koltuk_sira
+      from m)
+  select s.plan, s.group_id, s.bitis
+    from s
+   where s.user_id = uid and (s.ucretsiz or s.koltuk_sira <= s.koltuk)
+   order by case s.plan when 'pro' then 1 else 2 end, s.bitis desc nulls first
    limit 1;
 $$;
 revoke all on function public.lisans_plani(uuid) from public, anon, authenticated;
@@ -170,7 +181,7 @@ begin
   end if;
 
   -- (2026-11-08) Koltuklu lisans: koltuklar doluysa yeni üye katılamaz (Emir). Yeni üye 'member' rolüyle
-  -- girer; Grup/Koro'da herkes, Edu'da yalnız 'member' rolü koltuk sayar.
+  -- girer; Grup/Koro'da herkes, Edu'da ücretsiz öğretmen kotası dışındaki herkes koltuk sayar.
   select gl.plan, gl.koltuk into v_lis
     from public.grup_lisanslari gl
    where gl.group_id = inv.group_id
@@ -179,9 +190,12 @@ begin
    order by gl.koltuk desc
    limit 1;
   if found then
-    select count(*) into v_dolu from public.group_members gm
-     where gm.group_id = inv.group_id and coalesce(gm.status,'active') = 'active'
-       and (v_lis.plan = 'pro' or gm.role = 'member');
+    select count(*) - case when v_lis.plan = 'edu'
+                           then least(count(*) filter (where gm.role in ('owner','admin')),
+                                      public.edu_ucretsiz_ogretmen(v_lis.koltuk))
+                           else 0 end
+      into v_dolu from public.group_members gm
+     where gm.group_id = inv.group_id and coalesce(gm.status,'active') = 'active';
     if v_dolu >= v_lis.koltuk then
       return jsonb_build_object('ok',false,'reason','koltuk-dolu');
     end if;
@@ -234,9 +248,12 @@ begin
    limit 1;
   v_var := found;
   if v_var then
-    select count(*) into v_dolu from public.group_members gm
-     where gm.group_id = p_group_id and coalesce(gm.status,'active') = 'active'
-       and (v_lis.plan = 'pro' or gm.role = 'member');
+    select count(*) - case when v_lis.plan = 'edu'
+                           then least(count(*) filter (where gm.role in ('owner','admin')),
+                                      public.edu_ucretsiz_ogretmen(v_lis.koltuk))
+                           else 0 end
+      into v_dolu from public.group_members gm
+     where gm.group_id = p_group_id and coalesce(gm.status,'active') = 'active';
   end if;
   return jsonb_build_object(
     'lisans', case when v_var then jsonb_build_object('plan', v_lis.plan, 'koltuk', v_lis.koltuk,

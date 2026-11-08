@@ -40,11 +40,13 @@
 
   var durum = null;   // son grup_lisans_durumu yanıtı
 
-  // Koltuk sayan üye sayısı: Grup/Koro'da herkes, Edu'da yalnız 'member' (öğretmen = yönetici saymaz)
-  function sayan(plan) {
-    return uyeler().filter(function (m) {
-      return (m.status || 'active') === 'active' && (plan === 'pro' || m.role === 'member');
-    }).length;
+  // Koltuk sayan üye sayısı (sunucudaki grup_lisans_durumu ile aynı): Grup/Koro'da herkes; Edu'da her 20 koltuğa
+  // 1 öğretmen (yönetici, en az 1) sayılmaz, kotayı aşan yöneticiler sayar.
+  function sayan(plan, koltuk) {
+    var etkin = uyeler().filter(function (m) { return (m.status || 'active') === 'active'; });
+    if (plan !== 'edu') return etkin.length;
+    var yonetici = etkin.filter(function (m) { return m.role === 'owner' || m.role === 'admin'; }).length;
+    return etkin.length - Math.min(yonetici, Math.max(1, Math.ceil((koltuk || etkin.length) / 20)));
   }
 
   function ciz() {

@@ -833,7 +833,7 @@
   "gr.lisansKoltukSayisi": "Yer sayı",
   "gr.lisansFiyat": "Hər yer üçün illik {f} · cəmi {t}",
   "gr.lisansNotGrup": "İdarəçi də bir yer tutur. Ən azı 5 yer; yalnız illik.",
-  "gr.lisansNotEdu": "Müəllimlər (qrup idarəçiləri) yer tutmur. Ən azı 5 yer; yalnız illik.",
+  "gr.lisansNotEdu": "Hər 20 yerə 1 müəllim (qrup idarəçisi) yer tutmur; digər idarəçilər yer tutur. Ən azı 5 yer; yalnız illik.",
   "gr.lisansSatinAl": "Lisenziyanı al",
   "gr.lisansOdemeNotu": "Ödənişi Paddle alır; vergi və valyuta ödəniş ekranında görünür. Yerlər dolanda yeni üzv qoşula bilməz.",
   "gr.lisansTamam": "Ödəniş alındı. Lisenziya bir neçə saniyəyə aktivləşəcək.",
