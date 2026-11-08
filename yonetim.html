@@ -69,6 +69,27 @@
 .y-card-desc{font-size:13.5px;color:var(--text2);line-height:1.5;margin-top:4px;}
 .y-badge{background:var(--yt-btn,var(--accent));color:#1a1200;border-radius:20px;padding:1px 8px;font-size:12px;font-weight:800;}
 .y-note{font-size:13px;color:var(--text3);line-height:1.6;margin-top:20px;}
+/* (2026-11-08) Hediye Pro ver (yalnız yönetici; süre yalnız 1 yıl — Emir). */
+.hd-baslik{margin-top:16px;}
+.hd-aciklama{font-size:13px;color:var(--text3);line-height:1.5;margin:0 0 8px;}
+.hd-form{display:flex;flex-wrap:wrap;gap:8px;}
+.hd-girdi{flex:1 1 200px;min-width:0;min-height:40px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;color:var(--text);font:inherit;font-size:14px;}
+.hd-girdi:focus{outline:none;border-color:var(--accent);}
+.hd-dugme{min-height:40px;padding:0 16px;border-radius:8px;border:none;background:var(--yt-btn,var(--accent));color:#1a1200;
+  font:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+.hd-dugme:disabled{opacity:.6;cursor:default;}
+.hd-durum{font-size:13.5px;color:var(--text2);margin-top:8px;}
+.hd-durum:empty{display:none;}
+.hd-durum.hata{color:var(--red,#f87171);}
+.hd-liste{margin-top:10px;}
+.hd-satir{align-items:center;}
+.hd-satir .y-row-lbl{min-width:0;overflow-wrap:anywhere;}
+.hd-not{display:block;font-size:12.5px;color:var(--text3);margin-top:2px;}
+.hd-sag{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.hd-geri{min-height:32px;padding:0 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text2);
+  font:inherit;font-size:13px;cursor:pointer;}
+.hd-geri.emin{border-color:var(--red,#f87171);color:var(--red,#f87171);}
 /* (2026-10-25) HİZA KURALI — kullanıcı: "Yönetim, alt yazısı, KIRILIM, BÖLÜMLER gibi başlıklar alttaki bloğun içindeki metinle sola
    hizalı olsun; bunu bugün başka bir yerde de uyguladık (Ana Sayfa bölüm başlıkları), bu bir kural olsun". Kutuların sol iç
    boşluğu 16 px'e eşitlendi (istatistik / bölüm kartı 18 idi) → içerik kenarlıkla 17 px içeride; başlıklar da 17 px içeride. */
@@ -179,6 +200,15 @@
         <div class="y-row"><span class="y-row-lbl" data-i18n="yo.abHediye">Hediye Pro</span><span class="y-row-val" id="abHediye">—</span></div>
         <div class="y-row"><span class="y-row-lbl" data-i18n="yo.abDeneme30">Son 30 günde başlayan deneme</span><span class="y-row-val" id="abDeneme30">—</span></div>
       </div>
+      <div class="y-alt-baslik hd-baslik" data-i18n="yo.hdBaslik">Hediye Pro ver</div>
+      <p class="hd-aciklama" data-i18n="yo.hdAciklama">Hesaba 1 yıl Pro verilir, süre dolunca kendiliğinden biter. Süren bir hediyeye 1 yıl eklenir.</p>
+      <form class="hd-form" id="hdForm" autocomplete="off">
+        <input class="hd-girdi" id="hdEposta" type="email" required data-i18n-ph="yo.hdEposta" placeholder="Kullanıcının e-posta adresi">
+        <input class="hd-girdi" id="hdNot" type="text" maxlength="120" data-i18n-ph="yo.hdNot" placeholder="Not (isteğe bağlı)">
+        <button class="hd-dugme" id="hdVer" type="submit" data-i18n="yo.hdVer">1 yıl Pro ver</button>
+      </form>
+      <div class="hd-durum" id="hdDurum" role="status"></div>
+      <div class="y-rows hd-liste" id="hdListe"></div>
     </div>
 
     <!-- (2026-08-11) Uygulama içi kullanım. Kaynak: `page_views` tablosu —
@@ -442,8 +472,9 @@ async function trafikYukle() {
 async function abonelikYukle() {
   const bolum = document.getElementById('abBolum');
   if (!isAdmin()) { if (bolum) bolum.remove(); return; }
+  hediyeKur();
   try {
-    const r = await fetch(SUPA_URL + '/rest/v1/abonelikler?select=durum,deneme,kaynak,baslangic&ortam=eq.production', {
+    const r = await fetch(SUPA_URL + '/rest/v1/abonelikler?select=durum,deneme,kaynak,baslangic,bitis&ortam=eq.production', {
       headers: authHeaders(),
       signal: AbortSignal.timeout(8000)
     });
@@ -453,9 +484,104 @@ async function abonelikYukle() {
     const otuzGunOnce = Date.now() - 30 * 864e5;
     yaz('abDeneme', s.filter((a) => a.durum === 'deneme').length);
     yaz('abUcretli', s.filter((a) => a.durum === 'aktif' && !a.deneme && ['ios', 'android', 'web'].includes(a.kaynak)).length);
-    yaz('abHediye', s.filter((a) => a.kaynak === 'hediye' && a.durum === 'aktif').length);
+    yaz('abHediye', s.filter((a) => a.kaynak === 'hediye' && a.durum === 'aktif' && (!a.bitis || Date.parse(a.bitis) > Date.now())).length);
     yaz('abDeneme30', s.filter((a) => a.deneme && a.baslangic && Date.parse(a.baslangic) >= otuzGunOnce).length);
   } catch (e) { /* sessiz: kart "—" kalır */ }
+}
+
+// (2026-11-08) Hediye Pro ver / geri al — RPC'ler sql/2026-11-08_hediye_pro.sql (yalnız is_app_admin). Süre yalnız 1 yıl (Emir).
+// Geri almada onay penceresi yok: ilk dokunuş "Emin misin?" yapar, 4 sn içinde ikinci dokunuş geri alır.
+async function hediyeRpc(ad, govde) {
+  const r = await fetch(SUPA_URL + '/rest/v1/rpc/' + ad, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(govde || {}),
+    signal: AbortSignal.timeout(10000)
+  });
+  const d = await r.json().catch(() => null);
+  if (!r.ok) throw new Error((d && d.message) || 'hata');
+  return d;
+}
+
+function _hdKacis(t) {
+  return String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function _hdDurum(metin, hata) {
+  const el = document.getElementById('hdDurum');
+  if (!el) return;
+  el.textContent = metin || '';
+  el.classList.toggle('hata', !!hata);
+}
+
+async function hediyeListele() {
+  const kutu = document.getElementById('hdListe');
+  if (!kutu) return;
+  let liste;
+  try { liste = await hediyeRpc('hediye_pro_listesi'); } catch (e) { return; }
+  if (!Array.isArray(liste)) return;
+  if (!liste.length) { kutu.innerHTML = '<div class="y-row"><span class="y-row-lbl">' + _hdKacis(_yoCev('yo.hdBos', 'Etkin hediye yok.')) + '</span></div>'; return; }
+  kutu.innerHTML = liste.map((h) => {
+    const kim = h.ad ? h.ad + ' · ' + h.eposta : h.eposta;
+    const bitis = h.bitis ? new Date(h.bitis).toLocaleDateString() : _yoCev('yo.hdSuresiz', 'süresiz');
+    return '<div class="y-row hd-satir"><span class="y-row-lbl">' + _hdKacis(kim)
+      + (h.aciklama ? '<span class="hd-not">' + _hdKacis(h.aciklama) + '</span>' : '') + '</span>'
+      + '<span class="hd-sag"><span class="y-row-val">' + _hdKacis(bitis) + '</span>'
+      + '<button type="button" class="hd-geri" data-id="' + _hdKacis(h.id) + '">' + _hdKacis(_yoCev('yo.hdGeriAl', 'Geri al')) + '</button></span></div>';
+  }).join('');
+}
+
+function hediyeKur() {
+  const form = document.getElementById('hdForm');
+  if (!form || form.dataset.kuruldu) return;
+  form.dataset.kuruldu = '1';
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const eposta = document.getElementById('hdEposta').value.trim();
+    const not = document.getElementById('hdNot').value.trim();
+    if (!eposta) return;
+    const dugme = document.getElementById('hdVer');
+    dugme.disabled = true;
+    _hdDurum('');
+    try {
+      const d = await hediyeRpc('hediye_pro_ver', { p_eposta: eposta, p_aciklama: not || null });
+      if (d && d.zaten_suresiz) {
+        _hdDurum(_yoCev('yo.hdZatenSuresiz', '{e} hesabında süresiz hediye Pro zaten var.').replace('{e}', d.eposta));
+      } else {
+        _hdDurum(_yoCev('yo.hdVerildi', '{e} hesabına Pro verildi. Bitiş: {t}.').replace('{e}', d.eposta)
+          .replace('{t}', new Date(d.bitis).toLocaleDateString()));
+        form.reset();
+      }
+      hediyeListele();
+      abonelikYukle();
+    } catch (e) {
+      _hdDurum(e.message === 'kullanici-yok'
+        ? _yoCev('yo.hdKullaniciYok', 'Bu e-postayla kayıtlı hesap bulunamadı.')
+        : _yoCev('yo.hdHata', 'İşlem yapılamadı. Bağlantıyı kontrol edip yeniden dene.'), true);
+    } finally {
+      dugme.disabled = false;
+    }
+  });
+  document.getElementById('hdListe').addEventListener('click', async (ev) => {
+    const b = ev.target.closest('.hd-geri');
+    if (!b) return;
+    if (!b.classList.contains('emin')) {
+      b.classList.add('emin');
+      b.textContent = _yoCev('yo.hdEmin', 'Emin misin?');
+      setTimeout(() => { if (b.isConnected) { b.classList.remove('emin'); b.textContent = _yoCev('yo.hdGeriAl', 'Geri al'); } }, 4000);
+      return;
+    }
+    b.disabled = true;
+    try {
+      await hediyeRpc('hediye_pro_geri_al', { p_id: b.dataset.id });
+      _hdDurum('');
+    } catch (e) {
+      _hdDurum(_yoCev('yo.hdHata', 'İşlem yapılamadı. Bağlantıyı kontrol edip yeniden dene.'), true);
+    }
+    hediyeListele();
+    abonelikYukle();
+  });
+  hediyeListele();
 }
 
 // Uygulama içi kullanım — `app_usage_stats()` tek çağrıda özet döndürür.
