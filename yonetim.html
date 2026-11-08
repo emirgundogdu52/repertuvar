@@ -168,6 +168,19 @@
       <div id="lhKaynak" style="margin-top:12px;"></div>
     </div>
 
+    <!-- (2026-11-08) Emir: Pano'daki deneme ve abone sayıları Yönetim'de de olsun. Kaynak: `abonelikler` (yalnız gerçek
+         mağaza ortamı); yönetici RLS ile (is_app_admin) hepsini okur. Editör yalnız kendi satırını göreceği için bölüm
+         yalnız yöneticide görünür (abonelikYukle). -->
+    <div class="y-break" id="abBolum">
+      <h4 class="kirilim-baslik" data-i18n="yo.abonelikler">Abonelikler</h4>
+      <div class="y-rows">
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.abDenemede">Ücretsiz denemede</span><span class="y-row-val" id="abDeneme">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.abUcretli">Ücretli abone</span><span class="y-row-val" id="abUcretli">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.abHediye">Hediye Pro</span><span class="y-row-val" id="abHediye">—</span></div>
+        <div class="y-row"><span class="y-row-lbl" data-i18n="yo.abDeneme30">Son 30 günde başlayan deneme</span><span class="y-row-val" id="abDeneme30">—</span></div>
+      </div>
+    </div>
+
     <!-- (2026-08-11) Uygulama içi kullanım. Kaynak: `page_views` tablosu —
          landing sayacından (landing_hits) AYRI: bu, giriş yapmış kullanıcının
          uygulama içindeki gezinmesini kaydediyor ve zaten aylardır dolu.
@@ -303,6 +316,7 @@ async function panoYukle() {
   davetYukle();
   ozellikYukle();
   trafikYukle();
+  abonelikYukle();
   kullanimYukle();
 }
 
@@ -420,6 +434,27 @@ async function trafikYukle() {
               + '</span><span class="y-row-val">' + k.n + '</span></div>';
           }).join('') + '</div>';
     }
+  } catch (e) { /* sessiz: kart "—" kalır */ }
+}
+
+// (2026-11-08) Abonelik sayıları — Pano (claude.ai + iOS widget) ile aynı tanımlar: ücretli = deneme ve hediye dışındaki
+// etkin Pro (ios/android/web); yalnız ortam=production. Editörde bölüm kaldırılır (RLS ona yalnız kendi satırını verir).
+async function abonelikYukle() {
+  const bolum = document.getElementById('abBolum');
+  if (!isAdmin()) { if (bolum) bolum.remove(); return; }
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/abonelikler?select=durum,deneme,kaynak,baslangic&ortam=eq.production', {
+      headers: authHeaders(),
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!r.ok) return;
+    const s = await r.json();
+    if (!Array.isArray(s)) return;
+    const otuzGunOnce = Date.now() - 30 * 864e5;
+    yaz('abDeneme', s.filter((a) => a.durum === 'deneme').length);
+    yaz('abUcretli', s.filter((a) => a.durum === 'aktif' && !a.deneme && ['ios', 'android', 'web'].includes(a.kaynak)).length);
+    yaz('abHediye', s.filter((a) => a.kaynak === 'hediye' && a.durum === 'aktif').length);
+    yaz('abDeneme30', s.filter((a) => a.deneme && a.baslangic && Date.parse(a.baslangic) >= otuzGunOnce).length);
   } catch (e) { /* sessiz: kart "—" kalır */ }
 }
 
