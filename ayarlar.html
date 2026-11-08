@@ -1725,7 +1725,13 @@ function abonelikCiz(d) {
   sec.style.display = '';
   const plat = Pro.platform(), pro = Pro.proMu(d), plan = _abPlan(d), bitis = _abTarih(d && d.bitis);
   let baslik, metin = '';
+  // (2026-10-25) Web tek ödeme "1 yıl Pro": yenilenmez, yönetilecek abonelik yok; süre eklenebilir
+  const tek = pro && !d.hediye && d.kaynak === 'web' && d.otomatik_yenileme === false && d.durum === 'aktif';
   if (pro && d.hediye) { baslik = _t('ab.hediye', 'Repertuvar Pro Hediye'); }
+  else if (tek) {
+    baslik = _t('ab.tekBaslik', 'Repertuvar Pro — 1 yıl (tek ödeme)');
+    metin = _t('ab.tekMetin', 'Pro {tarih} tarihine kadar etkin. Otomatik yenilenmez; süre bitmeden bir yıl daha eklersen kalan sürenin sonuna eklenir.').replace('{tarih}', bitis);
+  }
   else if (pro && d.durum === 'deneme') {
     baslik = _t('ab.deneme', 'Repertuvar Pro — ücretsiz deneme');
     metin = d.otomatik_yenileme === false
@@ -1743,12 +1749,17 @@ function abonelikCiz(d) {
   if (pro && !d.hediye && d.kaynak) {
     if (d.kaynak === 'ios' && plat === 'ios') kaynak = _t('ab.kaynakIos', 'App Store üzerinden alındı');
     else if (d.kaynak === 'android' && plat === 'android') kaynak = _t('ab.kaynakAnd', 'Google Play üzerinden alındı');
+    else if (d.kaynak === 'web' && plat === 'web') kaynak = _t('ab.kaynakWeb', 'repertuvar.app üzerinden alındı (satıcı: Paddle)');   // (2026-10-20) web satışı
     else kaynak = _t('ab.kaynakBaska', 'Bu abonelik başka bir platformda alındı ve orada yönetilir.');
   }
   document.getElementById('abKaynak').textContent = kaynak;
   const yerel = pro && !d.hediye && d.kaynak === plat;          // yönetilebilir: bu cihazın mağazası
-  document.getElementById('abProyaGec').style.display = pro ? 'none' : '';
-  document.getElementById('abYonet').style.display = yerel ? '' : 'none';
+  const gec = document.getElementById('abProyaGec');
+  const uzatilir = tek && plat === 'web' && Pro.webSatis && Pro.webSatis();
+  gec.style.display = (!pro || uzatilir) ? '' : 'none';
+  gec.textContent = uzatilir ? _t('ab.tekUzat', 'Bir yıl daha ekle') : _t('ab.proyaGec', "Pro'ya geç");
+  gec.onclick = function () { location.href = uzatilir ? 'pro.html?uzat=1&donus=ayarlar.html' : 'pro.html?donus=ayarlar.html'; };
+  document.getElementById('abYonet').style.display = (yerel && !tek) ? '' : 'none';
   document.getElementById('abGeriYukle').style.display = plat !== 'web' ? '' : 'none';
   // Yıllığa geç: yalnız bu cihazın mağazasından alınmış AYLIK abonelik, bekleyen geçiş yoksa
   const aylik = yerel && /monthly|aylik/.test(String(d.urun_id || '').toLowerCase()) && !Pro.yilligaGecisBekliyor();
