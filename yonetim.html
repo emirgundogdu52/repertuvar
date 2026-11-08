@@ -209,6 +209,11 @@
       </form>
       <div class="hd-durum" id="hdDurum" role="status"></div>
       <div class="y-rows hd-liste" id="hdListe"></div>
+      <!-- (2026-11-08) Edu onayı: okul/kurs Edu koltuk lisansını yalnız onaylı grupta satın alabilir (sql/2026-11-08_koltuk_lisans.sql) -->
+      <div class="y-alt-baslik hd-baslik" data-i18n="yo.eduBaslik">Edu onayı</div>
+      <p class="hd-aciklama" data-i18n="yo.eduAciklama">Okul ve kurslar Edu lisansını yalnız onayladığın grupta satın alabilir.</p>
+      <input class="hd-girdi" id="eduAra" type="search" autocomplete="off" data-i18n-ph="yo.eduAra" placeholder="Grup adı ya da kurucunun e-postası">
+      <div class="y-rows hd-liste" id="eduListe"></div>
     </div>
 
     <!-- (2026-08-11) Uygulama içi kullanım. Kaynak: `page_views` tablosu —
@@ -473,6 +478,7 @@ async function abonelikYukle() {
   const bolum = document.getElementById('abBolum');
   if (!isAdmin()) { if (bolum) bolum.remove(); return; }
   hediyeKur();
+  eduKur();
   try {
     const r = await fetch(SUPA_URL + '/rest/v1/abonelikler?select=durum,deneme,kaynak,baslangic,bitis&ortam=eq.production', {
       headers: authHeaders(),
@@ -584,6 +590,35 @@ function hediyeKur() {
     abonelikYukle();
   });
   hediyeListele();
+}
+
+// (2026-11-08) Edu onayı — grup ara (ad ya da kurucu e-postası), onayla / onayı kaldır. RPC'ler yalnız is_app_admin.
+function eduKur() {
+  const ara = document.getElementById('eduAra'), kutu = document.getElementById('eduListe');
+  if (!ara || ara.dataset.kuruldu) return;
+  ara.dataset.kuruldu = '1';
+  let zaman = null;
+  const listele = async () => {
+    const q = ara.value.trim();
+    if (q.length < 2) { kutu.innerHTML = ''; return; }
+    let liste;
+    try { liste = await hediyeRpc('edu_grup_ara', { p_ara: q }); } catch (e) { return; }
+    if (!Array.isArray(liste) || ara.value.trim() !== q) return;
+    if (!liste.length) { kutu.innerHTML = '<div class="y-row"><span class="y-row-lbl">' + _hdKacis(_yoCev('yo.eduBulunamadi', 'Grup bulunamadı.')) + '</span></div>'; return; }
+    kutu.innerHTML = liste.map((g) => '<div class="y-row hd-satir"><span class="y-row-lbl">' + _hdKacis(g.ad || '—')
+      + '<span class="hd-not">' + _hdKacis([g.kurucu_eposta, _yoCev('yo.eduUye', '{n} üye').replace('{n}', g.uye)].filter(Boolean).join(' · ')) + '</span></span>'
+      + '<span class="hd-sag">' + (g.edu_onayli ? '<span class="y-row-val">' + _hdKacis(_yoCev('yo.eduOnayli', 'Onaylı')) + '</span>' : '')
+      + '<button type="button" class="hd-geri edu-dugme" data-id="' + _hdKacis(g.group_id) + '" data-onay="' + (g.edu_onayli ? '0' : '1') + '">'
+      + _hdKacis(g.edu_onayli ? _yoCev('yo.eduKaldir', 'Onayı kaldır') : _yoCev('yo.eduOnayla', 'Onayla')) + '</button></span></div>').join('');
+  };
+  ara.addEventListener('input', () => { clearTimeout(zaman); zaman = setTimeout(listele, 300); });
+  kutu.addEventListener('click', async (ev) => {
+    const b = ev.target.closest('.edu-dugme');
+    if (!b) return;
+    b.disabled = true;
+    try { await hediyeRpc('edu_onay_ver', { p_group_id: b.dataset.id, p_onay: b.dataset.onay === '1' }); } catch (e) {}
+    listele();
+  });
 }
 
 // Uygulama içi kullanım — `app_usage_stats()` tek çağrıda özet döndürür.
