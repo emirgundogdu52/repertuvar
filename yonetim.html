@@ -527,7 +527,9 @@ async function hediyeListele() {
     return '<div class="y-row hd-satir"><span class="y-row-lbl">' + _hdKacis(kim)
       + (h.aciklama ? '<span class="hd-not">' + _hdKacis(h.aciklama) + '</span>' : '') + '</span>'
       + '<span class="hd-sag"><span class="y-row-val">' + _hdKacis(bitis) + '</span>'
-      + '<button type="button" class="hd-geri" data-id="' + _hdKacis(h.id) + '">' + _hdKacis(_yoCev('yo.hdGeriAl', 'Geri al')) + '</button></span></div>';
+      // Süresiz hediyelerde (Emir, mağaza inceleme demoları) Geri al yok — Emir 08.11; sunucu da reddeder.
+      + (h.bitis ? '<button type="button" class="hd-geri" data-id="' + _hdKacis(h.id) + '">' + _hdKacis(_yoCev('yo.hdGeriAl', 'Geri al')) + '</button>' : '')
+      + '</span></div>';
   }).join('');
 }
 

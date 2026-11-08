@@ -5,7 +5,7 @@
 --    ⇒ 1 yıllık hediyenin süresi dolunca Pro KENDİLİĞİNDEN düşer; cron gerekmez (satır 'aktif' kalır, bitis geçmiştir).
 --  * Kullanıcı başına tek hediye satırı: unique (kaynak, dis_kimlik), dis_kimlik = 'hediye:<uid>' (mevcut desen).
 --  * Süresiz (bitis null) etkin hediyeye dokunulmaz; etkin süreli hediye 1 yıl uzatılır; bitmiş/geri alınmış satır yeniden açılır.
---  * Geri alma: durum 'suresi_doldu', bitis now(). Not: profiles.plan='pro' (eski geçiş yolu) olan hesapta Pro sürer.
+--  * Geri alma: durum 'suresi_doldu', bitis now(); yalnız süreli hediyede (süresize Geri al yok). Not: profiles.plan='pro' (eski geçiş yolu) olan hesapta Pro sürer.
 
 create or replace function public.hediye_pro_ver(p_eposta text, p_aciklama text default null)
 returns jsonb
@@ -75,7 +75,8 @@ begin
   end if;
   update public.abonelikler
      set durum = 'suresi_doldu', bitis = now(), guncellendi = now()
-   where id = p_id and kaynak = 'hediye' and durum = 'aktif';
+   where id = p_id and kaynak = 'hediye' and durum = 'aktif'
+     and bitis is not null;   -- süresiz hediyeler (Emir, mağaza inceleme demoları) geri alınamaz (Emir 08.11)
   return found;
 end;
 $$;
