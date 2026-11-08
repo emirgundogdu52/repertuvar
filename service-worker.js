@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Her deploy'da bu numarayı artır (ya da deploy script'in otomatik bump etsin).
-const CACHE_NAME = 'repertuvar-v729';
+const CACHE_NAME = 'repertuvar-v730';
 
 // (2026-09-27, Offline Düzeltme 2) DEPLOY SONRASI OFFLINE KAYBI KAPATILDI.
 // Eskiden burada yalnız '/' ve '/index.html' vardı ve activate eski önbelleği
@@ -44,7 +44,7 @@ const PRECACHE = [
   '/metronom.js', '/ritimcalar.js', '/ses.js', '/dongu.js', '/zamanlayici.js',
   '/qrcode.min.js', '/soundtouch.js', '/style.css',
   // (2026-10-09) içerik bildirme / kullanıcı engelleme (Apple Guideline 1.2)
-  '/bildir.js',
+  '/bildir.js', '/koltuk-lisans.js',
   // (2026-10-17) Repertuvar Pro — abonelik durumu/kilit ve satın alma ekranı
   '/abonelik.js', '/pro.html',
   // (2026-10-04) yeni tasarım anahtarı — her sayfanın <head>'inde yükleniyor

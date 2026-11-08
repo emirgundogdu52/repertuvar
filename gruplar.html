@@ -45,6 +45,7 @@
 <script src="bildir.js"></script>
 <script src="db.js"></script>
 <script src="qrcode.min.js"></script>
+<script src="koltuk-lisans.js"></script>
 <script src="topnav.js" defer></script>
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2?v3.44.0" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
@@ -98,6 +99,16 @@ html[data-theme="light"] .grp-chip .grp-role-admin { color: #1E7B34; }
 .grp-dot.on { border-color: var(--accent); background: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
 .invite-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 16px; }
+/* (2026-11-08) Koltuk lisansı — koltuk-lisans.js */
+#lisansSection { margin-top: 20px; }
+.lisans-durum { font-size: 14px; color: var(--text); margin-bottom: 6px; }
+.lisans-not { font-size: 12px; color: var(--text2); margin: 6px 0; }
+.lisans-uyari { color: var(--red, #f87171); }
+.lisans-form { display: flex; flex-direction: column; gap: 8px; max-width: 360px; }
+.lisans-etiket { font-size: 13px; color: var(--text2); }
+.lisans-etiket .fi { width: 96px; display: inline-block; margin-left: 8px; }
+.lisans-fiyat { font-size: 14px; font-weight: 600; color: var(--text); }
+.lisans-baglanti { display: inline-block; margin-top: 8px; font-size: 13px; color: var(--accent); }
 .invite-link { font-size: 12px; color: var(--text2); font-family: monospace; word-break: break-all; line-height: 1.6; }
 .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all .15s; }
 .btn-primary { background: linear-gradient(135deg,var(--accent),var(--accent2)); color: #1a1200; }
@@ -324,6 +335,9 @@ html[data-tasarim="v3"][data-theme="light"][data-sayfa="gruplar"] .btn-danger { 
           <div style="font-size:12px;color:var(--text2);margin-top:6px;font-weight:600;" id="inviteQuota"></div>
         </div>
       </div>
+
+      <!-- (2026-11-08) Koltuk lisansı (Grup/Koro, Edu) — yalnız owner/admin; içerik koltuk-lisans.js -->
+      <div id="lisansSection" style="display:none;"></div>
     </div>
 
     <!-- (2026-08-06) "Kullanıcı Ara & Gruba Ekle" bölümü KALDIRILDI.
@@ -623,6 +637,7 @@ function renderGroup() {
   if (userRole === 'owner' || userRole === 'admin') {
     inviteSection.style.display = '';
     aktifDavetiYukle();   // ekran degisince kod kaybolmasin
+    if (window.KoltukLisans) KoltukLisans.yukle();   // (2026-11-08) koltuk lisansı
   }
   _enstrOnerileriYukle();
 

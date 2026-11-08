@@ -529,6 +529,7 @@ async function handlePendingInvite(userId) {
       if (d && d.reason === 'expired') showMsg('err', _gCev('giris.davetLinkiDolmus', 'Davet linkinin süresi dolmuş.'));
       else if (d && d.reason === 'used') showMsg('err', _gCev('giris.davetLinkiKullanilmis', 'Bu davet linki daha önce kullanılmış.'));
       else if (d && d.reason === 'notfound') showMsg('err', _gCev('giris.davetLinkiGecersiz', 'Davet linki geçersiz.'));
+      else if (d && d.reason === 'koltuk-dolu') showMsg('err', _gCev('giris.davetKoltukDolu', 'Grubun koltukları dolu. Katılabilmen için grup yöneticisinin koltuk eklemesi gerekiyor.'));
       else showMsg('err', _gCev('giris.davetKullanilamadi', 'Davet kullanılamadı.'));
     }
     return d;   // çağıran (girişli kullanıcı yolu) sonuca göre yönlendirir

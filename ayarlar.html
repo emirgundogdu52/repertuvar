@@ -1741,7 +1741,8 @@ function abonelikCiz(d) {
   // Kaynak satırı: bu cihazın mağazası adıyla; başka platformun adı yazılmaz
   let kaynak = '';
   if (pro && !d.hediye && d.kaynak) {
-    if (d.kaynak === 'ios' && plat === 'ios') kaynak = _t('ab.kaynakIos', 'App Store üzerinden alındı');
+    if (d.kaynak === 'grup') kaynak = _t('ab.kaynakGrup', 'Grubunun lisansıyla kullanıyorsun.');   // (2026-11-08) koltuk lisansı
+    else if (d.kaynak === 'ios' && plat === 'ios') kaynak = _t('ab.kaynakIos', 'App Store üzerinden alındı');
     else if (d.kaynak === 'android' && plat === 'android') kaynak = _t('ab.kaynakAnd', 'Google Play üzerinden alındı');
     else kaynak = _t('ab.kaynakBaska', 'Bu abonelik başka bir platformda alındı ve orada yönetilir.');
   }
