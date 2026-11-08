@@ -245,7 +245,7 @@ window.YARDIM_VERI = {
    "id": "muzik-tercihleri",
    "kategori": "Başlarken",
    "baslik": "Müzik tercihlerimi nasıl değiştiririm?",
-   "ozet": "Ayarlar'daki Müzik Tercihlerim bölümünde çaldığın türleri seçip Kaydet'e bas; bu seçim hiçbir eseri gizlemez.",
+   "ozet": "Ayarlar'daki Müzik Tercihlerim bölümünde çaldığın türleri seçip Kaydet'e bas; Eserler listesi yalnız bu türlerle açılır.",
    "anahtar": [
     "müzik tercihi",
     "müzik türü",
@@ -265,7 +265,8 @@ window.YARDIM_VERI = {
     "**Kaydet**'e bas. **Kaydedildi ✓** yazar."
    ],
    "ipuclari": [
-    "Ayarlar'daki açıklamaya göre bu seçim sana uygun eserleri ve içerikleri öne çıkarmak için kullanılır; hiçbir eseri gizlemez ve uygulama dilinden bağımsızdır.",
+    "Seçtiğin türler **Eserler** listesinde süzgeç olur: liste yalnız bu türlerdeki eserlerle açılır. Favorilerin, taslakların ve kendi eklediğin eserler her zaman görünür. Seçim uygulama dilinden bağımsızdır.",
+    "Tüm türleri görmek için **Eserler**'de **Filtreler**'i aç; **Tüm türleri göster**'e ya da **Filtreleri Temizle**'ye bas. Bu cihazda böyle kalır; tercihini yeniden kaydedince süzgeç geri gelir.",
     "Yeni hesap açınca bir kez **Müziğini biraz tanıyalım** penceresi çıkabilir: türleri seçip **Devam Et**'e bas ya da pencereyi **Şimdilik geç** ile kapat. Seçimini sonra buradan değiştirebilirsin.",
     "İnternet yokken kaydedersen **Bu cihazda kaydedildi; bağlantı kurulunca eşitlenecek.** yazar.",
     "Yeni eserlerde hangi bilgi alanlarının (makam, usul, karar sesi gibi) açık geleceğini aynı sayfadaki **Müzik Alanları** bölümünden seçersin."
@@ -363,7 +364,9 @@ window.YARDIM_VERI = {
     "tür çipi",
     "dil hatırla",
     "yalnız Türkçe",
-    "tüm dilleri göster"
+    "tüm dilleri göster",
+    "tüm türleri göster",
+    "müzik tercihi süzgeci"
    ],
    "adimlar": [
     "**Eserler**'e git.",
@@ -373,13 +376,14 @@ window.YARDIM_VERI = {
     "Sıralama ve diğer süzgeçler aynı pencerede, aşağıdadır.",
     "Açılan **Filtre & Sıralama** penceresinde **Sırala** altından **Ada Göre**, **Besteciye Göre**, **Makama Göre**, **Forma Göre** ya da **Yöreye Göre**'yi seç.",
     "**Tür / Form**, **Akort**, **Bölge** ve **Makam** bölümlerinde istediğin değere bas; her değerin yanında kaç eser olduğu yazar. Aynı değere yeniden basarsan süzgeç kalkar.",
-    "Süzgeçleri sıfırlamak için **Filtreleri Temizle**'ye bas; bu düğme arama kutusunu da boşaltır. Arama yazısı kalsın istiyorsan listenin üstündeki **Tümü**'ne bas. İki düğme de seçtiğin dili kaldırmaz."
+    "Süzgeçleri sıfırlamak için **Dil ve tür** bölümünün hemen altındaki **Filtreleri Temizle**'ye bas; bu düğme arama kutusunu boşaltır, müzik tercihi süzgecini de kaldırır. Arama yazısı kalsın istiyorsan listenin üstündeki **Tümü**'ne bas. İki düğme de seçtiğin dili kaldırmaz."
    ],
    "ipuclari": [
     "**Türü belirlenmemiş** çipi, türü henüz girilmemiş eserleri gösterir.",
     "Dil çipleri yalnız listende birden çok dilde eser varsa görünür.",
     "Dil seçimi yalnız Eserler listesini ve aramayı etkiler; repertuvarların değişmez. Bir dil seçiliyken aradığın eseri bulamazsan önce **Filtreler**'deki **Tüm dilleri göster**'e bas.",
-    "Seçtiğin süzgeçler ve sıralama da bu cihazda hatırlanır; sen değiştirene kadar kalır. Süzgeçleri kaldırmak için **Tümü**'ne bas."
+    "Seçtiğin süzgeçler ve sıralama da bu cihazda hatırlanır; sen değiştirene kadar kalır. Süzgeçleri kaldırmak için **Tümü**'ne bas; dil ve müzik tercihi süzgeci yerinde kalır.",
+    "Ayarlar'da müzik tercihin varsa liste yalnız o türlerle açılır ve çiplerin altında \"Müzik tercihlerine göre yalnız şu türler gösteriliyor\" notu durur. Favorilerin, taslakların ve kendi eklediğin eserler süzülmez. Bütün türlere dönmek için nottaki **Tüm türleri göster**'e bas. Aradığın eser başka bir türdeyse arama sonucunun üstündeki **Göster**'e basman yeter."
    ],
    "platform": "",
    "ilgili": [

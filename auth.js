@@ -1067,7 +1067,10 @@ var USER_SCOPED_KEYS = [
   // Profilden gelen dil önbelleği: sunucudan türeyen KULLANICIYA AİT veri,
   // cihazı paylaşan ikinci kullanıcıya sızmamalı. `uiLang` bilerek listede
   // DEĞİL — o cihaz düzeyinde bir arayüz tercihi, kişisel veri taşımıyor.
-  'uiLangSunucu'
+  'uiLangSunucu',
+  // (2026-11-08) Müzik tercihi artık Eserler listesini süzüyor (eserler.html _tercih): cihazı paylaşan ikinci kullanıcıya
+  // sızmasın. Bekleyen kayıt da kullanıcıya ait (yoksa sonraki açılışta öbür hesabın profiline yazılırdı).
+  'musicPreferences', 'musicPreferencesBekleyen', 'esTercihKapali'
 ];
 
 // Sayfa yönlendirmesi olmadan oturumu temizler.
@@ -1146,7 +1149,7 @@ function enforceUserScope() {
   if (prev === uid) return;
   if (prev) {
     console.warn('[auth] Hesap değişti — önceki kullanıcıdan devreden yerel veri temizleniyor');
-    ['myGroupRole', 'user_role', 'user_status', 'user_group_id'].forEach(function(k) {
+    ['myGroupRole', 'user_role', 'user_status', 'user_group_id', 'musicPreferences', 'musicPreferencesBekleyen', 'esTercihKapali'].forEach(function(k) {
       localStorage.removeItem(k);
     });
     // db.js bu noktada henüz yüklenmemiş olabilir (sayfalarda script sırası

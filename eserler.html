@@ -721,6 +721,13 @@
   .filtre-sayi { min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:#E3C26E; color:#111722; font-size:11px; font-weight:700; line-height:18px; text-align:center; }
   .filtre-sayi[hidden] { display:none; }
   .dil-notu[hidden] { display:none; }
+  /* (2026-11-08) Filtreleri Temizle panelin en altından Dil ve tür bölümünün hemen altına (Emir) */
+  #sidebar .fs-temizle { padding-top:12px; }
+  #sidebar .fs-temizle .clear-btn { display:flex; width:100%; min-height:40px; margin:0; justify-content:center; align-items:center; border-radius:8px; font-size:13px; }
+  /* (2026-11-08) Aramada müzik tercihi dışında kalan sonuç ipucu (listenin üstünde, yalnız arama sürerken) */
+  .tercih-arama { padding:10px 16px; font-size:13px; color:var(--text2); border-bottom:1px solid var(--border); }
+  .empty-list .tercih-arama { border:0; padding:8px 0 0; }
+  .tercih-arama button { font:inherit; font-weight:600; color:var(--accent); background:none; border:0; padding:2px 0; cursor:pointer; text-decoration:underline; }
   .dil-notu button { font:inherit; font-weight:600; color:var(--accent); background:none; border:0; padding:2px 0; cursor:pointer; text-decoration:underline; }
   .work-tur-badge { display:inline-block; font-size:10px; font-weight:700; letter-spacing:.02em; color:var(--text3); background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:0 6px; margin-right:6px; vertical-align:middle; white-space:nowrap; }
 
@@ -1734,6 +1741,7 @@
 </style>
 <script src="i18n.js"></script>
 <script src="auth.js"></script>
+<script src="onboarding.js"></script><!-- (2026-11-08) MuzikTercihi: tercih süzgeci (yalnız API; pencere burada açılmaz) -->
 <script src="bildir.js"></script>
 <script src="topnav.js" defer></script>
 <script src="db.js"></script>
@@ -1807,7 +1815,10 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
           <button type="button" class="tur-ok tur-ok-sag" tabindex="-1" aria-label="›" onclick="turKaydir(1)"><span class="tur-ok-yuz"><i class="ti ti-chevron-right" aria-hidden="true"></i></span></button>
         </div>
         <div id="dilNotu" class="dil-notu" role="status" hidden></div>
+        <div id="tercihNotu" class="dil-notu" role="status" hidden></div>
     </div>
+    <!-- (2026-11-08) Emir: "Filtreleri sıfırla butonunu göremedim… en alttaymış, yukarıya hemen filtrelerin altına alalım" -->
+    <div class="filter-section fs-temizle"><button class="clear-btn" onclick="clearFilters()" data-i18n="es.filtretemizle">Filtreleri Temizle</button></div>
     <div class="filter-section fs-goster">
       <span class="filter-label" data-i18n="es.goster">Göster</span>
       <div class="fs-goster-satir">
@@ -1843,7 +1854,6 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
       <span class="filter-label" data-i18n="es.makam">Makam</span>
       <div id="makamFilters"></div>
     </div>
-    <button class="clear-btn" onclick="clearFilters()" style="width:100%;margin-top:10px;justify-content:center;" data-i18n="es.filtretemizle">Filtreleri Temizle</button>
   </aside>
 
   <div id="listCol" style="flex:1;display:flex;flex-direction:column;min-width:0;">
@@ -2191,6 +2201,64 @@ function dilSecimiYaz(kod) {
   _dilSecimi = kod || null;
   try { _dilSecimi ? localStorage.setItem('esDilSuzgeci', _dilSecimi) : localStorage.removeItem('esDilSuzgeci'); } catch (e) {}
 }
+// (2026-11-08) Emir: kayıtta verilen müzik tercihi (onboarding.js; Ayarlar → Müzik Tercihlerim) Eserler'de süzgeç olsun,
+// "gereksiz bir sürü eseri görmeden devam edebilsin". Tek seçimli tür çipinden AYRI bir kapsam (dil gibi), birden çok türü
+// kapsar. Tür çipi seçiliyken çip geçerlidir. Favoriler, Taslaklarım ve kişinin KENDİ eserleri süzülmez ("eserim kayboldu"
+// tuzağı olmasın). Filtreleri Temizle ya da nottaki "Tüm türleri göster" kapatır; kapalılık bu cihazda, o tercih için
+// hatırlanır ('esTercihKapali' = kapatılan tercihin imzası). Tercih kaydedilince (MuzikTercihi.kaydet) yeniden kurulur.
+// Yalnız "Klasik Müzik" gibi hiçbir eser türüne karşılık gelmeyen tercihte süzgeç yok.
+let _tercihAktif = false;       // son applyFilters'ta tercih süzgeci uygulandı mı (not, Filtreler sayısı)
+let _tercihGizli = 0;           // aramada tercih dışında kaldığı için gizlenen sonuç sayısı
+let _tercihAramaAcik = false;   // ipucundaki "Göster": arama kutusu boşalana kadar tercih dışı sonuçlar da gelir
+function _tercih() {
+  const M = window.MuzikTercihi; if (!M) return null;
+  const k = M.yerelOku(); if (!k || !k.length) return null;
+  const turler = M.eserTurleri(k); if (!turler.length) return null;
+  const imza = k.slice().sort().join(',');
+  let kapali = null; try { kapali = localStorage.getItem('esTercihKapali'); } catch (e) {}
+  return kapali === imza ? null : { k: k, turler: turler, imza: imza };
+}
+function _tercihKapat() {
+  const tr = _tercih();
+  if (tr) { try { localStorage.setItem('esTercihKapali', tr.imza); } catch (e) {} }
+  _tercihAramaAcik = false;
+}
+function tercihSuzgeciniKapat() { _tercihKapat(); applyFilters(); }
+function tercihAramadaGoster() { _tercihAramaAcik = true; applyFilters(); }
+function tercihNotuYaz(tr) {
+  const not = document.getElementById('tercihNotu');
+  if (!not) return;
+  not.hidden = !tr;
+  if (!tr) return;
+  const M = window.MuzikTercihi, ui = (window.i18n && i18n.dil && i18n.dil()) || 'tr';
+  const adlar = tr.k.filter(function (k) { return M.eserTurleri([k]).length; }).map(function (k) { return M.ad(k); });
+  let liste = adlar.join(', ');
+  try { liste = new Intl.ListFormat(ui, { type: 'conjunction' }).format(adlar); } catch (e) {}
+  not.innerHTML = _esHtml(_esCev('es.tercihNotu', 'Müzik tercihlerine göre yalnız şu türler gösteriliyor: {turler}.').replace('{turler}', liste))
+    + ' <button type="button" onclick="tercihSuzgeciniKapat()">' + _esHtml(_esCev('es.tercihNotuTumu', 'Tüm türleri göster')) + '</button>';
+}
+function tercihAramaHtml() {
+  if (!_tercihGizli) return '';
+  const k = (window._tekA || String)('es.tercihDisi', _tercihGizli);
+  return '<div class="tercih-arama">' + _esHtml(_esCev(k, '{n} sonuç müzik tercihlerinin dışında kaldı.').replace('{n}', _tercihGizli))
+    + ' <button type="button" onclick="tercihAramadaGoster()">' + _esHtml(_esCev('es.tercihDisiGoster', 'Göster')) + '</button></div>';
+}
+// Tercih başka cihazda verildiyse ya da uygulama yeniden kurulduysa bu cihazda yoktur: profilden bir kez oku (eski 14 kullanıcı).
+// Bekleyen (henüz yazılamamış) yerel kayıt varsa sunucudaki eskidir, dokunma.
+window.addEventListener('load', function () {
+  setTimeout(async function () {
+    const M = window.MuzikTercihi;
+    if (!M || navigator.onLine === false || !getUserId()) return;
+    try { if (localStorage.getItem('musicPreferencesBekleyen')) return; } catch (e) { return; }
+    try {
+      const d = await M.sunucudanOku();
+      if (!d.sutunVar || !Array.isArray(d.deger)) return;
+      if (JSON.stringify(d.deger) === JSON.stringify(M.yerelOku())) return;
+      M.yerelYaz(d.deger);
+      applyFilters();
+    } catch (e) {}
+  }, 800);
+});
 let favOnly = false;               // "Tümü / Favoriler" toggle durumu
 // (2026-08-15) "🔒 Taslaklarım" görünümü. Gerekçe (Emir): "Private eserlerin
 // sıralandığı bir başlık açalım, bestecilere veya eserlerini yayınlamak
@@ -2395,6 +2463,7 @@ function updateFilterButtons() {
 
 function clearFilters() {
   activeFilters = { form: null, tuning: null, region: null, makam: null, tur: null, dil: null };
+  _tercihKapat();    // (2026-11-08) müzik tercihi süzgeci de kalkar ve bu cihazda kapalı kalır (Emir)
   document.getElementById('searchInput').value = '';
   updateFilterButtons();
   buildTurChips();   // dil kalkınca tür sayıları da geri gelsin
@@ -2444,6 +2513,13 @@ function applyFilters() {
   const qn = trNorm(q);
   const uid = getUserId();
   const favs = favOnly ? getFavs() : null;
+  // (2026-11-08) Müzik tercihi süzgeci (bkz. _tercih): Favoriler/Taslaklarım'da ve tür çipi seçiliyken uygulanmaz.
+  if (!q) _tercihAramaAcik = false;
+  const _tr = (!favOnly && !draftOnly && !activeFilters.tur) ? _tercih() : null;
+  const _trTur = _tr && new Set(_tr.turler);
+  const _trUygula = _trTur && !(qn && _tercihAramaAcik);
+  _tercihAktif = !!_tr;
+  _tercihGizli = 0;
   filteredData = DATA.filter(w => {
     if (w.status === 'pending' && w.submitted_by !== uid) return false; // Sadece kendi pending eserlerini göster
     // Gizli eser yalnızca sahibine görünür. Kayıt IndexedDB'de KALIR, sadece
@@ -2468,8 +2544,10 @@ function applyFilters() {
       else if (_t !== activeFilters.tur) return false;
     }
     if (qn && !_araMetni(w).includes(qn)) return false;
+    if (_trUygula && w.submitted_by !== uid && !_trTur.has((w.tur || '').trim())) { if (qn) _tercihGizli++; return false; }
     return true;
   });
+  tercihNotuYaz(_tr);
   sortData();
   renderList();
   updateDraftToggle();
@@ -2529,7 +2607,8 @@ function tumuDurumunuYaz() {
   _suzgecleriSakla();   // (2026-11-07) her süzme sonunda: seçimler bu cihazda hatırlanır
   // (2026-11-07) Filtreler düğmesindeki sayı: açık süzgeçler (hatırlanan dil dahil: dil notu artık Filtre sayfasında) + Taslaklarım.
   const _fs = document.getElementById('filtreSayi');
-  if (_fs) { const _n = Object.keys(activeFilters).filter(function (k) { return activeFilters[k]; }).length + (draftOnly ? 1 : 0); _fs.textContent = _n; _fs.hidden = !_n; }
+  // (2026-11-08) müzik tercihi süzgeci de bir süzgeç sayılır; "Tümü"nü ise dil gibi etkilemez (kapsam: notta yazıyor).
+  if (_fs) { const _n = Object.keys(activeFilters).filter(function (k) { return activeFilters[k]; }).length + (draftOnly ? 1 : 0) + (_tercihAktif ? 1 : 0); _fs.textContent = _n; _fs.hidden = !_n; }
   allBtn.classList.toggle('active', hepsi);
   allBtn.style.background = hepsi ? 'var(--surface2)' : 'none';
   allBtn.style.color = hepsi ? 'var(--text)' : 'var(--text2)';
@@ -3116,7 +3195,7 @@ function sortData() {
 // Durum değişkenleri (LISTE_PARCA, _listeSinir…) yukarıda, activeFilters'ın yanında.
 function _listeImzasi() {
   const q = (document.getElementById('searchInput') || {}).value || '';
-  return [q.trim(), JSON.stringify(activeFilters), favOnly, draftOnly, sortMode].join('|');
+  return [q.trim(), JSON.stringify(activeFilters), favOnly, draftOnly, sortMode, _tercihAktif, _tercihAramaAcik].join('|');
 }
 // Listeyi kaydıran kap (telefonda #listCol, geniş ekranda başka olabilir); yoksa pencere (null).
 function _kaydirmaKabi(el) {
@@ -3233,7 +3312,7 @@ function renderList() {
       const _ad = activeFilters.tur === '__yok__' ? _esCev('es.tursuz','Türü belirlenmemiş') : activeFilters.tur;
       _ipucu += '<div style="margin-top:8px;font-size:12px;color:var(--text3);">' + _esCev('es.acikTurSuzgeci','Açık tür süzgeci:') + ' <b>' + _ad + '</b>' + _esCev('es.cipeDokunKaldir',' — çipe tekrar dokunarak kaldırabilirsiniz.') + '</div>';
     }
-    panel.innerHTML = '<div class="empty-list">' + _esCev('es.eserBulunamadi','Eser bulunamadı') + _ipucu + '</div>';
+    panel.innerHTML = '<div class="empty-list">' + _esCev('es.eserBulunamadi','Eser bulunamadı') + _ipucu + tercihAramaHtml() + '</div>';
     return;
   }
   const favs = getFavs();
@@ -3298,6 +3377,7 @@ function renderList() {
   _listeSinir = Math.max(LISTE_PARCA, _listeSinir, secili + 1);
   panel.innerHTML = filteredData.slice(0, _listeSinir).map(_listeKart).join('');
   if (defterIpucuGoster()) panel.insertAdjacentHTML('afterbegin', defterIpucuHtml());
+  if (_tercihGizli) panel.insertAdjacentHTML('afterbegin', tercihAramaHtml());   // (2026-11-08)
   _listeGozcuKur(panel);
 }
 

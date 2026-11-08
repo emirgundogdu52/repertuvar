@@ -301,7 +301,7 @@ window.YARDIM_VERI = {
    "id": "muzik-tercihleri",
    "kategori": "Per iniziare",
    "baslik": "Come cambio le mie preferenze musicali?",
-   "ozet": "Nella sezione La mia musica delle Impostazioni scegli i generi che suoni e tocca Salva; questa scelta non nasconde nessun brano.",
+   "ozet": "Nella sezione La mia musica delle Impostazioni scegli i generi che suoni e tocca Salva; l'elenco Brani si aprirà solo con questi generi.",
    "anahtar": [
     "preferenze musicali",
     "generi musicali",
@@ -322,7 +322,8 @@ window.YARDIM_VERI = {
     "Tocca **Salva**. Compare la scritta **Salvato ✓**."
    ],
    "ipuclari": [
-    "Come spiegato nelle Impostazioni, questa scelta serve a mettere in evidenza brani e contenuti adatti a te; non nasconde nessun brano ed è indipendente dalla lingua dell'app.",
+    "I generi che scegli diventano un filtro in **Brani**: l'elenco mostra solo i brani di questi generi. I tuoi preferiti, le bozze e i brani che hai aggiunto tu restano sempre visibili. La scelta è indipendente dalla lingua dell'app.",
+    "Per vedere tutti i generi, apri **Filtri** in **Brani** e tocca **Mostra tutti i generi** o **Azzera filtri**. Su questo dispositivo resta così; se salvi di nuovo le preferenze, il filtro torna.",
     "Quando crei un nuovo account può comparire una volta la finestra **Conosciamo un po' la tua musica**: scegli i generi e tocca **Continua**, oppure chiudi la finestra con **Salta per ora**. In seguito puoi cambiare la scelta da qui.",
     "Se salvi mentre sei offline, compare **Salvato su questo dispositivo; verrà sincronizzato quando tornerai online.**",
     "Quali campi (come makam, usul e tonica) compaiono nei nuovi brani lo scegli nella sezione **Campi musicali** della stessa pagina."
@@ -423,7 +424,9 @@ window.YARDIM_VERI = {
     "chip genere",
     "ricorda lingua",
     "solo turco",
-    "mostra tutte le lingue"
+    "mostra tutte le lingue",
+    "mostra tutti i generi",
+    "filtro preferenze musicali"
    ],
    "adimlar": [
     "Vai in **Brani**.",
@@ -433,13 +436,14 @@ window.YARDIM_VERI = {
     "L'ordinamento e gli altri filtri sono più in basso nello stesso pannello.",
     "Nel pannello **Filtri e ordinamento** che si apre, sotto **Ordina** scegli **Per titolo**, **Per compositore**, **Per makam**, **Per forma** o **Per regione**.",
     "Nelle sezioni **Genere / Forma**, **Accordatura**, **Regione** e **Makam** tocca il valore che vuoi; accanto a ogni valore è indicato quanti brani ci sono. Se tocchi di nuovo lo stesso valore, il filtro si toglie.",
-    "Per azzerare i filtri tocca **Azzera filtri**; questo pulsante svuota anche la casella di ricerca. Se vuoi mantenere il testo della ricerca, tocca invece **Tutti** sopra l'elenco. Nessuno dei due pulsanti toglie la lingua scelta."
+    "Per azzerare i filtri tocca **Azzera filtri**, subito sotto la sezione **Lingua e genere**; questo pulsante svuota anche la casella di ricerca e toglie il filtro delle tue preferenze musicali. Se vuoi mantenere il testo della ricerca, tocca invece **Tutti** sopra l'elenco. Nessuno dei due pulsanti toglie la lingua scelta."
    ],
    "ipuclari": [
     "Il chip **Nessun genere** mostra i brani a cui non è ancora stato assegnato un genere.",
     "I chip della lingua compaiono solo se nel tuo elenco ci sono brani in più di una lingua.",
     "La scelta della lingua vale solo per l'elenco dei brani e per la ricerca; le tue scalette non cambiano. Se non trovi un brano mentre è scelta una lingua, apri **Filtri** e tocca prima **Mostra tutte le lingue**.",
-    "Anche gli altri filtri e l’ordinamento vengono memorizzati su questo dispositivo finché non li cambi. Per togliere i filtri tocca **Tutti**."
+    "Anche gli altri filtri e l’ordinamento vengono memorizzati su questo dispositivo finché non li cambi. Per togliere i filtri tocca **Tutti**; il filtro della lingua e quello delle preferenze musicali restano.",
+    "Se nelle Impostazioni hai scelto le preferenze musicali, l'elenco mostra solo quei generi e sotto i chip compare «In base alle tue preferenze musicali vengono mostrati solo questi generi». I tuoi preferiti, le bozze e i brani che hai aggiunto tu non vengono mai filtrati. Per tornare a tutti i generi tocca **Mostra tutti i generi** nella nota. Se il brano che cerchi è di un altro genere, tocca **Mostra** sopra i risultati della ricerca."
    ],
    "platform": "",
    "ilgili": [

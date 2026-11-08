@@ -7,8 +7,8 @@
  * Örnek: Hollanda'da yaşayan, tarayıcısı İngilizce bir THM icracısı → ui_lang='en',
  * music_preferences={turkish_folk}. Arayüz İngilizce, Türkçe eserler aynen erişilebilir.
  *
- * TERCİH HİÇBİR ŞEYİ GİZLEMEZ. Yalnız öneri/sıralama sinyalidir; ileride Eserler'deki
- * Dil/Tür süzgeçlerinin VARSAYILAN önerisi olabilir (TURLER[].turlar: works.tur eşlemesi).
+ * (2026-11-08, Emir) Tercih Eserler listesinde TÜR SÜZGECİ olarak uygulanır (eserler.html _tercih; TURLER[].turlar: works.tur
+ * eşlemesi). Filtreleri Temizle kapatır; kaydet() yeniden açar. Favoriler, Taslaklarım ve kişinin kendi eserleri etkilenmez.
  *
  * KİME: hesabı son 3 günde açılmış + music_preferences NULL (hiç sorulmamış). Bir kez.
  *   NULL = hiç sorulmadı · '{}' = "Şimdilik geç" · dolu = seçim. Ayarlar → Müzik tercihlerim'den değişir.
@@ -58,6 +58,8 @@
   async function kaydet(liste) {
     liste = temizle(liste); yerelYaz(liste);
     try { localStorage.setItem(BEKLEYEN, JSON.stringify(liste)); } catch (e) {}
+    // (2026-11-08) Eserler'de tercih süzgeci "Filtreleri Temizle" ile kapatılmış olabilir; tercih kaydedilince yeniden kurulsun.
+    try { localStorage.removeItem('esTercihKapali'); } catch (e) {}
     var u = uid(); if (!u) return false;
     var r = await fetch(SUPA_URL + '/rest/v1/profiles?id=eq.' + u + '&select=music_preferences', {
       method: 'PATCH',
@@ -219,10 +221,10 @@
   }
 
   window.MuzikTercihi = {
-    TURLER: TURLER, ad: ad, yerelOku: yerelOku, sunucudanOku: sunucudanOku, kaydet: kaydet,
+    TURLER: TURLER, ad: ad, yerelOku: yerelOku, yerelYaz: yerelYaz, sunucudanOku: sunucudanOku, kaydet: kaydet,
     cipler: function (kap, secili, degisti) { stilEkle(); kap.classList.add('mt-cipler'); return cipler(kap, temizle(secili), degisti); },
     pencere: pencere,
-    // ileride Eserler'in Tür süzgeci için: seçili türlerin works.tur karşılıkları (VARSAYILAN öneri, süzgeç değil)
+    // Eserler'in tercih süzgeci için: seçili türlerin works.tur karşılıkları
     eserTurleri: function (liste) { var s = []; temizle(liste || yerelOku() || []).forEach(function (k) { TURLER.forEach(function (x) { if (x.k === k) s = s.concat(x.turlar); }); }); return s; }
   };
 
