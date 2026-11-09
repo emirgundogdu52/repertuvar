@@ -2,6 +2,8 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-11-09: TÜR ÇİPLERİ ÇOKLU SEÇİM — THM + Türk Pop gibi birden çok tür birlikte seçilebilir
+    (activeFilters.tur: dizi ya da null; hatırlanan eski tek değer diziye çevrilir). Dil çipi tek seçimli kaldı.
   - 2026-10-22: NOTA DEPO TEMİZLİĞİ — saveNotaPages listeden çıkan sayfaların dosyalarını depodan siler
     (_notaDepodanSil: yalnız notalar/works/<id>/, liste sunucuya yazıldıktan sonra, sonuç beklenmez). Döndür/kırp
     eski dosyayı, sayfa/nota silme dosyayı artık depoda bırakmıyor. Sunucu tarafı sql/notalar_temizlik.sql
@@ -2182,7 +2184,7 @@ let sortMode = (function () { try { const m = localStorage.getItem('esSiralama')
 const _SUZGEC_ALANLARI = ['form', 'tuning', 'region', 'makam', 'tur'];
 let activeFilters = (function () {
   const v = { form: null, tuning: null, region: null, makam: null, tur: null, dil: null };
-  try { const k = JSON.parse(localStorage.getItem('esSuzgecler') || '{}') || {}; _SUZGEC_ALANLARI.forEach(function (a) { if (typeof k[a] === 'string' && k[a]) v[a] = k[a]; }); } catch (e) {}
+  try { const k = JSON.parse(localStorage.getItem('esSuzgecler') || '{}') || {}; _SUZGEC_ALANLARI.forEach(function (a) { if (typeof k[a] === 'string' && k[a]) v[a] = k[a]; }); if (typeof v.tur === 'string') v.tur = [v.tur]; else if (Array.isArray(k.tur)) { const t = k.tur.filter(function (x) { return typeof x === 'string' && x; }); v.tur = t.length ? t : null; } } catch (e) {}
   return v;
 })();
 function _suzgecleriSakla() {
@@ -2202,7 +2204,7 @@ function dilSecimiYaz(kod) {
   try { _dilSecimi ? localStorage.setItem('esDilSuzgeci', _dilSecimi) : localStorage.removeItem('esDilSuzgeci'); } catch (e) {}
 }
 // (2026-11-08) Emir: kayıtta verilen müzik tercihi (onboarding.js; Ayarlar → Müzik Tercihlerim) Eserler'de süzgeç olsun,
-// "gereksiz bir sürü eseri görmeden devam edebilsin". Tek seçimli tür çipinden AYRI bir kapsam (dil gibi), birden çok türü
+// "gereksiz bir sürü eseri görmeden devam edebilsin". Tür çiplerinden AYRI bir kapsam (dil gibi), birden çok türü
 // kapsar. Tür çipi seçiliyken çip geçerlidir. Favoriler, Taslaklarım ve kişinin KENDİ eserleri süzülmez ("eserim kayboldu"
 // tuzağı olmasın). Filtreleri Temizle ya da nottaki "Tüm türleri göster" kapatır; kapalılık bu cihazda, o tercih için
 // hatırlanır ('esTercihKapali' = kapatılan tercihin imzası). Tercih kaydedilince (MuzikTercihi.kaydet) yeniden kurulur.
@@ -2371,8 +2373,8 @@ function setDilFilter(kod) {
   // Seçili tür yeni dilde yoksa kaldır (görünmeyen bir çip listeyi sessizce boşaltmasın)
   if (activeFilters.tur) {
     const r = turSayilari();
-    const var_ = activeFilters.tur === '__yok__' ? r.bos > 0 : r.liste.some(function (e) { return e[0] === activeFilters.tur; });
-    if (!var_) activeFilters.tur = null;
+    const kalan = activeFilters.tur.filter(function (t) { return t === '__yok__' ? r.bos > 0 : r.liste.some(function (e) { return e[0] === t; }); });
+    activeFilters.tur = kalan.length ? kalan : null;
   }
   buildTurChips();
   applyFilters();
@@ -2433,18 +2435,19 @@ function turKaydir(yon) {
   if (el) el.scrollBy({ left: yon * Math.round(el.clientWidth * 0.7), behavior: 'smooth' });
 }
 
-// Tek secim: ayni cipe tekrar dokunmak suzgeci KALDIRIR (ac/kapa).
-// Cok secim bilincli olarak yapilmadi — sahnede tek dokunus, ve "THM+TSM acikken
-// bu neden cikmadi" karmasasi olmasin diye.
+// (2026-11-09) Coklu secim (Emir: "THM ve Turk Pop birlikte"): her cip ac/kapa; secili turlerden
+// herhangi birine uyan eser listelenir. Hic secim kalmayinca null (suzgec yok).
 function setTurFilter(val) {
-  activeFilters.tur = (activeFilters.tur === val) ? null : val;
+  const secili = activeFilters.tur || [];
+  const yeni = secili.indexOf(val) >= 0 ? secili.filter(function (t) { return t !== val; }) : secili.concat(val);
+  activeFilters.tur = yeni.length ? yeni : null;
   updateTurChips();
   applyFilters();
 }
 
 function updateTurChips() {
   document.querySelectorAll('#turChipRow .tur-chip').forEach(function (b) {
-    b.classList.toggle('active', b.dataset.dil ? activeFilters.dil === b.dataset.dil : activeFilters.tur === b.dataset.tur);
+    b.classList.toggle('active', b.dataset.dil ? activeFilters.dil === b.dataset.dil : (activeFilters.tur || []).indexOf(b.dataset.tur) >= 0);
   });
 }
 
@@ -2540,8 +2543,7 @@ function applyFilters() {
     // (2026-08-21) Tur cipi. '__yok__' = turu henuz girilmemis eserler.
     if (activeFilters.tur) {
       const _t = (w.tur || '').trim();
-      if (activeFilters.tur === '__yok__') { if (_t) return false; }
-      else if (_t !== activeFilters.tur) return false;
+      if (activeFilters.tur.indexOf(_t || '__yok__') < 0) return false;
     }
     if (qn && !_araMetni(w).includes(qn)) return false;
     if (_trUygula && w.submitted_by !== uid && !_trTur.has((w.tur || '').trim())) { if (qn) _tercihGizli++; return false; }
@@ -2608,7 +2610,7 @@ function tumuDurumunuYaz() {
   // (2026-11-07) Filtreler düğmesindeki sayı: açık süzgeçler (hatırlanan dil dahil: dil notu artık Filtre sayfasında) + Taslaklarım.
   const _fs = document.getElementById('filtreSayi');
   // (2026-11-08) müzik tercihi süzgeci de bir süzgeç sayılır; "Tümü"nü ise dil gibi etkilemez (kapsam: notta yazıyor).
-  if (_fs) { const _n = Object.keys(activeFilters).filter(function (k) { return activeFilters[k]; }).length + (draftOnly ? 1 : 0) + (_tercihAktif ? 1 : 0); _fs.textContent = _n; _fs.hidden = !_n; }
+  if (_fs) { const _n = Object.keys(activeFilters).reduce(function (n, k) { const v = activeFilters[k]; return n + (Array.isArray(v) ? v.length : (v ? 1 : 0)); }, 0) + (draftOnly ? 1 : 0) + (_tercihAktif ? 1 : 0); _fs.textContent = _n; _fs.hidden = !_n; }
   allBtn.classList.toggle('active', hepsi);
   allBtn.style.background = hepsi ? 'var(--surface2)' : 'none';
   allBtn.style.color = hepsi ? 'var(--text)' : 'var(--text2)';
@@ -3309,7 +3311,7 @@ function renderList() {
       _ipucu += '<div style="margin-top:8px;font-size:12px;color:var(--text3);">' + _esCev('es.acikDilSuzgeci','Açık dil süzgeci:') + ' <b>' + dilAdi(activeFilters.dil) + '</b>' + _esCev('es.cipeDokunKaldir',' — çipe tekrar dokunarak kaldırabilirsiniz.') + '</div>';
     }
     if (activeFilters.tur) {
-      const _ad = activeFilters.tur === '__yok__' ? _esCev('es.tursuz','Türü belirlenmemiş') : activeFilters.tur;
+      const _ad = activeFilters.tur.map(function (t) { return t === '__yok__' ? _esCev('es.tursuz','Türü belirlenmemiş') : t; }).join(', ');
       _ipucu += '<div style="margin-top:8px;font-size:12px;color:var(--text3);">' + _esCev('es.acikTurSuzgeci','Açık tür süzgeci:') + ' <b>' + _ad + '</b>' + _esCev('es.cipeDokunKaldir',' — çipe tekrar dokunarak kaldırabilirsiniz.') + '</div>';
     }
     panel.innerHTML = '<div class="empty-list">' + _esCev('es.eserBulunamadi','Eser bulunamadı') + _ipucu + tercihAramaHtml() + '</div>';
