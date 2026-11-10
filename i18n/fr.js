@@ -77,6 +77,7 @@
   "es.sortMakam": "Par makam",
   "es.sortForm": "Par forme",
   "es.sortYore": "Par région",
+  "es.sortOlcu": "Par mesure",
   "es.yeniRepAdi": "Nom de la nouvelle setlist\u00a0:",
   "es.repOlusturuldu": "✓ Setlist «\u00a0{ad}\u00a0» créée avec {n} morceaux.",
   "es.repOlusturulduTek": "✓ Setlist « {ad} » créée avec {n} morceau.",

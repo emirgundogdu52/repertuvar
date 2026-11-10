@@ -77,6 +77,7 @@
   "es.sortMakam": "حسب المقام",
   "es.sortForm": "حسب القالب",
   "es.sortYore": "حسب المنطقة",
+  "es.sortOlcu": "حسب الميزان",
   "es.yeniRepAdi": "اسم قائمة العزف الجديدة:",
   "es.repOlusturuldu": "✓ أُنشئت قائمة العزف «{ad}» وفيها {n} مقطوعة.",
   "es.hizaKilitlendi": "تم قفل المحاذاة — المس كوردًا في المعاينة ثم حرّكه بـ ◀ ▶",

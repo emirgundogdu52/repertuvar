@@ -2,6 +2,9 @@
 <!-- design-test v1 -->
 <!--
   DEĞİŞİKLİK GÜNLÜĞÜ (en üstte):
+  - 2026-11-10: ÖLÇÜ / USUL — Filtreler'e Makam'ın altına "Ölçü" (measurement) ve "Usul" (ritim) bölümleri; Sırala'ya
+    "Ölçüye Göre" (sayısal, repertuvardaki 🎼 Sırala ile aynı kural: payda, sonra pay; ölçüsüz sona). Değeri olmayan süzgeç bölümü artık gizleniyor (Usul şimdilik
+    ~8 eserde dolu). İki süzgeç de diğerleri gibi bu cihazda hatırlanır. Emir: "9/8'liklerle devam etmek istiyorsun, napıcan?"
   - 2026-11-09: TÜR ÇİPLERİ ÇOKLU SEÇİM — THM + Türk Pop gibi birden çok tür birlikte seçilebilir
     (activeFilters.tur: dizi ya da null; hatırlanan eski tek değer diziye çevrilir). Dil çipi tek seçimli kaldı.
   - 2026-10-22: NOTA DEPO TEMİZLİĞİ — saveNotaPages listeden çıkan sayfaların dosyalarını depodan siler
@@ -1836,6 +1839,7 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
         <button class="sort-dd-item active" onclick="setSort('name')" data-i18n="es.ada">Ada Göre</button>
         <button class="sort-dd-item" onclick="setSort('composer')" data-i18n="es.besteci">Besteciye Göre</button>
         <button class="sort-dd-item" onclick="setSort('makam')" data-i18n="es.makama">Makama Göre</button>
+        <button class="sort-dd-item" onclick="setSort('olcu')" data-i18n="es.sortOlcu">Ölçüye Göre</button>
         <button class="sort-dd-item" onclick="setSort('form')" data-i18n="es.forma">Forma Göre</button>
         <button class="sort-dd-item" onclick="setSort('region')" data-i18n="es.yoreye">Yöreye Göre</button>
       </div>
@@ -1855,6 +1859,14 @@ body{font-family:var(--font)!important;background:var(--bg)!important;color:var(
     <div class="filter-section">
       <span class="filter-label" data-i18n="es.makam">Makam</span>
       <div id="makamFilters"></div>
+    </div>
+    <div class="filter-section">
+      <span class="filter-label" data-i18n="alan.olcu">Ölçü</span>
+      <div id="olcuFilters"></div>
+    </div>
+    <div class="filter-section">
+      <span class="filter-label" data-i18n="alan.usul">Usul</span>
+      <div id="usulFilters"></div>
     </div>
   </aside>
 
@@ -2176,14 +2188,14 @@ async function syncWorksFromServer(hadLocalData) {
 }
 let filteredData = [...DATA];
 let selectedId = null;
-let sortMode = (function () { try { const m = localStorage.getItem('esSiralama'); return ['name', 'composer', 'makam', 'form', 'region'].indexOf(m) >= 0 ? m : 'name'; } catch (e) { return 'name'; } })();   // (2026-11-07) hatırlanır
+let sortMode = (function () { try { const m = localStorage.getItem('esSiralama'); return ['name', 'composer', 'makam', 'olcu', 'form', 'region'].indexOf(m) >= 0 ? m : 'name'; } catch (e) { return 'name'; } })();   // (2026-11-07) hatırlanır
 // (2026-11-07) Emir: "Seçtiğim filtreler ben değiştirene kadar aklında kalsın! THM icracısı her seferinde filtreleri THM'ye
 // getirmek zorunda kalmasın." → tür, form, akort, bölge, makam süzgeçleri ve sıralama bu cihazda hatırlanır ('esSuzgecler',
 // 'esSiralama'); dil zaten ayrı hatırlanıyordu ('esDilSuzgeci'). Eskiden (2026-08-21) bilerek hatırlanmıyordu ("gizli süzgeç
 // tuzağı": eserlerim kayboldu sanılmasın); artık Filtreler düğmesinde açık süzgeç sayısı görünüyor, tuzak kalmadı.
-const _SUZGEC_ALANLARI = ['form', 'tuning', 'region', 'makam', 'tur'];
+const _SUZGEC_ALANLARI = ['form', 'tuning', 'region', 'makam', 'measurement', 'ritim', 'tur'];
 let activeFilters = (function () {
-  const v = { form: null, tuning: null, region: null, makam: null, tur: null, dil: null };
+  const v = { form: null, tuning: null, region: null, makam: null, measurement: null, ritim: null, tur: null, dil: null };
   try { const k = JSON.parse(localStorage.getItem('esSuzgecler') || '{}') || {}; _SUZGEC_ALANLARI.forEach(function (a) { if (typeof k[a] === 'string' && k[a]) v[a] = k[a]; }); if (typeof v.tur === 'string') v.tur = [v.tur]; else if (Array.isArray(k.tur)) { const t = k.tur.filter(function (x) { return typeof x === 'string' && x; }); v.tur = t.length ? t : null; } } catch (e) {}
   return v;
 })();
@@ -2294,6 +2306,8 @@ function buildFilters() {
   function makeSection(id, field) {
     const el = document.getElementById(id);
     const items = getUnique(field);
+    // (2026-11-10) Değeri olmayan bölüm gizlenir (Usul alanı henüz neredeyse boş; boş başlık kalmasın)
+    const sec = el.closest('.filter-section'); if (sec) sec.style.display = items.length ? '' : 'none';
     el.innerHTML = items.map(([val, cnt]) =>
       // (2026-10-17) XSS: değer onclick'e gömülüyordu (replace(/'/g,"\'") hiçbir şey yapmıyordu) → data-val'dan okunur
       `<button class="filter-btn" data-field="${field}" data-val="${_esHtml(val)}" onclick="toggleFilter('${field}',this.dataset.val)">
@@ -2305,6 +2319,8 @@ function buildFilters() {
   makeSection('tuningFilters', 'tuning');
   makeSection('regionFilters', 'region');
   makeSection('makamFilters', 'makam');
+  makeSection('olcuFilters', 'measurement');   // (2026-11-10) Emir: "9/8'liklerle devam etmek istiyorsun, napıcan?"
+  makeSection('usulFilters', 'ritim');
   updateFilterButtons();   // (2026-11-07) hatırlanan süzgeçler düğmelerde seçili görünsün
   document.querySelectorAll('.sort-dd-item').forEach(function (b) { b.classList.toggle('active', (b.getAttribute('onclick') || '').indexOf("'" + sortMode + "'") >= 0); });
   buildTurChips();
@@ -2465,7 +2481,7 @@ function updateFilterButtons() {
 }
 
 function clearFilters() {
-  activeFilters = { form: null, tuning: null, region: null, makam: null, tur: null, dil: null };
+  activeFilters = { form: null, tuning: null, region: null, makam: null, measurement: null, ritim: null, tur: null, dil: null };
   _tercihKapat();    // (2026-11-08) müzik tercihi süzgeci de kalkar ve bu cihazda kapalı kalır (Emir)
   document.getElementById('searchInput').value = '';
   updateFilterButtons();
@@ -2539,6 +2555,8 @@ function applyFilters() {
     if (activeFilters.tuning && w.tuning !== activeFilters.tuning) return false;
     if (activeFilters.region && w.region !== activeFilters.region) return false;
     if (activeFilters.makam && w.makam !== activeFilters.makam) return false;
+    if (activeFilters.measurement && w.measurement !== activeFilters.measurement) return false;   // (2026-11-10) ölçü
+    if (activeFilters.ritim && w.ritim !== activeFilters.ritim) return false;                     // (2026-11-10) usul
     if (activeFilters.dil && (w.dil || 'tr') !== activeFilters.dil) return false;   // (2026-10-08) dil çipi
     // (2026-08-21) Tur cipi. '__yok__' = turu henuz girilmemis eserler.
     if (activeFilters.tur) {
@@ -3163,7 +3181,7 @@ document.addEventListener('click', function(e) {
   }
 });
 
-const SORT_LABELS = { name:_esCev('es.sortAd','Ada Göre'), composer:_esCev('es.sortBesteci','Besteciye Göre'), makam:_esCev('es.sortMakam','Makama Göre'), form:_esCev('es.sortForm','Forma Göre'), region:_esCev('es.sortYore','Yöreye Göre') };
+const SORT_LABELS = { name:_esCev('es.sortAd','Ada Göre'), composer:_esCev('es.sortBesteci','Besteciye Göre'), makam:_esCev('es.sortMakam','Makama Göre'), olcu:_esCev('es.sortOlcu','Ölçüye Göre'), form:_esCev('es.sortForm','Forma Göre'), region:_esCev('es.sortYore','Yöreye Göre') };
 
 function setSort(mode) {
   sortMode = mode;
@@ -3181,10 +3199,23 @@ function setSort(mode) {
 // (2026-11-05) TEK SIRALAYICI. localeCompare(…, 'tr') her karşılaştırmada dil kurallarını yeniden kuruyordu: 10.412 eserde
 // ~140 bin çağrı, Emir'in iPad'inde (7. nesil) liste açılışının ~1,2 sn'si (cihaz ölçümü); Mac WebKit'te 240 ms → 4 ms. Aynı sıra.
 const _trSira = new Intl.Collator('tr').compare;
+// (2026-11-10) Ölçüye göre sıra SAYISAL ve repertoires.js olcuAnahtari ile AYNI kural: önce payda, sonra pay
+// (2/4, 3/4, 4/4, 9/4, 5/8, 7/8, 9/8, 10/8…; "10/8" metin sırasında "9/8"in önüne düşerdi). Bileşik ölçüde ("7/8+4/4")
+// ilk parça esas; aynı ölçüde ada göre; ölçüsü boş eserler sona.
+function _olcuAnahtar(v) {
+  const m = /^\s*(\d+)\s*\/\s*(\d+)/.exec(v || '');
+  return m ? [+m[1], +m[2]] : null;
+}
+function _olcuSira(a, b) {
+  const x = _olcuAnahtar(a.measurement), y = _olcuAnahtar(b.measurement);
+  if (!x || !y) { if (x) return -1; if (y) return 1; return _trSira(a.name||'', b.name||''); }
+  return (x[1] - y[1]) || (x[0] - y[0]) || _trSira(a.measurement, b.measurement) || _trSira(a.name||'', b.name||'');
+}
 function sortData() {
   if (sortMode === 'name') filteredData.sort((a,b) => _trSira(a.name||'', b.name||''));
   else if (sortMode === 'composer') filteredData.sort((a,b) => _trSira(a.composer||a.seslendiren||'zzz', b.composer||b.seslendiren||'zzz'));
   else if (sortMode === 'makam') filteredData.sort((a,b) => _trSira(a.makam||'zzz', b.makam||'zzz'));
+  else if (sortMode === 'olcu') filteredData.sort((a,b) => _olcuSira(a, b));
   else if (sortMode === 'form') filteredData.sort((a,b) => _trSira(a.form||'zzz', b.form||'zzz'));
   else if (sortMode === 'region') filteredData.sort((a,b) => _trSira(a.region||'zzz', b.region||'zzz'));
 }

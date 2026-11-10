@@ -77,6 +77,7 @@
   "es.sortMakam": "Op makam",
   "es.sortForm": "Op vorm",
   "es.sortYore": "Op regio",
+  "es.sortOlcu": "Op maatsoort",
   "es.yeniRepAdi": "Naam voor de nieuwe setlist:",
   "es.repOlusturuldu": "✓ Setlist \"{ad}\" aangemaakt met {n} stukken.",
   "es.repOlusturulduTek": "✓ Setlist \"{ad}\" aangemaakt met {n} stuk.",

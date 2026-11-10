@@ -77,6 +77,7 @@
   "es.sortMakam": "Por makam",
   "es.sortForm": "Por forma",
   "es.sortYore": "Por región",
+  "es.sortOlcu": "Por compás",
   "es.yeniRepAdi": "Nombre del nuevo repertorio:",
   "es.repOlusturuldu": "✓ Repertorio \"{ad}\" creado con {n} obras.",
   "es.repOlusturulduTek": "✓ Repertorio \"{ad}\" creado con {n} obra.",

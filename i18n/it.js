@@ -77,6 +77,7 @@
   "es.sortMakam": "Per makam",
   "es.sortForm": "Per forma",
   "es.sortYore": "Per regione",
+  "es.sortOlcu": "Per metro",
   "es.yeniRepAdi": "Nome della nuova scaletta:",
   "es.repOlusturuldu": "✓ Scaletta \"{ad}\" creata con {n} brani.",
   "es.repOlusturulduTek": "✓ Scaletta \"{ad}\" creata con {n} brano.",

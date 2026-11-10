@@ -77,6 +77,7 @@
   "es.sortMakam": "Məqama görə",
   "es.sortForm": "Formaya görə",
   "es.sortYore": "Bölgəyə görə",
+  "es.sortOlcu": "Ölçüyə görə",
   "es.yeniRepAdi": "Yeni repertuarın adı:",
   "es.repOlusturuldu": "✓ \"{ad}\" repertuarı {n} əsərlə yaradıldı.",
   "es.hizaKilitlendi": "Düzləndirmə kilidləndi — önbaxışda akkorda toxun, ◀ ▶ ilə sürüşdür",
