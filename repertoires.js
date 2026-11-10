@@ -1,5 +1,9 @@
 // ============================================================================
 // repertoires.js — changelog (son değişiklikler üstte)
+// 2026-11-10: 🎼 Eser Ekle'de ÖLÇÜ ŞERİDİ. Arama kutusunun altında ölçü çipleri (sayılarıyla, 🎼 Sırala ile aynı
+//             sırada: 2/4, 3/4, 4/4 … 5/8, 7/8, 9/8, 10/8); dokununca liste o ölçüye daralır, aramayla birlikte çalışır,
+//             yeniden dokununca kalkar. Sonuç satırında ölçü de görünür. WLIST'e olcu (works.measurement) eklendi.
+//             Emir: "Bir başladın, 9/8'liklere devam etmek istiyorsun, napıcan?"
 // 2026-08-20 (c): 🎧 REPERTUVARI DİNLE. Repertuvardaki eserlerin works.video_link
 //             bağlantılarından, REPERTUVAR SIRASIYLA bir çalma listesi (Emir'in
 //             amacı: ezberleme, "eserlerin tam kafaya yerleşmesi"). İKİ YOL birden:
@@ -463,7 +467,7 @@ function _applyWorksRows(rows) {
     const id = String(w.id);
     // (2026-08-20) videoLink eklendi — 🎧 Repertuvarı Dinle bunu kullanıyor.
     WL[id] = { name: w.name||'', composer: w.composer||w.seslendiren||'', makam: w.makam||'', instrument: w.instrument||'', closingNote: w.closing_note||'', lyrics: w.lyrics||'', videoLink: w.video_link||'', olcu: w.measurement||'', form: (w.form||'').trim() };
-    WLIST.push({ id, name: w.name||'', composer: w.composer||w.seslendiren||'', makam: w.makam||'', sb: w.submitted_by||'' });
+    WLIST.push({ id, name: w.name||'', composer: w.composer||w.seslendiren||'', makam: w.makam||'', olcu: (w.measurement||'').trim(), sb: w.submitted_by||'' });
   });
   // customWorks patch (yerel override'lar)
   try {
@@ -1558,7 +1562,7 @@ async function delRep(id){
   try{await dbDel('repertoires',id);if(selId===id)selId=null;toast(_r('ortak.silindi','Silindi'));await load();}catch(e){toast(e.message,'er');}
 }
 
-function openWM(repId){addRepId=repId;selWId=null;document.getElementById('ws').value='';document.getElementById('fCN').value='';document.getElementById('fIN').value='';document.getElementById('wpl').style.maxHeight='';const dw=document.getElementById('wDupWarn');if(dw)dw.style.display='none';filterW();document.getElementById('wm').style.display='flex';setTimeout(()=>document.getElementById('ws').focus(),50);}
+function openWM(repId){addRepId=repId;selWId=null;_wOlcu=null;_wOlcuN=-1;document.getElementById('ws').value='';document.getElementById('fCN').value='';document.getElementById('fIN').value='';document.getElementById('wpl').style.maxHeight='';const dw=document.getElementById('wDupWarn');if(dw)dw.style.display='none';filterW();document.getElementById('wm').style.display='flex';setTimeout(()=>document.getElementById('ws').focus(),50);}
 
 // ── İCRACILAR TAG UI ──
 let pfSelected = []; // seçili sanatçılar
@@ -1646,12 +1650,34 @@ function _rbEserGorunur(w){
   if(RB.gizliEserMi(w.id)) return false;
   return !(w.sb && RB.engelliMi(w.sb) && w.sb!==(getUserId()||''));   // (2026-11-01) kimlik yalnız engelli eserde okunur
 }
+// (2026-11-10) Emir: "Bir başladın, 9/8'liklere devam etmek istiyorsun, napıcan?" → Eser Ekle'de ölçü şeridi.
+// Değerler eserin ölçü alanı (works.measurement) BİREBİR (eserler.html Ölçü süzgeciyle aynı eşleşme); sıra 🎼 Sırala ile
+// aynı kural (olcuAnahtari: payda, sonra pay), bileşik/tanınmayan ölçüler sonda. Seçim modal açılınca sıfırlanır.
+let _wOlcu=null, _wOlcuN=-1;
+function wOlcuSeridi(kaynak){
+  const el=document.getElementById('wOlcuSerit'); if(!el) return;
+  const say={};
+  kaynak.forEach(w=>{ if(w.olcu) say[w.olcu]=(say[w.olcu]||0)+1; });
+  const deg=Object.keys(say);
+  if(!deg.length){ el.innerHTML=''; return; }
+  const sira=v=>{ const k=olcuAnahtari(v); return (k && k.txt===v.replace(/\s+/g,'')) ? k.sira : 1e9; };
+  deg.sort((a,b)=> (sira(a)-sira(b)) || (say[b]-say[a]) || a.localeCompare(b,'tr'));
+  el.innerHTML=`<span class="w-olcu-etiket">${_rEsc(_r('alan.olcu','Ölçü'))}</span>`+deg.map(v=>
+    `<button type="button" class="w-olcu-cip${_wOlcu===v?' on':''}" data-v="${_rEsc(v)}" onclick="wOlcuSec(this.dataset.v)">${_rEsc(v)}<span class="n">${say[v]}</span></button>`).join('');
+}
+function wOlcuSec(v){
+  _wOlcu = _wOlcu===v ? null : v;
+  _wOlcuN=-1;   // şeridi yeniden çiz (seçili çip)
+  filterW();
+}
 function filterW(){
   const q=document.getElementById('ws').value.trim();
-  const kaynak=WLIST.filter(_rbEserGorunur);
+  let kaynak=WLIST.filter(_rbEserGorunur);
+  if(_wOlcuN!==WLIST.length){ wOlcuSeridi(kaynak); _wOlcuN=WLIST.length; }
+  if(_wOlcu) kaynak=kaynak.filter(w=>w.olcu===_wOlcu);
   // Türkçe duyarsız: "Gülşen" kaydı "gulsen", "Çeşm-i" kaydı "cesmi" ile bulunur.
   const list=q?kaynak.filter(w=>trMatch((w.name||'')+' '+(w.composer||'')+' '+(w.makam||''), q)):kaynak;
-  document.getElementById('wpl').innerHTML=list.slice(0,80).map(w=>`<div class="wpi${selWId===w.id?' sel':''}" onclick="pickW('${w.id}')"><div class="wpn">${_rEsc(w.name)}</div><div class="wps">${_rEsc([w.composer,w.makam].filter(Boolean).join(' · '))}</div></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--text3);">'+_r('rep.bulunamadi','Bulunamadı')+'</div>';
+  document.getElementById('wpl').innerHTML=list.slice(0,80).map(w=>`<div class="wpi${selWId===w.id?' sel':''}" onclick="pickW('${w.id}')"><div class="wpn">${_rEsc(w.name)}</div><div class="wps">${_rEsc([w.composer,w.makam,w.olcu].filter(Boolean).join(' · '))}</div></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--text3);">'+_r('rep.bulunamadi','Bulunamadı')+'</div>';
 }
 function pickW(id){
   selWId=id;
